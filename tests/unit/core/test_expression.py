@@ -34,7 +34,7 @@ class _EchoNode(_StubNode):
         return x
 
 
-# ── arithmetic ────────────────────────────────────────────────────────────────
+# -- arithmetic ----------------------------------------------------------------
 
 
 class TestArithmetic:
@@ -66,7 +66,7 @@ class TestArithmetic:
             Expression("10 ** 10 ** 10").get()
 
 
-# ── node references ───────────────────────────────────────────────────────────
+# -- node references -----------------------------------------------------------
 
 
 class TestNodeReferences:
@@ -145,7 +145,7 @@ class TestNodeReferences:
         assert expression.node_references == []
 
 
-# ── broadcasting and bounds ───────────────────────────────────────────────────
+# -- broadcasting and bounds ---------------------------------------------------
 
 
 class TestBroadcastAndBounds:
@@ -206,7 +206,7 @@ class TestBroadcastAndBounds:
         assert expression.get() == 0.5
 
 
-# ── rejected syntax ───────────────────────────────────────────────────────────
+# -- rejected syntax -----------------------------------------------------------
 
 
 class TestRejectedSyntax:
@@ -266,7 +266,7 @@ class TestRejectedSyntax:
             Expression(text)
 
 
-# ── copy semantics ────────────────────────────────────────────────────────────
+# -- copy semantics ------------------------------------------------------------
 
 
 class TestCopySemantics:

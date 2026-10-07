@@ -44,7 +44,7 @@ def _calculate_emission_factor_ttw(
     Returns
     -------
     float
-        TTW emission factor (ton emission / ton fuel-in).
+        TTW emission factor, in ton emission / ton fuel-in.
     """
     emission_name = emission.name
     fuel_type = fuel.fuel_type

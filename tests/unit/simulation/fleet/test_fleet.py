@@ -237,10 +237,10 @@ def _conv_total(proposals: list[_ConversionProposal], pair: tuple[str, str]) -> 
 
 
 class TestReconcileFuelConversionCaps:
-    """Test `_reconcile_fuel_conversion_caps` — the per-pair flow cap."""
+    """Test `_reconcile_fuel_conversion_caps` - the per-pair flow cap."""
 
     def test_no_pair_limit_no_op(self):
-        # All limits at default 1.0 (100% of fleet/yr) ⇒ proposals untouched.
+        # All limits at default 1.0 (100% of fleet/yr) -> proposals untouched.
         fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 1.0, ("x", "z"): 1.0})
         proposals = _proposals({("x", 0): {"y": 3.0, "z": 2.0}})
         reconcile_fuel_conversion_caps(
@@ -250,8 +250,8 @@ class TestReconcileFuelConversionCaps:
         np.testing.assert_almost_equal(_conv_total(proposals, ("x", "z")), 2.0)
 
     def test_pair_cap_binds(self):
-        # 100 vessels, x→y limited to 0.05 ⇒ pair_cap = 5/yr.
-        # Proposed 8 → 5; x→z (limit 1.0) untouched.
+        # 100 vessels, x->y limited to 0.05 -> pair_cap = 5/yr.
+        # Proposed 8 -> 5; x->z (limit 1.0) untouched.
         fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.05, ("x", "z"): 1.0})
         proposals = _proposals({("x", 0): {"y": 8.0, "z": 1.0}})
         reconcile_fuel_conversion_caps(
@@ -272,10 +272,10 @@ class TestReconcileFuelConversionCaps:
         np.testing.assert_almost_equal(_conv_total(proposals, ("x", "z")), 3.0)
 
     def test_pair_cap_aggregates_across_increments(self):
-        # Same pair (x→y) appears in two different increments — pair-cap binds on
+        # Same pair (x->y) appears in two different increments - pair-cap binds on
         # the sum.
         fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.05})
-        # Two increments of x→y: 4 and 6. Sum=10 > pair_cap=5 ⇒ scale 0.5 each.
+        # Two increments of x->y: 4 and 6. Sum=10 > pair_cap=5 -> scale 0.5 each.
         proposals = _proposals({("x", 0): {"y": 4.0}, ("x", 1): {"y": 6.0}})
         reconcile_fuel_conversion_caps(
             fleet, proposals, time_step=YEAR, existing_total=100.0
@@ -284,7 +284,7 @@ class TestReconcileFuelConversionCaps:
         np.testing.assert_almost_equal(proposals[1].candidates["y"].count, 3.0)
 
     def test_time_step_scales_budget(self):
-        # 5-year time_step with pair_limit=0.1 ⇒ pair_cap = 0.5 * 100 = 50.
+        # 5-year time_step with pair_limit=0.1 -> pair_cap = 0.5 * 100 = 50.
         fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.1})
         proposals = _proposals({("x", 0): {"y": 60.0}})
         reconcile_fuel_conversion_caps(
@@ -293,7 +293,7 @@ class TestReconcileFuelConversionCaps:
         np.testing.assert_almost_equal(_conv_total(proposals, ("x", "y")), 50.0)
 
     def test_zero_existing_no_op(self):
-        # Empty fleet ⇒ early return, proposals untouched.
+        # Empty fleet -> early return, proposals untouched.
         fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.1})
         proposals = _proposals({("x", 0): {"y": 5.0}})
         reconcile_fuel_conversion_caps(
@@ -336,7 +336,7 @@ def _make_fleet_for_retrofit(
 
 
 def _package_at_zero(n_packages: int) -> np.ndarray:
-    """Package-uptake vector, all mass at package 0 — no technology installed yet."""
+    """Package-uptake vector, all mass at package 0 - no technology installed yet."""
     arr = np.zeros(n_packages)
     arr[0] = 1.0
     return arr
@@ -377,10 +377,10 @@ def _retrofit_count(proposals: list, sorted_idx: int) -> float:
 
 
 class TestReconcileRetrofitTechnologyCaps:
-    """Test `_reconcile_retrofit_technology_caps` — the per-year retrofit flow cap."""
+    """Test `_reconcile_retrofit_technology_caps` - the per-year retrofit flow cap."""
 
     def test_no_cap_no_op(self):
-        # Defaults at 1.0/yr ⇒ proposals untouched.
+        # Defaults at 1.0/yr -> proposals untouched.
         fleet = _make_fleet_for_retrofit(["A", "B"], {}, [np.array([10.0])])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.0)]
         before = proposals[0].choices.copy()
@@ -391,7 +391,7 @@ class TestReconcileRetrofitTechnologyCaps:
 
     def test_cap_binds(self):
         # A capped at 0.05 (5/yr against y=100); proposed retrofits-to-A =
-        # (0.3+0.5)*10 = 8 ⇒ scale to 5.
+        # (0.3+0.5)*10 = 8 -> scale to 5.
         fleet = _make_fleet_for_retrofit(
             ["A", "B"], {"A": 0.05, "B": 1.0}, [np.array([10.0])]
         )
@@ -406,7 +406,7 @@ class TestReconcileRetrofitTechnologyCaps:
 
     def test_caps_independent(self):
         # B at index 1 capped at 0.02 (2/yr); A unconstrained.
-        # Proposed B = 0.5 * 10 = 5 → scale to 2 (factor 0.4); proposed A only on
+        # Proposed B = 0.5 * 10 = 5 -> scale to 2 (factor 0.4); proposed A only on
         # choices[1:] still.
         fleet = _make_fleet_for_retrofit(
             ["A", "B"], {"A": 1.0, "B": 0.02}, [np.array([10.0])]
@@ -420,7 +420,7 @@ class TestReconcileRetrofitTechnologyCaps:
 
     def test_aggregates_across_proposals(self):
         # Two proposals from package_idx=0 with multipliers 4 and 6; A cap 0.05 (5/yr).
-        # Proposed A across proposals = 0.8*4 + 0.8*6 = 8 ⇒ each scaled by 5/8.
+        # Proposed A across proposals = 0.8*4 + 0.8*6 = 8 -> each scaled by 5/8.
         fleet = _make_fleet_for_retrofit(
             ["A", "B"], {"A": 0.05}, [np.array([4.0, 6.0])]
         )
@@ -439,7 +439,7 @@ class TestReconcileRetrofitTechnologyCaps:
         np.testing.assert_almost_equal(agg_a, 5.0)
 
     def test_time_step_scales_budget(self):
-        # 5-year time_step with limit 0.05 ⇒ cap = 0.05 * 100 * 5 = 25.
+        # 5-year time_step with limit 0.05 -> cap = 0.05 * 100 * 5 = 25.
         fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([100.0])])
         proposals = [
             _proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.0)
@@ -461,14 +461,14 @@ class TestReconcileRetrofitTechnologyCaps:
 
 
 class TestReconcileRetrofitTechnologyCapsEligibility:
-    """Eligibility-share weighting: cap aggregation must use `multiplier · current`."""
+    """Eligibility-share weighting: cap aggregation must use `multiplier * current`."""
 
     def test_stratified_split_does_not_double_count(self):
         # Vessel split 50/50 between package 0 and package 1. Two proposals, one per
         # package_idx, same choices. Cap on B (sorted_idx=1): package_idx=0 contributes
-        # 10·0.5·0.5 = 2.5; package_idx=1 contributes 10·0.5·0.8 = 4.0; aggregate = 6.5.
-        # With cap 0.05·100=5, scale = 5/6.5. The buggy code (no `current` factor) would
-        # compute aggregate = 10·0.5 + 10·0.8 = 13, scale ≈ 5/13.
+        # 10*0.5*0.5 = 2.5; package_idx=1 contributes 10*0.5*0.8 = 4.0; aggregate = 6.5.
+        # With cap 0.05*100=5, scale = 5/6.5. The buggy code (no `current` factor) would
+        # compute aggregate = 10*0.5 + 10*0.8 = 13, scale ~ 5/13.
         fleet = _make_fleet_for_retrofit(
             ["A", "B"], {"A": 1.0, "B": 0.05}, [np.array([10.0])]
         )
@@ -484,10 +484,10 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
         agg_b = (
             0.5
             * 10.0
-            * float(np.sum(proposals[0].choices[2:]))  # package_idx=0 → k_start=2
+            * float(np.sum(proposals[0].choices[2:]))  # package_idx=0 -> k_start=2
             + 0.5
             * 10.0
-            * float(np.sum(proposals[1].choices[1:]))  # package_idx=1 → k_start=1
+            * float(np.sum(proposals[1].choices[1:]))  # package_idx=1 -> k_start=1
         )
         np.testing.assert_almost_equal(agg_b, 5.0)
 
@@ -497,7 +497,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
         proposals = [
             _proposal(
                 fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.0
-            ),  # eligible: contributes 10·1·0.5 = 5
+            ),  # eligible: contributes 10*1*0.5 = 5
             _proposal(
                 fleet, 0, 0, 0, np.array([0.5, 0.5]), 0.0
             ),  # ineligible: current=0
@@ -513,7 +513,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
     def test_partial_current_aggregation(self):
         # Single proposal at package_idx=0 with current=0.4: only 4 vessels of the
         # 10-multiplier are eligible.
-        # Proposed retrofits-to-A = 0.4 · 10 · 0.8 = 3.2; cap 5/yr does not bind.
+        # Proposed retrofits-to-A = 0.4 * 10 * 0.8 = 3.2; cap 5/yr does not bind.
         fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 0.05}, [np.array([10.0])])
         fleet.increments[0][0].package_uptake = np.array([0.4, 0.6, 0.0])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 0.4)]
@@ -526,7 +526,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
     def test_transfer_matches_eligibility_weight(self):
         # Reconciler and `_transfer_retrofit_uptake` must agree on the count of vessels
         # retrofitting to each technology. With current=0.4, multiplier=10,
-        # choices=[0.2,0.3,0.5]: count for A (sorted_idx=0) = 10·0.4·(0.3+0.5) = 3.2;
+        # choices=[0.2,0.3,0.5]: count for A (sorted_idx=0) = 10*0.4*(0.3+0.5) = 3.2;
         # share-of-fleet = 3.2 / 10 = 0.32.
         fleet = _make_fleet_for_retrofit(["A", "B"], {}, [np.array([10.0])])
         fleet.increments[0][0].package_uptake = np.array([0.4, 0.6, 0.0])
@@ -543,7 +543,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
         np.testing.assert_almost_equal(calls["A"], 0.32)
         np.testing.assert_almost_equal(
             calls["B"], 0.4 * 0.5
-        )  # k_start=2, tail=0.5 → 0.4·10·0.5 / 10 = 0.2
+        )  # k_start=2, tail=0.5 -> 0.4*10*0.5 / 10 = 0.2
 
 
 # ---------------------------------------------------------------------------
@@ -568,7 +568,7 @@ def _make_fleet_for_newbuild_technology(
 
 
 class TestReconcileNewbuildTechnologyCaps:
-    """Test `_reconcile_newbuild_technology_caps` — the per-year newbuild flow cap."""
+    """Test `_reconcile_newbuild_technology_caps` - the per-year newbuild flow cap."""
 
     def test_no_cap_no_op(self):
         fleet = _make_fleet_for_newbuild_technology(
@@ -582,7 +582,7 @@ class TestReconcileNewbuildTechnologyCaps:
 
     def test_cap_binds(self):
         # A capped at 0.05 (5/yr against y=100); proposed installs-of-A =
-        # (0.3+0.5)*10 = 8 → scale to 5.
+        # (0.3+0.5)*10 = 8 -> scale to 5.
         fleet = _make_fleet_for_newbuild_technology(
             ["A", "B"], {"A": 0.05, "B": 1.0}, [np.array([0.2, 0.3, 0.5])], n_vessels=1
         )
@@ -606,7 +606,7 @@ class TestReconcileNewbuildTechnologyCaps:
 
     def test_aggregates_across_vessels(self):
         # Two vessel types, each with 5 newbuilds and same uptake. A cap 0.05 (5/yr).
-        # Proposed A = 0.8*5 + 0.8*5 = 8 ⇒ each scaled by 5/8.
+        # Proposed A = 0.8*5 + 0.8*5 = 8 -> each scaled by 5/8.
         fleet = _make_fleet_for_newbuild_technology(
             ["A", "B"],
             {"A": 0.05},
@@ -623,7 +623,7 @@ class TestReconcileNewbuildTechnologyCaps:
         np.testing.assert_almost_equal(agg_a, 5.0)
 
     def test_zero_increments_no_contribution(self):
-        # Vessel 0 has 0 newbuilds ⇒ doesn't contribute. Vessel 1 carries the binding.
+        # Vessel 0 has 0 newbuilds -> doesn't contribute. Vessel 1 carries the binding.
         fleet = _make_fleet_for_newbuild_technology(
             ["A"],
             {"A": 0.05},
@@ -648,12 +648,12 @@ class TestReconcileNewbuildTechnologyCaps:
 
 
 # ---------------------------------------------------------------------------
-# Modelled-uptake cap projection (per-vessel cap_share → inter/intra DCM caps)
+# Modelled-uptake cap projection (per-vessel cap_share -> inter/intra DCM caps)
 # ---------------------------------------------------------------------------
 
 
 def _make_uniform_sensitivity() -> MagicMock:
-    """Stub sensitivity, odds ratio 1 — beta 0, equal raw shares before clipping."""
+    """Stub sensitivity, odds ratio 1 - beta 0, equal raw shares before clipping."""
     s = MagicMock()
     s.get.return_value = 1.0
     return s
@@ -697,12 +697,12 @@ class TestModelledUptakesCapProjection:
         np.testing.assert_array_almost_equal(uptake, [0.5, 0.5])
 
     def test_same_fuel_caps_sum(self):
-        # Two same-fuel vessels each capped at 0.4 ⇒ joint group cap = 0.8. Uniform raw
+        # Two same-fuel vessels each capped at 0.4 -> joint group cap = 0.8. Uniform raw
         # shares within group are [0.5, 0.5]; intra-cap is [0.5, 0.5] (cap/0.8); both
-        # clipped to 0.5. Inter-fuel: only one group, so it absorbs the full 1.0 — but
+        # clipped to 0.5. Inter-fuel: only one group, so it absorbs the full 1.0 - but
         # it is capped at 0.8 on the group level, so total uptake = group_cap *
         # intra_share = 0.8 * 0.5 = 0.4 per vessel; combined = 0.8. The old max-based
-        # code would produce combined ≤ 0.4.
+        # code would produce combined <= 0.4.
         fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
         uptake = calculate_modelled_uptake(
             fleet, vessels, idx=0, cap_share=np.array([0.4, 0.4])
@@ -712,8 +712,8 @@ class TestModelledUptakesCapProjection:
         np.testing.assert_almost_equal(uptake.sum(), 0.8)
 
     def test_same_fuel_caps_asymmetric(self):
-        # Caps [0.6, 0.2] ⇒ group cap = 0.8; intra limits = [0.75, 0.25]; clipped
-        # uniform shares [0.5, 0.5] become [0.5, 0.25] then redistributed → [0.75,
+        # Caps [0.6, 0.2] -> group cap = 0.8; intra limits = [0.75, 0.25]; clipped
+        # uniform shares [0.5, 0.5] become [0.5, 0.25] then redistributed -> [0.75,
         # 0.25]. Final per-vessel: 0.6 and 0.2.
         fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
         uptake = calculate_modelled_uptake(
@@ -724,10 +724,10 @@ class TestModelledUptakesCapProjection:
         np.testing.assert_almost_equal(uptake.sum(), 0.8)
 
     def test_caps_sum_exceeds_one_clamped(self):
-        # Caps [0.7, 0.7]: sum = 1.4 ⇒ group cap clamped to 1.0. Intra limits [0.7, 0.7]
-        # (each ≥ 0.5 raw), so unconstrained shares [0.5, 0.5] are unchanged. Inter-fuel
-        # cap 1.0 ⇒ fuel_share = 1.0.
-        # Per-vessel = 0.5 each (≤ 0.7 cap respected); combined = 1.0.
+        # Caps [0.7, 0.7]: sum = 1.4 -> group cap clamped to 1.0. Intra limits
+        # [0.7, 0.7] (each >= 0.5 raw), so unconstrained shares [0.5, 0.5] are
+        # unchanged. Inter-fuel cap 1.0 -> fuel_share = 1.0.
+        # Per-vessel = 0.5 each (<= 0.7 cap respected); combined = 1.0.
         fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
         uptake = calculate_modelled_uptake(
             fleet, vessels, idx=0, cap_share=np.array([0.7, 0.7])
@@ -749,10 +749,10 @@ class TestModelledUptakesCapProjection:
 
     def test_multi_group_mixed(self):
         # Fuels [x, x, y] with caps [0.3, 0.3, 0.2]. Group A (xx) cap = 0.6, group B (y)
-        # cap = 0.2. Inter-fuel limits = [0.6, 0.2]; sum = 0.8 < 1 ⇒ infeasible at the
-        # inter level — apply_limits clips fuel_shares to [0.6, 0.2] and the trade gap
+        # cap = 0.2. Inter-fuel limits = [0.6, 0.2]; sum = 0.8 < 1 -> infeasible at the
+        # inter level - apply_limits clips fuel_shares to [0.6, 0.2] and the trade gap
         # is partially unfilled (sum < 1). Per vessel: group A internally splits 0.6 by
-        # intra limits [0.5, 0.5] → 0.3 each; group B → 0.2.
+        # intra limits [0.5, 0.5] -> 0.3 each; group B -> 0.2.
         fleet, vessels = _make_fleet_for_modelled_uptakes(
             ["x", "x", "y"], [1.0, 1.0, 1.0]
         )

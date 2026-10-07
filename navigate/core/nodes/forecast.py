@@ -66,7 +66,7 @@ class Forecast(Node, _Table1D):
         Parameters
         ----------
         time
-            Time passed since start date (days).
+            Time passed since start date, in days.
         """
         self._current_value = self.calculate(time)
 
@@ -83,8 +83,8 @@ class Forecast(Node, _Table1D):
         Parameters
         ----------
         x
-            Time passed since start date (days) to recalculate at; the cached value
-            is returned when None.
+            Time passed since start date to recalculate at, in days; the cached
+            value is returned when None.
         y
             Dummy input variable for calculations with getters of 2 input.
 

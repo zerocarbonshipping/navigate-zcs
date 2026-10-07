@@ -43,7 +43,7 @@ def window(results, producer):
     Build the window of assertable steps.
 
     The first step only initializes expectations (no development decision is taken yet),
-    and the final LeadTime years are excluded per assertable_end — a known, explicitly
+    and the final LeadTime years are excluded per assertable_end - a known, explicitly
     not-desired limitation (see BEHAVIOR.md); the exclusion is not an endorsement.
     """
     end = assertable_end(results, producer)

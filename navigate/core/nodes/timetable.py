@@ -87,7 +87,7 @@ class Timetable(Node, _Table2D):
         Parameters
         ----------
         time
-            Time passed since start date (days).
+            Time passed since start date, in days.
         """
         self._current_time = time
 
@@ -109,7 +109,7 @@ class Timetable(Node, _Table2D):
         Parameters
         ----------
         x
-            Time passed since start date (days); None reads the current time.
+            Time passed since start date, in days; None reads the current time.
         y
             Second input variable. None, which an expression passes on when it
             is evaluated without input, is rejected.

@@ -4,7 +4,7 @@
 """
 A declaration registers its node before its body is read.
 
-A body can reference the node it declares — a Process may feed on a Process —
+A body can reference the node it declares - a Process may feed on a Process -
 and that reference must bind to the node being declared, not to a second one
 no declaration ever fills.
 """

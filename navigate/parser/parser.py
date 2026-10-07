@@ -1138,10 +1138,10 @@ class Parser:
         """
         Replace references, execute commands, initialize nodes.
 
-        The sequence is: expand held-back wildcards → replace refs → build
-        tables → prune unreachable nodes and check required attributes (DEFINE
-        pass only) → init dicts → execute commands → replace refs again
-        (commands may create new ones) → build tables again → run the node
+        The sequence is: expand held-back wildcards -> replace refs -> build
+        tables -> prune unreachable nodes and check required attributes (DEFINE
+        pass only) -> init dicts -> execute commands -> replace refs again
+        (commands may create new ones) -> build tables again -> run the node
         lifecycle hooks, whose requirement checks, the required attributes'
         among them, run on the DEFINE pass only.
         """
@@ -1899,9 +1899,9 @@ class Parser:
         Return the node a ``Type("name")`` reference names.
 
         A declared node is the registry object. An undeclared one is
-        constructed here and kept in ``_deferred`` — outside the registry, so
+        constructed here and kept in ``_deferred`` - outside the registry, so
         declaration order, pruning and wildcard matching see declared nodes
-        only — until its declaration adopts it or the reference walk pulls it
+        only - until its declaration adopts it or the reference walk pulls it
         from the default library.
 
         Parameters
@@ -2121,8 +2121,8 @@ def _transplant(node: Node, copied: Node) -> None:
     """
     Move a copy's state into the node already held under the copy's name.
 
-    The node's state is cleared first, so the copy replaces all of it — a
-    placeholder's, or the declaration a pulled file gave it — including a
+    The node's state is cleared first, so the copy replaces all of it - a
+    placeholder's, or the declaration a pulled file gave it - including a
     required attribute the copy has not been assigned. The bounds references
     imposed on the node are the one thing to keep: they are merged back after
     the update, which brought the source's, each keeping whether it is

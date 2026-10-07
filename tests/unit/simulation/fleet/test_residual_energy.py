@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Mathematical coherence tests for the technology package → residual energy pipeline.
+Mathematical coherence tests for the technology package -> residual energy pipeline.
 
 Tests verify the correctness of:
   - Compound savings formula: 1 - prod(1 - s_i)
   - Compound external power: additive across technologies
   - Residual energy: max(raw * (1 - saving) - external, 0)
-  - Power ↔ energy round-trip conversions
+  - Power <-> energy round-trip conversions
   - Transfer curve filtering and summation
   - Shore power capacity aggregation
   - Combined savings + external power + transfer through the full pipeline
@@ -110,9 +110,9 @@ class TestCompoundSavings:
         ("savings", "expected"),
         [
             ([0.08], 0.08),
-            # 4% + 7.5% → 1 - 0.96 * 0.925 = 0.112
+            # 4% + 7.5% -> 1 - 0.96 * 0.925 = 0.112
             ([0.04, 0.075], 1.0 - (1.0 - 0.04) * (1.0 - 0.075)),
-            # all-zero savings → compound = 0
+            # all-zero savings -> compound = 0
             ([0.0, 0.0], 0.0),
             # one technology with saving = 1 absorbs: compound = 1 regardless of others
             ([0.5, 1.0], 1.0),
@@ -135,7 +135,7 @@ class TestCompoundSavings:
 
     @pytest.mark.parametrize("n", [2, 5, 10, 20])
     def test_n_identical_technologies_converge(self, n):
-        """N identical 10% savings → 1 - 0.9^n, approaching 1 as n grows."""
+        """N identical 10% savings -> 1 - 0.9^n, approaching 1 as n grows."""
         techs = [
             _make_technology(f"t{i}", energy_saving={PROPULSION: 0.10})
             for i in range(n)
@@ -223,7 +223,7 @@ class TestResidualEnergy:
             # saving is applied first (multiplicative), then external is subtracted:
             # 100 * 0.8 - 10 = 70
             ([100.0], 0.20, [10.0], [70.0]),
-            # external power exceeding post-saving demand → 0, not negative
+            # external power exceeding post-saving demand -> 0, not negative
             ([10.0], 0.0, [999.0], [0.0]),
             ([1000.0], 1.0, [0.0], [0.0]),
         ],
@@ -234,7 +234,7 @@ class TestResidualEnergy:
 
 
 # ---------------------------------------------------------------------------
-# 4. Power ↔ energy round-trip
+# 4. Power <-> energy round-trip
 # ---------------------------------------------------------------------------
 
 
@@ -260,7 +260,7 @@ class TestPowerEnergyConversion:
         assert pytest.approx(86.4) == MWD_TO_GJ
 
     def test_zero_duration(self):
-        """Zero duration → zero energy."""
+        """Zero duration -> zero energy."""
         power = np.array([100.0])
         duration = np.array([0.0])
         energy = _power_to_energy(power, duration)
@@ -452,7 +452,7 @@ class TestCombinedResidualEnergy:
         return vessel, pkg, durations, raw_demands
 
     def test_propulsion_residual(self, setup):
-        """Propulsion: 10% saving + 0.5 MW external → 856.8 GJ."""
+        """Propulsion: 10% saving + 0.5 MW external -> 856.8 GJ."""
         vessel, pkg, durations, raw_demands = setup
         result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
 
@@ -461,7 +461,7 @@ class TestCombinedResidualEnergy:
         assert result[PROPULSION][0] == pytest.approx(expected)
 
     def test_heat_residual_with_transfer(self, setup):
-        """Heat: no saving/external, 0.2 MW transferred from propulsion → 482.72 GJ."""
+        """Heat: no saving/external, 0.2 MW transferred from propulsion -> 482.72 GJ."""
         vessel, pkg, durations, raw_demands = setup
         result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
 

@@ -7,7 +7,7 @@ Guardrail: supply-constrained, then demand-constrained scenario.
 Like supply_constrained, but the Producer's development limit is raised so
 supply catches up with demand roughly halfway through the simulation. After
 catch-up the Producer must leave its constraint and track demand with a
-slight surplus — continuously, not as an over/under-supply oscillation. The
+slight surplus - continuously, not as an over/under-supply oscillation. The
 domain contract lives in
 simulations/supply_then_demand_constrained/BEHAVIOR.md.
 """
@@ -47,7 +47,7 @@ PRE_CATCHUP = slice(1, CATCHUP_STEP)
 EPS_REMEDIAL_REL = 1e-6
 
 # Band on the deliverable-supply surplus (capacity x uptime, minus
-# consumption), normalized by total fleet fuel demand — see BEHAVIOR.md for
+# consumption), normalized by total fleet fuel demand - see BEHAVIOR.md for
 # the domain reasoning and the band's sign-off status.
 MIN_SURPLUS = 0.02
 MAX_SURPLUS = 0.12
@@ -112,7 +112,7 @@ class TestSupplyThenDemandConstrained:
         Supply >= demand is not observable directly from consumption.
 
         The bunker LP caps consumption at available supply, so a squeeze shows up as the
-        regulation buying remedial units instead — see BEHAVIOR.md. After catch-up,
+        regulation buying remedial units instead - see BEHAVIOR.md. After catch-up,
         demand must be met, i.e. no remedial units.
         """
         regulation = results.nodes.regulations["intensity_regulation"]

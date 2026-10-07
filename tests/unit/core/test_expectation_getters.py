@@ -4,8 +4,8 @@
 """
 No public expectation reader declares a parameter defaulting to None.
 
-A None default spells two operations under one name — read this key, or read
-the whole storage — which CODESTYLE.md asks to be split, and leaves the return
+A None default spells two operations under one name - read this key, or read
+the whole storage - which CODESTYLE.md asks to be split, and leaves the return
 type a union no caller needs. A time index defaulting to the full slice is one
 operation and stays, so None, not optionality, is what fails here. The sweep
 covers the private base classes too: a subclass inherits every reader they

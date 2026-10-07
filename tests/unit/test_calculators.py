@@ -53,7 +53,7 @@ def _make_table1d(x=TABLE_X, y=TABLE_Y, extrapolate="LINEAR"):
 
 
 # ---------------------------------------------------------------------------
-# 1. _Calculator base — truncation and bound logic
+# 1. _Calculator base - truncation and bound logic
 # ---------------------------------------------------------------------------
 
 
@@ -86,7 +86,7 @@ class TestTruncateTransform:
 
 
 # ---------------------------------------------------------------------------
-# 2. Bound application — internal vs external
+# 2. Bound application - internal vs external
 # ---------------------------------------------------------------------------
 
 
@@ -122,15 +122,15 @@ class TestBoundApplication:
             "expected",
         ),
         [
-            # external lower bound alone clamps: at x=1, raw=1.0 → clamped to 5
+            # external lower bound alone clamps: at x=1, raw=1.0 -> clamped to 5
             (5.0, np.inf, -np.inf, np.inf, 1.0, 5.0),
-            # external upper bound alone clamps: at x=2, raw=4.0 → clamped to 3
+            # external upper bound alone clamps: at x=2, raw=4.0 -> clamped to 3
             (-np.inf, 3.0, -np.inf, np.inf, 2.0, 3.0),
-            # applied_lower = max(external, internal) = max(3, 5) = 5 — the tighter
-            # wins; at x=0, raw=0.0 → clamped up to 5
+            # applied_lower = max(external, internal) = max(3, 5) = 5 - the tighter
+            # wins; at x=0, raw=0.0 -> clamped up to 5
             (3.0, np.inf, 5.0, np.inf, 0.0, 5.0),
-            # applied_upper = min(external, internal) = min(8, 5) = 5 — the tighter
-            # wins; at x=4, raw=16.0 → clamped down to 5
+            # applied_upper = min(external, internal) = min(8, 5) = 5 - the tighter
+            # wins; at x=4, raw=16.0 -> clamped down to 5
             (-np.inf, 8.0, -np.inf, 5.0, 4.0, 5.0),
         ],
     )
@@ -363,7 +363,7 @@ class TestConvexity:
             (np.array([0.0]), np.array([0.0]), True),
             # a tiny concavity below 10^-5 is rounded away (ROUND_OFF=5)
             (np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0, 2.0 - 1e-7]), True),
-            # a concavity of ~0.01 is NOT rounded away: slopes 1.0, 0.99 → d2y = -0.01
+            # a concavity of ~0.01 is NOT rounded away: slopes 1.0, 0.99 -> d2y = -0.01
             (np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0, 1.99]), False),
         ],
     )
@@ -380,7 +380,7 @@ class TestConvexity:
 
 
 # ---------------------------------------------------------------------------
-# 4. _Table1D — reverse lookup
+# 4. _Table1D - reverse lookup
 # ---------------------------------------------------------------------------
 
 
@@ -393,7 +393,7 @@ class TestTable1DReverseLookup:
         assert x == pytest.approx(2.0)
 
     def test_interpolated_point(self):
-        """Midpoint between y=1 (x=1) and y=4 (x=2) → x ≈ 1.5 via linear interp."""
+        """Midpoint between y=1 (x=1) and y=4 (x=2) -> x ~ 1.5 via linear interp."""
         x = np.array([0.0, 1.0, 2.0, 3.0])
         y = np.array([0.0, 2.0, 4.0, 6.0])  # strictly increasing, linear
         t = _make_table1d(x=x, y=y)
@@ -401,7 +401,7 @@ class TestTable1DReverseLookup:
         assert result == pytest.approx(1.5)
 
     def test_non_monotonic_returns_none(self):
-        """Non-monotonic y-values → reverse_lookup returns None."""
+        """Non-monotonic y-values -> reverse_lookup returns None."""
         x = np.array([0.0, 1.0, 2.0, 3.0])
         y = np.array([0.0, 5.0, 3.0, 8.0])  # not strictly increasing
         t = _make_table1d(x=x, y=y)
@@ -409,7 +409,7 @@ class TestTable1DReverseLookup:
 
 
 # ---------------------------------------------------------------------------
-# 5. _Table2D — bilinear interpolation
+# 5. _Table2D - bilinear interpolation
 # ---------------------------------------------------------------------------
 
 # Simple 3x3 grid: z = x + y
@@ -450,7 +450,7 @@ class TestTable2DInterpolation:
 
 
 # ---------------------------------------------------------------------------
-# 6. _Table2D — convexity
+# 6. _Table2D - convexity
 # ---------------------------------------------------------------------------
 
 
@@ -475,7 +475,7 @@ class TestTable2DConvexity:
 
 
 # ---------------------------------------------------------------------------
-# 7. _Table2D — reverse lookup
+# 7. _Table2D - reverse lookup
 # ---------------------------------------------------------------------------
 
 
@@ -490,7 +490,7 @@ class TestTable2DReverseLookup:
         np.testing.assert_array_almost_equal(result, [1.0])
 
     def test_reverse_interpolated(self):
-        """On z=x+y, reverse_lookup(z=5.5, y=[5]) → x=0.5."""
+        """On z=x+y, reverse_lookup(z=5.5, y=[5]) -> x=0.5."""
         t = _make_table2d()
         result = t.reverse_lookup(5.5, y=np.array([5.0]))
         assert result is not None
@@ -499,14 +499,14 @@ class TestTable2DReverseLookup:
     def test_reverse_multiple_slices(self):
         t = _make_table2d()
         result = t.reverse_lookup(11.0, y=np.array([0.0, 10.0, 20.0]))
-        # z=11, y=0  → x=11 (extrapolated); y=10 → x=1; y=20 → x<0 (extrapolated)
+        # z=11, y=0  -> x=11 (extrapolated); y=10 -> x=1; y=20 -> x<0 (extrapolated)
         assert result is not None
         assert result.shape == (3,)
         np.testing.assert_almost_equal(result[1], 1.0)
 
 
 # ---------------------------------------------------------------------------
-# 8. Variable — transform chain
+# 8. Variable - transform chain
 # ---------------------------------------------------------------------------
 
 
@@ -664,7 +664,7 @@ class TestFillValueExpressions:
 
 
 # ---------------------------------------------------------------------------
-# 10. Curve and Surface — settings read when the table is built
+# 10. Curve and Surface - settings read when the table is built
 # ---------------------------------------------------------------------------
 
 # y = 10 * x on 0 <= x <= 2
@@ -725,7 +725,7 @@ class TestTableSettingsOrder:
 
 
 # ---------------------------------------------------------------------------
-# 11. _Table2D — rejects fewer than two rows or columns
+# 11. _Table2D - rejects fewer than two rows or columns
 # ---------------------------------------------------------------------------
 
 _MIN_SIZE_HEADER_ONLY_MATCH = (

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.util.numeric — lookup, growth, inertia, belief smoothing."""
+"""Unit tests for navigate.util.numeric - lookup, growth, inertia, belief smoothing."""
 
 from __future__ import annotations
 
@@ -28,9 +28,9 @@ class TestCalculateInertia:
         [
             # for a time-step of exactly one year, result equals the inertia parameter
             (0.8, YEAR, 0.8),
-            # dt=0 → inertia^0 = 1.0 regardless of base
+            # dt=0 -> inertia^0 = 1.0 regardless of base
             (0.5, 0.0, 1.0),
-            # half-year step → sqrt(inertia)
+            # half-year step -> sqrt(inertia)
             (0.64, YEAR / 2, 0.8),
             # inertia of 1.0 remains 1.0 regardless of time-step
             (1.0, YEAR, 1.0),
@@ -173,13 +173,13 @@ class TestDeriveSmoothingAlpha:
     @pytest.mark.parametrize(
         ("timeline", "idx", "horizon", "expected"),
         [
-            # docstring: 5-year horizon, 1-year steps → 1 / (1 + 5 / 1)
+            # docstring: 5-year horizon, 1-year steps -> 1 / (1 + 5 / 1)
             (np.array([0.0, YEAR, 2 * YEAR]), 1, 5.0, 1.0 / 6.0),
-            # docstring: 3-year horizon, 1-year steps → 1 / (1 + 3 / 1)
+            # docstring: 3-year horizon, 1-year steps -> 1 / (1 + 3 / 1)
             (np.array([0.0, YEAR, 2 * YEAR]), 1, 3.0, 0.25),
-            # 2-year horizon, half-year step → 1 / (1 + 2 / 0.5)
+            # 2-year horizon, half-year step -> 1 / (1 + 2 / 0.5)
             (np.array([0.0, YEAR / 2, YEAR]), 1, 2.0, 0.2),
-            # 3-year horizon, 2-year step → 1 / (1 + 3 / 2)
+            # 3-year horizon, 2-year step -> 1 / (1 + 3 / 2)
             (np.array([0.0, 2 * YEAR, 4 * YEAR]), 2, 3.0, 0.4),
             # zero horizon trusts the projection fully
             (np.array([0.0, YEAR, 2 * YEAR]), 1, 0.0, 1.0),

@@ -32,7 +32,7 @@ def calculate_cargo_miles_in_policy_jurisdiction(
     vessel
         Vessel whose cargo miles are attributed.
     time
-        Time since start of simulation (days).
+        Time since start of simulation, in days.
     idx
         Current time-step index.
 
@@ -62,7 +62,7 @@ def calculate_nominal_cargo_miles_in_policy_jurisdiction(
     vessel
         Vessel whose nominal cargo miles are attributed.
     time
-        Time since start of simulation (days).
+        Time since start of simulation, in days.
     idx
         Current time-step index.
 
@@ -135,7 +135,7 @@ def _calculate_attribute_in_policy_jurisdiction(
     vessel
         Vessel operating under the jurisdiction of the regulation.
     time
-        Time since start of simulation (days).
+        Time since start of simulation, in days.
     attribute_sea
         Attribute per leg at sea.
 

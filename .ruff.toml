@@ -65,7 +65,7 @@ known-first-party = ["helpers"]
 "navigate/simulation/bunker/solver_highs.py" = ["N802", "SLF001"]
 "tests/unit/simulation/bunker/test_build.py" = ["N802"]
 # expectation, profile, and node lifecycle methods carry no docstrings; the
-# DSL setters on nodes do (see CODESTYLE.md, Navigate-specific conventions)
+# DSL setters on nodes do (see CODESTYLE.md)
 "navigate/core/expectations/*" = ["D102"]
 "navigate/core/profiles/*" = ["D102"]
 "navigate/core/nodes/*" = ["D102"]

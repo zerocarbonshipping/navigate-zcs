@@ -11,7 +11,7 @@ import pytest
 from navigate.core.scalar import Scalar
 from navigate.core.wrap import as_list, as_scalar
 
-# ── as_scalar ─────────────────────────────────────────────────────────────────
+# -- as_scalar -----------------------------------------------------------------
 
 
 class TestAsScalar:
@@ -36,7 +36,7 @@ class TestAsScalar:
         assert not isinstance(as_scalar(value), Scalar)
 
 
-# ── as_list ───────────────────────────────────────────────────────────────────
+# -- as_list -------------------------------------------------------------------
 
 
 class TestAsList:

@@ -5,7 +5,7 @@
 Regression-suite pytest configuration: the baseline regeneration flag.
 
 pytest registers options only from initial conftests, so `--regen-baselines`
-exists only when tests/regression/ is on the command line — the sanctioned
+exists only when tests/regression/ is on the command line - the sanctioned
 path is `make regen-regression`. Bare `pytest` runs are unaffected: the
 fixture falls back to False when the option was never registered.
 """

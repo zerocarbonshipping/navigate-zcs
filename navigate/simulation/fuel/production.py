@@ -173,8 +173,8 @@ def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) ->
     """
     Compute future production primitives (lifetime, lead time, size, production).
 
-    Capacity is derived from nameplate size (tons/day) and scaled to tons/year. Actual
-    production accounts for uptime.
+    Capacity is derived from the nameplate size, in tons/day, and scaled to tons/year.
+    Actual production accounts for uptime.
 
     Parameters
     ----------
@@ -355,9 +355,9 @@ def _calculate_process_cost(
     Add process capital and fixed operating costs to the component's cost flow.
 
     CAPEX/OPEX are evaluated via region lookups as functions of time and effective
-    scale. Scale combines the plant's size (tons/day) and the cumulative conversion
-    factor so that intermediate-process sizing aligns with fuel output requirements.
-    Costs are added as fixed flows at construction/operation times.
+    scale. Scale combines the plant's size, in tons/day, and the cumulative
+    conversion factor so that intermediate-process sizing aligns with fuel output
+    requirements. Costs are added as fixed flows at construction/operation times.
 
     Parameters
     ----------

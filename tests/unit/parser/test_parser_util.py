@@ -36,9 +36,9 @@ from navigate.parser._lark_parser import (
 from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 # Helpers
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 def _body(text: str) -> list:
     """Parse a single node declaration and return its body items."""
     return parse_include_content(text)[0].body
@@ -49,9 +49,9 @@ def _val(text: str):
     return _body(f'Vessel "v" {{ {text} }}')[0].value
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 # string_to_date
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 class TestStringToDate:
     @pytest.mark.parametrize(
         ("raw", "expected"),
@@ -87,9 +87,9 @@ class TestStringToDate:
             string_to_date(raw, _DATE_FORMAT_ERROR)
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
-# Deck-level parsing (.nav) — DEFINE / EVENTS / Include / Load
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
+# Deck-level parsing (.nav) - DEFINE / EVENTS / Include / Load
+# =================================================================================
 class TestDeckParsing:
     def test_define_block(self):
         blocks = parse_deck_content(
@@ -130,11 +130,11 @@ class TestDeckParsing:
             parse_deck_content("SIMULATION NAV { }")
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 # Include-level statements (.inc)
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 class TestStatements:
-    # ── node declarations ──────────────────────────────────────────
+    # -- node declarations ------------------------------------------
     def test_named_node(self):
         statements = parse_include_content('Vessel "my_ship" { Lifetime = 25 }')
         declaration = statements[0]
@@ -155,7 +155,7 @@ class TestStatements:
         statements = parse_include_content('Vessel "v" { }')
         assert statements[0].body == []
 
-    # ── copy / import ───────────────────────────────────────────────
+    # -- copy / import -----------------------------------------------
     def test_copy_statement(self):
         s = parse_include_content('Copy Vessel "original" "copy"')[0]
         assert isinstance(s, CopyStatement)
@@ -169,7 +169,7 @@ class TestStatements:
         assert s.node_type == "Vessel"
         assert s.name == "ship"
 
-    # ── statement type recognition ──────────────────────────────────
+    # -- statement type recognition ----------------------------------
     @pytest.mark.parametrize(
         ("text", "index", "expected_type"),
         [
@@ -182,7 +182,7 @@ class TestStatements:
     def test_statement_type_recognized(self, text, index, expected_type):
         assert isinstance(parse_include_content(text)[index], expected_type)
 
-    # ── multiple statements ────────────────────────────────────────
+    # -- multiple statements ----------------------------------------
     def test_multiple_statements(self):
         text = (
             'Vessel "a" { Lifetime = 25 }\n'
@@ -200,7 +200,7 @@ class TestStatements:
         )
         assert len(statements) == 1
 
-    # ── source location ───────────────────────────────────────────
+    # -- source location -------------------------------------------
     def test_source_location_on_nodes(self):
         statements = parse_include_content(
             'Vessel "v" {\n  Lifetime = 25\n}', file="test.inc"
@@ -211,9 +211,9 @@ class TestStatements:
         assert statements[0].body[0].source.line == 2
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
-# Values — all types that can appear on the RHS of an assignment
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
+# Values - all types that can appear on the RHS of an assignment
+# =================================================================================
 class TestValues:
     @pytest.mark.parametrize(
         ("source", "check"),
@@ -279,9 +279,9 @@ class TestValues:
         assert "Error in expression" in message
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 # Commands
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 class TestCommands:
     @pytest.mark.parametrize(
         ("source", "expected_name", "check_args"),
@@ -311,9 +311,9 @@ class TestCommands:
         assert check_args(cmd.args)
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 # Tables
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 class TestTables:
     def test_table_block_in_body(self):
         item = _body('Vessel "v" { Table = [ 2020 0.5\n2030 1.0\n] }')[0]
@@ -346,11 +346,11 @@ class TestTables:
         assert parse_table_cells(source) == expected_rows
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
-# Casing rules — NODE_TYPE requires Title case, NAME accepts any
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
+# Casing rules - NODE_TYPE requires Title case, NAME accepts any
+# =================================================================================
 class TestCasingRules:
-    # ── node types must start uppercase ────────────────────────────
+    # -- node types must start uppercase ----------------------------
     @pytest.mark.parametrize(
         "source",
         [
@@ -363,7 +363,7 @@ class TestCasingRules:
         with pytest.raises(DeckFormatError):
             parse_include_content(source)
 
-    # ── digits in node types; attributes and commands accept any casing ──
+    # -- digits in node types; attributes and commands accept any casing --
     @pytest.mark.parametrize(
         ("source", "extract", "expected"),
         [
@@ -399,9 +399,9 @@ class TestCasingRules:
         assert extract(parse_include_content(source)) == expected
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 # One statement per line enforcement
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 class TestOneStatementPerLine:
     @pytest.mark.parametrize(
         ("parse_fn", "source"),
@@ -428,9 +428,9 @@ class TestOneStatementPerLine:
         assert len(get_items()) == 2
 
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 # Rejection of invalid syntax
-# ═════════════════════════════════════════════════════════════════════════════════
+# =================================================================================
 class TestSyntaxErrors:
     @pytest.mark.parametrize(
         "source",
