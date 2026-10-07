@@ -206,10 +206,10 @@ def _sections(report: Report, results: SimulationResults) -> Iterator[_Section]:
     nodes = results.nodes
     sections = (
         _Section(
-            "manager",
+            "global",
             "Global",
             {GLOBAL_PROFILE_KEY: results.profile},
-            report.manager_reports,
+            report.global_reports,
         ),
         _Section(
             "fleets",

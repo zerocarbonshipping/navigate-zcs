@@ -19,7 +19,7 @@ from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.bunker.solver import set_solver_preference
 from navigate.core import SimulationResults, get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
-from navigate.core.profiles import ManagerProfile
+from navigate.core.profiles import GlobalProfile
 from navigate.fleet import (
     approximate_missing_technology,
     assign_vessels_to_fleets,
@@ -125,7 +125,7 @@ class SimulationManager:
         self.timeline: FloatArray = dates_to_days(self.dateline)
 
         # profile
-        self.profile: ManagerProfile = ManagerProfile()
+        self.profile: GlobalProfile = GlobalProfile()
 
         # bunker algorithm -------------------------------------------------------------
         self._bunker_existing: BunkerAlgorithm = BunkerAlgorithm()

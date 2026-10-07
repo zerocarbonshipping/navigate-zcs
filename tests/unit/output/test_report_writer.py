@@ -24,7 +24,7 @@ from navigate.core.node_report import NodeReport
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.report import Report
 from navigate.core.nodes.vessel import Vessel
-from navigate.core.profiles.manager_profile import ManagerProfile
+from navigate.core.profiles.global_profile import GlobalProfile
 from navigate.core.profiles.vessel_profile import VesselProfile
 from navigate.core.simulation_results import SimulationResults
 from navigate.output import report_writer
@@ -199,7 +199,7 @@ class TestWriteReportErrorContainment:
 
         results = SimulationResults(
             dateline=np.array(["2030-01-01", "2031-01-01"], dtype="datetime64[D]"),
-            profile=ManagerProfile(),
+            profile=GlobalProfile(),
             nodes=Nodes(
                 fleets={"fleet": Fleet("fleet")}, vessels={"vessel": Vessel("vessel")}
             ),

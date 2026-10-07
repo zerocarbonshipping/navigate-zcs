@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class _PlantAggregateProfile(_FuelProducerProfile):
-    """Capital tied up in the plants aggregated into a producer or the manager."""
+    """Capital tied up in the plants aggregated into a producer or global profile."""
 
     def __init__(self) -> None:
         super().__init__()
