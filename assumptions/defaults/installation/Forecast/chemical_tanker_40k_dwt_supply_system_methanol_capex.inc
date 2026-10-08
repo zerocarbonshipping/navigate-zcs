@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# value inherited unchanged from tanker_47k_dwt, not sourced for this segment;
+# pending the Ship Design & Technology cost family record for this segment.
+
+Forecast "chemical_tanker_40k_dwt_supply_system_methanol_capex" {
+	Table = [
+		"01-01-2025"	0.552e6
+		"01-01-2050"	0.552e6
+	]
+}

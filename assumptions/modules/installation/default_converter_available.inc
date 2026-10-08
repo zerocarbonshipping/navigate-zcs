@@ -41,6 +41,14 @@ Fleet "ferry*" {
 	set_allow_vessel("*methanol*", TRUE)
 }
 
+Fleet "ferry_small_2k_gt*" {
+	set_allow_vessel("*methanol*", TRUE)
+}
+
+Fleet "ropax_25k_gt*" {
+	set_allow_vessel("*methanol*", TRUE)
+}
+
 Fleet "roro_*" {
 	set_allow_vessel("*methanol*", TRUE)
 }
@@ -82,6 +90,14 @@ Fleet "ferry*" {
 	set_allow_vessel("*electric*", TRUE)
 }
 
+Fleet "ferry_small_2k_gt*" {
+	set_allow_vessel("*electric*", TRUE)
+}
+
+Fleet "ropax_25k_gt*" {
+	set_allow_vessel("*electric*", TRUE)
+}
+
 Fleet "offshore*" {
 	set_allow_vessel("*electric*", TRUE)
 }
@@ -117,7 +133,22 @@ Fleet "tanker_47k_dwt*" {
 	set_allow_vessel("*methanol*", TRUE)
 }
 
+Fleet "chemical_tanker_40k_dwt*" {
+	set_allow_vessel("*ammonia*", TRUE)
+	set_allow_vessel("*methanol*", TRUE)
+}
+
 Fleet "gas_carrier_100k_cbm*" {
+	set_allow_vessel("*ammonia*", TRUE)
+	set_allow_vessel("*methanol*", TRUE)
+}
+
+Fleet "lpg_carrier_84k_cbm*" {
+	set_allow_vessel("*ammonia*", TRUE)
+	set_allow_vessel("*methanol*", TRUE)
+}
+
+Fleet "lng_carrier_174k_cbm*" {
 	set_allow_vessel("*ammonia*", TRUE)
 	set_allow_vessel("*methanol*", TRUE)
 }

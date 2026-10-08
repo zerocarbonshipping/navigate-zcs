@@ -16,8 +16,12 @@ Copy Fleet "cruise_100k_gt" 		"cruise_100k_gt_international"
 Copy Fleet "cruise_175k_gt" 		"cruise_175k_gt_international"
 
 Copy Fleet "ferry" 					"ferry_international"
+Copy Fleet "ropax_25k_gt"		"ropax_25k_gt_international"
+Copy Fleet "ferry_small_2k_gt"	"ferry_small_2k_gt_international"
 
 Copy Fleet "gas_carrier_100k_cbm" 	"gas_carrier_100k_cbm_international"
+Copy Fleet "lng_carrier_174k_cbm"	"lng_carrier_174k_cbm_international"
+Copy Fleet "lpg_carrier_84k_cbm"	"lpg_carrier_84k_cbm_international"
 
 Copy Fleet "general_cargo" 			"general_cargo_international"
 
@@ -30,6 +34,7 @@ Copy Fleet "roro_7000_ceu" 			"roro_7000_ceu_international"
 
 Copy Fleet "tanker_7500_dwt" 		"tanker_7500_dwt_international"
 Copy Fleet "tanker_47k_dwt" 		"tanker_47k_dwt_international"
+Copy Fleet "chemical_tanker_40k_dwt"	"chemical_tanker_40k_dwt_international"
 Copy Fleet "tanker_127k_dwt" 		"tanker_127k_dwt_international"
 Copy Fleet "tanker_300k_dwt" 		"tanker_300k_dwt_international"
 
@@ -408,6 +413,64 @@ Fleet "ferry_international" {
 	]
 }
 
+# -------------------------------- ropax_25k_gt -------------------------------- #
+
+Copy Vessel "ropax_25k_gt_ice_methane" 	      "ropax_25k_gt_ice_methane_international"
+Copy Vessel "ropax_25k_gt_ice_methanol" 	      "ropax_25k_gt_ice_methanol_international"
+Copy Vessel "ropax_25k_gt_ice_oil" 		      "ropax_25k_gt_ice_oil_international"
+
+Copy Route "operational_profile_ropax_25k_gt"   "operational_profile_ropax_25k_gt_international"
+
+Vessel "ropax_25k_gt_*_international" {
+	Route = Route("operational_profile_ropax_25k_gt_international")
+}
+
+Fleet "ropax_25k_gt_international" {
+
+	Vessels = [
+		Vessel("ropax_25k_gt_ice_methane_international"),
+		Vessel("ropax_25k_gt_ice_methanol_international"),
+	    Vessel("ropax_25k_gt_ice_oil_international")
+	]
+
+	InitialVessels = <Variable("initial_vessels_ropax_25k_gt") * Variable("ropax_25k_gt_international_share")>
+
+	Orderbooks = [
+		0,
+		0,
+	    0
+	]
+}
+
+# -------------------------------- ferry_small_2k_gt -------------------------------- #
+
+Copy Vessel "ferry_small_2k_gt_ice_methane" 	      "ferry_small_2k_gt_ice_methane_international"
+Copy Vessel "ferry_small_2k_gt_ice_methanol" 	      "ferry_small_2k_gt_ice_methanol_international"
+Copy Vessel "ferry_small_2k_gt_ice_oil" 		      "ferry_small_2k_gt_ice_oil_international"
+
+Copy Route "operational_profile_ferry_small_2k_gt"   "operational_profile_ferry_small_2k_gt_international"
+
+Vessel "ferry_small_2k_gt_*_international" {
+	Route = Route("operational_profile_ferry_small_2k_gt_international")
+}
+
+Fleet "ferry_small_2k_gt_international" {
+
+	Vessels = [
+		Vessel("ferry_small_2k_gt_ice_methane_international"),
+		Vessel("ferry_small_2k_gt_ice_methanol_international"),
+	    Vessel("ferry_small_2k_gt_ice_oil_international")
+	]
+
+	InitialVessels = <Variable("initial_vessels_ferry_small_2k_gt") * Variable("ferry_small_2k_gt_international_share")>
+
+	Orderbooks = [
+		0,
+		0,
+	    0
+	]
+}
+
 # -------------------------------- gas_carrier_100k_cbm -------------------------------- #
 
 Copy Vessel "gas_carrier_100k_cbm_ice_ammonia" 	  "gas_carrier_100k_cbm_ice_ammonia_international"
@@ -437,6 +500,70 @@ Fleet "gas_carrier_100k_cbm_international" {
 		<Forecast("orderbook_gas_carrier_100k_cbm_methane") * Variable("gas_carrier_100k_cbm_international_share")>,
 		<Forecast("orderbook_gas_carrier_100k_cbm_methanol") *   Variable("gas_carrier_100k_cbm_international_share")>,
 	    <Forecast("orderbook_gas_carrier_100k_cbm_oil") *        Variable("gas_carrier_100k_cbm_international_share")>
+	]
+}
+
+# -------------------------------- lng_carrier_174k_cbm -------------------------------- #
+
+Copy Vessel "lng_carrier_174k_cbm_ice_ammonia" 	  "lng_carrier_174k_cbm_ice_ammonia_international"
+Copy Vessel "lng_carrier_174k_cbm_ice_methane" "lng_carrier_174k_cbm_ice_methane_international"
+Copy Vessel "lng_carrier_174k_cbm_ice_methanol"   "lng_carrier_174k_cbm_ice_methanol_international"
+Copy Vessel "lng_carrier_174k_cbm_ice_oil" 		  "lng_carrier_174k_cbm_ice_oil_international"
+
+Copy Route "operational_profile_lng_carrier_174k_cbm"   "operational_profile_lng_carrier_174k_cbm_international"
+
+Vessel "lng_carrier_174k_cbm_*_international" {
+	Route = Route("operational_profile_lng_carrier_174k_cbm_international")
+}
+
+Fleet "lng_carrier_174k_cbm_international" {
+
+	Vessels = [
+		Vessel("lng_carrier_174k_cbm_ice_ammonia_international"),
+		Vessel("lng_carrier_174k_cbm_ice_methane_international"),
+		Vessel("lng_carrier_174k_cbm_ice_methanol_international"),
+	    Vessel("lng_carrier_174k_cbm_ice_oil_international")
+	]
+
+	InitialVessels = <Variable("initial_vessels_lng_carrier_174k_cbm") * Variable("lng_carrier_174k_cbm_international_share")>
+
+	Orderbooks = [
+		0,
+		<Forecast("orderbook_lng_carrier_174k_cbm_methane") * Variable("lng_carrier_174k_cbm_international_share")>,
+		0,
+	    0
+	]
+}
+
+# -------------------------------- lpg_carrier_84k_cbm -------------------------------- #
+
+Copy Vessel "lpg_carrier_84k_cbm_ice_ammonia" 	  "lpg_carrier_84k_cbm_ice_ammonia_international"
+Copy Vessel "lpg_carrier_84k_cbm_ice_methane" "lpg_carrier_84k_cbm_ice_methane_international"
+Copy Vessel "lpg_carrier_84k_cbm_ice_methanol"   "lpg_carrier_84k_cbm_ice_methanol_international"
+Copy Vessel "lpg_carrier_84k_cbm_ice_oil" 		  "lpg_carrier_84k_cbm_ice_oil_international"
+
+Copy Route "operational_profile_lpg_carrier_84k_cbm"   "operational_profile_lpg_carrier_84k_cbm_international"
+
+Vessel "lpg_carrier_84k_cbm_*_international" {
+	Route = Route("operational_profile_lpg_carrier_84k_cbm_international")
+}
+
+Fleet "lpg_carrier_84k_cbm_international" {
+
+	Vessels = [
+		Vessel("lpg_carrier_84k_cbm_ice_ammonia_international"),
+		Vessel("lpg_carrier_84k_cbm_ice_methane_international"),
+		Vessel("lpg_carrier_84k_cbm_ice_methanol_international"),
+	    Vessel("lpg_carrier_84k_cbm_ice_oil_international")
+	]
+
+	InitialVessels = <Variable("initial_vessels_lpg_carrier_84k_cbm") * Variable("lpg_carrier_84k_cbm_international_share")>
+
+	Orderbooks = [
+		0,
+		0,
+		0,
+	    0
 	]
 }
 
@@ -661,6 +788,38 @@ Fleet "tanker_47k_dwt_international" {
 		<Forecast("orderbook_tanker_47k_dwt_methane") * Variable("tanker_47k_dwt_international_share")>,
 		<Forecast("orderbook_tanker_47k_dwt_methanol") *   Variable("tanker_47k_dwt_international_share")>,
 	    <Forecast("orderbook_tanker_47k_dwt_oil") *        Variable("tanker_47k_dwt_international_share")>
+	]
+}
+
+# -------------------------------- chemical_tanker_40k_dwt -------------------------------- #
+
+Copy Vessel "chemical_tanker_40k_dwt_ice_ammonia" 	"chemical_tanker_40k_dwt_ice_ammonia_international"
+Copy Vessel "chemical_tanker_40k_dwt_ice_methane" "chemical_tanker_40k_dwt_ice_methane_international"
+Copy Vessel "chemical_tanker_40k_dwt_ice_methanol" 	"chemical_tanker_40k_dwt_ice_methanol_international"
+Copy Vessel "chemical_tanker_40k_dwt_ice_oil" 		"chemical_tanker_40k_dwt_ice_oil_international"
+
+Copy Route "operational_profile_chemical_tanker_40k_dwt"   "operational_profile_chemical_tanker_40k_dwt_international"
+
+Vessel "chemical_tanker_40k_dwt_*_international" {
+	Route = Route("operational_profile_chemical_tanker_40k_dwt_international")
+}
+
+Fleet "chemical_tanker_40k_dwt_international" {
+
+	Vessels = [
+		Vessel("chemical_tanker_40k_dwt_ice_ammonia_international"),
+		Vessel("chemical_tanker_40k_dwt_ice_methane_international"),
+		Vessel("chemical_tanker_40k_dwt_ice_methanol_international"),
+	    Vessel("chemical_tanker_40k_dwt_ice_oil_international")
+	]
+
+	InitialVessels = <Variable("initial_vessels_chemical_tanker_40k_dwt") * Variable("chemical_tanker_40k_dwt_international_share")>
+
+	Orderbooks = [
+		0,
+		0,
+		0,
+	    0
 	]
 }
 

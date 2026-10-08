@@ -16,8 +16,12 @@ Import Route "operational_profile_cruise_100k_gt"
 Import Route "operational_profile_cruise_175k_gt"
 
 Import Route "operational_profile_ferry"
+Import Route "operational_profile_ferry_small_2k_gt"
+Import Route "operational_profile_ropax_25k_gt"
 
 Import Route "operational_profile_gas_carrier_100k_cbm"
+Import Route "operational_profile_lpg_carrier_84k_cbm"
+Import Route "operational_profile_lng_carrier_174k_cbm"
 
 Import Route "operational_profile_general_cargo"
 
@@ -30,6 +34,7 @@ Import Route "operational_profile_roro_7000_ceu"
 
 Import Route "operational_profile_tanker_7500_dwt"
 Import Route "operational_profile_tanker_47k_dwt"
+Import Route "operational_profile_chemical_tanker_40k_dwt"
 Import Route "operational_profile_tanker_127k_dwt"
 Import Route "operational_profile_tanker_300k_dwt"
 

@@ -16,8 +16,12 @@ Import Fleet "cruise_100k_gt"
 Import Fleet "cruise_175k_gt"
 
 Import Fleet "ferry"
+Import Fleet "ropax_25k_gt"
+Import Fleet "ferry_small_2k_gt"
 
 Import Fleet "gas_carrier_100k_cbm"
+Import Fleet "lng_carrier_174k_cbm"
+Import Fleet "lpg_carrier_84k_cbm"
 
 Import Fleet "general_cargo"
 
@@ -30,6 +34,7 @@ Import Fleet "roro_7000_ceu"
 
 Import Fleet "tanker_7500_dwt"
 Import Fleet "tanker_47k_dwt"
+Import Fleet "chemical_tanker_40k_dwt"
 Import Fleet "tanker_127k_dwt"
 Import Fleet "tanker_300k_dwt"
 

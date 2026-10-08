@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# structure inherited from tanker_47k_dwt: same fuel, converter and tank combinations,
+# owner to confirm (Ship Design & Technology).
+
+Converter "heat_boiler_oil_chemical_tanker_40k_dwt" {
+	MainFuelTypes = OIL
+
+	PowerCapacity = Variable("chemical_tanker_40k_dwt_heat_power_capacity")
+	Efficiency = Variable("heat_oil_efficiency")
+
+	CAPEX = Forecast("heat_oil_capex")
+	OPEX = Forecast("heat_oil_opex")
+}

@@ -27,6 +27,10 @@ Regulation "cii" {
 	set_include_vessel("gas_carrier*international", TRUE)
 	set_include_vessel("general_cargo*international", TRUE)
 	set_include_vessel("roro*international", TRUE)
+	set_include_vessel("chemical_tanker*international", TRUE)
+	set_include_vessel("ropax*international", TRUE)
+	set_include_vessel("lng_carrier*international", TRUE)
+	set_include_vessel("lpg_carrier*international", TRUE)
 
 	# assign regulation specific emission factors according to MEPC308(73) for EEDI index
 	set_fuel_ttw("fossil_fuel_oil", "carbon_dioxide", 3.114)	# based on HFO
@@ -71,6 +75,10 @@ Regulation "cii" {
 	set_vessel_threshold("tanker_127k_dwt*", Forecast("cii_target_tanker_127k_dwt"))
 	set_vessel_threshold("tanker_300k_dwt*", Forecast("cii_target_tanker_300k_dwt"))
 
+	# chemical tanker: inherited from tanker_47k_dwt, not sourced for this segment; pending
+	# Regulatory Affairs
+	set_vessel_threshold("chemical_tanker_40k_dwt*", Forecast("cii_target_chemical_tanker_40k_dwt"))
+
 	# cruise ---------------------------------------------------------------------
 	set_vessel_threshold("cruise_25k_gt*", Forecast("cii_target_cruise_25k_dwt"))
 	set_vessel_threshold("cruise_100k_gt*", Forecast("cii_target_cruise_100k_dwt"))
@@ -79,9 +87,21 @@ Regulation "cii" {
 	# ferry ---------------------------------------------------------------------
 	set_vessel_threshold("ferry*", Forecast("cii_target_ferry"))
 
+	# ro-pax and small ferry: inherited from ferry, not sourced for these segments; pending
+	# Regulatory Affairs
+	set_vessel_threshold("ropax_25k_gt*", Forecast("cii_target_ropax_25k_gt"))
+	set_vessel_threshold("ferry_small_2k_gt*", Forecast("cii_target_ferry_small_2k_gt"))
+
 	# gas carrier ---------------------------------------------------------------------
 	set_vessel_threshold("gas_carrier_100k_cbm*", Forecast("cii_target_gas_carrier_100k_cbm"))
 	set_vessel_capacity("gas_carrier_100k_cbm*", 68000)
+
+	# lng and lpg carrier: inherited from gas_carrier_100k_cbm, not sourced for these segments;
+	# pending Regulatory Affairs
+	set_vessel_threshold("lng_carrier_174k_cbm*", Forecast("cii_target_lng_carrier_174k_cbm"))
+	set_vessel_capacity("lng_carrier_174k_cbm*", 68000)
+	set_vessel_threshold("lpg_carrier_84k_cbm*", Forecast("cii_target_lpg_carrier_84k_cbm"))
+	set_vessel_capacity("lpg_carrier_84k_cbm*", 68000)
 
 	# general cargo ---------------------------------------------------------------------
 	set_vessel_threshold("general_cargo*", Forecast("cii_target_general_cargo"))
@@ -169,6 +189,13 @@ Forecast "cii_target_tanker_47k_dwt" {
 	Multiplier = 7.41
 }
 
+Copy Forecast "cii_target_reduction"	"cii_target_chemical_tanker_40k_dwt"
+
+# inherited from tanker_47k_dwt, not sourced for this segment; pending Regulatory Affairs
+Forecast "cii_target_chemical_tanker_40k_dwt" {
+	Multiplier = 7.41
+}
+
 Forecast "cii_target_tanker_127k_dwt" {
 	Multiplier = 4.04
 }
@@ -199,10 +226,38 @@ Forecast "cii_target_ferry" {
 	Multiplier = 84.33
 }
 
+Copy Forecast "cii_target_reduction"	"cii_target_ropax_25k_gt"
+
+# inherited from ferry, not sourced for this segment; pending Regulatory Affairs
+Forecast "cii_target_ropax_25k_gt" {
+	Multiplier = 84.33
+}
+
+Copy Forecast "cii_target_reduction"	"cii_target_ferry_small_2k_gt"
+
+# inherited from ferry, not sourced for this segment; pending Regulatory Affairs
+Forecast "cii_target_ferry_small_2k_gt" {
+	Multiplier = 84.33
+}
+
 Copy Forecast "cii_target_reduction"	"cii_target_gas_carrier_100k_cbm"
 
 Forecast "cii_target_gas_carrier_100k_cbm" {
 	# calculated based on parameters for DWT<65000 if though assumed size is 68000. This is done because the other parameters are quite odd.
+	Multiplier = 6.62
+}
+
+Copy Forecast "cii_target_reduction"	"cii_target_lng_carrier_174k_cbm"
+
+# inherited from gas_carrier_100k_cbm, not sourced for this segment; pending Regulatory Affairs
+Forecast "cii_target_lng_carrier_174k_cbm" {
+	Multiplier = 6.62
+}
+
+Copy Forecast "cii_target_reduction"	"cii_target_lpg_carrier_84k_cbm"
+
+# inherited from gas_carrier_100k_cbm, not sourced for this segment; pending Regulatory Affairs
+Forecast "cii_target_lpg_carrier_84k_cbm" {
 	Multiplier = 6.62
 }
 

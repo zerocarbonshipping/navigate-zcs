@@ -11,6 +11,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Five vessel segments from segment taxonomy v1: `chemical_tanker_40k_dwt`,
+  `ropax_25k_gt`, `ferry_small_2k_gt`, `lng_carrier_174k_cbm` and
+  `lpg_carrier_84k_cbm`, registered in the default fleet, voyage, converter
+  availability, domestic/international split, CII and plot labels. Their
+  structure is cloned from `tanker_47k_dwt`, `ferry` and
+  `gas_carrier_100k_cbm`; value leaves are generated from provisional
+  assumption records; leaves without a public source are inherited from the
+  parent segment and say so in their header.
+
 ### Fixed
 - Parse errors now name keywords as the grammar spells them. Lark derives
   keyword terminal names from the literal, uppercased, so a misspelled
