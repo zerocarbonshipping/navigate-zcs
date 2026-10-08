@@ -872,8 +872,10 @@ A vessel is defined by the fuel <strong>type</strong> its engine and tanks accep
 
 # FUEL PRODUCTION - five fuels for four ships; both methanols feed one ship.
 #
-# Only the siting is set here (region and electricity source). Lead times,
-# lifetimes, capacities and process economics come from the library.
+# Only the siting and financing are set here (region, electricity source and
+# cost of capital, which Import Plant does not bring: the library sets it in
+# DefaultPlant). Lead times, lifetimes, capacities and process economics come
+# from the library.
 # Feedstock ceilings for the two methanols are set in producer.inc.
 
 # ---- fossil (global commodities, no production chain modelled) --------------
@@ -886,6 +888,7 @@ Import Plant "plant_methanol_electro_alkaline"
 Plant "plant_methanol_electro_alkaline" {
     Region = Region("americas")
     Source = Source("renewable")   # dedicated wind, not the Chilean grid
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_americas")
 }
 Import Process "methanol_synthesis_electro_alkaline"
 Import Process "hydrogen_electro_alkaline"
@@ -898,6 +901,7 @@ Import Plant "plant_ammonia_electro_alkaline"
 Plant "plant_ammonia_electro_alkaline" {
     Region = Region("americas")
     Source = Source("renewable")
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_americas")
 }
 Import Process "ammonia_synthesis_electro_alkaline"
 Import Process "nitrogen_air_separation"
@@ -908,6 +912,7 @@ Import Plant "plant_methanol_bio_gasification"
 Plant "plant_methanol_bio_gasification" {
     Region = Region("europe")
     Source = Source("grid")        # a biomass plant draws from the grid
+    CostOfCapital = Forecast("cost_of_capital_plant_bio_europe")
 }
 Import Process "methanol_synthesis_bio_gasification"
 Import Feedstock "feedstock_biomethanol_gasification"
@@ -921,11 +926,13 @@ Copy Plant "plant_methanol_electro_alkaline" "plant_methanol_electro_alkaline_eu
 Plant "plant_methanol_electro_alkaline_europe" {
     Region = Region("europe")
     Source = Source("renewable")
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_europe")
 }
 Copy Plant "plant_ammonia_electro_alkaline" "plant_ammonia_electro_alkaline_europe"
 Plant "plant_ammonia_electro_alkaline_europe" {
     Region = Region("europe")
     Source = Source("renewable")
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_europe")
 }
 
 # ---- shared inputs ----------------------------------------------------------
@@ -1164,9 +1171,7 @@ Regulation "eu_ets" {
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span># SPDX-License-Identifier: CC-BY-4.0
+# SPDX-License-Identifier: CC-BY-4.0
 
 # FUELEU MARITIME - caps WTW greenhouse gas intensity, tightening over time.
 #
@@ -2936,8 +2941,8 @@ decisions, and once at the end of the year to commit.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 39.6 s
-Wall time: 41.1 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 23.1 s
+Wall time: 23.9 s
 captured 25 snapshots, 2026 to 2050
 walking 2027 (step 1) and 2040 (step 14)
 </pre></div>
@@ -3234,7 +3239,7 @@ this year's regulatory terms:
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/d106a6a781f6d63dcaf6c1538f67bb2334d58c38d224638c635fcae1c97a7f7d.png" src="../_images/d106a6a781f6d63dcaf6c1538f67bb2334d58c38d224638c635fcae1c97a7f7d.png" />
+<img alt="../_images/7b3c3e4ab2efa25e824d26850b29d5962a527e8bef30a9986aaf95f2cb7c2dfb.png" src="../_images/7b3c3e4ab2efa25e824d26850b29d5962a527e8bef30a9986aaf95f2cb7c2dfb.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>believed cost of missing the mark, this year:
   eu_ets      133.4 USD/ton
   fuel_eu     760.0 USD/ton
@@ -3363,7 +3368,7 @@ The strip under the bars explains why a dual-fuel ship sometimes expects to burn
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/ec59f4bb9af396a34852c2d21af9c88ae853fbad3976df9ecab98f63d691f71d.png" src="../_images/ec59f4bb9af396a34852c2d21af9c88ae853fbad3976df9ecab98f63d691f71d.png" />
+<img alt="../_images/222266f2948a7ad43972599ec82ec8d7724269fb70ed1ca124ab81aba590d704.png" src="../_images/222266f2948a7ad43972599ec82ec8d7724269fb70ed1ca124ab81aba590d704.png" />
 </div>
 </div>
 </section>
@@ -3445,7 +3450,7 @@ The strip under the bars explains why a dual-fuel ship sometimes expects to burn
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/0cb57b8471e618f82d7ad40582b8711d538e9af6e9c1aaa7fecdcdfc40e41873.png" src="../_images/0cb57b8471e618f82d7ad40582b8711d538e9af6e9c1aaa7fecdcdfc40e41873.png" />
+<img alt="../_images/b7f96ea1ec894c57e0318c956ba9e485e765bda21b32b5820b3c33e33f25158b.png" src="../_images/b7f96ea1ec894c57e0318c956ba9e485e765bda21b32b5820b3c33e33f25158b.png" />
 </div>
 </div>
 </section>
@@ -3838,8 +3843,8 @@ conversions and order newbuilds</p></li>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/10efb1bede49817ff1f2b912a2e7d6c4b86455f9057bb518ad8d38ca9cba2585.png" src="../_images/10efb1bede49817ff1f2b912a2e7d6c4b86455f9057bb518ad8d38ca9cba2585.png" />
-<img alt="../_images/73f0ba5e8b63e12bbf54be213bf6a25fbe237e6be06e836cca39c09de7765559.png" src="../_images/73f0ba5e8b63e12bbf54be213bf6a25fbe237e6be06e836cca39c09de7765559.png" />
+<img alt="../_images/11fac1fdc7c83ed2be287f28162a47ba2de90d8f8b08ec6c7dbd83b4eb8d1a2f.png" src="../_images/11fac1fdc7c83ed2be287f28162a47ba2de90d8f8b08ec6c7dbd83b4eb8d1a2f.png" />
+<img alt="../_images/2dae405c1d24f7a374c1e5b0202cd1991271d9e30b4190c8386431a8f5522a60.png" src="../_images/2dae405c1d24f7a374c1e5b0202cd1991271d9e30b4190c8386431a8f5522a60.png" />
 </div>
 </div>
 </section>
@@ -4118,8 +4123,8 @@ the demand vector it read (this year's forward view, first year):
   liquefied_natural_gas                57.3 TJ/yr   (     1.2 kt/yr)
 </pre></div>
 </div>
-<img alt="../_images/e1b15c0cd1fd5a5df3bead3b7218cbfd173cd56e204bbc693034c0bd3ebc2069.png" src="../_images/e1b15c0cd1fd5a5df3bead3b7218cbfd173cd56e204bbc693034c0bd3ebc2069.png" />
-<img alt="../_images/09f108b5992590a72b277a077277966abc64591744be709af7dfc8a3e106c398.png" src="../_images/09f108b5992590a72b277a077277966abc64591744be709af7dfc8a3e106c398.png" />
+<img alt="../_images/81c69b5e23108ed83e8b641c13117ef54150025c4ef8fd58b7f2c83d4246c232.png" src="../_images/81c69b5e23108ed83e8b641c13117ef54150025c4ef8fd58b7f2c83d4246c232.png" />
+<img alt="../_images/eb36a8e98c0dd5d4ede0150c025697f910af1a2d47b874f38c2ea896b1a959d8.png" src="../_images/eb36a8e98c0dd5d4ede0150c025697f910af1a2d47b874f38c2ea896b1a959d8.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>the groups in 2027, after plants with no gap are dropped:
   producer_biofuel     methanol_bio           1 plant in demand
   producer_efuel       ammonia_electro        2 plants in demand
@@ -4648,7 +4653,7 @@ delivered.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>=== 2027: the bunkering plan, tons per ship ===
 
   fuel                           san_antonio
-  fossil_fuel_oil                     16,365
+  fossil_fuel_oil                     16,243
   liquefied_natural_gas                4,254
 
 what the voyage actually cost this year: 3.46 USD per thousand cargo-miles
@@ -4658,18 +4663,18 @@ can still bunker oil. Ordering the ship and burning the fuel are two
 different decisions.
 </pre></div>
 </div>
-<img alt="../_images/dd653dd1c28f5dbe4f9c29e3d7c17540476f297adf2639fd1abe844e299aa915.png" src="../_images/dd653dd1c28f5dbe4f9c29e3d7c17540476f297adf2639fd1abe844e299aa915.png" />
+<img alt="../_images/401c842c08342e206d390cb5ce7c8e0e08e5f61358164bb50ed122b8ce1b8dfc.png" src="../_images/401c842c08342e206d390cb5ce7c8e0e08e5f61358164bb50ed122b8ce1b8dfc.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>=== 2027: expected against committed, per ship ===
 
                         tons bunkered            total bill, M USD     
                   expected committed     gap expected committed     gap
   ship_oil           5,219     5,172   -0.9%     3.75      3.72   -0.9%
   ship_lng           4,540     4,844   +6.7%     2.77      2.95   +6.3%
-  ship_methanol      5,188     4,759   -8.3%     3.73      3.42   -8.3%
-  ship_ammonia       5,522     5,844   +5.8%     3.97      4.20   +5.8%
+  ship_methanol      5,188     4,699   -9.4%     3.73      3.38   -9.4%
+  ship_ammonia       5,522     5,782   +4.7%     3.97      4.15   +4.7%
 </pre></div>
 </div>
-<img alt="../_images/690499ea0b6557776accebb89e8300ba205ed9285ce0eb1df096f673f9191b66.png" src="../_images/690499ea0b6557776accebb89e8300ba205ed9285ce0eb1df096f673f9191b66.png" />
+<img alt="../_images/ab8a202e4a1021e33fafd8e7568c1b7eb334cc5782822c7ecc920eb62accf206.png" src="../_images/ab8a202e4a1021e33fafd8e7568c1b7eb334cc5782822c7ecc920eb62accf206.png" />
 </div>
 </div>
 <p>Both solves happen inside the <strong>same time step</strong>, in
@@ -4762,7 +4767,7 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/f9770eaa6549415c6543b844d72d48581b10bfc992b12482cd29e67cae2d8cbb.png" src="../_images/f9770eaa6549415c6543b844d72d48581b10bfc992b12482cd29e67cae2d8cbb.png" />
+<img alt="../_images/049f531f48ebce1cf7b5298709b5f9b774d671c31a6ace2ce3c512e786e74603.png" src="../_images/049f531f48ebce1cf7b5298709b5f9b774d671c31a6ace2ce3c512e786e74603.png" />
 </div>
 </div>
 </section>
@@ -4818,9 +4823,9 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/ccac83784060ff6bda86ec0f675608943e3b4cf9256496bd84b7bd95407dd483.png" src="../_images/ccac83784060ff6bda86ec0f675608943e3b4cf9256496bd84b7bd95407dd483.png" />
-<img alt="../_images/72ff1a566da54653f052b799cec78f1a7bbd211d45b565bf9b65e5488b11b50b.png" src="../_images/72ff1a566da54653f052b799cec78f1a7bbd211d45b565bf9b65e5488b11b50b.png" />
-<img alt="../_images/97a3173eb00d484f621a1473e5d7bd62e765d03ad40574f074bafe4a286b6f2d.png" src="../_images/97a3173eb00d484f621a1473e5d7bd62e765d03ad40574f074bafe4a286b6f2d.png" />
+<img alt="../_images/ec72458bf41fc04b71c5d79b9973e2d38215a8b76edf926243c7efde8a707a60.png" src="../_images/ec72458bf41fc04b71c5d79b9973e2d38215a8b76edf926243c7efde8a707a60.png" />
+<img alt="../_images/017d03235ca3f9a24822dca6d4ab7eb5c6bb1ec7b9b34704310daa6901f37886.png" src="../_images/017d03235ca3f9a24822dca6d4ab7eb5c6bb1ec7b9b34704310daa6901f37886.png" />
+<img alt="../_images/ed70400c9762fe920039cedd5693a09e6110c89503bf397bf7144f1664ea4179.png" src="../_images/ed70400c9762fe920039cedd5693a09e6110c89503bf397bf7144f1664ea4179.png" />
 </div>
 </div>
 </section>
@@ -4852,7 +4857,7 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/9e4776459abddbfa7a48b68b063b9740f3f089c0813f400ae4ed6a3c0119515d.png" src="../_images/9e4776459abddbfa7a48b68b063b9740f3f089c0813f400ae4ed6a3c0119515d.png" />
+<img alt="../_images/4e07c3e1a01ce0df2c2430b60bb27cc696ee14bedb81af6b739f8e2f70ddf701.png" src="../_images/4e07c3e1a01ce0df2c2430b60bb27cc696ee14bedb81af6b739f8e2f70ddf701.png" />
 </div>
 </div>
 </section>
@@ -4894,8 +4899,8 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/a6394425178d178394f7ee361927c9877cd73a862604dfd8d1f92c0553a48b86.png" src="../_images/a6394425178d178394f7ee361927c9877cd73a862604dfd8d1f92c0553a48b86.png" />
-<img alt="../_images/f785650b1a694f62083ce78078caf3488d9c7fd6999bf71212452e4c4232cd6e.png" src="../_images/f785650b1a694f62083ce78078caf3488d9c7fd6999bf71212452e4c4232cd6e.png" />
+<img alt="../_images/1e2935ee635aaa0da1aafad557057bec989c04d520be6c43aff74ca76a7f41c2.png" src="../_images/1e2935ee635aaa0da1aafad557057bec989c04d520be6c43aff74ca76a7f41c2.png" />
+<img alt="../_images/e6b42a9c385de710cbf126fb2250d5e2f1fd6812fb28d412a34c89a49aacc0e2.png" src="../_images/e6b42a9c385de710cbf126fb2250d5e2f1fd6812fb28d412a34c89a49aacc0e2.png" />
 </div>
 </div>
 </section>
@@ -4939,9 +4944,9 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/3467543f440f2e2869b50e282b48772f750308ed28c281226a69a26e35118e12.png" src="../_images/3467543f440f2e2869b50e282b48772f750308ed28c281226a69a26e35118e12.png" />
-<img alt="../_images/a88a7dd6b408d7d54fe8198749f084af44abd514efea62d9c5b7665682e91457.png" src="../_images/a88a7dd6b408d7d54fe8198749f084af44abd514efea62d9c5b7665682e91457.png" />
-<img alt="../_images/1dc79f0056da4b1d8b39cd06e52859af2318a5cd39545aecbe3266f30be71e33.png" src="../_images/1dc79f0056da4b1d8b39cd06e52859af2318a5cd39545aecbe3266f30be71e33.png" />
+<img alt="../_images/ef0a69af319c7b31f1f2bafc3f90ba2be556001bb46c02a3624ace57e5137e8d.png" src="../_images/ef0a69af319c7b31f1f2bafc3f90ba2be556001bb46c02a3624ace57e5137e8d.png" />
+<img alt="../_images/f800e287aab2357f24007a77d6ce5d9d7bc7598d3227cee24ca8ddbd5b1e17f0.png" src="../_images/f800e287aab2357f24007a77d6ce5d9d7bc7598d3227cee24ca8ddbd5b1e17f0.png" />
+<img alt="../_images/10d989b463a1fb7dc2ac7a724b636546614a91d17a45b851775a08b6ade572b3.png" src="../_images/10d989b463a1fb7dc2ac7a724b636546614a91d17a45b851775a08b6ade572b3.png" />
 </div>
 </div>
 </section>
@@ -5041,10 +5046,10 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>fleet 300 -&gt; 492 hulls;  over the horizon 480 ordered, 37 converted, 288 scrapped
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>fleet 300 -&gt; 492 hulls;  over the horizon 480 ordered, 13 converted, 288 scrapped
 </pre></div>
 </div>
-<img alt="../_images/c08a8c3c110284e11aa95328844b7991b20516128d1d758c1244d16c5f994c63.png" src="../_images/c08a8c3c110284e11aa95328844b7991b20516128d1d758c1244d16c5f994c63.png" />
+<img alt="../_images/5eced76da44fd826f96e0b6b668b72dbe91aac5e3ee9b023421f21f2eed025c0.png" src="../_images/5eced76da44fd826f96e0b6b668b72dbe91aac5e3ee9b023421f21f2eed025c0.png" />
 </div>
 </div>
 </section>
@@ -5107,10 +5112,10 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>technology energy saving:  2026  1.3%   2038 12.6%   2050 20.1%
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>technology energy saving:  2026  1.3%   2038 12.9%   2050 20.5%
 </pre></div>
 </div>
-<img alt="../_images/a490f1968e83cbd2811ea1cfaeee0d398fdf4af94257f07b8bcbb66d00619fb2.png" src="../_images/a490f1968e83cbd2811ea1cfaeee0d398fdf4af94257f07b8bcbb66d00619fb2.png" />
+<img alt="../_images/7dad1394d777ed61ea195efe996cc31d7f8b32c324351710f739acfc70cea5ad.png" src="../_images/7dad1394d777ed61ea195efe996cc31d7f8b32c324351710f739acfc70cea5ad.png" />
 </div>
 </div>
 </section>
@@ -5234,7 +5239,7 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/cf8661b52e2a03e733aabafd554405f9022d6f5329baee517a1ccef3bff48287.png" src="../_images/cf8661b52e2a03e733aabafd554405f9022d6f5329baee517a1ccef3bff48287.png" />
+<img alt="../_images/8871df3ec50ab924e339435d2f895327b274f43d618058f384653b3b49309f26.png" src="../_images/8871df3ec50ab924e339435d2f895327b274f43d618058f384653b3b49309f26.png" />
 </div>
 </div>
 </section>
@@ -5334,21 +5339,21 @@ next year’s look-ahead.</p>
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Share of total energy over 2026-2050:
-  Fuel oil                    68.9%
-  LNG                         11.5%
-  Bio-methanol                 7.3%
-  e-ammonia                   10.0%
-  e-methanol                   2.3%
+  Fuel oil                    73.8%
+  LNG                         12.8%
+  Bio-methanol                 5.7%
+  e-ammonia                    7.2%
+  e-methanol                   0.5%
 </pre></div>
 </div>
-<img alt="../_images/64288db7242c7abef529aaafef4b1e2afb68209960e8a920413cdb07d31c3527.png" src="../_images/64288db7242c7abef529aaafef4b1e2afb68209960e8a920413cdb07d31c3527.png" />
-<img alt="../_images/90070bdda90449fa366568d673d2c2ab85b44dfb39c24412528b1b8a257636ac.png" src="../_images/90070bdda90449fa366568d673d2c2ab85b44dfb39c24412528b1b8a257636ac.png" />
+<img alt="../_images/fa9aafe18283f4c92823853753464bb19cc39c894563ba97aa43f40d1878706c.png" src="../_images/fa9aafe18283f4c92823853753464bb19cc39c894563ba97aa43f40d1878706c.png" />
+<img alt="../_images/52fe3b3c73367bb40cb11004e9b6a1d487665f0f77a21a01fdc6655ef2de7418.png" src="../_images/52fe3b3c73367bb40cb11004e9b6a1d487665f0f77a21a01fdc6655ef2de7418.png" />
 </div>
 </div>
 </section>
 <section id="what-the-feedstock-ceilings-decided">
 <h4>What the feedstock ceilings decided<a class="headerlink" href="#what-the-feedstock-ceilings-decided" title="Link to this heading">#</a></h4>
-<p>The next cell shows the two feedstock ceilings of this example against what the plants actually used: gasification biomass, which limits bio-methanol and binds from 2039, and biogenic CO2, which limits e-methanol and binds in only two years, from 2045. Once a ceiling binds, the fuel it limits cannot grow any further, and any extra demand has to go to other fuels.</p>
+<p>The next cell shows the two feedstock ceilings of this example against what the plants actually used: gasification biomass, which limits bio-methanol and binds from 2041, and biogenic CO2, which limits e-methanol and binds only in the last year, 2050. Once a ceiling binds, the fuel it limits cannot grow any further, and any extra demand has to go to other fuels.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -5412,11 +5417,11 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Gasification feedstock     ceiling  0.95 Mt/yr by 2050,   binds from 2040, in 11 of 25 years
-  Biogenic CO2 (PS)          ceiling  0.53 Mt/yr by 2050,   binds from 2043, in 2 of 25 years
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Gasification feedstock     ceiling  0.95 Mt/yr by 2050,   binds from 2041, in 10 of 25 years
+  Biogenic CO2 (PS)          ceiling  0.53 Mt/yr by 2050,   binds from 2050, in 1 of 25 years
 </pre></div>
 </div>
-<img alt="../_images/3e1103db0ac7d9a003644d45dad29a33f0a0ab3f33aac0984d4f56100cb03568.png" src="../_images/3e1103db0ac7d9a003644d45dad29a33f0a0ab3f33aac0984d4f56100cb03568.png" />
+<img alt="../_images/2d2f26bd47677deb2d6c843dda132423dd341a63de1a930ff6164a721f23069a.png" src="../_images/2d2f26bd47677deb2d6c843dda132423dd341a63de1a930ff6164a721f23069a.png" />
 </div>
 </div>
 </section>
@@ -5617,7 +5622,7 @@ retrofits, and a plant then takes several years to build.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/de8f08e57340622d9f3a52110524ce9e743333c0c2aab2c98058530b8478be65.png" src="../_images/de8f08e57340622d9f3a52110524ce9e743333c0c2aab2c98058530b8478be65.png" />
+<img alt="../_images/3de4a02a656c434487f77240759cb34eba511dd7e831142c9781a53cd3bc8c41.png" src="../_images/3de4a02a656c434487f77240759cb34eba511dd7e831142c9781a53cd3bc8c41.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  first capacity sanctioned: 2028
   first e-ammonia burned:  2032
   production vs delivery, largest gap over the horizon: 0.0 TJ/year
@@ -5742,14 +5747,14 @@ over time.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/3f54e55f694290f11057bdbd34bd57c8576e75d8478b0bf633240bcdc590f4ba.png" src="../_images/3f54e55f694290f11057bdbd34bd57c8576e75d8478b0bf633240bcdc590f4ba.png" />
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  well-to-wake 2026:    5.93 Mt/yr   2050:    2.75 Mt/yr   over the horizon     120.3 Mt
-  EU ETS   2027:     334 M USD   2050:     447 M USD   over the horizon    10,655 M USD
-  FuelEU   2027:      23 M USD   2050:     669 M USD   over the horizon     6,774 M USD
+<img alt="../_images/f11e0d09d4d0dc33cb41d3eaa11d7ddb5cd6cdf5d0d88998a49790e539f73507.png" src="../_images/f11e0d09d4d0dc33cb41d3eaa11d7ddb5cd6cdf5d0d88998a49790e539f73507.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  well-to-wake 2026:    5.93 Mt/yr   2050:    3.26 Mt/yr   over the horizon     127.4 Mt
+  EU ETS   2027:     334 M USD   2050:     529 M USD   over the horizon    11,484 M USD
+  FuelEU   2027:      23 M USD   2050:     839 M USD   over the horizon     8,089 M USD
   ship_oil        below the limit in  0 of 24 years
   ship_lng        below the limit in  8 of 24 years
-  ship_methanol   below the limit in 19 of 24 years
-  ship_ammonia    below the limit in 18 of 24 years
+  ship_methanol   below the limit in 14 of 24 years
+  ship_ammonia    below the limit in 11 of 24 years
 </pre></div>
 </div>
 </div>
@@ -5819,15 +5824,14 @@ discrete-choice model compares between configurations, so it is what explains <e
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>instantaneous freight rate   2026: 3.43   2050: 4.56   (+33%)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>In the right-hand panel, whichever configuration sits lowest in a given
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>instantaneous freight rate   2026: 3.43   2050: 4.71   (+37%)
+
+In the right-hand panel, whichever configuration sits lowest in a given
 year is the one most likely to be ordered that year. That crossover is
 the mechanism behind the fuel mix in section 2.
 </pre></div>
 </div>
-<img alt="../_images/c4ae992ce03eb470c3b2ea60d5e6e8dffbdcf537ad92d84947d741cffeb77343.png" src="../_images/c4ae992ce03eb470c3b2ea60d5e6e8dffbdcf537ad92d84947d741cffeb77343.png" />
+<img alt="../_images/4a8c7b6849d886c361f2d9cc08303b56fe6f1b3a1e9d9960fe994ce1858c724e.png" src="../_images/4a8c7b6849d886c361f2d9cc08303b56fe6f1b3a1e9d9960fe994ce1858c724e.png" />
 </div>
 </div>
 </section>
@@ -6119,6 +6123,59 @@ efficiency technology.</p></li>
     <span class="k">return</span> <span class="n">fig</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">run_your_scenario</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Draw the traits set in the YOUR SCENARIO cell, solve them, compare with the reference.</span>
+
+<span class="sd">    Reads INTER_FUEL, FUEL_CONVERSION and TECHNOLOGY from the notebook when it</span>
+<span class="sd">    is called, so the cell that sets them only has to call this.</span>
+<span class="sd">    """</span>
+    <span class="n">BEHAVIOR</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"INTER_FUEL"</span><span class="p">,</span> <span class="n">INTER_FUEL</span><span class="p">,</span> <span class="s2">"inter_fuel"</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"FUEL_CONVERSION"</span><span class="p">,</span> <span class="n">FUEL_CONVERSION</span><span class="p">,</span> <span class="s2">"fuel_conversion"</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"TECHNOLOGY"</span><span class="p">,</span> <span class="n">TECHNOLOGY</span><span class="p">,</span> <span class="s2">"technology"</span><span class="p">)]</span>
+    <span class="n">CHANGED</span> <span class="o">=</span> <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">BEHAVIOR</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">REFERENCE_ODDS</span><span class="p">[</span><span class="n">a</span><span class="p">]]</span>
+    <span class="n">TWEAKS</span> <span class="o">=</span> <span class="p">[</span><span class="n">sensitivity</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">_n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">BEHAVIOR</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">REFERENCE_ODDS</span><span class="p">[</span><span class="n">a</span><span class="p">]]</span>
+
+    <span class="c1"># what the traits you set mean, drawn before the solve because it needs none</span>
+    <span class="n">plot_traits</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">_n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">BEHAVIOR</span><span class="p">})</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">TWEAKS</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Every lever is still at its reference, so this would just re-solve it."</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Change one of the numbers above and run this cell again."</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"solving your scenario:"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_value</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">yours</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">(</span><span class="n">both</span><span class="p">(</span><span class="o">*</span><span class="n">TWEAKS</span><span class="p">))</span>
+        <span class="n">you</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">yours</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">chr</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">''</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'reference'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'yours'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'change'</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_label</span><span class="p">,</span> <span class="n">_r</span><span class="p">,</span> <span class="n">_y</span><span class="p">,</span> <span class="n">_fmt</span><span class="p">,</span> <span class="n">_pp</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"well-to-wake in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, kt/yr"</span><span class="p">,</span>
+                 <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"cumulative, kt"</span><span class="p">,</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="c1"># a share is already a percentage, so it moves in POINTS, not per cent</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"alternative fuels in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, %"</span><span class="p">,</span>
+                 <span class="n">ref</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="s2">".1f"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"freight rate in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, USD/k mile"</span><span class="p">,</span>
+                 <span class="n">ref</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.2f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
+            <span class="n">_change</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">_r</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> pp"</span> <span class="k">if</span> <span class="n">_pp</span>
+                       <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mf">100.</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">_y</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">_r</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1.</span><span class="p">)</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> %"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_label</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_r</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_y</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_change</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_cases</span><span class="p">({</span><span class="s2">"reference"</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span> <span class="s2">"your scenario"</span><span class="p">:</span> <span class="n">you</span><span class="p">})</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"  "</span> <span class="o">+</span> <span class="s2">",  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">),</span>
+                     <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"what moved most, in percentage points of the fuel mix:"</span><span class="p">)</span>
+        <span class="n">_delta</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(((</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">])</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">])),</span>
+                        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">_d</span><span class="p">,</span> <span class="n">_f</span> <span class="ow">in</span> <span class="n">_delta</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">_f</span><span class="p">)</span><span class="si">:</span><span class="s2">20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_d</span><span class="si">:</span><span class="s2">+6.1f</span><span class="si">}</span><span class="s2"> pp"</span><span class="p">)</span>
+
+
 <span class="c1"># `base` is the run Part 3 walked through, already solved, so the reference</span>
 <span class="c1"># costs nothing here - only your scenario is re-solved, once, below.</span>
 <span class="n">ref</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
@@ -6139,11 +6196,12 @@ efficiency technology.</p></li>
 </div>
 </div>
 </div>
-<p>Change the traits in the next cell so you can test them.</p>
+<p>Change the traits in the next cell and run it: it redraws the curves with your values, then solves your scenario and compares its results with the reference.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
-<span class="c1">#  YOUR SCENARIO.  Set a trait, run this cell, then run the one below it.</span>
+<span class="c1">#  YOUR SCENARIO.  Set a trait, then run this cell: it redraws the curves,</span>
+<span class="c1">#  solves your scenario (about a minute) and compares it with the reference.</span>
 <span class="c1">#</span>
 <span class="c1">#  As an example, INTER_FUEL is set to 0.3: owners pick between fuel types far</span>
 <span class="c1">#  more sharply than the deck's 0.75. Set it back to 0.75 to start from the</span>
@@ -6158,68 +6216,11 @@ efficiency technology.</p></li>
 <span class="n">FUEL_CONVERSION</span> <span class="o">=</span> <span class="mf">2.0</span>   <span class="c1">#  1.2 - 16       HIGHER is sharper: NPV against ship CAPEX</span>
 <span class="n">TECHNOLOGY</span>      <span class="o">=</span> <span class="mf">2.0</span>   <span class="c1">#  1.2 - 16       HIGHER is sharper: NPV on the measure</span>
 <span class="c1"># ===========================================================================</span>
+
+<span class="n">run_your_scenario</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-</div>
-<p>Run the next cell to solve your scenario and compare its results with the reference.</p>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Run your scenario</span>
-<span class="n">BEHAVIOR</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"INTER_FUEL"</span><span class="p">,</span> <span class="n">INTER_FUEL</span><span class="p">,</span> <span class="s2">"inter_fuel"</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">"FUEL_CONVERSION"</span><span class="p">,</span> <span class="n">FUEL_CONVERSION</span><span class="p">,</span> <span class="s2">"fuel_conversion"</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">"TECHNOLOGY"</span><span class="p">,</span> <span class="n">TECHNOLOGY</span><span class="p">,</span> <span class="s2">"technology"</span><span class="p">)]</span>
-<span class="n">CHANGED</span> <span class="o">=</span> <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">BEHAVIOR</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">REFERENCE_ODDS</span><span class="p">[</span><span class="n">a</span><span class="p">]]</span>
-<span class="n">TWEAKS</span> <span class="o">=</span> <span class="p">[</span><span class="n">sensitivity</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">_n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">BEHAVIOR</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">REFERENCE_ODDS</span><span class="p">[</span><span class="n">a</span><span class="p">]]</span>
-
-<span class="c1"># what the traits you set mean, drawn before the solve because it needs none</span>
-<span class="n">plot_traits</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">_n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">BEHAVIOR</span><span class="p">})</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="ow">not</span> <span class="n">TWEAKS</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Every lever is still at its reference, so this would just re-solve it."</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Change one of the numbers above and run this cell again."</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"solving your scenario:"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_value</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">yours</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">(</span><span class="n">both</span><span class="p">(</span><span class="o">*</span><span class="n">TWEAKS</span><span class="p">))</span>
-    <span class="n">you</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">yours</span><span class="p">)</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">chr</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">''</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'reference'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'yours'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'change'</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">_label</span><span class="p">,</span> <span class="n">_r</span><span class="p">,</span> <span class="n">_y</span><span class="p">,</span> <span class="n">_fmt</span><span class="p">,</span> <span class="n">_pp</span> <span class="ow">in</span> <span class="p">(</span>
-            <span class="p">(</span><span class="sa">f</span><span class="s2">"well-to-wake in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, kt/yr"</span><span class="p">,</span>
-             <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">"cumulative, kt"</span><span class="p">,</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-            <span class="c1"># a share is already a percentage, so it moves in POINTS, not per cent</span>
-            <span class="p">(</span><span class="sa">f</span><span class="s2">"alternative fuels in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, %"</span><span class="p">,</span>
-             <span class="n">ref</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="s2">".1f"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-            <span class="p">(</span><span class="sa">f</span><span class="s2">"freight rate in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, USD/k mile"</span><span class="p">,</span>
-             <span class="n">ref</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.2f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
-        <span class="n">_change</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">_r</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> pp"</span> <span class="k">if</span> <span class="n">_pp</span>
-                   <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mf">100.</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">_y</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">_r</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1.</span><span class="p">)</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> %"</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_label</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_r</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_y</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_change</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_cases</span><span class="p">({</span><span class="s2">"reference"</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span> <span class="s2">"your scenario"</span><span class="p">:</span> <span class="n">you</span><span class="p">})</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"  "</span> <span class="o">+</span> <span class="s2">",  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">),</span>
-                 <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"what moved most, in percentage points of the fuel mix:"</span><span class="p">)</span>
-    <span class="n">_delta</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(((</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
-                     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">])</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">])),</span>
-                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-    <span class="k">for</span> <span class="n">_d</span><span class="p">,</span> <span class="n">_f</span> <span class="ow">in</span> <span class="n">_delta</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">_f</span><span class="p">)</span><span class="si">:</span><span class="s2">20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_d</span><span class="si">:</span><span class="s2">+6.1f</span><span class="si">}</span><span class="s2"> pp"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</details>
 <div class="cell_output docutils container">
 <img alt="../_images/f9b286daae46da3c24257b04ebb1438361e49f0dcb7150d3958e04b98ce8bda2.png" src="../_images/f9b286daae46da3c24257b04ebb1438361e49f0dcb7150d3958e04b98ce8bda2.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>solving your scenario:
@@ -6227,18 +6228,18 @@ efficiency technology.</p></li>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>                                     reference       yours        change
-  well-to-wake in 2050, kt/yr            2,753       2,563        -6.9 %
-  cumulative, kt                       120,350     118,789        -1.3 %
-  alternative fuels in 2050, %            52.7        56.2       +3.5 pp
-  freight rate in 2050, USD/k mile        4.56        4.53        -0.5 %
+  well-to-wake in 2050, kt/yr            3,265       3,406        +4.3 %
+  cumulative, kt                       127,424     130,268        +2.2 %
+  alternative fuels in 2050, %            43.3        40.6       -2.7 pp
+  freight rate in 2050, USD/k mile        4.71        4.70        -0.3 %
 </pre></div>
 </div>
-<img alt="../_images/28a59a02a50bb44ec3d698aa471a693cb6e907d6a4c21104be6dcf710c0e3d52.png" src="../_images/28a59a02a50bb44ec3d698aa471a693cb6e907d6a4c21104be6dcf710c0e3d52.png" />
+<img alt="../_images/8373947d595594d47f672be80247f86c888dcf45e016537561f9c1a40948d183.png" src="../_images/8373947d595594d47f672be80247f86c888dcf45e016537561f9c1a40948d183.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>what moved most, in percentage points of the fuel mix:
-  Fuel oil               -0.8 pp
-  e-ammonia              +0.5 pp
+  LNG                    +3.3 pp
+  e-ammonia              -2.3 pp
+  Fuel oil               -1.4 pp
   e-methanol             +0.3 pp
-  LNG                    -0.1 pp
   Bio-methanol           +0.1 pp
 </pre></div>
 </div>

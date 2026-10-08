@@ -500,10 +500,9 @@ efficiency measures.</p>
 <p><strong>Sensitivity analysis.</strong> Change some of the input parameters and see what happens.</p>
 <p>How the deck is built, the data behind it and how the model reaches its answer are the subject of <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-understand-navigate.ipynb">Session 2</a>.</p>
 </section>
-<section id="setup">
-<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
+<section id="step-1-setup">
+<h2>STEP 1: Setup<a class="headerlink" href="#step-1-setup" title="Link to this heading">#</a></h2>
 <p>Run the cell below on Colab or locally to set up the Navigate model. It also loads the pre-made example that will be used to illustrate this part of the workshop.</p>
-<p>Note: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a>’s “Run the scenarios” cell takes about twenty-five minutes, so it is worth starting it early in a separate Colab tab and coming back to it.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -603,8 +602,8 @@ Navigate 1.0.0 is already installed.
 </div>
 </div>
 </section>
-<section id="run-the-case-and-see-the-results">
-<h2>Run the case and see the results<a class="headerlink" href="#run-the-case-and-see-the-results" title="Link to this heading">#</a></h2>
+<section id="step-2-run-the-case-and-see-the-results">
+<h2>STEP 2: Run the case and see the results<a class="headerlink" href="#step-2-run-the-case-and-see-the-results" title="Link to this heading">#</a></h2>
 <p>Run the next cell to solve the case once, from 2026 to 2050. It takes about twenty seconds. The results that we are plotting for this example are:</p>
 <ul class="simple">
 <li><p>the fleet’s well-to-wake emissions over time;</p></li>
@@ -861,6 +860,80 @@ Navigate 1.0.0 is already installed.
     <span class="k">return</span> <span class="n">fig</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">run_your_scenario</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Solve the levers set in the YOUR SCENARIO cell and compare with the reference.</span>
+
+<span class="sd">    Reads the lever names (OIL_PRICE ... FREEZE_EFFICIENCY) from the notebook</span>
+<span class="sd">    when it is called, so the cell that sets them only has to call this.</span>
+<span class="sd">    """</span>
+    <span class="n">MULTIPLIERS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="n">OIL_PRICE</span><span class="p">,</span> <span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s2">"GAS_PRICE"</span><span class="p">,</span> <span class="n">GAS_PRICE</span><span class="p">,</span>
+                    <span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s2">"CARBON_PRICE"</span><span class="p">,</span> <span class="n">CARBON_PRICE</span><span class="p">,</span> <span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s2">"FUELEU_TARGET"</span><span class="p">,</span> <span class="n">FUELEU_TARGET</span><span class="p">,</span> <span class="n">TARGET</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s2">"CHILEAN_POWER"</span><span class="p">,</span> <span class="n">CHILEAN_POWER</span><span class="p">,</span> <span class="s2">"electricity_cost_americas_mid"</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s2">"EUROPEAN_POWER"</span><span class="p">,</span> <span class="n">EUROPEAN_POWER</span><span class="p">,</span> <span class="s2">"electricity_cost_europe_mid"</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s2">"BIOMASS"</span><span class="p">,</span> <span class="n">BIOMASS</span><span class="p">,</span>
+                    <span class="s2">"feedstock_biomethanol_gasification_availability"</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s2">"BIOGENIC_CO2"</span><span class="p">,</span> <span class="n">BIOGENIC_CO2</span><span class="p">,</span> <span class="s2">"carbon_dioxide_biogenic_availability"</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s2">"TRADE_GROWTH"</span><span class="p">,</span> <span class="n">TRADE_GROWTH</span><span class="p">,</span> <span class="s2">"trade_growth_bulk_carrier"</span><span class="p">)]</span>
+
+    <span class="c1"># Trade is compounded as log(1 + growth), so a year shrinking by 100 % or more has</span>
+    <span class="c1"># no meaning - say so here rather than let the solve fail on it.</span>
+    <span class="n">_growth</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="s2">"trade_growth_bulk_carrier"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">TRADE_GROWTH</span> <span class="o">*</span> <span class="n">_growth</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">_d</span><span class="p">)</span> <span class="k">for</span> <span class="n">_d</span> <span class="ow">in</span> <span class="n">base</span><span class="o">.</span><span class="n">get_timeline</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">1.</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"TRADE_GROWTH = </span><span class="si">{</span><span class="n">TRADE_GROWTH</span><span class="si">}</span><span class="s2"> would make trade shrink by 100 % "</span>
+                         <span class="s2">"or more in a year. Pick a value closer to zero."</span><span class="p">)</span>
+
+    <span class="n">CHANGED</span> <span class="o">=</span> <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">MULTIPLIERS</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">TWEAKS</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">MULTIPLIERS</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">FUELEU_PENALTY</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="n">CHANGED</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"FUELEU_PENALTY"</span><span class="p">,</span> <span class="n">FUELEU_PENALTY</span><span class="p">))</span>
+        <span class="n">TWEAKS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">penalty</span><span class="p">(</span><span class="n">FUELEU_PENALTY</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">FULL_COVERAGE</span><span class="p">:</span>
+        <span class="n">CHANGED</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"FULL_COVERAGE"</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="n">TWEAKS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chile_in_scope</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">FREEZE_EFFICIENCY</span><span class="p">:</span>
+        <span class="n">CHANGED</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"FREEZE_EFFICIENCY"</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="n">TWEAKS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">without_new_technology</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">TWEAKS</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Every lever is still at its reference, so this would just re-solve it."</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Change one of the numbers above and run this cell again."</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"solving your scenario:"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_value</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">yours</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">(</span><span class="n">both</span><span class="p">(</span><span class="o">*</span><span class="n">TWEAKS</span><span class="p">))</span>
+        <span class="n">you</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">yours</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">chr</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">''</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'reference'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'yours'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'change'</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_label</span><span class="p">,</span> <span class="n">_r</span><span class="p">,</span> <span class="n">_y</span><span class="p">,</span> <span class="n">_fmt</span><span class="p">,</span> <span class="n">_pp</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"well-to-wake in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, kt/yr"</span><span class="p">,</span>
+                 <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"cumulative, kt"</span><span class="p">,</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="c1"># a share is already a percentage, so it moves in POINTS, not per cent</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"alternative fuels in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, %"</span><span class="p">,</span>
+                 <span class="n">ref</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="s2">".1f"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"freight rate in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, USD/k mile"</span><span class="p">,</span>
+                 <span class="n">ref</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.2f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
+            <span class="n">_change</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">_r</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> pp"</span> <span class="k">if</span> <span class="n">_pp</span>
+                       <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mf">100.</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">_y</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">_r</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1.</span><span class="p">)</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> %"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_label</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_r</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_y</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_change</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_cases</span><span class="p">({</span><span class="s2">"reference"</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span> <span class="s2">"your scenario"</span><span class="p">:</span> <span class="n">you</span><span class="p">})</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"  "</span> <span class="o">+</span> <span class="s2">",  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">),</span>
+                     <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"what moved most, in percentage points of the fuel mix:"</span><span class="p">)</span>
+        <span class="n">_delta</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(((</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">])</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">])),</span>
+                        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">_d</span><span class="p">,</span> <span class="n">_f</span> <span class="ow">in</span> <span class="n">_delta</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">_f</span><span class="p">)</span><span class="si">:</span><span class="s2">20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_d</span><span class="si">:</span><span class="s2">+6.1f</span><span class="si">}</span><span class="s2"> pp"</span><span class="p">)</span>
+
+
 <span class="n">plot_cases</span><span class="p">({</span><span class="s2">"reference"</span><span class="p">:</span> <span class="n">ref</span><span class="p">})</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -868,23 +941,23 @@ Navigate 1.0.0 is already installed.
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 49.6 s
-Wall time: 55.4 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 17.3 s
+Wall time: 18.3 s
 the reference, 2026-2050
   well-to-wake in 2026               5,935  kt CO2e/yr
-  well-to-wake in 2050               2,753  kt CO2e/yr
-  cumulative over the horizon      120,350  kt CO2e
-  alternative fuels in 2050           52.7  %
-  freight rate in 2050                4.56  USD per k cargo-mile
+  well-to-wake in 2050               3,265  kt CO2e/yr
+  cumulative over the horizon      127,424  kt CO2e
+  alternative fuels in 2050           43.3  %
+  freight rate in 2050                4.71  USD per k cargo-mile
 </pre></div>
 </div>
-<img alt="../_images/7d023f3ad57590b7b9e3e5968b2e138c036c784e5cf3245084073a69e6e11648.png" src="../_images/7d023f3ad57590b7b9e3e5968b2e138c036c784e5cf3245084073a69e6e11648.png" />
+<img alt="../_images/942f600535b52974e12eb4da7e577b1f0331849524bd4b6ba1d071bb463a32f5.png" src="../_images/942f600535b52974e12eb4da7e577b1f0331849524bd4b6ba1d071bb463a32f5.png" />
 </div>
 </div>
 </section>
 <hr class="docutils" />
-<section id="sensitivity-analysis">
-<h2>Sensitivity analysis<a class="headerlink" href="#sensitivity-analysis" title="Link to this heading">#</a></h2>
+<section id="step-3-sensitivity-analysis">
+<h2>STEP 3: Sensitivity analysis<a class="headerlink" href="#step-3-sensitivity-analysis" title="Link to this heading">#</a></h2>
 <p>Change some of the input values of the “reference scenario” to see what changes in the results.</p>
 <p>All levers that we prepared can be changed with multipliers, except two that can be used as switches:</p>
 <ul class="simple">
@@ -896,7 +969,8 @@ well as on retrofits.</p></li>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
-<span class="c1">#  YOUR SCENARIO.  Set a lever, run this cell, then run the one below it to generate results.</span>
+<span class="c1">#  YOUR SCENARIO.  Set a lever, then run this cell: it solves your scenario</span>
+<span class="c1">#  (about a minute) and compares it with the reference.</span>
 <span class="c1">#</span>
 <span class="c1">#  Every number down to TRADE_GROWTH is a MULTIPLIER on what the deck already</span>
 <span class="c1">#  says, so 1.0 is the reference. The right-hand column says what each 1.0 is</span>
@@ -915,7 +989,7 @@ well as on retrofits.</p></li>
 <span class="n">CHILEAN_POWER</span>  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 1.4       62 USD/MWh in 2026, 41 by 2050</span>
 <span class="n">EUROPEAN_POWER</span> <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 1.4       72 USD/MWh in 2026, 53 by 2050</span>
 <span class="n">BIOMASS</span>        <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.1 - 10.0      1,152 Mt/yr pool in 2026, 1,361 by 2050; this ceiling BINDS</span>
-<span class="n">BIOGENIC_CO2</span>   <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 2.0       92 Mt/yr pool in 2026, 350 by 2050; binds from 2045, in 2 years</span>
+<span class="n">BIOGENIC_CO2</span>   <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 2.0       92 Mt/yr pool in 2026, 350 by 2050; binds in 2050 only</span>
 <span class="n">TRADE_GROWTH</span>   <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.0 - 2.0       2.2 %/yr in 2026, 1.4-1.5 %/yr from 2030</span>
 <span class="c1">#                          1.0 = the deck's growth; 0.0 = trade stays at its 2026 volume;</span>
 <span class="c1">#                         -1.0 = trade shrinks as fast as it would have grown</span>
@@ -924,107 +998,30 @@ well as on retrofits.</p></li>
 <span class="n">FREEZE_EFFICIENCY</span> <span class="o">=</span> <span class="kc">False</span>   <span class="c1"># nothing further gets fitted, newbuild or retrofit</span>
 
 <span class="c1"># ===========================================================================</span>
+
+<span class="n">run_your_scenario</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-</div>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Run your scenario</span>
-<span class="n">MULTIPLIERS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="n">OIL_PRICE</span><span class="p">,</span> <span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">),</span>
-               <span class="p">(</span><span class="s2">"GAS_PRICE"</span><span class="p">,</span> <span class="n">GAS_PRICE</span><span class="p">,</span>
-                <span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">),</span>
-               <span class="p">(</span><span class="s2">"CARBON_PRICE"</span><span class="p">,</span> <span class="n">CARBON_PRICE</span><span class="p">,</span> <span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">),</span>
-               <span class="p">(</span><span class="s2">"FUELEU_TARGET"</span><span class="p">,</span> <span class="n">FUELEU_TARGET</span><span class="p">,</span> <span class="n">TARGET</span><span class="p">),</span>
-               <span class="p">(</span><span class="s2">"CHILEAN_POWER"</span><span class="p">,</span> <span class="n">CHILEAN_POWER</span><span class="p">,</span> <span class="s2">"electricity_cost_americas_mid"</span><span class="p">),</span>
-               <span class="p">(</span><span class="s2">"EUROPEAN_POWER"</span><span class="p">,</span> <span class="n">EUROPEAN_POWER</span><span class="p">,</span> <span class="s2">"electricity_cost_europe_mid"</span><span class="p">),</span>
-               <span class="p">(</span><span class="s2">"BIOMASS"</span><span class="p">,</span> <span class="n">BIOMASS</span><span class="p">,</span>
-                <span class="s2">"feedstock_biomethanol_gasification_availability"</span><span class="p">),</span>
-               <span class="p">(</span><span class="s2">"BIOGENIC_CO2"</span><span class="p">,</span> <span class="n">BIOGENIC_CO2</span><span class="p">,</span> <span class="s2">"carbon_dioxide_biogenic_availability"</span><span class="p">),</span>
-               <span class="p">(</span><span class="s2">"TRADE_GROWTH"</span><span class="p">,</span> <span class="n">TRADE_GROWTH</span><span class="p">,</span> <span class="s2">"trade_growth_bulk_carrier"</span><span class="p">)]</span>
-
-<span class="c1"># Trade is compounded as log(1 + growth), so a year shrinking by 100 % or more has</span>
-<span class="c1"># no meaning - say so here rather than let the solve fail on it.</span>
-<span class="n">_growth</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="s2">"trade_growth_bulk_carrier"</span><span class="p">]</span>
-<span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">TRADE_GROWTH</span> <span class="o">*</span> <span class="n">_growth</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">_d</span><span class="p">)</span> <span class="k">for</span> <span class="n">_d</span> <span class="ow">in</span> <span class="n">base</span><span class="o">.</span><span class="n">get_timeline</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">1.</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"TRADE_GROWTH = </span><span class="si">{</span><span class="n">TRADE_GROWTH</span><span class="si">}</span><span class="s2"> would make trade shrink by 100 % "</span>
-                     <span class="s2">"or more in a year. Pick a value closer to zero."</span><span class="p">)</span>
-
-<span class="n">CHANGED</span> <span class="o">=</span> <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">MULTIPLIERS</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">]</span>
-<span class="n">TWEAKS</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">MULTIPLIERS</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">]</span>
-<span class="k">if</span> <span class="n">FUELEU_PENALTY</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
-    <span class="n">CHANGED</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"FUELEU_PENALTY"</span><span class="p">,</span> <span class="n">FUELEU_PENALTY</span><span class="p">))</span>
-    <span class="n">TWEAKS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">penalty</span><span class="p">(</span><span class="n">FUELEU_PENALTY</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">FULL_COVERAGE</span><span class="p">:</span>
-    <span class="n">CHANGED</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"FULL_COVERAGE"</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
-    <span class="n">TWEAKS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chile_in_scope</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">FREEZE_EFFICIENCY</span><span class="p">:</span>
-    <span class="n">CHANGED</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"FREEZE_EFFICIENCY"</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
-    <span class="n">TWEAKS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">without_new_technology</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="ow">not</span> <span class="n">TWEAKS</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Every lever is still at its reference, so this would just re-solve it."</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Change one of the numbers above and run this cell again."</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"solving your scenario:"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_value</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">yours</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">(</span><span class="n">both</span><span class="p">(</span><span class="o">*</span><span class="n">TWEAKS</span><span class="p">))</span>
-    <span class="n">you</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">yours</span><span class="p">)</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">chr</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">''</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'reference'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'yours'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'change'</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">_label</span><span class="p">,</span> <span class="n">_r</span><span class="p">,</span> <span class="n">_y</span><span class="p">,</span> <span class="n">_fmt</span><span class="p">,</span> <span class="n">_pp</span> <span class="ow">in</span> <span class="p">(</span>
-            <span class="p">(</span><span class="sa">f</span><span class="s2">"well-to-wake in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, kt/yr"</span><span class="p">,</span>
-             <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">"cumulative, kt"</span><span class="p">,</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-            <span class="c1"># a share is already a percentage, so it moves in POINTS, not per cent</span>
-            <span class="p">(</span><span class="sa">f</span><span class="s2">"alternative fuels in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, %"</span><span class="p">,</span>
-             <span class="n">ref</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="s2">".1f"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-            <span class="p">(</span><span class="sa">f</span><span class="s2">"freight rate in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, USD/k mile"</span><span class="p">,</span>
-             <span class="n">ref</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.2f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
-        <span class="n">_change</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">_r</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> pp"</span> <span class="k">if</span> <span class="n">_pp</span>
-                   <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mf">100.</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">_y</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">_r</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1.</span><span class="p">)</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> %"</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_label</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_r</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_y</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_change</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_cases</span><span class="p">({</span><span class="s2">"reference"</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span> <span class="s2">"your scenario"</span><span class="p">:</span> <span class="n">you</span><span class="p">})</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"  "</span> <span class="o">+</span> <span class="s2">",  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">),</span>
-                 <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"what moved most, in percentage points of the fuel mix:"</span><span class="p">)</span>
-    <span class="n">_delta</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(((</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
-                     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">])</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">])),</span>
-                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-    <span class="k">for</span> <span class="n">_d</span><span class="p">,</span> <span class="n">_f</span> <span class="ow">in</span> <span class="n">_delta</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">_f</span><span class="p">)</span><span class="si">:</span><span class="s2">20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_d</span><span class="si">:</span><span class="s2">+6.1f</span><span class="si">}</span><span class="s2"> pp"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>solving your scenario:
   FUELEU_PENALTY   3.0
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>                                     reference       yours        change
-  well-to-wake in 2050, kt/yr            2,753       1,876       -31.9 %
-  cumulative, kt                       120,350     114,043        -5.2 %
-  alternative fuels in 2050, %            52.7        68.1      +15.4 pp
-  freight rate in 2050, USD/k mile        4.56        4.89        +7.4 %
+  well-to-wake in 2050, kt/yr            3,265       1,924       -41.1 %
+  cumulative, kt                       127,424     112,184       -12.0 %
+  alternative fuels in 2050, %            43.3        67.0      +23.7 pp
+  freight rate in 2050, USD/k mile        4.71        5.18       +10.0 %
 </pre></div>
 </div>
-<img alt="../_images/f11acdd2ebe4415a0e77c32b1ec5d2ba7549a529da1b5ac5d12dc680e126fac5.png" src="../_images/f11acdd2ebe4415a0e77c32b1ec5d2ba7549a529da1b5ac5d12dc680e126fac5.png" />
+<img alt="../_images/8a2707dbf863cc7f938271a61a167490056ab33adeca1770277bca114c4080ae.png" src="../_images/8a2707dbf863cc7f938271a61a167490056ab33adeca1770277bca114c4080ae.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>what moved most, in percentage points of the fuel mix:
-  LNG                    -5.8 pp
-  e-ammonia              +3.8 pp
-  Fuel oil               +1.4 pp
-  e-methanol             +0.6 pp
-  Bio-methanol           +0.1 pp
+  LNG                    -6.0 pp
+  e-ammonia              +5.4 pp
+  Fuel oil               -4.0 pp
+  Bio-methanol           +2.4 pp
+  e-methanol             +2.2 pp
 </pre></div>
 </div>
 </div>
@@ -1039,6 +1036,245 @@ well as on retrofits.</p></li>
 <li><p>building a new case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-case.ipynb">Session 5</a> describes (needs a <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation">local installation</a>)</p></li>
 <li><p>you can also check out our <a class="reference external" href="https://github.com/zerocarbonshipping/horizon-zcs/tree/main">Horizon-zcs</a> tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)</p></li>
 </ul>
+</section>
+<section id="regenerate-this-case-yourself">
+<h2>Regenerate this case yourself<a class="headerlink" href="#regenerate-this-case-yourself" title="Link to this heading">#</a></h2>
+<p>You can rebuild the case of this session, and run it once, by handing a prompt to an AI coding assistant (Claude, Copilot, ChatGPT, …) working in a copy of this repository. It builds the case and its simulation only: no sensitivities, nothing from the workshop.</p>
+<p>This needs Navigate on your own machine: follow the <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation">installation steps in the README</a>, or the slower <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html">Getting started</a> tutorial. The full prompt has the assistant check the installation first, and ask before it installs anything. Before you rely on what comes back, read the warning at the top of <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-case.ipynb">Session 5</a>.</p>
+<section id="a-prompt-to-write-the-prompt">
+<h3>A prompt to write the prompt<a class="headerlink" href="#a-prompt-to-write-the-prompt" title="Link to this heading">#</a></h3>
+<p>If you would rather let the assistant work out what it needs, start with this one. It checks your installation, reads the repository, asks you about the numbers and choices the library does not settle, and writes the full prompt for you to approve. Your answers decide the results: they will match the ones above only if your answers match the full prompt below.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I want to build and run a case with Navigate, the shipping decarbonisation
+model in this repository. Don't write any deck yet: first, help me write a good
+prompt for it.
+
+My case: 300 Panamax bulk carriers (about 80,000 DWT) carry copper concentrate
+from San Antonio, Chile, to Rotterdam via the Panama Canal, loaded out and empty
+back, from 2026 to 2050. In 2026 they all burn fuel oil. They can switch to LNG,
+methanol or ammonia ships, and fit efficiency measures. E-methanol and e-ammonia
+can be made in Chile or in Europe, bio-methanol only in Europe. EU ETS and
+FuelEU Maritime cover half of the voyage. I only want the case and one run, no
+sensitivities.
+
+1. Check that Navigate is installed (README.md, "Installation") and tell me
+   what is missing. Don't install anything yourself.
+2. Read how a deck is written (docs/reference_manual/), the example decks in
+   simulations/examples/ (except example_4, which is this case already built),
+   and what the data library in assumptions/ has for this ship.
+3. Use the library's values wherever it has them. Ask me, a few questions at a
+   time, about everything else: the numbers it does not have and the choices
+   it leaves open. Keep the deck small: only what this case needs.
+4. Then write the full prompt you would want to be given: how to run Navigate,
+   where things are, the case, every number not from the library marked
+   INVENTED, and what to report after the run. Show it to me and wait for my
+   OK before building anything.
+</pre></div>
+</div>
+</section>
+<section id="the-full-prompt">
+<h3>The full prompt<a class="headerlink" href="#the-full-prompt" title="Link to this heading">#</a></h3>
+<p>This one goes straight to the deck. It was tested by handing it to two different AI assistants with no other instructions: both decks ran without warnings or errors, and both came within 0.2 % of the results above.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>You are helping me build and run a simulation deck for Navigate, the shipping
+decarbonisation model in this repository. Write the files yourself; do not only
+describe them.
+
+GETTING NAVIGATE RUNNING (do this first)
+- Navigate is the repository https://github.com/zerocarbonshipping/navigate-zcs.
+  If it is not on this machine yet, tell me, and propose cloning it (or
+  downloading the zip from GitHub). Work from the repository root from then on.
+- Check whether Navigate is installed, from the repository root:
+      python -m pip show navigate-zcs
+      python -m navigate --help
+  If both work, go on to the deck.
+- If not, the installation steps are in README.md (section "Installation"):
+  Python 3.12, ideally in its own environment (venv or conda), then
+      python -m pip install .
+  from the repository root. The README also has the fixes for the two common
+  Windows errors (PowerShell refusing to activate a venv, and pip.exe "Access is
+  denied"). A slower, beginner's walk-through with VS Code is in
+  docs/tutorials/getting_started.md, also online at
+  https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html
+- Show me the commands and wait for my go-ahead before you install, upgrade or
+  create anything. No extra solver is needed: Navigate comes with HiGHS. Skip the
+  optional Gurobi extra unless I say I have a full Gurobi licence.
+
+HOW NAVIGATE WORKS (read this before writing anything)
+- A deck is one .nav file plus the .inc files it includes. The syntax is explained
+  in docs/reference_manual/overview.md, and every node type (Fleet, Vessel, Route,
+  Port, Fuel, Plant, Producer, Regulation, ...) has its own page in
+  docs/reference_manual/.
+- assumptions/ is the data library. `Load DefaultCalibration` reads the module file
+  assumptions/modules/installation/default_calibration.inc. `Import Fuel "methanol_bio"`
+  reads one node from assumptions/defaults/installation/Fuel/methanol_bio.inc.
+  `Copy Vessel "a" "b"` imports node "a" from the library under the new name "b".
+- simulations/examples/example_1 to example_3 are complete decks that run: read
+  them for syntax. Do NOT open simulations/examples/example_4/, and leave it out
+  of any search of the repository (for example grep --exclude-dir=example_4). It
+  is the deck I am asking you to rebuild, and the point is to rebuild it from
+  this description.
+- Run a deck from the repository root, in the Python environment where Navigate
+  was installed from this repository, with:
+      python -m navigate &lt;path to the .nav file&gt; -d ./assumptions
+  (`python -m navigate` run from the repository root always uses this
+  repository's code; the shorter `navigate` command may point to another copy.)
+- A run writes a .log file next to the .nav. The end of the .log has a "Log
+  summary" table with the number of warnings and errors. Built as described
+  here, this deck runs with no warnings at all: report any you get. `Load DefaultPlot` in the
+  .nav DEFINE block also writes the charts to plots/ and plots_analysis/.
+  If you cannot run terminal commands, give me the exact command, wait for me to
+  paste back the end of the output, and fix whatever it reports.
+- To get results as numbers, add `Load DefaultReport` to the .nav DEFINE block.
+  The run then also writes plots/&lt;deck name&gt;_report_default.xlsx. Its "Global"
+  sheet has one row per year, one ConsumedEnergy column per fuel (GJ per year;
+  the fuel name is in the third header row) and the fleet's emissions
+  (TotalEquivalentWTW, t CO2e per year).
+
+THE DECK
+Build it under simulations/user/copper_trade/, with the .nav file
+copper_trade.nav and one .inc file per topic in includes/.
+
+THE CASE
+Panamax bulk carriers (~80,000 DWT) carrying copper concentrate from San
+Antonio, Chile, to Rotterdam via the Panama Canal, 2026 to 2050, yearly steps.
+The fleet starts entirely on fuel oil. The model decides which fuel to bunker
+and where, how fast to sail, which ships to retrofit or order, and which
+efficiency measures to fit. Fuel producers decide where to build plants.
+
+1. Fleet (one Fleet node, "copper_trade")
+   - Four ship designs, copied from the library's vessels for this class:
+     bulk_carrier_80k_dwt_ice_oil, _ice_methane, _ice_methanol and _ice_ammonia,
+     renamed ship_oil, ship_lng, ship_methanol and ship_ammonia.
+   - 300 ships in 2026 (INVENTED: about 8 % of the world Panamax fleet), all
+     ship_oil, with the library's age distribution for the oil ship
+     (Curve("age_dist_bulk_carrier_80k_dwt_oil")) and zero for the other three.
+   - No orderbook (leave Orderbook out): the library's is sized for the whole
+     world fleet.
+   - Trade growth: the library's Forecast("trade_growth_bulk_carrier").
+   - Retrofits: the three conversion costs in
+     assumptions/defaults/installation/Fleet/bulk_carrier_80k_dwt.inc (oil to
+     methanol, oil to ammonia, LNG to ammonia), restated for the new ship names.
+   - Speed management: as the same Fleet file sets it (AllowSpeedManagement,
+     MaximumSpeedChange).
+   - Efficiency measures: the seven library technologies for this class (the
+     files ending in _bulk_carrier_panamax in
+     assumptions/defaults/installation/Technology/). Start each at the library's
+     uptake curve (Curve("uptake_&lt;technology name&gt;")) where one exists. Two
+     have none: leave their initial share unset, which means zero (a plain 0
+     is rejected, it must be a Curve). Set TechnologyCostOfCapital =
+     Variable("cost_of_capital_vessel").
+
+2. Route
+   - ROUND_TRIP between San Antonio and Rotterdam, sailing laden out and in
+     ballast home (capacity utilisation 1 then 0).
+   - 7,600 nautical miles each way (INVENTED: the library has no distances).
+   - Speeds and days in port from the library's operational profile for this
+     class, assumptions/defaults/installation/Route/operational_profile_bulk_carrier_80k_dwt.inc:
+     the most common speed (the one with the largest ConditionDistribution
+     share, laden and ballast alike), and days in port per call = (1 - TimeAtSea) x 365 / total
+     port calls per year. Show that arithmetic in a comment.
+   - Do not use the profile's abstract ports (port_global, port_europe): the two
+     ports are your own nodes, san_antonio and rotterdam.
+
+3. Fuels and where they come from
+   - Fuel oil and LNG: global commodities. Bunkerable at every port, priced with
+     the library's global price forecasts and given the library's upstream (WTT)
+     emissions, both as bunker overwrites on the ports. No plant, producer or
+     logistics chain for them.
+   - E-methanol and e-ammonia: library plants on alkaline electrolysis, on
+     dedicated renewable power. One plant of each in the "americas" region
+     (Chile) and one of each in "europe". The European ones are Copy Plant of the
+     library plants, because the imported ones already carry the library names
+     and are sited in the americas.
+   - Bio-methanol: the library's gasification plant, in europe only, on grid power.
+   - Give every plant the library's cost of capital for its kind and region,
+     as assumptions/modules/installation/default_plant.inc does
+     (Forecast("cost_of_capital_plant_electro_americas"), ..._electro_europe,
+     ..._bio_europe). Import Plant does not bring it, and a plant without one
+     is silently financed at 0 %.
+   - All three alternative fuels can be bunkered at both ports.
+   - Regions: declare "americas" and "europe" yourself, with the electricity
+     cost and grid emission lines of the library's Region files. Do not Import
+     them: they also price feedstocks this deck does not have, and the parse
+     fails. The production economics (feedstock costs, process capex,
+     opex, energy, lifetimes) are the library's, as
+     assumptions/modules/installation/default_region.inc sets them for every
+     region: restate only the lines for the processes and feedstocks your plants
+     use. Within a region, fuel moves by truck at zero cost, with the library's
+     truck emissions.
+   - Two producers: one owns the four e-fuel plants, one owns the bio-methanol
+     plant. Each may build up to Forecast("epc_global_capacity_mid") x
+     Forecast("epc_global_share_shipping") a year.
+   - Feedstock ceilings: the library's availability x its shipping share x a
+     trade share, as set_feed_constraint on the producer that uses it:
+       biogenic CO2 (e-methanol), trade share 0.003 (INVENTED)
+       gasifiable biomass (bio-methanol), trade share 0.01 (INVENTED)
+     The library's shares are for all of shipping; this deck is 300 ships on one
+     trade.
+
+4. Bunkering costs (all INVENTED; BunkerLogistics takes plain numbers)
+   - Distance from production region to port, nautical miles:
+       americas to san_antonio 1,250, americas to rotterdam 7,600,
+       europe to rotterdam 540, europe to san_antonio 7,600
+   - Transport cost 0.02 USD per ton per nautical mile, for every fuel.
+   - Handling cost at the port, USD per ton: fuel oil 8, LNG 15, methanol (both
+     kinds) 18, ammonia 25.
+
+5. Regulation: EU ETS and FuelEU Maritime
+   Write both Regulation nodes yourself from the library's
+   assumptions/defaults/installation/Regulation/eu_ets.inc and fuel_eu.inc:
+   keep their settings, global warming potentials and EU default emission
+   factors, but only the lines for this deck's five fuels. Change one thing: the
+   jurisdiction is Port("rotterdam") instead of port_europe. Both legs then
+   count at the inter-jurisdiction fraction (half the voyage), Rotterdam's port
+   stays count in full and San Antonio's not at all. Under FuelEU, do not set a
+   WTT value for e-methanol or e-ammonia: Navigate then calculates it from their
+   production chain.
+
+6. The rest of the DEFINE block
+   Load DefaultModelDefinition first and DefaultEmission with the fuels. Load
+   DefaultCalibration after your own includes: it sets the decision behaviour
+   with wildcards (Fleet "*", ...) that only match nodes already declared.
+   Then DefaultReport and DefaultPlot. EVENTS: Load DefaultTimeStepYearly.
+
+PITFALLS (each cost someone time before)
+- Do not put two plants making the same fuel in the same region under one
+  producer: the bunkering solve stalls for minutes on one year. A normal run of
+  this deck takes one to two minutes with the plots; if it runs past ten, stop
+  it and tell me.
+- A node must exist before another node or a command refers to it. So the
+  include order is: fuels, then sources, feedstocks, processes and
+  Import Transport "truck", then the regions, then the plants, then the
+  producers. Likewise, a wildcard such as Vessel "ship_*" { Route = ... } only
+  matches ships already copied, so put it after the Copy Vessel lines.
+
+NUMBERS
+Every number must come from assumptions/ and be referenced by name
+(Forecast("..."), Curve("..."), Variable("...")), never copied in as a literal.
+Where the library itself stores a plain number (the fuel-conversion costs in a
+Fleet file, the time at sea in a Route file), copy it with a comment naming the
+file it came from. The values marked INVENTED above are the only numbers that
+are not from the library: mark each one INVENTED in a comment where it appears
+and list them all in the .nav header.
+
+DECK RULES
+The .nav DEFINE and EVENTS blocks accept only Include and Load. Every node
+declaration, Import and Copy goes in an .inc file that they include.
+
+BEFORE YOU TELL ME IT WORKS
+Run it (or have me run it) as above. Report the exit code and the warning and
+error counts from the Log summary. Then, from the report, tell me:
+- the fleet's well-to-wake emissions in 2026 and in 2050 (kt CO2e per year), and
+  summed over 2026-2050;
+- the share of alternative fuels (everything but fuel oil and LNG) in the
+  energy consumed in 2050;
+- the three biggest fuels in 2050.
+For comparison, the workshop's own deck for this case gives 5,935 kt in 2026,
+3,265 kt in 2050, 127,424 kt in total and 43.3 % alternative fuels in 2050, with
+fuel oil, e-ammonia and LNG the three biggest fuels. Say
+how close you are, and if you are far off, what in your deck could explain it.
+</pre></div>
+</div>
+</section>
 </section>
 <section id="workshop-sessions">
 <h2>Workshop sessions<a class="headerlink" href="#workshop-sessions" title="Link to this heading">#</a></h2>
@@ -1104,10 +1340,15 @@ from the top.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-case">The case</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-ll-do">What you’ll do</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-case-and-see-the-results">Run the case and see the results</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sensitivity-analysis">Sensitivity analysis</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-setup">STEP 1: Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-run-the-case-and-see-the-results">STEP 2: Run the case and see the results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-sensitivity-analysis">STEP 3: Sensitivity analysis</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-sensitivities">Advanced sensitivities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regenerate-this-case-yourself">Regenerate this case yourself</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-prompt-to-write-the-prompt">A prompt to write the prompt</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-full-prompt">The full prompt</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workshop-sessions">Workshop sessions</a></li>
 </ul>
   </nav></div>
