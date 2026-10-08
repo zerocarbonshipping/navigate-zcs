@@ -15,7 +15,6 @@ Import Route "operational_profile_cruise_25k_gt"
 Import Route "operational_profile_cruise_100k_gt"
 Import Route "operational_profile_cruise_175k_gt"
 
-Import Route "operational_profile_ferry"
 Import Route "operational_profile_ferry_small_2k_gt"
 Import Route "operational_profile_ropax_25k_gt"
 

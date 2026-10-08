@@ -15,7 +15,6 @@ Copy Fleet "cruise_25k_gt" 			"cruise_25k_gt_international"
 Copy Fleet "cruise_100k_gt" 		"cruise_100k_gt_international"
 Copy Fleet "cruise_175k_gt" 		"cruise_175k_gt_international"
 
-Copy Fleet "ferry" 					"ferry_international"
 Copy Fleet "ropax_25k_gt"		"ropax_25k_gt_international"
 Copy Fleet "ferry_small_2k_gt"	"ferry_small_2k_gt_international"
 
@@ -380,35 +379,6 @@ Fleet "cruise_175k_gt_international" {
 		<Forecast("orderbook_cruise_175k_gt_methane") * Variable("cruise_175k_gt_international_share")>,
 		<Forecast("orderbook_cruise_175k_gt_methanol") *   Variable("cruise_175k_gt_international_share")>,
 	    <Forecast("orderbook_cruise_175k_gt_oil") *        Variable("cruise_175k_gt_international_share")>
-	]
-}
-
-# -------------------------------- ferry -------------------------------- #
-
-Copy Vessel "ferry_ice_methane" 	      "ferry_ice_methane_international"
-Copy Vessel "ferry_ice_methanol" 	      "ferry_ice_methanol_international"
-Copy Vessel "ferry_ice_oil" 		      "ferry_ice_oil_international"
-
-Copy Route "operational_profile_ferry"   "operational_profile_ferry_international"
-
-Vessel "ferry_*_international" {
-	Route = Route("operational_profile_ferry_international")
-}
-
-Fleet "ferry_international" {
-
-	Vessels = [
-		Vessel("ferry_ice_methane_international"),
-		Vessel("ferry_ice_methanol_international"),
-	    Vessel("ferry_ice_oil_international")
-	]
-
-	InitialVessels = <Variable("initial_vessels_ferry") * Variable("ferry_international_share")>
-
-	Orderbooks = [
-		<Forecast("orderbook_ferry_methane") * Variable("ferry_international_share")>,
-		<Forecast("orderbook_ferry_methanol") *   Variable("ferry_international_share")>,
-	    <Forecast("orderbook_ferry_oil") *        Variable("ferry_international_share")>
 	]
 }
 

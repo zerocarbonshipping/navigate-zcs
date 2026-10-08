@@ -15,7 +15,6 @@ Import Fleet "cruise_25k_gt"
 Import Fleet "cruise_100k_gt"
 Import Fleet "cruise_175k_gt"
 
-Import Fleet "ferry"
 Import Fleet "ropax_25k_gt"
 Import Fleet "ferry_small_2k_gt"
 

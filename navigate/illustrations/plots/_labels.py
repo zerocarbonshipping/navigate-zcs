@@ -40,7 +40,6 @@ FLEET_LABEL = {
     'lpg_carrier_84k_cbm':  'LPG Carrier 84K CBM',
     'roro_4000_ceu':         'Roll-on/Roll-off 4000 CEU',
     'roro_7000_ceu':         'Roll-on/Roll-off 7000 CEU',
-    'ferry':                 'Ferry',
     'ropax_25k_gt':         'Ro-Pax 25K GT',
     'ferry_small_2k_gt':    'Ferry Small 2K GT',
     'general_cargo':         'General Cargo 10K DWT',

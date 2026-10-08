@@ -37,9 +37,6 @@ Fleet "cruise_*" {
 	set_allow_vessel("*methanol*", TRUE)
 }
 
-Fleet "ferry*" {
-	set_allow_vessel("*methanol*", TRUE)
-}
 
 Fleet "ferry_small_2k_gt*" {
 	set_allow_vessel("*methanol*", TRUE)
@@ -86,9 +83,6 @@ Fleet "tug*" {
 }
 
 # Ferry, offshore, other: short-range segments, battery tech mature
-Fleet "ferry*" {
-	set_allow_vessel("*electric*", TRUE)
-}
 
 Fleet "ferry_small_2k_gt*" {
 	set_allow_vessel("*electric*", TRUE)

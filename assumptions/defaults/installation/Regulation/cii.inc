@@ -23,7 +23,7 @@ Regulation "cii" {
 	set_include_vessel("container*international", TRUE)
 	set_include_vessel("tanker*international", TRUE)
 	set_include_vessel("cruise*international", TRUE)
-	set_include_vessel("ferry*international", TRUE)
+	set_include_vessel("ferry_small*international", TRUE)
 	set_include_vessel("general_cargo*international", TRUE)
 	set_include_vessel("roro*international", TRUE)
 	set_include_vessel("chemical_tanker*international", TRUE)
@@ -84,8 +84,6 @@ Regulation "cii" {
 	set_vessel_threshold("cruise_175k_gt*", Forecast("cii_target_cruise_175k_dwt"))
 
 	# ferry ---------------------------------------------------------------------
-	set_vessel_threshold("ferry*", Forecast("cii_target_ferry"))
-
 	# ro-pax and small ferry: inherited from ferry, not sourced for these segments; pending
 	# Regulatory Affairs
 	set_vessel_threshold("ropax_25k_gt*", Forecast("cii_target_ropax_25k_gt"))
@@ -214,12 +212,6 @@ Forecast "cii_target_cruise_100k_dwt" {
 
 Forecast "cii_target_cruise_175k_dwt" {
 	Multiplier = 9.13
-}
-
-Copy Forecast "cii_target_reduction"	"cii_target_ferry"
-
-Forecast "cii_target_ferry" {
-	Multiplier = 84.33
 }
 
 Copy Forecast "cii_target_reduction"	"cii_target_ropax_25k_gt"

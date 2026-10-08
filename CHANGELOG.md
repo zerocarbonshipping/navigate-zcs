@@ -24,6 +24,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ### Removed
 - The `gas_carrier_100k_cbm` segment, replaced by `lng_carrier_174k_cbm` and
   `lpg_carrier_84k_cbm` (segment taxonomy v1).
+- The `ferry` segment, replaced by `ropax_25k_gt` and `ferry_small_2k_gt`
+  (segment taxonomy v1).
 
 ### Fixed
 - Parse errors now name keywords as the grammar spells them. Lark derives
