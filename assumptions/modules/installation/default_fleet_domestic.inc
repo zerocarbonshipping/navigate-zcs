@@ -19,7 +19,6 @@ Copy Fleet "ferry" 					"ferry_domestic"
 Copy Fleet "ropax_25k_gt"		"ropax_25k_gt_domestic"
 Copy Fleet "ferry_small_2k_gt"	"ferry_small_2k_gt_domestic"
 
-Copy Fleet "gas_carrier_100k_cbm" 	"gas_carrier_100k_cbm_domestic"
 Copy Fleet "lng_carrier_174k_cbm"	"lng_carrier_174k_cbm_domestic"
 Copy Fleet "lpg_carrier_84k_cbm"	"lpg_carrier_84k_cbm_domestic"
 
@@ -468,38 +467,6 @@ Fleet "ferry_small_2k_gt_domestic" {
 		0,
 		0,
 	    0
-	]
-}
-
-# -------------------------------- gas_carrier_100k_cbm -------------------------------- #
-
-Copy Vessel "gas_carrier_100k_cbm_ice_ammonia" 	  "gas_carrier_100k_cbm_ice_ammonia_domestic"
-Copy Vessel "gas_carrier_100k_cbm_ice_methane" "gas_carrier_100k_cbm_ice_methane_domestic"
-Copy Vessel "gas_carrier_100k_cbm_ice_methanol"   "gas_carrier_100k_cbm_ice_methanol_domestic"
-Copy Vessel "gas_carrier_100k_cbm_ice_oil" 		  "gas_carrier_100k_cbm_ice_oil_domestic"
-
-Copy Route "operational_profile_gas_carrier_100k_cbm"   "operational_profile_gas_carrier_100k_cbm_domestic"
-
-Vessel "gas_carrier_100k_cbm_*_domestic" {
-	Route = Route("operational_profile_gas_carrier_100k_cbm_domestic")
-}
-
-Fleet "gas_carrier_100k_cbm_domestic" {
-
-	Vessels = [
-		Vessel("gas_carrier_100k_cbm_ice_ammonia_domestic"),
-		Vessel("gas_carrier_100k_cbm_ice_methane_domestic"),
-		Vessel("gas_carrier_100k_cbm_ice_methanol_domestic"),
-	    Vessel("gas_carrier_100k_cbm_ice_oil_domestic")
-	]
-
-	InitialVessels = <Variable("initial_vessels_gas_carrier_100k_cbm") * (1 - Variable("gas_carrier_100k_cbm_international_share"))>
-
-	Orderbooks = [
-		<Forecast("orderbook_gas_carrier_100k_cbm_ammonia") *    (1 - Variable("gas_carrier_100k_cbm_international_share"))>,
-		<Forecast("orderbook_gas_carrier_100k_cbm_methane") * (1 - Variable("gas_carrier_100k_cbm_international_share"))>,
-		<Forecast("orderbook_gas_carrier_100k_cbm_methanol") *   (1 - Variable("gas_carrier_100k_cbm_international_share"))>,
-	    <Forecast("orderbook_gas_carrier_100k_cbm_oil") *        (1 - Variable("gas_carrier_100k_cbm_international_share"))>
 	]
 }
 

@@ -36,7 +36,6 @@ FLEET_LABEL = {
     'cruise_25k_gt':         'Cruise 25K GT',
     'cruise_100k_gt':        'Cruise 100K GT',
     'cruise_175k_gt':        'Cruise 175K GT',
-    'gas_carrier_100k_cbm':  'Gas Carrier 100K CBM',
     'lng_carrier_174k_cbm': 'LNG Carrier 174K CBM',
     'lpg_carrier_84k_cbm':  'LPG Carrier 84K CBM',
     'roro_4000_ceu':         'Roll-on/Roll-off 4000 CEU',

@@ -138,10 +138,6 @@ Fleet "chemical_tanker_40k_dwt*" {
 	set_allow_vessel("*methanol*", TRUE)
 }
 
-Fleet "gas_carrier_100k_cbm*" {
-	set_allow_vessel("*ammonia*", TRUE)
-	set_allow_vessel("*methanol*", TRUE)
-}
 
 Fleet "lpg_carrier_84k_cbm*" {
 	set_allow_vessel("*ammonia*", TRUE)

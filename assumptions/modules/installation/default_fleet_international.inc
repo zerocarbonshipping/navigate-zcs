@@ -19,7 +19,6 @@ Copy Fleet "ferry" 					"ferry_international"
 Copy Fleet "ropax_25k_gt"		"ropax_25k_gt_international"
 Copy Fleet "ferry_small_2k_gt"	"ferry_small_2k_gt_international"
 
-Copy Fleet "gas_carrier_100k_cbm" 	"gas_carrier_100k_cbm_international"
 Copy Fleet "lng_carrier_174k_cbm"	"lng_carrier_174k_cbm_international"
 Copy Fleet "lpg_carrier_84k_cbm"	"lpg_carrier_84k_cbm_international"
 
@@ -468,38 +467,6 @@ Fleet "ferry_small_2k_gt_international" {
 		0,
 		0,
 	    0
-	]
-}
-
-# -------------------------------- gas_carrier_100k_cbm -------------------------------- #
-
-Copy Vessel "gas_carrier_100k_cbm_ice_ammonia" 	  "gas_carrier_100k_cbm_ice_ammonia_international"
-Copy Vessel "gas_carrier_100k_cbm_ice_methane" "gas_carrier_100k_cbm_ice_methane_international"
-Copy Vessel "gas_carrier_100k_cbm_ice_methanol"   "gas_carrier_100k_cbm_ice_methanol_international"
-Copy Vessel "gas_carrier_100k_cbm_ice_oil" 		  "gas_carrier_100k_cbm_ice_oil_international"
-
-Copy Route "operational_profile_gas_carrier_100k_cbm"   "operational_profile_gas_carrier_100k_cbm_international"
-
-Vessel "gas_carrier_100k_cbm_*_international" {
-	Route = Route("operational_profile_gas_carrier_100k_cbm_international")
-}
-
-Fleet "gas_carrier_100k_cbm_international" {
-
-	Vessels = [
-		Vessel("gas_carrier_100k_cbm_ice_ammonia_international"),
-		Vessel("gas_carrier_100k_cbm_ice_methane_international"),
-		Vessel("gas_carrier_100k_cbm_ice_methanol_international"),
-	    Vessel("gas_carrier_100k_cbm_ice_oil_international")
-	]
-
-	InitialVessels = <Variable("initial_vessels_gas_carrier_100k_cbm") * Variable("gas_carrier_100k_cbm_international_share")>
-
-	Orderbooks = [
-		<Forecast("orderbook_gas_carrier_100k_cbm_ammonia") *    Variable("gas_carrier_100k_cbm_international_share")>,
-		<Forecast("orderbook_gas_carrier_100k_cbm_methane") * Variable("gas_carrier_100k_cbm_international_share")>,
-		<Forecast("orderbook_gas_carrier_100k_cbm_methanol") *   Variable("gas_carrier_100k_cbm_international_share")>,
-	    <Forecast("orderbook_gas_carrier_100k_cbm_oil") *        Variable("gas_carrier_100k_cbm_international_share")>
 	]
 }
 

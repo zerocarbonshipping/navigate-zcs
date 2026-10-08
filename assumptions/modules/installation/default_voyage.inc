@@ -19,7 +19,6 @@ Import Route "operational_profile_ferry"
 Import Route "operational_profile_ferry_small_2k_gt"
 Import Route "operational_profile_ropax_25k_gt"
 
-Import Route "operational_profile_gas_carrier_100k_cbm"
 Import Route "operational_profile_lpg_carrier_84k_cbm"
 Import Route "operational_profile_lng_carrier_174k_cbm"
 

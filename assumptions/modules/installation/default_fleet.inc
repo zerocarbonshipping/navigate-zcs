@@ -19,7 +19,6 @@ Import Fleet "ferry"
 Import Fleet "ropax_25k_gt"
 Import Fleet "ferry_small_2k_gt"
 
-Import Fleet "gas_carrier_100k_cbm"
 Import Fleet "lng_carrier_174k_cbm"
 Import Fleet "lpg_carrier_84k_cbm"
 

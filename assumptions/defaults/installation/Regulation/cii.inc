@@ -24,7 +24,6 @@ Regulation "cii" {
 	set_include_vessel("tanker*international", TRUE)
 	set_include_vessel("cruise*international", TRUE)
 	set_include_vessel("ferry*international", TRUE)
-	set_include_vessel("gas_carrier*international", TRUE)
 	set_include_vessel("general_cargo*international", TRUE)
 	set_include_vessel("roro*international", TRUE)
 	set_include_vessel("chemical_tanker*international", TRUE)
@@ -93,9 +92,6 @@ Regulation "cii" {
 	set_vessel_threshold("ferry_small_2k_gt*", Forecast("cii_target_ferry_small_2k_gt"))
 
 	# gas carrier ---------------------------------------------------------------------
-	set_vessel_threshold("gas_carrier_100k_cbm*", Forecast("cii_target_gas_carrier_100k_cbm"))
-	set_vessel_capacity("gas_carrier_100k_cbm*", 68000)
-
 	# lng and lpg carrier: inherited from gas_carrier_100k_cbm, not sourced for these segments;
 	# pending Regulatory Affairs
 	set_vessel_threshold("lng_carrier_174k_cbm*", Forecast("cii_target_lng_carrier_174k_cbm"))
@@ -238,13 +234,6 @@ Copy Forecast "cii_target_reduction"	"cii_target_ferry_small_2k_gt"
 # inherited from ferry, not sourced for this segment; pending Regulatory Affairs
 Forecast "cii_target_ferry_small_2k_gt" {
 	Multiplier = 84.33
-}
-
-Copy Forecast "cii_target_reduction"	"cii_target_gas_carrier_100k_cbm"
-
-Forecast "cii_target_gas_carrier_100k_cbm" {
-	# calculated based on parameters for DWT<65000 if though assumed size is 68000. This is done because the other parameters are quite odd.
-	Multiplier = 6.62
 }
 
 Copy Forecast "cii_target_reduction"	"cii_target_lng_carrier_174k_cbm"

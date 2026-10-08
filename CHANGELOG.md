@@ -21,6 +21,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   assumption records; leaves without a public source are inherited from the
   parent segment and say so in their header.
 
+### Removed
+- The `gas_carrier_100k_cbm` segment, replaced by `lng_carrier_174k_cbm` and
+  `lpg_carrier_84k_cbm` (segment taxonomy v1).
+
 ### Fixed
 - Parse errors now name keywords as the grammar spells them. Lark derives
   keyword terminal names from the literal, uppercased, so a misspelled
