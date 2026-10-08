@@ -3,8 +3,10 @@
 
 # FUEL PRODUCTION - five fuels for four ships; both methanols feed one ship.
 #
-# Only the siting is set here (region and electricity source). Lead times,
-# lifetimes, capacities and process economics come from the library.
+# Only the siting and financing are set here (region, electricity source and
+# cost of capital, which Import Plant does not bring: the library sets it in
+# DefaultPlant). Lead times, lifetimes, capacities and process economics come
+# from the library.
 # Feedstock ceilings for the two methanols are set in producer.inc.
 
 # ---- fossil (global commodities, no production chain modelled) --------------
@@ -17,6 +19,7 @@ Import Plant "plant_methanol_electro_alkaline"
 Plant "plant_methanol_electro_alkaline" {
     Region = Region("americas")
     Source = Source("renewable")   # dedicated wind, not the Chilean grid
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_americas")
 }
 Import Process "methanol_synthesis_electro_alkaline"
 Import Process "hydrogen_electro_alkaline"
@@ -29,6 +32,7 @@ Import Plant "plant_ammonia_electro_alkaline"
 Plant "plant_ammonia_electro_alkaline" {
     Region = Region("americas")
     Source = Source("renewable")
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_americas")
 }
 Import Process "ammonia_synthesis_electro_alkaline"
 Import Process "nitrogen_air_separation"
@@ -39,6 +43,7 @@ Import Plant "plant_methanol_bio_gasification"
 Plant "plant_methanol_bio_gasification" {
     Region = Region("europe")
     Source = Source("grid")        # a biomass plant draws from the grid
+    CostOfCapital = Forecast("cost_of_capital_plant_bio_europe")
 }
 Import Process "methanol_synthesis_bio_gasification"
 Import Feedstock "feedstock_biomethanol_gasification"
@@ -52,11 +57,13 @@ Copy Plant "plant_methanol_electro_alkaline" "plant_methanol_electro_alkaline_eu
 Plant "plant_methanol_electro_alkaline_europe" {
     Region = Region("europe")
     Source = Source("renewable")
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_europe")
 }
 Copy Plant "plant_ammonia_electro_alkaline" "plant_ammonia_electro_alkaline_europe"
 Plant "plant_ammonia_electro_alkaline_europe" {
     Region = Region("europe")
     Source = Source("renewable")
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_europe")
 }
 
 # ---- shared inputs ----------------------------------------------------------
