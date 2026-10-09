@@ -56,9 +56,9 @@ PORTS = [(-71.6, -33.6, "San Antonio", "Chile \u00b7 bunker port"),
          (4.5, 51.9, "Rotterdam", "EU \u00b7 bunker port")]
 
 # One icon per fuel produced at the site, coloured by fuel.
-FUEL_COLOURS = {"e-methanol": "#1f8a70",      # teal
-                "e-ammonia": "#6b3f9e",       # purple
-                "bio-methanol": "#4e7a24"}    # green
+FUEL_COLOURS = {"e-methanol": "#457b7b",      # Green-5, as methanol_electro in the charts
+                "e-ammonia": "#6fa59b",       # Green-4, as ammonia_electro
+                "bio-methanol": "#c28080"}    # Peach-5, as methanol_bio
 
 # Sites sit where the deck's logistics distances put them, and each icon is
 # placed at the origin of its own delivery leg in DELIVERY below:
@@ -117,10 +117,10 @@ DELIVERY = [
                    (4.5, 51.9)]),
 ]
 
-C_OCEAN, C_LAND, C_BORDER = "#e7eef3", "#dcded8", "#ffffff"
-C_ROUTE, C_PORT = "#b3731d", "#2f6f9f"
-C_DELIV = "#7d8b97"           # fuel delivery: neutral, so colour means fuel
-C_TEXT, C_SUB = "#17242e", "#5a6a75"
+C_OCEAN, C_LAND, C_BORDER = "#eaf6fb", "#dcdcdc", "#ffffff"
+C_ROUTE, C_PORT = "#b55f2e", "#3d5f87"
+C_DELIV = "#8c8c8c"           # fuel delivery: neutral, so colour means fuel
+C_TEXT, C_SUB = "#323232", "#585858"
 
 FACTORY = "M2 13H14V6H11V1H9V6H6V3H4V6H2Z"   # body with two chimneys, 12x12 box
 
@@ -459,10 +459,10 @@ def main():
 
     for lon in range(-120, int(LON1) + 1, 30):
         x, _ = xy(lon, 0)
-        add(f'<line x1="{x:.0f}" y1="0" x2="{x:.0f}" y2="{H:.0f}" stroke="#d3dde4" stroke-width="0.6"/>')
+        add(f'<line x1="{x:.0f}" y1="0" x2="{x:.0f}" y2="{H:.0f}" stroke="#d5effb" stroke-width="0.6"/>')
     for lat in range(-60, int(LAT1) + 1, 30):
         _, y = xy(0, lat)
-        add(f'<line x1="0" y1="{y:.0f}" x2="{W:.0f}" y2="{y:.0f}" stroke="#d3dde4" stroke-width="0.6"/>')
+        add(f'<line x1="0" y1="{y:.0f}" x2="{W:.0f}" y2="{y:.0f}" stroke="#d5effb" stroke-width="0.6"/>')
 
     paths = []
     for ring in rings:
@@ -473,7 +473,7 @@ def main():
         f'stroke-width="0.7" stroke-linejoin="round" fill-rule="evenodd"/>')
 
     _, yeq = xy(0, 0)
-    add(f'<line x1="0" y1="{yeq:.0f}" x2="{W:.0f}" y2="{yeq:.0f}" stroke="#9db3c1" '
+    add(f'<line x1="0" y1="{yeq:.0f}" x2="{W:.0f}" y2="{yeq:.0f}" stroke="#a9d7ec" '
         f'stroke-width="0.9" stroke-dasharray="5 4"/>')
 
     lay = Layout()
@@ -605,11 +605,11 @@ def main():
     # deck carries only the EU ETS and FuelEU. Its reserved box above is kept on
     # purpose, so removing the text does not let the label solver reflow
     # everything else into the corner it used to occupy.
-    add(txt(W - 10, H - 8, "Basemap: Natural Earth 1:110m (public domain)", 8.5, "end", "#9aa8b2"))
+    add(txt(W - 10, H - 8, "Basemap: Natural Earth 1:110m (public domain)", 8.5, "end", "#a5a5a5"))
 
     lgx, lgy = 12, 14
     add(f'<rect x="{lgx}" y="{lgy}" width="206" height="134" rx="5" fill="#ffffff" '
-        f'fill-opacity="0.90" stroke="#c3ccd3" stroke-width="0.8"/>')
+        f'fill-opacity="0.90" stroke="#bebebe" stroke-width="0.8"/>')
     row = lgy + 19
     add(f'<circle cx="{lgx + 17}" cy="{row - 3}" r="5.2" fill="{C_PORT}"/>')
     add(txt(lgx + 32, row, "bunker port", 10, "start", C_TEXT))
