@@ -1,0 +1,55 @@
+<!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 320" width="100%" style="max-width:940px;height:auto;font-family:system-ui,-apple-system,'Segoe UI',sans-serif" role="img" aria-label="Schematic of two fleets of the same vessel class sailing one route between two bunker ports the reader chooses: Fleet A fits no efficiency measure, Fleet B fits the efficiency technologies the library offers, such as hull coating, propeller devices, Flettner rotors and air lubrication">
+<defs><marker id="tfarw" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b55f2e"/></marker></defs>
+<rect width="940" height="320" fill="#eaf6fb"/>
+<line x1="70" y1="0" x2="70" y2="320" stroke="#d5effb" stroke-width="0.6"/>
+<line x1="230" y1="0" x2="230" y2="320" stroke="#d5effb" stroke-width="0.6"/>
+<line x1="390" y1="0" x2="390" y2="320" stroke="#d5effb" stroke-width="0.6"/>
+<line x1="550" y1="0" x2="550" y2="320" stroke="#d5effb" stroke-width="0.6"/>
+<line x1="710" y1="0" x2="710" y2="320" stroke="#d5effb" stroke-width="0.6"/>
+<line x1="870" y1="0" x2="870" y2="320" stroke="#d5effb" stroke-width="0.6"/>
+<line x1="0" y1="30" x2="940" y2="30" stroke="#d5effb" stroke-width="0.6"/>
+<line x1="0" y1="140" x2="940" y2="140" stroke="#d5effb" stroke-width="0.6"/>
+<line x1="0" y1="250" x2="940" y2="250" stroke="#d5effb" stroke-width="0.6"/>
+<rect x="12" y="14" width="170" height="88" rx="5" fill="#ffffff" fill-opacity="0.90" stroke="#bebebe" stroke-width="0.8"/>
+<circle cx="29" cy="30" r="5.2" fill="#3d5f87"/>
+<text x="44.0" y="33.0" font-size="10" fill="#323232" text-anchor="start">bunker port</text>
+<line x1="22" y1="48" x2="36" y2="48" stroke="#b55f2e" stroke-width="2.8"/>
+<text x="44.0" y="51.0" font-size="10" fill="#323232" text-anchor="start">the voyage</text>
+<g transform="translate(19.4 56.6) scale(1.2)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#4c4c4c" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<text x="44.0" y="69.0" font-size="10" fill="#323232" text-anchor="start">ship of Fleet A</text>
+<g transform="translate(19.4 74.6) scale(1.2)"><path d="M1.6 2.5H3.4V9H1.6ZM13.0 2.5H14.8V9H13.0Z" fill="#377070" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#377070" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<text x="44.0" y="87.0" font-size="10" fill="#323232" text-anchor="start">ship of Fleet B</text>
+<path d="M161.0 150.0L779.0 150.0" fill="none" stroke="#b55f2e" stroke-width="2.8" stroke-linecap="round" marker-start="url(#tfarw)" marker-end="url(#tfarw)"/>
+<rect x="400.7" y="146.0" width="138.6" height="8" fill="#eaf6fb"/>
+<text x="470.0" y="154.0" font-size="11.5" fill="#b55f2e" text-anchor="middle" font-weight="600">one route, both fleets</text>
+<text x="137.0" y="153.0" font-size="12.5" fill="#323232" text-anchor="end" font-weight="600">[ORIGIN]</text>
+<text x="137.0" y="165.0" font-size="9.5" fill="#585858" text-anchor="end">bunker port</text>
+<circle cx="150" cy="150" r="5.2" fill="#3d5f87" stroke="#ffffff" stroke-width="1.6"/>
+<text x="803.0" y="153.0" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">[DESTINATION]</text>
+<text x="803.0" y="165.0" font-size="9.5" fill="#585858" text-anchor="start">bunker port</text>
+<circle cx="790" cy="150" r="5.2" fill="#3d5f87" stroke="#ffffff" stroke-width="1.6"/>
+<g transform="translate(274.8 96.7) scale(1.9)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#4c4c4c" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(274.8 176.7) scale(1.9)"><path d="M1.6 2.5H3.4V9H1.6ZM13.0 2.5H14.8V9H13.0Z" fill="#377070" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#377070" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(354.8 96.7) scale(1.9)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#4c4c4c" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(354.8 176.7) scale(1.9)"><path d="M1.6 2.5H3.4V9H1.6ZM13.0 2.5H14.8V9H13.0Z" fill="#377070" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#377070" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(554.8 96.7) scale(1.9)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#4c4c4c" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(554.8 176.7) scale(1.9)"><path d="M1.6 2.5H3.4V9H1.6ZM13.0 2.5H14.8V9H13.0Z" fill="#377070" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#377070" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(634.8 96.7) scale(1.9)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#4c4c4c" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(634.8 176.7) scale(1.9)"><path d="M1.6 2.5H3.4V9H1.6ZM13.0 2.5H14.8V9H13.0Z" fill="#377070" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#377070" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<text x="470.0" y="86.0" font-size="12.5" fill="#4c4c4c" text-anchor="middle" font-weight="600">Fleet A · fits nothing</text>
+<text x="470.0" y="224.0" font-size="12.5" fill="#377070" text-anchor="middle" font-weight="600">Fleet B · fits efficiency measures</text>
+<text x="274.2" y="251.0" font-size="9.5" fill="#585858" text-anchor="start">e.g.</text>
+<rect x="301.5" y="238.0" width="72.7" height="18" rx="9" fill="#ffffff" fill-opacity="0.9" stroke="#377070" stroke-width="1"/>
+<text x="337.9" y="250.8" font-size="10" fill="#377070" text-anchor="middle">hull coating</text>
+<rect x="382.2" y="238.0" width="100.5" height="18" rx="9" fill="#ffffff" fill-opacity="0.9" stroke="#377070" stroke-width="1"/>
+<text x="432.5" y="250.8" font-size="10" fill="#377070" text-anchor="middle">propeller devices</text>
+<rect x="490.8" y="238.0" width="86.2" height="18" rx="9" fill="#ffffff" fill-opacity="0.9" stroke="#377070" stroke-width="1"/>
+<text x="533.9" y="250.8" font-size="10" fill="#377070" text-anchor="middle">Flettner rotors</text>
+<rect x="585.0" y="238.0" width="83.9" height="18" rx="9" fill="#ffffff" fill-opacity="0.9" stroke="#377070" stroke-width="1"/>
+<text x="626.9" y="250.8" font-size="10" fill="#377070" text-anchor="middle">air lubrication</text>
+<text x="470.0" y="304.0" font-size="10.5" fill="#585858" text-anchor="middle">same class, same costs, same route, same regulation – only the owners’ choices differ</text>
+</svg>
