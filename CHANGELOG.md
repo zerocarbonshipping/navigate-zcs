@@ -142,6 +142,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Fixed
 - `--solver auto` no longer fails with a traceback (#402).
+- A fleet with `Technologies` whose vessels have different `Lifetime`s no
+  longer stops the run with a `ValueError`.
 - Reference-manual corrections:
   - default nodes and modules live under `<data_dir>/defaults/` and
     `<data_dir>/modules/`, and a separate reference to a Copy source pulls

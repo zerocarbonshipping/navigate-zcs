@@ -191,10 +191,13 @@ def npv_for_newbuilds(
     """
     Calculate the NPV of installing each package on a newbuild.
 
+    A package's cost flow covers the fleet's longest vessel lifetime; it is cut to
+    the saving flow, which covers the lifetime of the vessel the package goes on.
+
     Parameters
     ----------
     packages_saving
-        Yearly saving flow of each package, USD/year.
+        Yearly saving flow of each package over the vessel's lifetime, USD/year.
     packages
         All technology packages, from empty to full.
     discount_rate
@@ -209,7 +212,9 @@ def npv_for_newbuilds(
     npv = np.zeros(n_pkgs, dtype=float)
 
     for pkg_idx in range(1, n_pkgs):
-        cash_flow = packages_saving[pkg_idx] - packages[pkg_idx].cost_flow
+        saving_flow = packages_saving[pkg_idx]
+        cost_flow = packages[pkg_idx].cost_flow[: len(saving_flow)]
+        cash_flow = saving_flow - cost_flow
         npv[pkg_idx] = calculate_net_present_value(cash_flow, discount_rate)
 
     return npv
