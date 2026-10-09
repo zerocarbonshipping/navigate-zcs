@@ -36,6 +36,8 @@ STATIC = HERE.parent / "_static"
 MAPS = {
     "example_4": "example_4_map",
     "reference_scenario": "reference_scenario_map",
+    "gulf_asia_tanker": "gulf_asia_tanker_map",
+    "two_fleets": "two_fleets_schematic",
 }
 
 CHROME_CANDIDATES = [
@@ -80,7 +82,7 @@ def render(stem):
     wrapper = HERE / "_render_wrapper.html"
     wrapper.write_text(
         "<!doctype html><html><head><meta charset='utf-8'><style>"
-        "html,body{margin:0;padding:0;background:#e7eef3;overflow:hidden}"
+        "html,body{margin:0;padding:0;background:#eaf6fb;overflow:hidden}"
         f"svg{{display:block;width:{width}px!important;height:{height}px!important;"
         "max-width:none!important}"
         "</style></head><body>" + svg + "</body></html>",
