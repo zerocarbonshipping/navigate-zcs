@@ -1,0 +1,174 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# Policy nodes: Regulation, Levy
+#
+# Attributes covered:
+#   Regulation: Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
+#               EmissionsLifetime, IncludeSlip, Measure,
+#               IntraFraction, InterFraction, ExtraFraction, RemedialCost,
+#               AllowThresholdAdjustment, FlexibilityHorizon
+#   Levy:       Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
+#               EmissionsLifetime, IncludeSlip, Level,
+#               LowerThreshold, UpperThreshold
+#
+# Commands covered:
+#   Regulation: set_include_vessel, set_global_warming_potential, set_fuel_wtt,
+#               set_fuel_ttw, set_vessel_threshold, set_vessel_capacity
+#   Levy:       set_include_vessel, set_global_warming_potential, set_fuel_wtt,
+#               set_fuel_ttw
+#
+# IDs covered:
+#   Regulation: every Measure, Scheme and Scope
+#   Levy:       every Scheme and Scope
+
+# ABSOLUTE + INDIVIDUAL — covers AllowThresholdAdjustment, per-vessel thresholds
+Regulation "reg_absolute" {
+	Measure = ABSOLUTE
+	Scheme = INDIVIDUAL
+	Scope = WTW
+	Emissions = Emission("*")
+	Fuels = Fuel("*")
+	Jurisdiction = [Port("port_a"), Port("port_b")]
+	EmissionsLifetime = 20
+	Active = TRUE
+	IncludeSlip = TRUE
+	IntraFraction = 1.0
+	InterFraction = 0.5
+	ExtraFraction = 0.0
+	RemedialCost = Variable("var_remedial")
+	AllowThresholdAdjustment = TRUE
+	set_include_vessel("*", TRUE)
+	set_global_warming_potential("carbon_dioxide", 1)
+	set_global_warming_potential("methane", 25)
+	set_fuel_wtt("hfo", "carbon_dioxide", 0.62)
+	set_fuel_ttw("hfo", "carbon_dioxide", 3.114)
+	# a threshold far below every vessel's emissions keeps the regulation
+	# non-compliant, so the threshold adjustment runs
+	set_vessel_threshold("vessel_oil", 1)
+	set_vessel_threshold("vessel_methane", 1)
+	set_vessel_threshold("vessel_methanol", 1)
+	set_vessel_threshold("vessel_ammonia", 1)
+}
+
+# INTENSITY + FLEXIBLE — covers wildcard thresholds, Emissions/Fuels lists
+Regulation "reg_intensity" {
+	Measure = INTENSITY
+	Scheme = FLEXIBLE
+	Scope = TTW
+	Emissions = Emission("carbon_dioxide")
+	Fuels = [Fuel("hfo"), Fuel("lng")]
+	Jurisdiction = Port("port_a")
+	Active = TRUE
+	IncludeSlip = FALSE
+	RemedialCost = Forecast("fc_remedial_cost")
+	FlexibilityHorizon = 3
+	set_include_vessel("*", TRUE)
+	set_vessel_threshold("*", Forecast("fc_regulation_threshold"))
+	# specific assignment after the wildcard overrides it (declaration order),
+	# exercising non-uniform thresholds under a FLEXIBLE scheme
+	set_vessel_threshold("vessel_methanol", 60)
+}
+
+# INTENSITY + FLEXIBLE with every fraction 0 — a policed vessel with no
+# regulated term against a literal threshold has a zero measure in the
+# flexibility transfer (issue #376)
+Regulation "reg_intensity_unregulated" {
+	Measure = INTENSITY
+	Scheme = FLEXIBLE
+	Scope = TTW
+	Emissions = Emission("carbon_dioxide")
+	Fuels = Fuel("*")
+	Jurisdiction = Port("port_a")
+	Active = TRUE
+	IntraFraction = 0
+	InterFraction = 0
+	ExtraFraction = 0
+	RemedialCost = 100
+	set_include_vessel("*", TRUE)
+	set_vessel_threshold("*", 89.0)
+}
+
+# TRANSPORT_NOMINAL + FLEXIBLE — covers set_vessel_capacity
+Regulation "reg_transport" {
+	Measure = TRANSPORT_NOMINAL
+	Scheme = FLEXIBLE
+	Scope = WTW
+	Emissions = Emission("*")
+	Fuels = Fuel("*")
+	Jurisdiction = [Port("port_a")]
+	Active = TRUE
+	# without a remedial cost the fleet does not abate and stays above its
+	# thresholds, so the regulation is non-compliant and the threshold
+	# adjustment runs
+	RemedialCost = 0
+	AllowThresholdAdjustment = TRUE
+	set_include_vessel("*", TRUE)
+	set_vessel_threshold("vessel_oil", 10)
+	set_vessel_threshold("vessel_methane", 10)
+	set_vessel_threshold("vessel_methanol", 10)
+	set_vessel_threshold("vessel_ammonia", 10)
+	set_vessel_capacity("vessel_oil", 8000)
+	set_vessel_capacity("vessel_methane", 8000)
+	set_vessel_capacity("vessel_methanol", 8000)
+	set_vessel_capacity("vessel_ammonia", 8000)
+}
+
+# TRANSPORT + INDIVIDUAL on well-to-tank emissions — capacity falls back to each
+# vessel's NominalCapacity, since no set_vessel_capacity is given
+Regulation "reg_transport_actual" {
+	Measure = TRANSPORT
+	Scheme = INDIVIDUAL
+	Scope = WTT
+	Emissions = Emission("*")
+	Fuels = Fuel("*")
+	Jurisdiction = Port("port_b")
+	RemedialCost = 100
+	set_include_vessel("*", TRUE)
+	set_vessel_threshold("*", 10)
+}
+
+# PENALTY levy
+Levy "levy_penalty" {
+	Scheme = PENALTY
+	Scope = WTW
+	Emissions = Emission("*")
+	Fuels = Fuel("*")
+	Jurisdiction = [Port("port_a")]
+	EmissionsLifetime = 20
+	Active = TRUE
+	IncludeSlip = TRUE
+	Level = 50
+	LowerThreshold = 0
+	UpperThreshold = 100
+	set_include_vessel("*", TRUE)
+	set_global_warming_potential("methane", 25)
+	set_fuel_wtt("lng", "carbon_dioxide", 0.5)
+	set_fuel_ttw("lng", "carbon_dioxide", 2.75)
+}
+
+# BOTH levy — different scheme; its GWP is a Curve only EVENTS-capable
+# commands hold, so the Curve stays updatable at runtime
+Levy "levy_both" {
+	Scheme = BOTH
+	Scope = TTW
+	Emissions = Emission("*")
+	Fuels = Fuel("*")
+	Jurisdiction = [Port("port_b")]
+	Active = TRUE
+	Level = 30
+	set_include_vessel("*", TRUE)
+	set_global_warming_potential("methane", Curve("curve_gwp_methane"))
+}
+
+# SUBSIDY levy on well-to-tank emissions — pays for emissions below the threshold
+Levy "levy_subsidy" {
+	Scheme = SUBSIDY
+	Scope = WTT
+	Emissions = Emission("*")
+	Fuels = Fuel("*")
+	Jurisdiction = [Port("port_b")]
+	Level = 20
+	LowerThreshold = 50
+	set_include_vessel("*", TRUE)
+}

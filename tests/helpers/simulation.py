@@ -4,9 +4,8 @@
 """
 Shared helpers for test suites that run full simulations in-process.
 
-Used by tests/attribute (attribute coverage), tests/behaviour (directional
-responses), and tests/regression (golden baselines), so every suite runs
-decks through the same runner and universal invariants.
+Used by tests/end_to_end, so every deck runs through the same runner and
+universal invariants.
 """
 
 from __future__ import annotations

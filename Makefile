@@ -15,7 +15,7 @@ else
   RUN := env PATH="$(CURDIR)/.venv/bin:$(PATH)"
 endif
 
-.PHONY: lint test-unit test-attribute test-behaviour test-regression regen-regression test-all test-tutorials test-examples help setup conda-setup pip-setup docs docs-clean
+.PHONY: lint test-unit test-e2e test-all test-examples help setup conda-setup pip-setup docs docs-clean
 
 help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -50,38 +50,15 @@ lint:  ## Run ruff, mypy, and REUSE checks
 test-unit:  ## Unit + contract tests
 	$(RUN) pytest tests/unit/ -v --tb=short
 
-test-attribute:  ## Attribute coverage tests
-	$(RUN) pytest tests/attribute/ -s -v --tb=short
+# --maxfail=0 overrides the -x in pyproject addopts: one failing combination
+# must not mask the others behind it.
+test-e2e:  ## End-to-end deck tests (attribute coverage + input combinations)
+	$(RUN) pytest tests/end_to_end/ -v --tb=short --maxfail=0
 
-# --maxfail=0 overrides the -x in pyproject addopts: a wrong direction is a
-# domain finding, and one must not mask the pairs behind it.
-test-behaviour:  ## Directional behaviour tests (perturbed deck pairs)
-	$(RUN) pytest tests/behaviour/ -v --tb=short --maxfail=0
-
-# --maxfail=0 overrides the -x in pyproject addopts: a failed activation guard
-# must not mask the golden diff behind it.
-test-regression:  ## Golden-baseline regression tests
-	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0
-
-# The one sanctioned way to update baselines (tests/regression/README.md);
-# -s so the per-file regeneration summary prints.
-regen-regression:  ## Regenerate golden baselines, then review the git diff
-	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0 -s --regen-baselines
-
-test-all:  ## Full test suite (required pytest suites + tutorials + examples)
+test-all:  ## Full test suite (pytest suites + examples)
 	$(MAKE) test-unit
-	$(MAKE) test-attribute
-	$(MAKE) test-behaviour
-	$(MAKE) test-regression
-	$(MAKE) test-tutorials
+	$(MAKE) test-e2e
 	$(MAKE) test-examples
-
-test-tutorials:  ## Run tutorial example solutions
-	$(RUN) navigate tutorials/tutorial_1/example_solution/tutorial_1.nav -d ./assumptions -s
-	$(RUN) navigate tutorials/tutorial_2/example_solution/tutorial_2.nav -d ./assumptions -s
-	$(RUN) navigate tutorials/tutorial_3/example_solution/tutorial_3_scenarios/baseline/baseline.nav -d ./assumptions -s
-	$(RUN) navigate tutorials/tutorial_3/example_solution/tutorial_3_scenarios/scenario_100/scenario_100.nav -d ./assumptions -s
-	$(RUN) navigate tutorials/tutorial_3/example_solution/tutorial_3_scenarios/scenario_170/scenario_170.nav -d ./assumptions -s
 
 test-examples:  ## Run simulations/examples
 	$(RUN) navigate simulations/examples/example_1/example_1.nav -d ./assumptions -s

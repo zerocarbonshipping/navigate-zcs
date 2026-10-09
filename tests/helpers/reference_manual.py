@@ -4,7 +4,7 @@
 """
 Readers for the hand-written reference manual under docs/reference_manual.
 
-Used by tests/attribute to hold the manual's DSL surface against the parser
+Used by tests/unit/docs to hold the manual's DSL surface against the parser
 registries and its report-property appendix against the profile getters; nothing
 generates the manual, so the readers parse its markdown.
 """

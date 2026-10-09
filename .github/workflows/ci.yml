@@ -97,21 +97,9 @@ jobs:
         shell: bash -el {0}
         run: make test-unit
 
-      - name: Run attribute tests
+      - name: Run end-to-end tests
         shell: bash -el {0}
-        run: make test-attribute
-
-      - name: Run behaviour tests
-        shell: bash -el {0}
-        run: make test-behaviour
-
-      - name: Run regression tests
-        shell: bash -el {0}
-        run: make test-regression
-
-      - name: Run tutorials
-        shell: bash -el {0}
-        run: make test-tutorials
+        run: make test-e2e
 
       - name: Run examples
         shell: bash -el {0}

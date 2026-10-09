@@ -4,8 +4,7 @@
 """
 Shared state for the tests that check report properties against profile getters.
 
-Used by tests/attribute: the committed-deck scan in test_report_properties.py and
-the report-property checks over the reference manual.
+Used by the report-property checks over the reference manual in tests/unit/docs.
 """
 
 from __future__ import annotations
