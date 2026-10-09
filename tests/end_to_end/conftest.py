@@ -5,11 +5,11 @@
 Deck assembly for the combination tests.
 
 A combination deck is the committed base in simulations/combinations/0_includes
-plus one or more template includes from simulations/combinations, whose
-%name% values are filled in per combination. `run_combination` writes that
-deck into a temporary directory, runs it, checks the universal invariants and
-caches the manager per module, so a test can read the run of another
-combination as its reference without running it twice.
+plus any template includes from simulations/combinations, whose %name% values
+are filled in per combination; with none, it is the base deck itself.
+`run_combination` writes that deck into a temporary directory, runs it, checks
+the universal invariants and caches the manager per module, so a test can read
+the run of another combination as its reference without running it twice.
 """
 
 from __future__ import annotations

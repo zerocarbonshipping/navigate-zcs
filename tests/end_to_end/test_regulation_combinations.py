@@ -8,8 +8,10 @@ The regulation in simulations/combinations/regulation.inc sets a zero threshold,
 which no vessel meets in any measure or scope, so every combination is
 non-compliant at every step. Without adjustment, the whole emission is the gap:
 it is charged at the remedial cost, and it does not depend on the measure that
-states the threshold or on the scheme that pools it. With adjustment, the
-threshold is raised to what is achievable and nothing is left to remedy.
+states the threshold or on the scheme that pools it. That charge prices every
+ton the fleet emits, so it must reach the fleet's decisions: the regulated
+fleet emits less than an unregulated one. With adjustment, the threshold is
+raised to what is achievable and nothing is left to remedy.
 """
 
 from __future__ import annotations
@@ -34,8 +36,8 @@ SUMMATION_RTOL = 1e-9
 pytestmark = pytest.mark.slow
 
 
-def _profile(run_combination, measure, scheme, scope, adjustment):
-    manager = run_combination(
+def _run(run_combination, measure, scheme, scope, adjustment):
+    return run_combination(
         (
             "regulation.inc",
             {
@@ -46,6 +48,10 @@ def _profile(run_combination, measure, scheme, scope, adjustment):
             },
         )
     )
+
+
+def _profile(run_combination, measure, scheme, scope, adjustment):
+    manager = _run(run_combination, measure, scheme, scope, adjustment)
     return manager.nodes.regulations[REGULATION].profile
 
 
@@ -69,6 +75,19 @@ def test_an_unmet_threshold_charges_every_emission(
     np.testing.assert_allclose(
         units, reference.get_remedial_units(), rtol=SUMMATION_RTOL
     )
+
+
+@pytest.mark.parametrize(
+    ("measure", "scheme", "scope"), list(itertools.product(MEASURES, SCHEMES, SCOPES))
+)
+def test_an_unmet_threshold_lowers_emissions(run_combination, measure, scheme, scope):
+    regulated = _run(run_combination, measure, scheme, scope, "FALSE")
+    unregulated = run_combination()
+
+    def wtw(manager):
+        return manager.profile.get_total_equivalent_wtw().sum()
+
+    assert wtw(regulated) < wtw(unregulated)
 
 
 @pytest.mark.parametrize(
