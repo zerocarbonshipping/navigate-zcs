@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.exceptions import DeckFormatError, DeckKeywordError
 from navigate.parser._keywords import (
     DATE,
@@ -40,8 +40,8 @@ from navigate.parser.parser import Parser
 if TYPE_CHECKING:
     from pathlib import Path
 
-DEFINE = SimulationSectionID.DEFINE
-EVENTS = SimulationSectionID.EVENTS
+DEFINE = SectionID.DEFINE
+EVENTS = SectionID.EVENTS
 
 MODEL_DEFINITION = '\nModelDefinition {\n    StartDate = "01-01-2026"\n}\n'
 
@@ -64,7 +64,7 @@ def _statement(keyword: str) -> str:
     return TIMELINE_STATEMENT[keyword]
 
 
-def _keyword_cases(allowed: bool) -> list[tuple[str, SimulationSectionID]]:
+def _keyword_cases(allowed: bool) -> list[tuple[str, SectionID]]:
     return [
         (keyword, section)
         for keyword, sections in KEYWORD_SECTIONS.items()
@@ -73,7 +73,7 @@ def _keyword_cases(allowed: bool) -> list[tuple[str, SimulationSectionID]]:
     ]
 
 
-def _walk(parser: Parser, section: SimulationSectionID, text: str) -> None:
+def _walk(parser: Parser, section: SectionID, text: str) -> None:
     """Read include text into a section the way a deck's block reads it."""
     parser._begin_reading_section(section)
     parser._process_statements(parse_include_content(text, file=f"{section.name}.inc"))

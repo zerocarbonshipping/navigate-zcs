@@ -5,139 +5,124 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Architecture
 
-Navigate simulates the maritime transition as two decision-making domains —
-shipowners (`fleet/`) and fuel producers (`fuel/`) — built on shared
-foundations and coordinated by a per-time-step loop in `simulation.py`. The
-domains never import each other: they interact only through `core`
-expectations and the bunkering LP. This file maps the code; the DSL and model
-behavior are documented in `docs/reference_manual/`.
+Navigate simulates the maritime transition as two decision-making domains,
+shipowners (`simulation/fleet/`) and fuel producers (`simulation/fuel/`),
+which interact only through `core` expectations and the bunkering LP.
+`Simulation` in `simulation/time_stepping.py` coordinates them per time
+step, and `driver/` runs it from a read deck to its output.
 
 ## Package map
 
-- `simulation.py` — the simulation loop (`SimulationManager`); pure
-  orchestration: each phase calls a domain entry point.
-- `core/` — the model definition: DSL value infrastructure (assignment
-  validation, expressions, tables), the node classes (`core/nodes/`, one per
-  DSL keyword), maps between nodes derived from static node attributes
-  (`node_maps.py`), singleton general nodes, `expectations/` (cross-module
-  dynamic state) and `profiles/` (end-of-run output containers).
+- `simulation/` — the model. `Simulation` does no model work of its own: it
+  orchestrates the domains in a fixed phase order.
+  - `simulation/fleet/` — the shipowner domain: operation and decisions.
+  - `simulation/fuel/` — the fuel-supply domain: production and planning.
+    The two mirror each other: `initialization.py`, `evolution.py`,
+    `planning.py` and `aggregation.py` play the same role in each.
+  - `simulation/economics/` — valuation and choice used by both domains.
+  - `simulation/bunker/` — the per-time-step bunkering LP.
+  - `simulation/policy/` — policy emission coefficients and beliefs.
+- `core/` — the model definition only: the DSL value types and their
+  semantics, the node classes (`nodes/`, one per DSL keyword), the general
+  nodes (`general_nodes/`), the node maps, `expectations/`, `profiles/`, the
+  records nodes hold, and the `SimulationResults` a run hands to output.
 - `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar).
-- `fleet/` — the shipowner domain: voyage physics and energy demand,
-  valuation (charter rates, technology packages, marginal-saving heuristics)
-  and the speed, technology, fuel-conversion and newbuild/scrap decisions.
-- `fuel/` — the fuel-supply domain: production and delivery economics,
-  supply/demand balancing, port fuel supply, and producer capacity planning.
-- `economics/` — asset-agnostic valuation-and-choice toolkit (cash flows,
-  NPV/levelized cost, discrete choice) used by both domains.
-- `bunker/` — the per-time-step bunkering LP: build → solve → transfer.
-- `policy/` — regulation/levy emission coefficients, jurisdiction
-  attribution, and regulation flexibility-cost beliefs.
-- `output/` — turns a run into artifacts: Excel/CSV reports and figures;
-  `output/plots/` renders the latter.
-- `util/` — dependency-free helpers; imports nothing from `navigate`.
-- `logging_.py` — run logging; `exceptions.py` — the `NavigateError`
-  hierarchy; `__main__.py` — the CLI.
+- `output/` — turns `SimulationResults` into reports and figures (`plots/`).
+- `util/` — domain-agnostic helpers.
+- `driver/` — the run: read a deck, step `Simulation`, write the output.
+- `app/` — the command line (`cli.py`) and its run log (`logs.py`), whose
+  `RunLog` is the only code that configures logging.
+- `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` runs `app`.
+
+## Domains
+
+A domain's node `x.py` in `core/nodes/` keeps its cross-module dynamic state
+in `core/expectations/x_expectation.py` and its output in
+`core/profiles/x_profile.py`; the domain's calculations live in
+`simulation/<domain>/`. The fleet domain owns `Fleet` and `Vessel`, fuel
+owns `Producer`, `Plant` and `Port`, and policy owns `Regulation` and
+`Levy`. `simulation/economics/` owns no nodes, and `simulation/bunker/`'s
+settings are the general node `core/general_nodes/bunker_options.py`.
+
+Node classes hold state, and the calculators among them (`Curve`,
+`Forecast` and the like) their value semantics; model work lives in
+`simulation/`. The node methods below are a known exception, and the list
+must not grow:
+
+- `calculate_expectation` on `Port`, `Regulation`, `Vessel` and `Levy`,
+  `calculate_profile` on the first three, and
+  `_Policy._calculate_policy_expectations`;
+- `_AssetManager`'s `update_increment_ages`, `_age_increments`,
+  `define_initial_age` and `define_initial_multipliers`, with the hooks
+  `Fleet` and `Producer` implement for them, and
+  `Producer.define_initial_decided`;
+- `Route._normalize_voyage_distribution`.
 
 ## Layering
 
 ```
-util        → (nothing)
-core        → util
-economics   → core, util
-policy      → core, util
-fleet, fuel → core, economics, util
-bunker      → core, policy, util
-output      → core, util
-simulation  → everything
+util, __init__, simulation         → (nothing)
+exceptions                         → util
+core                               → foundation
+simulation.economics               → core, foundation
+simulation.policy                  → core, foundation
+simulation.fleet, simulation.fuel  → simulation.economics, core, foundation
+simulation.bunker                  → simulation.policy, core, foundation
+parser, output                     → core, foundation
+app                                → driver, foundation
+simulation.time_stepping           → domains, core, foundation
+driver                             → simulation.time_stepping, domains,
+                                     parser, output, core, foundation
+__main__                           → app
 ```
 
-`exceptions.py` and `logging_.py` are foundation modules available to every
-layer alongside `util`.
+A unit is a package or module under `navigate/` with a row, named by its
+dotted path; `__init__` is `navigate/__init__.py` and `simulation` is
+`simulation/__init__.py` alone. A file belongs to the longest unit that
+contains it; a unit imports itself and its row, nothing else from
+`navigate`. The foundation is `util/` and `exceptions.py`; the domains are
+the five `simulation.<domain>` units. Every file must fall in a unit, so a
+new top-level module or package needs a row here and in the test's
+`LAYERS`. No row may link `simulation.fleet` and `simulation.fuel`,
+`parser` and `output`, or either of those two and a simulation unit.
 
-Known back-edge: the core table nodes call into `logging_`, which itself
-imports `core.unit`
-([#22](https://github.com/zerocarbonshipping/navigate-zcs/issues/22)).
-`tests/unit/test_layering.py` enforces that `core/` imports nothing from
-`navigate` at runtime beyond `core/`, `util/`, `exceptions.py`, and
-`logging_.py`.
+Inside `core/`, runtime imports run one way: `nodes/` imports
+`expectations/`, `profiles/` and the flat modules directly in `core/`;
+`expectations/`, `profiles/` and `general_nodes/` import only the flat
+modules; the flat modules import no subpackage, so one that needs a node
+class imports it under `TYPE_CHECKING`. Imports are absolute.
+`tests/unit/test_layering.py` enforces the table with type-only imports
+included, and the order inside `core/` for runtime imports only.
+
+Each package's `__init__.py` re-exports its externally consumed entry
+points; read it first. `simulation/`, `core/nodes/`, `core/general_nodes/`
+and `output/plots/` keep it empty and importers name the module, as a
+re-export there would load far more than an import needs.
 
 ## Data-flow invariants
 
-- Dynamic results that cross modules flow through the node's `expectation`:
-  the computing module writes via `set_*`/`add_*`, everyone else reads via
-  `get_*`.
-- `profile` is output storage for end-of-simulation reports and plots; it is
-  never read as an input to a simulation decision. Inside the
-  profile-aggregation phase (`SimulationManager._calculate_profile`) and
-  post-processing, deriving one profile value from an already-written one is
-  fine — nothing downstream of those phases feeds a decision.
+- Cross-module dynamic results flow through the node's `expectation`: the
+  computing module writes (`set_*`, `add_*`), the others read (`get_*`).
+- `profile` is output for reports and plots, never a decision's input.
+  Deriving one profile value from another is fine in post-processing and
+  `Simulation._calculate_profile`, which feed no decision.
 - Direct attribute access (`node.some_input.get()`) is reserved for
   DSL-defined inputs.
+- `simulation/` handles no files, console output or arguments; its one file
+  write is the bunker's infeasible-LP dump into the directory it is given.
 
 ## Node lifecycle
 
-The parser brings a node to a usable state through two `@final` entry points
-on `Node`; a node overrides the hooks they call, never the entry points.
-
-- `initialize()` runs once, after the DEFINE block: `check_requirements()`,
-  `apply_defaults()`, then `reinitialize()`.
-- `reinitialize()` runs after DEFINE and again after every event read:
-  `apply_command_defaults()`, then `check_consistency()`.
-
-Before `initialize()`, the parser checks the required attributes. The attribute
-registry in `navigate/parser/_attributes.py` lists, per node type, the
-attributes a deck must assign; the parser records every setter it runs, and
-once the DEFINE block is read it raises `no_value_assigned_error` for a
-required attribute no setter reached. The check runs after the
-unreachable-node prune, so a pruned node is never checked, and before
-`initialize_dependencies(...)`, the commands and the hooks, so no node reads
-another's required attribute unset. The general nodes are checked before
-anything reads the start date. A node declares a required attribute without
-a value, so it is absent from the node's `__dict__` until its setter runs.
-
-What each hook holds:
-
-- `check_requirements()` raises where an attribute the node cannot run
-  without is unassigned and the registry cannot say so: a list left empty,
-  or an attribute required only under a condition on others. `None` on a
-  node attribute always means unassigned: the grammar has no `none`
-  literal, and every `assign_*` in `navigate/core/assign.py` returns a value
-  or raises, so no DSL value is ever `None`.
-- `apply_defaults()` fills a value derived from the size or the value of
-  another attribute.
-- `apply_command_defaults()` fills the entries of the command-written
-  dictionaries that `initialize_dependencies(...)` cannot seed with their
-  default, such as the keys a command creates, and resolves the
-  dictionaries into the form the node reads.
-- `check_consistency()` raises where attributes contradict each other and
-  warns where one is unused.
-- `check_dynamic_consistency(times, dates)` raises where time-varying
-  attributes contradict each other anywhere over the remaining timeline. Not
-  part of `initialize()`/`reinitialize()`: `SimulationManager` calls it once
-  per time step, before the expectations, over `timeline[idx:]` and
-  `dateline[idx:]`, because a Forecast's value over the future is only known
-  against the timeline, which `check_consistency()` does not see.
-
-The cadences differ because no deck can unassign a required attribute or
-create a node after DEFINE, while a `SECTION_BOTH` attribute may be
-re-assigned between time steps and a command may create a dictionary key
-mid-run.
-
-General nodes accept attributes in `SECTION_DEFINE` only, so `_GeneralNode`
-has no lifecycle hooks: the required-attribute check is all they need.
-
-Anything derived from the node registries stays in
-`initialize_dependencies(...)`, the only hook the parser hands them. It
-also seeds every registry-keyed entry of a command-written dictionary with
-its default, or with `None` where unassigned means something to the reader,
-before the commands run.
-
-## Naming conventions
-
-- `fleet/` and `fuel/` mirror each other deliberately (`initialization.py`,
-  `evolution.py`, `planning.py`, `aggregation.py`): same name, same role in
-  each domain.
-- A leading underscore on a module or class means package-private; anything
-  used across package boundaries carries a public name.
-- Each package's `__init__.py` re-exports its externally consumed entry
-  points — read it first to learn the package's API.
+`Node` in `core/node.py` has two `@final` entry points the parser calls,
+`initialize()` and `reinitialize()`, which run the hooks; a node overrides
+the hooks only, each documented there with its role and cadence.
+`Simulation`, not the parser, calls `check_dynamic_consistency` once per
+time step. The parser checks the attributes every deck must assign, listed
+in `parser/_attributes.py`, before `initialize_dependencies(...)` and the
+hooks run. `None` on a node attribute means unassigned; no DSL value is
+`None`. What derives from the node registries, and the seeding of the
+command-written dictionaries before the commands run, goes in
+`initialize_dependencies(...)`, the only method the parser hands them. It
+runs before the commands on every pass, DEFINE and each event read, so it
+seeds with `setdefault` and recomputes what it derives. General nodes take
+DEFINE attributes only and have no hooks.

@@ -8,7 +8,7 @@ A combination deck is the committed base in simulations/combinations/0_includes
 plus any template includes from simulations/combinations, whose %name% values
 are filled in per combination; with none, it is the base deck itself.
 `run_combination` writes that deck into a temporary directory, runs it, checks
-the universal invariants and caches the manager per module, so a test can read
+the universal invariants and caches the results per module, so a test can read
 the run of another combination as its reference without running it twice.
 """
 
@@ -25,7 +25,7 @@ from helpers.simulation import check_invariants, run_simulation
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
-    from navigate.simulation import SimulationManager
+    from navigate.core import SimulationResults
 
 COMBINATIONS_DIR = Path(__file__).resolve().parent / "simulations" / "combinations"
 BASE_INCLUDES = ("model.inc", "fuels_ports.inc", "fleet.inc")
@@ -54,13 +54,13 @@ def fill_template(name: str, values: Mapping[str, object]) -> str:
 @pytest.fixture(scope="module")
 def run_combination(
     tmp_path_factory: pytest.TempPathFactory,
-) -> Callable[..., SimulationManager]:
+) -> Callable[..., SimulationResults]:
     """Run the base deck plus the given template layers, once per module."""
     runs: dict[
-        tuple[tuple[str, tuple[tuple[str, str], ...]], ...], SimulationManager
+        tuple[tuple[str, tuple[tuple[str, str], ...]], ...], SimulationResults
     ] = {}
 
-    def run(*layers: Layer) -> SimulationManager:
+    def run(*layers: Layer) -> SimulationResults:
         key = tuple(
             (name, tuple(sorted((k, str(v)) for k, v in values.items())))
             for name, values in layers
@@ -84,9 +84,9 @@ def run_combination(
             + "}\n"
         )
 
-        manager = run_simulation(deck_dir)
-        check_invariants(manager)
-        runs[key] = manager
-        return manager
+        results = run_simulation(deck_dir)
+        check_invariants(results)
+        runs[key] = results
+        return results
 
     return run

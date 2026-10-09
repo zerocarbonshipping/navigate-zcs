@@ -5,7 +5,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Plant
 
-A `Plant` node defines a fuel production plant which are part of the modeling of the available fuel supply.
+A `Plant` node defines a fuel production plant which is part of the modeling of the available fuel supply.
 Examples of plants are e-methanol plants and blue ammonia plants.
 
 Example:
@@ -30,35 +30,37 @@ Plant "plant_methanol_electro" {
 
 ### Fuel 
 
-This attribute sets the fuel that is produced by the plant
+This attribute sets the fuel that is produced by the plant.
+
+The fuel must not belong to a liquid market (`LiquidMarket = TRUE`); see [Fuel](fuel.md#liquidmarket).
 
 * **Data type**: `Fuel` node
-* **Example values**: `Fuel("name")`
-* **Default**: None. Must be defined by the user.
+* **Example value**: `Fuel("name")`
+* **Default**: None. Must be provided by the user.
 
 ### Process 
 
 This attribute sets the production process used by the plant.
 
 * **Data type**: `Process` node
-* **Example values**: `Process("name")`
-* **Default**: None. Must be defined by the user.
+* **Example value**: `Process("name")`
+* **Default**: None. Must be provided by the user.
 
 ### Region 
 
 This attribute sets the region in which the plant is built.
 
 * **Data type**: `Region` node
-* **Example values**: `Region("name")`
-* **Default**: None. Must be defined by the user.
+* **Example value**: `Region("name")`
+* **Default**: None. Must be provided by the user.
 
 ### Source 
 
 This attribute sets the energy source which is used to generate power for the plant.
 
 * **Data type**: `Source` node
-* **Example values**: `Source("name")`
-* **Default**: None
+* **Example value**: `Source("name")`
+* **Default**: None. Must be provided by the user.
 
 ### Capacity 
 
@@ -69,19 +71,19 @@ This attribute sets the production capacity of the plant in tons/day. `INF` is r
   + `3000`
   + `Forecast("name")`
 * **Unit**: tons / day
-* **Minimum value**: 0
-* **Default**: None. Must be defined by the user.
+* **Minimum value**: >0
+* **Default**: None. Must be provided by the user.
 
 ### Uptime
 
 This attribute sets the production uptime of the plant in time/time.
 
-* **Data type**: `Float`, `Forecast`, `Variable`.
+* **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `0.95`
   + `Forecast("name")`
 * **Unit**: Fraction
-* **Minimum value**: 0
+* **Minimum value**: >0
 * **Maximum value**: 1
 * **Default**: 1
 
@@ -92,10 +94,9 @@ This attribute sets the lifetime of the plant in years.
 The plant is decommissioned when it surpasses its lifetime.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**:
-  + `30`
+* **Example value**: `30`
 * **Unit**: Years
-* **Minimum value**: 0
+* **Minimum value**: >0
 * **Default**: 30
 
 ### LeadTime
@@ -128,42 +129,45 @@ This attribute sets the cost of capital used to calculate the costs associated w
 
 This command sets the transport mode used for transporting a specific feedstock or process output to the plant.
 
-* **Primary key type**: String (Name of feedstock or process)
+* **Primary key type**: String (Name of feedstock or process; supports wildcards)
 * **Data type**: `Transport` node
 * **Example values**:
   + `"feedstock_name", Transport("name")`
-  + `"Process_name", Transport("name")`
-* **Default**: None
+  + `"process_name", Transport("name")`
+* **Default**: Not set. The feed is not transported, so no transport cost or emissions accrue.
 
 ### set\_feed\_distance
 
-This command sets the distance a given feedstock or process output is transported to the plant in nautical miles.
+This command sets the distance a given feedstock or process output is transported to the plant in nautical miles. A distance can only be assigned to a feed that is also assigned a transport with `set_feed_transport`.
 
-* **Primary key type**: String (Name of feedstock or process)
+* **Primary key type**: String (Name of feedstock or process; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"feedstock_name", 100`
   + `"process_name", 100`
   + `"process_name", Forecast("name")`
-* **Default**: None
+* **Unit**: nautical miles
+* **Minimum value**: 0
+* **Default**: 0 for a feed assigned a transport
 
 ### set\_fuel\_transport
 
 This command sets the transport mode used for delivering the produced fuel to a given port. The cost and WTT emissions of the delivery are given by the transport rates of the plant's region, see `set_transport_cost` and `set_transport_wtt` on the [Region](region.md) node.
 
-* **Primary key type**: String (Name of port)
+* **Primary key type**: String (Name of port; supports wildcards)
 * **Data type**: `Transport` node
-* **Example values**:
-  + `"port_name", Transport("name")`
-* **Default**: None
+* **Example value**: `"port_name", Transport("name")`
+* **Default**: Not set. The fuel is not transported to the port, so no delivery cost or emissions accrue.
 
 ### set\_fuel\_distance
 
-This command sets the distance the produced fuel is transported to a given port in nautical miles.
+This command sets the distance the produced fuel is transported to a given port in nautical miles. A distance can only be assigned to a port that is also assigned a transport with `set_fuel_transport`.
 
-* **Primary key type**: String (Name of port)
+* **Primary key type**: String (Name of port; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"port_name", 100`
   + `"port_name", Forecast("name")`
-* **Default**: None
+* **Unit**: nautical miles
+* **Minimum value**: 0
+* **Default**: 0 for a port assigned a transport

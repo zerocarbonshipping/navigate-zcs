@@ -28,15 +28,17 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import find_best_metric_prefix
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from matplotlib.artist import Artist
 
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_regulation_compliance(plot_data: PlotData, directory: str) -> None:
+def plot_regulation_compliance(results: SimulationResults, directory: Path) -> None:
     """Plot the compliance against the threshold, one figure per regulation."""
-    dateline = plot_data.dateline
-    regulations = plot_data.nodes.regulations
+    dateline = results.dateline
+    regulations = results.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
         scheme = regulation.scheme
@@ -105,6 +107,7 @@ def plot_regulation_compliance(plot_data: PlotData, directory: str) -> None:
 
             compliant = np.minimum(measured, effective_threshold)
             non_compliant = np.maximum(measured - effective_threshold, 0.0)
+            plotted_threshold = threshold
 
             if (
                 (scheme == RegulationSchemeID.FLEXIBLE)
@@ -132,7 +135,7 @@ def plot_regulation_compliance(plot_data: PlotData, directory: str) -> None:
                 )
                 compliant /= divisor
                 non_compliant /= divisor
-                threshold = threshold / divisor
+                plotted_threshold = threshold / divisor
                 if name in adjusted:
                     effective_threshold = effective_threshold / divisor
                 unit = f"{prefix}ton/year"
@@ -177,7 +180,7 @@ def plot_regulation_compliance(plot_data: PlotData, directory: str) -> None:
                 handles.extend(line)
                 line_original = ax.plot(
                     dateline,
-                    threshold,
+                    plotted_threshold,
                     color="grey",
                     ls=(0, (3, 3)),
                     label="Original Threshold",
@@ -189,7 +192,7 @@ def plot_regulation_compliance(plot_data: PlotData, directory: str) -> None:
             else:
                 line = ax.plot(
                     dateline,
-                    threshold,
+                    plotted_threshold,
                     color="k",
                     ls=(0, (3, 3)),
                     label="Threshold",

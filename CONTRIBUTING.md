@@ -29,9 +29,9 @@ and how the fix addresses it. If you have found a bug but do not plan to fix
 it yourself, please open an issue instead.
 
 **Large features**, such as new policies, new node types, and major
-refactors, should start as a feature request issue. This lets us align on
-scope and design before you invest significant effort. Smaller features can
-be submitted directly as a pull request.
+refactors, should start as an issue. This lets us align on scope and design
+before you invest significant effort. Smaller features can be submitted
+directly as a pull request.
 
 **Assumption changes** must include references or a justification for the new
 values, so that the provenance of the model inputs stays traceable.
@@ -41,13 +41,14 @@ values, so that the provenance of the model inputs stays traceable.
 - Target the `dev` branch.
 - Keep each pull request focused on a single change. Unrelated fixes and
   refactors belong in separate pull requests.
-- Write a clear description: what the change does, why it is needed, and how
-  it was verified.
+- Fill in the pull request template.
+- Title the pull request with one imperative sentence stating the outcome:
+  no prefix, no "(#N)", under about 65 characters. The squash merge makes it
+  the commit subject and appends " (#N)". For a single-commit pull request
+  GitHub proposes the commit subject instead, so make the two equal.
 - Follow the code style: `ruff` and `mypy` enforce the mechanical rules
   (`make lint`), [`CODESTYLE.md`](CODESTYLE.md) carries the conventions the
-  tooling cannot check. Run
-  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once so `git blame`
-  skips the whole-repo reformat commit.
+  tooling cannot check.
 - Update documentation when behavior changes: the reference manual
   (`docs/reference_manual/`) for user-facing changes and docstrings for code changes.
 
@@ -64,8 +65,8 @@ The format is [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Nothing else gets an entry: no refactor, move, rename or removal inside
 `navigate/`, and no change to what Python code can import. Typing, test,
 lint, CI, `make` and tooling changes get none either, and neither does a
-results-neutral change with no DSL or output effect. A pull request without
-an entry says so in its description.
+results-neutral change with no DSL or output effect. A pull request states
+its user-visible effect in its description.
 
 An entry is one to three lines; related entries may share one bullet with a
 sub-list, each item one to three lines. It states what the user sees and, for
@@ -90,8 +91,8 @@ diff as review material (`tests/regression/README.md`).
 ## Questions
 
 Issues are the preferred way to ask. Whether you are unsure if a change needs
-a feature request first, want to discuss a design, or have a question about
-the model, open an issue and we will get back to you.
+an issue first, want to discuss a design, or have a question about the
+model, open an issue and we will get back to you.
 
 ## AI tools
 
@@ -100,3 +101,5 @@ discouraged. You are responsible for the quality of your own contributions,
 and we kindly ask that you do not clutter the repository with code or inputs
 you do not fully understand. `AGENTS.md` at the repository root is the entry
 point for anyone starting to work here; coding agents read it automatically.
+The procedures for filing issues and writing pull requests are Agent Skills
+in `.agents/skills/`.

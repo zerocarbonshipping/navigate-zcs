@@ -9,7 +9,7 @@ from enum import Enum, auto
 
 
 # external enums -----------------------------------------------------------------------
-class SimulationSectionID(Enum):
+class SectionID(Enum):
     """The section of a deck a declaration is read in."""
 
     DEFINE = auto()  # deck section where nodes are defined
@@ -36,7 +36,7 @@ class SourceDependencyID(Enum):
     CONNECTED = auto()  # connected to the region's electricity grid
 
 
-class EnergyDemandTypeID(Enum):
+class EnergyDemandID(Enum):
     """The kind of vessel energy demand a technology targets."""
 
     PROPULSION = auto()  # propulsive energy demand
@@ -46,7 +46,7 @@ class EnergyDemandTypeID(Enum):
 
 # iteration order feeds LP variable/constraint creation order, which must be
 # deterministic across runs
-EnergyDemandTypePortID = (EnergyDemandTypeID.ELECTRICAL, EnergyDemandTypeID.HEAT)
+PORT_ENERGY_DEMANDS = (EnergyDemandID.ELECTRICAL, EnergyDemandID.HEAT)
 
 
 class RouteTypeID(Enum):

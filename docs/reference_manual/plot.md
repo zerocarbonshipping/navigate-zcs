@@ -25,23 +25,24 @@ Plot "plots" {
 
 ### Directory
 
-This attribute defines the directory in which the plots are stored, relative to the `.nav` file.
-The folder is created automatically if it does not already exist.
+This attribute defines the directory in which the plots are stored, as a path relative to the `.nav`
+file or an absolute path. The folder is created automatically if it does not already exist.
 
 * **Data type**: `String`
-* Format: Must be a valid directory readable by the Python 'os' module.
-* **Default**: A `plots` folder next to the `.nav` file
+* **Example value**: `"./plots/"`
+* **Default**: A `plots` folder next to the `.nav` file.
 
 ## Commands
 
 ### add\_plot
 
 This command selects a single plot to be produced, by its label. Call it once per plot. If no
-`add_plot` command is given, every available plot is produced.
+`add_plot` command is given, every available plot is produced. A label that names no plot is
+skipped with a warning. This command is only allowed in the `DEFINE` section.
 
 The label must be given as a quoted string, e.g. `add_plot("global_fuel_consumed")`.
 
-* Label: All available plot labels are listed in the [Plot Labels](#appendix---plot-node-labels) section.
+* **Label**: All available plot labels are listed in the [Plot Labels](#appendix---plot-node-labels) section.
 
 ## Notes
 

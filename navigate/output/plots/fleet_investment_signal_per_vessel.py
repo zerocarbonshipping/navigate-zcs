@@ -24,18 +24,19 @@ from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
     from navigate.core.profiles.vessel_profile import VesselProfile
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 
 def plot_fleet_investment_signal_technology_per_vessel(
-    plot_data: PlotData, directory: str
+    results: SimulationResults, directory: Path
 ) -> None:
     """Plot the technology investment signal of each vessel per fleet."""
     _plot_investment_signal_per_vessel(
-        plot_data,
+        results,
         directory,
         lambda profile: profile.get_investment_signal_technology(),
         "fleet_investment_signal_technology_per_vessel.png",
@@ -43,11 +44,11 @@ def plot_fleet_investment_signal_technology_per_vessel(
 
 
 def plot_fleet_investment_signal_speed_per_vessel(
-    plot_data: PlotData, directory: str
+    results: SimulationResults, directory: Path
 ) -> None:
     """Plot the speed investment signal of each vessel per fleet."""
     _plot_investment_signal_per_vessel(
-        plot_data,
+        results,
         directory,
         lambda profile: profile.get_investment_signal_speed(),
         "fleet_investment_signal_speed_per_vessel.png",
@@ -55,13 +56,13 @@ def plot_fleet_investment_signal_speed_per_vessel(
 
 
 def _plot_investment_signal_per_vessel(
-    plot_data: PlotData,
-    directory: str,
+    results: SimulationResults,
+    directory: Path,
     signal_getter: Callable[[VesselProfile], FloatArray],
     filename: str,
 ) -> None:
-    dateline = plot_data.dateline
-    fleets = plot_data.nodes.fleets
+    dateline = results.dateline
+    fleets = results.nodes.fleets
     relevant_fleets = {
         fleet_name: fleet for fleet_name, fleet in fleets.items() if fleet.vessels
     }

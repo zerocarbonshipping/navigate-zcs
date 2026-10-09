@@ -17,7 +17,7 @@ from __future__ import annotations
 import pytest
 
 from helpers.parser_decks import FLEET, FUEL, line_of
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.route import Route
 from navigate.exceptions import CommandError, DeckFormatError
@@ -117,7 +117,7 @@ def test_a_wildcard_inside_a_list_is_spliced_in_place():
 #              flushed, then holds port_a and port_b
 def test_a_pending_assignment_reaches_the_setter_expanded():
     parser = _parser_with_ports("port_a", "port_b")
-    parser._current_section = SimulationSectionID.DEFINE
+    parser._current_section = SectionID.DEFINE
     route = Route("r")
     parser.nodes.routes["r"] = route
 

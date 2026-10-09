@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
@@ -12,14 +11,11 @@ from scipy.interpolate import interp1d
 from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
 from navigate.core.nodes._calculator import _Calculator, evaluate_number
-from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
     from navigate.util import FloatArray, FloatLike
-
-logger = logging.getLogger(__name__)
 
 
 class _Table1D(_Calculator):
@@ -44,71 +40,19 @@ class _Table1D(_Calculator):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate: str) -> None:
-        """
-        Set the interpolation method used within the table.
-
-        Examples
-        --------
-        - LINEAR
-        - PREVIOUS
-        - NEXT
-        - NEAREST
-        - NEAREST_UP
-
-        Parameters
-        ----------
-        interpolate
-            Interpolation method.
-        """
+        """Set the interpolation method used within the table."""
         self._interpolate = assign_id(interpolate, Interpolate1DID)
 
     def set_extrapolate(self, extrapolate: str) -> None:
-        """
-        Set the extrapolation method used beyond the ends of the table.
-
-        Examples
-        --------
-        - FALSE
-        - FLAT
-        - LINEAR
-
-        Parameters
-        ----------
-        extrapolate
-            Extrapolation method.
-        """
+        """Set the extrapolation method used beyond the ends of the table."""
         self.extrapolate = assign_id(extrapolate, ExtrapolateID)
 
     def set_below(self, below: NumberInput) -> None:
-        """
-        Set the flat extrapolation value below the table.
-
-        Only read when 'Extrapolate' is FLAT; the first y-value in the table is
-        used when this is left unset. An expression is evaluated, without inputs,
-        each time the table is looked up below its first x-value. INF and -INF are
-        accepted here and checked by each attribute the calculator is assigned to.
-
-        Parameters
-        ----------
-        below
-            Flat extrapolation value below the table.
-        """
+        """Set the flat extrapolation value below the table."""
         self._below = assign_value(below, allow_infinite=True)
 
     def set_above(self, above: NumberInput) -> None:
-        """
-        Set the flat extrapolation value above the table.
-
-        Only read when 'Extrapolate' is FLAT; the last y-value in the table is
-        used when this is left unset. An expression is evaluated, without inputs,
-        each time the table is looked up above its last x-value. INF and -INF are
-        accepted here and checked by each attribute the calculator is assigned to.
-
-        Parameters
-        ----------
-        above
-            Flat extrapolation value above the table.
-        """
+        """Set the flat extrapolation value above the table."""
         self._above = assign_value(above, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
@@ -154,22 +98,6 @@ class _Table1D(_Calculator):
             return None
 
         return np.interp(y, yp, self.x)
-
-    def _check_extrapolation(self, x: FloatArray) -> None:
-        x_range = self.x[-1] - self.x[0]
-        atol = max(x_range * 1e-4, 1e-9)
-
-        if np.any(x < self.x[0] - atol) or np.any(x > self.x[-1] + atol):
-            if not self._extrapolation_warned:
-                log_extrapolate_bounds(logger, self, x, *self._get_x_limits())
-                self._extrapolation_warned = True
-            else:
-                logger.debug(
-                    "%s: Extrapolating beyond table limits (suppressed repeat).", self
-                )
-
-    def _get_x_limits(self) -> tuple[float, float]:
-        return self.x[0], self.x[-1]
 
     def _check_interpolate_extrapolate_consistency(self) -> None:
         if (self._interpolate in (Interpolate1DID.PREVIOUS, Interpolate1DID.NEXT)) and (

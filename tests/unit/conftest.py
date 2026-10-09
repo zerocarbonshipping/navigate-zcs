@@ -8,8 +8,7 @@ Deck scaffolding shared by the unit tests that go through the parser.
 wrapping them in DEFINE and EVENTS; `read_deck` writes that deck and parses
 it. Both bind `tmp_path` themselves. `define_base` prefixes the DEFINE
 include, `events` is the EVENTS include content or None for an empty EVENTS
-block, `data_dir` is the assumptions tree, and `parser` reuses a Parser the
-caller already holds.
+block, and `data_dir` is the assumptions tree.
 
 Only a root node keeps what it references alive through the parser's
 unreachable-node prune, so a deck exercising a non-root node hangs it under a
@@ -60,7 +59,6 @@ def read_deck(tmp_path, write_deck):
         define_base=MODEL_DEFINITION,
         events=None,
         data_dir=None,
-        parser=None,
     ):
         deck = write_deck(define, define_base=define_base, events=events)
 
@@ -68,9 +66,7 @@ def read_deck(tmp_path, write_deck):
         if data_dir is None:
             data_dir = tmp_path / "data"
 
-        if parser is None:
-            parser = Parser()
-
+        parser = Parser()
         parser.read_deck(deck, data_dir=data_dir)
         return parser
 

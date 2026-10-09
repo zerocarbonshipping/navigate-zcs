@@ -25,10 +25,12 @@ from navigate.output.plots._layout import trim_axes
 from navigate.util import TOLERANCE, dates_to_years, sum_by_first_key, sum_by_second_key
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from matplotlib.typing import ColorType
 
     from navigate.core.nodes.vessel import Vessel
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 
@@ -51,10 +53,12 @@ def _vessel_series_by_fuel_type(
     )
 
 
-def plot_fleet_conversions_cumulative(plot_data: PlotData, directory: str) -> None:
+def plot_fleet_conversions_cumulative(
+    results: SimulationResults, directory: Path
+) -> None:
     """Plot the cumulative number of vessels converted from and to each fuel type."""
-    dateline = plot_data.dateline
-    fleets = plot_data.nodes.fleets
+    dateline = results.dateline
+    fleets = results.nodes.fleets
 
     fuel_conversions = {
         fleet_name: fleet.profile.get_fuel_conversions()

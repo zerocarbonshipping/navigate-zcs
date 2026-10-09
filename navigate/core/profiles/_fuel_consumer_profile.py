@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The profile layer for the fuel consumers: vessels, fleets and the manager."""
+"""The profile layer for the fuel consumers: the vessel, fleet and global profiles."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, FuelTypeID
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_emission_profile import _FuelEmissionProfile
 from navigate.core.profiles._fuel_type_lookup import _FuelTypeLookup
@@ -31,17 +31,17 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         super().__init__()
 
         # raw energy demand
-        self._raw_energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}
-        self._raw_energy_port: dict[EnergyDemandTypeID, FloatArray] = {}
+        self._raw_energy_sea: dict[EnergyDemandID, FloatArray] = {}
+        self._raw_energy_port: dict[EnergyDemandID, FloatArray] = {}
 
         # operational energy demand, GJ/year: after operational savings, before
         # technology
-        self._operational_energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}
-        self._operational_energy_port: dict[EnergyDemandTypeID, FloatArray] = {}
+        self._operational_energy_sea: dict[EnergyDemandID, FloatArray] = {}
+        self._operational_energy_port: dict[EnergyDemandID, FloatArray] = {}
 
         # energy demand
-        self._energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}
-        self._energy_port: dict[EnergyDemandTypeID, FloatArray] = {}
+        self._energy_sea: dict[EnergyDemandID, FloatArray] = {}
+        self._energy_port: dict[EnergyDemandID, FloatArray] = {}
 
         # consumed
         self._consumed_mass: dict[str, FloatArray] = {}
@@ -88,14 +88,14 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         levy_names
             Names of all levies in the simulation.
         """
-        self._raw_energy_sea = self._default_dict(EnergyDemandTypeID)
-        self._raw_energy_port = self._default_dict(EnergyDemandTypePortID)
+        self._raw_energy_sea = self._default_dict(EnergyDemandID)
+        self._raw_energy_port = self._default_dict(PORT_ENERGY_DEMANDS)
 
-        self._operational_energy_sea = self._default_dict(EnergyDemandTypeID)
-        self._operational_energy_port = self._default_dict(EnergyDemandTypePortID)
+        self._operational_energy_sea = self._default_dict(EnergyDemandID)
+        self._operational_energy_port = self._default_dict(PORT_ENERGY_DEMANDS)
 
-        self._energy_sea = self._default_dict(EnergyDemandTypeID)
-        self._energy_port = self._default_dict(EnergyDemandTypePortID)
+        self._energy_sea = self._default_dict(EnergyDemandID)
+        self._energy_port = self._default_dict(PORT_ENERGY_DEMANDS)
 
         self._consumed_mass = self._default_dict(fuels)
 
@@ -135,32 +135,32 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         idx
             Time-step index or slice.
         """
-        for energy_id in EnergyDemandTypeID:
+        for energy_id in EnergyDemandID:
             self._raw_energy_sea[energy_id][idx] += (
                 multiplier * profile._raw_energy_sea[energy_id][idx]
             )
 
-        for energy_id in EnergyDemandTypePortID:
+        for energy_id in PORT_ENERGY_DEMANDS:
             self._raw_energy_port[energy_id][idx] += (
                 multiplier * profile._raw_energy_port[energy_id][idx]
             )
 
-        for energy_id in EnergyDemandTypeID:
+        for energy_id in EnergyDemandID:
             self._operational_energy_sea[energy_id][idx] += (
                 multiplier * profile._operational_energy_sea[energy_id][idx]
             )
 
-        for energy_id in EnergyDemandTypePortID:
+        for energy_id in PORT_ENERGY_DEMANDS:
             self._operational_energy_port[energy_id][idx] += (
                 multiplier * profile._operational_energy_port[energy_id][idx]
             )
 
-        for energy_id in EnergyDemandTypeID:
+        for energy_id in EnergyDemandID:
             self._energy_sea[energy_id][idx] += (
                 multiplier * profile._energy_sea[energy_id][idx]
             )
 
-        for energy_id in EnergyDemandTypePortID:
+        for energy_id in PORT_ENERGY_DEMANDS:
             self._energy_port[energy_id][idx] += (
                 multiplier * profile._energy_port[energy_id][idx]
             )
@@ -235,19 +235,19 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
     def _to_total_intensity(self, emission: FloatArray) -> FloatArray:
         return self._convert_to_intensity(emission, self.get_total_consumed_energy())
 
-    def _saving(self, demand_type: EnergyDemandTypeID) -> FloatArray:
-        if demand_type == EnergyDemandTypeID.PROPULSION:
+    def _saving(self, demand_type: EnergyDemandID) -> FloatArray:
+        if demand_type == EnergyDemandID.PROPULSION:
             return 1.0 - divide_nonzero(
                 self._energy_sea[demand_type],
                 self._raw_energy_sea[demand_type],
                 default=1.0,
             )
-        else:
-            return 1.0 - divide_nonzero(
-                self._energy_sea[demand_type] + self._energy_port[demand_type],
-                self._raw_energy_sea[demand_type] + self._raw_energy_port[demand_type],
-                default=1.0,
-            )
+
+        return 1.0 - divide_nonzero(
+            self._energy_sea[demand_type] + self._energy_port[demand_type],
+            self._raw_energy_sea[demand_type] + self._raw_energy_port[demand_type],
+            default=1.0,
+        )
 
     def _shore_power_equivalent(self) -> FloatArray:
         return self._sum_values(
@@ -356,10 +356,10 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
     ) -> None:
         self._shore_power_emission[emission_name][idx] += emission
 
-    def get_raw_energy_sea(self) -> dict[EnergyDemandTypeID, FloatArray]:
+    def get_raw_energy_sea(self) -> dict[EnergyDemandID, FloatArray]:
         return dict(self._raw_energy_sea)
 
-    def get_raw_energy_port(self) -> dict[EnergyDemandTypeID, FloatArray]:
+    def get_raw_energy_port(self) -> dict[EnergyDemandID, FloatArray]:
         return dict(self._raw_energy_port)
 
     def get_raw_energy(self) -> FloatArray:
@@ -367,10 +367,10 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
             self._raw_energy_port
         )
 
-    def get_operational_energy_sea(self) -> dict[EnergyDemandTypeID, FloatArray]:
+    def get_operational_energy_sea(self) -> dict[EnergyDemandID, FloatArray]:
         return dict(self._operational_energy_sea)
 
-    def get_operational_energy_port(self) -> dict[EnergyDemandTypeID, FloatArray]:
+    def get_operational_energy_port(self) -> dict[EnergyDemandID, FloatArray]:
         return dict(self._operational_energy_port)
 
     def get_operational_energy(self) -> FloatArray:
@@ -378,10 +378,10 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
             self._operational_energy_port
         )
 
-    def get_energy_sea(self) -> dict[EnergyDemandTypeID, FloatArray]:
+    def get_energy_sea(self) -> dict[EnergyDemandID, FloatArray]:
         return dict(self._energy_sea)
 
-    def get_energy_port(self) -> dict[EnergyDemandTypeID, FloatArray]:
+    def get_energy_port(self) -> dict[EnergyDemandID, FloatArray]:
         return dict(self._energy_port)
 
     def get_total_energy_port(self) -> FloatArray:
@@ -390,7 +390,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
     def get_energy(self) -> FloatArray:
         return self._sum_values(self._energy_sea) + self._sum_values(self._energy_port)
 
-    def get_saving(self) -> dict[EnergyDemandTypeID, FloatArray]:
+    def get_saving(self) -> dict[EnergyDemandID, FloatArray]:
         return {
             demand_type: self._saving(demand_type) for demand_type in self._energy_sea
         }

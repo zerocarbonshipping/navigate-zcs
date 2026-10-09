@@ -21,8 +21,8 @@ import re
 
 import pytest
 
-from navigate.core.enum_ import SimulationSectionID
-from navigate.exceptions import DeckFormatError
+from navigate.core.enum_ import SectionID
+from navigate.exceptions import DeckFormatError, UnassignedAttributeError
 from navigate.parser._attributes import (
     GENERAL_NODE_ATTRIBUTE_SECTIONS,
     GENERAL_NODE_REQUIRED_ATTRIBUTES,
@@ -164,27 +164,29 @@ def test_every_required_attribute_is_assignable_in_define(required, sections):
     # a required attribute DEFINE could not assign would fail every deck
     for node_type, attributes in required.items():
         for attribute in attributes:
-            assert SimulationSectionID.DEFINE in sections[node_type][attribute]
+            assert SectionID.DEFINE in sections[node_type][attribute]
 
 
 # input:    | e.g. Fuel "f" {
 #           |          FuelType = OIL
 #           |          LowerHeatingValue = 40
 #           |      }                              (MassDensity left out)
-# expected: -> ValueError "Fuel("f"): Attribute 'MassDensity' is unassigned."
+# expected: -> UnassignedAttributeError "Fuel("f"): Attribute 'MassDensity' is
+#              unassigned."
 @pytest.mark.parametrize(("node_type", "attribute"), REQUIRED)
 def test_a_missing_required_attribute_is_named(read_deck, node_type, attribute):
     message = (
         f"{node_type}(\"{NAMES[node_type]}\"): Attribute '{attribute}' is unassigned."
     )
 
-    with pytest.raises(ValueError, match=f"^{re.escape(message)}$"):
+    with pytest.raises(UnassignedAttributeError, match=f"^{re.escape(message)}$"):
         read_deck(_deck(without=(node_type, attribute)))
 
 
 # input:    | ModelDefinition {
 #           | }                    (StartDate left out)
-# expected: -> ValueError "ModelDefinition: Attribute 'StartDate' is unassigned."
+# expected: -> UnassignedAttributeError "ModelDefinition: Attribute 'StartDate'
+#              is unassigned."
 @pytest.mark.parametrize(
     ("type_", "attribute"),
     [
@@ -198,7 +200,7 @@ def test_a_missing_required_general_node_attribute_is_named(
 ):
     message = f"{type_}: Attribute '{attribute}' is unassigned."
 
-    with pytest.raises(ValueError, match=f"^{re.escape(message)}$"):
+    with pytest.raises(UnassignedAttributeError, match=f"^{re.escape(message)}$"):
         read_deck(_fuel(), define_base=f"{type_} {{\n}}\n")
 
 

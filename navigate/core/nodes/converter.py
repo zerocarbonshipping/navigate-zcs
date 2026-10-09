@@ -19,7 +19,7 @@ from navigate.core import (
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.exceptions import no_value_assigned_error
+from navigate.exceptions import UnassignedAttributeError
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
@@ -58,89 +58,29 @@ class Converter(_Machinery):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_power_capacity(self, power_capacity: ScalarArgument) -> None:
-        """
-        Set the maximum power capacity of the converter.
-
-        Examples
-        --------
-        - 50.0
-        - Variable("name")
-
-        Parameters
-        ----------
-        power_capacity
-            The maximum power capacity of the converter.
-        """
+        """Set the power capacity of the converter."""
         self.power_capacity = assign_value(
             as_scalar(power_capacity), type_=VARIABLE, lower=0.0
         )
 
     def set_minimum_load(self, minimum_load: ScalarArgument) -> None:
-        """
-        Set the minimum load as a fraction of power capacity.
-
-        Examples
-        --------
-        - 0.3
-        - Variable("name")
-
-        Parameters
-        ----------
-        minimum_load
-            The minimum load as a fraction of power capacity.
-        """
+        """Set the minimum load as a fraction of power capacity."""
         self.minimum_load = assign_value(
             as_scalar(minimum_load), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
     def set_main_fuel_types(self, main_fuel_types: str | list[str]) -> None:
-        """
-        Set the main fuel types of the converter.
-
-        Examples
-        --------
-        - OIL
-        - [METHANOL, OIL]
-
-        Parameters
-        ----------
-        main_fuel_types
-            Main fuel type or list of main fuel types of the converter.
-        """
+        """Set the main fuel types of the converter."""
         self.main_fuel_types = assign_id_list(main_fuel_types, FuelTypeID, min_length=1)
 
     def set_pilot_fuel_types(self, pilot_fuel_types: str | list[str]) -> None:
-        """
-        Set the pilot fuel types of the converter.
-
-        Examples
-        --------
-        - OIL
-        - [METHANOL, OIL]
-
-        Parameters
-        ----------
-        pilot_fuel_types
-            Pilot fuel type or list of pilot fuel types of the converter.
-        """
+        """Set the pilot fuel types of the converter."""
         self.pilot_fuel_types = assign_id_list(
             pilot_fuel_types, FuelTypeID, min_length=1
         )
 
     def set_minimum_pilot_fuel(self, minimum_pilot_fuel: ForecastArgument) -> None:
-        """
-        Set the minimum pilot fuel fraction required to utilize the converter in GJ/GJ.
-
-        Examples
-        --------
-        - 0.05
-        - Forecast("name")
-
-        Parameters
-        ----------
-        minimum_pilot_fuel
-            Minimum pilot fuel fraction.
-        """
+        """Set the minimum pilot fuel fraction required to use the converter."""
         self.minimum_pilot_fuel = assign_value(
             as_scalar(minimum_pilot_fuel),
             type_=(VARIABLE, FORECAST),
@@ -149,40 +89,14 @@ class Converter(_Machinery):
         )
 
     def set_efficiency(self, efficiency: ScalarArgument) -> None:
-        """
-        Set the energy conversion efficiency from potential to required kinetic energy.
-
-        Examples
-        --------
-        - 0.3
-        - Variable("name")
-
-        Parameters
-        ----------
-        efficiency
-            The energy conversion efficiency.
-        """
+        """Set the energy conversion efficiency of the converter."""
         self.efficiency = assign_value(
             as_scalar(efficiency), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
     def set_slip_fraction(self, fuel_type: str, value: ScalarArgument) -> None:
-        """
-        Set the fraction of fuel mass escaping unburned (slip) for a specific fuel type.
-
-        Examples
-        --------
-        - METHANE, 0.03
-        - METHANE, Variable("methane_slip")
-
-        Parameters
-        ----------
-        fuel_type
-            Type of fuel which has slip when used.
-        value
-            Fraction of fuel mass escaping unburned.
-        """
+        """Set the fraction of fuel mass escaping unburned for a fuel type."""
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
 
         id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
@@ -192,27 +106,7 @@ class Converter(_Machinery):
     def set_consumption_ttw(
         self, fuel_type: str, emission_name: str, value: ScalarArgument
     ) -> None:
-        """
-        Set a consumption related emission for a specific fuel type in the converter.
-
-        Notice that this number is given in the unit ton emission / ton fuel into the
-        engine. I.e., if the engine has slip (e.g., methane slip) then this number is
-        already adjusted for this.
-
-        Examples
-        --------
-        - OIL, "nitrous_oxide", 0.001
-        - OIL, "carbon_dioxide", Variable("name")
-
-        Parameters
-        ----------
-        fuel_type
-            Type of fuel which has a consumption related emission when used.
-        emission_name
-            Name of emission emitted as particles, possibly including wildcards.
-        value
-            Ton of emission emitted per ton of fuel consumed.
-        """
+        """Set a consumption-related emission for a fuel type in the converter."""
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
 
         id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
@@ -223,7 +117,7 @@ class Converter(_Machinery):
     def check_requirements(self) -> None:
 
         if not self.main_fuel_types:
-            no_value_assigned_error(self, "MainFuelTypes")
+            raise UnassignedAttributeError(str(self), "MainFuelTypes")
 
     def check_consistency(self) -> None:
 

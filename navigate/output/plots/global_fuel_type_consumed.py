@@ -23,9 +23,11 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.fuel import Fuel
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
 def _select_fuel_types(
@@ -40,12 +42,12 @@ def _select_fuel_types(
     return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type_to_fuels[fuel_type]]
 
 
-def plot_global_fuel_type_consumed(plot_data: PlotData, directory: str) -> None:
+def plot_global_fuel_type_consumed(results: SimulationResults, directory: Path) -> None:
     """Plot fuel consumed over time, stacked by fuel type a deck uses."""
-    dateline = plot_data.dateline
-    fuels = plot_data.nodes.fuels
+    dateline = results.dateline
+    fuels = results.nodes.fuels
 
-    fuel_type_consumed = plot_data.profile.get_fuel_type_energy()
+    fuel_type_consumed = results.profile.get_fuel_type_energy()
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
     fuel_type_consumed = {
         fuel_type: fuel_type_consumed[fuel_type]
@@ -57,7 +59,7 @@ def plot_global_fuel_type_consumed(plot_data: PlotData, directory: str) -> None:
 
     fig, ax = single_panel()
 
-    shore_power = plot_data.profile.get_shore_power_energy()
+    shore_power = results.profile.get_shore_power_energy()
 
     divisor, unit = get_best_unit_energy(
         np.amax(sum(list(fuel_type_consumed.values())) + shore_power), unit_order=9

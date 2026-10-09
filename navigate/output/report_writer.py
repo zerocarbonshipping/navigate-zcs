@@ -4,24 +4,24 @@
 """
 Excel and CSV writing engine behind the Report node.
 
-The Report node collects which properties to extract per node type; write_report,
-driven by the simulation manager, resolves those requests against the node profiles
-and writes the workbook or CSV files.
+The Report node collects which properties to extract per node type; write_report
+resolves those requests against the profiles in a run's SimulationResults and writes
+the workbook or CSV files.
 """
 
 from __future__ import annotations
 
 import csv
 import logging
-import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportReduceID
+from navigate.core.node_report import GLOBAL_PROFILE_KEY
 from navigate.util import (
     dates_to_days,
     is_single_dict,
@@ -34,13 +34,14 @@ from navigate.util import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Mapping
+    from pathlib import Path
 
     from openpyxl.worksheet.worksheet import Worksheet
 
     from navigate.core.node_report import NodeReport
     from navigate.core.nodes.report import Report
     from navigate.core.profiles._base_profile import _BaseProfile
-    from navigate.simulation import SimulationManager
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import BoolArray, DateArray, FloatArray
 
 logger = logging.getLogger(__name__)
@@ -81,10 +82,9 @@ class _Section(NamedTuple):
 
 def write_report(
     report: Report,
-    manager: SimulationManager,
-    deck_directory: str,
+    results: SimulationResults,
+    deck_directory: Path,
     deck_name: str,
-    dateline: DateArray,
 ) -> None:
     """
     Write one report node's requested properties to an XLSX or CSV file.
@@ -92,23 +92,19 @@ def write_report(
     Failures are contained per layer: a failed sheet is logged and skipped so the
     remaining sheets still export, and a failed save aborts only this report.
 
-    The manager exports under its node name 'global', which is what the key of
-    Report.add_property requests must match.
-
     Parameters
     ----------
     report
         Report node holding the collected export requests.
-    manager
-        Simulation manager providing the node collections.
+    results
+        Results of the finished run.
     deck_directory
         Directory of the simulation deck, base for the report directory.
     deck_name
         Name of the simulation deck, used in the filenames.
-    dateline
-        Dates of the simulation timeline.
     """
     report_name = report.name
+    dateline = results.dateline
 
     if report.file_format == FileFormatID.XLSX:
         wb = xl.Workbook()
@@ -121,7 +117,7 @@ def write_report(
                 report_name,
             )
 
-        def save(directory: str) -> None:
+        def save(directory: Path) -> None:
             write_xlsx_report(wb, directory, deck_name, report_name, dateline)
 
     else:
@@ -136,18 +132,18 @@ def write_report(
                 sheets,
             )
 
-        def save(directory: str) -> None:
+        def save(directory: Path) -> None:
             write_csv_report(sheets, directory, deck_name, report_name, dateline)
 
-    _export_and_save(report, manager, deck_directory, export_section, save)
+    _export_and_save(report, results, deck_directory, export_section, save)
 
 
 def _export_and_save(
     report: Report,
-    manager: SimulationManager,
-    deck_directory: str,
+    results: SimulationResults,
+    deck_directory: Path,
     export_section: Callable[[_Section], None],
-    save: Callable[[str], None],
+    save: Callable[[Path], None],
 ) -> None:
     """
     Export each requested section, then save the report, containing failures per layer.
@@ -156,8 +152,8 @@ def _export_and_save(
     ----------
     report
         Report node holding the collected export requests.
-    manager
-        Simulation manager providing the node collections.
+    results
+        Results of the finished run.
     deck_directory
         Directory of the simulation deck, base for the report directory.
     export_section
@@ -168,7 +164,7 @@ def _export_and_save(
     report_name = report.name
     sheet_errors = 0
 
-    for section in _sections(report, manager):
+    for section in _sections(report, results):
         try:
             export_section(section)
         except Exception as e:
@@ -191,7 +187,7 @@ def _export_and_save(
         )
 
 
-def _sections(report: Report, manager: SimulationManager) -> Iterator[_Section]:
+def _sections(report: Report, results: SimulationResults) -> Iterator[_Section]:
     """
     Yield each section the report requests properties from, in sheet order.
 
@@ -199,18 +195,21 @@ def _sections(report: Report, manager: SimulationManager) -> Iterator[_Section]:
     ----------
     report
         Report node holding the collected export requests.
-    manager
-        Simulation manager providing the node collections.
+    results
+        Results of the finished run.
 
     Yields
     ------
     _Section
         Each section with at least one request, its profiles keyed by node name.
     """
-    nodes = manager.nodes
+    nodes = results.nodes
     sections = (
         _Section(
-            "manager", "Global", {manager.name: manager.profile}, report.manager_reports
+            "global",
+            "Global",
+            {GLOBAL_PROFILE_KEY: results.profile},
+            report.global_reports,
         ),
         _Section(
             "fleets",
@@ -264,7 +263,7 @@ def _sections(report: Report, manager: SimulationManager) -> Iterator[_Section]:
             yield section
 
 
-def _ensure_report_directory(report: Report, deck_directory: str) -> str:
+def _ensure_report_directory(report: Report, deck_directory: Path) -> Path:
     """
     Create the directory the report is saved in, if missing, and return it.
 
@@ -277,21 +276,21 @@ def _ensure_report_directory(report: Report, deck_directory: str) -> str:
 
     Returns
     -------
-    str
+    Path
         Path of the report directory.
     """
     if report.directory is not None:
-        directory = os.path.join(deck_directory, report.directory)
+        directory = deck_directory / report.directory
     else:
         directory = deck_directory
 
-    os.makedirs(directory, exist_ok=True)
+    directory.mkdir(parents=True, exist_ok=True)
     return directory
 
 
 def write_xlsx_report(
     wb: xl.Workbook,
-    directory: str,
+    directory: Path,
     deck_name: str,
     report_name: str,
     dateline: DateArray,
@@ -312,7 +311,7 @@ def write_xlsx_report(
     dateline
         Dates of the simulation timeline.
     """
-    base_path = os.path.join(directory, f"{deck_name}_{report_name}.xlsx")
+    base_path = directory / f"{deck_name}_{report_name}.xlsx"
 
     # a workbook cannot be saved without a sheet, so the default sheet stays
     # unless another one was written
@@ -339,7 +338,7 @@ def write_xlsx_report(
 
 def write_csv_report(
     sheets: dict[str, CsvSheet],
-    directory: str,
+    directory: Path,
     deck_name: str,
     report_name: str,
     dateline: DateArray,
@@ -363,16 +362,14 @@ def write_csv_report(
     timeline = dates_to_days(dateline)
 
     for sheet_name, sheet in sheets.items():
-        base_path = os.path.join(
-            directory, f"{deck_name}_{report_name}_{sheet_name}.csv"
-        )
+        base_path = directory / f"{deck_name}_{report_name}_{sheet_name}.csv"
 
         path = base_path
         max_attempts = 100
 
         for attempt in range(max_attempts):
             try:
-                with open(path, "w", newline="", encoding="utf-8") as f:
+                with path.open("w", newline="", encoding="utf-8") as f:
                     writer = csv.writer(f)
 
                     headers = ["Date", "Time (days)", *sheet.headers]
@@ -535,7 +532,7 @@ def _extract_properties(
             continue
 
 
-def _reduce_dict(property_: dict, reduce: ReportReduceID) -> _ReportValue:
+def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportValue:
     """
     Apply a report reduction to a dict-valued profile result.
 
@@ -582,7 +579,7 @@ def _reduce_dict(property_: dict, reduce: ReportReduceID) -> _ReportValue:
     return property_
 
 
-def _get_alternative_path(base_path: str, counter: int) -> str:
+def _get_alternative_path(base_path: Path, counter: int) -> Path:
     """
     Generate filename with counter suffix.
 
@@ -595,11 +592,10 @@ def _get_alternative_path(base_path: str, counter: int) -> str:
 
     Returns
     -------
-    str
+    Path
         Alternative path with counter suffix, e.g. '/path/to/file (1).xlsx'.
     """
-    base, ext = os.path.splitext(base_path)
-    return f"{base} ({counter}){ext}"
+    return base_path.with_name(f"{base_path.stem} ({counter}){base_path.suffix}")
 
 
 def _prepare_export(

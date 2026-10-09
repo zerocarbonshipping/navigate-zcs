@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.output.plots._colors import (
     CENTER_COLORS_BLUE,
     CENTER_COLORS_GREEN,
@@ -25,26 +25,27 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_energy_demand(plot_data: PlotData, directory: str) -> None:
+def plot_global_energy_demand(results: SimulationResults, directory: Path) -> None:
     """Plot the global energy demand by demand type."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    profile = plot_data.profile
+    profile = results.profile
     energy_sea = profile.get_energy_sea()
     energy_port = profile.get_energy_port()
 
     # in port, vessels demand electrical energy and heat only
-    propulsion = energy_sea[EnergyDemandTypeID.PROPULSION]
+    propulsion = energy_sea[EnergyDemandID.PROPULSION]
     electrical = (
-        energy_sea[EnergyDemandTypeID.ELECTRICAL]
-        + energy_port[EnergyDemandTypeID.ELECTRICAL]
+        energy_sea[EnergyDemandID.ELECTRICAL] + energy_port[EnergyDemandID.ELECTRICAL]
     )
-    heat = energy_sea[EnergyDemandTypeID.HEAT] + energy_port[EnergyDemandTypeID.HEAT]
+    heat = energy_sea[EnergyDemandID.HEAT] + energy_port[EnergyDemandID.HEAT]
 
     divisor, unit = get_best_unit_energy(
         np.amax(propulsion + electrical + heat), unit_order=9

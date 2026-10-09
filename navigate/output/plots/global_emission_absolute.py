@@ -16,16 +16,18 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_mass
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_emission_absolute(plot_data: PlotData, directory: str) -> None:
+def plot_global_emission_absolute(results: SimulationResults, directory: Path) -> None:
     """Plot the global WTW CO2-equivalent emissions."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    wtw = plot_data.profile.get_total_equivalent_wtw()
+    wtw = results.profile.get_total_equivalent_wtw()
 
     divisor, unit = get_best_unit_mass(wtw.max())
     wtw /= divisor

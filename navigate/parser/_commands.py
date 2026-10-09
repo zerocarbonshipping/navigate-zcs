@@ -10,11 +10,7 @@ from itertools import product
 from typing import TYPE_CHECKING
 
 from navigate.core.assign import expand_id_wildcard
-from navigate.core.enum_ import (
-    EnergyDemandTypeID,
-    EnergyDemandTypePortID,
-    FuelTypeID,
-)
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.core.node_type import (
     CONVERTER,
     CURVE,
@@ -53,7 +49,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
     from enum import Enum
 
-    from navigate.core.enum_ import SimulationSectionID
+    from navigate.core.enum_ import SectionID
     from navigate.core.node import Node
     from navigate.parser._keywords import AllowedSections
     from navigate.parser._lark_parser import MaterializedValue, SourceLocation
@@ -67,11 +63,11 @@ if TYPE_CHECKING:
 _WILDCARD_DOMAINS: dict[str, tuple[type[Enum] | tuple[Enum, ...], ...]] = {
     "set_slip_fraction": (FuelTypeID,),
     "set_consumption_ttw": (FuelTypeID,),
-    "set_operational_saving_sea": (EnergyDemandTypeID,),
-    "set_operational_saving_port": (EnergyDemandTypePortID,),
-    "set_energy_saving": (EnergyDemandTypeID,),
-    "set_external_power": (EnergyDemandTypeID,),
-    "set_power_transfer": (EnergyDemandTypeID, EnergyDemandTypeID),
+    "set_operational_saving_sea": (EnergyDemandID,),
+    "set_operational_saving_port": (PORT_ENERGY_DEMANDS,),
+    "set_energy_saving": (EnergyDemandID,),
+    "set_external_power": (EnergyDemandID,),
+    "set_power_transfer": (EnergyDemandID, EnergyDemandID),
 }
 
 # high-level class commands to multiple nodes ------------------------------------------
@@ -361,7 +357,7 @@ def _expand_inputs(
     """
     Expand wildcard arguments against their registered enum domains.
 
-    Yields argument tuples — one per combination when wildcards match
+    Yields argument tuples - one per combination when wildcards match
     multiple enum members, or a single tuple when no expansion applies.
     """
     domains = _WILDCARD_DOMAINS.get(command)
@@ -384,7 +380,7 @@ def _expand_inputs(
 
 # methods ------------------------------------------------------------------------------
 def check_node_command_is_allowed(
-    node_type: str, command_name: str, section: SimulationSectionID
+    node_type: str, command_name: str, section: SectionID
 ) -> None:
     """
     Raise if a node type may not use a command in a section.

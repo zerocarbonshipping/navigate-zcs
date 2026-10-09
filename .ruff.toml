@@ -32,18 +32,21 @@ select = [
     "ICN", # canonical import aliases (numpy as np, pandas as pd, ...)
     "PGH", # bans blanket noqa/type-ignore; malformed mock assertions
     "PT",  # pytest style and failure quality
+    "G",   # flake8-logging-format: lazy % arguments, extra keys clear of LogRecord's
+    "LOG", # flake8-logging: no root-logger calls, exc_info only in except handlers
+    "RET", # flake8-return: no else after an exit, no assign-then-return
+    "PTH", # flake8-use-pathlib: pathlib over os.path, os file calls and open()
 ]
 extend-select = [
-    "D213",   # multi-line docstring summaries start on the second line
-    "D417",   # every argument appears in a Parameters section that exists
-    "DOC102", # every documented parameter exists in the signature
-    "DOC202", # no Returns section on a function that returns nothing
-    "ERA001", # no commented-out code
-    "G001",   # no str.format in logging calls - pass lazy % arguments
-    "G004",   # no f-strings in logging calls - pass lazy % arguments
+    "D213",    # multi-line docstring summaries start on the second line
+    "D417",    # every argument appears in a Parameters section that exists
+    "DOC102",  # every documented parameter exists in the signature
+    "DOC202",  # no Returns section on a function that returns nothing
+    "ERA001",  # no commented-out code
+    "PLW2901", # a loop variable is not rebound in the loop body
+    "PLW3301", # nested min/max calls are flattened into one
 ]
 ignore = [
-    "E731", # lambda assignments are allowed
     "D105", # magic methods need no docstring
 ]
 
@@ -57,12 +60,12 @@ known-first-party = ["helpers"]
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]
 # external solver APIs dictate the naming in the shims
-"navigate/bunker/solver.py" = ["N802"]
+"navigate/simulation/bunker/solver.py" = ["N802"]
 # the shim's classes share one another's state, as gurobipy's do
-"navigate/bunker/solver_highs.py" = ["N802", "SLF001"]
-"tests/unit/test_bunker_build.py" = ["N802"]
+"navigate/simulation/bunker/solver_highs.py" = ["N802", "SLF001"]
+"tests/unit/simulation/bunker/test_build.py" = ["N802"]
 # expectation, profile, and node lifecycle methods carry no docstrings; the
-# DSL setters on nodes do (see CODESTYLE.md, Navigate-specific conventions)
+# DSL setters on nodes do (see CODESTYLE.md)
 "navigate/core/expectations/*" = ["D102"]
 "navigate/core/profiles/*" = ["D102"]
 "navigate/core/nodes/*" = ["D102"]

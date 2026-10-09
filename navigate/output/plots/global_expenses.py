@@ -26,17 +26,19 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_cost
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
 def _plot_global_expenses(
-    plot_data: PlotData, directory: str, cumulative: bool
+    results: SimulationResults, directory: Path, cumulative: bool
 ) -> None:
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    profile = plot_data.profile
+    profile = results.profile
     vessel_expenses = profile.get_vessel_expenses()
     conversion_expenses = profile.get_fuel_conversion_expenses()
     technology_expenses = profile.get_technology_expenses()
@@ -82,11 +84,13 @@ def _plot_global_expenses(
     save_figure(fig, directory, f"global_expenses{suffix}.png")
 
 
-def plot_global_expenses(plot_data: PlotData, directory: str) -> None:
+def plot_global_expenses(results: SimulationResults, directory: Path) -> None:
     """Plot the yearly global expenses by category."""
-    _plot_global_expenses(plot_data, directory, cumulative=False)
+    _plot_global_expenses(results, directory, cumulative=False)
 
 
-def plot_global_expenses_cumulative(plot_data: PlotData, directory: str) -> None:
+def plot_global_expenses_cumulative(
+    results: SimulationResults, directory: Path
+) -> None:
     """Plot the cumulative global expenses by category."""
-    _plot_global_expenses(plot_data, directory, cumulative=True)
+    _plot_global_expenses(results, directory, cumulative=True)

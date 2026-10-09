@@ -51,7 +51,6 @@ from navigate.parser._keywords import (
 from navigate.parser._lark_parser import Assignment, NodeDeclaration, SourceLocation
 from navigate.parser._node_reference import NodeReference
 from navigate.parser._reachability import ACTIVATION_EDGES, ROOT_TYPES, find_unreachable
-from navigate.parser.parser import Parser
 from navigate.util import attribute_to_instance_name
 
 NON_ROOT_TYPES = sorted(set(NODE_GROUP) - set(ROOT_TYPES))
@@ -244,8 +243,8 @@ def _levy(jurisdiction='[Port("port")]', extra="", name="levy"):
 
 @pytest.fixture
 def read_fleet_deck(read_deck):
-    def read(extra="", events=None, parser=None):
-        return read_deck(FLEET + FUEL + CO2 + extra, events=events, parser=parser)
+    def read(extra="", events=None):
+        return read_deck(FLEET + FUEL + CO2 + extra, events=events)
 
     return read
 
@@ -267,19 +266,6 @@ class TestPrune:
         assert len(warnings) == 1
         assert 'Vessel("ghost")' in warnings[0].message
         assert set(parser.nodes.vessels) == {"vessel"}
-
-    # input:    | Vessel "ghost" { ... }   in no fleet
-    #           | read by a Parser whose vessels dict was saved beforehand
-    # expected: -> the saved dict is the same object and holds only vessel
-    def test_the_registry_is_pruned_in_place(self, read_fleet_deck):
-        # SimulationManager aliases parser.nodes before it reads the deck
-        parser = Parser()
-        vessels = parser.nodes.vessels
-
-        read_fleet_deck(GHOST_VESSEL, parser=parser)
-
-        assert parser.nodes.vessels is vessels
-        assert set(vessels) == {"vessel"}
 
     # input:    | Vessel "ghost" { ... }   in no fleet
     #           | Levy "levy" { ... set_include_vessel("*", TRUE) }

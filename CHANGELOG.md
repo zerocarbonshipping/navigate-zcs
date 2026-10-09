@@ -26,6 +26,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   requested; they used to produce no column.
 
 ### Changed
+- `MinimumOfftakeDuration` (Producer) accepts any duration above 0 instead of
+  at least 1; a duration under one year counts as one year.
 - A calculator (`Variable`, `Forecast`, `Curve`, `Timetable`, `Surface`)
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change
   cannot be changed in `EVENTS` either; re-assigning its attributes there is a
@@ -87,6 +89,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The fuel-conversion warning about differing installed power is logged once
   per vessel pair, and the fleet reference speed at a step with no vessels is
   NaN.
+- The `.log` file is written in UTF-8, with convergence tables to three
+  significant figures. Its summary comes after the plots, counts their records
+  and how often each unique warning was logged, under `navigate.app.logs`.
+- The command line logs its records, such as the fatal-error line, under
+  `navigate.app.cli` instead of `navigate.__main__` (`__main__` under
+  `python -m navigate`).
 - An attribute's bounds reach the calculator it references when the
   assignment is read, so the calculator keeps them if the attribute is
   re-assigned later in `DEFINE`, as it always did across `EVENTS`.
@@ -94,6 +102,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A regulation's default fuel WTT averages over every port on the vessel's
   route, each once, not only the jurisdiction ports, where it was 0 without
   supply. Results move where a route leaves the jurisdiction.
+- A `Regulation`'s or `Levy`'s default fuel WTT is the plain mean, over every
+  plant defined for the fuel, of its investment-time plus delivery WTT, not
+  the port supply mix or installed plants; route ports weigh equally.
 - A `Levy`'s `LowerThreshold` and `UpperThreshold` are measured per GJ of
   effective energy, (1 − slip) · LHV, as a `Regulation`'s intensity already
   is, so a threshold covers fewer emissions per ton of a fuel with converter
@@ -104,6 +115,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A deck whose node reference is never resolved, such as a node passed where
   a name is expected, now stops at the referencing line instead of running
   with the reference ignored (#148).
+- A deck that leaves a required attribute unassigned now stops with a one-line
+  `Error:` message naming the node and the attribute, instead of a Python
+  traceback.
+- In the `.log` file:
+  - an `Initialize model before start of simulation` heading opens the time
+    steps, and the first time step's heading follows it, reading
+    `Time-step: 0, current date: …` like every later one;
+  - the time-step headings and the completion line log under
+    `navigate.driver.run`, the initialization and post-processing headings
+    under `navigate.simulation.time_stepping`;
+  - the model's modules log under `navigate.simulation.<domain>.<module>`,
+    such as `navigate.simulation.bunker.solver`.
+- A path written with `./` or a doubled `/` in an `Include` or a report
+  `Directory` now appears normalised in error and log messages, such as
+  `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
@@ -141,6 +167,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- `set_power_transfer` (Technology) accepts a transfer above 1 MW; the value
+  is a power in MW and was capped at 1.
 - `--solver auto` no longer fails with a traceback (#402).
 - A fleet with `Technologies` whose vessels have different `Lifetime`s no
   longer stops the run with a `ValueError`.
@@ -166,7 +194,35 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     `Forecast`, and `PowerCapacity` takes a `Variable`;
   - `set_voyage_distribution` on `Route` takes no `Forecast`;
   - the port properties are `EquivalentBunkerWtt` and
-    `TotalEquivalentBunkerWtt`.
+    `TotalEquivalentBunkerWtt`;
+  - `set_include_vessel` on Levy and Regulation defaults to FALSE, so a vessel
+    is only covered once included;
+  - defaults that differed from the code: `Threads` 0, `MaximumRampUp` 1,
+    `JumpStartFraction` 0.1, `PortCalls` a list of 1s, the Region WTT commands
+    0, and `EmissionsLifetime` on a policy falls back to the ModelDefinition's;
+  - `Dependency` (Source), `Efficiency` (Converter), `LowerHeatingValue`,
+    `MassDensity`, `Source` (Plant), `MaximumDevelopment`, and `Electrical`
+    and `Heat` (PowerSystem) are marked as required;
+  - minimums that exclude 0 read `>0`, and missing minimums and maximums are
+    added;
+  - `ShorePowerCapacity` and `NominalCapacity` take no `Forecast`, Region
+    `set_source_capex` and `set_source_opex` take no `Timetable`, and
+    `Tank` `Size` and `InitialVessels` take a `Variable`;
+  - `Orderbooks` is a cumulative count, `set_newbuild_limit` caps yearly
+    newbuilds as a fraction of the fleet's vessel count, and ports on a
+    REGIONAL_TRIP must be unique;
+  - `set_process_opex` (Region) accepts negative values, and
+    `MaximumRampUp` and `set_existing_pipeline` (Producer) have the right
+    units;
+  - the calculator pages show how `Addition`, `Multiplier` and the bounds
+    combine, and which attributes take an expression or `INF`;
+  - commands that accept wildcards and commands allowed only in `DEFINE`
+    say so;
+  - `TechnologyHorizon` (Fleet) shapes retrofits as well as newbuilds,
+    `JumpStartFraction` (Producer) blends into the expected uptake in every
+    time-step, and `SolutionTolerance` is also the LP solver's tolerance;
+  - a Plant's `Fuel` must not be a liquid-market fuel, a Fleet's `Vessels`
+    must be unique, and an inactive Levy or Regulation is ignored.
 - Deck errors that ended in a Python traceback, named no deck line or were
   badly worded now read as located deck errors:
   - a rejected attribute or command value prints the one-line error and
@@ -234,6 +290,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   a key: `only allows assignment of ELECTRICAL, HEAT, but got X`.
 - `set_initial_technology_share` values built from expressions are honored
   instead of being ignored.
+- The warning count at the end of a run no longer counts a repeated
+  consistency warning once more after the last time step.
 - `set_fuel_wtt`, `set_fuel_ttw` and `set_global_warming_potential` on a
   `Levy` or `Regulation` hold beyond the first time step. Results change for
   decks using them, including `simulations/examples/example_1`.

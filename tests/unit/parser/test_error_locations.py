@@ -131,10 +131,9 @@ def test_a_define_error_names_its_deck_and_include_line(
 def test_an_events_error_names_the_events_deck_line(tmp_path, read_deck):
     events = 'Date "01-01-2027"\nConverter "propulsion" { Efficiency = -1 }\nEnd\n'
     parser = read_deck(FLEET + FUEL, events=events)
-    parser.progress_timeline()
 
     with pytest.raises(AttributeAssignmentError) as raised:
-        parser.progress_timeline()
+        parser.read_events(parser.dates[1])
 
     prefix = _prefix(tmp_path, "events.inc", "Efficiency", deck_line=2)
     assert str(raised.value).startswith(

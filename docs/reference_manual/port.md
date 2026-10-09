@@ -55,7 +55,7 @@ This attribute sets the fraction of the time in port during which a shore power 
 
 This command sets whether it is allowed to bunker a specific fuel in the port.
 
-* **Primary key type**: String (Fuel name)
+* **Primary key type**: String (Fuel name; supports wildcards)
 * **Data type**: `Boolean`
 * **Example values**:
   + `"fuel_name", TRUE`
@@ -66,7 +66,7 @@ This command sets whether it is allowed to bunker a specific fuel in the port.
 
 This command sets the costs related to storage and the service of bunkering of a specific fuel in the port in USD/ton.
 
-* **Primary key type**: String (Fuel name)
+* **Primary key type**: String (Fuel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", 50`
@@ -79,16 +79,16 @@ This command sets the costs related to storage and the service of bunkering of a
 
 This command sets a limitation for the amount of fuel that can be bunkered in the port in tons/year.
 
-A Producer's fuel imported above the limit is redistributed to the other ports allowed to bunker it, in proportion to how far each is under its own limit; a port the producer sends no fuel to receives no share. Any surplus the limited ports cannot absorb is split equally across the ports with no limit set, and dropped where none exist. A liquid-market fuel is unaffected: its supply is the limit itself.
+A Producer's fuel imported above the limit is redistributed to the other ports allowed to bunker it, in proportion to how far each is under its own limit; a port the producer sends no fuel to receives no share. Any surplus the limited ports cannot absorb is split equally across the ports with no limit set, and dropped where none exist. A liquid-market fuel is unaffected: its supply is the limit itself. `INF` means no limit.
 
-* **Primary key type**: String (Fuel name)
+* **Primary key type**: String (Fuel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", 1e6`
   + `"fuel_name", Forecast("name")`
 * **Unit**: tons/year
 * **Minimum value**: 0
-* **Default**: INF
+* **Default**: Not set. Bunkering of the fuel is unlimited, as with `INF`.
 
 ### set\_bunkering\_inertia
 
@@ -96,12 +96,12 @@ This command sets the inertia of a fuel being bunkered in fraction/year.
 
 The inertia refers to the fraction of the amount bunkered in the previous time-step that must at minimum be bunkered in the current time-step.
 
-* **Primary key type**: String (Fuel name)
+* **Primary key type**: String (Fuel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", 0.66`
   + `"fuel_name", Forecast("name")`
-* **Unit**: Fraction
+* **Unit**: fraction/year
 * **Minimum value**: 0
 * **Maximum value**: 1
 * **Default**: 0
@@ -112,14 +112,14 @@ This command sets the price of a specific fuel in the port in USD/ton.
 
 If an overwrite is set for a specific fuel, then the bottom-up calculation of production cost is ignored.
 
-* **Primary key type**: String (Fuel name)
+* **Primary key type**: String (Fuel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", 600`
   + `"fuel_name", Forecast("name")`
 * **Unit**: USD/ton
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: Not set. The price is calculated bottom-up from production; for a liquid-market fuel it is 0.
 
 ### set\_bunker\_wtt\_overwrite
 
@@ -127,20 +127,22 @@ This command sets an overwrite of the WTT emissions for a specific fuel and emis
 
 If an overwrite is set for a specific fuel and emission, then the bottom-up calculation of production emissions is ignored.
 
-* **Primary key type**: String (Fuel name)
-* **Secondary key type**: String (Emission name)
+The overwrite also sets the WTT that regulations and levies assume for the fuel bunkered at this port, unless the policy sets its own with `set_fuel_wtt`.
+
+* **Primary key type**: String (Fuel name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", "emission_name", 600`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission / ton fuel
-* **Default**: None
+* **Default**: Not set. The WTT emissions are calculated bottom-up from production; for a liquid-market fuel they are 0.
 
 ### set\_shore\_power\_emission\_factor
 
 This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ.
 
-* **Primary key type**: String (Emission name)
+* **Primary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"emission_name", 0.18`

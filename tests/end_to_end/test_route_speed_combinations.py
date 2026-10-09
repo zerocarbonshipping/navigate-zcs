@@ -46,8 +46,8 @@ def _run(run_combination, route_type, alignment, speed_management):
     )
 
 
-def _vessels(manager):
-    return manager.nodes.fleets[FLEET].vessels
+def _vessels(results):
+    return results.nodes.fleets[FLEET].vessels
 
 
 @pytest.mark.parametrize(

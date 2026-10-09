@@ -46,21 +46,7 @@ class Timetable(Node, _Table2D):
         ) = None
 
     def set_table(self, table: TableData) -> None:
-        """
-        Set the table of x-, y- and z-values the timetable interpolates in.
-
-        The x-values are dates, or days since the start of the simulation. The
-        table is held until 'replace_reference_table' rebases a dated table to
-        the start date and validates it: at that point there must be at least
-        two x-values and two y-values, each strictly increasing, and the
-        z-values must fill a grid of their lengths.
-
-        Parameters
-        ----------
-        table
-            Parsed table: y-values in the header row, x-values down the first
-            column of every row below it, z-values filling the rest.
-        """
+        """Set the table of x-, y- and z-values the timetable interpolates in."""
         x, y, z = build_table_2d_dated(table)
         self._temporary_table = (x, y, z)
 
@@ -101,7 +87,7 @@ class Timetable(Node, _Table2D):
         Parameters
         ----------
         time
-            Time passed since start date (days).
+            Time passed since start date, in days.
         """
         self._current_time = time
 
@@ -123,7 +109,7 @@ class Timetable(Node, _Table2D):
         Parameters
         ----------
         x
-            Time passed since start date (days); None reads the current time.
+            Time passed since start date, in days; None reads the current time.
         y
             Second input variable. None, which an expression passes on when it
             is evaluated without input, is rejected.

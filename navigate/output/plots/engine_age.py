@@ -21,14 +21,16 @@ from navigate.output.plots._labels import (
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_engine_age(plot_data: PlotData, directory: str) -> None:
+def plot_engine_age(results: SimulationResults, directory: Path) -> None:
     """Plot the weighted average vessel age per fuel type."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
-    weighted_average_age = plot_data.profile.get_weighted_average_age()
+    weighted_average_age = results.profile.get_weighted_average_age()
 
     # a fuel type without vessels has an age of zero throughout
     weighted_average_age = {

@@ -55,8 +55,8 @@ This attribute sets the lifetime of the machinery.
   + `25`
   + `Forecast("name")`
 * **Unit**: Years
-* **Minimum value**: 0
-* **Default**: Vessel lifetime.
+* **Minimum value**: >0
+* **Default**: Not set. The machinery lasts as long as the vessel it is installed on, with no replacement.
 
 ### Replacement
 
@@ -85,8 +85,10 @@ This attribute sets the types of fuel that can be stored in the tank. At least o
 
 This attribute sets the volumetric size of the tank in cubic meters.
 
-* **Data type**: `Float`
-* Example value: `8000`
-* **Unit**: Cubic Meter (m3)
+* **Data type**: `Float`, `Variable`
+* **Example values**:
+  + `8000`
+  + `Variable("name")`
+* **Unit**: m<sup>3</sup>
 * **Minimum value**: 0
 * **Default**: None. Must be provided by the user.

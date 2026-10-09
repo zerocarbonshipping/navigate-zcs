@@ -29,13 +29,15 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from matplotlib.artist import Artist
     from matplotlib.typing import ColorType
 
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.fuel import Fuel
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 
@@ -62,13 +64,13 @@ def _select_fuel_types(
     ]
 
 
-def plot_fuel_type_supply_demand(plot_data: PlotData, directory: str) -> None:
+def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) -> None:
     """Plot fuel supply against demand for each fuel type a deck uses."""
-    dateline = plot_data.dateline
-    ports = plot_data.nodes.ports
-    fuels = plot_data.nodes.fuels
-    converters = plot_data.nodes.converters
-    profile = plot_data.profile
+    dateline = results.dateline
+    ports = results.nodes.ports
+    fuels = results.nodes.fuels
+    converters = results.nodes.converters
+    profile = results.profile
 
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
     fuel_types = _select_fuel_types(fuel_type_to_fuels, converters)
@@ -111,11 +113,12 @@ def plot_fuel_type_supply_demand(plot_data: PlotData, directory: str) -> None:
         colors = list(generate_color_dict(fuel_spend, FUEL_COLOR).values())
         labels = [default_label(fuel_name, FUEL_LABEL) for fuel_name in fuel_spend]
 
-        maximum = max(maximum, np.amax(fuel_demand))
-        if values:
-            maximum = max(maximum, max(np.amax(value) for value in values))
-
-        maximum = max(maximum, np.amax(fuel_supply))
+        maximum = max(
+            maximum,
+            np.amax(fuel_demand),
+            *(np.amax(value) for value in values),
+            np.amax(fuel_supply),
+        )
 
         all_values[fuel_type] = values
         all_colors[fuel_type] = colors

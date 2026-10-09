@@ -275,7 +275,7 @@ def test_a_statement_creating_nodes_in_events_is_rejected(
         DeckKeywordError,
         match=rf"events\.inc', line 2: Unable to {action} new nodes outside DEFINE\.$",
     ):
-        parser.progress_timeline()
+        parser.read_events(parser.dates[0])
 
 
 class TestLoad:

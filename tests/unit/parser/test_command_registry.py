@@ -18,7 +18,7 @@ import re
 
 import pytest
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.report import Report
@@ -37,8 +37,8 @@ from navigate.parser._keywords import (
 )
 from navigate.parser._lark_parser import SourceLocation
 
-DEFINE = SimulationSectionID.DEFINE
-EVENTS = SimulationSectionID.EVENTS
+DEFINE = SectionID.DEFINE
+EVENTS = SectionID.EVENTS
 
 ENTRIES = [
     pytest.param(node_type, command, sections, id=f"{node_type}.{command}")

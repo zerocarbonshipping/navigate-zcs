@@ -7,7 +7,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 A range of IDs are included in Navigate. These are referred to in the node descriptions above. Below, all of them are explained and all possible IDs are listed.
 
-## EnergyDemandTypeID
+## EnergyDemandID
 
 This ID describes the type of energy demand that is targeted by a certain technology.
 

@@ -26,34 +26,11 @@ class ModelDefinition(_GeneralNode):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_start_date(self, start_date: np.datetime64) -> None:
-        """
-        Set the start date of the simulation in dd-mm-yyyy format (hyphen or slash).
-
-        Examples
-        --------
-        - "01-01-2023"
-        - "01/01/2023"
-
-        Parameters
-        ----------
-        start_date
-            Assignment read from input deck.
-        """
+        """Set the start date of the simulation."""
         self.start_date = assign_date(start_date)
 
     def set_emissions_lifetime(self, emissions_lifetime: float) -> None:
-        """
-        Set the emission lifetime used to calculate GWP for CO2 equivalent emissions.
-
-        Examples
-        --------
-        - 100
-
-        Parameters
-        ----------
-        emissions_lifetime
-            Assignment read from input deck.
-        """
+        """Set the emission lifetime used to calculate GWP."""
         self.emissions_lifetime = assign_value(
             emissions_lifetime, lower=0.0, allow_expression=False
         )

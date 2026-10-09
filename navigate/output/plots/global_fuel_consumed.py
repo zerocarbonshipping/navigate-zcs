@@ -21,19 +21,21 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_fuel_consumed(plot_data: PlotData, directory: str) -> None:
+def plot_global_fuel_consumed(results: SimulationResults, directory: Path) -> None:
     """Plot the global energy consumed per fuel, with shore power."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    fuels = plot_data.nodes.fuels
+    fuels = results.nodes.fuels
 
-    fuel_consumed = plot_data.profile.get_consumed_energy()
-    shore_power = plot_data.profile.get_shore_power_energy()
+    fuel_consumed = results.profile.get_consumed_energy()
+    shore_power = results.profile.get_shore_power_energy()
 
     divisor, unit = get_best_unit_energy(
         np.amax(sum(list(fuel_consumed.values())) + shore_power), unit_order=9

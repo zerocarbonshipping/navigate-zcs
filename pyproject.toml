@@ -58,11 +58,11 @@ exclude = ["assumptions*", "simulations*", "tutorials*", "tests*", "syntax*", "d
     "build*", "dist*", "*.egg-info*", "bdist*"]
 
 [tool.setuptools.package-data]
-"navigate" = ["preamble.txt"]
+"navigate.app" = ["preamble.txt"]
 "navigate.parser" = ["grammar.lark"]
 
 [project.scripts]
-navigate = "navigate.__main__:main"
+navigate = "navigate.app:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

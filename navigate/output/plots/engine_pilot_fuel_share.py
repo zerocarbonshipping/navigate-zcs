@@ -22,9 +22,11 @@ from navigate.output.plots._labels import (
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.vessel import Vessel
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
 def _select_fuel_types(vessels: dict[str, Vessel]) -> list[FuelTypeID]:
@@ -33,7 +35,7 @@ def _select_fuel_types(vessels: dict[str, Vessel]) -> list[FuelTypeID]:
 
     In FUEL_TYPE_ORDER. get_pilot_fuel_share() keys its data by
     vessel.primary_fuel_type (every fuel a vessel bunkers is recorded under
-    that single type, see navigate.bunker.transfer.bunker.transfer_bunker). A
+    that single type, see navigate.simulation.bunker.transfer.bunker.transfer_bunker). A
     vessel counts when one of its own converters is dual-fuel and lists the
     vessel's primary type among its main fuel types, keeping the resulting
     share and its minimum comparable.
@@ -79,17 +81,17 @@ def _minimum_pilot_share(
     return minimum_share
 
 
-def plot_engine_pilot_fuel_share(plot_data: PlotData, directory: str) -> None:
+def plot_engine_pilot_fuel_share(results: SimulationResults, directory: Path) -> None:
     """Plot pilot fuel share per primary fuel type with a matching dual-fuel vessel."""
-    dateline = plot_data.dateline
-    vessels = plot_data.nodes.vessels
+    dateline = results.dateline
+    vessels = results.nodes.vessels
 
     relevant_fuel_types = _select_fuel_types(vessels)
 
     if not relevant_fuel_types:
         return
 
-    fleet_pilot_fuel_share = plot_data.profile.get_pilot_fuel_share()
+    fleet_pilot_fuel_share = results.profile.get_pilot_fuel_share()
     pilot_fuel_share = {
         fuel_type: np.where(
             fleet_pilot_fuel_share[fuel_type] > 0.0,

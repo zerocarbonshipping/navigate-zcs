@@ -17,8 +17,8 @@ every change. The detail lives in the files it points to.
 - `README.md` — installing, running, the CLI flags, and which licence
   covers which content.
 - `ARCHITECTURE.md` — the package map, the layering, the data-flow
-  invariants and the naming conventions inside `navigate/`. Read it before
-  changing code there.
+  invariants, where model work lives and the node lifecycle inside
+  `navigate/`. Read it before changing code there.
 - `CODESTYLE.md` — the conventions the tooling cannot check.
 - `.ruff.toml` — this repository's lint rules and ruff settings. They are
   owned here and changed here.
@@ -35,6 +35,8 @@ every change. The detail lives in the files it points to.
   READMEs.
 - `CHANGELOG.md` — Keep a Changelog format; what gets an entry is in
   `CONTRIBUTING.md`.
+- `.agents/skills/` — Agent Skills for filing issues and writing pull
+  requests; `.claude/skills/` symlinks them for Claude Code.
 - `make help` — the list of targets.
 
 ## Layout
@@ -89,8 +91,7 @@ each other's files, and the test suites run decks too.
 
 - No pull request targets `main`; it is the release branch. The base is
   `dev`, or the integration branch of the larger effort the work belongs
-  to. Pull requests are squash-merged, so the title becomes the commit
-  subject: one imperative sentence stating the outcome, no prefix.
+  to.
 - Every new file carries a licence header: Apache-2.0 for code, tests and
   tooling; CC-BY-4.0 for decks, assumptions, documentation and figures. A
   file that cannot carry a header gets an annotation in `REUSE.toml`.
@@ -102,26 +103,21 @@ each other's files, and the test suites run decks too.
 - `CHANGELOG.md` takes user-facing changes and bugs only; what gets an
   entry, and its form, is under Changelog in `CONTRIBUTING.md`.
 - A change to an assumption value carries references or a justification.
-
-## Filing an issue
-
-The issue forms in `.github/ISSUE_TEMPLATE/` apply a label and set the
-body's sections, but `gh issue create` and the API bypass them. An issue
-filed that way therefore carries the label of the matching form,
-passed as `--label` with `gh issue create` or the `labels` field of an
-API request: `bug`, `enhancement`, `documentation`, `maintenance`, or
-`performance`. It uses that form's section headings.
+- Issues and pull requests follow the `filing-issues` and
+  `writing-pull-requests` skills; a problem found during a task and outside
+  its scope is filed as an issue, not fixed in the task's branch.
 
 ## What a change touches
 
 - A DSL attribute or command lives in four places: the setter on the node
-  class, with a docstring; the parser table in
+  class, whose docstring is one line for developers; the parser table in
   `navigate/parser/_attributes.py` or `_commands.py`, which also lists the
-  attribute as required when every deck must assign it; the node's page in
-  `docs/reference_manual/`; and the attribute coverage test. The first two
-  are checked against each other, and the manual page is checked against
-  the registries in both directions by
-  `tests/attribute/test_reference_manual_coverage.py`; the report-property
+  attribute as required when every deck must assign it; its entry on the
+  node's page in `docs/reference_manual/`, the only place it is explained
+  to users, with its units, limits, default and examples; and the attribute
+  coverage test. `tests/attribute/test_reference_manual_coverage.py` checks
+  the registries against the setters and the manual pages against the
+  registries, both in both directions; the report-property
   appendix of `docs/reference_manual/report.md` is checked against the
   profile getters the same way by `test_report_property_docs.py`. The
   coverage deck is checked against the registries by
@@ -133,5 +129,5 @@ API request: `bug`, `enhancement`, `documentation`, `maintenance`, or
 - A new non-trivial calculation gets a unit test whose expected value is
   derived independently of the implementation; `tests/unit/README.md` has
   the conventions.
-- A user-visible change in behaviour updates the reference manual, the
-  docstrings and the changelog.
+- A user-visible change in behaviour updates the reference manual and the
+  changelog.

@@ -59,8 +59,8 @@ def _collected(run_combination, scheme, scope, upper):
             ("levy_upper_threshold.inc", {"upper_threshold": UPPER_THRESHOLD[scope]})
         )
 
-    manager = run_combination(*layers)
-    return manager.nodes.levies[LEVY].profile.get_collected()
+    results = run_combination(*layers)
+    return results.nodes.levies[LEVY].profile.get_collected()
 
 
 @pytest.mark.parametrize(

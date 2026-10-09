@@ -30,38 +30,11 @@ class Emission(Node):
     def set_global_warming_potential(
         self, global_warming_potential: CurveArgument
     ) -> None:
-        """
-        Set the Global Warming Potential (GWP) of the emission.
-
-        Examples
-        --------
-        - 36.6
-        - Curve("name")
-
-        Parameters
-        ----------
-        global_warming_potential
-            The Global Warming Potential of the emission, in ton CO2 equivalent
-            per ton emitted.
-        """
+        """Set the Global Warming Potential (GWP) of the emission."""
         self.global_warming_potential = assign_value(
             as_scalar(global_warming_potential), type_=(CURVE, VARIABLE), lower=0.0
         )
 
     def set_fuel_type(self, fuel_type: str) -> None:
-        """
-        Set the fuel type associated with this emission for slip gating.
-
-        When set, this emission will only receive slip contributions from fuels
-        whose fuel type matches this value.
-
-        Examples
-        --------
-        - METHANE
-
-        Parameters
-        ----------
-        fuel_type
-            The fuel type that produces this emission when slipping.
-        """
+        """Set the fuel type whose slip produces the emission."""
         self.fuel_type = assign_id(fuel_type, FuelTypeID)

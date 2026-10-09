@@ -40,6 +40,8 @@ Fleet "tug" {
 
 This attribute sets the list of vessel types that exist for the fleet. Vessel types can be viewed as a discretization of the fuel types and technologies of the fleet.
 
+Every Vessel node assigned must be unique.
+
 * **Data type**: List of `Vessel` nodes
 * **Example values**:
   + `[Vessel("name1"), Vessel("name2")]`
@@ -82,7 +84,7 @@ This attribute sets the fixed scrap rate of the fleet in fraction/year. If the f
 * **Unit**: Fraction/year
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: None.
+* **Default**: Not set. Vessels are scrapped by age at the end of their lifetime.
 
 ### AllowSecondaryScrapping
 
@@ -98,8 +100,10 @@ Set how strongly newbuild fuel-type choice responds to the levelized cost of tra
 The value is an odds ratio against a 10% increase: a fuel whose LCOT is 10% higher receives this many times the odds of an otherwise identical fuel. For example `0.5` means a 10%-higher LCOT halves the odds, and `1` means no preference. LCOT is lower-is-better, so use a value below `1`.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**: `0.5`
-* **Minimum value**: 0 (exclusive)
+* **Example values**:
+  + `0.5`
+  + `Forecast("name")`
+* **Minimum value**: >0
 * **Default**: None. Must be provided by the user.
 
 ### IntraFuelSensitivity
@@ -109,8 +113,10 @@ Set how strongly newbuild technology-variant choice within a single fuel type re
 The value is an odds ratio against a 10% increase: a variant whose LCOT is 10% higher receives this many times the odds of an otherwise identical variant. For example `0.5` means a 10%-higher LCOT halves the odds, and `1` means no preference. Use a value below `1`.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**: `0.5`
-* **Minimum value**: 0 (exclusive)
+* **Example values**:
+  + `0.5`
+  + `Forecast("name")`
+* **Minimum value**: >0
 * **Default**: None. Must be provided by the user.
 
 ### TechnologySensitivity
@@ -120,13 +126,15 @@ Set how strongly the energy-saving technology-package choice responds to its net
 The value is an odds ratio against an advantage equal to 5% of the summed ship CAPEX: a package whose NPV advantage equals 5% of the ship CAPEX receives this many times the odds of an otherwise identical package. For example `2` means such an advantage doubles the odds, and `1` means no preference. NPV is higher-is-better, so use a value above `1`.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**: `2`
-* **Minimum value**: 0 (exclusive)
-* **Default**: None. Must be provided by the user when technologies are defined.
+* **Example values**:
+  + `2`
+  + `Forecast("name")`
+* **Minimum value**: >0
+* **Default**: None. Must be provided by the user when Technologies are assigned.
 
 ### TechnologyCostOfCapital
 
-This attribute sets the cost of capital used for evaluating technology investments. It represents the discount rate used to evaluate the net present value of technology investments and retrofits.
+This attribute sets the cost of capital used for evaluating technology investments. It represents the discount rate used to evaluate the net present value of technology investments and retrofits, and reflects the opportunity cost of capital and the risk associated with technology adoption.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -134,17 +142,18 @@ This attribute sets the cost of capital used for evaluating technology investmen
   + `Forecast("name")`
 * **Unit**: Fraction
 * **Minimum value**: 0
-* **Default**: None. When not supplied, each vessel's own [CostOfCapital](vessel.md#costofcapital) is used for its technology adoption decisions, which typically leads to a higher uptake of technologies.
+* **Default**: Not set. Each vessel's own [CostOfCapital](vessel.md#costofcapital) is used for its technology adoption decisions, which typically leads to a higher uptake of technologies.
 
 ### TechnologyHorizon
 
-Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so newbuild technology choices respond to persistent scarcity rather than year-to-year noise.
+Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `3`
   + `Forecast("name")`
 * **Unit**: Years
+* **Minimum value**: 0
 * **Default**: 3
 
 ### SpeedHorizon
@@ -156,6 +165,7 @@ Smoothing horizon (in years) for the energy-scarcity belief that scales speed ma
   + `1`
   + `Forecast("name")`
 * **Unit**: Years
+* **Minimum value**: 0
 * **Default**: 1
 
 ### TradeGrowth
@@ -173,13 +183,11 @@ This attribute sets the trade-growth rate of the fleet, expressed in fraction/ye
 
 This attribute sets the initial number of vessels in the fleet.
 
-A minimum of one vessel is necessary to compound the trade-growth.
-
-* **Data type**: `Float`
-* **Example values**: `150`
+* **Data type**: `Float`, `Variable`
+* **Example value**: `150`
 * **Unit**: Number of vessels
-* **Minimum value**: 1
-* **Default**: None. Must be defined by the user.
+* **Minimum value**: >0
+* **Default**: None. Must be provided by the user.
 
 ### InitialSplit
 
@@ -189,13 +197,12 @@ The list must have the same length as the list of vessels.
 
 Entries must be finite, non-negative numbers. The list should sum to 1; its total, rounded to five decimals, is rescaled proportionally when it is other than 1, and a deviation of more than 1% is logged at `WARNING`. A list whose rounded total is 0 (an all-zero or empty list included), an `INF` entry, or a total too large to represent is an error; omit `InitialSplit` for a uniform split over the vessels.
 
-* **Data type**: List of `floats`
-* **Example values**:
-  + `[0.3, 0.7]`
+* **Data type**: List of `Float`
+* **Example value**: `[0.3, 0.7]`
 * **Unit**: Fraction
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: Determined through internal calculations.
+* **Default**: Not set. The split is uniform over the vessels.
 
 ### InitialAgeDistribution
 
@@ -203,11 +210,12 @@ This attribute sets the initial age distribution of each vessel type in the flee
 
 The list must have a length corresponding to the number of vessel types. Each entry is either a Curve reference (where the Curve's x-values are ages in increasing order and y-values are the corresponding fractions) or `0` for vessel types with no custom distribution. The Curve's values must be finite.
 
-* **Data type**: List of `Curve` nodes and/or `0`
-* **Example values**:
-  + `[Curve("age_dist_1"), 0, Curve("age_dist_3")]`
+A number in place of a Curve gives a uniform age spread over the vessel type's lifetime, shortened to 1/[FixedScrapRate](#fixedscraprate) when that is lower. `0` is the conventional entry, but any other non-negative number behaves the same.
+
+* **Data type**: List of `Float`, `Curve`
+* **Example value**: `[Curve("age_dist_1"), 0, Curve("age_dist_3")]`
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: Not set. Every vessel type gets a uniform age spread over its lifetime.
 
 ### RetrofitFrequency
 
@@ -223,36 +231,36 @@ This attribute sets the retrofit frequency, namely the intervals at which a vess
 
 ### Orderbooks
 
-This attribute sets the list of orderbooks used for determining the newbuild uptake from orderbooks, i.e. defines the number of new vessels of a certain vessel type in a given year.
+This attribute sets the list of orderbooks used for determining the newbuild uptake from orderbooks. Each orderbook is the cumulative number of vessels of that vessel type ordered up to each date, not the number of new vessels per year. The vessels delivered in a time-step are the increase over the orders already delivered or postponed.
 
 The list must have the same length as the list of vessels.
 
 If the orderbook is a forecast, it must be non-strictly increasing (meaning that it cannot decrease as time progresses in the forecast).
 
-* **Data type**: List of `floats`, `Forecasts`, `Variables`
-* **Example values**:
-  + `[Forecast("name"), 0]`
-* **Unit**: Number of vessels.
+* **Data type**: List of `Float`, `Forecast`, `Variable`
+* **Example value**: `[Forecast("name"), 0]`
+* **Unit**: Number of vessels
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: Not set. No vessels are delivered from orderbooks.
 
 ### AllowSpeedManagement
 
 This attribute sets the flag for whether speed management is allowed.
 
-Speed management dynamically optimizes the speed profile of each vessel type based on a cost optimal approach between adding newbuilds to the model versus the change in fuel expenses,
+Speed management dynamically optimizes the speed profile of each vessel type based on a cost optimal approach between adding newbuilds to the model versus the change in fuel expenses.
 
 * **Data type**: `Boolean`
-* **Default**: None
+* **Default**: FALSE
 
 ### MaximumSpeedChange
 
-This attribute sets the maximum speed change permissible per year during dynamic speed management.
+This attribute sets the maximum speed change permissible per year during dynamic speed management. `INF` means no limit. It is only used when [AllowSpeedManagement](#allowspeedmanagement) is TRUE.
 
-* **Data type**: `float`, `Forecast`, `Variable`
+* **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `0.5`
   + `Forecast("name")`
+* **Unit**: Knots/year
 * **Minimum value**: 0
 * **Default**: INF
 
@@ -278,13 +286,15 @@ Set how strongly the fuel-conversion choice responds to its net present value (N
 The value is an odds ratio against an advantage equal to 5% of the summed ship CAPEX: a conversion whose NPV advantage equals 5% of the ship CAPEX receives this many times the odds of an otherwise identical conversion (the do-nothing option has an NPV of zero). For example `2` means such an advantage doubles the odds, and `1` means no preference. NPV is higher-is-better, so use a value above `1`.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**: `2`
-* **Minimum value**: 0 (exclusive)
+* **Example values**:
+  + `2`
+  + `Forecast("name")`
+* **Minimum value**: >0
 * **Default**: 2
 
 ### FuelConversionMinimumAge
 
-This method sets the minimum age for fuel conversion in years.
+This attribute sets the minimum age, in years, at which a vessel can perform a fuel conversion.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -301,9 +311,8 @@ This attribute sets the list of technologies which can be installed on vessels i
 Every Technology node assigned must be unique.
 
 * **Data type**: List of `Technology` nodes
-* **Example values**:
-  + `[Technology("name1"), Technology("name2")]`
-* **Default**: None
+* **Example value**: `[Technology("name1"), Technology("name2")]`
+* **Default**: Not set. No technologies can be installed on the fleet's vessels.
 
 ### AllowTechnologyApproximation
 
@@ -318,30 +327,32 @@ This attribute sets the flag for whether the fleet should approximate technology
 
 This command sets the initial technology uptake as a function of vessel age. The Curve's x-axis is vessel age and its y-axis is the uptake fraction in `[0, 1]`. Wildcards are supported in both keys.
 
+This command is only allowed in the `DEFINE` section.
+
 * **Primary key type**: String (Vessel name; supports wildcards)
 * **Secondary key type**: String (Technology name; supports wildcards)
-* **Data type**: `Curve` node
+* **Data type**: `Curve`
 * **Example values**:
   + `"vessel_name", "technology_name", Curve("uptake_curve")`
   + `"*oil*", "hull_painting*", Curve("uptake_hull_painting")`
 * **Unit**: x: Years, y: Fraction
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: None
+* **Default**: Not set. The vessel type starts with no uptake of the technology.
 
 ### set\_fuel\_conversion\_cost
 
-This command sets the cost of performing a fuel conversion from one vessel type to another, in USD.
+This command sets the cost of performing a fuel conversion from one vessel type to another, in USD. A pair of vessel types without a cost cannot be converted.
 
-* **Primary key type**: String (Vessel name)
-* **Secondary key type**: String (Vessel name)
+* **Primary key type**: String (Vessel name being converted from; supports wildcards)
+* **Secondary key type**: String (Vessel name being converted to; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"vessel_name_from", "vessel_name_to", 10e6`
   + `"vessel_name_from", "vessel_name_to", Forecast("name")`
 * **Unit**: USD
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: Not set. The pair cannot be converted.
 
 ### set\_allow\_vessel
 
@@ -351,9 +362,9 @@ If this command is set to FALSE, the vessel can neither enter the fleet as a new
 
 Any existing vessels in the fleet however are unaffected.
 
-This flag supersedes both attributes ‘Newbuild Available’ and 'Conversion Available'.
+This flag supersedes both `set_newbuild_available` and `set_conversion_available`.
 
-* **Primary key type**: String (Vessel name)
+* **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Boolean`
 * **Example values**:
   + `"vessel_name", TRUE`
@@ -364,9 +375,9 @@ This flag supersedes both attributes ‘Newbuild Available’ and 'Conversion Av
 
 This command sets a boolean flag indicating whether a specific vessel from the list is allowed as a newbuild in the fleet.
 
-If this attribute is set to FALSE the vessel cannot enter the fleet as a newbuild.
+If this command is set to FALSE the vessel cannot enter the fleet as a newbuild.
 
-* **Primary key type**: String (Vessel name)
+* **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Boolean`
 * **Example values**:
   + `"vessel_name", TRUE`
@@ -375,11 +386,11 @@ If this attribute is set to FALSE the vessel cannot enter the fleet as a newbuil
 
 ### set\_conversion\_available
 
-This command sets a boolean flag indicating whether a specific vessel is allowed to undergo fuel conversion in the fleet.
+This command sets a boolean flag indicating whether a specific vessel type is allowed as the target of a fuel conversion in the fleet.
 
 If this command is set to FALSE it is not possible to perform fuel conversions to vessels of that type.
 
-* **Primary key type**: String (Vessel name)
+* **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Boolean`
 * **Example values**:
   + `"vessel_name", TRUE`
@@ -388,7 +399,7 @@ If this command is set to FALSE it is not possible to perform fuel conversions t
 
 ### set\_newbuild\_limit
 
-This command sets the maximum share of a single time-step's newbuild cargo-miles that can be delivered by a given vessel type. The limit is enforced across the orderbook, inertia, and modelled-uptake newbuild sources, so the cumulative share across the three sources cannot exceed the configured value.
+This command caps the number of newbuilds of a given vessel type per year, as a fraction of the fleet's vessel count before newbuilds. For example, in a fleet of 100 vessels, a limit of 0.05 allows at most 5 newbuilds of that vessel type per year. The cap is shared by the orderbook, inertia, and modelled-uptake newbuild sources, so their combined newbuilds cannot exceed it; orderbook deliveries above the cap are postponed.
 
 * **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
@@ -449,7 +460,7 @@ This command sets the fraction of energy saved at sea through operational measur
 
 The operational saving is applied as an intermediate step between the raw energy demand (from speed/operation) and the technology-adjusted energy demand. It reduces the baseline energy against which technology savings are evaluated.
 
-* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid)
+* **Primary key type**: [EnergyDemandID](appendix_ids.md#energydemandid) (supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `PROPULSION, 0.1`
@@ -465,7 +476,7 @@ This command sets the fraction of energy saved in port through operational measu
 
 The operational saving is applied as an intermediate step between the raw energy demand and the technology-adjusted energy demand.
 
-* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid), restricted to the demands a vessel has in port: `ELECTRICAL` and `HEAT`
+* **Primary key type**: [EnergyDemandID](appendix_ids.md#energydemandid), restricted to the demands a vessel has in port: `ELECTRICAL` and `HEAT` (supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `ELECTRICAL, 0.05`

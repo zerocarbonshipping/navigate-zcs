@@ -72,27 +72,27 @@ class _PolicyExpectation(_Expectation):
 
         if key in self._wtt:
             return self._wtt[key][idx]
-        else:
-            return 0.0
+
+        return 0.0
 
     def get_ttw_consumption(self, key: tuple[str, ...], idx: Index) -> FloatLike:
 
         if key in self._ttw_consumption:
             return self._ttw_consumption[key][idx]
-        else:
-            return 0.0
+
+        return 0.0
 
     def get_ttw_slip(self, key: tuple[str, ...], idx: Index) -> FloatLike:
 
         if key in self._ttw_slip:
             return self._ttw_slip[key][idx]
-        else:
-            return 0.0
+
+        return 0.0
 
     def get_coefficient(self, key: tuple[str, ...], idx: int) -> float:
 
         if key in self._coefficient:
             coefficient: float = self._coefficient[key][idx]
             return coefficient
-        else:
-            return 0.0
+
+        return 0.0

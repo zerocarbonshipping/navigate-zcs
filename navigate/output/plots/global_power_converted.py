@@ -28,16 +28,20 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_power_converted_cumulative(plot_data: PlotData, directory: str) -> None:
+def plot_global_power_converted_cumulative(
+    results: SimulationResults, directory: Path
+) -> None:
     """Plot the cumulative engine power converted from and to each fuel type."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    converted_power = plot_data.profile.get_fuel_converted_power()
+    converted_power = results.profile.get_fuel_converted_power()
     converted_power = {
         key: value
         for key, value in converted_power.items()

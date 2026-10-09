@@ -26,23 +26,25 @@ from navigate.output.plots._units import get_best_unit_mass
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 
-def plot_producer_feed_consumption(plot_data: PlotData, directory: str) -> None:
+def plot_producer_feed_consumption(results: SimulationResults, directory: Path) -> None:
     """Plot the feed consumption against the constraint, one figure per producer."""
-    dateline = plot_data.dateline
-    producers = plot_data.nodes.producers
+    dateline = results.dateline
+    producers = results.nodes.producers
 
     if not producers:
         return
 
-    feeds = {**plot_data.nodes.feedstocks, **plot_data.nodes.processes}
+    feeds = {**results.nodes.feedstocks, **results.nodes.processes}
     colors = generate_color_dict(feeds, FEEDSTOCK_COLOR)
 
     for producer_name, producer in producers.items():
-        results: dict[str, tuple[FloatArray, FloatArray]] = {}
+        constrained_feeds: dict[str, tuple[FloatArray, FloatArray]] = {}
         profile = producer.profile
         feed_mass = profile.get_feed_mass()
         feed_constraint = profile.get_feed_constraint()
@@ -55,15 +57,15 @@ def plot_producer_feed_consumption(plot_data: PlotData, directory: str) -> None:
             if np.all(np.isnan(constraint)):
                 continue
 
-            results[feed_name] = (consumed, constraint)
+            constrained_feeds[feed_name] = (consumed, constraint)
 
-        if not results:
+        if not constrained_feeds:
             continue
 
-        fig, axes = subplot_grid(len(results))
+        fig, axes = subplot_grid(len(constrained_feeds))
 
         for ax, (feed_name, (consumed, constraint)) in zip(
-            axes, results.items(), strict=False
+            axes, constrained_feeds.items(), strict=False
         ):
             max_constraint = np.nanmax(constraint)
 
@@ -86,8 +88,8 @@ def plot_producer_feed_consumption(plot_data: PlotData, directory: str) -> None:
             ax.set_ylabel(f"Feed [{unit}]")
             ax.set_title(extract_label(feeds[feed_name], FEEDSTOCK_LABEL))
             legend = ax.legend()
-            format_axes(ax, len(results), dateline, legend)
+            format_axes(ax, len(constrained_feeds), dateline, legend)
 
-        trim_axes(axes, len(results))
+        trim_axes(axes, len(constrained_feeds))
 
         save_figure(fig, directory, f"producer_feed_consumption_{producer_name}.png")

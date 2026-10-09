@@ -1,30 +1,26 @@
-<!--
-SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
-SPDX-License-Identifier: Apache-2.0
--->
-
-<!-- Thank you for contributing! See CONTRIBUTING.md for the full guidelines. -->
-
-## What
-
-<!-- What does this change do? For bug fixes, describe the bug. -->
+<!-- One to three sentences on what the change does: the behaviour or end
+state, not the files edited. If much of the diff is moves or renames, say in
+one line which part. End with the effect a deck author or a reader of the
+output sees, or "No user-visible effect." -->
 
 ## Why
 
-<!-- Why is the change needed? For assumption changes, provide references or
-a justification for the new values. -->
+<!-- The problem, and why this change is the right answer. One "Addresses #N"
+line per issue. Assumption changes: the references or reasoning. Model
+changes: how it better represents the sector. -->
 
-## How it was verified
+## Decisions
 
-<!-- How did you check that the change works? If simulation results change,
-explain the difference. How does the new mechanic better represent the sector. -->
+<!-- Delete if empty. Decisions and assumptions a reviewer could make
+differently: the option taken, the alternative, and why. Any rework beyond
+the issue's scope, and why. -->
 
-## Checklist
+## Results
 
-- [ ] `make test-all` and `make lint` passes.
-- [ ] New attributes are covered by the attribute tests; new non-trivial
-      calculations have a unit test.
-- [ ] Documentation is updated where behavior changes (user manual,
-      docstrings).
-- [ ] `CHANGELOG.md` is updated if the change needs an entry (see Changelog
-      in CONTRIBUTING.md).
+<!-- Delete unless simulation results move. What moves, by how much, and
+why. Name the commit that regenerates the regression baselines
+(`make regen-regression`). -->
+
+## Limitations
+
+<!-- Delete if empty. Known shortcomings, scope left out, follow-up issues. -->

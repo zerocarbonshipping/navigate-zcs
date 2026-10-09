@@ -18,14 +18,16 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_port_bunker_price(plot_data: PlotData, directory: str) -> None:
+def plot_port_bunker_price(results: SimulationResults, directory: Path) -> None:
     """Plot the bunker price of each fuel, one figure per port."""
-    dateline = plot_data.dateline
-    fuels = plot_data.nodes.fuels
-    ports = plot_data.nodes.ports
+    dateline = results.dateline
+    fuels = results.nodes.fuels
+    ports = results.nodes.ports
 
     for port_name, port in ports.items():
         bunker_price = port.profile.get_bunker_price()

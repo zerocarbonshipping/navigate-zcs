@@ -6,13 +6,6 @@ SPDX-PackageName = "Navigate"
 SPDX-PackageSupplier = "Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping <navigate@zerocarbonshipping.com>"
 SPDX-PackageDownloadLocation = "https://github.com/zerocarbonshipping/navigate-zcs"
 
-# Extension-less git configuration; the REUSE tool cannot detect its comment
-# style.
-[[annotations]]
-path = ".git-blame-ignore-revs"
-SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
-SPDX-License-Identifier = "Apache-2.0"
-
 # Golden regression baselines are generated report output compared
 # byte-for-byte; a comment header would break the comparison.
 [[annotations]]
@@ -29,7 +22,7 @@ SPDX-License-Identifier = "Apache-2.0"
 # Banner text embedded verbatim in generated output; adding a comment header
 # would alter program output.
 [[annotations]]
-path = "navigate/preamble.txt"
+path = "navigate/app/preamble.txt"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "CC-BY-4.0"
 
@@ -50,3 +43,10 @@ SPDX-License-Identifier = "Apache-2.0"
 path = "docs/_static/*.png"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "CC-BY-4.0"
+
+# Pull request template; the template's text is copied into every pull
+# request body.
+[[annotations]]
+path = ".github/PULL_REQUEST_TEMPLATE.md"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "Apache-2.0"

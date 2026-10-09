@@ -14,16 +14,18 @@ from navigate.output.plots._figure import (
 )
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_emission_intensity(plot_data: PlotData, directory: str) -> None:
+def plot_global_emission_intensity(results: SimulationResults, directory: Path) -> None:
     """Plot the global WTW CO2-equivalent emission intensity."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    intensity = plot_data.profile.get_intensity_total_equivalent_wtw()
+    intensity = results.profile.get_intensity_total_equivalent_wtw()
 
     ax.plot(dateline, intensity, color="k")
 

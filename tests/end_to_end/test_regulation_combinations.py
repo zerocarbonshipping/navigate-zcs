@@ -51,8 +51,8 @@ def _run(run_combination, measure, scheme, scope, adjustment):
 
 
 def _profile(run_combination, measure, scheme, scope, adjustment):
-    manager = _run(run_combination, measure, scheme, scope, adjustment)
-    return manager.nodes.regulations[REGULATION].profile
+    results = _run(run_combination, measure, scheme, scope, adjustment)
+    return results.nodes.regulations[REGULATION].profile
 
 
 @pytest.mark.parametrize(
@@ -84,8 +84,8 @@ def test_an_unmet_threshold_lowers_emissions(run_combination, measure, scheme, s
     regulated = _run(run_combination, measure, scheme, scope, "FALSE")
     unregulated = run_combination()
 
-    def wtw(manager):
-        return manager.profile.get_total_equivalent_wtw().sum()
+    def wtw(results):
+        return results.profile.get_total_equivalent_wtw().sum()
 
     assert wtw(regulated) < wtw(unregulated)
 

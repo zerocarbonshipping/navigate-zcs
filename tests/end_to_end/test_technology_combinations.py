@@ -22,14 +22,14 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 
 FLEET = "container_15000_teu"
 METHANE_VESSEL = "container_15000_teu_ice_methane"
 TECHNOLOGY = "combination_technology"
 
-PROPULSION = EnergyDemandTypeID.PROPULSION
-ELECTRICAL = EnergyDemandTypeID.ELECTRICAL
+PROPULSION = EnergyDemandID.PROPULSION
+ELECTRICAL = EnergyDemandID.ELECTRICAL
 
 # Propulsion savings of the two technologies in technology_package.inc, and the
 # saving of each package. Together, each saves its fraction of what the other
@@ -90,12 +90,12 @@ def _uptake_layer(capex):
     return ("technology_uptake.inc", {"capex": capex})
 
 
-def _vessels(manager):
-    return manager.nodes.fleets[FLEET].vessels
+def _vessels(results):
+    return results.nodes.fleets[FLEET].vessels
 
 
-def _newbuild_uptake(manager, vessel):
-    uptake = manager.nodes.fleets[FLEET].profile.get_newbuild_technology_uptake()
+def _newbuild_uptake(results, vessel):
+    uptake = results.nodes.fleets[FLEET].profile.get_newbuild_technology_uptake()
     return uptake[(vessel, TECHNOLOGY)][1:]
 
 
@@ -103,9 +103,9 @@ def _newbuild_uptake(manager, vessel):
 def test_a_package_compounds_the_savings_of_its_technologies(
     run_combination, technologies, saving
 ):
-    manager = run_combination(_package_layer(technologies))
+    results = run_combination(_package_layer(technologies))
 
-    for vessel in _vessels(manager):
+    for vessel in _vessels(results):
         energy = vessel.profile.get_energy_sea()
         operational = vessel.profile.get_operational_energy_sea()
 
@@ -117,9 +117,9 @@ def test_a_package_compounds_the_savings_of_its_technologies(
 
 
 def test_an_operational_saving_scales_only_its_own_demand(run_combination):
-    manager = run_combination(_operational_layer())
+    results = run_combination(_operational_layer())
 
-    for vessel in _vessels(manager):
+    for vessel in _vessels(results):
         profile = vessel.profile
         raw = {
             "sea": profile.get_raw_energy_sea(),
@@ -143,9 +143,9 @@ def test_an_operational_saving_scales_only_its_own_demand(run_combination):
 
 
 def test_a_technology_saves_on_what_the_operational_saving_leaves(run_combination):
-    manager = run_combination(_operational_layer(), _package_layer(("b",)))
+    results = run_combination(_operational_layer(), _package_layer(("b",)))
 
-    for vessel in _vessels(manager):
+    for vessel in _vessels(results):
         energy = vessel.profile.get_energy_sea()[PROPULSION][0]
         raw = vessel.profile.get_raw_energy_sea()[PROPULSION][0]
 

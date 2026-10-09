@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.output.plots._colors import (
     CENTER_COLORS_BLUE,
     CENTER_COLORS_GREEN,
@@ -21,20 +21,22 @@ from navigate.output.plots._figure import (
 )
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_energy_saving(plot_data: PlotData, directory: str) -> None:
+def plot_global_energy_saving(results: SimulationResults, directory: Path) -> None:
     """Plot the global energy saving by demand type and by source."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, axes = subplot_grid(6, sharey=True)
 
-    profile = plot_data.profile
+    profile = results.profile
     saving = profile.get_saving()
-    propulsion_saving = saving[EnergyDemandTypeID.PROPULSION] * 100.0
-    electrical_saving = saving[EnergyDemandTypeID.ELECTRICAL] * 100.0
-    heat_saving = saving[EnergyDemandTypeID.HEAT] * 100.0
+    propulsion_saving = saving[EnergyDemandID.PROPULSION] * 100.0
+    electrical_saving = saving[EnergyDemandID.ELECTRICAL] * 100.0
+    heat_saving = saving[EnergyDemandID.HEAT] * 100.0
     technology_saving = profile.get_technology_energy_intensity_saving() * 100.0
     operational_saving = profile.get_operational_energy_intensity_saving() * 100.0
     total_saving = profile.get_energy_intensity_saving() * 100.0

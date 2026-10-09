@@ -6,13 +6,15 @@ SPDX-License-Identifier: CC-BY-4.0
 # Variable
 
 A `Variable` node defines a single value that can be used across multiple attributes. Examples of variables
-are physical properties such as mass densities lower heating values.
+are physical properties such as mass densities and lower heating values.
 
 Calculations in variables are done using the following formula:
 
 $$
 y = \min\left( \max\left( \text{Multiplier} \cdot (\text{Value} + \text{Addition}), \text{LowerBound} \right), \text{UpperBound} \right)
 $$
+
+The `Addition` is applied before the `Multiplier`, and the bounds are applied last.
 
 An attribute that references the node holds $y$ to its own minimum and maximum value as well: an inclusive one clamps $y$, and $y$ reaching an exclusive one stops the run with an error. See [Assigning attributes](dsl_reference.md#assigning-attributes).
 
@@ -28,42 +30,40 @@ Variable "lower_heating_value_diesel" {
 
 ### Value
 
-Sets the value of the variable.
+Sets the value of the variable, which enters the [formula](#variable) at the top of this page. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the variable is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
 
-* **Data type**: `Float`
-* Example value: `42.7`
+* **Data type**: `Float`, `Expression`
+* **Example value**: `42.7`
 * **Default**: None. Must be provided by the user.
 
 ### Addition
 
-Sets an addition that is added on the value. The addition occurs according to the formula
+Sets a value that is added to the `Value`, before the `Multiplier` is applied, according to the [formula](#variable) at the top of this page. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are rejected.
 
-* **Data type**: `Float`
-* Example value: `10`
+* **Data type**: `Float`, `Expression`
+* **Example value**: `10`
 * **Default**: 0
 
 ### Multiplier
 
-Sets a multiplier that is multiplied to the value. The multiplication occurs according to the formula
+Sets a factor that the `Value`, plus the `Addition`, is multiplied by, according to the [formula](#variable) at the top of this page. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are rejected.
 
-* **Data type**: `Float`
-* Example value: `2.5`
+* **Data type**: `Float`, `Expression`
+* **Example value**: `2.5`
 * **Default**: 1
 
 ### LowerBound
 
-Sets the lower bound. The lower bound is used according to the formula:
-
+Sets the lower bound that the result is clamped to after the `Addition` and the `Multiplier` are applied, according to the [formula](#variable) at the top of this page. `-INF` means no lower bound; `INF` is rejected.
 
 * **Data type**: `Float`
-* Example value: `-5`
+* **Example value**: `-5`
 * **Default**: -INF
 
 ### UpperBound
 
-Sets the upper bound. The upper bound is used according to the formula:
-
+Sets the upper bound that the result is clamped to after the `Addition` and the `Multiplier` are applied, according to the [formula](#variable) at the top of this page. `INF` means no upper bound; `-INF` is rejected.
 
 * **Data type**: `Float`
-* Example value: `5`
+* **Example value**: `5`
 * **Default**: INF

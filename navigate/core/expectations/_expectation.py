@@ -33,23 +33,23 @@ class _Expectation:
 
         if default is None:
             return 0.0
-        else:
-            return default
+
+        return default
 
     def _default_array(self, default: float | None = None) -> FloatArray:
 
         if default is None:
             return np.zeros(self.get_shape())
-        else:
-            return np.full(self.get_shape(), default, dtype=np.float64)
+
+        return np.full(self.get_shape(), default, dtype=np.float64)
 
     def _default_2d_array(self, n: int, default: float | None = None) -> FloatArray:
         shape = (n, self._length)
 
         if default is None:
             return np.zeros(shape)
-        else:
-            return np.full(shape, default, dtype=np.float64)
+
+        return np.full(shape, default, dtype=np.float64)
 
     def _default_list_array(
         self, n: int, default: float | None = None

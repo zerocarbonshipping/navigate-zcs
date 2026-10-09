@@ -19,13 +19,15 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._units import find_best_metric_prefix
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from pathlib import Path
+
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_regulation_unit_trading(plot_data: PlotData, directory: str) -> None:
+def plot_regulation_unit_trading(results: SimulationResults, directory: Path) -> None:
     """Plot the non-compliance and surplus units of flexible regulations."""
-    dateline = plot_data.dateline
-    regulations = plot_data.nodes.regulations
+    dateline = results.dateline
+    regulations = results.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:

@@ -17,7 +17,7 @@ import re
 
 import pytest
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.exceptions import AttributeAssignmentError
 from navigate.parser._attributes import (
     GENERAL_NODE_ATTRIBUTE_SECTIONS,
@@ -33,8 +33,8 @@ from navigate.parser._keywords import (
     SECTION_DEFINE,
 )
 
-DEFINE = SimulationSectionID.DEFINE
-EVENTS = SimulationSectionID.EVENTS
+DEFINE = SectionID.DEFINE
+EVENTS = SectionID.EVENTS
 
 NODE_ENTRIES = [
     pytest.param(node_type, attribute, sections, id=f"{node_type}.{attribute}")

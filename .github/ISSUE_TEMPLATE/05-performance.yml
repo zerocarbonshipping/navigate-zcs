@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: Performance
-description: Runtime or memory problems
+description: Speed or memory, not results
 labels: ["performance"]
 body:
   - type: textarea
@@ -16,16 +16,27 @@ body:
     id: measurement
     attributes:
       label: Measurement
-      description: Timing, profile, or memory numbers — or the asymptotic argument.
+      description: >
+        The deck, solver, commit and machine; then wall time with the number
+        of runs, a trimmed profile, or peak memory. Or the asymptotic
+        argument. Prefer a small deck: the reference scenarios in
+        `simulations/scenarios/` take about 25 minutes.
     validations:
       required: true
+  - type: textarea
+    id: target
+    attributes:
+      label: Target
+      description: If known, the speed or memory a deck author would need.
   - type: textarea
     id: location
     attributes:
       label: Location
       description: "If known: `path/to/file.py:LINE` and symbol names."
   - type: textarea
-    id: resolution
+    id: considerations
     attributes:
-      label: Proposed resolution
-      description: The remedy, and the benchmark to re-run to confirm it.
+      label: Considerations
+      description: >
+        Constraints, pitfalls, things ruled out, known options without a
+        recommendation. Not a proposed fix.

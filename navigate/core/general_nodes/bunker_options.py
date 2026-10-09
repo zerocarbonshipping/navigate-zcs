@@ -28,111 +28,33 @@ class BunkerOptions(_GeneralNode):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_solver(self, solver: str) -> None:
-        """
-        Set the solver backend for the bunker algorithm.
-
-        Examples
-        --------
-        - AUTOMATIC
-        - GUROBI
-        - HIGHS
-
-        Parameters
-        ----------
-        solver
-            Solver backend. AUTOMATIC tries Gurobi first, falling back to HiGHS.
-            GUROBI selects Gurobi (falls back to HiGHS if no license).
-            HIGHS skips Gurobi and uses HiGHS directly.
-        """
+        """Set the solver backend for the bunker algorithm."""
         self.solver = assign_id(solver, SolverBackendID)
 
     def set_solver_method(self, solver_method: str) -> None:
-        """
-        Set the LP solver method of the bunker algorithm.
-
-        Examples
-        --------
-        - AUTOMATIC
-        - DETERMINISTIC
-        - NON_DETERMINISTIC
-
-        Parameters
-        ----------
-        solver_method
-            LP solution method, passed to Gurobi as its Method parameter; the HiGHS
-            backend ignores it.
-        """
+        """Set the LP solver method of the bunker algorithm."""
         self.solver_method = assign_id(solver_method, SolverMethodID)
 
     def set_solution_tolerance(self, solution_tolerance: float) -> None:
-        """
-        Set the solution tolerance of the bunker algorithm.
-
-        This value has no impact on computational time. It is only used to avoid
-        round-off errors in solution.
-
-        Examples
-        --------
-        - 1e-6
-
-        Parameters
-        ----------
-        solution_tolerance
-            Tolerance used when transferring the BunkerAlgorithm solutions to profiles.
-        """
+        """Set the solution tolerance of the bunker algorithm."""
         self.solution_tolerance = assign_value(
             solution_tolerance, lower=0, inclusive_lower=False, allow_expression=False
         )
 
     def set_threads(self, threads: float) -> None:
-        """
-        Set the number of threads used by the LP solver in the bunker algorithm.
-
-        Notice that '0' corresponds to automatic thread selection.
-
-        Examples
-        --------
-        - 2
-
-        Parameters
-        ----------
-        threads
-            Threads used by the LP solver in the bunker algorithm.
-        """
+        """Set the number of threads used by the LP solver in the bunker algorithm."""
         self.threads = assign_integer(threads, lower=0)
 
     def set_fair_share_maximum_iterations(
         self, fair_share_maximum_iterations: float
     ) -> None:
-        """
-        Set the maximum iterations of the bunker algorithm's fair-share sequential LP.
-
-        Examples
-        --------
-        - 50
-
-        Parameters
-        ----------
-        fair_share_maximum_iterations
-            Maximum iterations allowed for the sequential LP of the bunker algorithm.
-        """
+        """Set the maximum iterations of the fair-share sequential LP."""
         self.fair_share_maximum_iterations = assign_integer(
             fair_share_maximum_iterations, lower=1
         )
 
     def set_fair_share_tolerance(self, fair_share_tolerance: float) -> None:
-        """
-        Set the fair-share tolerance of the bunker algorithm.
-
-        Examples
-        --------
-        - 1e-1
-
-        Parameters
-        ----------
-        fair_share_tolerance
-            Tolerance used when checking convergence of fair-share bunker solution.
-        """
+        """Set the fair-share tolerance of the bunker algorithm."""
         self.fair_share_tolerance = assign_value(
             fair_share_tolerance,
             lower=0.0,

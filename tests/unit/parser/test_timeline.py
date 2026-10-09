@@ -5,7 +5,7 @@
 The EVENTS timeline: which dates exist and which statements run at each.
 
 `Start` and `Date` open an event that queues the statements after it, and
-`progress_timeline` replays each date's events in order. The start date is
+`read_events` replays a date's events in order. The start date is
 always on the timeline, and the `Start` events run before anything dated on
 it. Dates must rise within each include file, may not precede the start date,
 and a default file may not touch the timeline.
@@ -29,7 +29,8 @@ def _run(parser):
     """Step through the timeline, returning each date and the efficiency after it."""
     converter = parser.nodes.converters["propulsion"]
     steps = []
-    while (date := parser.progress_timeline()) is not None:
+    for date in parser.dates:
+        parser.read_events(date)
         steps.append((str(date), converter.efficiency.get()))
     return steps
 
@@ -69,8 +70,6 @@ def test_each_date_replays_its_events_in_order(read_deck):
     parser = read_deck(FLEET + FUEL, events=events)
 
     assert _run(parser) == [("2026-01-01", 0.4), ("2028-01-01", 0.3)]
-    # the timeline is spent
-    assert parser.progress_timeline() is None
 
 
 # input:    | Date "01-01-2027"
@@ -207,11 +206,10 @@ def test_a_default_file_touching_the_timeline_is_rejected(tmp_path, read_deck):
     )
     events = 'Date "01-01-2027"\n' + _efficiency('Variable("lib")') + "End\n"
     parser = read_deck(FLEET + FUEL, events=events, data_dir=library)
-    parser.progress_timeline()
 
     library_file = tmp_path / "data/defaults/installation/Variable/lib.inc"
     with pytest.raises(DeckFormatError) as error:
-        parser.progress_timeline()
+        parser.read_events(parser.dates[1])
 
     assert str(error.value) == (
         f"Error while retrieving default, include file '{library_file}', line "

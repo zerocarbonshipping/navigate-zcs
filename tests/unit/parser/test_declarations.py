@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 from helpers.parser_decks import emission_holding, variable
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node_type import PROCESS
 from navigate.core.nodes.variable import Variable
@@ -61,7 +61,7 @@ def test_a_body_reference_to_its_own_node_binds_to_it():
     # a Process may feed on itself; the reference must bind to the node being
     # declared, not to a second one no declaration fills
     parser = Parser()
-    parser._current_section = SimulationSectionID.DEFINE
+    parser._current_section = SectionID.DEFINE
     body = [Assignment("Feeds", [NodeReference(PROCESS, "p")])]
 
     parser._process_node_declaration(NodeDeclaration(PROCESS, "p", body))
@@ -202,4 +202,4 @@ def test_a_new_node_in_events_is_rejected(read_deck):
         DeckKeywordError,
         match=(r"events\.inc', line 2: Unable to define new nodes outside DEFINE\.$"),
     ):
-        parser.progress_timeline()
+        parser.read_events(parser.dates[0])

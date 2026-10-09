@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core import assign_reference
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.core.node_type import CONVERTER, POWER_SYSTEM
 from navigate.core.nodes._machinery import _Machinery
 from navigate.util import list_is_unique
@@ -31,48 +31,15 @@ class PowerSystem(_Machinery):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion(self, propulsion: Converter) -> None:
-        """
-        Set the converter used to satisfy the propulsion demand.
-
-        Examples
-        --------
-        - Converter("name")
-
-        Parameters
-        ----------
-        propulsion
-            A converter used to satisfy the propulsion demand.
-        """
+        """Set the converter used to satisfy the propulsion demand."""
         self.propulsion = assign_reference(propulsion, CONVERTER)
 
     def set_electrical(self, electrical: Converter) -> None:
-        """
-        Set the converter used to satisfy the electrical demand.
-
-        Examples
-        --------
-        - Converter("name")
-
-        Parameters
-        ----------
-        electrical
-            A converter used to satisfy the electrical demand.
-        """
+        """Set the converter used to satisfy the electrical demand."""
         self.electrical = assign_reference(electrical, CONVERTER)
 
     def set_heat(self, heat: Converter) -> None:
-        """
-        Set the converter used to satisfy the heat demand.
-
-        Examples
-        --------
-        - Converter("name")
-
-        Parameters
-        ----------
-        heat
-            A converter used to satisfy the heat demand.
-        """
+        """Set the converter used to satisfy the heat demand."""
         self.heat = assign_reference(heat, CONVERTER)
 
     # internal methods -----------------------------------------------------------------
@@ -89,13 +56,11 @@ class PowerSystem(_Machinery):
     def get_converters(self) -> tuple[Converter, Converter, Converter]:
         return self.propulsion, self.electrical, self.heat
 
-    def get_converter_by_energy_type(
-        self, demand_type: EnergyDemandTypeID
-    ) -> Converter:
+    def get_converter_by_energy_type(self, demand_type: EnergyDemandID) -> Converter:
         match demand_type:
-            case EnergyDemandTypeID.PROPULSION:
+            case EnergyDemandID.PROPULSION:
                 return self.propulsion
-            case EnergyDemandTypeID.ELECTRICAL:
+            case EnergyDemandID.ELECTRICAL:
                 return self.electrical
-            case EnergyDemandTypeID.HEAT:
+            case EnergyDemandID.HEAT:
                 return self.heat
