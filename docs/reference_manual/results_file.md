@@ -25,8 +25,8 @@ get a spreadsheet laid out for reading.
 
 ## Table
 
-The table is long: one row per series and date. A series that is zero or
-missing throughout is left out.
+The table is long: one row per series and date. A series whose values are all
+below 1e-5 in magnitude or missing is left out.
 
 | Column | Type | Content |
 |---|---|---|
@@ -36,12 +36,21 @@ missing throughout is left out.
 | `key1` | string or missing | First key of a result kept per fuel, fuel type, vessel, ... |
 | `key2` | string or missing | Second key of a result kept per pair, e.g. (fuel, emission) |
 | `date` | date | Date of the time step |
-| `value` | float | Value; `true`/`false` results are 1 and 0, NaN marks a value that is not set |
+| `value` | float or missing | Value; `true`/`false` results are 1 and 0. Missing marks a value that is not set or has no bound, such as a feed constraint without limit |
 
 Keys that are identifiers, such as fuel types or energy demand types, are
 written by name (`OIL`, `PROPULSION`, see [Appendix: IDs](appendix_ids.md)). The
 result names are those of the report properties in snake case: the report
 property `TotalEquivalentWtw` is the attribute `total_equivalent_wtw`.
+
+Values are per year where the unit says so. The results that count what
+happened in a time step, `newbuilds`, `scrap`, `fuel_conversions`,
+`newbuild_power`, `scrapped_power`, `fuel_converted_power` and `development`,
+are divided by the length of the step in years of 365.25 days, the first step
+counting as one year. The report gives them per step instead: with yearly time
+steps the two differ only by the length of the calendar year. The `cumulative_`
+results are the totals before each date, as in the report: a step's flow counts
+from the next date on.
 
 ## Metadata
 
@@ -49,7 +58,7 @@ The Parquet key-value metadata holds a JSON document under the key `navigate`:
 
 | Key | Content |
 |---|---|
-| `schema_version` | Version of this layout, currently `1`. It changes when a reader has to change. |
+| `schema_version` | Version of this layout, currently `2`. It changes when a reader has to change. |
 | `navigate_version` | Navigate version that wrote the file |
 | `deck` | Name of the deck |
 | `created` | Time the file was written, UTC, ISO 8601 |

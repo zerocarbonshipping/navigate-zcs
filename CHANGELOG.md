@@ -22,6 +22,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   opens it to plot the results in the browser; the built-in plots are kept
   for now. The layout is described on the new reference-manual page "Results
   file".
+- Fleet report property `CumulativeFuelConversions`: vessels fuel converted
+  per vessel to vessel, summed over the time steps before each date.
 - The console prints the number of logged warnings at the end of a run,
   pointing at the `.log` file.
 - Vessel report properties `SpeedEnergyIntensitySaving`,

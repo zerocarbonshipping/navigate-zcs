@@ -145,6 +145,7 @@ UNITS: Final[Mapping[str, str]] = {
     "newbuilds": "vessels/year",
     "scrap": "vessels/year",
     "fuel_conversions": "vessels/year",
+    "cumulative_fuel_conversions": "vessels",
     "technology_uptake": "-",
     "fleet_technology_uptake": "-",
     "newbuild_technology_uptake": "-",

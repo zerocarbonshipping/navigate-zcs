@@ -7,8 +7,11 @@ Write the full results of a run to one Parquet file.
 The file holds every public profile reader of the global profile and of each node
 profile, one row per series and date, and nothing but the profiles: the metadata
 only says which schema, Navigate version and deck wrote it, and the unit of each
-reader. Lantern reads it; any Parquet reader can. The layout is described in
-docs/reference_manual/results_file.md and versioned by SCHEMA_VERSION.
+reader. Values are as the readers give them, except that the counts a reader
+keeps per time step are written per year, as their units say, and a value that is
+not set or not finite is written missing. Lantern reads it; any Parquet reader
+can. The layout is described in docs/reference_manual/results_file.md and
+versioned by SCHEMA_VERSION.
 """
 
 from __future__ import annotations
@@ -25,6 +28,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from navigate.output._result_units import UNITS
+from navigate.util import TOLERANCE
+from navigate.util.dates import YEAR
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -35,11 +40,24 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 METADATA_KEY = b"navigate"
 READER_PREFIXES = ("get_", "is_", "has_", "cost_is_")
 
 GLOBAL_KIND = "global"
+
+# readers that count what happened in each time step rather than a rate
+PER_STEP = frozenset(
+    {
+        "newbuilds",
+        "scrap",
+        "fuel_conversions",
+        "newbuild_power",
+        "scrapped_power",
+        "fuel_converted_power",
+        "development",
+    }
+)
 
 # Parquet dictionary-encodes the repeated labels on disk by itself
 SCHEMA = pa.schema(
@@ -110,8 +128,9 @@ def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
     pa.Table
         One row per series and date, in SCHEMA.
     """
-    dates = pa.array(results.dateline.astype("datetime64[D]"), type=pa.date32())
-    series = list(_series(results))
+    days = results.dateline.astype("datetime64[D]")
+    dates = pa.array(days, type=pa.date32())
+    series = list(_series(results, _step_years(days)))
     steps = len(dates)
 
     columns = {
@@ -125,6 +144,7 @@ def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
         "value": pa.array(
             np.concatenate([s.values for s in series]) if series else [],
             type=pa.float64(),
+            from_pandas=True,  # NaN is written missing
         ),
     }
     table = pa.table(columns, schema=SCHEMA)
@@ -155,14 +175,33 @@ def _profiles(results: SimulationResults) -> Iterator[tuple[str, str, _BaseProfi
             yield node.type.lower(), node.name, node.profile
 
 
-def _series(results: SimulationResults) -> Iterator[Series]:
+def _step_years(days: np.ndarray) -> np.ndarray:
     """
-    Yield every series of every profile reader that is not zero or missing throughout.
+    Length of each time step, years; the first step is a year, as in the run.
+
+    Parameters
+    ----------
+    days
+        Dates of the simulation timeline.
+
+    Returns
+    -------
+    np.ndarray
+        Years each step spans, one per date.
+    """
+    return np.insert(np.diff(days).astype(np.float64) / YEAR, 0, 1.0)
+
+
+def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Series]:
+    """
+    Yield every series of every profile reader that is not negligible throughout.
 
     Parameters
     ----------
     results
         Results of the finished run.
+    step_years
+        Length of each time step, years, to turn per-step counts into rates.
 
     Yields
     ------
@@ -176,8 +215,14 @@ def _series(results: SimulationResults) -> Iterator[Series]:
             for key, values in items:
                 floats = np.asarray(values, dtype=np.float64)
 
-                # a series zero or missing throughout carries no result
-                if not np.any(np.nan_to_num(floats)):
+                if attribute in PER_STEP:
+                    floats = floats / step_years
+
+                # an infinite value, e.g. a limit without bound, is not a result
+                floats = np.where(np.isinf(floats), np.nan, floats)
+
+                # a series negligible or missing throughout carries no result
+                if not np.any(np.abs(np.nan_to_num(floats)) >= TOLERANCE):
                     continue
 
                 key1, key2 = key if isinstance(key, tuple) else (key, None)

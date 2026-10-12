@@ -293,6 +293,7 @@ The properties are applicable for the following commands:
 | Scrap                              | # of vessels/year | Number of vessels scrapped (primary and secondary) per vessel.                                  |
 | Newbuilds                          | # of vessels/year | Number of newbuild vessels per vessel.                                                          |
 | FuelConversions                    | # of vessels/year | Number of vessels fuel converted per vessel to vessel.                                          |
+| CumulativeFuelConversions          | # of vessels      | Cumulative number of vessels fuel converted per vessel to vessel.                               |
 | TechnologyUptake                   | Fraction of fleet | Fraction of vessels with the technology installed per vessel and technology.                    |
 | FleetTechnologyUptake              | Fraction of fleet | Fraction of vessels with the technology installed, weighted by the existing vessel count, per technology. |
 | NewbuildTechnologyUptake           | Fraction of fleet | Fraction of newbuild vessels with the technology installed per vessel and technology.           |

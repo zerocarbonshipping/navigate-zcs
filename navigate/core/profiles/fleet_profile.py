@@ -210,6 +210,14 @@ class FleetProfile(_VesselAggregateProfile):
     def get_fuel_conversions(self) -> dict[tuple[str, str], FloatArray]:
         return dict(self._fuel_conversions)
 
+    def get_cumulative_fuel_conversions(self) -> dict[tuple[str, str], FloatArray]:
+        # conversions are counted per time step, so they add up without the step
+        # length; like the other cumulative readers, a step counts from the next date
+        return {
+            key: np.insert(np.cumsum(value[:-1]), 0, 0.0)
+            for key, value in self._fuel_conversions.items()
+        }
+
     def get_technology_uptake(self) -> dict[tuple[str, str], FloatArray]:
         return dict(self._technology_uptake)
 
