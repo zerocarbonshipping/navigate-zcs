@@ -2,60 +2,34 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Deck assembly for the combination tests.
+Cached runs of the combination decks.
 
-A combination deck is the committed base in simulations/combinations/0_includes
-plus any template includes from simulations/combinations, whose %name% values
-are filled in per combination; with none, it is the base deck itself.
-`run_combination` writes that deck into a temporary directory, runs it, checks
-the universal invariants and caches the results per module, so a test can read
-the run of another combination as its reference without running it twice.
+`run_combination` writes a combination deck (helpers/combinations.py) into a
+temporary directory, runs it, checks the universal invariants and caches the
+results per module, so a test can read the run of another combination as its
+reference without running it twice.
 """
 
 from __future__ import annotations
 
-import re
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 
+from helpers.combinations import COMBINATIONS, write_combination
 from helpers.simulation import check_invariants, run_simulation
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Callable
 
+    from helpers.combinations import DeckFamily, Layer
     from navigate.core import SimulationResults
 
-COMBINATIONS_DIR = Path(__file__).resolve().parent / "simulations" / "combinations"
-BASE_INCLUDES = ("model.inc", "fuels_ports.inc", "fleet.inc")
-TIMELINE_INCLUDE = "timeline.inc"
 
-# the DSL's template value; a comment may name one without it being filled in
-_TEMPLATE = re.compile(r"%[a-z_]+%")
-
-type Layer = tuple[str, Mapping[str, object]]
-
-
-def fill_template(name: str, values: Mapping[str, object]) -> str:
-    """Return the template include `name` with each %key% replaced by its value."""
-    text = (COMBINATIONS_DIR / name).read_text()
-    for key, value in values.items():
-        placeholder = f"%{key}%"
-        assert placeholder in text, f"{name} has no {placeholder}"
-        text = text.replace(placeholder, str(value))
-    unfilled = [
-        line for line in text.splitlines() if _TEMPLATE.search(line.split("#")[0])
-    ]
-    assert not unfilled, f"{name} has unfilled template values: {unfilled}"
-    return text
-
-
-@pytest.fixture(scope="module")
-def run_combination(
-    tmp_path_factory: pytest.TempPathFactory,
+def _cached_runner(
+    tmp_path_factory: pytest.TempPathFactory, family: DeckFamily
 ) -> Callable[..., SimulationResults]:
-    """Run the base deck plus the given template layers, once per module."""
+    """Return a function that runs the family's base plus layers, once each."""
     runs: dict[
         tuple[tuple[str, tuple[tuple[str, str], ...]], ...], SimulationResults
     ] = {}
@@ -68,25 +42,19 @@ def run_combination(
         if key in runs:
             return runs[key]
 
-        deck_dir = tmp_path_factory.mktemp("combination")
-        base = COMBINATIONS_DIR / "0_includes"
-
-        define = [f'\tInclude "{base / name}"' for name in BASE_INCLUDES]
-        for name, values in layers:
-            (deck_dir / name).write_text(fill_template(name, values))
-            define.append(f'\tInclude "{name}"')
-
-        (deck_dir / f"{deck_dir.name}.nav").write_text(
-            "DEFINE {\n"
-            + "\n".join(define)
-            + "\n}\n\nEVENTS {\n"
-            + f'\tInclude "{base / TIMELINE_INCLUDE}"\n'
-            + "}\n"
-        )
-
+        deck_dir = tmp_path_factory.mktemp(family.directory.name)
+        write_combination(deck_dir, family, *layers)
         results = run_simulation(deck_dir)
         check_invariants(results)
         runs[key] = results
         return results
 
     return run
+
+
+@pytest.fixture(scope="module")
+def run_combination(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Callable[..., SimulationResults]:
+    """Run the combination base deck plus the given template layers, once per module."""
+    return _cached_runner(tmp_path_factory, COMBINATIONS)

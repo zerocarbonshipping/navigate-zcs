@@ -82,17 +82,15 @@ dotted path; `__init__` is `navigate/__init__.py` and `simulation` is
 contains it; a unit imports itself and its row, nothing else from
 `navigate`. The foundation is `util/` and `exceptions.py`; the domains are
 the five `simulation.<domain>` units. Every file must fall in a unit, so a
-new top-level module or package needs a row here and in the test's
-`LAYERS`. No row may link `simulation.fleet` and `simulation.fuel`,
+new top-level module or package needs a row here. No row may link `simulation.fleet` and `simulation.fuel`,
 `parser` and `output`, or either of those two and a simulation unit.
 
 Inside `core/`, runtime imports run one way: `nodes/` imports
 `expectations/`, `profiles/` and the flat modules directly in `core/`;
 `expectations/`, `profiles/` and `general_nodes/` import only the flat
 modules; the flat modules import no subpackage, so one that needs a node
-class imports it under `TYPE_CHECKING`. Imports are absolute.
-`tests/unit/test_layering.py` enforces the table with type-only imports
-included, and the order inside `core/` for runtime imports only.
+class imports it under `TYPE_CHECKING`. Imports are absolute. No test
+enforces the table; review does, with type-only imports included.
 
 Each package's `__init__.py` re-exports its externally consumed entry
 points; read it first. `simulation/`, `core/nodes/`, `core/general_nodes/`

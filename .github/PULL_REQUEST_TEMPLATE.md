@@ -18,8 +18,7 @@ the issue's scope, and why. -->
 ## Results
 
 <!-- Delete unless simulation results move. What moves, by how much, and
-why. Name the commit that regenerates the regression baselines
-(`make regen-regression`). -->
+why. A maintenance pull request moves none. -->
 
 ## Limitations
 

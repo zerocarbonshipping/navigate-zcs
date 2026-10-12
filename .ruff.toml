@@ -55,7 +55,7 @@ convention = "numpy"
 
 [lint.isort]
 required-imports = ["from __future__ import annotations"]
-known-first-party = ["helpers"]
+known-first-party = ["helpers", "compare_results"]
 
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]
