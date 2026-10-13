@@ -15,7 +15,7 @@ else
   RUN := env PATH="$(CURDIR)/.venv/bin:$(PATH)"
 endif
 
-.PHONY: lint test-unit test-e2e test-all test-examples help setup conda-setup pip-setup docs docs-clean
+.PHONY: lint test-unit test-e2e test-all test-examples compare-results help setup conda-setup pip-setup docs docs-clean
 
 help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -64,6 +64,25 @@ test-examples:  ## Run simulations/examples
 	$(RUN) navigate simulations/examples/example_1/example_1.nav -d ./assumptions -s
 	$(RUN) navigate simulations/examples/example_2/example_2.nav -d ./assumptions -s
 	$(RUN) navigate simulations/examples/example_3/example_3.nav -d ./assumptions -s
+
+# The base ref is checked out into a worktree and installed into its own venv,
+# so neither side imports the other's source; the decks and the comparison come
+# from this checkout (tests/compare_results.py). CI runs the same comparison on
+# pull requests labelled maintenance (.github/workflows/compare-results.yml).
+BASE ?= dev
+COMPARE_DIR := $(CURDIR)/.compare
+
+compare-results:  ## Compare deck results with another ref: make compare-results BASE=<ref> (default dev)
+	rm -rf $(COMPARE_DIR) && git worktree prune
+	git worktree add --detach $(COMPARE_DIR)/base $(BASE)
+	$(RUN) python -m venv $(COMPARE_DIR)/env
+	$(COMPARE_DIR)/env/bin/pip install -q $(COMPARE_DIR)/base
+	$(COMPARE_DIR)/env/bin/python tests/compare_results.py snapshot \
+		--assumptions $(COMPARE_DIR)/base/assumptions --out $(COMPARE_DIR)/snapshots/base
+	$(RUN) python tests/compare_results.py snapshot --out $(COMPARE_DIR)/snapshots/head
+	$(RUN) python tests/compare_results.py diff \
+		$(COMPARE_DIR)/snapshots/base $(COMPARE_DIR)/snapshots/head; \
+		status=$$?; git worktree remove --force $(COMPARE_DIR)/base; exit $$status
 
 docs:  ## Stage content and build the documentation site (needs docs/requirements.txt installed)
 	$(RUN) $(MAKE) -C docs html

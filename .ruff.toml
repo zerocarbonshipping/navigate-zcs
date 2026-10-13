@@ -63,7 +63,6 @@ known-first-party = ["helpers", "compare_results"]
 "navigate/simulation/bunker/solver.py" = ["N802"]
 # the shim's classes share one another's state, as gurobipy's do
 "navigate/simulation/bunker/solver_highs.py" = ["N802", "SLF001"]
-"tests/unit/simulation/bunker/test_build.py" = ["N802"]
 # expectation, profile, and node lifecycle methods carry no docstrings; the
 # DSL setters on nodes do (see CODESTYLE.md)
 "navigate/core/expectations/*" = ["D102"]

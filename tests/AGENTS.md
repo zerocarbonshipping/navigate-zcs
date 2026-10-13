@@ -124,5 +124,14 @@ Proposals only; nobody has agreed to write them yet:
 
 - IntraFuelSensitivity direction: needs a second technology variant of one
   fuel in the combination fleet.
-- FuelDemandSensitivity direction: needs a second production pathway in the
-  supply deck.
+- FuelCostSensitivity and FuelDemandSensitivity direction, on the supply deck
+  family under `end_to_end/simulations/supply/` (`SUPPLY` in
+  `helpers/combinations.py`). Blocked: in that deck the ammonia vessels burn
+  only oil although e-ammonia is on offer, so the producer develops nothing.
+  Whether that is intended has to be settled first.
+- A levy moving fleet decisions: a penalty on oil lowers the oil newbuild share
+  and slows oil vessels. Today it would fail: the expected-scope bunker
+  transfer (`navigate/simulation/bunker/transfer/bunker.py`) books no levy
+  into the vessel's expected expenses, so no decision sees it. It needs a
+  minimum effect size argued from the levy's cost per GJ, since the share
+  only wobbles at the fourth decimal without one.
