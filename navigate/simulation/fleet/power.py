@@ -358,7 +358,7 @@ def _calculate_speed_extremum(
         for a surface, or `None` when the load is not strictly increasing.
     """
     if is_surface(load):
-        utilization = to_numpy(vessel.route.capacity_utilizations)
+        utilization = to_numpy(vessel.route.utilizations)
         return load.reverse_lookup(power, y=utilization)
 
     return load.reverse_lookup(power)

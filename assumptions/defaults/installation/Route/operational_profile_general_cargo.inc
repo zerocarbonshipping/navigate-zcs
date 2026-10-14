@@ -10,5 +10,5 @@ Route "operational_profile_general_cargo" {
 	TimeAtSea = 0.548
 	ConditionDistribution = [1]
 	Speeds =                [11.2]
-	CapacityUtilizations = 	[0.5]
+	Utilizations =          [0.5]
 }

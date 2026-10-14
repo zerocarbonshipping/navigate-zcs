@@ -80,6 +80,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   over their common remaining-lifetime window.
 - An empty `Speeds` or `PortDurations` on a `Route`, in `EVENTS` too, is
   rejected at its deck line.
+- `CapacityUtilizations` (Route) is now `Utilizations`; the old name is a deck
+  error at its line.
 - Rescaling `InitialSplit` or `ConditionDistribution` by more than 1% is
   logged as a warning, so it counts in the end-of-run summary.
 - A `Report` property request that matches no node logs a warning instead of
@@ -403,8 +405,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `ConverterEnergy` report requests with a `FIRST`, `SECOND` or `BOTH`
   reduction now reduce over the (vessel fuel type, fuel) key instead of
   failing or being ignored (#405).
-- `NominalCapacity` (Vessel), `RetrofitFrequency` (Fleet) and
-  `set_process_lifetime` (Region) must now be above 0; a 0 used to crash or
+- `NominalCapacity` (Vessel), `RetrofitFrequency` (Fleet), `TimeAtSea` (Route)
+  and `set_process_lifetime` (Region) must now be above 0; a 0 used to crash or
   hang the run or give invalid results.
 
 ## [1.0.0] - 2026-07-16

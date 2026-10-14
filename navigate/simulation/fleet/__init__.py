@@ -23,7 +23,7 @@ from navigate.simulation.fleet.initialization import (
     assign_vessels_to_fleets,
     initialize_existing_fleet,
 )
-from navigate.simulation.fleet.operation import update_operational_profile
+from navigate.simulation.fleet.operation import update_operations
 from navigate.simulation.fleet.post_process import (
     post_process_fleet_profile,
     post_process_investment_metric,

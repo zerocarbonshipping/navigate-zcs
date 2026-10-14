@@ -25,7 +25,7 @@ from navigate.core import (
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
-from navigate.core.wrap import to_numpy
+from navigate.core.wrap import to_floats, to_numpy
 from navigate.exceptions import UnassignedAttributeError
 from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 
@@ -61,7 +61,7 @@ class Route(Node):
 
         # conditions per leg
         self.speeds: list[ForecastInput]
-        self.capacity_utilizations: list[ForecastInput] = []
+        self.utilizations: list[ForecastInput] = []
         self.distances: list[Scalar | Expression] = []
         self.condition_distribution: list[float] = []
 
@@ -95,7 +95,11 @@ class Route(Node):
     def set_time_at_sea(self, time_at_sea: ForecastArgument) -> None:
         """Set the fraction of time spent at sea."""
         self.time_at_sea = assign_value(
-            as_scalar(time_at_sea), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(time_at_sea),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+            inclusive_lower=False,
         )
 
     def set_port_calls(
@@ -140,12 +144,12 @@ class Route(Node):
             inclusive_lower=False,
         )
 
-    def set_capacity_utilizations(
-        self, capacity_utilizations: ForecastArgument | list[ForecastArgument]
+    def set_utilizations(
+        self, utilizations: ForecastArgument | list[ForecastArgument]
     ) -> None:
         """Set the capacity utilization of each leg of the trip."""
-        entries: list[ForecastArgument] = as_list(capacity_utilizations)
-        self.capacity_utilizations = assign_list(
+        entries: list[ForecastArgument] = as_list(utilizations)
+        self.utilizations = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -180,8 +184,8 @@ class Route(Node):
 
     def apply_defaults(self) -> None:
 
-        if not self.capacity_utilizations:
-            self.capacity_utilizations = [Scalar(1.0) for _ in self.speeds]
+        if not self.utilizations:
+            self.utilizations = [Scalar(1.0) for _ in self.speeds]
 
         if (self.route_type == RouteTypeID.REGIONAL_TRIP) and not self.port_calls:
             self.port_calls = [Scalar(1.0) for _ in self.ports]
@@ -194,11 +198,10 @@ class Route(Node):
 
     def check_consistency(self) -> None:
 
-        if len(self.speeds) != len(self.capacity_utilizations):
+        if len(self.speeds) != len(self.utilizations):
             raise ValueError(
                 f"{self}: The length of 'Speeds' ({len(self.speeds)}) and "
-                f"'CapacityUtilizations' ({len(self.capacity_utilizations)}) must"
-                " correspond."
+                f"'Utilizations' ({len(self.utilizations)}) must correspond."
             )
 
         if self.route_type == RouteTypeID.ROUND_TRIP:
@@ -374,10 +377,7 @@ class Route(Node):
         """
         count = len(self.voyage_distribution)
 
-        evaluated = {
-            key: value.get(None, None)
-            for key, value in self.voyage_distribution.items()
-        }
+        evaluated = to_floats(self.voyage_distribution)
         total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
 
         return {

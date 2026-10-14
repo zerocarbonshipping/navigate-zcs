@@ -10,5 +10,5 @@ Route "operational_profile_roro_4000_ceu" {
 	TimeAtSea = 0.616
 	ConditionDistribution = [1]
 	Speeds =                [15.8]
-	CapacityUtilizations =  [0.75]
+	Utilizations =          [0.75]
 }

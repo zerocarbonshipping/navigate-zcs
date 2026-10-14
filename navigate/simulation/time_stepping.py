@@ -36,7 +36,7 @@ from navigate.simulation.fleet import (
     post_process_fleet_profile,
     post_process_investment_metric,
     record_investment_signals,
-    update_operational_profile,
+    update_operations,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
 )
@@ -184,7 +184,7 @@ class Simulation:
         self._calculate_expectations()
         self.profile.add_temporal_time(timeit.default_timer() - start_time, self._idx)
 
-        self._calculate_vessel_operational_profile()
+        self._update_vessel_operations()
         self._calculate_fuel_production_properties()
         self._calculate_fuel_logistics_properties()
 
@@ -292,14 +292,14 @@ class Simulation:
         for vessel in self.nodes.vessels.values():
             vessel.calculate_expectation(self._idx)
 
-    def _calculate_vessel_operational_profile(self) -> None:
+    def _update_vessel_operations(self) -> None:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
             allow_speed_management = fleet.allow_speed_management
 
             for vessel in fleet.vessels:
-                update_operational_profile(vessel, allow_speed_management, self._idx)
+                update_operations(vessel, allow_speed_management, self._idx)
 
         self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
 

@@ -19,9 +19,9 @@ from navigate.simulation.fleet.marginal_saving import (
     get_smoothed_energy_duals_speed,
 )
 from navigate.simulation.fleet.operation import (
-    calculate_operational_profile,
-    transfer_operational_profile,
-    transfer_operational_saving_to_vessels,
+    calculate_operations,
+    transfer_operational_savings,
+    transfer_operations,
 )
 from navigate.simulation.fleet.power import (
     calculate_speed_bounds,
@@ -96,7 +96,7 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     maximum_change = fleet.maximum_speed_change.get() * time_step / YEAR
     alignment = fleet.speed_alignment
 
-    transfer_operational_saving_to_vessels(fleet)
+    transfer_operational_savings(fleet)
 
     results = [
         _optimize_vessel_speed(vessel, maximum_change, idx) for vessel in fleet.vessels
@@ -148,7 +148,7 @@ def _initialize_speed_anchor(result: SpeedResult) -> None:
         SpeedResult from individual optimization.
     """
     speeds_reference = to_numpy(result.vessel.route.speeds)
-    operations = calculate_operational_profile(result.vessel, speeds_reference)
+    operations = calculate_operations(result.vessel, speeds_reference)
     mu_route = float(np.average(speeds_reference, weights=operations.distribution))
 
     expectation = result.vessel.expectation
@@ -236,7 +236,7 @@ def _optimize_vessel_speed(
 
     def objective(mu: float) -> float:
         speeds = _mean_to_speeds(mu, deltas_ref, speed_min, speed_max)
-        operations = calculate_operational_profile(vessel, speeds)
+        operations = calculate_operations(vessel, speeds)
 
         # apply operational savings (JIT, weather routing, etc.) to the
         # freshly computed energy before applying technology savings
@@ -309,8 +309,8 @@ def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> N
         mu_target, result.deltas_ref, result.speed_min, result.speed_max
     )
 
-    operations_actual = calculate_operational_profile(vessel, speeds_actual)
-    transfer_operational_profile(vessel, operations_actual, idx)
+    operations_actual = calculate_operations(vessel, speeds_actual)
+    transfer_operations(vessel, operations_actual, idx)
     vessel.expectation.set_speed_mean(mu_actual)
 
     profile = vessel.profile
@@ -359,7 +359,7 @@ def _calculate_reference_speed_deltas(
     speeds_reference = to_numpy(vessel.route.speeds)
 
     # the route's sea-time distribution comes from its operational profile
-    operations = calculate_operational_profile(vessel, speeds_reference)
+    operations = calculate_operations(vessel, speeds_reference)
 
     speed_mean = np.average(speeds_reference, weights=operations.distribution)
     deltas = speeds_reference - speed_mean

@@ -242,13 +242,13 @@ Route "route_regional" {
 	PortCalls = [105]
 	ConditionDistribution = [1.0]
 	Speeds = [11]
-	CapacityUtilizations = [0.75]
+	Utilizations = [0.75]
 }
 
 Route "route_roundtrip" {
 	PortDurations = [2.5, 2.5]
 	Speeds = [11, 11]
-	CapacityUtilizations = [0.85, 0.55]
+	Utilizations = [0.85, 0.55]
 	set_voyage_distribution("port_a", "port_b", 0.55)
 	set_voyage_distribution("port_b", "port_a", 0.45)
 }

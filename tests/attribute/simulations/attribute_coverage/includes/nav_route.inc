@@ -5,7 +5,7 @@
 #
 # Attributes covered:
 #   Route: RouteType, Ports, TimeAtSea, PortDurations, PortCalls,
-#          Distances, ConditionDistribution, Speeds, CapacityUtilizations
+#          Distances, ConditionDistribution, Speeds, Utilizations
 #   Port:  ShorePowerCost, ShorePowerConnectionShare
 #
 # Commands covered:
@@ -44,7 +44,7 @@ Route "route_regional" {
 	PortCalls = [100]
 	ConditionDistribution = [1.0]
 	Speeds = [10]
-	CapacityUtilizations = [0.7]
+	Utilizations = [0.7]
 }
 
 # ROUND_TRIP covers: Distances, PortDurations, set_voyage_distribution
@@ -54,7 +54,7 @@ Route "route_roundtrip" {
 	Distances = [1000, 1000]
 	PortDurations = [2, 2]
 	Speeds = [12, 12]
-	CapacityUtilizations = [0.8, 0.5]
+	Utilizations = [0.8, 0.5]
 	set_voyage_distribution("port_a", "port_b", 0.5)
 	set_voyage_distribution("port_b", "port_a", 0.5)
 }

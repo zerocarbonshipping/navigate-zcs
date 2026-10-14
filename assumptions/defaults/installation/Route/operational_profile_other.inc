@@ -10,5 +10,5 @@ Route "operational_profile_other" {
 	TimeAtSea = 0.5
 	ConditionDistribution = [1]
 	Speeds =                [14.9]
-	CapacityUtilizations = 	[0.5]
+	Utilizations =          [0.5]
 }

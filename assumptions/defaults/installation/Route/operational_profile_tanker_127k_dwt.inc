@@ -10,5 +10,5 @@ Route "operational_profile_tanker_127k_dwt" {
 	TimeAtSea = 0.51
 	ConditionDistribution = [0.01, 0.02, 0.04, 0.08, 0.19, 0.21, 0.05, 0.01, 0.01, 0.03, 0.05, 0.13, 0.14, 0.03]
 	Speeds = [7.5, 8.5, 9.5, 10.5, 11.5, 12.5, 13.5, 14.5, 8.5, 9.5, 10.5, 11.5, 12.5, 13.5]
-	CapacityUtilizations = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+	Utilizations = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
 }
