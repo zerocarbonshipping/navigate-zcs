@@ -53,11 +53,11 @@ arbiter.
 - Read and write attributes directly. Do not add a method that only returns
   or assigns an attribute, except the DSL setters, the expectation and profile
   accessors, and `.get`.
-- Prepopulate a dictionary with its full key set wherever the set is known up
-  front, so a missing key fails loudly instead of growing the dictionary. A
-  dictionary keyed by nodes or enum members is always prepopulated at
-  initialization: every node is known after parsing, and the enum types in
-  `navigate/core/enum_.py` are fixed.
+- A dictionary an expectation or profile class holds as state gets its full
+  key set at initialization and never allocates a key on first write, so a
+  missing key fails loudly instead of growing the dictionary. A dictionary
+  that code builds as a local or return value, by a loop or a comprehension,
+  is outside the rule.
 
 ## Nodes and the DSL
 
