@@ -163,7 +163,7 @@ This attribute sets the cargo capacity utilization of the various legs of the tr
 
 ### set\_voyage\_distribution
 
-This command sets the fraction of total sailing time spent traveling from 'port\_from' to 'port\_to'. The fraction is evaluated once when the deck's DEFINE block is read and again whenever an EVENTS block is read, so it does not vary between those reads.
+This command sets the share of the sea miles sailed from 'port\_from' to 'port\_to'. The share is set when the deck's DEFINE block is read and again whenever an EVENTS block is read, so it does not vary between those reads.
 
 Every ordered pair of the route's ports, a port with itself included, holds a fraction. The fractions are rescaled to sum to 1; if they are all 0, every pair gets an equal share.
 
