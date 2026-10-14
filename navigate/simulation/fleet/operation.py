@@ -241,10 +241,13 @@ def convert_to_regional_steps(
         return {demand: list(energy) for demand, energy in energy_sea.items()}
 
     fractions = route.get_voyage_distribution(to_array=True)
-    return {
-        demand: [sum(energy) * fraction for fraction in fractions]
-        for demand, energy in energy_sea.items()
-    }
+    regional: dict[EnergyDemandID, list[FloatLike]] = {}
+
+    for demand, energy in energy_sea.items():
+        total = sum(energy)
+        regional[demand] = [total * fraction for fraction in fractions]
+
+    return regional
 
 
 def _calculate_trip(operations: Operations, vessel: Vessel) -> None:
