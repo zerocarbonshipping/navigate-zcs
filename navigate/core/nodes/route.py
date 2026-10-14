@@ -7,9 +7,7 @@ from __future__ import annotations
 
 import itertools
 import logging
-from typing import TYPE_CHECKING, Literal, overload
-
-import numpy as np
+from typing import TYPE_CHECKING
 
 from navigate.core import (
     Scalar,
@@ -25,9 +23,8 @@ from navigate.core import (
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
-from navigate.core.wrap import to_floats
 from navigate.exceptions import UnassignedAttributeError
-from navigate.util import ROUND_OFF, divide_nonzero, unique_list
+from navigate.util import unique_list
 
 if TYPE_CHECKING:
     from navigate.core.expression import Expression
@@ -39,7 +36,6 @@ if TYPE_CHECKING:
         ScalarArgument,
         ScalarInput,
     )
-    from navigate.util import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +63,6 @@ class Route(Node):
 
         # regulation
         self.voyage_distribution: dict[tuple[str, str], ScalarInput] = {}
-
-        # internal variables -----------------------------------------------------------
-        self._voyage_fractions: dict[tuple[str, str], FloatArray] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_route_type(self, route_type: str) -> None:
@@ -190,12 +183,6 @@ class Route(Node):
         if (self.route_type == RouteTypeID.REGIONAL_TRIP) and not self.port_calls:
             self.port_calls = [Scalar(1.0) for _ in self.ports]
 
-    def apply_command_defaults(self) -> None:
-        # the normalized fractions are the resolved form of the command
-        # dictionary, so they are recomputed here, on every pass a command can
-        # have added a key
-        self._voyage_fractions = self._normalize_voyage_distribution()
-
     def check_consistency(self) -> None:
 
         if len(self.speeds) != len(self.utilizations):
@@ -308,80 +295,78 @@ class Route(Node):
         for key in itertools.product(names, names):
             self.voyage_distribution.setdefault(key, Scalar(0.0))
 
-    @overload
-    def get_voyage_distribution(
-        self, to_array: Literal[False] = False
-    ) -> dict[tuple[str, str], FloatArray]: ...
-
-    @overload
-    def get_voyage_distribution(self, to_array: Literal[True]) -> list[FloatArray]: ...
-
-    def get_voyage_distribution(
-        self, to_array: bool = False
-    ) -> dict[tuple[str, str], FloatArray] | list[FloatArray]:
-        """
-        Get the normalized voyage distribution, cached at (re-)initialization.
-
-        The returned mapping is shared between calls; treat it as read-only. As an
-        array, the fractions are listed in the order of `get_leg_indices`.
-        """
-        if to_array:
-            names = [port.name for port in self.ports]
-            return [
-                self._voyage_fractions[(names[i], names[j])]
-                for i, j in self.get_leg_indices()
-            ]
-
-        return self._voyage_fractions
-
-    def get_number_of_legs(self) -> int:
-        return len(self.speeds)
-
     def get_number_of_ports(self) -> int:
         return len(self.ports)
 
-    def get_leg_indices(self) -> tuple[tuple[int, int], ...]:
+    def get_legs(self) -> tuple[tuple[int, int], ...]:
         """
-        Return the (origin, destination) port-index pairs of the legs on the route.
+        Return the (origin, destination) stop indices of each leg, in canonical order.
+
+        Every per-leg value on the route is ordered as this tuple.
 
         Returns
         -------
         tuple[tuple[int, int], ...]
-            Consecutive legs for a round trip, otherwise all port-to-port
-            combinations (required for regulatory purposes).
+            Consecutive stops, the last leg returning to the first, for a
+            ROUND_TRIP; every ordered pair of ports, origin-major, for a
+            REGIONAL_TRIP.
         """
-        if self.route_type == RouteTypeID.ROUND_TRIP:
-            n_legs = self.get_number_of_legs()
-            return tuple((i, (i + 1) % n_legs) for i in range(n_legs))
-
         n_ports = self.get_number_of_ports()
+
+        if self.route_type == RouteTypeID.ROUND_TRIP:
+            return tuple((i, (i + 1) % n_ports) for i in range(n_ports))
+
         return tuple((i, j) for i in range(n_ports) for j in range(n_ports))
 
-    def local_to_global_leg_idx(self, p1: int, p2: int) -> int:
-        if self.route_type == RouteTypeID.ROUND_TRIP:
-            return p1
-
-        return p1 * self.get_number_of_ports() + p2
-
-    def get_number_of_regional_legs(self) -> int:
-        if self.route_type == RouteTypeID.ROUND_TRIP:
-            return self.get_number_of_legs()
-
-        return self.get_number_of_ports() ** 2
-
-    def _normalize_voyage_distribution(self) -> dict[tuple[str, str], FloatArray]:
+    def get_conditions(self) -> tuple[tuple[int, int], ...]:
         """
-        Normalize the voyage fractions to sum to unity, splitting equally at zero total.
+        Return the leg and the speed entry of each sailing condition, leg-major.
 
-        The values are always calculators (assignment wraps numbers in Scalar),
-        evaluated without arguments.
+        Every per-condition value on the route is ordered as this tuple. The entry
+        indexes 'Speeds' and 'Utilizations', and 'ConditionDistribution' on a
+        REGIONAL_TRIP.
+
+        Returns
+        -------
+        tuple[tuple[int, int], ...]
+            One condition per leg, its entry the leg's, for a ROUND_TRIP; every
+            entry on every leg for a REGIONAL_TRIP, whose sailing conditions are
+            route-wide.
         """
-        count = len(self.voyage_distribution)
+        n_legs = len(self.get_legs())
 
-        evaluated = to_floats(self.voyage_distribution)
-        total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
+        if self.route_type == RouteTypeID.ROUND_TRIP:
+            return tuple((leg, leg) for leg in range(n_legs))
 
-        return {
-            key: divide_nonzero(value, total, default=1.0 / count)
-            for key, value in evaluated.items()
-        }
+        entries = range(len(self.speeds))
+        return tuple((leg, entry) for leg in range(n_legs) for entry in entries)
+
+    def get_tank_stops(self) -> tuple[int, ...]:
+        """
+        Return the stops at which the bunkering tracks the fuel held in the tank.
+
+        Returns
+        -------
+        tuple[int, ...]
+            Every stop of a ROUND_TRIP; none of a REGIONAL_TRIP, whose stops follow
+            no sequence to carry fuel along.
+        """
+        if self.route_type == RouteTypeID.ROUND_TRIP:
+            return tuple(range(self.get_number_of_ports()))
+
+        return ()
+
+    def get_tank_legs(self) -> tuple[tuple[int, int], ...]:
+        """
+        Return the legs that carry the fuel tank from one tank stop to the next.
+
+        Returns
+        -------
+        tuple[tuple[int, int], ...]
+            The legs of a ROUND_TRIP except the one returning to the first stop;
+            none of a REGIONAL_TRIP.
+        """
+        if self.route_type == RouteTypeID.ROUND_TRIP:
+            return tuple((i, i + 1) for i in range(self.get_number_of_ports() - 1))
+
+        return ()

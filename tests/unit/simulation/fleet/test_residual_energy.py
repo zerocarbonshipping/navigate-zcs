@@ -32,7 +32,7 @@ from navigate.simulation.fleet.package import _refresh_combined_effects
 from navigate.simulation.fleet.residual_energy import (
     _calculate_power_transfer,
     _energy_to_power,
-    _iterate_legs_or_ports,
+    _iterate_steps,
     _power_to_energy,
     _raw_to_residual_energy,
 )
@@ -400,7 +400,7 @@ def _make_mock_vessel(converter_capacities: dict[EnergyDemandID, float]):
 
 class TestCombinedResidualEnergy:
     """
-    End-to-end test through _iterate_legs_or_ports with all three saving types.
+    End-to-end test through _iterate_steps with all three saving types.
 
     Scenario: a vessel with 20 MW propulsion and 5 MW heat converters.
     One leg of 1 day duration.
@@ -454,7 +454,7 @@ class TestCombinedResidualEnergy:
     def test_propulsion_residual(self, setup):
         """Propulsion: 10% saving + 0.5 MW external -> 856.8 GJ."""
         vessel, pkg, durations, raw_demands = setup
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
+        result = _iterate_steps(vessel, pkg, durations, raw_demands)
 
         external_energy = 0.5 * 1.0 * MWD_TO_GJ  # 43.2
         expected = 1000.0 * 0.9 - external_energy  # 856.8
@@ -463,7 +463,7 @@ class TestCombinedResidualEnergy:
     def test_heat_residual_with_transfer(self, setup):
         """Heat: no saving/external, 0.2 MW transferred from propulsion -> 482.72 GJ."""
         vessel, pkg, durations, raw_demands = setup
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
+        result = _iterate_steps(vessel, pkg, durations, raw_demands)
 
         transfer_energy = 0.2 * 1.0 * MWD_TO_GJ  # 17.28
         expected = 500.0 - transfer_energy  # 482.72
@@ -490,14 +490,14 @@ class TestCombinedResidualEnergy:
             HEAT: [np.array([500.0])],
         }
 
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
+        result = _iterate_steps(vessel, pkg, durations, raw_demands)
 
         assert result[HEAT][0] == pytest.approx(expected)
 
     def test_all_residuals_non_negative(self, setup):
         """No residual energy should ever go negative."""
         vessel, pkg, durations, raw_demands = setup
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
+        result = _iterate_steps(vessel, pkg, durations, raw_demands)
         for energy_id in result:
             for step in result[energy_id]:
                 assert np.all(step >= 0.0)
@@ -505,7 +505,7 @@ class TestCombinedResidualEnergy:
     def test_total_energy_reduced(self, setup):
         """Total residual must be strictly less than total raw demand."""
         vessel, pkg, durations, raw_demands = setup
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
+        result = _iterate_steps(vessel, pkg, durations, raw_demands)
 
         total_raw = 1000.0 + 500.0
         total_residual = np.sum(result[PROPULSION][0]) + np.sum(result[HEAT][0])
@@ -524,7 +524,7 @@ class TestCombinedResidualEnergy:
             HEAT: [np.array([500.0])],
         }
 
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
+        result = _iterate_steps(vessel, pkg, durations, raw_demands)
         assert result[HEAT][0] == pytest.approx(500.0)
 
     def test_monotonicity_adding_technology_reduces_energy(self):
@@ -539,7 +539,7 @@ class TestCombinedResidualEnergy:
         durations = [np.array([1.0])]
         raw_demands = {PROPULSION: [np.array([1000.0])]}
 
-        r1 = _iterate_legs_or_ports(vessel, pkg_one, durations, raw_demands)
-        r2 = _iterate_legs_or_ports(vessel, pkg_two, durations, raw_demands)
+        r1 = _iterate_steps(vessel, pkg_one, durations, raw_demands)
+        r2 = _iterate_steps(vessel, pkg_two, durations, raw_demands)
 
         assert np.all(r2[PROPULSION][0] <= r1[PROPULSION][0])

@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import BunkerScopeID, EnergyDemandID, FuelTypeID, RouteTypeID
+from navigate.core.enum_ import BunkerScopeID, EnergyDemandID, FuelTypeID
+from navigate.simulation.policy import leg_jurisdiction_fraction
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
@@ -219,7 +220,7 @@ def _calculate_operational_demand_in_port_jurisdiction(
     """
     expectation = vessel.expectation
 
-    operational_demand_sea = expectation.get_operational_energy_sea(idx=idx)
+    operational_demand_sea = expectation.get_operational_energy_sea_leg(idx=idx)
     operational_demand_port = expectation.get_operational_energy_port(idx=idx)
 
     return _calculate_energy_in_port_jurisdiction(
@@ -236,6 +237,9 @@ def _calculate_energy_in_port_jurisdiction(
     """
     Calculate the energy demand or spend for a vessel within a port's jurisdiction.
 
+    A stop at the port counts wholly to its jurisdiction. A leg counts wholly when it
+    starts and ends at the port, and half when only one of its ends is the port.
+
     Parameters
     ----------
     vessel
@@ -243,9 +247,10 @@ def _calculate_energy_in_port_jurisdiction(
     port
         Port for which energy calculation is made.
     energy_sea
-        Energy per leg at sea (either demand or spend).
+        Energy at sea per leg, in the order of `Route.get_legs` (either demand or
+        spend).
     energy_port
-        Energy per port (either demand or spend).
+        Energy in port per stop (either demand or spend).
 
     Returns
     -------
@@ -253,7 +258,6 @@ def _calculate_energy_in_port_jurisdiction(
         Energy used within the port jurisdiction.
     """
     route = vessel.route
-    route_type = route.route_type
     ports = route.ports
 
     timeline_shape = np.shape(energy_sea[EnergyDemandID.PROPULSION][0])
@@ -262,46 +266,19 @@ def _calculate_energy_in_port_jurisdiction(
     if port not in ports:
         return energy
 
-    # a voyage between two ports counts half to the jurisdiction of each
-    jurisdiction_fraction = 0.5
+    jurisdiction = [port]
+    leg_fractions = [
+        leg_jurisdiction_fraction(ports[i], ports[e], jurisdiction, 1.0, 0.5, 0.0)
+        for i, e in route.get_legs()
+    ]
 
-    if route_type == RouteTypeID.REGIONAL_TRIP:
-        port_idx = ports.index(port)
-        port_name = port.name
+    for energy_id, energy_stops in energy_port.items():
+        for stop_port, energy_stop in zip(ports, energy_stops, strict=True):
+            if stop_port == port:
+                energy[energy_id] += energy_stop
 
-        voyage_distribution = route.get_voyage_distribution()
-
-        for energy_id in EnergyDemandID:
-            total_energy_sea = np.add.reduce(np.asarray(energy_sea[energy_id]))
-
-            for (p_from, p_to), fraction in voyage_distribution.items():
-                if (p_from == p_to) and p_from == port_name:
-                    energy[energy_id] += total_energy_sea * fraction
-
-                elif (p_from == port_name) or (p_to == port_name):
-                    energy[energy_id] += (
-                        jurisdiction_fraction * total_energy_sea * fraction
-                    )
-
-            if energy_id != EnergyDemandID.PROPULSION:
-                energy[energy_id] += energy_port[energy_id][port_idx]
-
-    else:
-        n_legs = route.get_number_of_legs()
-
-        for energy_id in EnergyDemandID:
-            for p, route_port in enumerate(ports):
-                if route_port == port and energy_id != EnergyDemandID.PROPULSION:
-                    energy[energy_id] += energy_port[energy_id][p]
-
-            for leg in range(n_legs):
-                port_from = ports[leg]
-                # the last leg returns to the first port
-                port_to = ports[(leg + 1) % n_legs]
-
-                if (port_from == port) or (port_to == port):
-                    energy[energy_id] += (
-                        jurisdiction_fraction * energy_sea[energy_id][leg]
-                    )
+    for energy_id, energy_legs in energy_sea.items():
+        for fraction, energy_leg in zip(leg_fractions, energy_legs, strict=True):
+            energy[energy_id] += fraction * energy_leg
 
     return energy

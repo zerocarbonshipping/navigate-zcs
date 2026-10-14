@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import navigate.core.enum_ as enum_
 from navigate.simulation.bunker._build import add_variable
 from navigate.simulation.bunker.utils import get_converters, get_port_converters
 
@@ -34,7 +33,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     converters = get_converters(vessel)
     port_converters = get_port_converters(vessel)
     fuels_per_converter = alg.fuels_per_converter
-    leg_idx = route.get_leg_indices()
+    leg_idx = route.get_legs()
     port_idx = range(len(ports))
 
     for p, port in enumerate(ports):
@@ -55,10 +54,9 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             for p in port_idx:
                 add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
 
-    if route.route_type == enum_.RouteTypeID.ROUND_TRIP:
-        for p in port_idx:
-            for f in usable_fuels:
-                add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank")
+    for p in route.get_tank_stops():
+        for f in usable_fuels:
+            add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank")
 
     vessel_capacity = vessel.expectation.get_shore_power_capacity(alg.idx)
 

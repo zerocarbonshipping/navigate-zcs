@@ -55,8 +55,7 @@ must not grow:
 - `_AssetManager`'s `update_increment_ages`, `_age_increments`,
   `define_initial_age` and `define_initial_multipliers`, with the hooks
   `Fleet` and `Producer` implement for them, and
-  `Producer.define_initial_decided`;
-- `Route._normalize_voyage_distribution`.
+  `Producer.define_initial_decided`.
 
 ## Layering
 

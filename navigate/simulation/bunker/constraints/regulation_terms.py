@@ -98,7 +98,7 @@ def calculate_regulation_emission_term(
 
     # at sea, weighted per leg by its ports' jurisdiction membership
     sea_terms = []
-    for port_start, port_end in route.get_leg_indices():
+    for port_start, port_end in route.get_legs():
         fraction = leg_jurisdiction_fraction(
             ports[port_start],
             ports[port_end],

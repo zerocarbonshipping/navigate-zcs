@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.fleet.operation import convert_to_regional_steps
 from navigate.simulation.fleet.residual_energy import calculate_residual_energy
+from navigate.simulation.fleet.trip import sum_energy_per_leg
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -106,15 +106,13 @@ def calculate_marginal_technology_saving(
     FloatArray
         Marginal cost saving at each of the time-steps, USD/year.
     """
-    # the shadow prices are given per regional step, so the per-leg residual energy
-    # is converted to regional steps
     residual_energy_sea, residual_energy_port = calculate_residual_energy(
         vessel, package, idx
     )
-    residual_energy_sea = convert_to_regional_steps(vessel, residual_energy_sea)
+    residual_energy_sea_leg = sum_energy_per_leg(vessel.route, residual_energy_sea)
 
     baseline_energy_sea = _as_step_arrays(
-        vessel.expectation.get_regional_operational_energy_sea()
+        vessel.expectation.get_operational_energy_sea_leg()
     )
     baseline_energy_port = _as_step_arrays(
         vessel.expectation.get_operational_energy_port()
@@ -125,7 +123,7 @@ def calculate_marginal_technology_saving(
     # a slice of time-steps always yields an array
     return np.asarray(
         _calculate_marginal_saving(
-            residual_energy_sea,
+            residual_energy_sea_leg,
             residual_energy_port,
             baseline_energy_sea,
             baseline_energy_port,
@@ -159,7 +157,7 @@ def calculate_marginal_speed_saving(
     vessel
         Vessel whose speed changes.
     residual_energy_sea
-        Residual energy at sea per energy demand type and leg, GJ/year.
+        Residual energy at sea per energy demand type and condition, GJ/year.
     residual_energy_port
         Residual energy in port per energy demand type and port, GJ/year.
     idx
@@ -174,7 +172,7 @@ def calculate_marginal_speed_saving(
     float
         Marginal cost saving, USD/year.
     """
-    residual_energy_sea = convert_to_regional_steps(vessel, residual_energy_sea)
+    residual_energy_sea_leg = sum_energy_per_leg(vessel.route, residual_energy_sea)
 
     baseline_energy_sea = vessel.expectation.get_energy_conservation_rhs_sea()
     baseline_energy_port = vessel.expectation.get_energy_conservation_rhs_port()
@@ -183,7 +181,7 @@ def calculate_marginal_speed_saving(
 
     return float(
         _calculate_marginal_saving(
-            residual_energy_sea,
+            residual_energy_sea_leg,
             residual_energy_port,
             baseline_energy_sea,
             baseline_energy_port,

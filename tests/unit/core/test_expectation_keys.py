@@ -47,11 +47,11 @@ class _Route:
     def __init__(self, port_names):
         self.ports = [_Port(name) for name in port_names]
 
-    def get_number_of_legs(self):
-        return len(self.ports)
+    def get_conditions(self):
+        return tuple((i, i) for i in range(len(self.ports)))
 
-    def get_number_of_regional_legs(self):
-        return len(self.ports)
+    def get_legs(self):
+        return tuple((i, i) for i in range(len(self.ports)))
 
     def get_number_of_ports(self):
         return len(self.ports)
