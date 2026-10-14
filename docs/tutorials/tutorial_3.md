@@ -5,6 +5,14 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Tutorial 3
 
+```{button-link} tutorial_3.zip
+:color: primary
+
+Download the tutorial 3 files
+```
+
+The download holds the folder `tutorial_3` with the empty working files that you copy into your own folder structure during this tutorial. Unzip it where you want to work. An [example solution](#example-solution) is at the bottom of this page.
+
 **Why are you doing this tutorial?**
 
 The purpose of this tutorial is to introduce you to the concept of modularization of the Navigate files. Essentially splitting the instructions into multiple `.inc` files in order to make them more readable and easier to maintain and update. This is especially relevant when working with scenarios, uncertainties, and sensitivities where there are often only a handful of assumptions that are changed while the majority remain the same across all simulations.
@@ -142,7 +150,7 @@ There are multiple different ways/logics of how you could split the content of t
 
 Each section in the list represents a separate `.inc` file in the new file structure.
 
-We have taken the liberty of creating empty working files for you in the folder `tutorial_3` that you can copy into your newly constructed simulation environment. The `.inc` files should be copied into `0_includes_global` subfolders and the `.nav` files should be placed in the respective scenario folders.
+We have taken the liberty of creating empty working files for you in the folder `tutorial_3` from the download at the top of this page that you can copy into your newly constructed simulation environment. The `.inc` files should be copied into `0_includes_global` subfolders and the `.nav` files should be placed in the respective scenario folders.
 
 ### DEFINE File: General Nodes
 
@@ -521,7 +529,7 @@ Open the terminal and change directory to where the tutorial simulation files ar
 
 ```bash
 # Example cd workflow (linux)
-cd tutorial/tutorial_3/tutorial_3_scenarios/baseline/
+cd tutorial_3/tutorial_3_scenarios/baseline/
 
 # Run Navigate
 navigate baseline.nav
@@ -759,3 +767,799 @@ Report "report" {
 4. In each scenario `.nav` file (`baseline.nav`, `scenario_100.nav` and `scenario_170.nav`), inside the `DEFINE` block add the line `Include "../../0_includes_global/report.inc"`, placing it just before the `plot.inc` include. If you only add it to `baseline.nav`, the other two scenarios will run but produce no Excel report.
 5. Run the Baseline scenario in Navigate
 
+## Example solution
+
+One way to complete this tutorial. Each box holds one file, at its path inside the `tutorial_3` folder.
+
+:::{dropdown} tutorial_3_scenarios/baseline/baseline.nav
+```python
+# baseline.nav file for tutorial 3
+
+DEFINE {	
+				
+	### model definition and general conditions
+	Include "../../0_includes_global/model_definition.inc"
+	
+	# fleets
+	Include "../../0_includes_global/fleet_bulk.inc"
+	Include "../../0_includes_global/fleet_container.inc"
+	Include "../../0_includes_global/fleet_uptake.inc"
+	
+	# vessels
+	Include "../../0_includes_global/container_ice_oil.inc"
+	Include "../../0_includes_global/container_ice_methane.inc"
+	Include "../../0_includes_global/bulk_ice_methanol.inc"
+	Include "../../0_includes_global/bulk_ice_ammonia.inc"
+	Include "../../0_includes_global/tanks.inc"
+
+	# route
+	Include "../../0_includes_global/route.inc"
+	
+	# port
+	Include "../../0_includes_global/port.inc"
+	
+	# fuels
+	Include "../../0_includes_global/plant.inc"
+	Include "../../0_includes_global/fuel.inc"
+	Include "../../0_includes_global/process.inc"
+	Include "../../0_includes_global/feedstock.inc"
+
+	
+	# costs and emission of fuels
+	Include "../../0_includes_global/source.inc"
+	Include "../../0_includes_global/region.inc"
+    Include "../../0_includes_global/emissions.inc"
+
+	# producer
+	Include "../../0_includes_global/producer.inc"
+	Include "../../0_includes_global/producer_uptake.inc"
+	
+	# report
+	Include "../../0_includes_global/report.inc"
+
+	# plots
+	Include "../../0_includes_global/plot.inc"
+}
+
+
+EVENTS {					
+	# engine availability
+	
+	# fuels available
+	
+	# time steps
+	Include "../../0_includes_global/time_steps_yearly.inc"
+}
+```
+:::
+
+:::{dropdown} tutorial_3_scenarios/scenario_100/scenario_100.nav
+```python
+# scenario_100.nav file for tutorial 3
+
+DEFINE {	
+				
+	### model definition and general conditions
+	Include "../../0_includes_global/model_definition.inc"
+	
+	# fleets
+	Include "../../0_includes_global/fleet_bulk.inc"
+	Include "../../0_includes_global/fleet_container.inc"
+	Include "../../0_includes_global/fleet_uptake.inc"
+	
+	# vessels
+	Include "../../0_includes_global/container_ice_oil.inc"
+	Include "../../0_includes_global/container_ice_methane.inc"
+	Include "../../0_includes_global/bulk_ice_methanol.inc"
+	Include "../../0_includes_global/bulk_ice_ammonia.inc"
+	Include "../../0_includes_global/tanks.inc"
+
+	# route
+	Include "../../0_includes_global/route.inc"
+	
+	# port
+	Include "../../0_includes_global/port.inc"
+	
+	# fuels
+	Include "../../0_includes_global/plant.inc"
+	Include "../../0_includes_global/fuel.inc"
+	Include "../../0_includes_global/process.inc"
+	Include "../../0_includes_global/feedstock.inc"
+	
+	
+	# costs and emission of fuels
+	Include "../../0_includes_global/source.inc"
+	Include "../../0_includes_global/region.inc"
+    Include "../../0_includes_global/emissions.inc"
+
+	# producer
+	Include "../../0_includes_global/producer.inc"
+	Include "../../0_includes_global/producer_uptake.inc"
+
+	# report
+	Include "../../0_includes_global/report.inc"
+
+	# plots
+	Include "../../0_includes_global/plot.inc"
+
+
+	Include "../0_includes_local/scenario_100.inc"
+}
+
+
+EVENTS {					
+	# engine availability
+	
+	# fuels available
+	
+	# time steps
+	Include "../../0_includes_global/time_steps_yearly.inc"
+}
+```
+:::
+
+:::{dropdown} tutorial_3_scenarios/scenario_170/scenario_170.nav
+```python
+# scenario_170.nav file for tutorial 3
+
+DEFINE {	
+				
+	### model definition and general conditions
+	Include "../../0_includes_global/model_definition.inc"
+	
+	# fleets
+	Include "../../0_includes_global/fleet_bulk.inc"
+	Include "../../0_includes_global/fleet_container.inc"
+	Include "../../0_includes_global/fleet_uptake.inc"
+	
+	# vessels
+	Include "../../0_includes_global/container_ice_oil.inc"
+	Include "../../0_includes_global/container_ice_methane.inc"
+	Include "../../0_includes_global/bulk_ice_methanol.inc"
+	Include "../../0_includes_global/bulk_ice_ammonia.inc"
+	Include "../../0_includes_global/tanks.inc"
+
+	# route
+	Include "../../0_includes_global/route.inc"
+	
+	# port
+	Include "../../0_includes_global/port.inc"
+	
+	# fuels
+	Include "../../0_includes_global/plant.inc"
+	Include "../../0_includes_global/fuel.inc"
+	Include "../../0_includes_global/process.inc"
+	Include "../../0_includes_global/feedstock.inc"
+	
+	# costs and emission of fuels
+	Include "../../0_includes_global/source.inc"
+	Include "../../0_includes_global/region.inc"
+    Include "../../0_includes_global/emissions.inc"
+
+	# producer
+	Include "../../0_includes_global/producer.inc"
+	Include "../../0_includes_global/producer_uptake.inc"
+
+	# report
+	Include "../../0_includes_global/report.inc"
+
+	# plots
+	Include "../../0_includes_global/plot.inc"
+
+	Include "../0_includes_local/scenario_170.inc"
+}
+
+
+EVENTS {					
+	# engine availability
+	
+	# fuels available
+	
+	# time steps
+	Include "../../0_includes_global/time_steps_yearly.inc"
+}
+```
+:::
+
+:::{dropdown} tutorial_3_scenarios/0_includes_local/scenario_100.inc
+```python
+# Definition of port with alternative bunkering price
+Port "port" {
+	set_bunker_price_overwrite("heavy_fuel_oil", 100)
+}
+```
+:::
+
+:::{dropdown} tutorial_3_scenarios/0_includes_local/scenario_170.inc
+```python
+# Definition of port with alternative bunkering price
+Port "port" {
+	set_bunker_price_overwrite("heavy_fuel_oil", 170)
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/bulk_ice_ammonia.inc
+```python
+# The ammonia powered bulk vessel incl. powersystem and converters
+
+Vessel "bulk_ice_ammonia" {
+	PowerSystem = PowerSystem("ice_ammonia") 	
+	Route = Route("route") 		
+	NominalCapacity = 8000
+	Tanks = [Tank("pilot_oil"), Tank("main_ammonia")]	
+	PropulsionLoad = 10
+}
+
+PowerSystem "ice_ammonia" {
+	Propulsion = Converter("propulsion_ice_ammonia")
+	Electrical = Converter("electrical_ice_ammonia")
+	Heat = Converter("heat_boiler_oil")
+}
+
+Converter "propulsion_ice_ammonia" { 
+	PowerCapacity = 50 			  
+	MainFuelTypes = AMMONIA
+	PilotFuelTypes = OIL
+	MinimumPilotFuel = 0.05	
+	Efficiency = 0.51
+}
+
+Converter "electrical_ice_ammonia" { 
+	PowerCapacity = 10 
+	MainFuelTypes = AMMONIA 
+	PilotFuelTypes = OIL
+	MinimumPilotFuel = 0.05
+	Efficiency = 0.5
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/bulk_ice_methanol.inc
+```python
+# The methanol powered bulk vessel incl. powersystem and converters
+
+Vessel "bulk_ice_methanol" {
+	PowerSystem = PowerSystem("ice_methanol") 	
+	Route = Route("route") 		
+	NominalCapacity = 8000
+	Tanks = [Tank("pilot_oil"), Tank("main_methanol")] 
+	PropulsionLoad = 10
+}
+
+PowerSystem "ice_methanol" {
+	Propulsion = Converter("propulsion_ice_methanol")
+	Electrical = Converter("electrical_ice_methanol")
+	Heat = Converter("heat_boiler_oil")
+}
+
+Converter "propulsion_ice_methanol" { 
+	PowerCapacity = 50 			  
+	MainFuelTypes = METHANOL 
+	PilotFuelTypes = OIL
+	MinimumPilotFuel = 0.05	
+	Efficiency = 0.51
+}
+
+Converter "electrical_ice_methanol" { 
+	PowerCapacity = 10 
+	MainFuelTypes = METHANOL
+	PilotFuelTypes = OIL
+	MinimumPilotFuel = 0.05
+	Efficiency = 0.5
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/container_ice_methane.inc
+```python
+# The methane powered container vessel incl. powersystem and converters
+
+Vessel "container_ice_methane" {
+	PowerSystem = PowerSystem("ice_methane") 	
+	Route = Route("route") 		
+	NominalCapacity = 8000
+	Tanks = [Tank("pilot_oil"), Tank("main_methane")]
+	PropulsionLoad = 10
+}
+
+PowerSystem "ice_methane" {
+	Propulsion = Converter("propulsion_ice_methane")
+	Electrical = Converter("electrical_ice_methane")
+	Heat = Converter("heat_boiler_oil")
+}
+
+Converter "propulsion_ice_methane" { 
+	PowerCapacity = 50 			  
+	MainFuelTypes = METHANE 	
+	PilotFuelTypes = OIL
+	MinimumPilotFuel = 0.05
+	Efficiency = 0.51
+	set_slip_fraction(METHANE, 0.01)
+}
+
+Converter "electrical_ice_methane" { 
+	PowerCapacity = 10 
+	MainFuelTypes = METHANE
+	PilotFuelTypes = OIL
+	MinimumPilotFuel = 0.05
+	Efficiency = 0.5
+	set_slip_fraction(METHANE, 0.01)
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/container_ice_oil.inc
+```python
+# The fuel oil powered container vessel incl. powersystem and converters
+
+Vessel "container_ice_oil" {
+	PowerSystem = PowerSystem("ice_oil") 	
+	Route = Route("route") 		
+	NominalCapacity = 8000
+	Tanks = [Tank("main_oil")]						
+	PropulsionLoad = 10
+}
+
+PowerSystem "ice_oil" {
+	Propulsion = Converter("propulsion_ice_oil")
+	Electrical = Converter("electrical_ice_oil")
+	Heat = Converter("heat_boiler_oil")
+}
+
+Converter "propulsion_ice_oil" { 
+	PowerCapacity = 50 			  
+	MainFuelTypes = OIL
+	Efficiency = 0.51
+}
+
+Converter "electrical_ice_oil" { 
+	PowerCapacity = 10 
+	MainFuelTypes = OIL
+	Efficiency = 0.5
+}
+ 
+Converter "heat_boiler_oil" {
+	PowerCapacity = 5  
+	MainFuelTypes = OIL
+	Efficiency = 0.5
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/emissions.inc
+```python
+Emission "carbon_dioxide" {
+	GlobalWarmingPotential = 1
+}
+
+Emission "methane" {
+	GlobalWarmingPotential = 25
+}
+
+Emission "nitrous_oxide" {
+	GlobalWarmingPotential = 273
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/feedstock.inc
+```python
+# Definition of feedstocks
+
+# Definition of "demineralized_water"
+Feedstock "demineralized_water" {	
+}
+
+# Definition of "carbon_dioxide_biogenic" 
+Feedstock "carbon_dioxide_biogenic" {
+}
+
+# Definition of "organic_wet_waste"
+Feedstock "organic_wet_waste" {
+}
+
+# Definition of "dry_wood_biomass"
+Feedstock "dry_wood_biomass" {
+}
+
+# Definition of feedstock "natural_gas"
+Feedstock "natural_gas" {
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/fleet_bulk.inc
+```python
+# Definition of bulk fleet
+
+Fleet "bulk_fleet" {	
+	Vessels = [Vessel("bulk_ice_methanol"), Vessel("bulk_ice_ammonia")] 	
+	InitialVessels = 100
+	TradeGrowth = 0.05
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/fleet_container.inc
+```python
+# Definition of container fleet
+
+Fleet "container_fleet" {	
+	Vessels = [Vessel("container_ice_oil"), Vessel("container_ice_methane")] 	
+	InitialVessels = 100 
+	TradeGrowth = 0.05
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/fleet_uptake.inc
+```python
+# Definition of fleets' decision sensitivities (odds ratios; LCOT is lower-is-better, so below 1)
+
+Fleet "*" {
+	InterFuelSensitivity = 0.5
+	IntraFuelSensitivity = 0.5
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/fuel.inc
+```python
+# Definition of fuels
+
+
+# Definition of "heavy_fuel_oil"
+Fuel "heavy_fuel_oil" {
+	FuelType = OIL
+	LiquidMarket = TRUE
+
+	LowerHeatingValue = 41.2
+	MassDensity = 0.9
+	
+	set_ttw("carbon_dioxide", 3.114)
+	set_ttw("methane", 0.00005)
+	set_ttw("nitrous_oxide", 0.00018)
+}
+
+
+# Definition of "methane_electro" 
+Fuel "methane_electro" {
+	FuelType = METHANE
+
+	LowerHeatingValue = 50.0
+	MassDensity = 0.43
+	
+	set_ttw("carbon_dioxide", 2.75)
+}
+
+# Definition of "methanol_bio" 
+Fuel "methanol_bio" {
+	FuelType = METHANOL
+
+	LowerHeatingValue = 19.9
+	MassDensity = 0.791
+	
+	set_ttw("carbon_dioxide", 1.38)
+}
+
+# Definition of "ammonia_blue" 
+Fuel "ammonia_blue" {
+	FuelType = AMMONIA
+
+	LowerHeatingValue = 18.8
+	MassDensity = 0.623
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/model_definition.inc
+```python
+# The model definition.
+
+ModelDefinition {
+	StartDate = "01/01/2025"
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/plant.inc
+```python
+# Definition of fuel production plants
+
+
+# e-methane -------------------------------------------------------
+Plant "plant_methane_electro" {     #e-methane plant difinition
+	Fuel = Fuel("methane_electro")      #difinition of fuel: e-methane with CCS from point source
+	Process = Process("methane_liquefaction_electro")  #Process turning methane gas into LBiquefied Methane - the condition methane needs to be turned into to be a sailable fuel
+	Region = Region("region")        #Definition of the region where the plant is positioned
+	Source = Source("renewable")  #sustainable e-fuels are sourced from wind and solar power
+	Capacity = 1000   #The plant capacity
+}
+
+
+# bio-methanol -------------------------------------------------------
+Plant "plant_methanol_bio_gasification" {
+	Fuel = Fuel("methanol_bio")
+	Process = Process("methanol_synthesis_bio_gasification")
+	Region = Region("region")
+	Source = Source("grid")
+	
+	Capacity = 1000
+}
+
+#  blue ammonia -------------------------------------------------------
+Plant "plant_ammonia_blue" {
+	Fuel = Fuel("ammonia_blue")
+	Process = Process("haber_bosch_ccs_integrated_blue")
+	Region = Region("region")
+	Source = Source("grid")
+	Capacity = 1000
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/plot.inc
+```python
+# Definition of the plots produced for each scenario.
+# Directory points at the "plots" subfolder of the scenario; each add_plot(...)
+# selects one plot to produce.
+
+Plot "plots" {
+	Directory = "./plots/"
+
+	add_plot("global_emission_absolute")
+	add_plot("global_fuel_consumed")
+	add_plot("plant_production_cost")
+	add_plot("port_bunker_price")
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/port.inc
+```python
+# Definition of port
+Port "port" {
+	set_bunker_price_overwrite("heavy_fuel_oil", 250)
+	set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/process.inc
+```python
+# Definition of fuel processing
+
+# Definition of "methane_liquefaction_electro"
+Process "methane_liquefaction_electro" {  
+	Feeds = [Process("methane_synthesis_electro")]
+	Conversions = [1]
+}
+
+# Definition of "methane_synthesis_electro" 
+Process "methane_synthesis_electro" {  
+	Feeds = [Feedstock("demineralized_water"), Feedstock("carbon_dioxide_biogenic")]
+	Conversions = [0.5, 2.75]  
+}
+
+
+# Definition of "methanol_synthesis_bio_gasification"
+Process "methanol_synthesis_bio_gasification" {
+	Feeds = [Feedstock("organic_wet_waste"), Feedstock("dry_wood_biomass")]
+	Conversions = [1.21, 1.21]
+}
+
+# Definition of "haber_bosch_ccs_integrated_blue"
+Process "haber_bosch_ccs_integrated_blue" {				
+	Feeds = [Process("nitrogen_air_seperation"), Feedstock("natural_gas")]
+	Conversions = [0.64, 0.822]						
+}
+
+# Definition of "nitrogen_air_seperation"
+Process "nitrogen_air_seperation" {
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/producer.inc
+```python
+# Definition of Producer
+
+Producer "engineering_procurement_construction" {
+	Plants = [Plant("plant_methane_electro"), Plant("plant_methanol_bio_gasification"), Plant("plant_ammonia_blue")]
+	FuelDemandSensitivity = 1.5
+	FuelCostSensitivity = 0.5
+
+	MaximumDevelopment = 10
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/producer_uptake.inc
+```python
+# Producer decision sensitivities are now set directly on the Producer in producer.inc
+# (FuelDemandSensitivity, FuelCostSensitivity), so no separate uptake definitions are needed here.
+```
+:::
+
+:::{dropdown} 0_includes_global/region.inc
+```python
+# Definition of region
+
+Region "region" {
+#set CapEx, OpEx, Process and feedstock WTT emissions for the different processes that produces the alternative fuels. The expensens and emissions related to the production of the fuels depend on the region.
+
+### E-methane ###
+	set_process_capex("methane_synthesis_electro", 100)
+	set_process_opex("methane_liquefaction_electro", 88)
+	set_process_energy("methane_synthesis_electro", 0.4)
+	# liquefied e-methane
+	set_process_capex("methane_liquefaction_electro", 200)
+	set_process_energy("methane_liquefaction_electro", 0.6)
+	# Set WTT feedstock emissions below:
+	set_feedstock_wtt("carbon_dioxide_biogenic", "carbon_dioxide", -1)
+	# Set WTT process emissions below:
+	set_process_wtt("methane_liquefaction_electro", "carbon_dioxide", 0.5)
+
+### Bio-methanol ###
+	set_process_capex("methanol_synthesis_bio_gasification", 180)
+	set_process_opex("methanol_synthesis_bio_gasification", 100)
+	set_process_energy("methanol_synthesis_bio_gasification", 0.52)
+	set_process_wtt("methanol_synthesis_bio_gasification", "carbon_dioxide", -1.35)
+	set_process_wtt("methanol_synthesis_bio_gasification", "methane", 0.00005)
+	set_process_wtt("methanol_synthesis_bio_gasification", "nitrous_oxide", 0.00018)
+	
+
+### Blue ammonia ###
+	set_process_capex("haber_bosch_ccs_integrated_blue", 200)
+	set_process_opex("haber_bosch_ccs_integrated_blue", 50	) # combining ammonia plant opex and cost of CCS
+	set_process_energy("haber_bosch_ccs_integrated_blue", 0.25)
+	
+	# Set WTT feedstock emissions below:
+	set_feedstock_wtt("natural_gas", "carbon_dioxide", 0.11)
+	set_feedstock_wtt("natural_gas", "methane", 0.0073)
+	set_process_wtt("haber_bosch_ccs_integrated_blue", "carbon_dioxide", 0.180) #adding missing ccs of some carbon here
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/report.inc
+```python
+# Export results to a subfolder called "plots".
+# An error is raised if no such folder is found.
+
+Report "report" {
+
+	# Export results to a subfolder called "plots".
+	# An error is raised if no such folder is found.
+	Directory = "./plots/"
+	
+		
+	# port
+	add_port_property("*", BunkerIntensityPrice)				# USD/GJ
+	add_port_property("*", BunkerIntensityTotalEquivalentWtt)	# kg / GJ
+		
+	# fleet
+	add_fleet_property("*", TotalEquivalentWtt)		# ton/year
+	add_fleet_property("*", TotalEquivalentTtw)		# ton/year
+	add_fleet_property("*", TotalEquivalentWtw)		# ton/year
+	add_fleet_property("*", TotalConsumedEnergy)	# GJ/year
+
+	# global
+	add_property(TotalEquivalentWtt)				# ton/year
+	add_property(TotalEquivalentTtw)				# ton/year
+	add_property(TotalEquivalentWtw)				# ton/year
+	add_property(TotalConsumedEnergy)				# GJ/year
+	add_property(ConsumedEnergy)					# GJ/year
+	add_property(InstalledPower)					# MW
+	
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/route.inc
+```python
+# Definition of route 
+
+Route "route" {
+	RouteType = REGIONAL_TRIP 		
+	Ports = [Port("port")]
+	TimeAtSea = 0.75		
+	ConditionDistribution = [1.0] 
+	Speeds = [10]
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/source.inc
+```python
+# Definition of vessel finance
+
+#Source of electricity for production of fuels
+Source "renewable" {
+	Dependency = CONNECTED
+}
+
+Source "grid" {  #blue and bio fuels sources electricity from the grid in the region where it is being produced.
+	Dependency = CONNECTED
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/tanks.inc
+```python
+# Definition of the pilot fuel tanks.  
+
+Tank "pilot_oil" { 			
+	FuelTypes = OIL
+	Size = 2000 	
+}
+
+# Definition of main fuel tanks
+
+Tank "main_oil" { 			
+	FuelTypes = OIL
+	Size = 9000 	
+}
+
+Tank "main_methane" { 			
+	FuelTypes = METHANE 			
+	Size = 9000 	
+}
+
+Tank "main_methanol" { 			
+	FuelTypes = METHANOL 			
+	Size = 9000 	
+}
+
+Tank "main_ammonia" { 			
+	FuelTypes = AMMONIA 			
+	Size = 9000 	
+}
+```
+:::
+
+:::{dropdown} 0_includes_global/time_steps_yearly.inc
+```python
+# This events file defines the timeline for the fleet transition module.
+
+# Define the Start below.
+
+Start
+
+# A) TIME STEPS AND END OF TIMELINE
+# Define annual time steps below.
+Date "01-01-2025"
+Date "01-01-2026"
+Date "01-01-2027"
+Date "01-01-2028"
+Date "01-01-2029"
+Date "01-01-2030"
+Date "01-01-2031"
+Date "01-01-2032"
+Date "01-01-2033"
+Date "01-01-2034"
+Date "01-01-2035"
+Date "01-01-2036"
+Date "01-01-2037"
+Date "01-01-2038"
+Date "01-01-2039"
+Date "01-01-2040"
+Date "01-01-2041"
+Date "01-01-2042"
+Date "01-01-2043"
+Date "01-01-2044"
+Date "01-01-2045"
+Date "01-01-2046"
+Date "01-01-2047"
+Date "01-01-2048"
+Date "01-01-2049"
+Date "01-01-2050"
+
+# Define the End of the timeline.
+
+End
+
+### END OF time_steps_yearly.inc FILE
+```
+:::

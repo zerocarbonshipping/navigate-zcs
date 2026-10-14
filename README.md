@@ -17,7 +17,7 @@ Users are responsible for selecting and adapting assumptions appropriate to thei
 
 ## Tutorials and Example Simulations
 
-Detailed installation guide, step-by-step tutorials and a full reference manual are available in the [documentation](https://zerocarbonshipping.github.io/navigate-zcs/). The tutorial project files live in the `tutorials/` folder.
+Detailed installation guide, step-by-step tutorials and a full reference manual are available in the [documentation](https://zerocarbonshipping.github.io/navigate-zcs/). Each tutorial page offers its starting files as a download.
 Some simple example simulations can be found under `simulations/examples`
 
 ## Installation

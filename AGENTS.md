@@ -53,10 +53,11 @@ every change. The detail lives in the files it points to.
   content under CC-BY-4.0, not code.
 - `simulations/` — `scenarios/` are the reference runs, about 25 minutes
   each; they are not tests. `examples/` are small decks that CI smoke-runs.
-- `tutorials/` — teaching decks with example solutions, also smoke-run in
-  CI.
 - `docs/` — the Sphinx/MyST source of the user manual. It publishes to
-  `gh-pages`; `dev` publishes to `/staging/`.
+  `gh-pages`; `dev` publishes to `/staging/`. `docs/tutorials/` holds each
+  tutorial's starting files next to its page; the docs build zips them into
+  the page's download, and the example solution is written into the page.
+  Nothing runs the tutorials.
 - `syntax/` — editor syntax highlighting for the DSL, including a committed
   VS Code `.vsix`.
 
@@ -80,14 +81,14 @@ each other's files, and the test suites run decks too.
 - `make lint` runs `ruff check` and `ruff format --check` over `navigate/`
   and `tests/`, `mypy` over `navigate/` only, and `reuse lint`.
 - The test targets are `test-unit`, `test-attribute`, `test-guardrails`,
-  `test-regression`, `test-tutorials`, `test-examples` and `test-all`. What
+  `test-regression`, `test-examples` and `test-all`. What
   each suite answers, how long it takes and its conventions are documented
   under `tests/`. `test-guardrails` is suspended and is not part of
   `test-all`; the status note in `tests/guardrails/README.md` has the
   detail.
 - `make docs` builds the user manual.
 - CI runs on every pull request: Lint, Build package, and Run tests with the
-  unit, attribute, regression, tutorial and example suites.
+  unit, attribute, regression and example suites.
 
 ## Rules for every change
 

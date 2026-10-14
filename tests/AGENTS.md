@@ -30,9 +30,8 @@ helpers in `tests/helpers/`, and each simulating suite's decks under its own
 - "Did simulation results change when they shouldn't have?" →
   `tests/regression` (golden baselines; conventions:
   `tests/regression/README.md`).
-- "Shipped decks still parse and run" → `make test-tutorials` /
-  `make test-examples` (exit-code smoke over the committed tutorial and
-  example decks; never add assertions there).
+- "Shipped decks still parse and run" → `make test-examples` (exit-code
+  smoke over the committed example decks; never add assertions there).
 
 ## Rules for every test change
 
@@ -63,8 +62,8 @@ helpers in `tests/helpers/`, and each simulating suite's decks under its own
 - CI runs the suites against the built wheel, not the checkout: a test that
   depends on a file absent from the wheel passes locally and fails only in CI.
 - Wall clock: `test-unit`, `test-attribute` and `test-regression` take a few
-  seconds each, `test-guardrails` about 10 s, `test-tutorials` about 15 s and
-  `test-examples` about a minute, longer with HiGHS than with Gurobi.
+  seconds each, `test-guardrails` about 10 s and `test-examples`
+  about a minute, longer with HiGHS than with Gurobi.
 
 ## What a test change touches
 
