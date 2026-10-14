@@ -339,25 +339,35 @@ GENERAL_NODE_ATTRIBUTE_SECTIONS: dict[str, dict[str, AllowedSections]] = {
 # a node must be assigned each of these in DEFINE; the parser checks them before any
 # lifecycle hook runs, so the node declares them without a None default
 _TABLE_REQUIRED = ("Table",)
-_POLICY_REQUIRED = ("Scheme",)
+_POLICY_REQUIRED = ("Scheme", "Emissions", "Fuels")
 
 NODE_REQUIRED_ATTRIBUTES: dict[str, tuple[str, ...]] = {
-    CONVERTER: ("PowerCapacity", "Efficiency"),
+    CONVERTER: ("PowerCapacity", "Efficiency", "MainFuelTypes"),
     CURVE: _TABLE_REQUIRED,
-    FLEET: ("InitialVessels", "InterFuelSensitivity", "IntraFuelSensitivity"),
+    FLEET: (
+        "InitialVessels",
+        "InterFuelSensitivity",
+        "IntraFuelSensitivity",
+        "Vessels",
+    ),
     FORECAST: _TABLE_REQUIRED,
     FUEL: ("FuelType", "LowerHeatingValue", "MassDensity"),
     LEVY: _POLICY_REQUIRED,
     PLANT: ("Fuel", "Process", "Region", "Source", "Capacity"),
     POWER_SYSTEM: ("Propulsion", "Electrical", "Heat"),
-    PRODUCER: ("FuelDemandSensitivity", "FuelCostSensitivity", "MaximumDevelopment"),
+    PRODUCER: (
+        "FuelDemandSensitivity",
+        "FuelCostSensitivity",
+        "MaximumDevelopment",
+        "Plants",
+    ),
     REGULATION: (*_POLICY_REQUIRED, "Measure"),
-    ROUTE: ("RouteType",),
+    ROUTE: ("RouteType", "Ports", "Speeds"),
     SOURCE: ("Dependency",),
     SURFACE: _TABLE_REQUIRED,
     TANK: ("FuelTypes", "Size"),
     TIMETABLE: _TABLE_REQUIRED,
-    VESSEL: ("PowerSystem", "Route", "NominalCapacity"),
+    VESSEL: ("PowerSystem", "Route", "NominalCapacity", "Tanks"),
 }
 
 GENERAL_NODE_REQUIRED_ATTRIBUTES: dict[str, tuple[str, ...]] = {

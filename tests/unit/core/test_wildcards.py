@@ -79,6 +79,10 @@ class TestAssignIdListWildcard:
         result = assign_id_list(["M*"], FuelTypeID, min_length=2)
         assert {FuelTypeID.METHANE, FuelTypeID.METHANOL} <= set(result)
 
+    def test_uniqueness_check_after_expansion(self):
+        with pytest.raises(ValueError, match=r"requires all entries .* to be unique"):
+            assign_id_list(["METHANOL", "M*"], FuelTypeID, unique=True)
+
     def test_no_wildcard_unchanged(self):
         result = assign_id_list(["HYDROGEN"], FuelTypeID)
         assert result == [FuelTypeID.HYDROGEN]

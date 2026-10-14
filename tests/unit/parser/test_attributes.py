@@ -129,15 +129,13 @@ class TestRejectedValueIsADomainError:
 
     def test_rejected_command_value(self, read_deck):
         # the required attributes are checked before the commands run
-        with pytest.raises(
-            CommandError, match=r"'set_operational_saving_sea' must be ≤ 1\.0"
-        ):
+        with pytest.raises(CommandError, match=r"'set_ttw' must be ≥ 0\.0"):
             read_deck(
-                'Fleet "fleet" {\n'
-                "    InitialVessels = 1\n"
-                "    InterFuelSensitivity = 1.0\n"
-                "    IntraFuelSensitivity = 1.0\n"
-                "    set_operational_saving_sea(PROPULSION, 2.0)\n"
+                'Fuel "fuel" {\n'
+                "    FuelType = OIL\n"
+                "    LowerHeatingValue = 1.0\n"
+                "    MassDensity = 1.0\n"
+                '    set_ttw("*", -1.0)\n'
                 "}\n"
             )
 

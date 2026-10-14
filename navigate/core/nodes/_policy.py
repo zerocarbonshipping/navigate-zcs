@@ -54,8 +54,8 @@ class _Policy(Node):
         self.jurisdiction: list[Port] = []
 
         # emissions
-        self.emissions: list[Emission] = []
-        self.fuels: list[Fuel] = []
+        self.emissions: list[Emission]
+        self.fuels: list[Fuel]
         self.scope: PolicyScopeID = PolicyScopeID.WTW
         self.emissions_lifetime: ScalarInput | None = None
         self.include_slip: bool = True
@@ -82,11 +82,13 @@ class _Policy(Node):
 
     def set_emissions(self, emissions: Emission | list[Emission]) -> None:
         """Set the emissions targeted by the policy."""
-        self.emissions = assign_reference_list(emissions, EMISSION, unique=True)
+        self.emissions = assign_reference_list(
+            emissions, EMISSION, min_length=1, unique=True
+        )
 
     def set_fuels(self, fuels: Fuel | list[Fuel]) -> None:
         """Set the fuels targeted by the policy."""
-        self.fuels = assign_reference_list(fuels, FUEL, unique=True)
+        self.fuels = assign_reference_list(fuels, FUEL, min_length=1, unique=True)
 
     def set_scope(self, scope: str) -> None:
         """Set the scope of emissions targeted by the policy."""
@@ -144,12 +146,6 @@ class _Policy(Node):
 
         if not self.jurisdiction:
             raise UnassignedAttributeError(str(self), "Jurisdiction")
-
-        if not self.emissions:
-            raise UnassignedAttributeError(str(self), "Emissions")
-
-        if not self.fuels:
-            raise UnassignedAttributeError(str(self), "Fuels")
 
     def _initialize_policy_dependencies(self, vessels: dict[str, Vessel]) -> None:
 

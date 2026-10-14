@@ -46,7 +46,7 @@ from navigate.parser._lark_parser import Assignment, NodeDeclaration, SourceLoca
 from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 from navigate.parser._reachability import ACTIVATION_EDGES, find_unreachable
 from navigate.parser.parser import Parser
-from navigate.util import attribute_to_instance_name
+from navigate.util import attribute_to_instance_name, attribute_to_setter
 
 
 def _general_nodes():
@@ -707,15 +707,17 @@ class TestActivationEdges:
             assert target_type in NODE_GROUP
 
             for owner_type, attribute_name in edges:
-                owner = define_new_node(owner_type, "pin")
-                assert isinstance(getattr(owner, attribute_name), list)
-
                 dsl_names = [
                     key
                     for key in NODE_ATTRIBUTE_SECTIONS[owner_type]
                     if attribute_to_instance_name(key) == attribute_name
                 ]
                 assert len(dsl_names) == 1
+
+                owner = define_new_node(owner_type, "pin")
+                setter = getattr(owner, attribute_to_setter(dsl_names[0]))
+                setter([define_new_node(target_type, "target")])
+                assert isinstance(getattr(owner, attribute_name), list)
 
                 # _statement_references relies on no activation edge being
                 # assignable inside a queued EVENTS body

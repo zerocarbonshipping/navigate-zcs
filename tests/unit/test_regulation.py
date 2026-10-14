@@ -190,6 +190,7 @@ def test_policy_global_warming_potential_is_read_at_emissions_lifetime(
 
     regulation = Regulation("reg")
     regulation.emissions = [emission]
+    regulation.fuels = []
     regulation._initialize_policy_dependencies({})
     if override is not None:
         regulation.set_global_warming_potential("methane", override())

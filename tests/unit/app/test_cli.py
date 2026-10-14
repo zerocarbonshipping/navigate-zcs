@@ -22,11 +22,11 @@ GARBLED_DECK = "DEFINE {\n    garbage\n}\n"
 REJECTED_ATTRIBUTE_VALUE = 'Vessel "v" {\n    Capex = FLAT\n}\n'
 # the required attributes are checked before the commands run
 REJECTED_COMMAND_VALUE = (
-    'Fleet "fleet" {\n'
-    "    InitialVessels = 1\n"
-    "    InterFuelSensitivity = 1.0\n"
-    "    IntraFuelSensitivity = 1.0\n"
-    "    set_operational_saving_sea(PROPULSION, 2.0)\n"
+    'Fuel "fuel" {\n'
+    "    FuelType = OIL\n"
+    "    LowerHeatingValue = 1.0\n"
+    "    MassDensity = 1.0\n"
+    '    set_ttw("*", -1.0)\n'
     "}\n"
 )
 
@@ -169,7 +169,7 @@ class TestTopLevelErrorHandling:
             ),
             pytest.param(
                 REJECTED_COMMAND_VALUE,
-                "'set_operational_saving_sea'",
+                "'set_ttw'",
                 id="command_value",
             ),
         ],

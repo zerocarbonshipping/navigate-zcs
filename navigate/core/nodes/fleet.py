@@ -123,7 +123,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
     # external methods (DSL attributes) ------------------------------------------------
     def set_vessels(self, vessels: Vessel | list[Vessel]) -> None:
         """Set the vessel types that exist for the fleet."""
-        self.assets = assign_reference_list(vessels, VESSEL, unique=True)
+        self.assets = assign_reference_list(vessels, VESSEL, min_length=1, unique=True)
 
     def set_memory(self, memory: ForecastArgument) -> None:
         """Set the memory's exponential decay used in the newbuild uptake decision."""
@@ -421,9 +421,6 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-
-        if not self.assets:
-            raise UnassignedAttributeError(str(self), "Vessels")
 
         if self.technologies and self.technology_sensitivity is None:
             raise UnassignedAttributeError(str(self), "TechnologySensitivity")

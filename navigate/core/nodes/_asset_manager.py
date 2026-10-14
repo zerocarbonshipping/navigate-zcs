@@ -41,7 +41,7 @@ class _AssetManager[A: Vessel | Plant, I: Increment](Node):
         self._initial_age_distribution: list[Scalar | Curve] = []
 
         # asset types (vessels or plants)
-        self.assets: list[A] = []
+        self.assets: list[A]
 
         # internal variables -----------------------------------------------------------
         self.increments: list[list[I]] = []
