@@ -184,7 +184,7 @@ class Simulation:
         self._calculate_expectations()
         self.profile.add_temporal_time(timeit.default_timer() - start_time, self._idx)
 
-        self._calculate_vessel_operational_profile()
+        self._update_vessel_operations()
         self._calculate_fuel_production_properties()
         self._calculate_fuel_logistics_properties()
 
@@ -292,7 +292,7 @@ class Simulation:
         for vessel in self.nodes.vessels.values():
             vessel.calculate_expectation(self._idx)
 
-    def _calculate_vessel_operational_profile(self) -> None:
+    def _update_vessel_operations(self) -> None:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
