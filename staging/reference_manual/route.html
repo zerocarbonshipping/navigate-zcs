@@ -483,7 +483,7 @@ Europe (if regional).</p>
     <span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.698</span>
     <span class="n">ConditionDistribution</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
     <span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mf">11.2</span><span class="p">,</span> <span class="mf">13.6</span><span class="p">]</span>
-    <span class="n">CapacityUtilizations</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+    <span class="n">Utilizations</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -550,7 +550,7 @@ Europe (if regional).</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Fraction of time spent at sea per total time</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
 <li><p><strong>Default</strong>: None. Must be provided by the user when RouteType is REGIONAL_TRIP.</p></li>
 </ul>
@@ -617,7 +617,7 @@ Europe (if regional).</p>
 </section>
 <section id="speeds">
 <h3>Speeds<a class="headerlink" href="#speeds" title="Link to this heading">#</a></h3>
-<p>This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined CapacityUtilizations – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
+<p>This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined Utilizations – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -631,9 +631,9 @@ Europe (if regional).</p>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
-<section id="capacityutilizations">
-<h3>CapacityUtilizations<a class="headerlink" href="#capacityutilizations" title="Link to this heading">#</a></h3>
-<p>This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined CapacityUtilizations must be equal to the number of defined Speeds – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
+<section id="utilizations">
+<h3>Utilizations<a class="headerlink" href="#utilizations" title="Link to this heading">#</a></h3>
+<p>This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined Utilizations must be equal to the number of defined Speeds – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -731,7 +731,7 @@ Europe (if regional).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distances">Distances</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conditiondistribution">ConditionDistribution</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#speeds">Speeds</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#capacityutilizations">CapacityUtilizations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#utilizations">Utilizations</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">
