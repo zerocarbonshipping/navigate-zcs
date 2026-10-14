@@ -54,13 +54,19 @@ class Fuel(Node):
     def set_lower_heating_value(self, lower_heating_value: ScalarArgument) -> None:
         """Set the lower heating value of the fuel."""
         self.lower_heating_value = assign_value(
-            as_scalar(lower_heating_value), type_=VARIABLE, lower=0.0
+            as_scalar(lower_heating_value),
+            type_=VARIABLE,
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     def set_mass_density(self, mass_density: ScalarArgument) -> None:
         """Set the mass density of the fuel."""
         self.mass_density = assign_value(
-            as_scalar(mass_density), type_=VARIABLE, lower=0.0
+            as_scalar(mass_density),
+            type_=VARIABLE,
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     # external methods (DSL commands) --------------------------------------------------
@@ -73,18 +79,6 @@ class Fuel(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_consistency(self) -> None:
-
-        if self.lower_heating_value.get() == 0.0:
-            raise ValueError(
-                f"{self}: Attribute 'LowerHeatingValue' must be greater than zero."
-            )
-
-        if self.mass_density.get() == 0.0:
-            raise ValueError(
-                f"{self}: Attribute 'MassDensity' must be greater than zero."
-            )
-
     def initialize_dependencies(self, emissions: dict[str, Emission]) -> None:
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
