@@ -12,7 +12,7 @@ import numpy as np
 from navigate.core.scalar import Scalar
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Mapping
 
     from navigate.core.expression import Expression
     from navigate.core.types_ import Calculator, ForecastInput
@@ -94,3 +94,20 @@ def to_numpy(scalars: Iterable[float | ForecastInput]) -> FloatArray:
             for scalar in scalars
         ]
     )
+
+
+def to_floats[K](calculators: Mapping[K, ForecastInput]) -> dict[K, float]:
+    """
+    Evaluate a mapping of calculators into floats, keeping its keys.
+
+    Parameters
+    ----------
+    calculators
+        Calculator nodes to evaluate, by key.
+
+    Returns
+    -------
+    dict[K, float]
+        Evaluated values, by key.
+    """
+    return {key: calculator.get(None, None) for key, calculator in calculators.items()}

@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import EnergyDemandID, RouteTypeID
-from navigate.core.wrap import to_numpy
+from navigate.core.wrap import to_floats, to_numpy
 from navigate.simulation.fleet.power import calculate_technical_speed_limits
 from navigate.util import (
     DAY_TO_HOURS,
@@ -46,7 +46,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray, FloatLike
 
 
@@ -209,8 +208,8 @@ def transfer_operational_savings(fleet: Fleet) -> None:
     fleet
         Fleet whose saving fractions are transferred.
     """
-    saving_sea = _evaluate_each(fleet.operational_saving_sea)
-    saving_port = _evaluate_each(fleet.operational_saving_port)
+    saving_sea = to_floats(fleet.operational_saving_sea)
+    saving_port = to_floats(fleet.operational_saving_port)
 
     for vessel in fleet.assets:
         vessel.expectation.set_operational_saving_fraction_sea(saving_sea)
@@ -463,8 +462,3 @@ def _load_to_energy(load: FloatLike, time: FloatArray) -> FloatArray:
         Energy required at the load level over the time, in GJ.
     """
     return load * time * MWD_TO_GJ
-
-
-def _evaluate_each[T](calculators: Mapping[T, ForecastInput]) -> dict[T, float]:
-    """Evaluate each calculator of a mapping, keeping its keys."""
-    return {key: calculator.get() for key, calculator in calculators.items()}

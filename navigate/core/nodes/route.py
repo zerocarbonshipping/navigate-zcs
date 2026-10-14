@@ -25,7 +25,7 @@ from navigate.core import (
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
-from navigate.core.wrap import to_numpy
+from navigate.core.wrap import to_floats, to_numpy
 from navigate.exceptions import UnassignedAttributeError
 from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 
@@ -379,10 +379,7 @@ class Route(Node):
         """
         count = len(self.voyage_distribution)
 
-        evaluated = {
-            key: value.get(None, None)
-            for key, value in self.voyage_distribution.items()
-        }
+        evaluated = to_floats(self.voyage_distribution)
         total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
 
         return {
