@@ -36,7 +36,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence, Sized
+    from collections.abc import Collection, Hashable, Iterator, Sized
 
 _BOOL_ID = {"FALSE": False, "TRUE": True}
 _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
@@ -309,7 +309,11 @@ def assign_reference[N: Node](assignment: N, type_: AcceptedNodeTypes) -> N:
 
 
 def assign_reference_list[N: Node](
-    assignment: N | list[N], type_: AcceptedNodeTypes, *, unique: bool = False
+    assignment: N | list[N],
+    type_: AcceptedNodeTypes,
+    min_length: int = 0,
+    *,
+    unique: bool = False,
 ) -> list[N]:
     """
     Check whether the nodes assigned to an attribute are of a type it references.
@@ -325,6 +329,8 @@ def assign_reference_list[N: Node](
         Value or list of values passed to the setter.
     type_
         The node type(s) the attribute accepts a reference to.
+    min_length
+        Fewest nodes the list may contain.
     unique
         Whether no node may be named twice in the list.
 
@@ -335,9 +341,13 @@ def assign_reference_list[N: Node](
         setter assigns what it validated.
     """
     references = as_list(assignment)
+    _check_list_length(references, min_length)
 
     if unique:
-        _check_list_is_unique(references)
+        # the parser hands the list in untyped, and an entry that is no node
+        # is refused by assign_reference once the names are known to be unique
+        names = [entry.name for entry in references if isinstance(entry, Node)]
+        _check_list_is_unique(names)
 
     for reference in references:
         assign_reference(reference, type_)
@@ -527,6 +537,8 @@ def assign_id_list[E: Enum](
     assignment: str | list[str],
     id_enum: type[E],
     min_length: int = 0,
+    *,
+    unique: bool = False,
 ) -> list[E]:
     """
     Check whether an assigned ID satisfies an attribute's requirements.
@@ -534,7 +546,7 @@ def assign_id_list[E: Enum](
     Only applicable to attributes requiring a list of values. A deck may give a
     single ID where the attribute takes a list, so a bare ID is accepted and
     wrapped in a list. Supports wildcard patterns which are expanded before the
-    length check.
+    length and uniqueness checks.
 
     Parameters
     ----------
@@ -544,6 +556,8 @@ def assign_id_list[E: Enum](
         Enum class the assigned name is looked up in.
     min_length
         Fewest members the list may contain once wildcards are expanded.
+    unique
+        Whether no member may be named twice once wildcards are expanded.
 
     Returns
     -------
@@ -558,6 +572,10 @@ def assign_id_list[E: Enum](
             expanded.append(assign_id(value, id_enum))
 
     _check_list_length(expanded, min_length)
+
+    if unique:
+        _check_list_is_unique(expanded)
+
     return expanded
 
 
@@ -948,19 +966,16 @@ def _check_list_length(assignment: Sized, min_length: int) -> None:
         raise ValueError(f"List must contain at least {min_length} values.")
 
 
-def _check_list_is_unique(assignment: Sequence[Node]) -> None:
+def _check_list_is_unique(entries: Collection[Hashable]) -> None:
     """
-    Validate that no node is named twice in a list.
+    Validate that no entry occurs twice in a list.
 
     Parameters
     ----------
-    assignment
-        The list whose node references are checked.
+    entries
+        The entries checked, compared by equality.
     """
-    # the parser hands the list in untyped, and an entry that is no node is
-    # refused by assign_reference once the names are known to be unique
-    names = [entry.name for entry in assignment if isinstance(entry, Node)]
-    if not list_is_unique(names):
+    if not list_is_unique(entries):
         raise ValueError("requires all entries in the list to be unique")
 
 
