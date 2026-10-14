@@ -10,5 +10,5 @@ Route "operational_profile_tug" {
 	TimeAtSea = 0.22
 	ConditionDistribution = [1]
 	Speeds =                [10.7]
-	CapacityUtilizations =  [0.8]
+	Utilizations =          [0.8]
 }

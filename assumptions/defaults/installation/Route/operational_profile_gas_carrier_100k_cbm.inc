@@ -10,5 +10,5 @@ Route "operational_profile_gas_carrier_100k_cbm" {
 	TimeAtSea = 0.684
 	ConditionDistribution = [1]
 	Speeds = 				[16.6]
-	CapacityUtilizations = 	[0.5]
+	Utilizations = 			[0.5]
 }

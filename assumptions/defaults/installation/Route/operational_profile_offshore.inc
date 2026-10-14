@@ -10,5 +10,5 @@ Route "operational_profile_offshore" {
 	TimeAtSea = 0.22
 	ConditionDistribution = [1]
 	Speeds = 				[10]
-	CapacityUtilizations = 	[0.5]
+	Utilizations = 			[0.5]
 }

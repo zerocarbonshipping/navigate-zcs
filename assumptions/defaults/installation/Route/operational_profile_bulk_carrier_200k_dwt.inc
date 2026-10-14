@@ -10,5 +10,5 @@ Route "operational_profile_bulk_carrier_200k_dwt" {
 	TimeAtSea = 0.65
 	ConditionDistribution = [0.01, 0.06, 0.16, 0.14, 0.09, 0.03, 0.01, 0.01, 0.06, 0.16, 0.14, 0.09, 0.03, 0.01]
 	Speeds = [8.5, 9.5, 10.5, 11.5, 12.5, 13.5, 14.5, 8.5, 9.5, 10.5, 11.5, 12.5, 13.5, 14.5]
-	CapacityUtilizations = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
+	Utilizations = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
 }

@@ -228,7 +228,7 @@ _ROUTE_ATTRIBUTES: dict[str, AllowedSections] = {
     "Distances": SECTION_DEFINE,
     "ConditionDistribution": SECTION_BOTH,
     "Speeds": SECTION_BOTH,
-    "CapacityUtilizations": SECTION_BOTH,
+    "Utilizations": SECTION_BOTH,
 }
 
 _SOURCE_ATTRIBUTES: dict[str, AllowedSections] = {"Dependency": SECTION_DEFINE}

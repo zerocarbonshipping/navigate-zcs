@@ -50,7 +50,7 @@ class Operations:
         Share of the sea time on each leg, fraction.
     speeds
         Speed on each leg, knots.
-    capacity_utilizations
+    utilizations
         Capacity utilization on each leg, fraction.
     distances
         Distance sailed on each leg, nautical miles/year.
@@ -79,7 +79,7 @@ class Operations:
     # operations
     distribution: FloatArray = field(default_factory=lambda: np.empty(0))
     speeds: FloatArray = field(default_factory=lambda: np.empty(0))
-    capacity_utilizations: FloatArray = field(default_factory=lambda: np.empty(0))
+    utilizations: FloatArray = field(default_factory=lambda: np.empty(0))
     distances: FloatArray = field(default_factory=lambda: np.empty(0))
 
     # voyage
@@ -262,7 +262,7 @@ def _calculate_trip(operations: Operations, vessel: Vessel) -> None:
     """
     route = vessel.route
     route_type = route.route_type
-    operations.capacity_utilizations = to_numpy(route.capacity_utilizations)
+    operations.utilizations = to_numpy(route.utilizations)
 
     if route_type == RouteTypeID.ROUND_TRIP:
         _calculate_round_trip(operations, route)
@@ -418,10 +418,10 @@ def _calculate_cargo_miles(operations: Operations, vessel: Vessel) -> None:
     """
     capacity = vessel.nominal_capacity.get()
     distances = operations.distances
-    capacity_utilizations = operations.capacity_utilizations
+    utilizations = operations.utilizations
 
     cargo_miles_leg_nominal = capacity * distances
-    cargo_miles_leg = cargo_miles_leg_nominal * capacity_utilizations
+    cargo_miles_leg = cargo_miles_leg_nominal * utilizations
 
     operations.miles = np.sum(distances)
     operations.cargo_miles = np.sum(cargo_miles_leg)
@@ -441,12 +441,12 @@ def _calculate_energy_sea(operations: Operations, vessel: Vessel) -> None:
         Vessel providing the loads at sea.
     """
     speeds = operations.speeds
-    capacity_utilizations = operations.capacity_utilizations
+    utilizations = operations.utilizations
     times_sea = operations.times_sea
 
-    load_propulsion = vessel.propulsion_load.get(speeds, capacity_utilizations)
-    load_electrical = vessel.electrical_load_at_sea.get(speeds, capacity_utilizations)
-    load_heat = vessel.heat_load_at_sea.get(speeds, capacity_utilizations)
+    load_propulsion = vessel.propulsion_load.get(speeds, utilizations)
+    load_electrical = vessel.electrical_load_at_sea.get(speeds, utilizations)
+    load_heat = vessel.heat_load_at_sea.get(speeds, utilizations)
 
     operations.energy_sea[EnergyDemandID.PROPULSION] = _load_to_energy(
         load_propulsion, times_sea

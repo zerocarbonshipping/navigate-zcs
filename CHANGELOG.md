@@ -80,6 +80,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   over their common remaining-lifetime window.
 - An empty `Speeds` or `PortDurations` on a `Route`, in `EVENTS` too, is
   rejected at its deck line.
+- `CapacityUtilizations` (Route) is now `Utilizations`; the old name is a deck
+  error at its line.
 - Rescaling `InitialSplit` or `ConditionDistribution` by more than 1% is
   logged as a warning, so it counts in the end-of-run summary.
 - A `Report` property request that matches no node logs a warning instead of

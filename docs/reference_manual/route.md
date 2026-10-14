@@ -22,7 +22,7 @@ Route "regional_route" {
     TimeAtSea = 0.698
     ConditionDistribution = [0.5, 0.5]
     Speeds = [11.2, 13.6]
-    CapacityUtilizations = [1.0, 0.0]
+    Utilizations = [1.0, 0.0]
 }
 ```
 
@@ -136,7 +136,7 @@ This attribute sets the fraction of time spent on the various legs of the trip. 
 
 ### Speeds 
 
-This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined CapacityUtilizations – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
+This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined Utilizations – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
 
 * **Data type**: List of `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -146,9 +146,9 @@ This attribute sets the speed of the various legs of the trip in knots. The numb
 * **Minimum value**: >0
 * **Default**: None. Must be provided by the user.
 
-### CapacityUtilizations
+### Utilizations
 
-This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined CapacityUtilizations must be equal to the number of defined Speeds – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
+This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined Utilizations must be equal to the number of defined Speeds – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
 
 * **Data type**: List of `Float`, `Forecast`, `Variable`
 * **Example values**:

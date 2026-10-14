@@ -35,7 +35,7 @@ Route "mainline_route" {
 	Distances = [8300, 8300]
     Speeds = [15.5, 14.2]
     # Fully laden outbound, almost empty return
-    CapacityUtilizations = [0.95, 0.1]
+    Utilizations = [0.95, 0.1]
 }
 
 # Rotterdam to Hamburg to Aalborg
@@ -54,5 +54,5 @@ Route "feeder_route" {
     Distances = [270, 400, 800]
     Speeds = [13.0, 12.5, 13.0]
     # Full outbound, partial mid-leg, empty return
-    CapacityUtilizations = [1.0, 0.7, 0.0]  
+    Utilizations = [1.0, 0.7, 0.0]  
 }

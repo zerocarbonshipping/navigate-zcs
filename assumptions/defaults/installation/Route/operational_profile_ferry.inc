@@ -10,5 +10,5 @@ Route "operational_profile_ferry" {
 	TimeAtSea = 0.5
 	ConditionDistribution = [1]
 	Speeds =                [14]
-	CapacityUtilizations =  [0.75]
+	Utilizations =          [0.75]
 }

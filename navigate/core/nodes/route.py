@@ -61,7 +61,7 @@ class Route(Node):
 
         # conditions per leg
         self.speeds: list[ForecastInput] = []
-        self.capacity_utilizations: list[ForecastInput] = []
+        self.utilizations: list[ForecastInput] = []
         self.distances: list[Scalar | Expression] = []
         self.condition_distribution: list[float] = []
 
@@ -140,12 +140,12 @@ class Route(Node):
             inclusive_lower=False,
         )
 
-    def set_capacity_utilizations(
-        self, capacity_utilizations: ForecastArgument | list[ForecastArgument]
+    def set_utilizations(
+        self, utilizations: ForecastArgument | list[ForecastArgument]
     ) -> None:
         """Set the capacity utilization of each leg of the trip."""
-        entries: list[ForecastArgument] = as_list(capacity_utilizations)
-        self.capacity_utilizations = assign_list(
+        entries: list[ForecastArgument] = as_list(utilizations)
+        self.utilizations = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -186,8 +186,8 @@ class Route(Node):
 
     def apply_defaults(self) -> None:
 
-        if not self.capacity_utilizations:
-            self.capacity_utilizations = [Scalar(1.0) for _ in self.speeds]
+        if not self.utilizations:
+            self.utilizations = [Scalar(1.0) for _ in self.speeds]
 
         if (self.route_type == RouteTypeID.REGIONAL_TRIP) and not self.port_calls:
             self.port_calls = [Scalar(1.0) for _ in self.ports]
@@ -200,11 +200,10 @@ class Route(Node):
 
     def check_consistency(self) -> None:
 
-        if len(self.speeds) != len(self.capacity_utilizations):
+        if len(self.speeds) != len(self.utilizations):
             raise ValueError(
                 f"{self}: The length of 'Speeds' ({len(self.speeds)}) and "
-                f"'CapacityUtilizations' ({len(self.capacity_utilizations)}) must"
-                " correspond."
+                f"'Utilizations' ({len(self.utilizations)}) must correspond."
             )
 
         if self.route_type == RouteTypeID.ROUND_TRIP:
