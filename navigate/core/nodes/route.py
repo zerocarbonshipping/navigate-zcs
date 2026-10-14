@@ -52,7 +52,7 @@ class Route(Node):
 
         # external variables -----------------------------------------------------------
         self.route_type: RouteTypeID
-        self.ports: list[Port] = []
+        self.ports: list[Port]
 
         # time at sea/in port
         self.port_durations: list[ForecastInput] = []
@@ -60,7 +60,7 @@ class Route(Node):
         self.port_calls: list[ForecastInput] = []
 
         # conditions per leg
-        self.speeds: list[ForecastInput] = []
+        self.speeds: list[ForecastInput]
         self.utilizations: list[ForecastInput] = []
         self.distances: list[Scalar | Expression] = []
         self.condition_distribution: list[float] = []
@@ -78,7 +78,7 @@ class Route(Node):
 
     def set_ports(self, ports: Port | list[Port]) -> None:
         """Set the list of ports available for bunkering on the route."""
-        self.ports = assign_reference_list(ports, PORT)
+        self.ports = assign_reference_list(ports, PORT, min_length=1)
 
     def set_port_durations(
         self, port_durations: ForecastArgument | list[ForecastArgument]
@@ -169,12 +169,6 @@ class Route(Node):
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-
-        if not self.ports:
-            raise UnassignedAttributeError(str(self), "Ports")
-
-        if not self.speeds:
-            raise UnassignedAttributeError(str(self), "Speeds")
 
         # each route type reads a different set of the leg and port attributes
         if self.route_type == RouteTypeID.ROUND_TRIP:

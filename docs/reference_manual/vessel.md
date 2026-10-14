@@ -156,7 +156,7 @@ This attribute sets the nominal cargo capacity of the vessel. This describes how
   + `8000`
   + `Variable("name")`
 * **Unit**: Varies depending on vessel type (e.g., TEU, CEU, dwt)
-* **Minimum value**: 0
+* **Minimum value**: >0
 * **Default**: None. Must be provided by the user.
 
 ### Lifetime

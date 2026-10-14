@@ -196,7 +196,7 @@ class TestWildcardNodeReferenceExpansion:
             "Route",
         )
 
-        assert route.ports == []
+        assert not hasattr(route, "ports")
         parser._flush_pending_assignments()
 
         assert {p.name for p in route.ports} == {"port_a", "port_b"}

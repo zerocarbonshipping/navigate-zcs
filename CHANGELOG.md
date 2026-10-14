@@ -28,8 +28,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ### Changed
 - `MinimumOfftakeDuration` (Producer) accepts any duration above 0 instead of
   at least 1; a duration under one year counts as one year.
-- `TimeAtSea` (Route) must be greater than 0; a value of 0 is a deck error at
-  its line.
 - A calculator (`Variable`, `Forecast`, `Curve`, `Timetable`, `Surface`)
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change
   cannot be changed in `EVENTS` either; re-assigning its attributes there is a
@@ -134,6 +132,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A path written with `./` or a doubled `/` in an `Include` or a report
   `Directory` now appears normalised in error and log messages, such as
   `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
+- An empty `Vessels`, `Plants`, `Tanks`, `Ports`, `Emissions` or `Fuels` list,
+  or a fuel type repeated in `MainFuelTypes` or `PilotFuelTypes`, is rejected
+  at its line, also on a node the deck does not use.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
@@ -404,6 +405,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `ConverterEnergy` report requests with a `FIRST`, `SECOND` or `BOTH`
   reduction now reduce over the (vessel fuel type, fuel) key instead of
   failing or being ignored (#405).
+- `NominalCapacity` (Vessel), `RetrofitFrequency` (Fleet), `TimeAtSea` (Route)
+  and `set_process_lifetime` (Region) must now be above 0; a 0 used to crash or
+  hang the run or give invalid results.
 
 ## [1.0.0] - 2026-07-16
 
