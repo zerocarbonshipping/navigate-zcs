@@ -8,13 +8,14 @@ The round-trip route models discrete voyages with fixed per-leg distances and po
 durations, so annual totals follow directly from voyages per year. The regional route
 has no discrete voyages: it supplies an exogenous annual reference pattern (time at sea,
 sea-condition distribution, reference speeds, and port calls per year) describing
-operations absent speed management. From that pattern two scalars are derived,
-days_per_call (the port-side constraint of turnaround, congestion and waiting) and
-miles_between_calls (the trading-pattern geometry), which let speed management change
+operations absent speed management. That pattern yields one scalar, the port days per
+sea mile: the port time per call (turnaround, congestion and waiting) over the sea miles
+between calls (the trading-pattern geometry). With it, speed management can change
 speeds while port and sea time respond endogenously: higher speed raises sea miles per
 year, hence port calls per year, hence port time per year, which crowds out sea time and
 limits the throughput gain. This reproduces the round-trip feedback (port time as a
-binding activity constraint) within the aggregate regional representation.
+binding activity constraint) within the aggregate regional representation. The number
+of port calls cancels from the scalar and only splits the port time between the ports.
 """
 
 from __future__ import annotations
@@ -314,42 +315,39 @@ def _calculate_regional_trip(
     time_at_sea
         Reference share of the year spent at sea.
     """
-    days_per_call, miles_between_calls = _calculate_call_spacing(route, time_at_sea)
-
     speeds = operations.speeds
-    distribution_sea = to_numpy(route.condition_distribution)
-    speed_mean = np.average(speeds, weights=distribution_sea)
-    miles_per_day = speed_mean * DAY_TO_HOURS
+    distribution = to_numpy(route.condition_distribution)
+    port_calls = to_numpy(route.port_calls)
 
-    # the reference pattern fixes the port days per sea day, and
+    port_days_per_mile = _calculate_port_days_per_mile(route, time_at_sea)
+    speed_mean = np.average(speeds, weights=distribution)
+
+    # the sea and port days fill the year:
     # YEAR = sea_days + port_days = sea_days * (1 + port_days_per_sea_day)
-    port_days_per_sea_day = days_per_call / miles_between_calls * miles_per_day
+    port_days_per_sea_day = port_days_per_mile * speed_mean * DAY_TO_HOURS
     total_time_sea = YEAR / (1.0 + port_days_per_sea_day)
 
-    times_sea = total_time_sea * distribution_sea
+    times_sea = total_time_sea * distribution
     distances = speeds * times_sea * DAY_TO_HOURS
-
     miles = np.sum(distances)
-    calls_annual = divide_nonzero(miles, miles_between_calls)
 
-    port_calls = to_numpy(route.port_calls)
-    total_calls = np.sum(port_calls)
-    distribution_port = divide_nonzero(port_calls, total_calls)
-    times_port = calls_annual * days_per_call * distribution_port
+    distribution_port = divide_nonzero(port_calls, np.sum(port_calls))
+    times_port = miles * port_days_per_mile * distribution_port
 
-    operations.distribution = distribution_sea
+    operations.distribution = distribution
     operations.distances = distances
     operations.times_sea = times_sea
     operations.times_port = times_port
     operations.voyages = 1.0
 
 
-def _calculate_call_spacing(route: Route, time_at_sea: float) -> tuple[float, float]:
+def _calculate_port_days_per_mile(route: Route, time_at_sea: float) -> float:
     """
-    Derive the port days per call and sea miles between calls of a regional route.
+    Derive the port days per sea mile of a regional route's reference pattern.
 
-    Both follow from the route's reference pattern, absent speed management; the
-    module docstring describes how they anchor the sea and port split.
+    It equals the port days per call over the sea miles between calls, so the number
+    of calls cancels; the module docstring describes how it anchors the sea and port
+    split.
 
     Parameters
     ----------
@@ -361,9 +359,7 @@ def _calculate_call_spacing(route: Route, time_at_sea: float) -> tuple[float, fl
     Returns
     -------
     float
-        Port days per call.
-    float
-        Sea miles between calls, in nautical miles.
+        Port days per sea mile, in days/nautical mile.
     """
     distribution = to_numpy(route.condition_distribution)
     speeds = to_numpy(route.speeds)
@@ -371,16 +367,10 @@ def _calculate_call_spacing(route: Route, time_at_sea: float) -> tuple[float, fl
     total_time_sea = time_at_sea * YEAR
     total_time_port = (1.0 - time_at_sea) * YEAR
 
-    port_calls = to_numpy(route.port_calls)
-    total_calls = np.sum(port_calls)
-    days_per_call = np.float64(divide_nonzero(total_time_port, total_calls))
-
     times_sea = total_time_sea * distribution
-    distances = speeds * times_sea * DAY_TO_HOURS
-    miles = np.sum(distances)
-    miles_between_calls = np.float64(divide_nonzero(miles, total_calls))
+    miles = np.sum(speeds * times_sea * DAY_TO_HOURS)
 
-    return days_per_call, miles_between_calls
+    return total_time_port / miles
 
 
 def _calculate_cargo_miles(operations: Operations, vessel: Vessel) -> None:
