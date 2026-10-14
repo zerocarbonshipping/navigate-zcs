@@ -18,6 +18,7 @@ from navigate.util.collections import (
     sum_by_first_key,
     sum_by_second_key,
     sum_dict_results,
+    sum_per_key,
     unique_list,
 )
 from navigate.util.dates import (

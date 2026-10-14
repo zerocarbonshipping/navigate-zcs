@@ -52,7 +52,7 @@ from navigate.simulation.fleet.residual_energy import (
     calculate_residual_energy,
     net_energy_from_raw,
 )
-from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero
+from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero, sum_per_key
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -1057,12 +1057,8 @@ def _apply_operational_savings(
     vessel.expectation.set_operational_energy_sea(idx, op_sea)
     vessel.expectation.set_operational_energy_port(idx, op_port)
 
-    vessel.profile.set_operational_energy_sea(
-        idx, {d: float(np.sum(op_sea[d])) for d in EnergyDemandID}
-    )
-    vessel.profile.set_operational_energy_port(
-        idx, {d: float(np.sum(op_port[d])) for d in PORT_ENERGY_DEMANDS}
-    )
+    vessel.profile.set_operational_energy_sea(idx, sum_per_key(op_sea))
+    vessel.profile.set_operational_energy_port(idx, sum_per_key(op_port))
 
     regional_op_sea = convert_to_regional_steps(vessel, op_sea)
     vessel.expectation.set_regional_operational_energy_sea(idx, regional_op_sea)
@@ -1185,12 +1181,8 @@ def _transfer_residual_energy(
     vessel.expectation.set_energy_sea(idx, avg_residual_sea)
     vessel.expectation.set_energy_port(idx, avg_residual_port)
 
-    vessel.profile.set_energy_sea(
-        idx, {d: float(arr.sum()) for d, arr in avg_residual_sea.items()}
-    )
-    vessel.profile.set_energy_port(
-        idx, {d: float(arr.sum()) for d, arr in avg_residual_port.items()}
-    )
+    vessel.profile.set_energy_sea(idx, sum_per_key(avg_residual_sea))
+    vessel.profile.set_energy_port(idx, sum_per_key(avg_residual_port))
 
     regional_sea = convert_to_regional_steps(
         vessel, {d: list(arr) for d, arr in avg_residual_sea.items()}

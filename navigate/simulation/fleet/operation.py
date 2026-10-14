@@ -31,7 +31,14 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandID, RouteTypeID
 from navigate.core.wrap import to_numpy
 from navigate.simulation.fleet.power import calculate_technical_speed_limits
-from navigate.util import DAY_TO_HOURS, HOUR_TO_DAYS, MWD_TO_GJ, YEAR, divide_nonzero
+from navigate.util import (
+    DAY_TO_HOURS,
+    HOUR_TO_DAYS,
+    MWD_TO_GJ,
+    YEAR,
+    divide_nonzero,
+    sum_per_key,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -183,8 +190,8 @@ def transfer_operations(vessel: Vessel, operations: Operations, idx: int) -> Non
     expectation.set_raw_energy_port(idx, operations.energy_port)
 
     profile.set_cargo_miles(idx, operations.cargo_miles)
-    profile.set_raw_energy_sea(idx, _sum_each(operations.energy_sea))
-    profile.set_raw_energy_port(idx, _sum_each(operations.energy_port))
+    profile.set_raw_energy_sea(idx, sum_per_key(operations.energy_sea))
+    profile.set_raw_energy_port(idx, sum_per_key(operations.energy_port))
 
     # the reference speed is recalculated from the route, as speed management may have
     # moved the operated speeds away from it
@@ -456,11 +463,6 @@ def _load_to_energy(load: FloatLike, time: FloatArray) -> FloatArray:
         Energy required at the load level over the time, in GJ.
     """
     return load * time * MWD_TO_GJ
-
-
-def _sum_each[T](arrays: Mapping[T, FloatArray]) -> dict[T, float]:
-    """Sum each array of a mapping, keeping its keys."""
-    return {key: np.sum(array) for key, array in arrays.items()}
 
 
 def _evaluate_each[T](calculators: Mapping[T, ForecastInput]) -> dict[T, float]:
