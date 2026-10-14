@@ -130,6 +130,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A path written with `./` or a doubled `/` in an `Include` or a report
   `Directory` now appears normalised in error and log messages, such as
   `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
+- An empty `Vessels`, `Plants`, `Tanks`, `Ports`, `Emissions` or `Fuels` list,
+  or a fuel type repeated in `MainFuelTypes` or `PilotFuelTypes`, is rejected
+  at its line, also on a node the deck does not use.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
