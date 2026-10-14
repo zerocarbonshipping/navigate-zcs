@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for Route voyage shares, their accepted kinds, and setter logging."""
+"""Unit tests for the kinds Route voyage shares accept, and setter logging."""
 
 from __future__ import annotations
 
@@ -10,12 +10,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from navigate.core import Scalar
-from navigate.core.enum_ import RouteTypeID
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.route import Route
 from navigate.core.nodes.variable import Variable
-from navigate.simulation.fleet.trip import _normalize_voyage_shares
 
 
 def _mock_port(name):
@@ -28,43 +25,6 @@ def _variable(value):
     variable = Variable("v")
     variable.set_value(value)
     return variable
-
-
-def _make_regional_route(voyage_distribution):
-    route = Route("r")
-    route.route_type = RouteTypeID.REGIONAL_TRIP
-    route.ports = [_mock_port("a"), _mock_port("b")]
-    route.speeds = [Scalar(10.0)]
-    route.condition_distribution = [1.0]
-    route.time_at_sea = 0.5
-    route.voyage_distribution = dict(voyage_distribution)
-    route.initialize_dependencies()
-    route.initialize()
-    return route
-
-
-class TestVoyageShareNormalization:
-    def test_shares_normalized_to_unity_in_leg_order(self):
-        route = _make_regional_route({("a", "b"): Scalar(0.6), ("b", "a"): Scalar(0.2)})
-
-        # the legs run origin-major: aa, ab, ba, bb
-        shares = _normalize_voyage_shares(route)
-        assert route.get_legs() == ((0, 0), (0, 1), (1, 0), (1, 1))
-        assert shares == pytest.approx([0.0, 0.75, 0.25, 0.0])
-
-    def test_unassigned_pairs_fill_to_zero(self):
-        route = _make_regional_route({("a", "b"): Scalar(1.0)})
-
-        shares = _normalize_voyage_shares(route)
-        assert shares[0] == pytest.approx(0.0)
-        assert shares[3] == pytest.approx(0.0)
-
-    def test_zero_total_splits_equally(self):
-        route = _make_regional_route({})
-
-        shares = _normalize_voyage_shares(route)
-        assert len(shares) == 4
-        assert all(share == pytest.approx(0.25) for share in shares)
 
 
 class TestSetVoyageDistributionAcceptedKinds:

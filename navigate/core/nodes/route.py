@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 class Route(Node):
-    """The ports a vessel calls at and the speed, load and distance of each leg."""
+    """The ports a vessel calls at and the legs and sailing conditions between them."""
 
     def __init__(self, name: str) -> None:
         super().__init__(name, ROUTE)
@@ -55,7 +55,7 @@ class Route(Node):
         self.time_at_sea: ForecastInput | None = None
         self.port_calls: list[ForecastInput] = []
 
-        # conditions per leg
+        # legs and sailing conditions
         self.speeds: list[ForecastInput]
         self.utilizations: list[ForecastInput] = []
         self.distances: list[Scalar | Expression] = []
@@ -108,14 +108,14 @@ class Route(Node):
         )
 
     def set_distances(self, distances: NumberInput | list[NumberInput]) -> None:
-        """Set the distance of each leg of the trip."""
+        """Set the distance of each leg of a ROUND_TRIP."""
         entries: list[NumberInput] = as_list(distances)
         self.distances = assign_list(
             [as_scalar(entry) for entry in entries], lower=0.0, inclusive_lower=False
         )
 
     def set_condition_distribution(self, condition_distribution: list[float]) -> None:
-        """Set the fraction of time spent on each leg of the trip."""
+        """Set the share of a leg's sea time spent in each sailing condition."""
         self.condition_distribution, rescaled = assign_fraction_list(
             condition_distribution
         )
@@ -127,7 +127,7 @@ class Route(Node):
             )
 
     def set_speeds(self, speeds: ForecastArgument | list[ForecastArgument]) -> None:
-        """Set the speed of each leg of the trip."""
+        """Set the speed per ROUND_TRIP leg or per REGIONAL_TRIP condition."""
         entries: list[ForecastArgument] = as_list(speeds)
         self.speeds = assign_list(
             [as_scalar(entry) for entry in entries],
@@ -140,7 +140,7 @@ class Route(Node):
     def set_utilizations(
         self, utilizations: ForecastArgument | list[ForecastArgument]
     ) -> None:
-        """Set the capacity utilization of each leg of the trip."""
+        """Set the utilization per ROUND_TRIP leg or per REGIONAL_TRIP condition."""
         entries: list[ForecastArgument] = as_list(utilizations)
         self.utilizations = assign_list(
             [as_scalar(entry) for entry in entries],
@@ -153,7 +153,7 @@ class Route(Node):
     def set_voyage_distribution(
         self, port_name_from: str, port_name_to: str, fraction: ScalarArgument
     ) -> None:
-        """Set the fraction of sailing time spent from one port to another."""
+        """Set the share of the sea miles sailed from one port to another."""
         write_matching_key_pairs(
             (port_name_from, port_name_to),
             assign_value(as_scalar(fraction), type_=VARIABLE, lower=0.0, upper=1.0),

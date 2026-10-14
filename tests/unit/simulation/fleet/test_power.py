@@ -22,8 +22,15 @@ import numpy as np
 import pytest
 
 from navigate.core import Expression, Scalar
-from navigate.core.enum_ import PORT_ENERGY_DEMANDS, BunkerScopeID, EnergyDemandID
+from navigate.core.enum_ import (
+    PORT_ENERGY_DEMANDS,
+    BunkerScopeID,
+    EnergyDemandID,
+    RouteTypeID,
+)
 from navigate.core.expectations.vessel_expectation import VesselExpectation
+from navigate.core.nodes.port import Port
+from navigate.core.nodes.route import Route
 from navigate.core.nodes.variable import Variable
 from navigate.exceptions import PowerCapacityError
 from navigate.simulation.fleet.power import (
@@ -98,6 +105,11 @@ class _StubVessel:
             energies_sea, times_sea, energies_port, times_port
         )
 
+        # a round trip with one leg, and so one condition, per sea step
+        self.route = Route(f"{name}_route")
+        self.route.route_type = RouteTypeID.ROUND_TRIP
+        self.route.ports = [Port(f"p{i}") for i in range(len(times_sea))]
+
     def __repr__(self) -> str:
         return f'Vessel("{self.name}")'
 
@@ -147,7 +159,7 @@ class TestVerifyVesselPowerCapacity:
         else:
             verify_vessel_power_capacity(vessel, IDX)
 
-    def test_sea_overload_errors_naming_converter_and_condition(self):
+    def test_sea_overload_errors_naming_converter_and_leg(self):
         overload = 12.0 * 10.0 * MWD_TO_GJ
         vessel = _make_vessel(
             energies_sea={
@@ -162,7 +174,7 @@ class TestVerifyVesselPowerCapacity:
             verify_vessel_power_capacity(vessel, IDX)
 
         message = str(excinfo.value)
-        assert "propulsion demand on condition 1" in message
+        assert 'propulsion demand on the leg from Port("p1") to Port("p0")' in message
         assert "boat_propulsion" in message
         assert "12.00 MW" in message
         assert "10.00 MW" in message
@@ -209,8 +221,8 @@ class TestVerifyVesselPowerCapacity:
             verify_vessel_power_capacity(vessel, IDX)
 
         message = str(excinfo.value)
-        assert "propulsion demand on condition 0" in message
-        assert "heat demand on condition 0" in message
+        assert "propulsion demand on the leg from" in message
+        assert "heat demand on the leg from" in message
 
 
 class TestVerifyPowerCapacity:

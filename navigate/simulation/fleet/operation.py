@@ -35,7 +35,6 @@ from navigate.util import HOUR_TO_DAYS, MWD_TO_GJ, YEAR, divide_nonzero, sum_per
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
-    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.fleet.trip import ReferenceTrip
     from navigate.util.types_ import FloatArray, FloatLike
@@ -56,8 +55,6 @@ class Operations:
         Distance sailed in each condition, in nautical miles/year.
     times_sea
         Time at sea in each condition, in days/year.
-    times_sea_leg
-        Time at sea on each leg, in days/year.
     times_port
         Time at each stop, in days/year.
     voyages
@@ -82,7 +79,6 @@ class Operations:
     distribution: FloatArray
     distances: FloatArray
     times_sea: FloatArray
-    times_sea_leg: FloatArray
     times_port: FloatArray
     voyages: float
 
@@ -149,7 +145,7 @@ def calculate_operations(
     operations = Operations()
     operations.speeds = speeds
 
-    _calculate_trip(operations, vessel.route, trip)
+    _calculate_trip(operations, trip)
     _calculate_cargo_miles(operations, vessel, trip)
 
     _calculate_energy_sea(operations, vessel, trip)
@@ -180,7 +176,6 @@ def transfer_operations(
 
     expectation.set_speeds_condition(idx, operations.speeds)
     expectation.set_time_sea_condition(idx, operations.times_sea)
-    expectation.set_time_sea_leg(idx, operations.times_sea_leg)
     expectation.set_time_port(idx, operations.times_port)
     expectation.set_voyages(idx, operations.voyages)
 
@@ -218,7 +213,7 @@ def transfer_operational_savings(fleet: Fleet) -> None:
         vessel.expectation.set_operational_saving_fraction_port(saving_port)
 
 
-def _calculate_trip(operations: Operations, route: Route, trip: ReferenceTrip) -> None:
+def _calculate_trip(operations: Operations, trip: ReferenceTrip) -> None:
     """
     Calculate the voyages per year and the annual sea and port times and distances.
 
@@ -226,16 +221,14 @@ def _calculate_trip(operations: Operations, route: Route, trip: ReferenceTrip) -
     ----------
     operations
         Operational profile holding the speeds; populated with the trip.
-    route
-        Route defining the legs and their conditions.
     trip
         Reference trip of the route.
     """
     speeds = operations.speeds
-    legs = trip.condition_legs
+    legs = trip.condition_legs.legs
     shares = trip.shares
 
-    speeds_leg = sum_per_leg(route, shares * speeds)
+    speeds_leg = sum_per_leg(trip.condition_legs, shares * speeds)
     days_leg = divide_nonzero(trip.leg_miles, speeds_leg) * HOUR_TO_DAYS
     days_condition = days_leg[legs] * shares
     mile_shares = divide_nonzero(shares * speeds, speeds_leg[legs])
@@ -247,7 +240,6 @@ def _calculate_trip(operations: Operations, route: Route, trip: ReferenceTrip) -
     operations.distribution = divide_nonzero(days_condition, sea_days)
     operations.distances = trip.leg_miles[legs] * mile_shares * voyages
     operations.times_sea = days_condition * voyages
-    operations.times_sea_leg = days_leg * voyages
     operations.times_port = trip.port_days * voyages
     operations.voyages = voyages
 
@@ -267,14 +259,14 @@ def _calculate_cargo_miles(
     trip
         Reference trip holding the utilizations.
     """
-    route = vessel.route
+    condition_legs = trip.condition_legs
     capacity = vessel.nominal_capacity.get()
 
-    cargo_miles_nominal = capacity * operations.distances
-    cargo_miles = cargo_miles_nominal * trip.utilizations
+    nominal = capacity * operations.distances
+    utilized = nominal * trip.utilizations
 
-    operations.cargo_miles_leg = sum_per_leg(route, cargo_miles)
-    operations.cargo_miles_leg_nominal = sum_per_leg(route, cargo_miles_nominal)
+    operations.cargo_miles_leg = sum_per_leg(condition_legs, utilized)
+    operations.cargo_miles_leg_nominal = sum_per_leg(condition_legs, nominal)
     operations.cargo_miles = np.sum(operations.cargo_miles_leg)
 
 

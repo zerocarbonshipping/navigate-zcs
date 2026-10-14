@@ -49,7 +49,7 @@ from navigate.simulation.fleet.residual_energy import (
     calculate_residual_energy,
     net_energy_from_raw,
 )
-from navigate.simulation.fleet.trip import sum_energy_per_leg
+from navigate.simulation.fleet.trip import bind_conditions_to_legs, sum_energy_per_leg
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero, sum_per_key
 
 if TYPE_CHECKING:
@@ -217,7 +217,8 @@ class _TechnologyEffect:
     Parameters
     ----------
     saving_sea
-        Weighted saving on each leg, operational minus residual energy, GJ/year.
+        Weighted saving in each sailing condition, operational minus residual
+        energy, GJ/year.
     saving_port
         Weighted saving at each port call, GJ/year.
     weight
@@ -451,10 +452,13 @@ def _calculate_packages_saving(
     times = timeline[idx_]
 
     time_flow = timeline_to_yearly(vessel, idx, timeline)
+    condition_legs = bind_conditions_to_legs(vessel.route)
 
     savings = []
     for package in packages:
-        saving = calculate_marginal_technology_saving(vessel, package, idx_)
+        saving = calculate_marginal_technology_saving(
+            vessel, condition_legs, package, idx_
+        )
         savings.append(np.interp(time_flow, times, saving))
 
     return savings
@@ -1041,7 +1045,10 @@ def _apply_operational_savings(
     saving_port = expectation.get_operational_saving_fraction_port()
 
     op_sea = {
-        d: [np.asarray(leg, dtype=float) * (1.0 - saving_sea[d]) for leg in raw_sea[d]]
+        d: [
+            np.asarray(condition, dtype=float) * (1.0 - saving_sea[d])
+            for condition in raw_sea[d]
+        ]
         for d in EnergyDemandID
     }
     op_port = {
@@ -1052,7 +1059,8 @@ def _apply_operational_savings(
         for d in PORT_ENERGY_DEMANDS
     }
 
-    op_sea_leg = sum_energy_per_leg(vessel.route, op_sea)
+    condition_legs = bind_conditions_to_legs(vessel.route)
+    op_sea_leg = sum_energy_per_leg(condition_legs, op_sea)
 
     expectation.set_operational_energy_sea_condition(idx, op_sea)
     expectation.set_operational_energy_sea_leg(idx, op_sea_leg)
@@ -1176,7 +1184,8 @@ def _transfer_residual_energy(
             for d in PORT_ENERGY_DEMANDS
         }
 
-    avg_residual_sea_leg = sum_energy_per_leg(vessel.route, avg_residual_sea)
+    condition_legs = bind_conditions_to_legs(vessel.route)
+    avg_residual_sea_leg = sum_energy_per_leg(condition_legs, avg_residual_sea)
 
     vessel.expectation.set_energy_sea_condition(idx, avg_residual_sea)
     vessel.expectation.set_energy_sea_leg(idx, avg_residual_sea_leg)
@@ -1342,8 +1351,10 @@ def _apply_approximated_saving(
     }
 
     net_sea = net_energy_from_raw(op_sea, sav_sea)
-    net_sea_leg = sum_energy_per_leg(vessel.route, net_sea)
     net_port = net_energy_from_raw(op_port, sav_port)
+
+    condition_legs = bind_conditions_to_legs(vessel.route)
+    net_sea_leg = sum_energy_per_leg(condition_legs, net_sea)
 
     vessel.expectation.set_energy_sea_condition(idx, net_sea)
     vessel.expectation.set_energy_sea_leg(idx, net_sea_leg)

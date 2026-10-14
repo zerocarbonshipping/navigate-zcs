@@ -52,8 +52,8 @@ PORT_ENERGY_DEMANDS = (EnergyDemandID.ELECTRICAL, EnergyDemandID.HEAT)
 class RouteTypeID(Enum):
     """How a vessel moves between the ports of a route."""
 
-    ROUND_TRIP = auto()  # explicit ordered ports with a start/end, per-leg inputs
-    REGIONAL_TRIP = auto()  # no explicit ports; time split across speed/cargo bins
+    ROUND_TRIP = auto()  # ports called in order, one sailing condition per leg
+    REGIONAL_TRIP = auto()  # every port pair a leg, sailing route-wide conditions
 
 
 class Interpolate1DID(Enum):

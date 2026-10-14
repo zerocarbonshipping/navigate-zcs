@@ -45,7 +45,6 @@ class VesselExpectation(_Expectation):
 
         # durations
         self._time_sea_condition: list[FloatArray] = []
-        self._time_sea_leg: list[FloatArray] = []
         self._time_port: list[FloatArray] = []
 
         # energies, at sea per condition and per leg, in port per stop
@@ -132,7 +131,6 @@ class VesselExpectation(_Expectation):
 
         # durations
         self._time_sea_condition = self._default_list_array(n_condition)
-        self._time_sea_leg = self._default_list_array(n_leg)
         self._time_port = self._default_list_array(n_port)
 
         # energy demand
@@ -276,10 +274,6 @@ class VesselExpectation(_Expectation):
     def set_time_sea_condition(self, idx: int, time_sea: Iterable[FloatLike]) -> None:
         for i, time in enumerate(time_sea):
             self._time_sea_condition[i][idx:] = time
-
-    def set_time_sea_leg(self, idx: int, time_sea: Iterable[FloatLike]) -> None:
-        for i, time in enumerate(time_sea):
-            self._time_sea_leg[i][idx:] = time
 
     def set_time_port(self, idx: int, time_port: Iterable[FloatLike]) -> None:
         for i, time in enumerate(time_port):
@@ -469,9 +463,6 @@ class VesselExpectation(_Expectation):
 
     def get_time_sea_condition(self, idx: Index) -> list[FloatLike]:
         return slice_list(self._time_sea_condition, idx)
-
-    def get_time_sea_leg(self, idx: Index) -> list[FloatLike]:
-        return slice_list(self._time_sea_leg, idx)
 
     def get_time_port(self, idx: Index) -> list[FloatLike]:
         return slice_list(self._time_port, idx)

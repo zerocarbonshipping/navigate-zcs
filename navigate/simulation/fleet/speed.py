@@ -34,7 +34,7 @@ from navigate.util import YEAR
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import BoolArray, FloatArray
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -204,7 +204,6 @@ def _optimize_vessel_speed(
     """
     trip = derive_reference_trip(vessel.route)
     deltas_ref, distribution = _calculate_reference_speed_deltas(vessel, trip)
-    sailed = _is_sailed(distribution)
 
     expectation = vessel.expectation
 
@@ -218,7 +217,9 @@ def _optimize_vessel_speed(
         ]
         mu_ref = float(np.average(speeds_current, weights=distribution))
 
-    # the technical limits truncate each condition's speed and bound the mean speed
+    # the technical limits truncate each condition's speed, and those of the
+    # conditions that take sea time bound the mean speed
+    sailed = trip.sailed
     speed_min, speed_max = calculate_technical_speed_limits(vessel, trip)
     mu_low, mu_high = calculate_speed_bounds(
         speed_min[sailed], speed_max[sailed], trip.speeds[sailed]
@@ -262,6 +263,7 @@ def _optimize_vessel_speed(
 
         fuel_saving = calculate_marginal_speed_saving(
             vessel,
+            trip.condition_legs,
             residual_energy_sea,
             residual_energy_port,
             idx,
@@ -320,7 +322,7 @@ def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> N
     vessel.expectation.set_speed_mean(mu_actual)
 
     distribution = result.distribution
-    sailed = _is_sailed(distribution)
+    sailed = result.trip.sailed
 
     profile = vessel.profile
     profile.set_minimum_speed(idx, np.min(result.speed_min[sailed]))
@@ -369,23 +371,6 @@ def _calculate_reference_speed_deltas(
     deltas = trip.speeds - speed_mean
 
     return deltas, operations.distribution
-
-
-def _is_sailed(distribution: FloatArray) -> BoolArray:
-    """
-    Mark the conditions that take sea time, the ones a speed extreme is taken over.
-
-    Parameters
-    ----------
-    distribution
-        Share of the sea time in each condition, fraction.
-
-    Returns
-    -------
-    BoolArray
-        Whether each condition takes sea time.
-    """
-    return distribution > 0.0
 
 
 def _mean_to_speeds(

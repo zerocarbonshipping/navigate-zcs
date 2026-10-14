@@ -25,7 +25,27 @@ if TYPE_CHECKING:
 
     from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.route import Route
-    from navigate.util.types_ import FloatArray, FloatLike, IntArray
+    from navigate.util.types_ import BoolArray, FloatArray, FloatLike, IntArray
+
+
+@dataclass(frozen=True)
+class ConditionLegs:
+    """
+    The leg each sailing condition of a route is sailed on.
+
+    It is the one binding of the per-condition values to the legs, read off
+    `Route.get_conditions` by `bind_conditions_to_legs`.
+
+    Attributes
+    ----------
+    legs
+        Leg of each condition, in the order of `Route.get_conditions`.
+    n_legs
+        Number of legs of the route, as `Route.get_legs` lists them.
+    """
+
+    legs: IntArray
+    n_legs: int
 
 
 @dataclass(frozen=True)
@@ -36,7 +56,7 @@ class ReferenceTrip:
     Attributes
     ----------
     condition_legs
-        Leg of each sailing condition, in the order of `Route.get_conditions`.
+        Leg of each sailing condition.
     speeds
         Reference speed in each condition, in knots.
     shares
@@ -51,7 +71,7 @@ class ReferenceTrip:
     """
 
     # per condition
-    condition_legs: IntArray
+    condition_legs: ConditionLegs
     speeds: FloatArray
     shares: FloatArray
     utilizations: FloatArray
@@ -59,6 +79,17 @@ class ReferenceTrip:
     # per leg and per stop
     leg_miles: FloatArray
     port_days: FloatArray
+
+    @property
+    def sailed(self) -> BoolArray:
+        """
+        Whether each condition takes sea time, the ones a speed extreme is taken over.
+
+        A condition with a zero share, or on a leg without miles, takes no sea time
+        at any speed.
+        """
+        miles = self.leg_miles[self.condition_legs.legs]
+        return (self.shares > 0.0) & (miles > 0.0)
 
 
 def derive_reference_trip(route: Route) -> ReferenceTrip:
@@ -75,7 +106,9 @@ def derive_reference_trip(route: Route) -> ReferenceTrip:
     ReferenceTrip
         Reference trip of the route.
     """
-    condition_legs, entries = np.array(route.get_conditions()).T
+    condition_legs = bind_conditions_to_legs(route)
+    entries = [entry for _, entry in route.get_conditions()]
+
     speeds = to_numpy(route.speeds)[entries]
     utilizations = to_numpy(route.utilizations)[entries]
 
@@ -85,7 +118,7 @@ def derive_reference_trip(route: Route) -> ReferenceTrip:
         time_at_sea = route.time_at_sea.get()
         shares = np.array(route.condition_distribution)[entries]
 
-        speeds_leg = sum_per_leg(route, shares * speeds)
+        speeds_leg = sum_per_leg(condition_legs, shares * speeds)
         leg_miles = _calculate_regional_leg_miles(route, speeds_leg, time_at_sea)
         port_days = _calculate_regional_port_days(route, time_at_sea)
 
@@ -99,14 +132,34 @@ def derive_reference_trip(route: Route) -> ReferenceTrip:
     )
 
 
-def sum_per_leg(route: Route, values: FloatArray | Sequence[FloatLike]) -> FloatArray:
+def bind_conditions_to_legs(route: Route) -> ConditionLegs:
     """
-    Sum per-condition values over the conditions of each leg.
+    Bind each sailing condition of a route to the leg it is sailed on.
 
     Parameters
     ----------
     route
         Route defining the legs and their conditions.
+
+    Returns
+    -------
+    ConditionLegs
+        Leg of each condition.
+    """
+    legs = np.array([leg for leg, _ in route.get_conditions()])
+    return ConditionLegs(legs, len(route.get_legs()))
+
+
+def sum_per_leg(
+    condition_legs: ConditionLegs, values: FloatArray | Sequence[FloatLike]
+) -> FloatArray:
+    """
+    Sum per-condition values over the conditions of each leg.
+
+    Parameters
+    ----------
+    condition_legs
+        Leg of each condition.
     values
         One value, or one array over time-steps, per condition.
 
@@ -115,25 +168,25 @@ def sum_per_leg(route: Route, values: FloatArray | Sequence[FloatLike]) -> Float
     FloatArray
         One value, or one array over time-steps, per leg.
     """
-    condition_legs = [leg for leg, _ in route.get_conditions()]
     values_condition = np.asarray(values, dtype=float)
 
-    sums = np.zeros((len(route.get_legs()), *values_condition.shape[1:]))
-    np.add.at(sums, condition_legs, values_condition)
+    sums = np.zeros((condition_legs.n_legs, *values_condition.shape[1:]))
+    np.add.at(sums, condition_legs.legs, values_condition)
 
     return sums
 
 
 def sum_energy_per_leg(
-    route: Route, energies: Mapping[EnergyDemandID, FloatArray | Sequence[FloatLike]]
+    condition_legs: ConditionLegs,
+    energies: Mapping[EnergyDemandID, FloatArray | Sequence[FloatLike]],
 ) -> dict[EnergyDemandID, list[FloatLike]]:
     """
     Sum an energy per condition over the conditions of each leg, per demand type.
 
     Parameters
     ----------
-    route
-        Route defining the legs and their conditions.
+    condition_legs
+        Leg of each condition.
     energies
         Energy per energy demand type and condition, in GJ/year.
 
@@ -143,7 +196,7 @@ def sum_energy_per_leg(
         Energy per energy demand type and leg, in GJ/year.
     """
     return {
-        energy_id: list(sum_per_leg(route, energy))
+        energy_id: list(sum_per_leg(condition_legs, energy))
         for energy_id, energy in energies.items()
     }
 
