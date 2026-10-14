@@ -226,7 +226,7 @@ This attribute sets the retrofit frequency, namely the intervals at which a vess
   + `5`
   + `Forecast("name")`
 * **Unit**: Years
-* **Minimum value**: 0
+* **Minimum value**: >0
 * **Default**: 5
 
 ### Orderbooks

@@ -149,7 +149,10 @@ class Vessel(Node):
     def set_nominal_capacity(self, nominal_capacity: ScalarArgument) -> None:
         """Set the nominal cargo carrying capacity of the vessel."""
         self.nominal_capacity = assign_value(
-            as_scalar(nominal_capacity), type_=VARIABLE, lower=0.0
+            as_scalar(nominal_capacity),
+            type_=VARIABLE,
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     def set_lifetime(self, lifetime: ForecastArgument) -> None:

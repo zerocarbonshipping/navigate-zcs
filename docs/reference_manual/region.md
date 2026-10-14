@@ -85,7 +85,7 @@ This command sets the lifetime of a production process in years.
   + `"process_name", 25`
   + `"process_name", Forecast("name")`
 * **Unit**: years
-* **Minimum value**: 0
+* **Minimum value**: >0
 * **Default**: Not set. The process lives as long as its plant, with no replacement.
 
 ### set\_process\_replacement
