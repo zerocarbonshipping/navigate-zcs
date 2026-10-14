@@ -223,7 +223,10 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
     def set_retrofit_frequency(self, retrofit_frequency: ForecastArgument) -> None:
         """Set how often a vessel can retrofit technology or convert fuel."""
         self.retrofit_frequency = assign_value(
-            as_scalar(retrofit_frequency), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(retrofit_frequency),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     def set_orderbooks(

@@ -400,6 +400,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `ConverterEnergy` report requests with a `FIRST`, `SECOND` or `BOTH`
   reduction now reduce over the (vessel fuel type, fuel) key instead of
   failing or being ignored (#405).
+- `NominalCapacity` (Vessel), `RetrofitFrequency` (Fleet) and
+  `set_process_lifetime` (Region) must now be above 0; a 0 used to crash or
+  hang the run or give invalid results.
 
 ## [1.0.0] - 2026-07-16
 
