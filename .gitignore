@@ -13,6 +13,7 @@ __pycache__/
 .Python
 build/
 docs/_build/
+docs/_generated/
 develop-eggs/
 dist/
 downloads/
@@ -100,15 +101,6 @@ dmypy.json
 
 /simulations/debug/*
 !/simulations/debug/.gitkeep
-
-# Tutorial outputs (keep _static assets)
-/tutorials/**/plots*/
-/tutorials/**/*.png
-/tutorials/**/*.pkl
-/tutorials/**/*.prt
-/tutorials/**/*.csv
-/tutorials/**/*.xlsx
-!/tutorials/_static/**
 
 # Test outputs
 /tests/**/plots*/

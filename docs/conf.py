@@ -10,6 +10,7 @@ sphinx-build.
 
 import os
 import tomllib
+import zipfile
 from pathlib import Path
 
 # -- Project information -----------------------------------------------------
@@ -28,7 +29,7 @@ version = release
 language = 'en'
 locale_dirs = []
 
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', '_generated', 'Thumbs.db', '.DS_Store']
 
 extensions = [
     'myst_parser',
@@ -58,6 +59,9 @@ copybutton_prompt_is_regexp = True
 
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
+# the tutorial downloads; their contents land at the site root, so
+# _generated/tutorials/tutorial_1.zip sits next to tutorials/tutorial_1.html
+html_extra_path = ['_generated']
 
 # The version-switcher dropdown matches this against the "version" fields in
 # _static/switcher.json; the warning banner separately compares `release`
@@ -105,3 +109,32 @@ html_theme_options = {
 html_sidebars = {
     "index": [],
 }
+
+
+# -- Tutorial downloads ------------------------------------------------------
+
+DOCS_DIR = Path(__file__).resolve().parent
+TUTORIALS_DIR = DOCS_DIR / 'tutorials'
+DOWNLOADS_DIR = DOCS_DIR / '_generated' / 'tutorials'
+
+# fixed timestamp so the archives do not change between builds
+ZIP_DATE_TIME = (2026, 1, 1, 0, 0, 0)
+
+# Sphinx checks html_extra_path before any builder event, so the folder has
+# to exist when this file is read
+DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def zip_tutorial_skeletons(app):
+    """Zip each tutorial's starting files for the download on its page."""
+    for tutorial in sorted(path for path in TUTORIALS_DIR.glob('tutorial_*') if path.is_dir()):
+        files = sorted(path for path in tutorial.rglob('*') if path.suffix in ('.nav', '.inc'))
+        with zipfile.ZipFile(DOWNLOADS_DIR / f'{tutorial.name}.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+            for path in files:
+                info = zipfile.ZipInfo(str(path.relative_to(TUTORIALS_DIR)), ZIP_DATE_TIME)
+                info.compress_type = zipfile.ZIP_DEFLATED
+                archive.writestr(info, path.read_bytes())
+
+
+def setup(app):
+    app.connect('builder-inited', zip_tutorial_skeletons)

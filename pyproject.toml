@@ -54,7 +54,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["assumptions*", "simulations*", "tutorials*", "tests*", "syntax*", "docs*",
+exclude = ["assumptions*", "simulations*", "tests*", "syntax*", "docs*",
     "build*", "dist*", "*.egg-info*", "bdist*"]
 
 [tool.setuptools.package-data]

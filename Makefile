@@ -15,7 +15,7 @@ else
   RUN := env PATH="$(CURDIR)/.venv/bin:$(PATH)"
 endif
 
-.PHONY: lint test-unit test-attribute test-guardrails test-regression regen-regression test-all test-tutorials test-examples help setup conda-setup pip-setup docs docs-clean
+.PHONY: lint test-unit test-attribute test-guardrails test-regression regen-regression test-all test-examples help setup conda-setup pip-setup docs docs-clean
 
 help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -68,19 +68,11 @@ test-regression:  ## Golden-baseline regression tests
 regen-regression:  ## Regenerate golden baselines, then review the git diff
 	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0 -s --regen-baselines
 
-test-all:  ## Full test suite (required pytest suites + tutorials + examples)
+test-all:  ## Full test suite (required pytest suites + examples)
 	$(MAKE) test-unit
 	$(MAKE) test-attribute
 	$(MAKE) test-regression
-	$(MAKE) test-tutorials
 	$(MAKE) test-examples
-
-test-tutorials:  ## Run tutorial example solutions
-	$(RUN) navigate tutorials/tutorial_1/example_solution/tutorial_1.nav -d ./assumptions -s
-	$(RUN) navigate tutorials/tutorial_2/example_solution/tutorial_2.nav -d ./assumptions -s
-	$(RUN) navigate tutorials/tutorial_3/example_solution/tutorial_3_scenarios/baseline/baseline.nav -d ./assumptions -s
-	$(RUN) navigate tutorials/tutorial_3/example_solution/tutorial_3_scenarios/scenario_100/scenario_100.nav -d ./assumptions -s
-	$(RUN) navigate tutorials/tutorial_3/example_solution/tutorial_3_scenarios/scenario_170/scenario_170.nav -d ./assumptions -s
 
 test-examples:  ## Run simulations/examples
 	$(RUN) navigate simulations/examples/example_1/example_1.nav -d ./assumptions -s

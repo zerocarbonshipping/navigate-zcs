@@ -62,7 +62,7 @@ ls
 ```
 This command lists all items in the current directory (folder). Example output:
 ```
-CHANGELOG.md  CITATION.cff  CODESTYLE.md  CONTRIBUTING.md  LICENSE  Makefile  README.md  assumptions  docs  navigate  pyproject.toml  simulations  syntax  tests  tutorials
+CHANGELOG.md  CITATION.cff  CODESTYLE.md  CONTRIBUTING.md  LICENSE  Makefile  README.md  assumptions  docs  navigate  pyproject.toml  simulations  syntax  tests
 ```
 
 **The cd command**
@@ -71,18 +71,19 @@ cd path/to/directory
 ```
 This command lets you move between folders. You can specify any path, copy it from the file explorer or just repeat the command until you get where you need to.
 
-`cd ..` Moves to the parent folder. `cd tutorials` moves to a folder called tutorials in your current folder and so on. If you need to switch to a different drive, you would use `cd C:\path\to\directory` where `C` is the drive. Note that between windows, mac and linux, the paths are slightly different. 
+`cd ..` Moves to the parent folder. `cd docs` moves to a folder called docs in your current folder and so on. If you need to switch to a different drive, you would use `cd C:\path\to\directory` where `C` is the drive. Note that between windows, mac and linux, the paths are slightly different. 
 
 **To-Do**
 
-1. Use the `cd` command in your VS Code terminal to move from the folder `Navigate` to the folder `tutorial_1`
+1. Download the Tutorial 1 files with the button at the top of the [Tutorial 1](tutorial_1.md) page and unzip them into the `Navigate` folder.
+2. Use the `cd` command in your VS Code terminal to move from the folder `Navigate` to the folder `tutorial_1`
 
 ```bash
 # Windows Powershell
-cd .\tutorials\tutorial_1\
+cd .\tutorial_1\
 
 # Linux/MacOS
-cd tutorials/tutorial_1/
+cd tutorial_1/
 ```
 
 On windows, please use powershell over cmd. It is default, but you can also pick it in the VS Code terminal if you need to.
@@ -124,18 +125,14 @@ Navigate/
 ├── navigate/
 ├── simulations/
 ├── syntax/
-├── tutorials/
-│   ├── tutorial_1/
-│   │   ├── example_solution/
-│   │   ├── includes/
-│   │   └── tutorial_1.nav
-│   ├── tutorial_2/
-│   └── tutorial_3/
+├── tutorial_1/             <- unzipped from the Tutorial 1 download
+│   ├── includes/
+│   └── tutorial_1.nav
 ├── pyproject.toml
 └── ...other files...
 ```
 
-In `tutorial_X`, you find skeleton `.nav` and `.inc` files to fill in and everything else you might need for the tutorials.
+Each tutorial page has a download button at the top. It holds the folder `tutorial_X` with skeleton `.nav` and `.inc` files to fill in and everything else you might need for that tutorial.
 
-In `example_solution`, you find the relevant solution files for each tutorial. 
+An example solution is at the bottom of each tutorial page.
 

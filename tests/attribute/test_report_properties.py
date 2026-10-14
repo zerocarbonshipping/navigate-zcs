@@ -34,7 +34,7 @@ _COMMENT = re.compile(r"#[^\n]*")
 def _deck_properties():
     """Every distinct (command, token) pair used in a committed .inc/.nav file."""
     found = {}
-    for directory in ("assumptions", "simulations", "tests", "tutorials"):
+    for directory in ("assumptions", "simulations", "tests", "docs/tutorials"):
         for path in sorted((REPO_ROOT / directory).rglob("*")):
             if path.suffix in (".inc", ".nav"):
                 for pair in _PROPERTY_CALL.findall(_COMMENT.sub("", path.read_text())):
