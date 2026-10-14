@@ -962,8 +962,10 @@ def _check_list_length(assignment: Sized, min_length: int) -> None:
     min_length
         Fewest values the list may contain.
     """
-    if len(assignment) < min_length:
-        raise ValueError(f"List must contain at least {min_length} values.")
+    length = len(assignment)
+    if length < min_length:
+        entries = "entry" if min_length == 1 else "entries"
+        raise ValueError(f"requires at least {min_length} {entries}, but got {length}")
 
 
 def _check_list_is_unique(entries: Collection[Hashable]) -> None:

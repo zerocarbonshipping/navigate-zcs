@@ -697,8 +697,8 @@ class TestAssignList:
     @pytest.mark.parametrize(
         ("assignment", "min_length", "message"),
         [
-            ([1.0, 2.0], 3, "must contain at least 3 values"),
-            ([], 1, "must contain at least 1 values"),
+            ([1.0, 2.0], 3, "requires at least 3 entries, but got 2"),
+            ([], 1, "requires at least 1 entry, but got 0"),
         ],
         ids=["one_short", "empty"],
     )
@@ -843,7 +843,7 @@ class TestAssignReferenceList:
         assert assign_reference_list(fuel, FUEL) == [fuel]
 
     def test_list_shorter_than_the_minimum_rejected(self):
-        with pytest.raises(ValueError, match="must contain at least 1 values"):
+        with pytest.raises(ValueError, match="requires at least 1 entry, but got 0"):
             assign_reference_list([], FUEL, min_length=1)
 
     def test_default_minimum_accepts_an_empty_list(self):
