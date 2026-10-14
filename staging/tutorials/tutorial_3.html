@@ -26,18 +26,18 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
     <script src="../_static/documentation_options.js?v=8313637b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
@@ -47,7 +47,7 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/tutorial_3';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.22.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
@@ -59,6 +59,7 @@
     <link rel="next" title="Reference Manual" href="../reference_manual/index.html" />
     <link rel="prev" title="Tutorial 2" href="tutorial_2.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.0.0" />
   
@@ -431,6 +432,8 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 <section class="tex2jax_ignore mathjax_ignore" id="tutorial-3">
 <h1>Tutorial 3<a class="headerlink" href="#tutorial-3" title="Link to this heading">#</a></h1>
+<p><a class="sd-sphinx-override sd-btn sd-text-wrap sd-btn-primary reference external" href="tutorial_3.zip"><span>Download the tutorial 3 files</span></a></p>
+<p>The download holds the folder <code class="docutils literal notranslate"><span class="pre">tutorial_3</span></code> with the empty working files that you copy into your own folder structure during this tutorial. Unzip it where you want to work. An <a class="reference internal" href="#example-solution">example solution</a> is at the bottom of this page.</p>
 <p><strong>Why are you doing this tutorial?</strong></p>
 <p>The purpose of this tutorial is to introduce you to the concept of modularization of the Navigate files. Essentially splitting the instructions into multiple <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files in order to make them more readable and easier to maintain and update. This is especially relevant when working with scenarios, uncertainties, and sensitivities where there are often only a handful of assumptions that are changed while the majority remain the same across all simulations.</p>
 <p><strong>Setting the scene:</strong></p>
@@ -561,7 +564,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <li><p><code class="docutils literal notranslate"><span class="pre">time_steps_yearly.inc</span></code></p></li>
 </ol>
 <p>Each section in the list represents a separate <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file in the new file structure.</p>
-<p>We have taken the liberty of creating empty working files for you in the folder <code class="docutils literal notranslate"><span class="pre">tutorial_3</span></code> that you can copy into your newly constructed simulation environment. The <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files should be copied into <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> subfolders and the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> files should be placed in the respective scenario folders.</p>
+<p>We have taken the liberty of creating empty working files for you in the folder <code class="docutils literal notranslate"><span class="pre">tutorial_3</span></code> from the download at the top of this page that you can copy into your newly constructed simulation environment. The <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files should be copied into <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> subfolders and the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> files should be placed in the respective scenario folders.</p>
 </section>
 </section>
 <section id="define-file-general-nodes">
@@ -1005,7 +1008,7 @@ For better overview, group them into categories like you can see on the right si
 <h2>Run the Baseline Scenario<a class="headerlink" href="#run-the-baseline-scenario" title="Link to this heading">#</a></h2>
 <p>Open the terminal and change directory to where the tutorial simulation files are. Once positioned in the folder use the following command to run Navigate:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example cd workflow (linux)</span>
-<span class="nb">cd</span><span class="w"> </span>tutorial/tutorial_3/tutorial_3_scenarios/baseline/
+<span class="nb">cd</span><span class="w"> </span>tutorial_3/tutorial_3_scenarios/baseline/
 
 <span class="c1"># Run Navigate</span>
 navigate<span class="w"> </span>baseline.nav
@@ -1248,6 +1251,831 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 </ol>
 </section>
 </section>
+<section id="example-solution">
+<h2>Example solution<a class="headerlink" href="#example-solution" title="Link to this heading">#</a></h2>
+<p>One way to complete this tutorial. Each box holds one file, at its path inside the <code class="docutils literal notranslate"><span class="pre">tutorial_3</span></code> folder.</p>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">tutorial_3_scenarios/baseline/baseline.nav</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># baseline.nav file for tutorial 3</span>
+
+<span class="n">DEFINE</span> <span class="p">{</span>	
+				
+	<span class="c1">### model definition and general conditions</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/model_definition.inc"</span>
+	
+	<span class="c1"># fleets</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_bulk.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_container.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_uptake.inc"</span>
+	
+	<span class="c1"># vessels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_oil.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_methane.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_methanol.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_ammonia.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/tanks.inc"</span>
+
+	<span class="c1"># route</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/route.inc"</span>
+	
+	<span class="c1"># port</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/port.inc"</span>
+	
+	<span class="c1"># fuels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/plant.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fuel.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/process.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/feedstock.inc"</span>
+
+	
+	<span class="c1"># costs and emission of fuels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/source.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/region.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/emissions.inc"</span>
+
+	<span class="c1"># producer</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/producer.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/producer_uptake.inc"</span>
+	
+	<span class="c1"># report</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/report.inc"</span>
+
+	<span class="c1"># plots</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/plot.inc"</span>
+<span class="p">}</span>
+
+
+<span class="n">EVENTS</span> <span class="p">{</span>					
+	<span class="c1"># engine availability</span>
+	
+	<span class="c1"># fuels available</span>
+	
+	<span class="c1"># time steps</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/time_steps_yearly.inc"</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">tutorial_3_scenarios/scenario_100/scenario_100.nav</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># scenario_100.nav file for tutorial 3</span>
+
+<span class="n">DEFINE</span> <span class="p">{</span>	
+				
+	<span class="c1">### model definition and general conditions</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/model_definition.inc"</span>
+	
+	<span class="c1"># fleets</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_bulk.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_container.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_uptake.inc"</span>
+	
+	<span class="c1"># vessels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_oil.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_methane.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_methanol.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_ammonia.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/tanks.inc"</span>
+
+	<span class="c1"># route</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/route.inc"</span>
+	
+	<span class="c1"># port</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/port.inc"</span>
+	
+	<span class="c1"># fuels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/plant.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fuel.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/process.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/feedstock.inc"</span>
+	
+	
+	<span class="c1"># costs and emission of fuels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/source.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/region.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/emissions.inc"</span>
+
+	<span class="c1"># producer</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/producer.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/producer_uptake.inc"</span>
+
+	<span class="c1"># report</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/report.inc"</span>
+
+	<span class="c1"># plots</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/plot.inc"</span>
+
+
+	<span class="n">Include</span> <span class="s2">"../0_includes_local/scenario_100.inc"</span>
+<span class="p">}</span>
+
+
+<span class="n">EVENTS</span> <span class="p">{</span>					
+	<span class="c1"># engine availability</span>
+	
+	<span class="c1"># fuels available</span>
+	
+	<span class="c1"># time steps</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/time_steps_yearly.inc"</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">tutorial_3_scenarios/scenario_170/scenario_170.nav</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># scenario_170.nav file for tutorial 3</span>
+
+<span class="n">DEFINE</span> <span class="p">{</span>	
+				
+	<span class="c1">### model definition and general conditions</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/model_definition.inc"</span>
+	
+	<span class="c1"># fleets</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_bulk.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_container.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_uptake.inc"</span>
+	
+	<span class="c1"># vessels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_oil.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_methane.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_methanol.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_ammonia.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/tanks.inc"</span>
+
+	<span class="c1"># route</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/route.inc"</span>
+	
+	<span class="c1"># port</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/port.inc"</span>
+	
+	<span class="c1"># fuels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/plant.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/fuel.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/process.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/feedstock.inc"</span>
+	
+	<span class="c1"># costs and emission of fuels</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/source.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/region.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/emissions.inc"</span>
+
+	<span class="c1"># producer</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/producer.inc"</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/producer_uptake.inc"</span>
+
+	<span class="c1"># report</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/report.inc"</span>
+
+	<span class="c1"># plots</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/plot.inc"</span>
+
+	<span class="n">Include</span> <span class="s2">"../0_includes_local/scenario_170.inc"</span>
+<span class="p">}</span>
+
+
+<span class="n">EVENTS</span> <span class="p">{</span>					
+	<span class="c1"># engine availability</span>
+	
+	<span class="c1"># fuels available</span>
+	
+	<span class="c1"># time steps</span>
+	<span class="n">Include</span> <span class="s2">"../../0_includes_global/time_steps_yearly.inc"</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">tutorial_3_scenarios/0_includes_local/scenario_100.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of port with alternative bunkering price</span>
+<span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
+	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">tutorial_3_scenarios/0_includes_local/scenario_170.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of port with alternative bunkering price</span>
+<span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
+	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">170</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/bulk_ice_ammonia.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The ammonia powered bulk vessel incl. powersystem and converters</span>
+
+<span class="n">Vessel</span> <span class="s2">"bulk_ice_ammonia"</span> <span class="p">{</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_ammonia"</span><span class="p">)</span> 	
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 		
+	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"main_ammonia"</span><span class="p">)]</span>	
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="n">PowerSystem</span> <span class="s2">"ice_ammonia"</span> <span class="p">{</span>
+	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
+	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
+	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"propulsion_ice_ammonia"</span> <span class="p">{</span> 
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span> 			  
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>	
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"electrical_ice_ammonia"</span> <span class="p">{</span> 
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span> 
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span> 
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/bulk_ice_methanol.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The methanol powered bulk vessel incl. powersystem and converters</span>
+
+<span class="n">Vessel</span> <span class="s2">"bulk_ice_methanol"</span> <span class="p">{</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methanol"</span><span class="p">)</span> 	
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 		
+	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methanol"</span><span class="p">)]</span> 
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="n">PowerSystem</span> <span class="s2">"ice_methanol"</span> <span class="p">{</span>
+	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
+	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
+	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"propulsion_ice_methanol"</span> <span class="p">{</span> 
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span> 			  
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span> 
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>	
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"electrical_ice_methanol"</span> <span class="p">{</span> 
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span> 
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/container_ice_methane.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The methane powered container vessel incl. powersystem and converters</span>
+
+<span class="n">Vessel</span> <span class="s2">"container_ice_methane"</span> <span class="p">{</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methane"</span><span class="p">)</span> 	
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 		
+	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methane"</span><span class="p">)]</span>
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="n">PowerSystem</span> <span class="s2">"ice_methane"</span> <span class="p">{</span>
+	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
+	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methane"</span><span class="p">)</span>
+	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"propulsion_ice_methane"</span> <span class="p">{</span> 
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span> 			  
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span> 	
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+	<span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"electrical_ice_methane"</span> <span class="p">{</span> 
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span> 
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/container_ice_oil.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The fuel oil powered container vessel incl. powersystem and converters</span>
+
+<span class="n">Vessel</span> <span class="s2">"container_ice_oil"</span> <span class="p">{</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_oil"</span><span class="p">)</span> 	
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 		
+	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_oil"</span><span class="p">)]</span>						
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="n">PowerSystem</span> <span class="s2">"ice_oil"</span> <span class="p">{</span>
+	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
+	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
+	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"propulsion_ice_oil"</span> <span class="p">{</span> 
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span> 			  
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"electrical_ice_oil"</span> <span class="p">{</span> 
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span> 
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+ 
+<span class="n">Converter</span> <span class="s2">"heat_boiler_oil"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">5</span>  
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/emissions.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/feedstock.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of feedstocks</span>
+
+<span class="c1"># Definition of "demineralized_water"</span>
+<span class="n">Feedstock</span> <span class="s2">"demineralized_water"</span> <span class="p">{</span>	
+<span class="p">}</span>
+
+<span class="c1"># Definition of "carbon_dioxide_biogenic" </span>
+<span class="n">Feedstock</span> <span class="s2">"carbon_dioxide_biogenic"</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1"># Definition of "organic_wet_waste"</span>
+<span class="n">Feedstock</span> <span class="s2">"organic_wet_waste"</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1"># Definition of "dry_wood_biomass"</span>
+<span class="n">Feedstock</span> <span class="s2">"dry_wood_biomass"</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1"># Definition of feedstock "natural_gas"</span>
+<span class="n">Feedstock</span> <span class="s2">"natural_gas"</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/fleet_bulk.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of bulk fleet</span>
+
+<span class="n">Fleet</span> <span class="s2">"bulk_fleet"</span> <span class="p">{</span>	
+	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_methanol"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_ammonia"</span><span class="p">)]</span> 	
+	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
+	<span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/fleet_container.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of container fleet</span>
+
+<span class="n">Fleet</span> <span class="s2">"container_fleet"</span> <span class="p">{</span>	
+	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_oil"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_methane"</span><span class="p">)]</span> 	
+	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span> 
+	<span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/fleet_uptake.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of fleets' decision sensitivities (odds ratios; LCOT is lower-is-better, so below 1)</span>
+
+<span class="n">Fleet</span> <span class="s2">"*"</span> <span class="p">{</span>
+	<span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/fuel.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of fuels</span>
+
+
+<span class="c1"># Definition of "heavy_fuel_oil"</span>
+<span class="n">Fuel</span> <span class="s2">"heavy_fuel_oil"</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">LiquidMarket</span> <span class="o">=</span> <span class="n">TRUE</span>
+
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">41.2</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.9</span>
+	
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Definition of "methane_electro" </span>
+<span class="n">Fuel</span> <span class="s2">"methane_electro"</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANE</span>
+
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">50.0</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.43</span>
+	
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Definition of "methanol_bio" </span>
+<span class="n">Fuel</span> <span class="s2">"methanol_bio"</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANOL</span>
+
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">19.9</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.791</span>
+	
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">1.38</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Definition of "ammonia_blue" </span>
+<span class="n">Fuel</span> <span class="s2">"ammonia_blue"</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">18.8</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.623</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/model_definition.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The model definition.</span>
+
+<span class="n">ModelDefinition</span> <span class="p">{</span>
+	<span class="n">StartDate</span> <span class="o">=</span> <span class="s2">"01/01/2025"</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/plant.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of fuel production plants</span>
+
+
+<span class="c1"># e-methane -------------------------------------------------------</span>
+<span class="n">Plant</span> <span class="s2">"plant_methane_electro"</span> <span class="p">{</span>     <span class="c1">#e-methane plant difinition</span>
+	<span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"methane_electro"</span><span class="p">)</span>      <span class="c1">#difinition of fuel: e-methane with CCS from point source</span>
+	<span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">)</span>  <span class="c1">#Process turning methane gas into LBiquefied Methane - the condition methane needs to be turned into to be a sailable fuel</span>
+	<span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">"region"</span><span class="p">)</span>        <span class="c1">#Definition of the region where the plant is positioned</span>
+	<span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">"renewable"</span><span class="p">)</span>  <span class="c1">#sustainable e-fuels are sourced from wind and solar power</span>
+	<span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>   <span class="c1">#The plant capacity</span>
+<span class="p">}</span>
+
+
+<span class="c1"># bio-methanol -------------------------------------------------------</span>
+<span class="n">Plant</span> <span class="s2">"plant_methanol_bio_gasification"</span> <span class="p">{</span>
+	<span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">)</span>
+	<span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">)</span>
+	<span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">"region"</span><span class="p">)</span>
+	<span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">)</span>
+	
+	<span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="p">}</span>
+
+<span class="c1">#  blue ammonia -------------------------------------------------------</span>
+<span class="n">Plant</span> <span class="s2">"plant_ammonia_blue"</span> <span class="p">{</span>
+	<span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"ammonia_blue"</span><span class="p">)</span>
+	<span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">)</span>
+	<span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">"region"</span><span class="p">)</span>
+	<span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">)</span>
+	<span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/plot.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of the plots produced for each scenario.</span>
+<span class="c1"># Directory points at the "plots" subfolder of the scenario; each add_plot(...)</span>
+<span class="c1"># selects one plot to produce.</span>
+
+<span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
+	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
+
+	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
+	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
+	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"plant_production_cost"</span><span class="p">)</span>
+	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/port.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of port</span>
+<span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
+	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+	<span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/process.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of fuel processing</span>
+
+<span class="c1"># Definition of "methane_liquefaction_electro"</span>
+<span class="n">Process</span> <span class="s2">"methane_liquefaction_electro"</span> <span class="p">{</span>  
+	<span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">)]</span>
+	<span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Definition of "methane_synthesis_electro" </span>
+<span class="n">Process</span> <span class="s2">"methane_synthesis_electro"</span> <span class="p">{</span>  
+	<span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">"demineralized_water"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"carbon_dioxide_biogenic"</span><span class="p">)]</span>
+	<span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">]</span>  
+<span class="p">}</span>
+
+
+<span class="c1"># Definition of "methanol_synthesis_bio_gasification"</span>
+<span class="n">Process</span> <span class="s2">"methanol_synthesis_bio_gasification"</span> <span class="p">{</span>
+	<span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">"organic_wet_waste"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"dry_wood_biomass"</span><span class="p">)]</span>
+	<span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.21</span><span class="p">,</span> <span class="mf">1.21</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Definition of "haber_bosch_ccs_integrated_blue"</span>
+<span class="n">Process</span> <span class="s2">"haber_bosch_ccs_integrated_blue"</span> <span class="p">{</span>				
+	<span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">"nitrogen_air_seperation"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"natural_gas"</span><span class="p">)]</span>
+	<span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.64</span><span class="p">,</span> <span class="mf">0.822</span><span class="p">]</span>						
+<span class="p">}</span>
+
+<span class="c1"># Definition of "nitrogen_air_seperation"</span>
+<span class="n">Process</span> <span class="s2">"nitrogen_air_seperation"</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/producer.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of Producer</span>
+
+<span class="n">Producer</span> <span class="s2">"engineering_procurement_construction"</span> <span class="p">{</span>
+	<span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methane_electro"</span><span class="p">),</span> <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_bio_gasification"</span><span class="p">),</span> <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_blue"</span><span class="p">)]</span>
+	<span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
+	<span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+	<span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/producer_uptake.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Producer decision sensitivities are now set directly on the Producer in producer.inc</span>
+<span class="c1"># (FuelDemandSensitivity, FuelCostSensitivity), so no separate uptake definitions are needed here.</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/region.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of region</span>
+
+<span class="n">Region</span> <span class="s2">"region"</span> <span class="p">{</span>
+<span class="c1">#set CapEx, OpEx, Process and feedstock WTT emissions for the different processes that produces the alternative fuels. The expensens and emissions related to the production of the fuels depend on the region.</span>
+
+<span class="c1">### E-methane ###</span>
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+	<span class="n">set_process_opex</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">,</span> <span class="mi">88</span><span class="p">)</span>
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
+	<span class="c1"># liquefied e-methane</span>
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
+	<span class="c1"># Set WTT feedstock emissions below:</span>
+	<span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">"carbon_dioxide_biogenic"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+	<span class="c1"># Set WTT process emissions below:</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+
+<span class="c1">### Bio-methanol ###</span>
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="mi">180</span><span class="p">)</span>
+	<span class="n">set_process_opex</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="mf">0.52</span><span class="p">)</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.35</span><span class="p">)</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+	
+
+<span class="c1">### Blue ammonia ###</span>
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+	<span class="n">set_process_opex</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">,</span> <span class="mi">50</span>	<span class="p">)</span> <span class="c1"># combining ammonia plant opex and cost of CCS</span>
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
+	
+	<span class="c1"># Set WTT feedstock emissions below:</span>
+	<span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">"natural_gas"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.11</span><span class="p">)</span>
+	<span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">"natural_gas"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="mf">0.0073</span><span class="p">)</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.180</span><span class="p">)</span> <span class="c1">#adding missing ccs of some carbon here</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/report.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Export results to a subfolder called "plots".</span>
+<span class="c1"># An error is raised if no such folder is found.</span>
+
+<span class="n">Report</span> <span class="s2">"report"</span> <span class="p">{</span>
+
+	<span class="c1"># Export results to a subfolder called "plots".</span>
+	<span class="c1"># An error is raised if no such folder is found.</span>
+	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
+	
+		
+	<span class="c1"># port</span>
+	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">BunkerIntensityPrice</span><span class="p">)</span>				<span class="c1"># USD/GJ</span>
+	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">BunkerIntensityTotalEquivalentWtt</span><span class="p">)</span>	<span class="c1"># kg / GJ</span>
+		
+	<span class="c1"># fleet</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TotalEquivalentWtt</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TotalEquivalentTtw</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TotalEquivalentWtw</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TotalConsumedEnergy</span><span class="p">)</span>	<span class="c1"># GJ/year</span>
+
+	<span class="c1"># global</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentWtt</span><span class="p">)</span>				<span class="c1"># ton/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentTtw</span><span class="p">)</span>				<span class="c1"># ton/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentWtw</span><span class="p">)</span>				<span class="c1"># ton/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalConsumedEnergy</span><span class="p">)</span>				<span class="c1"># GJ/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">ConsumedEnergy</span><span class="p">)</span>					<span class="c1"># GJ/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">InstalledPower</span><span class="p">)</span>					<span class="c1"># MW</span>
+	
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/route.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of route </span>
+
+<span class="n">Route</span> <span class="s2">"route"</span> <span class="p">{</span>
+	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">REGIONAL_TRIP</span> 		
+	<span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
+	<span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>		
+	<span class="n">ConditionDistribution</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> 
+	<span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/source.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of vessel finance</span>
+
+<span class="c1">#Source of electricity for production of fuels</span>
+<span class="n">Source</span> <span class="s2">"renewable"</span> <span class="p">{</span>
+	<span class="n">Dependency</span> <span class="o">=</span> <span class="n">CONNECTED</span>
+<span class="p">}</span>
+
+<span class="n">Source</span> <span class="s2">"grid"</span> <span class="p">{</span>  <span class="c1">#blue and bio fuels sources electricity from the grid in the region where it is being produced.</span>
+	<span class="n">Dependency</span> <span class="o">=</span> <span class="n">CONNECTED</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/tanks.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of the pilot fuel tanks.  </span>
+
+<span class="n">Tank</span> <span class="s2">"pilot_oil"</span> <span class="p">{</span> 			
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">2000</span> 	
+<span class="p">}</span>
+
+<span class="c1"># Definition of main fuel tanks</span>
+
+<span class="n">Tank</span> <span class="s2">"main_oil"</span> <span class="p">{</span> 			
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span> 	
+<span class="p">}</span>
+
+<span class="n">Tank</span> <span class="s2">"main_methane"</span> <span class="p">{</span> 			
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span> 			
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span> 	
+<span class="p">}</span>
+
+<span class="n">Tank</span> <span class="s2">"main_methanol"</span> <span class="p">{</span> 			
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span> 			
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span> 	
+<span class="p">}</span>
+
+<span class="n">Tank</span> <span class="s2">"main_ammonia"</span> <span class="p">{</span> 			
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span> 			
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span> 	
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">0_includes_global/time_steps_yearly.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This events file defines the timeline for the fleet transition module.</span>
+
+<span class="c1"># Define the Start below.</span>
+
+<span class="n">Start</span>
+
+<span class="c1"># A) TIME STEPS AND END OF TIMELINE</span>
+<span class="c1"># Define annual time steps below.</span>
+<span class="n">Date</span> <span class="s2">"01-01-2025"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2026"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2027"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2028"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2029"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2030"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2031"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2032"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2033"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2034"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2035"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2036"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2037"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2038"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2039"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2040"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2041"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2042"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2043"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2044"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2045"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2046"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2047"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2048"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2049"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2050"</span>
+
+<span class="c1"># Define the End of the timeline.</span>
+
+<span class="n">End</span>
+
+<span class="c1">### END OF time_steps_yearly.inc FILE</span>
+</pre></div>
+</div>
+</div>
+</details></section>
 </section>
 
 
@@ -1350,6 +2178,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#making-a-report-for-further-analysis-in-excel">Making a report for further analysis in Excel</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-solution">Example solution</a></li>
 </ul>
   </nav></div>
 
@@ -1375,8 +2204,8 @@ From the location of <code class="docutils literal notranslate"><span class="pre
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1409,7 +2238,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
 </p></div>
       
     </div>

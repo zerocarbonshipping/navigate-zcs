@@ -26,18 +26,18 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
     <script src="../_static/documentation_options.js?v=8313637b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
@@ -47,7 +47,7 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/tutorial_2';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.22.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
@@ -59,6 +59,7 @@
     <link rel="next" title="Tutorial 3" href="tutorial_3.html" />
     <link rel="prev" title="Tutorial 1" href="tutorial_1.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.0.0" />
   
@@ -431,13 +432,15 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 <section class="tex2jax_ignore mathjax_ignore" id="tutorial-2">
 <h1>Tutorial 2<a class="headerlink" href="#tutorial-2" title="Link to this heading">#</a></h1>
+<p><a class="sd-sphinx-override sd-btn sd-text-wrap sd-btn-primary reference external" href="tutorial_2.zip"><span>Download the tutorial 2 files</span></a></p>
+<p>The download holds the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code> with <code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> and an <code class="docutils literal notranslate"><span class="pre">includes</span></code> folder with <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> and <code class="docutils literal notranslate"><span class="pre">events.inc</span></code>, prepared with prompts for you to follow. Unzip it where you want to work. An <a class="reference internal" href="#example-solution">example solution</a> is at the bottom of this page.</p>
 <p><strong>Why are you doing this tutorial?</strong></p>
 <p>In Tutorial 1, you learned about the foundations of how to run a model with the most necessary parameters in Navigate. However, the basic scenario of only one vessel and only one fuel is not very useful for predicting the future of shipping and simplifies what Navigate can do. In this tutorial, you will simulate a slightly more complex scenario, with two different vessel segments, four different fuels, manipulations of trade growth, etc. At the end of this tutorial, you will have learned how to set up a more complex environment with more variables. You will also be able to interpret more complex projections and put them in context.</p>
 <p><strong>Setting the scene:</strong></p>
 <p>In this scenario, we look at a case where we have 2 fleets. One fleet consists of 2 container ships, and the other fleet consists of 2 bulk carriers. One of the container ships is a mono-fuel fuel oil vessel, the other one is a dual-fuel methane. One of the bulk carriers is a dual-fuel methanol, the other one a dual-fuel ammonia.
-Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under <code class="docutils literal notranslate"><span class="pre">Navigate/navigate/defaults/installation/*</span></code>.</p>
+Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under <code class="docutils literal notranslate"><span class="pre">Navigate/assumptions/defaults/installation/*</span></code>.</p>
 <p><strong>How does it work?</strong></p>
-<p>In the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>, we have prepared a <code class="docutils literal notranslate"><span class="pre">define.inc</span></code>, an <code class="docutils literal notranslate"><span class="pre">events.inc</span></code> and a <code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> file for you. The files will include prompts that tell you what to do, just like in Tutorial 1. All of the files for Tutorial 2 build on what you have already created in Tutorial 1. This means, that all nodes from the files from Tutorial 1 are already included in the files you will be working with for Tutorial 2. Edits made to accommodate the new vessel and fuel assumptions in this tutorial are specified in this guide.
+<p>In the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code> from the download at the top of this page, we have prepared a <code class="docutils literal notranslate"><span class="pre">define.inc</span></code>, an <code class="docutils literal notranslate"><span class="pre">events.inc</span></code> and a <code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> file for you. The files will include prompts that tell you what to do, just like in Tutorial 1. All of the files for Tutorial 2 build on what you have already created in Tutorial 1. This means, that all nodes from the files from Tutorial 1 are already included in the files you will be working with for Tutorial 2. Edits made to accommodate the new vessel and fuel assumptions in this tutorial are specified in this guide.
 In the last section, you will produce plots and manipulate some variables. You will explore the projections on the global emissions, global fuel cost etc., for the two different fleets, taking into account emissions that are associated with the sourcing and production of the fuels, as well as the emissions from burning the fuel. We will also explore the effect of trade growth over time.</p>
 <section id="modifying-the-define-inc-file">
 <h2>Modifying the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file<a class="headerlink" href="#modifying-the-define-inc-file" title="Link to this heading">#</a></h2>
@@ -1246,6 +1249,537 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <li><p>Look through the plots folder and interpret the results.</p></li>
 </ol>
 </section>
+<section id="example-solution">
+<h2>Example solution<a class="headerlink" href="#example-solution" title="Link to this heading">#</a></h2>
+<p>One way to complete this tutorial. Each box holds one file, at its path inside the <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code> folder.</p>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">tutorial_2.nav</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is the .nav file for Tutorial 2. It is the same as Tutorial 1.</span>
+<span class="c1"># You should just make sure that your define and events files are correctly named</span>
+<span class="c1"># and are located in the tutorial_2/includes folder.</span>
+
+<span class="c1"># Define the model.</span>
+<span class="n">DEFINE</span> <span class="p">{</span>
+	<span class="n">Include</span> <span class="s2">"./includes/define.inc"</span>
+<span class="p">}</span>
+
+<span class="c1"># Define the timeline and events.</span>
+<span class="n">EVENTS</span> <span class="p">{</span>
+	<span class="n">Include</span> <span class="s2">"./includes/events.inc"</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">includes/define.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This Tutorial 2 define.inc file is an edited copy of the define file from Tutorial 1. </span>
+<span class="c1"># Lengthy comments from tutorial 1 were removed to give you a better overview.</span>
+
+<span class="c1"># The model definition and the Start of the timeline are the same as in tutorial 1.</span>
+<span class="n">ModelDefinition</span> <span class="p">{</span>
+	<span class="n">StartDate</span> <span class="o">=</span> <span class="s2">"01/01/2025"</span>
+<span class="p">}</span>
+
+
+<span class="c1"># A) Definition of the fleets and nodes related to all vessels</span>
+<span class="c1"># Ai) Container fleet</span>
+<span class="c1"># Below is the definition of the fleet from tutorial 1. </span>
+<span class="n">Fleet</span> <span class="s2">"container_fleet"</span> <span class="p">{</span>
+	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_oil"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_methane"</span><span class="p">)]</span>
+	<span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
+	<span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="p">}</span>
+
+<span class="c1"># Aii) Bulk carrier fleet</span>
+<span class="c1"># Paste the copy of the Fleet node "container_fleet" below, and make edits as</span>
+<span class="c1"># described in the tutorial:</span>
+<span class="n">Fleet</span> <span class="s2">"bulk_fleet"</span> <span class="p">{</span>
+	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_methanol"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_ammonia"</span><span class="p">)]</span>
+	<span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
+	<span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="p">}</span>
+
+
+<span class="c1"># B) DEFINITION OF ALL FOUR VESSELS</span>
+<span class="c1"># Bi) Definition of fuel oil vessel</span>
+<span class="c1"># Change the the value assigned to the attribute Tanks below.</span>
+
+<span class="n">Vessel</span> <span class="s2">"container_ice_oil"</span> <span class="p">{</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_oil"</span><span class="p">)</span>
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
+	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_oil"</span><span class="p">)]</span>
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="c1"># Same as in tutorial 1.</span>
+<span class="n">PowerSystem</span> <span class="s2">"ice_oil"</span> <span class="p">{</span>
+	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
+	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
+	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"propulsion_ice_oil"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"electrical_ice_oil"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+ 
+<span class="n">Converter</span> <span class="s2">"heat_boiler_oil"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">5</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Bii) DEFINITION OF METHANE VESSEL</span>
+<span class="c1"># This definition has the same structure as the definition of the fuel oil vessel, but has</span>
+<span class="c1"># different assigned values.</span>
+<span class="c1">#</span>
+<span class="c1"># Define Vessel "container_ice_methane", Powersystem "ice_methane", Converter "propulsion_ice_methane", </span>
+<span class="c1"># Converter "electrical_ice_methane", Converter "heat_boiler_methane".</span>
+<span class="c1">#</span>
+<span class="c1"># Paste the nodes from section Bi) below.</span>
+
+<span class="n">Vessel</span> <span class="s2">"container_ice_methane"</span> <span class="p">{</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methane"</span><span class="p">)</span>
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
+	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methane"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="c1"># Same as in tutorial 1.</span>
+<span class="n">PowerSystem</span> <span class="s2">"ice_methane"</span> <span class="p">{</span>
+	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
+	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methane"</span><span class="p">)</span>
+	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"propulsion_ice_methane"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+	<span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"electrical_ice_methane"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Biii) DEFINITION OF METHANOL VESSEL</span>
+<span class="c1">#</span>
+<span class="c1"># Define Vessel "bulk_ice_methanol", Powersystem "ice_methanol_bulk", Converter "propulsion_ice_methanol_bulk", </span>
+<span class="c1"># Converter "electrical_ice_methanol_bulk", Converter "heat_boiler_methanol_bulk".</span>
+<span class="c1">#</span>
+<span class="c1"># Paste the nodes from section Bi) below.</span>
+<span class="n">Vessel</span> <span class="s2">"bulk_ice_methanol"</span> <span class="p">{</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methanol"</span><span class="p">)</span>
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
+	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methanol"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="c1"># Same as in tutorial 1.</span>
+<span class="n">PowerSystem</span> <span class="s2">"ice_methanol"</span> <span class="p">{</span>
+	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
+	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
+	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"propulsion_ice_methanol"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"electrical_ice_methanol"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+
+<span class="c1"># Biv) DEFINITION OF AMMONIA VESSEL</span>
+<span class="c1">#</span>
+<span class="c1"># Define Vessel "bulk_ice_ammonia", Powersystem "ice_ammonia_bulk", Converter "propulsion_ice_ammonia_bulk", </span>
+<span class="c1"># Converter "electrical_ice_ammonia_bulk", Converter "heat_boiler_ammonia_bulk".</span>
+<span class="c1">#</span>
+<span class="c1"># Paste the nodes from section Bi) below.</span>
+<span class="n">Vessel</span> <span class="s2">"bulk_ice_ammonia"</span> <span class="p">{</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_ammonia"</span><span class="p">)</span>
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
+	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_ammonia"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="c1"># Same as in tutorial 1.</span>
+<span class="n">PowerSystem</span> <span class="s2">"ice_ammonia"</span> <span class="p">{</span>
+	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
+	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
+	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"propulsion_ice_ammonia"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+<span class="p">}</span>
+
+<span class="n">Converter</span> <span class="s2">"electrical_ice_ammonia"</span> <span class="p">{</span>
+	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span>
+	<span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+
+<span class="c1"># C) GENERAL SPECIFICATIONS FOR VESSELS</span>
+
+<span class="c1"># Define the vessel route below (same as in tutorial 1). </span>
+<span class="n">Route</span> <span class="s2">"route"</span> <span class="p">{</span>
+	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">REGIONAL_TRIP</span>
+	<span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
+	<span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
+	<span class="n">ConditionDistribution</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+	<span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Define the vessel tank below.</span>
+<span class="n">Tank</span> <span class="s2">"main_oil"</span> <span class="p">{</span>
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+<span class="p">}</span>
+
+<span class="c1"># Ci) DEFINITION OF PILOT TANK</span>
+<span class="c1"># Define Tank "pilot_oil".</span>
+<span class="c1"># Paste the node Tank "main_oil" from section C) below.</span>
+<span class="n">Tank</span> <span class="s2">"pilot_oil"</span> <span class="p">{</span>
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">2000</span>
+<span class="p">}</span>
+
+<span class="c1"># Cii) DEFINITION OF METHANE TANK</span>
+<span class="c1"># Define Tank "main_methane".</span>
+<span class="c1"># Paste the node Tank "main_oil" from section C) below.</span>
+<span class="n">Tank</span> <span class="s2">"main_methane"</span> <span class="p">{</span>
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Ciii) DEFINITION OF METHANOL TANK</span>
+<span class="c1"># Define Tank "main_methanol".</span>
+<span class="c1"># Paste the node Tank "main_oil" from section C) below.</span>
+<span class="n">Tank</span> <span class="s2">"main_methanol"</span> <span class="p">{</span>
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Civ) DEFINITION OF AMMONIA TANK</span>
+<span class="c1"># Define Tank "main_ammonia".</span>
+<span class="c1"># Paste the node Tank "main_oil" from section C) below.</span>
+<span class="n">Tank</span> <span class="s2">"main_ammonia"</span> <span class="p">{</span>
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+<span class="p">}</span>
+
+
+<span class="c1"># D) DEFINITION OF THE PORT</span>
+<span class="c1"># Definition of the node "port" from tutorial 1 below:</span>
+
+<span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
+	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+	<span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Region</span> <span class="s2">"region"</span> <span class="p">{</span>
+	<span class="c1"># e-methane</span>
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
+	<span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">"carbon_dioxide_biogenic"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+	<span class="n">set_process_opex</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">,</span> <span class="mi">88</span><span class="p">)</span>
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+
+
+	<span class="c1"># Bio-methanol</span>
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="mi">180</span><span class="p">)</span>
+	<span class="n">set_process_opex</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="mf">0.52</span><span class="p">)</span>
+
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.35</span><span class="p">)</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+
+	<span class="c1"># Blue ammonia</span>
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+	<span class="n">set_process_opex</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">,</span> <span class="mi">50</span>	<span class="p">)</span> 
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
+	
+	<span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">"natural_gas"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.11</span><span class="p">)</span>
+	<span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">"natural_gas"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="mf">0.0073</span><span class="p">)</span>
+
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.180</span><span class="p">)</span> 
+<span class="p">}</span>
+
+
+
+<span class="c1"># E) DEFINITION OF ALL FOUR FUELS</span>
+<span class="c1"># Ei) Definition of heavy_fuel_oil</span>
+
+<span class="c1"># Definition of "heavy_fuel_oil" (same as Tutorial 1).</span>
+<span class="n">Fuel</span> <span class="s2">"heavy_fuel_oil"</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">OIL</span>
+	<span class="n">LiquidMarket</span> <span class="o">=</span> <span class="n">TRUE</span>
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">41.2</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.9</span>
+
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Eii) Definition of electro-methane</span>
+<span class="c1"># Define the methane production plant Plant "plant_methane_electro"</span>
+<span class="n">Plant</span> <span class="s2">"plant_methane_electro"</span> <span class="p">{</span>
+	<span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"methane_electro"</span><span class="p">)</span>
+	<span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">"methane_liquefaction_electro"</span><span class="p">)</span>
+	<span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">"region"</span><span class="p">)</span>
+	<span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">"renewable"</span><span class="p">)</span>
+	<span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+	<span class="n">LeadTime</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">}</span>
+
+<span class="c1"># define fuel and processes</span>
+<span class="c1"># Define Fuel "methane_electro"</span>
+<span class="n">Fuel</span> <span class="s2">"methane_electro"</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANE</span>
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mi">50</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.43</span>
+
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Define Process "methane_liquefaction_electro"</span>
+<span class="n">Process</span> <span class="s2">"methane_liquefaction_electro"</span> <span class="p">{</span>
+	<span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">)]</span>
+	<span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Define Process "methane_synthesis_electro"</span>
+<span class="n">Process</span> <span class="s2">"methane_synthesis_electro"</span> <span class="p">{</span>
+	<span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">"demineralized_water"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"carbon_dioxide_biogenic"</span><span class="p">)]</span>
+	<span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">]</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Define Feedstocks</span>
+<span class="n">Feedstock</span> <span class="s2">"demineralized_water"</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">"carbon_dioxide_biogenic"</span> <span class="p">{</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Eiii) Definition of bio-methanol</span>
+<span class="c1"># Paste the nodes "plant_methane_electro", Fuel "methane_electro", "methane_synthesis_electro", Feedstock "demineralized_water" and Feedstock "carbon_dioxide_biogenic"  from section Bi) below:</span>
+<span class="n">Plant</span> <span class="s2">"plant_methanol_bio_gasification"</span> <span class="p">{</span>
+	<span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">)</span>
+	<span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">)</span>
+	<span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">"region"</span><span class="p">)</span>
+	<span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">)</span>
+	<span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+	<span class="n">LeadTime</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">}</span>
+
+<span class="n">Fuel</span> <span class="s2">"methanol_bio"</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANOL</span>
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">19.9</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.791</span>
+
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">1.38</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Process</span> <span class="s2">"methanol_synthesis_bio_gasification"</span> <span class="p">{</span>
+	<span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">"organic_wet_waste"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"dry_wood_biomass"</span><span class="p">)]</span>
+	<span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.21</span><span class="p">,</span> <span class="mf">1.21</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">"organic_wet_waste"</span> <span class="p">{</span>	
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">"dry_wood_biomass"</span> <span class="p">{</span>	
+<span class="p">}</span>
+
+
+<span class="c1"># Eiv) Definition of blue ammonia</span>
+<span class="c1"># Paste the nodes "plant_methane_electro", Fuel "methane_electro", "methane_synthesis_electro", Feedstock "demineralized_water" and Feedstock "carbon_dioxide_biogenic"  from section Bii) below:</span>
+<span class="n">Plant</span> <span class="s2">"plant_ammonia_blue"</span> <span class="p">{</span>
+	<span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"ammonia_blue"</span><span class="p">)</span>
+	<span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">"haber_bosch_ccs_integrated_blue"</span><span class="p">)</span>
+	<span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">"region"</span><span class="p">)</span>
+	<span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">)</span>
+	<span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+	<span class="n">LeadTime</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">}</span>
+
+<span class="n">Fuel</span> <span class="s2">"ammonia_blue"</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">18.8</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.623</span>
+<span class="p">}</span>
+
+
+<span class="n">Process</span> <span class="s2">"haber_bosch_ccs_integrated_blue"</span> <span class="p">{</span>
+	<span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">"nitrogen_air_seperation"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"natural_gas"</span><span class="p">)]</span>
+	<span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.64</span><span class="p">,</span> <span class="mf">0.822</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">"natural_gas"</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="n">Process</span> <span class="s2">"nitrogen_air_seperation"</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1"># Define energy sources "renewable" and "grid"</span>
+<span class="n">Source</span> <span class="s2">"renewable"</span> <span class="p">{</span>
+	<span class="n">Dependency</span> <span class="o">=</span> <span class="n">CONNECTED</span>
+<span class="p">}</span>
+
+
+<span class="n">Source</span> <span class="s2">"grid"</span> <span class="p">{</span>
+	<span class="n">Dependency</span> <span class="o">=</span> <span class="n">CONNECTED</span>
+<span class="p">}</span>
+
+
+<span class="c1"># F) Definition of nodes related to fuel production</span>
+<span class="c1"># Define the producer "engineering_procurement_construction_global"</span>
+<span class="n">Producer</span> <span class="s2">"engineering_procurement_construction_global"</span> <span class="p">{</span>
+	<span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methane_electro"</span><span class="p">),</span>
+		<span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_bio_gasification"</span><span class="p">),</span>
+		<span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_blue"</span><span class="p">)</span>
+	<span class="p">]</span>
+	
+	<span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
+	<span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+	<span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+
+<span class="c1"># G) DEFINITION OF OUTPUT</span>
+<span class="c1"># The Plot node tells Navigate which plots to produce and where to save them.</span>
+<span class="c1"># Directory points at the "plots" subfolder; each add_plot(...) selects one plot.</span>
+
+<span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
+	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
+
+	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
+	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
+	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"plant_production_cost"</span><span class="p">)</span>
+	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># END OF NAV FILE</span>
+</pre></div>
+</div>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">includes/events.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Tutorial 2 </span>
+<span class="c1"># This events file defines the timeline for the fleet transition module.</span>
+<span class="c1"># In tutorial 1, there was only one fleet. Now, there are two fleets, one</span>
+<span class="c1"># container fleet and one bulk carrier fleet.</span>
+
+
+<span class="c1"># Define the Start below.</span>
+
+<span class="n">Start</span>
+
+<span class="c1"># A) TIME STEPS AND END OF TIMELINE</span>
+<span class="c1"># Define annual time steps below.</span>
+<span class="n">Date</span> <span class="s2">"01-01-2025"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2026"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2027"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2028"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2029"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2030"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2031"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2032"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2033"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2034"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2035"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2036"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2037"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2038"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2039"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2040"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2041"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2042"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2043"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2044"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2045"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2046"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2047"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2048"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2049"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2050"</span>
+
+<span class="c1"># Define the End of the timeline.</span>
+
+<span class="n">End</span>
+
+<span class="c1"># END OF events.inc FILE</span>
+</pre></div>
+</div>
+</div>
+</details></section>
 </section>
 
 
@@ -1338,6 +1872,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-events-input-file">The <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> input file</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-analyses-and-interpreting-results">Running analyses and interpreting results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-solution">Example solution</a></li>
 </ul>
   </nav></div>
 
@@ -1363,8 +1898,8 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1397,7 +1932,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
 </p></div>
       
     </div>
