@@ -5,17 +5,20 @@
 Operational profile calculations for vessels on round-trip and regional routes.
 
 The round-trip route models discrete voyages with fixed per-leg distances and port
-durations, so annual totals follow directly from voyages per year. The regional route
-has no discrete voyages: it supplies an exogenous annual reference pattern (time at sea,
-sea-condition distribution, reference speeds, and port calls per year) describing
-operations absent speed management. That pattern yields one scalar, the port days per
-sea mile: the port time per call (turnaround, congestion and waiting) over the sea miles
-between calls (the trading-pattern geometry). With it, speed management can change
-speeds while port and sea time respond endogenously: higher speed raises sea miles per
-year, hence port calls per year, hence port time per year, which crowds out sea time and
-limits the throughput gain. This reproduces the round-trip feedback (port time as a
-binding activity constraint) within the aggregate regional representation. The number
-of port calls cancels from the scalar and only splits the port time between the ports.
+durations, so annual totals follow directly from voyages per year.
+
+The regional route has no discrete voyages: it supplies an exogenous annual reference
+pattern (time at sea, sea-condition distribution, reference speeds, and port calls per
+year) describing operations absent speed management. That pattern yields one scalar,
+the port days per sea mile: the port time per call (turnaround, congestion and waiting)
+over the sea miles between calls (the trading-pattern geometry). The number of calls
+cancels from it, so the port calls only split the port time between the ports.
+
+The scalar lets speed management change speeds while port and sea time respond
+endogenously: higher speed raises sea miles per year, hence port calls per year, hence
+port time per year, which crowds out sea time and limits the throughput gain. This
+reproduces the round-trip feedback (port time as a binding activity constraint) within
+the aggregate regional representation.
 """
 
 from __future__ import annotations
@@ -47,12 +50,12 @@ class Operations:
 
     Attributes
     ----------
-    distribution
-        Share of the sea time spent on each leg.
     speeds
         Speed on each leg, in knots.
     utilizations
         Cargo capacity utilization on each leg.
+    distribution
+        Share of the sea time spent on each leg.
     distances
         Distance sailed on each leg, in nautical miles/year.
     times_sea
@@ -73,13 +76,13 @@ class Operations:
         Energy demand in port per energy demand type, one value per port, in GJ/year.
     """
 
-    # operations
-    distribution: FloatArray
+    # operating point
     speeds: FloatArray
     utilizations: FloatArray
-    distances: FloatArray
 
-    # voyage
+    # trip
+    distribution: FloatArray
+    distances: FloatArray
     times_sea: FloatArray
     times_port: FloatArray
     voyages: float
@@ -101,7 +104,7 @@ def update_operations(vessel: Vessel, allow_speed_management: bool, idx: int) ->
     Parameters
     ----------
     vessel
-        Vessel for which the operational profile is updated.
+        Vessel whose operational profile is updated.
     allow_speed_management
         Whether the fleet the vessel belongs to allows speed management.
     idx
@@ -112,12 +115,12 @@ def update_operations(vessel: Vessel, allow_speed_management: bool, idx: int) ->
         speeds = np.array(vessel.expectation.get_speeds(idx - 1), dtype=float)
 
     else:
-        speeds = to_numpy(vessel.route.speeds)
+        speeds_reference = to_numpy(vessel.route.speeds)
+        speeds_min, speeds_max = calculate_technical_speed_limits(vessel)
 
         # the route's reference speed may exceed the propulsion converter's power
         # capacity or fall below its minimum load
-        speeds_min, speeds_max = calculate_technical_speed_limits(vessel)
-        speeds = np.clip(speeds, speeds_min, speeds_max)
+        speeds = np.clip(speeds_reference, speeds_min, speeds_max)
 
     operations = calculate_operations(vessel, speeds)
     transfer_operations(vessel, operations, idx)
@@ -126,10 +129,6 @@ def update_operations(vessel: Vessel, allow_speed_management: bool, idx: int) ->
 def calculate_operations(vessel: Vessel, speeds: FloatArray) -> Operations:
     """
     Evaluate a vessel's operational profile at given speeds.
-
-    A round trip scales one voyage to the voyages per year; a regional route splits
-    the year between sea and port from its reference pattern, as the module
-    docstring describes.
 
     Parameters
     ----------
@@ -157,7 +156,7 @@ def calculate_operations(vessel: Vessel, speeds: FloatArray) -> Operations:
 
 def transfer_operations(vessel: Vessel, operations: Operations, idx: int) -> None:
     """
-    Store an evaluated operational profile on the vessel's expectation and profile.
+    Store a vessel's evaluated operations on its expectation and profile.
 
     Parameters
     ----------
@@ -171,10 +170,10 @@ def transfer_operations(vessel: Vessel, operations: Operations, idx: int) -> Non
     expectation = vessel.expectation
     profile = vessel.profile
 
-    expectation.set_voyages(idx, operations.voyages)
     expectation.set_speeds(idx, operations.speeds)
     expectation.set_time_sea(idx, operations.times_sea)
     expectation.set_time_port(idx, operations.times_port)
+    expectation.set_voyages(idx, operations.voyages)
 
     expectation.set_cargo_miles(idx, operations.cargo_miles)
     expectation.set_cargo_miles_per_leg(idx, operations.cargo_miles_leg)
@@ -189,9 +188,9 @@ def transfer_operations(vessel: Vessel, operations: Operations, idx: int) -> Non
 
     # the reference speed is recalculated from the route, as speed management may have
     # moved the operated speeds away from it
-    reference_speeds = to_numpy(vessel.route.speeds)
-    reference_speed = np.average(reference_speeds, weights=operations.distribution)
-    profile.set_reference_speed(idx, reference_speed)
+    speeds_reference = to_numpy(vessel.route.speeds)
+    speed_reference = np.average(speeds_reference, weights=operations.distribution)
+    profile.set_reference_speed(idx, speed_reference)
 
 
 def transfer_operational_savings(fleet: Fleet) -> None:
@@ -244,7 +243,7 @@ def convert_to_regional_steps(
 
 def _calculate_trip(operations: Operations, vessel: Vessel) -> None:
     """
-    Calculate the annual sea and port times and distances of the vessel's route.
+    Calculate the leg utilizations and annual sea and port times and distances.
 
     Parameters
     ----------
@@ -283,12 +282,12 @@ def _calculate_round_trip(operations: Operations, route: Route) -> None:
     times_port = to_numpy(route.port_durations)
 
     times_sea = divide_nonzero(distances, speeds) * HOUR_TO_DAYS
-    total_time_sea = np.sum(times_sea)
-    distribution = divide_nonzero(times_sea, total_time_sea)
+    sea_days = np.sum(times_sea)
+    distribution = divide_nonzero(times_sea, sea_days)
 
-    total_time_port = np.sum(times_port)
-    voyage_duration = total_time_sea + total_time_port
-    voyages = YEAR / voyage_duration
+    port_days = np.sum(times_port)
+    voyage_days = sea_days + port_days
+    voyages = YEAR / voyage_days
 
     operations.distribution = distribution
     operations.distances = distances * voyages
@@ -316,25 +315,25 @@ def _calculate_regional_trip(
         Reference share of the year spent at sea.
     """
     speeds = operations.speeds
-    distribution = to_numpy(route.condition_distribution)
+    distribution_sea = to_numpy(route.condition_distribution)
     port_calls = to_numpy(route.port_calls)
 
     port_days_per_mile = _calculate_port_days_per_mile(route, time_at_sea)
-    speed_mean = np.average(speeds, weights=distribution)
+    speed_mean = np.average(speeds, weights=distribution_sea)
 
     # the sea and port days fill the year:
     # YEAR = sea_days + port_days = sea_days * (1 + port_days_per_sea_day)
     port_days_per_sea_day = port_days_per_mile * speed_mean * DAY_TO_HOURS
-    total_time_sea = YEAR / (1.0 + port_days_per_sea_day)
+    sea_days = YEAR / (1.0 + port_days_per_sea_day)
 
-    times_sea = total_time_sea * distribution
+    times_sea = sea_days * distribution_sea
     distances = speeds * times_sea * DAY_TO_HOURS
     miles = np.sum(distances)
 
     distribution_port = divide_nonzero(port_calls, np.sum(port_calls))
     times_port = miles * port_days_per_mile * distribution_port
 
-    operations.distribution = distribution
+    operations.distribution = distribution_sea
     operations.distances = distances
     operations.times_sea = times_sea
     operations.times_port = times_port
@@ -344,10 +343,6 @@ def _calculate_regional_trip(
 def _calculate_port_days_per_mile(route: Route, time_at_sea: float) -> float:
     """
     Derive the port days per sea mile of a regional route's reference pattern.
-
-    It equals the port days per call over the sea miles between calls, so the number
-    of calls cancels; the module docstring describes how it anchors the sea and port
-    split.
 
     Parameters
     ----------
@@ -364,13 +359,13 @@ def _calculate_port_days_per_mile(route: Route, time_at_sea: float) -> float:
     distribution = to_numpy(route.condition_distribution)
     speeds = to_numpy(route.speeds)
 
-    total_time_sea = time_at_sea * YEAR
-    total_time_port = (1.0 - time_at_sea) * YEAR
+    sea_days = time_at_sea * YEAR
+    port_days = (1.0 - time_at_sea) * YEAR
 
-    times_sea = total_time_sea * distribution
+    times_sea = sea_days * distribution
     miles = np.sum(speeds * times_sea * DAY_TO_HOURS)
 
-    return total_time_port / miles
+    return port_days / miles
 
 
 def _calculate_cargo_miles(operations: Operations, vessel: Vessel) -> None:
@@ -424,7 +419,7 @@ def _calculate_energy_sea(operations: Operations, vessel: Vessel) -> None:
 
 def _calculate_energy_port(operations: Operations, vessel: Vessel) -> None:
     """
-    Calculate the annual energy demand in port of the electrical and heat loads.
+    Calculate the annual energy demand in port: electrical and heat.
 
     Parameters
     ----------
@@ -464,34 +459,10 @@ def _load_to_energy(load: FloatLike, time: FloatArray) -> FloatArray:
 
 
 def _sum_each[T](arrays: Mapping[T, FloatArray]) -> dict[T, float]:
-    """
-    Sum each array of a mapping, keeping its keys.
-
-    Parameters
-    ----------
-    arrays
-        Arrays to sum, by key.
-
-    Returns
-    -------
-    dict[T, float]
-        Sum of each array, by key.
-    """
+    """Sum each array of a mapping, keeping its keys."""
     return {key: np.sum(array) for key, array in arrays.items()}
 
 
 def _evaluate_each[T](calculators: Mapping[T, ForecastInput]) -> dict[T, float]:
-    """
-    Evaluate each calculator of a mapping, keeping its keys.
-
-    Parameters
-    ----------
-    calculators
-        Calculators to evaluate, by key.
-
-    Returns
-    -------
-    dict[T, float]
-        Value of each calculator, by key.
-    """
+    """Evaluate each calculator of a mapping, keeping its keys."""
     return {key: calculator.get() for key, calculator in calculators.items()}
