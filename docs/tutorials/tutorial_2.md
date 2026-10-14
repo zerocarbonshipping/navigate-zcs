@@ -20,7 +20,7 @@ In Tutorial 1, you learned about the foundations of how to run a model with the 
 **Setting the scene:**
 
 In this scenario, we look at a case where we have 2 fleets. One fleet consists of 2 container ships, and the other fleet consists of 2 bulk carriers. One of the container ships is a mono-fuel fuel oil vessel, the other one is a dual-fuel methane. One of the bulk carriers is a dual-fuel methanol, the other one a dual-fuel ammonia.
-Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under `Navigate/navigate/defaults/installation/*`. 
+Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under `Navigate/assumptions/defaults/installation/*`. 
 
 **How does it work?**
 
