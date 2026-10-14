@@ -36,7 +36,7 @@ from navigate.simulation.fleet import (
     post_process_fleet_profile,
     post_process_investment_metric,
     record_investment_signals,
-    update_operational_profile,
+    update_operations,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
 )
@@ -299,7 +299,7 @@ class Simulation:
             allow_speed_management = fleet.allow_speed_management
 
             for vessel in fleet.vessels:
-                update_operational_profile(vessel, allow_speed_management, self._idx)
+                update_operations(vessel, allow_speed_management, self._idx)
 
         self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
 

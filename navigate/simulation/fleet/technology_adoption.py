@@ -39,7 +39,7 @@ from navigate.simulation.fleet.marginal_saving import (
 )
 from navigate.simulation.fleet.operation import (
     convert_to_regional_steps,
-    transfer_operational_saving_to_vessels,
+    transfer_operational_savings,
 )
 from navigate.simulation.fleet.package import (
     annual_costs_for_retrofit_steps,
@@ -994,7 +994,7 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    transfer_operational_saving_to_vessels(fleet)
+    transfer_operational_savings(fleet)
 
     for v, vessel in enumerate(fleet.assets):
         op_sea, op_port = _apply_operational_savings(vessel, idx)
