@@ -19,7 +19,6 @@ from navigate.core import (
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.exceptions import UnassignedAttributeError
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
@@ -45,7 +44,7 @@ class Converter(_Machinery):
         self.minimum_load: ScalarInput | None = None
 
         # fuels
-        self.main_fuel_types: list[FuelTypeID] = []
+        self.main_fuel_types: list[FuelTypeID]
         self.pilot_fuel_types: list[FuelTypeID] = []
         self.minimum_pilot_fuel: ForecastInput = Scalar(0.0)
 
@@ -114,11 +113,6 @@ class Converter(_Machinery):
         write_matching_key_pairs((id_, emission_name), value_, self.consumption_ttw)
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if not self.main_fuel_types:
-            raise UnassignedAttributeError(str(self), "MainFuelTypes")
-
     def check_consistency(self) -> None:
 
         if not list_is_unique(self.main_fuel_types):
