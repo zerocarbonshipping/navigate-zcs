@@ -289,9 +289,6 @@ class Simulation:
                 self._idx,
             )
 
-        for vessel in self.nodes.vessels.values():
-            vessel.calculate_expectation(self._idx)
-
     def _update_vessel_operations(self) -> None:
         start_time = timeit.default_timer()
 

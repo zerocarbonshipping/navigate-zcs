@@ -31,6 +31,17 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     levels to bunkering and spend so fuel is only spent after it was bunkered
     earlier on the voyage.
 
+    No row debits the wrap leg (N-1, 0) of a route with N ports. Summing the rows
+    telescopes to
+
+        n m_{N-1,f} = \sum_{p} b_{p,f} - \sum_{c} \sum_{p} y_{c,f,p}
+        - \sum_{c} \sum_{p=1}^{N-1} x_{c,f,(p-1,p)}
+
+    and the bunkered_equals_spent row, which spends over every leg including the
+    wrap leg, reduces this to n m_{N-1,f} = \sum_{c} x_{c,f,(N-1,0)}: the tank
+    leaves the last port holding exactly the wrap leg's fuel and reaches the first
+    port empty.
+
     Parameters
     ----------
     alg
