@@ -95,7 +95,11 @@ class Route(Node):
     def set_time_at_sea(self, time_at_sea: ForecastArgument) -> None:
         """Set the fraction of time spent at sea."""
         self.time_at_sea = assign_value(
-            as_scalar(time_at_sea), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(time_at_sea),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+            inclusive_lower=False,
         )
 
     def set_port_calls(

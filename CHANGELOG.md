@@ -28,6 +28,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ### Changed
 - `MinimumOfftakeDuration` (Producer) accepts any duration above 0 instead of
   at least 1; a duration under one year counts as one year.
+- `TimeAtSea` (Route) must be greater than 0; a value of 0 is a deck error at
+  its line.
 - A calculator (`Variable`, `Forecast`, `Curve`, `Timetable`, `Surface`)
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change
   cannot be changed in `EVENTS` either; re-assigning its attributes there is a

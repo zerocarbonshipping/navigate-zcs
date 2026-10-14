@@ -83,7 +83,7 @@ This attribute sets the fraction of time spent at sea. This is only applicable i
   + `0.75`
   + `Forecast("name")`
 * **Unit**: Fraction of time spent at sea per total time
-* **Minimum value**: 0
+* **Minimum value**: >0
 * **Maximum value**: 1
 * **Default**: None. Must be provided by the user when RouteType is REGIONAL\_TRIP.
 
