@@ -21,7 +21,7 @@ step, and `driver/` runs it from a read deck to its output.
     `planning.py` and `aggregation.py` play the same role in each.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/bunker/` — the per-time-step bunkering LP.
-  - `simulation/policy/` — policy emission coefficients and beliefs.
+  - `simulation/policy/` — policy expectations, emission coefficients and beliefs.
 - `core/` — the model definition only: the DSL value types and their
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
   nodes (`general_nodes/`), the node maps, `expectations/`, `profiles/`, the
@@ -49,9 +49,8 @@ Node classes hold state, and the calculators among them (`Curve`,
 `simulation/`. The node methods below are a known exception, and the list
 must not grow:
 
-- `calculate_expectation` on `Port`, `Regulation` and `Levy`,
-  `calculate_profile` on `Port`, `Regulation` and `Vessel`, and
-  `_Policy._calculate_policy_expectations`;
+- `calculate_expectation` on `Port`, and `calculate_profile` on `Port`,
+  `Regulation` and `Vessel`;
 - `_AssetManager`'s `update_increment_ages`, `_age_increments`,
   `define_initial_age` and `define_initial_multipliers`, with the hooks
   `Fleet` and `Producer` implement for them, and

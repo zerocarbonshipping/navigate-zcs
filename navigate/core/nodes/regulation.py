@@ -23,7 +23,6 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import RegulationProfile
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import FloatArray
@@ -172,42 +171,6 @@ class Regulation(_Policy):
         self, timeline: FloatArray, vessels: dict[str, Vessel]
     ) -> None:
         self.profile.initialize(timeline, vessels)
-
-    def calculate_expectation(
-        self,
-        emissions: dict[str, Emission],
-        vessels: dict[str, Vessel],
-        emissions_lifetime: float,
-        timeline: FloatArray,
-        idx: int,
-    ) -> None:
-
-        if not self.active:
-            return
-
-        times = timeline[idx:]
-
-        self.expectation.set_remedial_cost(idx, self.remedial_cost.get(times))
-
-        if self.measure in (
-            RegulationMeasureID.TRANSPORT,
-            RegulationMeasureID.TRANSPORT_NOMINAL,
-        ):
-            for vessel_name, capacity in self.vessel_capacity.items():
-                if capacity is not None:
-                    self.expectation.set_vessel_capacity(
-                        idx, vessel_name, capacity.get(times)
-                    )
-
-                else:
-                    nominal_capacity = vessels[vessel_name].nominal_capacity.get(times)
-                    self.expectation.set_vessel_capacity(
-                        idx, vessel_name, nominal_capacity
-                    )
-
-        self._calculate_policy_expectations(
-            self.expectation, emissions, emissions_lifetime
-        )
 
     def calculate_profile(self, idx: int) -> None:
 

@@ -17,7 +17,6 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import LevyProfile
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import DateArray, FloatArray
@@ -102,20 +101,3 @@ class Levy(_Policy):
                 f"{self}: 'UpperThreshold' must be >= 'LowerThreshold' at every "
                 f"time step, but is below it at {dates[i]}."
             )
-
-    def calculate_expectation(
-        self,
-        emissions: dict[str, Emission],
-        emissions_lifetime: float,
-        timeline: FloatArray,
-        idx: int,
-    ) -> None:
-
-        if not self.active:
-            return
-
-        self.expectation.set_level(idx, self.level.get(timeline[idx:]))
-
-        self._calculate_policy_expectations(
-            self.expectation, emissions, emissions_lifetime
-        )
