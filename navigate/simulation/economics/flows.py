@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from math import floor
 from typing import TYPE_CHECKING
 
@@ -322,28 +323,9 @@ def add_fixed_wtt(component: Component, wtt: Callable[[str, float], float]) -> N
     wtt
         Callable returning the WTT of an emission locked at an anchor time, in days.
     """
-    if not component.wtt_flow:
-        return
-
-    cycle = component.replacement_cycle
-    if cycle is None:
-        time_initial = component.time_initial
-        overlap = component.constant_overlap
-
-        for emission in component.wtt_flow:
-            component.add_wtt_flow(emission, wtt(emission, time_initial) * overlap)
-
-        return
-
-    length = component.get_length()
-    flows = {emission: np.zeros(length, dtype=float) for emission in component.wtt_flow}
-
-    for anchor_time, normalized_overlap in cycle.staircase_segments:
-        for emission in flows:
-            flows[emission] += wtt(emission, anchor_time) * normalized_overlap
-
-    for emission, flow in flows.items():
-        component.add_wtt_flow(emission, flow)
+    for emission in component.wtt_flow:
+        fixed = _build_staircase_flow(component=component, value=partial(wtt, emission))
+        component.add_wtt_flow(emission, fixed)
 
 
 def add_variable_wtt(
