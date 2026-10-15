@@ -33,12 +33,10 @@ def calculate_marginal_technology_saving(
     Calculate the marginal cost saving of installing a technology package.
 
     The change from the baseline energy to the residual energy after the package is
-    valued at the shadow-price beliefs amortised over the technology horizon, summed
-    at sea and in port. Each belief is an EMA of the LP duals per energy demand type
-    and leg, so it keeps the LP's per-leg structure with the year-to-year volatility
-    damped. The baseline is the operational energy before any technology, so that
-    installing nothing is an NPV=0 business case and a package saving less than the
-    current average uptake still saves. For a package with a low saving potential the
+    valued at the technology-horizon shadow-price beliefs, summed at sea and in port.
+    The baseline is the operational energy before any technology, so that installing
+    nothing is an NPV=0 business case and a package saving less than the current
+    average uptake still saves. For a package with a low saving potential the
     evaluation may then fall outside the optimal polytope, and the shadow price may
     underestimate the impact.
 
@@ -79,19 +77,17 @@ def calculate_marginal_technology_saving(
 def calculate_marginal_speed_saving(
     vessel: Vessel,
     condition_legs: ConditionLegs,
-    residual_energy_sea: Mapping[EnergyDemandID, Sequence[FloatLike]],
-    residual_energy_port: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    residual_sea: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    residual_port: Mapping[EnergyDemandID, Sequence[FloatLike]],
     idx: int,
 ) -> float:
     """
     Calculate the marginal cost saving of a speed change.
 
     The change from the energy of the last bunker solve, the optimal polytope's
-    reference, to the residual energy at the new speed is valued at the shadow-price
-    beliefs amortised over the speed horizon, summed at sea and in port. The speed
-    horizon is shorter than the technology horizon, matched to the timescale of
-    operational speed decisions. The residual energies must include the effect of the
-    current technology uptake to match the reference.
+    reference, to the residual energy at the new speed is valued at the speed-horizon
+    shadow-price beliefs, summed at sea and in port. The residual energies must
+    include the effect of the current technology uptake to match the reference.
 
     Parameters
     ----------
@@ -99,9 +95,9 @@ def calculate_marginal_speed_saving(
         Vessel whose speed changes.
     condition_legs
         Leg of each sailing condition of the vessel's route.
-    residual_energy_sea
+    residual_sea
         Residual energy at sea per energy demand type and condition, in GJ/year.
-    residual_energy_port
+    residual_port
         Residual energy in port per energy demand type and port, in GJ/year.
     idx
         Current time-step index.
@@ -113,7 +109,7 @@ def calculate_marginal_speed_saving(
     """
     expectation = vessel.expectation
 
-    residual_sea_leg = sum_energy_per_leg(condition_legs, residual_energy_sea)
+    residual_sea_leg = sum_energy_per_leg(condition_legs, residual_sea)
 
     baseline_sea = slice_dict_list(expectation.get_energy_conservation_rhs_sea(), idx)
     baseline_port = slice_dict_list(expectation.get_energy_conservation_rhs_port(), idx)
@@ -122,7 +118,7 @@ def calculate_marginal_speed_saving(
     price_port = slice_dict_list(expectation.get_belief_pi_port_speed(), idx)
 
     saving_sea = _sum_savings(residual_sea_leg, baseline_sea, price_sea)
-    saving_port = _sum_savings(residual_energy_port, baseline_port, price_port)
+    saving_port = _sum_savings(residual_port, baseline_port, price_port)
 
     return float(saving_sea + saving_port)
 
