@@ -149,6 +149,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - An empty `Vessels`, `Plants`, `Tanks`, `Ports`, `Emissions` or `Fuels` list,
   or a fuel type repeated in `MainFuelTypes` or `PilotFuelTypes`, is rejected
   at its line, also on a node the deck does not use.
+- With the HiGHS solver, runs with an `INDIVIDUAL` or `FLEXIBLE` `Regulation`
+  are several times faster. Results change where the bunkering optimum is not
+  unique, by up to several percent late in a long run (#32).
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
