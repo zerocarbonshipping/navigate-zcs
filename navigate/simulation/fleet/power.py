@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -339,21 +338,18 @@ def _name_conditions(route: Route) -> list[str]:
     list[str]
         Name of each condition, in the order of `Route.get_conditions`.
     """
-    conditions = route.get_conditions()
     legs = route.get_legs()
     ports = route.ports
 
-    conditions_per_leg = Counter(leg for leg, _ in conditions)
-
     names = []
-    for leg, entry in conditions:
+    for leg, entry in route.get_conditions():
         origin, destination = legs[leg]
-        name_leg = f"the leg from {ports[origin]} to {ports[destination]}"
+        leg_name = f"the leg from {ports[origin]} to {ports[destination]}"
 
-        if conditions_per_leg[leg] == 1:
-            names.append(name_leg)
+        if route.conditions_per_leg[leg] == 1:
+            names.append(leg_name)
         else:
-            names.append(f"condition {entry} on {name_leg}")
+            names.append(f"condition {entry} on {leg_name}")
 
     return names
 
