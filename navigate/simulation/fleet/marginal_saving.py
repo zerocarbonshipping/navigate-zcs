@@ -203,7 +203,7 @@ def calculate_marginal_speed_saving(
 
 def _calculate_marginal_saving(
     residual_energy_sea: Mapping[EnergyDemandID, Sequence[FloatLike]],
-    residual_energy_port: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    residual_energy_port: Mapping[EnergyDemandID, FloatArray | Sequence[FloatLike]],
     baseline_energy_sea: Mapping[EnergyDemandID, Sequence[FloatArray]],
     baseline_energy_port: Mapping[EnergyDemandID, Sequence[FloatArray]],
     shadow_price_sea: Mapping[EnergyDemandID, Sequence[FloatArray]],
@@ -246,7 +246,7 @@ def _calculate_marginal_saving(
 
 
 def _iterate_steps(
-    energies_residual: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    energies_residual: Mapping[EnergyDemandID, FloatArray | Sequence[FloatLike]],
     energies_baseline: Mapping[EnergyDemandID, Sequence[FloatArray]],
     shadow_prices: Mapping[EnergyDemandID, Sequence[FloatArray]],
     idx: int | slice,
