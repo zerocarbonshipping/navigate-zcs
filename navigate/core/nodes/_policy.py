@@ -24,7 +24,6 @@ from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import LevySchemeID, RegulationSchemeID
-    from navigate.core.expectations import LevyExpectation, RegulationExpectation
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
@@ -172,29 +171,6 @@ class _Policy(Node):
             self.in_jurisdiction_vessel[vessel_name] = not jurisdiction.isdisjoint(
                 vessel.route.ports
             )
-
-    def _calculate_policy_expectations(
-        self,
-        expectation: LevyExpectation | RegulationExpectation,
-        emissions: dict[str, Emission],
-        emissions_lifetime: float,
-    ) -> None:
-
-        if self.emissions_lifetime is not None:
-            emissions_lifetime = self.emissions_lifetime.get()
-
-        for (
-            emissions_name,
-            global_warming_potential,
-        ) in self.global_warming_potential.items():
-            if global_warming_potential is not None:
-                gwp = global_warming_potential.get(emissions_lifetime)
-            else:
-                gwp = emissions[emissions_name].global_warming_potential.get(
-                    emissions_lifetime
-                )
-
-            expectation.set_global_warming_potential(emissions_name, gwp)
 
     def is_active(self) -> bool:
         return self.active

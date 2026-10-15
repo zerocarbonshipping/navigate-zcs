@@ -57,6 +57,7 @@ from navigate.simulation.fuel import (
 )
 from navigate.simulation.policy import (
     calculate_policy_emission_coefficients,
+    calculate_policy_expectations,
     update_regulation_flexibility_beliefs,
 )
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
@@ -269,25 +270,21 @@ class Simulation:
         """Precalculate certain expectations which are simulation bottlenecks."""
         emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
 
-        for levy in self.nodes.levies.values():
-            levy.calculate_expectation(
-                self.nodes.emissions, emissions_lifetime, self.timeline, self._idx
-            )
+        calculate_policy_expectations(
+            self.nodes.regulations,
+            self.nodes.levies,
+            self.nodes.emissions,
+            self.nodes.vessels,
+            emissions_lifetime,
+            self.timeline,
+            self._idx,
+        )
 
         for port in self.nodes.ports.values():
             port.calculate_expectation(self.timeline, self._idx)
 
         for producer in self.nodes.producers.values():
             calculate_export_expectation(producer, self.timeline, self._idx)
-
-        for regulation in self.nodes.regulations.values():
-            regulation.calculate_expectation(
-                self.nodes.emissions,
-                self.nodes.vessels,
-                emissions_lifetime,
-                self.timeline,
-                self._idx,
-            )
 
     def _update_vessel_operations(self) -> None:
         start_time = timeit.default_timer()
