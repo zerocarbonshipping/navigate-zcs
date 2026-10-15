@@ -57,6 +57,11 @@ class _Route:
         return len(self.ports)
 
 
+class _PowerSystem:
+    def get_converters(self):
+        return ()
+
+
 @pytest.fixture(params=POPULATIONS.values(), ids=POPULATIONS)
 def expectations(request):
     emissions, feedstocks, ports, processes, fuels = request.param
@@ -65,7 +70,7 @@ def expectations(request):
     plant.initialize(LENGTH, emissions, feedstocks, ports, processes)
 
     vessel = VesselExpectation()
-    vessel.initialize(LENGTH, _Route(ports), fuels)
+    vessel.initialize(LENGTH, _Route(ports), _PowerSystem(), fuels)
 
     return {"plant": plant, "vessel": vessel}
 

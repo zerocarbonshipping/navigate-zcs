@@ -74,10 +74,10 @@ def calculate_regulation_terms(
     """
     v = vessel.name
     r = regulation.name
+    expectation = vessel.expectation
 
     coefficients = alg.regulation_spend_coefficient
     emission_factors = alg.regulation_emission_factor
-    effective_lhv = alg.effective_lhv
     shore_power_coefficients = alg.shore_power_regulation_coefficient
     shore_power_emission_factors = alg.shore_power_regulation_emission_factor
 
@@ -105,7 +105,7 @@ def calculate_regulation_terms(
                 alg.spend_port[v, c, f, p],
                 fraction * coefficients[(v, c, f, r)],
                 fraction * emission_factors[(v, c, f, r)],
-                fraction * effective_lhv[(v, c, f)],
+                fraction * expectation.get_effective_lhv(c, f),
             )
             for c in port_converters
             for f in fuels_per_converter[v, c]
@@ -127,7 +127,7 @@ def calculate_regulation_terms(
                 alg.spend_sea[v, c, f, port_start, port_end],
                 fraction * coefficients[(v, c, f, r)],
                 fraction * emission_factors[(v, c, f, r)],
-                fraction * effective_lhv[(v, c, f)],
+                fraction * expectation.get_effective_lhv(c, f),
             )
             for c in converters
             for f in fuels_per_converter[v, c]

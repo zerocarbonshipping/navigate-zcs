@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Compute the per-time-step LHV, emission and policy coefficients of the LP."""
+"""Compute the per-time-step emission and policy coefficients of the LP."""
 
 from __future__ import annotations
 
@@ -68,26 +68,6 @@ def _calculate_emission_factor_ttw(
     return emission_factor
 
 
-def calculate_effective_lhv(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Pre-compute the effective LHV of every converter-fuel combination of a vessel.
-
-    The values are read repeatedly when building constraints and transferring results.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    vessel
-        Vessel for which effective LHV values are computed.
-    """
-    v = vessel.name
-
-    for c, converter in get_converters(vessel).items():
-        for f, fuel in alg.fuels_per_converter[(v, c)].items():
-            alg.effective_lhv[(v, c, f)] = converter.get_effective_lhv(fuel)
-
-
 def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
     Update the emission factors for a given vessel.
@@ -136,9 +116,9 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
         Vessel for which coefficients are calculated.
     """
     v = vessel.name
+    expectation = vessel.expectation
 
     active_regulations = alg.active_regulations
-    effective_lhv = alg.effective_lhv
     fuels_per_converter = alg.fuels_per_converter
     idx = alg.idx
 
@@ -164,7 +144,7 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     coefficients = {
         (v, c, f, r): factor
         - (
-            thresholds[(r, v)] / TON_TO_KG * effective_lhv[(v, c, f)]
+            thresholds[(r, v)] / TON_TO_KG * expectation.get_effective_lhv(c, f)
             if active_regulations[r].measure == RegulationMeasureID.INTENSITY
             else 0.0
         )
@@ -197,7 +177,7 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
 
                 shore_power_emission_factor += emission_factor
 
-            # shore power is already in GJ, so effective_lhv equivalent is 1.0
+            # shore power is already in GJ, so its effective LHV is 1.0
             shore_power_coefficient = shore_power_emission_factor - (
                 thresholds[(r, v)] / TON_TO_KG * 1.0
                 if regulation.measure == RegulationMeasureID.INTENSITY

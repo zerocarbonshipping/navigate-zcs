@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The fleet domain: operation, speed, charter, evolution and technology adoption."""
+"""The shipowner domain: operation, decisions and per-step expectations others read."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from navigate.simulation.fleet.evolution import (
     calculate_evolution_expectation,
     perform_fleet_evolution,
 )
+from navigate.simulation.fleet.expectation import calculate_fleet_expectations
 from navigate.simulation.fleet.fuel_option import (
     determine_fuel_type,
     determine_usable_fuel_types,

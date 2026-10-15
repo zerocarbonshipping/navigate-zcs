@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The expectation of a Vessel node, read by the fleet domain and the bunkering LP."""
+"""The expectation of a Vessel node, read by the fleet, the bunkering LP and policy."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from typing import SupportsIndex
 
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
@@ -79,6 +80,9 @@ class VesselExpectation(_Expectation):
         self._belief_pi_sea_speed: dict[EnergyDemandID, list[FloatArray]] = {}
         self._belief_pi_port_speed: dict[EnergyDemandID, list[FloatArray]] = {}
 
+        # effective lower heating value per converter and fuel
+        self._effective_lhv: dict[tuple[str, str], float] = {}
+
         # bunkering/spend
         self._bunker_mass_expected: dict[tuple[str, str], float] = {}
         self._bunker_mass_existing: dict[tuple[str, str], float] = {}
@@ -111,7 +115,13 @@ class VesselExpectation(_Expectation):
         self._technology_charter_rate: FloatArray = EMPTY_FLOAT
         self._tied_capital: list[FloatArray] = []
 
-    def initialize(self, length: int, route: Route, fuels: dict[str, Fuel]) -> None:
+    def initialize(
+        self,
+        length: int,
+        route: Route,
+        power_system: PowerSystem,
+        fuels: dict[str, Fuel],
+    ) -> None:
         self._initialize_expectation(length)
 
         port_names = [port.name for port in route.ports]
@@ -191,6 +201,19 @@ class VesselExpectation(_Expectation):
         )
         self._belief_pi_port_speed = self._default_dict_list_array(
             PORT_ENERGY_DEMANDS, n_port, default=np.nan
+        )
+
+        # effective lower heating value, NaN until the first step sets it
+        converter_fuel_names: list[tuple[str, str]] = []
+        for converter in power_system.get_converters():
+            fuel_types = converter.get_fuel_types()
+
+            for fuel_name, fuel in fuels.items():
+                if fuel.fuel_type in fuel_types:
+                    converter_fuel_names.append((converter.name, fuel_name))
+
+        self._effective_lhv = self._default_dict_float(
+            converter_fuel_names, default=np.nan
         )
 
         # bunkering saved for inertia
@@ -386,6 +409,11 @@ class VesselExpectation(_Expectation):
         self, idx: int, energy_id: EnergyDemandID, port: int, rhs: float
     ) -> None:
         self._energy_conservation_rhs_port[energy_id][port][idx] = rhs
+
+    def set_effective_lhv(
+        self, converter_name: str, fuel_name: str, effective_lhv: float
+    ) -> None:
+        self._effective_lhv[(converter_name, fuel_name)] = effective_lhv
 
     def add_bunker_mass_expected(
         self, port_name: str, fuel_name: str, mass: float
@@ -595,6 +623,9 @@ class VesselExpectation(_Expectation):
 
     def get_belief_pi_port_speed(self) -> dict[EnergyDemandID, list[FloatArray]]:
         return self._belief_pi_port_speed
+
+    def get_effective_lhv(self, converter_name: str, fuel_name: str) -> float:
+        return self._effective_lhv[(converter_name, fuel_name)]
 
     def get_bunker_mass_expected(self, port_name: str, fuel_name: str) -> float:
         return self._bunker_mass_expected[(port_name, fuel_name)]

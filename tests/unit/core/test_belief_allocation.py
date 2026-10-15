@@ -46,6 +46,11 @@ class _Route:
         return N_PORT
 
 
+class _PowerSystem:
+    def get_converters(self):
+        return ()
+
+
 def test_regulation_flexibility_cost_belief_is_all_nan():
     expectation = RegulationExpectation()
     expectation.initialize(LENGTH, ["carbon_dioxide"], {"vessel_a": None})
@@ -68,7 +73,7 @@ def test_regulation_flexibility_cost_belief_is_all_nan():
 )
 def test_vessel_scarcity_belief_is_all_nan(getter, keys, n_legs):
     expectation = VesselExpectation()
-    expectation.initialize(LENGTH, _Route(), {"ammonia": None})
+    expectation.initialize(LENGTH, _Route(), _PowerSystem(), {"ammonia": None})
 
     belief = getattr(expectation, getter)()
 

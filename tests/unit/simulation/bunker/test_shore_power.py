@@ -95,7 +95,6 @@ class TestShoreRegulationCoefficient:
             regulation.vessel_threshold = defaultdict(lambda: Scalar(threshold))
 
         algo.active_regulations = {r: regulation}
-        algo.effective_lhv = {}
         algo.regulation_emission_factor = {}
         algo.regulation_spend_coefficient = {}
         algo.shore_power_regulation_emission_factor = {}
