@@ -28,7 +28,7 @@ from navigate.simulation.fleet.planning import (
     calculate_modelled_uptake,
     calculate_orderbook_newbuilds,
 )
-from navigate.simulation.fleet.residual_energy import net_energy_from_raw
+from navigate.simulation.fleet.residual_energy import calculate_net_energy
 from navigate.simulation.fleet.technology_adoption import (
     _get_remaining_lifetime,
     _reconcile_retrofit_technology_caps,
@@ -111,8 +111,8 @@ class TestGetRemainingLifetime:
         assert _get_remaining_lifetime(vessel, age=age, dt=1.0) == expected
 
 
-class TestNetEnergyFromRaw:
-    """Test net_energy_from_raw."""
+class TestCalculateNetEnergy:
+    """Test calculate_net_energy."""
 
     @pytest.mark.parametrize(
         ("raw", "sav", "expected"),
@@ -140,7 +140,7 @@ class TestNetEnergyFromRaw:
         ],
     )
     def test_savings_applied_per_energy_type(self, raw, sav, expected):
-        result = net_energy_from_raw(raw, sav)
+        result = calculate_net_energy(raw, sav)
         assert set(result) == set(expected)
         for energy_type, values in expected.items():
             assert result[energy_type] == pytest.approx(values)

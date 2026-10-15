@@ -27,7 +27,7 @@ from navigate.simulation.fleet.power import (
     calculate_technical_speed_limits,
     loads_are_convex,
 )
-from navigate.simulation.fleet.residual_energy import net_energy_from_raw
+from navigate.simulation.fleet.residual_energy import calculate_net_energy
 from navigate.simulation.fleet.trip import ReferenceTrip, derive_reference_trip
 from navigate.util import YEAR
 
@@ -256,8 +256,8 @@ def _optimize_vessel_speed(
         # the current technology uptake is applied, as the saving is measured from
         # the energy of the expected bunkering; the proportional savings are an
         # approximation, since external power has a larger share at lower speeds
-        residual_energy_sea = net_energy_from_raw(energy_sea, savings_sea)
-        residual_energy_port = net_energy_from_raw(energy_port, savings_port)
+        residual_energy_sea = calculate_net_energy(energy_sea, savings_sea)
+        residual_energy_port = calculate_net_energy(energy_port, savings_port)
 
         fuel_saving = calculate_marginal_speed_saving(
             vessel,
