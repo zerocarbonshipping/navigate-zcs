@@ -33,6 +33,7 @@ from navigate.simulation.fleet.scarcity_beliefs import (
     record_investment_signals,
     update_vessel_scarcity_beliefs,
 )
+from navigate.simulation.fleet.shore_power import calculate_shore_power_limits
 from navigate.simulation.fleet.speed import perform_speed_management
 from navigate.simulation.fleet.technology_adoption import (
     approximate_missing_technology,

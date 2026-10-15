@@ -150,8 +150,8 @@ class _StubRoute:
 
 
 class _StubVesselExpectation:
-    def get_shore_power_capacity(self, idx):
-        return 0.0
+    def get_shore_power_limit_port(self, idx):
+        return [0.0, 0.0]
 
 
 class _StubVessel:
