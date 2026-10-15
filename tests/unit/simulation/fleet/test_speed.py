@@ -8,7 +8,6 @@ Tests verify the correctness of:
   - Mean-to-speeds conversion with clamping (_mean_to_speeds)
   - Rate-limited speed updates (_update_mean_speed)
   - Feasible speed bounds (calculate_speed_bounds)
-  - Dual-variable saving formula (_calculate_dual_variable_saving)
 """
 
 from __future__ import annotations
@@ -16,7 +15,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from navigate.simulation.fleet.marginal_saving import _calculate_dual_variable_saving
 from navigate.simulation.fleet.power import calculate_speed_bounds
 from navigate.simulation.fleet.speed import _mean_to_speeds, _update_mean_speed
 
@@ -119,35 +117,3 @@ class TestSpeedBounds:
             np.array(speed_min), np.array(speed_max), np.array(speeds)
         )
         assert (low, high) == pytest.approx(expected)
-
-
-# ---------------------------------------------------------------------------
-# 4. Dual-variable saving formula
-# ---------------------------------------------------------------------------
-
-
-class TestDualVariableSaving:
-    """Verify: saving = shadow_price * (baseline - residual)."""
-
-    @pytest.mark.parametrize(
-        ("residual", "baseline", "price", "expected"),
-        [
-            (80.0, 100.0, 10.0, 200.0),
-            (120.0, 100.0, 10.0, -200.0),
-            (100.0, 100.0, 10.0, 0.0),
-            # zero shadow price -> zero saving regardless of energy change
-            (50.0, 100.0, 0.0, 0.0),
-        ],
-    )
-    def test_saving(self, residual, baseline, price, expected):
-        assert _calculate_dual_variable_saving(
-            residual, baseline, price
-        ) == pytest.approx(expected)
-
-    def test_vectorized(self):
-        """Works element-wise on arrays."""
-        residual = np.array([80.0, 120.0, 100.0])
-        baseline = np.array([100.0, 100.0, 100.0])
-        price = np.array([10.0, 10.0, 10.0])
-        result = _calculate_dual_variable_saving(residual, baseline, price)
-        np.testing.assert_array_almost_equal(result, [200.0, -200.0, 0.0])

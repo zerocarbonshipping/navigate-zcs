@@ -13,10 +13,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
-from navigate.simulation.fleet.marginal_saving import (
-    calculate_marginal_speed_saving,
-    get_smoothed_energy_duals_speed,
-)
+from navigate.simulation.fleet.marginal_saving import calculate_marginal_speed_saving
 from navigate.simulation.fleet.operation import (
     calculate_operations,
     transfer_operational_savings,
@@ -234,10 +231,6 @@ def _optimize_vessel_speed(
     factor_sea = {d: 1.0 - saving_fraction_sea[d] for d in saving_fraction_sea}
     factor_port = {d: 1.0 - saving_fraction_port[d] for d in saving_fraction_port}
 
-    # smoothed scarcity duals are constant across objective evaluations,
-    # so compute them once outside the closure
-    smoothed_duals = get_smoothed_energy_duals_speed(vessel)
-
     def objective(mu: float) -> float:
         speeds = _mean_to_speeds(mu, deltas_ref, speed_min, speed_max)
         operations = calculate_operations(vessel, trip, speeds)
@@ -265,7 +258,6 @@ def _optimize_vessel_speed(
             residual_energy_sea,
             residual_energy_port,
             idx,
-            smoothed_duals=smoothed_duals,
         )
 
         fuel_cost = fuel_ref - fuel_saving
