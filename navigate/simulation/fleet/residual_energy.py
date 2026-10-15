@@ -53,13 +53,14 @@ def calculate_residual_energy(
     """
     expectation = vessel.expectation
 
-    times_sea = np.asarray(expectation.get_time_sea_condition(idx), dtype=float)
-    times_port = np.asarray(expectation.get_time_port(idx), dtype=float)
     raw_demand_sea = _stack_steps(expectation.get_operational_energy_sea_condition(idx))
     raw_demand_port = _stack_steps(expectation.get_operational_energy_port(idx))
 
     if package.is_empty:
         return raw_demand_sea, raw_demand_port
+
+    times_sea = np.asarray(expectation.get_time_sea_condition(idx), dtype=float)
+    times_port = np.asarray(expectation.get_time_port(idx), dtype=float)
 
     energy_sea = _residual_energy(vessel, package, times_sea, raw_demand_sea)
     energy_port = _residual_energy(vessel, package, times_port, raw_demand_port)
@@ -67,7 +68,7 @@ def calculate_residual_energy(
     return energy_sea, energy_port
 
 
-def net_energy_from_raw(
+def calculate_net_energy(
     raw_energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
     savings: Mapping[EnergyDemandID, Sequence[FloatLike]],
 ) -> dict[EnergyDemandID, list[FloatLike]]:
@@ -86,11 +87,23 @@ def net_energy_from_raw(
     dict[EnergyDemandID, list[FloatLike]]
         Net energy demand per energy demand type and step, in GJ/year.
     """
-    out: dict[EnergyDemandID, list[FloatLike]] = {}
-    for k, raw in raw_energies.items():
-        sav = savings[k]
-        out[k] = [(1.0 - s) * e for e, s in zip(raw, sav, strict=True)]
-    return out
+    net_energies: dict[EnergyDemandID, list[FloatLike]] = {}
+
+    for energy_id, raw_energy in raw_energies.items():
+        steps = zip(raw_energy, savings[energy_id], strict=True)
+        net_energies[energy_id] = [(1.0 - saving) * energy for energy, saving in steps]
+
+    return net_energies
+
+
+def _stack_steps(
+    energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
+) -> dict[EnergyDemandID, FloatArray]:
+    """Stack the energy of each step into one array per type, the step axis first."""
+    return {
+        energy_id: np.asarray(energy, dtype=float)
+        for energy_id, energy in energies.items()
+    }
 
 
 def _residual_energy(
@@ -131,9 +144,8 @@ def _residual_energy(
         power = package.compound_powers[energy_id]
 
         external_energy = _power_to_energy(power, times)
-        residual_energy[energy_id] = _raw_to_residual_energy(
-            raw_demand, saving, external_energy
-        )
+        residual = _raw_to_residual_energy(raw_demand, saving, external_energy)
+        residual_energy[energy_id] = residual
 
     if not package.includes_transfer:
         return residual_energy
@@ -192,14 +204,13 @@ def _subtract_transfers(
     }
 
 
-def _stack_steps(
-    energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
-) -> dict[EnergyDemandID, FloatArray]:
-    """Stack the energy of each step into one array per type, the step axis first."""
-    return {
-        energy_id: np.asarray(energy, dtype=float)
-        for energy_id, energy in energies.items()
-    }
+def _calculate_converter_load(
+    vessel: Vessel, energy_id: EnergyDemandID, residual_power: FloatArray
+) -> FloatArray:
+    """Return the load of the converter serving a demand, fraction of capacity."""
+    converter = vessel.power_system.get_converter_by_energy_type(energy_id)
+    capacity = converter.power_capacity.get()
+    return residual_power / capacity
 
 
 def _calculate_power_transfer(curves: list[CurveInput], load: FloatArray) -> FloatArray:
@@ -220,15 +231,6 @@ def _calculate_power_transfer(curves: list[CurveInput], load: FloatArray) -> Flo
     """
     powers = np.array([curve.get(load) for curve in curves])
     return np.sum(powers, axis=0, dtype=float)
-
-
-def _calculate_converter_load(
-    vessel: Vessel, energy_id: EnergyDemandID, residual_power: FloatArray
-) -> FloatArray:
-    """Return the load of the converter serving a demand, fraction of capacity."""
-    converter = vessel.power_system.get_converter_by_energy_type(energy_id)
-    capacity = converter.power_capacity.get()
-    return residual_power / capacity
 
 
 def _raw_to_residual_energy(

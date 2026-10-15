@@ -46,8 +46,8 @@ from navigate.simulation.fleet.package import (
     preprocess_packages,
 )
 from navigate.simulation.fleet.residual_energy import (
+    calculate_net_energy,
     calculate_residual_energy,
-    net_energy_from_raw,
 )
 from navigate.simulation.fleet.trip import bind_conditions_to_legs, sum_energy_per_leg
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero, sum_per_key
@@ -1346,8 +1346,8 @@ def _apply_approximated_saving(
         if k in op_port
     }
 
-    net_sea = net_energy_from_raw(op_sea, sav_sea)
-    net_port = net_energy_from_raw(op_port, sav_port)
+    net_sea = calculate_net_energy(op_sea, sav_sea)
+    net_port = calculate_net_energy(op_port, sav_port)
 
     condition_legs = bind_conditions_to_legs(vessel.route)
     net_sea_leg = sum_energy_per_leg(condition_legs, net_sea)
