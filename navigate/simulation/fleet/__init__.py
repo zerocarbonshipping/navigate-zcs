@@ -24,6 +24,7 @@ from navigate.simulation.fleet.initialization import (
     initialize_existing_fleet,
 )
 from navigate.simulation.fleet.operation import update_operations
+from navigate.simulation.fleet.port_demand import calculate_potential_fuel_type_demand
 from navigate.simulation.fleet.post_process import (
     post_process_fleet_profile,
     post_process_investment_metric,

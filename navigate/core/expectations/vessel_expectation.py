@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import divide_nonzero, slice_dict_list, slice_list
@@ -83,6 +83,9 @@ class VesselExpectation(_Expectation):
         self._bunker_mass_expected: dict[tuple[str, str], float] = {}
         self._bunker_mass_existing: dict[tuple[str, str], float] = {}
         self._spend_energy: dict[str, float] = {}
+
+        # potential fuel-type demand at each port of the route
+        self._potential_fuel_type_demand: dict[tuple[str, FuelTypeID], FloatArray] = {}
 
         # fair-share fuel supply
         self._fair_share_fuel_existing: dict[tuple[str, str], float] = {}
@@ -193,6 +196,11 @@ class VesselExpectation(_Expectation):
         # bunkering saved for inertia
         self._bunker_mass_expected = self._default_tuple_dict_float(port_names, fuels)
         self._bunker_mass_existing = self._default_tuple_dict_float(port_names, fuels)
+
+        # potential fuel-type demand at each port of the route
+        self._potential_fuel_type_demand = self._default_tuple_dict_array(
+            port_names, FuelTypeID
+        )
 
         # fair-share
         self._fair_share_fuel_existing = self._default_tuple_dict_float(
@@ -392,6 +400,12 @@ class VesselExpectation(_Expectation):
     def add_spend_energy(self, converter_name: str, spend: float) -> None:
         self._spend_energy.setdefault(converter_name, 0.0)
         self._spend_energy[converter_name] += spend
+
+    def set_potential_fuel_type_demand(
+        self, idx: int, demand: Mapping[tuple[str, FuelTypeID], FloatLike]
+    ) -> None:
+        for key, value in demand.items():
+            self._potential_fuel_type_demand[key][idx:] = value
 
     def set_fair_share_fuel_existing(
         self, port_name: str, fuel_name: str, fair_share: float
@@ -593,6 +607,11 @@ class VesselExpectation(_Expectation):
             return self._spend_energy[converter_name]
 
         return 0.0
+
+    def get_potential_fuel_type_demand(
+        self, port_name: str, fuel_type: FuelTypeID, idx: Index
+    ) -> FloatLike:
+        return self._potential_fuel_type_demand[(port_name, fuel_type)][idx]
 
     def get_fair_share_fuel_existing(self, port_name: str, fuel_name: str) -> float:
         return self._fair_share_fuel_existing[(port_name, fuel_name)]

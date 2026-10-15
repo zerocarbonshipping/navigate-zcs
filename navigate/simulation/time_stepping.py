@@ -29,6 +29,7 @@ from navigate.simulation.fleet import (
     calculate_cargo_charter_properties,
     calculate_evolution_expectation,
     calculate_fleet_profile,
+    calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
     calculate_vessel_charter_properties,
     determine_fuel_type,
@@ -223,6 +224,7 @@ class Simulation:
             # non-zero multiplier
             self._update_fleet_evolution_expectation()
 
+            self._calculate_potential_fuel_type_demand()
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
 
             # the times in port, electrical demands and shore-power capacities are
@@ -250,6 +252,7 @@ class Simulation:
 
         self._missing_technology_approximation()
         self._calculate_fuel_import()
+        self._calculate_potential_fuel_type_demand()
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
 
         calculate_shore_power_limits(self.nodes.fleets, self._idx)
@@ -374,6 +377,13 @@ class Simulation:
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
 
+    def _calculate_potential_fuel_type_demand(self) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_potential_fuel_type_demand(self.nodes.fleets, self._idx)
+
+        self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
+
     def _calculate_fair_share_fuel_supply(self, scope: BunkerScopeID) -> None:
         start_time = timeit.default_timer()
 
@@ -382,9 +392,7 @@ class Simulation:
             for fuel_name, fuel in self.nodes.fuels.items()
             if not fuel.liquid_market
         }
-        calculate_fair_share_fuel_supply(
-            self.nodes.fleets, fuels, self.nodes.ports, self._idx, scope
-        )
+        calculate_fair_share_fuel_supply(self.nodes.fleets, fuels, self._idx, scope)
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
 
