@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.fleet.aggregation import transfer_multipliers_to_profile
+from navigate.simulation.fleet.cohort import define_initial_cohorts, get_multipliers
 from navigate.simulation.fleet.evolution import calculate_evolution_expectation
 from navigate.simulation.fleet.package import preprocess_packages
 from navigate.simulation.fleet.planning import extract_cargo_miles
@@ -62,8 +63,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     """
     Initialize the existing fleet, splitting its vessels into increments of varying age.
 
-    Must be called exactly once per fleet: discretization appends to the increment
-    stores.
+    Must be called exactly once per fleet: discretization appends to its increments.
 
     Parameters
     ----------
@@ -83,21 +83,14 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     )
     preprocess_packages(fleet.technology_packages, fleet.assets, timeline[idx])
 
-    # the initial split must be defined before the age discretization, as
-    # _get_initial_multiplier reads it
+    # the initial cohorts are sized by the initial split, so it is defined first
     _define_initial_split(fleet)
-    fleet.define_initial_age()
-    fleet.define_initial_multipliers()
+    define_initial_cohorts(fleet)
     define_initial_technology(fleet)
     _define_initial_trade(fleet, timeline)
 
     fleet.orders_delivered = np.zeros((nv,))
     fleet.orders_postponed = np.zeros((nv,))
-
-    # the oldest cohort holds the baseline of partial age-based scrapping
-    for incs in fleet.increments:
-        if incs:
-            incs[0].baseline = incs[0].multiplier
 
     update_residual_energy_demand(fleet, idx)
 
@@ -145,7 +138,7 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     idx = 0
     cargo_miles = extract_cargo_miles(fleet.assets, idx)
 
-    multipliers = fleet.get_multipliers()
+    multipliers = get_multipliers(fleet)
     initial_trade = np.dot(multipliers, cargo_miles)
     trade_growth = fleet.trade_growth.get(timeline)
     fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)

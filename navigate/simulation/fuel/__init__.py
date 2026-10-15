@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from navigate.simulation.fuel.aggregation import calculate_producer_profile
+from navigate.simulation.fuel.cohort import age_producer_cohorts
 from navigate.simulation.fuel.evolution import (
     calculate_export_expectation,
     perform_planning,

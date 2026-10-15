@@ -24,6 +24,7 @@ from navigate.core.profiles import GlobalProfile
 from navigate.simulation.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.simulation.bunker.solver import set_solver_preference
 from navigate.simulation.fleet import (
+    age_fleet_cohorts,
     approximate_missing_technology,
     assign_vessels_to_fleets,
     calculate_cargo_charter_properties,
@@ -45,6 +46,7 @@ from navigate.simulation.fleet import (
     verify_power_capacity,
 )
 from navigate.simulation.fuel import (
+    age_producer_cohorts,
     calculate_constrained_fair_share_fuel_demand,
     calculate_development_potential,
     calculate_expected_fuel_demand,
@@ -422,10 +424,10 @@ class Simulation:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            fleet.update_increment_ages(self._time_step)
+            age_fleet_cohorts(fleet, self._time_step)
 
         for producer in self.nodes.producers.values():
-            producer.update_increment_ages(self._time_step)
+            age_producer_cohorts(producer, self._time_step)
 
         self.profile.add_fleet_state_time(
             timeit.default_timer() - start_time, self._idx

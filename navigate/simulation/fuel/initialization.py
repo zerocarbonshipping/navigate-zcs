@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.simulation.fuel.cohort import define_initial_cohorts
 from navigate.simulation.fuel.evolution import (
     calculate_evolution_expectation,
     calculate_feed_availability,
@@ -25,8 +26,8 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     This means discretizing the existing producer in time, by splitting the initial
     number of plants into individual increments with varying age.
 
-    Must be called exactly once per producer: discretization appends to the increment
-    stores.
+    Must be called exactly once per producer: it appends to the producer's increments
+    and pipeline.
 
     Parameters
     ----------
@@ -40,17 +41,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
 
     idx = 0
 
-    producer.define_initial_age()
-    producer.define_initial_decided()
-    producer.define_initial_multipliers()
-
-    # zero multipliers are dropped to reduce overhead and to avoid round-off
-    # errors in the increment average properties
-    for a in range(len(producer.increments)):
-        producer.increments[a] = [
-            inc for inc in producer.increments[a] if inc.multiplier > 0.0
-        ]
-
+    define_initial_cohorts(producer)
     define_existing_pipeline(producer, timeline)
 
     calculate_feed_availability(producer, timeline, idx)

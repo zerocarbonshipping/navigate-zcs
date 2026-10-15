@@ -27,6 +27,7 @@ from navigate.core.increment import VesselIncrement
 from navigate.simulation.economics.decision import calculate_asset_shares
 from navigate.simulation.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.simulation.economics.metric import calculate_net_present_value
+from navigate.simulation.fleet.cohort import get_multipliers
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -147,7 +148,7 @@ def perform_fuel_conversions(
         return
 
     # counted before the newbuilds, which are inserted later in the same time-step
-    existing_total = sum(fleet.get_multipliers())
+    existing_total = sum(get_multipliers(fleet))
 
     proposals = propose_fuel_conversions(fleet, idx, time_step)
     if not proposals:

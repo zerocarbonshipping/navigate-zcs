@@ -441,12 +441,12 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
                 f"InitialSplit ({len(self.initial_split)}) must correspond."
             )
 
-        if self._initial_age_distribution and (
-            len(self.assets) != len(self._initial_age_distribution)
+        if self.initial_age_distribution and (
+            len(self.assets) != len(self.initial_age_distribution)
         ):
             raise ValueError(
                 f"{self}: The length of Vessel ({len(self.assets)}) and "
-                f"InitialAgeDistribution ({len(self._initial_age_distribution)}) "
+                f"InitialAgeDistribution ({len(self.initial_age_distribution)}) "
                 "must correspond."
             )
 
@@ -531,26 +531,6 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
             regulation_names,
             levy_names,
         )
-
-    # _AssetManager abstract interface
-
-    def _get_initial_multiplier(self, index: int) -> float:
-        return self.initial_split[index] * self.initial_vessels.get()
-
-    def _new_increment(self, age: float, age_span: float) -> VesselIncrement:
-        return VesselIncrement(
-            multiplier=0.0,
-            age=age,
-            age_span=age_span,
-            package_uptake=np.zeros(self.get_number_of_packages()),
-        )
-
-    def _adjust_lifetime_for_age(self, lifetime: float) -> float:
-        if self.fixed_scrap_rate is not None:
-            scrap_rate = self.fixed_scrap_rate.get()
-            if scrap_rate > 0.0:
-                lifetime = min(lifetime, 1.0 / scrap_rate)
-        return lifetime
 
     def can_retrofit(self) -> bool:
         return bool(self.technologies)

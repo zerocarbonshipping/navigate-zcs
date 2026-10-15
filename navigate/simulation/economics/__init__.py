@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Asset-agnostic valuation and choice: cash flows, NPV, levelized cost, uptake."""
+"""Asset-agnostic economics: initial cohorts, flows, NPV, levelized cost, uptake."""
 
 from __future__ import annotations
 
+from navigate.simulation.economics.cohort import discretize_initial_cohorts
 from navigate.simulation.economics.decision import (
     calculate_asset_shares,
     calculate_two_axis_uptake,

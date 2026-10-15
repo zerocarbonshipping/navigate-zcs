@@ -13,6 +13,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
+from navigate.simulation.fleet.cohort import get_multipliers
 from navigate.simulation.fleet.marginal_saving import calculate_marginal_speed_saving
 from navigate.simulation.fleet.operation import (
     calculate_operations,
@@ -124,7 +125,7 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
             mu_aligned = max(mu_values)
 
         elif alignment == SpeedAlignmentID.AVERAGE:
-            weights = fleet.get_multipliers()
+            weights = get_multipliers(fleet)
             mu_aligned = float(np.average(mu_values, weights=weights))
 
         else:

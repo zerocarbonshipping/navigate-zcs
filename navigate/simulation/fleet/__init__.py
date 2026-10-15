@@ -10,6 +10,7 @@ from navigate.simulation.fleet.charter import (
     calculate_cargo_charter_properties,
     calculate_vessel_charter_properties,
 )
+from navigate.simulation.fleet.cohort import age_fleet_cohorts
 from navigate.simulation.fleet.evolution import (
     calculate_evolution_expectation,
     perform_fleet_evolution,

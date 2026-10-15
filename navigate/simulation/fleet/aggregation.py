@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
+from navigate.simulation.fleet.cohort import get_multiplier
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_flow
 
@@ -107,9 +108,7 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         age_power_sum = (
             float(sum(inc.age * inc.multiplier for inc in fleet.increments[v])) * power
         )
-        count_power_sum = (
-            float(sum(inc.multiplier for inc in fleet.increments[v])) * power
-        )
+        count_power_sum = float(get_multiplier(fleet, v)) * power
         fleet.profile.add_weighted_age(
             vessel.primary_fuel_type, age_power_sum, count_power_sum, idx
         )
@@ -131,7 +130,7 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
     fleet.expectation.reset_fuel_type_totals()
 
     for v, vessel in enumerate(fleet.assets):
-        multiplier = fleet.get_multiplier(v)
+        multiplier = get_multiplier(fleet, v)
 
         if multiplier == 0.0:
             continue
@@ -178,7 +177,7 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
         Current time-step index.
     """
     for v, vessel in enumerate(fleet.assets):
-        multiplier = fleet.get_multiplier(v)
+        multiplier = get_multiplier(fleet, v)
 
         if multiplier == 0.0:
             continue
@@ -237,4 +236,4 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     for v, vessel in enumerate(fleet.assets):
-        fleet.profile.set_existing_vessels(idx, vessel.name, fleet.get_multiplier(v))
+        fleet.profile.set_existing_vessels(idx, vessel.name, get_multiplier(fleet, v))
