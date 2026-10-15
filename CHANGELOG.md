@@ -113,8 +113,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   re-assigned later in `DEFINE`, as it always did across `EVENTS`.
 - The minimum supported Python version is 3.13 (was 3.12).
 - The 8 default bulk-carrier and tanker routes merge ballast and laden into one
-  utilization per speed. Energy and cargo miles hold where load is linear in
-  utilization; converter load, the power check and speed limits move (#491).
+  utilization per speed. At equal speeds energy and cargo miles hold, but a
+  merged bin's lowest sailable speed shifts, nudging results slightly (#491).
 - A regulation's default fuel WTT averages over every port on the vessel's
   route, each once, not only the jurisdiction ports, where it was 0 without
   supply. Results move where a route leaves the jurisdiction.
