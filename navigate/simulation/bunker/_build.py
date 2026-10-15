@@ -67,6 +67,7 @@ def get_constraint[K: _ElementKey](
     not the fixed zero) and re-apply every coefficient via ``model.chgCoeff`` on every
     build, new or reused -- re-applying is what lets a variable created after the
     constraint (e.g. a fuel that later becomes bunkerable at a port) join the row.
+    A variable that leaves the row must be written at zero, not skipped.
 
     Parameters
     ----------

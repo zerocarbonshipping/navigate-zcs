@@ -10,7 +10,6 @@ never directly.
 
 from __future__ import annotations
 
-import contextlib
 from typing import TYPE_CHECKING
 
 import highspy
@@ -371,11 +370,8 @@ class Model:
         self._num_rows: int = 0
         self._constr_names: list[str] = []
 
-        # removed rows are neutralized, not deleted; recycleConstr reuses them,
-        # zeroing the non-zero columns tracked per row
+        # the rows neutralized by remove, excluded from the computeIIS fallback
         self._removed_rows: set[int] = set()
-        self._recycled_rows: list[int] = []
-        self._row_coeffs: dict[int, set[int]] = {}
 
         # solution of the last solve
         self._col_values: FloatArray
@@ -501,9 +497,6 @@ class Model:
         self._num_rows += 1
         self._model_grew = True
 
-        if indices:
-            self._row_coeffs[row] = set(indices)
-
         self._constr_names.append(name)
 
         return Constr(self, row, sense, adjusted_rhs)
@@ -531,23 +524,12 @@ class Model:
         self._coeff_values[key] = value
         self._highs.changeCoeff(row, col, value)
 
-        if value != 0.0:
-            row_cols = self._row_coeffs.get(row)
-            if row_cols is None:
-                self._row_coeffs[row] = {col}
-            else:
-                row_cols.add(col)
-        else:
-            row_cols = self._row_coeffs.get(row)
-            if row_cols is not None:
-                row_cols.discard(col)
-
     def remove(self, item: Var | Constr) -> None:
         """
         Neutralize a variable or constraint, keeping its column or row in place.
 
         A variable is fixed to zero at zero cost; a constraint gets infinite bounds, so
-        it always holds, and its row becomes available to recycleConstr.
+        it always holds.
 
         Parameters
         ----------
@@ -564,87 +546,8 @@ class Model:
             return
 
         self._removed_rows.add(item._row)
-        self._recycled_rows.append(item._row)
         self._highs.changeRowBounds(item._row, -highspy.kHighsInf, highspy.kHighsInf)
         self._pending_rhs.pop(item._row, None)
-
-    def recycleConstr(
-        self, constr: TempConstr, name: str = "", mark_grew: bool = True
-    ) -> Constr:
-        """
-        Reuse the row of a removed constraint for a new one.
-
-        Without a removed row to reuse, the constraint is added as a new row.
-
-        Parameters
-        ----------
-        constr
-            The comparison of a LinExpr or Var.
-        name
-            Constraint name.
-        mark_grew
-            Whether the next solve treats the model as grown and runs interior point.
-
-        Returns
-        -------
-        Constr
-            The new constraint.
-        """
-        if not self._recycled_rows:
-            return self.addConstr(constr, name=name)
-
-        row = self._recycled_rows.pop()
-        self._removed_rows.discard(row)
-
-        lhs = constr.lhs
-        sense = constr.sense
-        rhs = constr.rhs
-
-        adjusted_rhs = rhs - lhs._constant
-
-        change_coefficient = self._highs.changeCoeff
-
-        old_cols = self._row_coeffs.get(row)
-        if old_cols:
-            for col in old_cols:
-                change_coefficient(row, col, 0.0)
-                self._coeff_values.pop((row, col), None)
-            old_cols.clear()
-
-        new_cols = set()
-        for coefficient, variable in lhs._terms:
-            col = variable._col
-            change_coefficient(row, col, coefficient)
-            self._coeff_values[(row, col)] = coefficient
-            new_cols.add(col)
-
-        if new_cols:
-            self._row_coeffs[row] = new_cols
-
-        if sense == EQUAL:
-            lower_bound = adjusted_rhs
-            upper_bound = adjusted_rhs
-        elif sense == LESS_EQUAL:
-            lower_bound = -highspy.kHighsInf
-            upper_bound = adjusted_rhs
-        elif sense == GREATER_EQUAL:
-            lower_bound = adjusted_rhs
-            upper_bound = highspy.kHighsInf
-        else:
-            raise ValueError(f"Unknown constraint sense: {sense}")
-
-        self._highs.changeRowBounds(row, lower_bound, upper_bound)
-
-        if mark_grew:
-            self._model_grew = True
-            # a recycled row enters the basis as a new row does
-            if self._basis is not None:
-                with contextlib.suppress(IndexError, AttributeError):
-                    self._basis.row_status[row] = HighsBasisStatus.kBasic
-
-        self._constr_names[row] = name
-
-        return Constr(self, row, sense, adjusted_rhs)
 
     def _flush_pending(self) -> None:
         """Apply the deferred right-hand side, objective and upper-bound changes."""
