@@ -22,13 +22,12 @@ from navigate.simulation.economics.metric import calculate_levelized_cost
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Iterable
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.process import Process
-    from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray
 
 
@@ -259,17 +258,13 @@ def _add_process_flows(
     def opex(time: float) -> float:
         return opex_rate.get(time, scale) * production * conversion
 
-    def wtt(rate: ForecastInput) -> Callable[[float], float]:
-        return lambda time: rate.get(time) * production * conversion
-
-    wtt_callables = {
-        emission: wtt(region.process_wtt[(process.name, emission)])
-        for emission in component.wtt_flow
-    }
+    def wtt(emission: str, time: float) -> float:
+        rate = region.process_wtt[(process.name, emission)]
+        return rate.get(time) * production * conversion
 
     add_capex_flow(component=component, capex=capex)
     add_fixed_opex(component=component, value=opex)
-    add_fixed_wtt(component=component, wtt_callables=wtt_callables)
+    add_fixed_wtt(component=component, wtt=wtt)
 
 
 def _add_energy_flows(
@@ -316,30 +311,25 @@ def _add_energy_flows(
         def opex(time: float) -> float:
             return opex_rate * energy(time)
 
-        def wtt(rate: float) -> Callable[[float], float]:
-            return lambda time: rate * energy(time)
-
-        fixed_wtt = {
-            emission: wtt(region.source_wtt[(source.name, emission)].get(time_invest))
-            for emission in component.wtt_flow
-        }
+        def fixed_wtt(emission: str, time: float) -> float:
+            rate = region.source_wtt[(source.name, emission)].get(time_invest)
+            return rate * energy(time)
 
         add_capex_flow(component=component, capex=capex)
         add_fixed_opex(component=component, value=opex)
-        add_fixed_wtt(component=component, wtt_callables=fixed_wtt)
+        add_fixed_wtt(component=component, wtt=fixed_wtt)
 
     elif source.dependency == SourceDependencyID.CONNECTED:
         # a connected source is bought at the prevailing price and emits at the
         # prevailing factors, so only the energy demand is locked, at investment and
         # at each replacement
         cost = region.source_opex[source.name].get
-        variable_wtt: dict[str, Callable[[FloatArray], FloatArray]] = {
-            emission: region.source_wtt[(source.name, emission)].get
-            for emission in component.wtt_flow
-        }
+
+        def variable_wtt(emission: str, time: FloatArray) -> FloatArray:
+            return region.source_wtt[(source.name, emission)].get(time)
 
         add_variable_opex(component=component, metric=energy, cost=cost)
-        add_variable_wtt(component=component, metric=energy, wtt_callables=variable_wtt)
+        add_variable_wtt(component=component, metric=energy, wtt=variable_wtt)
 
 
 def _add_feedstock_flows(
@@ -377,16 +367,12 @@ def _add_feedstock_flows(
     def cost(time: FloatArray) -> FloatArray:
         return cost_rate.get(time) * production
 
-    def wtt(rate: ForecastInput) -> Callable[[FloatArray], FloatArray]:
-        return lambda time: rate.get(time) * production
-
-    wtt_callables = {
-        emission: wtt(region.feedstock_wtt[(feedstock.name, emission)])
-        for emission in component.wtt_flow
-    }
+    def wtt(emission: str, time: FloatArray) -> FloatArray:
+        rate = region.feedstock_wtt[(feedstock.name, emission)]
+        return rate.get(time) * production
 
     add_variable_opex(component=component, metric=metric, cost=cost)
-    add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)
+    add_variable_wtt(component=component, metric=metric, wtt=wtt)
 
 
 def _add_transport_flows(
@@ -429,16 +415,12 @@ def _add_transport_flows(
     def cost(time: FloatArray) -> FloatArray:
         return cost_rate.get(time) * (distance.get(time) * production)
 
-    def wtt(rate: ForecastInput) -> Callable[[FloatArray], FloatArray]:
-        return lambda time: rate.get(time) * distance.get(time) * production
-
-    wtt_callables = {
-        emission: wtt(region.transport_wtt[(transport.name, emission)])
-        for emission in component.wtt_flow
-    }
+    def wtt(emission: str, time: FloatArray) -> FloatArray:
+        rate = region.transport_wtt[(transport.name, emission)]
+        return rate.get(time) * distance.get(time) * production
 
     add_variable_opex(component=component, metric=metric, cost=cost)
-    add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)
+    add_variable_wtt(component=component, metric=metric, wtt=wtt)
 
 
 def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> None:
