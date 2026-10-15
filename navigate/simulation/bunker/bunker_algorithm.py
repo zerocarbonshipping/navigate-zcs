@@ -88,7 +88,6 @@ from navigate.simulation.bunker.variables import (
     update_regulation_variables,
     update_vessel_variables,
 )
-from navigate.simulation.policy import policies_affecting_port
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -99,7 +98,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.levy import Levy
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
@@ -131,7 +129,6 @@ class BunkerAlgorithm:
         self.feedstock: dict[str, Feedstock] = {}
         self.fleets: dict[str, Fleet] = {}
         self.fuels: dict[str, Fuel] = {}
-        self.levies: dict[str, Levy] = {}
         self.ports: dict[str, Port] = {}
         self.regulations: dict[str, Regulation] = {}
 
@@ -155,7 +152,6 @@ class BunkerAlgorithm:
 
         # policies
         self.active_regulations: dict[str, Regulation] = {}
-        self.port_levies: dict[str, list[Levy]] = {}
         self.cost_levy: dict[tuple[str, str, str, str], float] = {}
         self.regulation_vessel_threshold: dict[tuple[str, str], float] = {}
         self.regulation_emission_factor: dict[tuple[str, str, str, str], float] = {}
@@ -238,7 +234,6 @@ class BunkerAlgorithm:
         feedstock: dict[str, Feedstock],
         fleets: dict[str, Fleet],
         fuels: dict[str, Fuel],
-        levies: dict[str, Levy],
         ports: dict[str, Port],
         regulations: dict[str, Regulation],
         options: BunkerOptions,
@@ -258,8 +253,6 @@ class BunkerAlgorithm:
             All fleets in the simulation.
         fuels
             All fuels in the simulation.
-        levies
-            All levies in the simulation.
         ports
             All ports in the simulation.
         regulations
@@ -281,7 +274,6 @@ class BunkerAlgorithm:
         self.feedstock = feedstock
         self.emissions = emissions
         self.regulations = regulations
-        self.levies = levies
 
         self.fuels_per_fuel_type = get_fuels_per_fuel_type(self.fuels)
 
@@ -470,9 +462,6 @@ class BunkerAlgorithm:
         self.active_regulations = {
             r: reg for r, reg in self.regulations.items() if reg.is_active()
         }
-        self.port_levies = {}
-        for port_name, port in self.ports.items():
-            self.port_levies[port_name] = policies_affecting_port(port, self.levies)
 
     def _update_vessel_constraints(self, vessel: Vessel) -> None:
         """

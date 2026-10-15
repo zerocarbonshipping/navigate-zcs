@@ -16,5 +16,4 @@ from navigate.simulation.policy.jurisdiction import (
     calculate_cargo_miles_in_policy_jurisdiction,
     calculate_nominal_cargo_miles_in_policy_jurisdiction,
     leg_jurisdiction_fraction,
-    policies_affecting_port,
 )

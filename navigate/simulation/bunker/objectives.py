@@ -35,11 +35,9 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     v = vessel.name
     multiplier = alg.multipliers[v]
     ports = vessel.route.ports
-    port_levies = alg.port_levies
 
     for p, port in enumerate(ports):
         port_name = port.name
-        levies = port_levies[port_name]
 
         for f, fuel in vessel.usable_fuels.items():
             if not port.is_bunkering_allowed(f):
@@ -48,7 +46,7 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             price = np.float64(port.expectation.get_bunker_price(f, alg.idx))
             cost_levy = sum(
                 alg.cost_levy[(v, port_name, f, levy.name)]
-                for levy in levies
+                for levy in port.imposed_levies
                 if levy.vessel_is_policed(v)
             )
             total_price = price + cost_levy

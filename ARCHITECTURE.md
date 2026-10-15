@@ -100,12 +100,15 @@ re-export there would load far more than an import needs.
 ## Data-flow invariants
 
 - Cross-module dynamic results flow through the node's `expectation`: the
-  computing module writes (`set_*`, `add_*`), the others read (`get_*`).
+  computing module writes (`set_*`, `add_*`), the others read (`get_*`). A
+  relation between nodes that events can change is not such a result: it is
+  a node attribute holding node references, rewritten once per time step by
+  `core/node_maps.py`.
 - `profile` is output for reports and plots, never a decision's input.
   Deriving one profile value from another is fine in post-processing and
   `Simulation._calculate_profile`, which feed no decision.
 - Direct attribute access (`node.some_input.get()`) is reserved for
-  DSL-defined inputs.
+  DSL-defined inputs and those node maps.
 - `simulation/` handles no files, console output or arguments; its one file
   write is the bunker's infeasible-LP dump into the directory it is given.
 
