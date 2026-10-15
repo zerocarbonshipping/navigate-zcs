@@ -40,7 +40,6 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
 
     idx = 0
 
-    producer.define_initial_capacity()
     producer.define_initial_age()
     producer.define_initial_decided()
     producer.define_initial_multipliers()

@@ -60,7 +60,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         self.fuel_cost_sensitivity: ForecastInput
 
         # initial conditions
-        self._initial_capacity: list[ScalarInput] = []
+        self.initial_capacity: list[ScalarInput] = []
 
         # existing pipeline
         self.existing_pipelines: dict[str, Forecast | None] = {}
@@ -135,7 +135,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
     ) -> None:
         """Set the initial capacity of each plant type."""
         entries: list[ScalarArgument] = as_list(initial_capacity)
-        self._initial_capacity = assign_list(
+        self.initial_capacity = assign_list(
             [as_scalar(entry) for entry in entries], type_=VARIABLE, lower=0.0
         )
 
@@ -211,12 +211,16 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         )
 
     # internal methods -----------------------------------------------------------------
+    def apply_defaults(self) -> None:
+        if not self.initial_capacity:
+            self.initial_capacity = [Scalar(0.0) for _ in self.assets]
+
     def check_consistency(self) -> None:
 
-        if self._initial_capacity and (len(self.assets) != len(self._initial_capacity)):
+        if len(self.assets) != len(self.initial_capacity):
             raise ValueError(
                 f"{self}: The length of Plants ({len(self.assets)}) and InitialCapacity"
-                f" ({len(self._initial_capacity)}) must correspond."
+                f" ({len(self.initial_capacity)}) must correspond."
             )
 
         if self._initial_age_distribution and (
@@ -313,14 +317,6 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
 
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
-    def define_initial_capacity(self) -> None:
-        """Define the initial capacity of each plant type."""
-        if not self._initial_capacity:
-            # if the initial capacity is not
-            # supplied by the user, then assume
-            # zero initial capacity
-            self._initial_capacity = [Scalar(0.0) for _ in self.assets]
-
     def define_initial_decided(self) -> None:
         """Set the decided field on each increment based on age + lead time."""
         for p, plant in enumerate(self.assets):
@@ -334,12 +330,12 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         plant = self.plants[index]
         capacity = plant.capacity.get()
         if capacity > 0.0:
-            return self._initial_capacity[index].get() / capacity
+            return self.initial_capacity[index].get() / capacity
         logger.warning(
             "%s: Unable to initialize a capacity of tons/day from %s (plant %s) as the "
             "plant capacity is zero.",
             self,
-            self._initial_capacity[index].get(),
+            self.initial_capacity[index].get(),
             plant,
         )
         return 0.0

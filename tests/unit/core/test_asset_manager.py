@@ -13,6 +13,7 @@ from navigate.core.increment import PlantIncrement
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
+from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.producer import Producer
 from navigate.core.table_data import TableData
 from navigate.util import YEAR
@@ -73,12 +74,13 @@ class TestInfiniteTableEntriesRejected:
 
     def test_existing_pipeline(self):
         producer = Producer("producer")
+        producer.set_plants(Plant("plant"))
         producer.existing_pipelines = {"plant": _cumulative_forecast(np.inf)}
 
         with pytest.raises(
             ValueError, match=r'Pipeline \(Forecast\("counts"\)\) must hold finite'
         ):
-            producer.check_consistency()
+            producer.initialize()
 
     def test_initial_age_distribution(self):
         curve = Curve("ages")
@@ -95,5 +97,6 @@ class TestInfiniteTableEntriesRejected:
 
     def test_finite_tables_pass(self):
         producer = Producer("producer")
+        producer.set_plants(Plant("plant"))
         producer.existing_pipelines = {"plant": _cumulative_forecast(2.0)}
-        producer.check_consistency()
+        producer.initialize()
