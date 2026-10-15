@@ -16,13 +16,30 @@ Vessel "bulk_carrier_handysize_oil" {
 }
 
 Route "pacific_trade" {
-    RouteType = REGIONAL_TRIP
+    RouteType = TRAMP
 
-    Ports = Port("*")               # there are five ports, number of port calls must match
-    PortCalls = [11, 9, 8, 4, 4]    # 36 in total according to assumptions
- 
+    Ports = Port("*")               # the five ports of ports.inc
+
+    # 36 port calls in total according to assumptions
+    set_port_calls("australia", 11)
+    set_port_calls("new_zealand", 9)
+    set_port_calls("fiji", 8)
+    set_port_calls("samoa", 4)
+    set_port_calls("tonga", 4)
+
     TimeAtSea = 0.47
-    Speeds = [13.0, 12.5, 12.0, 11.8, 12.2]
+    set_voyage_distribution("*", "*", 1)
 
-    ConditionDistribution = [0.26, 0.21, 0.18, 0.17, 0.18]
+    set_speed("*", "*", Curve("speed_distribution_pacific_trade"))
+}
+
+# Share of the time at sea sailed at each speed (x = knots ; y = fraction)
+Curve "speed_distribution_pacific_trade" {
+    Table = [
+        11.8    0.17
+        12.0    0.18
+        12.2    0.18
+        12.5    0.21
+        13.0    0.26
+    ]
 }
