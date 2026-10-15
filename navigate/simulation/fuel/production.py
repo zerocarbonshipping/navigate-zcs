@@ -22,7 +22,7 @@ from navigate.simulation.economics.metric import calculate_levelized_cost
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
@@ -40,10 +40,11 @@ def calculate_plant_production_expectations(
 
     The levelized cost covers the CAPEX and the fixed and variable OPEX of building
     and running the plant over its lifetime. A process living shorter than the plant,
-    such as an electrolyzer stack, is replaced at the costs and energy demand of its
-    replacement time, while the conversion factors stay those of the investment time,
-    so former and future feed use are calculated on one basis. The WTT per ton is that
-    of the first operating year, the value at which the plant is certified.
+    such as an electrolyzer stack, is replaced at the costs, emission factors and
+    energy demand of its replacement time, while the conversion factors stay those of
+    the investment time, so former and future feed use are calculated on one basis.
+    The WTT per ton is that of the first operating year, the value at which the plant
+    is certified.
 
     Parameters
     ----------
@@ -62,7 +63,7 @@ def calculate_plant_production_expectations(
     process = plant.process
 
     component = None
-    horizon = None
+    durations = None
 
     # TODO: Forward calculation can be removed once fuel market expectation is
     # simplified
@@ -72,13 +73,13 @@ def calculate_plant_production_expectations(
 
         # the flow sizes depend on the lead time and lifetime alone, so an
         # unchanged pair reuses the component instead of reallocating it
-        if component is None or (lead_time, lifetime) != horizon:
+        if component is None or (lead_time, lifetime) != durations:
             component = _build_component(plant, process, emissions, time, t)
-            horizon = (lead_time, lifetime)
+            durations = (lead_time, lifetime)
         else:
             component.reset_flow(time)
 
-        _add_process_tree(component, plant, process, emissions, 1.0, t)
+        _add_process_tree(component, plant, process, 1.0, t)
         _calculate_unit_properties(component, plant, t)
 
     cost = float(expectation.get_levelized_production_cost(idx))
@@ -126,7 +127,7 @@ def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) ->
 def _build_component(
     plant: Plant,
     process: Process,
-    emissions: dict[str, Emission],
+    emissions: Iterable[str],
     time_initial: float,
     idx: int,
 ) -> Component:
@@ -143,7 +144,7 @@ def _build_component(
     process
         Process the component holds the flows of.
     emissions
-        All emissions in the simulation.
+        Names of the emissions to allocate a WTT flow for.
     time_initial
         Time of the investment decision, in days since the start of the simulation.
     idx
@@ -166,7 +167,6 @@ def _add_process_tree(
     component: Component,
     plant: Plant,
     process: Process,
-    emissions: dict[str, Emission],
     conversion: float,
     idx: int,
 ) -> None:
@@ -185,8 +185,6 @@ def _add_process_tree(
         Plant the process tree belongs to.
     process
         Process at the root of the tree walked.
-    emissions
-        All emissions in the simulation.
     conversion
         Mass of the process output per mass of fuel.
     idx
@@ -216,46 +214,9 @@ def _add_process_tree(
         elif is_process(feed):
             # a subprocess gets its own component, since its lifetime and
             # replacement cycle differ from those of its parent
-            child = _build_component(plant, feed, emissions, time_initial, idx)
-            _add_process_tree(child, plant, feed, emissions, conversion_feed, idx)
+            child = _build_component(plant, feed, component.wtt_flow, time_initial, idx)
+            _add_process_tree(child, plant, feed, conversion_feed, idx)
             component.add_component(child)
-
-
-def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> None:
-    """
-    Calculate the levelized cost, tied capital and WTT per ton of the plant at a step.
-
-    Parameters
-    ----------
-    component
-        Component holding the flows of the whole process tree.
-    plant
-        Plant whose expectation receives the properties.
-    idx
-        Current time-step index.
-    """
-    expectation = plant.expectation
-
-    production = float(expectation.get_production(idx))
-    production_flow = build_production_flow(component=component, production=production)
-
-    cost_flow = component.get_cost_flow()
-    discount_rate = plant.cost_of_capital.get(component.time_initial)
-    levelized_cost = calculate_levelized_cost(cost_flow, production_flow, discount_rate)
-    expectation.set_levelized_production_cost(idx, levelized_cost)
-
-    commence_idx = component.get_commence_index()
-    expectation.set_tied_capital(idx, component.tied_capital_flow[commence_idx:])
-
-    # TODO: recertify the plant every year instead of at its first operating year,
-    # which requires reworking the Producer node. Unlike the cost, which converts to a
-    # present value, the emissions must be tracked over the lifetime of the plant: a
-    # reduction, e.g. in source or transport emissions as other sectors decarbonize,
-    # can only be accounted for once it materializes.
-    production_commence = production_flow[commence_idx]
-    for emission, wtt_flow in component.wtt_flow.items():
-        wtt = wtt_flow[commence_idx] / production_commence
-        expectation.set_production_wtt(idx, emission, wtt)
 
 
 def _add_process_flows(
@@ -267,7 +228,7 @@ def _add_process_flows(
     conversion: float,
 ) -> None:
     """
-    Add the CAPEX, fixed OPEX and fixed WTT of running a process.
+    Add the CAPEX, fixed OPEX and fixed WTT of building and running a process.
 
     The CAPEX and OPEX rates are read at the process scale, the plant size times the
     conversion, so an intermediate process is sized to the fuel output it serves.
@@ -290,12 +251,13 @@ def _add_process_flows(
     region = plant.region
     capex_rate = region.process_capex[process.name]
     opex_rate = region.process_opex[process.name]
+    scale = size * conversion
 
     def capex(time: float) -> float:
-        return capex_rate.get(time, size * conversion) * production * conversion
+        return capex_rate.get(time, scale) * production * conversion
 
     def opex(time: float) -> float:
-        return opex_rate.get(time, size * conversion) * production * conversion
+        return opex_rate.get(time, scale) * production * conversion
 
     def wtt(rate: ForecastInput) -> Callable[[float], float]:
         return lambda time: rate.get(time) * production * conversion
@@ -357,28 +319,27 @@ def _add_energy_flows(
         def wtt(rate: float) -> Callable[[float], float]:
             return lambda time: rate * energy(time)
 
-        fixed_wtt_callables = {
+        fixed_wtt = {
             emission: wtt(region.source_wtt[(source.name, emission)].get(time_invest))
             for emission in component.wtt_flow
         }
 
         add_capex_flow(component=component, capex=capex)
         add_fixed_opex(component=component, value=opex)
-        add_fixed_wtt(component=component, wtt_callables=fixed_wtt_callables)
+        add_fixed_wtt(component=component, wtt_callables=fixed_wtt)
 
     elif source.dependency == SourceDependencyID.CONNECTED:
         # a connected source is bought at the prevailing price and emits at the
-        # prevailing factors, so only the energy demand is locked at construction
+        # prevailing factors, so only the energy demand is locked, at investment and
+        # at each replacement
         cost = region.source_opex[source.name].get
-        variable_wtt_callables: dict[str, Callable[[FloatArray], FloatArray]] = {
+        variable_wtt: dict[str, Callable[[FloatArray], FloatArray]] = {
             emission: region.source_wtt[(source.name, emission)].get
             for emission in component.wtt_flow
         }
 
         add_variable_opex(component=component, metric=energy, cost=cost)
-        add_variable_wtt(
-            component=component, metric=energy, wtt_callables=variable_wtt_callables
-        )
+        add_variable_wtt(component=component, metric=energy, wtt_callables=variable_wtt)
 
 
 def _add_feedstock_flows(
@@ -391,7 +352,7 @@ def _add_feedstock_flows(
     """
     Add the variable cost and WTT of buying a feedstock.
 
-    The feedstock mass per mass of fuel is locked at installation, while its price and
+    The feedstock mass per mass of fuel is locked at investment, while its price and
     emission factors vary with time.
 
     Parameters
@@ -438,8 +399,8 @@ def _add_transport_flows(
     """
     Add the variable cost and WTT of transporting a feed, if the plant delivers it.
 
-    The mass moved per mass of fuel is locked at installation, while the transport's
-    rates per ton and distance and the distance itself vary with time.
+    The mass moved per mass of fuel is locked at investment, while the transport's
+    rates per ton-mile and the distance itself vary with time.
 
     Parameters
     ----------
@@ -478,3 +439,40 @@ def _add_transport_flows(
 
     add_variable_opex(component=component, metric=metric, cost=cost)
     add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)
+
+
+def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> None:
+    """
+    Calculate the levelized cost, tied capital and WTT per ton of the plant at a step.
+
+    Parameters
+    ----------
+    component
+        Component holding the flows of the whole process tree.
+    plant
+        Plant whose expectation receives the properties.
+    idx
+        Current time-step index.
+    """
+    expectation = plant.expectation
+
+    production = float(expectation.get_production(idx))
+    production_flow = build_production_flow(component=component, production=production)
+
+    cost_flow = component.get_cost_flow()
+    discount_rate = plant.cost_of_capital.get(component.time_initial)
+    levelized_cost = calculate_levelized_cost(cost_flow, production_flow, discount_rate)
+    expectation.set_levelized_production_cost(idx, levelized_cost)
+
+    commence_idx = component.get_commence_index()
+    expectation.set_tied_capital(idx, component.tied_capital_flow[commence_idx:])
+
+    # TODO: recertify the plant every year instead of at its first operating year,
+    # which requires reworking the Producer node. Unlike the cost, which converts to a
+    # present value, the emissions must be tracked over the lifetime of the plant: a
+    # reduction, e.g. in source or transport emissions as other sectors decarbonize,
+    # can only be accounted for once it materializes.
+    production_commence = production_flow[commence_idx]
+    for emission, wtt_flow in component.wtt_flow.items():
+        wtt = wtt_flow[commence_idx] / production_commence
+        expectation.set_production_wtt(idx, emission, wtt)
