@@ -17,10 +17,7 @@ from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.region import Region
 from navigate.core.nodes.transport import Transport
 from navigate.simulation.economics.flows import Component
-from navigate.simulation.fuel.production import (
-    _calculate_transport_cost,
-    _calculate_transport_emissions,
-)
+from navigate.simulation.fuel.production import _add_transport_flows
 
 EMISSIONS = {"carbon_dioxide": None}
 FEEDSTOCKS = {"water": None, "biomass": None}
@@ -38,6 +35,7 @@ OPERATING = np.array([0.0, 1.0, 1.0])
 
 def _make_plant() -> Plant:
     plant = Plant("plant")
+    plant.set_region(_make_region())
     plant.initialize_dependencies(FEEDSTOCKS, {}, {})
     plant.set_feed_transport("water", Transport("truck"))
     plant.set_feed_distance("water", DISTANCE)
@@ -56,20 +54,15 @@ def _make_component() -> Component:
     return Component(lead_time=1.0, lifetime=2.0, time_initial=0.0, emissions=EMISSIONS)
 
 
-class TestCalculateTransport:
+class TestAddTransportFlows:
     def test_transported_feed_adds_cost_and_emissions_per_ton_mile(self):
         # the feed moved per year is conversion * production = 2000 tons over
         # 100 nm: 2000 * 100 * 0.1 = 20000 USD and 2000 * 100 * 0.001 = 200 tons
         # of emission in each operating year, nothing under construction
-        plant, region, component = _make_plant(), _make_region(), _make_component()
+        plant, component = _make_plant(), _make_component()
         feed = Feedstock("water")
 
-        _calculate_transport_cost(
-            component, plant, feed, region, PRODUCTION, CONVERSION
-        )
-        _calculate_transport_emissions(
-            component, plant, feed, EMISSIONS, region, PRODUCTION, CONVERSION
-        )
+        _add_transport_flows(component, plant, feed, PRODUCTION, CONVERSION)
 
         np.testing.assert_allclose(component.opex_flow, 20000.0 * OPERATING)
         np.testing.assert_allclose(
@@ -77,15 +70,10 @@ class TestCalculateTransport:
         )
 
     def test_feed_without_transport_adds_nothing(self):
-        plant, region, component = _make_plant(), _make_region(), _make_component()
+        plant, component = _make_plant(), _make_component()
         feed = Feedstock("biomass")
 
-        _calculate_transport_cost(
-            component, plant, feed, region, PRODUCTION, CONVERSION
-        )
-        _calculate_transport_emissions(
-            component, plant, feed, EMISSIONS, region, PRODUCTION, CONVERSION
-        )
+        _add_transport_flows(component, plant, feed, PRODUCTION, CONVERSION)
 
         assert np.all(component.opex_flow == 0.0)
         assert np.all(component.wtt_flow["carbon_dioxide"] == 0.0)
