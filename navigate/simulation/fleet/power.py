@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Power capacity, shore-power limits, speed limits and load convexity of vessels."""
+"""Power capacity checks, technical speed limits and load convexity of vessels."""
 
 from __future__ import annotations
 
@@ -272,52 +272,6 @@ def get_total_power_capacity(vessel: Vessel) -> float:
         converter.power_capacity.get()
         for converter in vessel.power_system.get_converters()
     )
-
-
-def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
-    """
-    Calculate the most shore-power energy every vessel can take in each of its ports.
-
-    Shore power covers the connected share of the time in port, at the lesser of the
-    vessel's shore-power capacity and the electrical load. The limits are in GJ/year.
-
-    Parameters
-    ----------
-    fleets
-        Fleets by name; the limits of each of their vessels are calculated.
-    idx
-        Current time-step index.
-    """
-    for fleet in fleets.values():
-        for vessel in fleet.vessels:
-            _calculate_vessel_shore_power_limits(vessel, idx)
-
-
-def _calculate_vessel_shore_power_limits(vessel: Vessel, idx: int) -> None:
-    """
-    Calculate the most shore-power energy a vessel can take in each of its ports.
-
-    Parameters
-    ----------
-    vessel
-        Vessel whose shore-power limits are calculated.
-    idx
-        Current time-step index.
-    """
-    expectation = vessel.expectation
-    horizon = np.s_[idx:]
-
-    capacity = expectation.get_shore_power_capacity(horizon)
-    times = expectation.get_time_port(horizon)
-    demands = expectation.get_energy_port(horizon)[EnergyDemandID.ELECTRICAL]
-
-    limits = []
-
-    for port, time, demand in zip(vessel.route.ports, times, demands, strict=True):
-        share = port.expectation.get_shore_power_connection_share(horizon)
-        limits.append(share * np.minimum(capacity * time * MWD_TO_GJ, demand))
-
-    expectation.set_shore_power_limit_port(idx, limits)
 
 
 def _find_capacity_violations(
