@@ -127,12 +127,12 @@ ReportReduceID is used for reducing tuples in the reports for easier data manipu
 
 ## RouteTypeID
 
-These IDs describe the principle of how the vessel moves between ports.
+These IDs select how a route's ports form legs and how its inputs are read. They name the calculation, not the market segment: a segment that trades on liner schedules may be modelled as a `TRAMP` route. See [Route](route.md#routetype).
 
 | ID | Description |
 | --- | --- |
-| ROUND\_TRIP | The defined start port is automatically considered the end port. The order in which the ports are entered determines the order in which the vessel visits them.  Individual legs of the journey are specified, allowing inputs for different distance, speeds and capacity utilization etc. on separate legs.  The same port can be visited more than once. |
-| REGIONAL\_TRIP | There is no defined start or end port.  Individual legs of the journey are not specified. Instead, a distribution of fraction of time spent at different speeds and cargo capacity can be defined.  The same port can be visited more than once. |
+| LINER | The ports are called in the listed order and the last port returns to the first, so each consecutive pair of ports, the closing pair included, is a leg. Each leg is given its distance and the time in port that ends it, and the route describes one voyage around the rotation. A port may be called more than once, but a leg may not be sailed twice. |
+| TRAMP | The ports are an unordered pool, each listed once, and every ordered pair of ports, a port with itself included, is a leg. The route describes a year of operation: the share of the year at sea, the share of the sea miles on each leg and the number of calls at each port. |
 
 ## SolverBackendID
 

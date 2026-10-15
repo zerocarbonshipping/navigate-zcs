@@ -660,7 +660,7 @@ Define and assign the attributes <code class="docutils literal notranslate"><spa
 <h3>Definitions of other nodes introduced in <code class="docutils literal notranslate"><span class="pre">Vessel</span></code><a class="headerlink" href="#definitions-of-other-nodes-introduced-in-vessel" title="Link to this heading">#</a></h3>
 <p>You introduced new nodes when you assigned them as values of the <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>’s attributes. One of them was the node <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> which we defined in the above section.
 Others include the definition of a route that the vessel sails, and a definition of a tank node.
-The values assigned to the attributes of a Route, namely Ports, Distances, and Speeds are lists which are marked by squared brackets. In this example, the assigned lists only contain one item, respectively.</p>
+The value assigned to the <code class="docutils literal notranslate"><span class="pre">Ports</span></code> attribute of a Route is a list, marked by square brackets. In this example, the list only contains one port.</p>
 <ol class="arabic simple">
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;main_oil&quot;</span></code> of the node type <code class="docutils literal notranslate"><span class="pre">Tank</span></code>.
 You can further specify the characteristics of the tank. For alternative fuels, a vessel can have a main and a pilot tank.
@@ -675,18 +675,19 @@ Set the tank’s <code class="docutils literal notranslate"><span class="pre">Si
 </div>
 <ol class="arabic simple" start="2">
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;route&quot;</span></code> of the node type <code class="docutils literal notranslate"><span class="pre">Route</span></code>.
-Set the <code class="docutils literal notranslate"><span class="pre">RouteType</span></code>. This can be one of two values: <code class="docutils literal notranslate"><span class="pre">ROUND_TRIP</span></code> or <code class="docutils literal notranslate"><span class="pre">REGIONAL_TRIP</span></code>.
+Set the <code class="docutils literal notranslate"><span class="pre">RouteType</span></code>. This can be one of two values: <code class="docutils literal notranslate"><span class="pre">LINER</span></code> or <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>. A <code class="docutils literal notranslate"><span class="pre">LINER</span></code> sails its ports in the listed order, while a <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code> describes a year of sailing between its ports in any order. Our example uses <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>.
 Set one or more ports at which a vessel stops. In our example, the vessel is only stopping at one port called <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>. In your future Navigate modeling, the port often covers a whole region is specified as Africa, Americas, Asia, Europe and Middle East. Hence, a port is often used as a proxy for a region.
 Set the <code class="docutils literal notranslate"><span class="pre">TimeAtSea</span></code>, which defines the proportion of a year that a vessel spends at sea. In our example, the ship is at sea for (0.75*365 days) 273 full days a year.
-Set the <code class="docutils literal notranslate"><span class="pre">ConditionDistribution</span></code>, which defines the proportion of the total TimeAtSea, that is spent for each leg of the journey (here: only one leg, i.e. 100% of the total <code class="docutils literal notranslate"><span class="pre">TimeAtSea</span></code> are spent on the leg).
-Set the Speeds of the vessel, given in knots, at each leg of the journey (here: only one leg).</p></li>
+A leg is a voyage from one port to another. On a <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>, every pair of ports is a leg, a port with itself included, so our one port gives the one leg from <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> back to <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>. The inputs of a leg are set with commands, written <code class="docutils literal notranslate"><span class="pre">set_xxx(...)</span></code> (commands are explained further with the Fuel node below). They address a leg by the names of its two ports, and the wildcard <code class="docutils literal notranslate"><span class="pre">&quot;*&quot;</span></code> matches every port.
+Set the voyage distribution with <code class="docutils literal notranslate"><span class="pre">set_voyage_distribution</span></code>, which defines the share of the sea miles sailed on each leg (here: only one leg, i.e. all of the sea miles are sailed on the leg).
+Set the speed of the vessel with <code class="docutils literal notranslate"><span class="pre">set_speed</span></code>, given in knots, on each leg of the journey (here: only one leg).</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Route</span> <span class="s2">"route"</span> <span class="p">{</span>
-    <span class="n">RouteType</span> <span class="o">=</span> <span class="n">REGIONAL_TRIP</span> 
-    <span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span> 
+    <span class="n">RouteType</span> <span class="o">=</span> <span class="n">TRAMP</span>
+    <span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
     <span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
-    <span class="n">ConditionDistribution</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
-    <span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+    <span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">set_speed</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -971,11 +972,11 @@ Define annual time-steps with a reference Date.</p></li>
 <span class="c1"># Define the node "route" below.</span>
 
 <span class="n">Route</span> <span class="s2">"route"</span> <span class="p">{</span>
-	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">REGIONAL_TRIP</span> 
-	<span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span> 
+	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">TRAMP</span>
+	<span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
 	<span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
-	<span class="n">ConditionDistribution</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
-	<span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+	<span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">set_speed</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1"># C) DEFINITION OF A PORT</span>

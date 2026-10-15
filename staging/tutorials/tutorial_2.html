@@ -1464,11 +1464,11 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 
 <span class="c1"># Define the vessel route below (same as in tutorial 1). </span>
 <span class="n">Route</span> <span class="s2">"route"</span> <span class="p">{</span>
-	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">REGIONAL_TRIP</span>
+	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">TRAMP</span>
 	<span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
 	<span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
-	<span class="n">ConditionDistribution</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
-	<span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+	<span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">set_speed</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1"># Define the vessel tank below.</span>
