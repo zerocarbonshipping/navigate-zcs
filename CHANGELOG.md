@@ -22,6 +22,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   cargo-mile, counting the transport work lost when a vessel slows down.
 - Report properties `ShorePowerEnergy`, `ShorePowerExpenses` and
   `ShorePowerEmission` at vessel, fleet and global level.
+- `set_speed` on a `Route` takes a `Curve` of the share of a leg's sea time
+  at each speed, and on a `TRAMP` route `set_utilization` takes a `Curve` of
+  the utilization at those speeds, for ballast and laden sailing (#491).
 - The `Saving`, `RemedialUnits` and `LevyUnits` report properties can now be
   requested; they used to produce no column.
 
@@ -32,12 +35,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change
   cannot be changed in `EVENTS` either; re-assigning its attributes there is a
   deck error.
+- The `Route` types `ROUND_TRIP` and `REGIONAL_TRIP` are now `LINER` and
+  `TRAMP`, named after the calculation, not the market segment; the old names
+  are a deck error (#491).
 - A calculator or expression whose value reaches an attribute's exclusive
   minimum or maximum, such as a zero `Variable` as a Plant's `Capacity`, stops
   the run with an error naming the node instead of being clamped onto it.
-- An empty `InitialSplit` (Fleet) or `ConditionDistribution` (Route), or one
-  summing to 0, is a deck error at its line. Omitting `InitialSplit` still
-  gives a uniform split.
+- An empty `InitialSplit` (Fleet), or one summing to 0, is a deck error at its
+  line. Omitting `InitialSplit` still gives a uniform split.
 - `CAPEX`/`OPEX` are now `Capex`/`Opex`, and report properties end in
   `Wtt`/`Ttw`/`Wtw` (`TotalEquivalentWtt`). An old report property spelling
   is a deck error at its line.
@@ -47,7 +52,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   tighter:
   - port electrical demand must fit the onboard electrical converter even
     where shore power is available;
-  - on regional routes it holds for each sailing condition, not their mean.
+  - it holds for each sailing condition on a leg, not their mean.
 - `Propulsion`, `Electrical` and `Heat` on a `PowerSystem` must be three
   distinct converters. One converter may still serve several power systems.
 - Fleet and global energy savings are energy-intensity savings against the
@@ -59,6 +64,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Three wildcard uses are rejected at their line: a glob as a command
   argument, a glob on a single-valued attribute (`Route = Route("r_*")`), and
   a node listed beside a glob that also matches it.
+- A `Route`'s inputs are checked per leg, and these stop the deck (#491):
+  - a command key pair that is no leg of the route, or a required leg left
+    unset; `set_voyage_distribution` is required on every `TRAMP` leg;
+  - an input the route type does not read, such as `TimeAtSea` on a `LINER`;
+  - a speed `Curve` whose shares do not sum to 1, a `LINER` sailing a leg
+    twice, or an `EVENTS` change to the number of speeds on a leg.
 - A smoothed price belief (flexibility cost, energy scarcity) ramps up when a
   price first appears after a stretch of exactly zero instead of taking it in
   full; `basecase_mid_regulation` moves by up to about 0.5% from 2030 (#25).
@@ -68,7 +79,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - `EVENTS` statements targeting only removed nodes are dropped;
   - a command naming a removed node fails with a hint naming it;
   - an incompletely configured unused node no longer errors.
-- On a `REGIONAL_TRIP` `Route`, the share set with `set_voyage_distribution`
+- On a `TRAMP` `Route`, the share set with `set_voyage_distribution`
   is the share of the sea miles sailed between the two ports, no longer of the
   sailing time. Results are unchanged where all legs sail the same conditions.
 - Technology `Capex`/`Opex` enters the vessel cost metrics, so newbuild choice
@@ -82,12 +93,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   (about 21% at a 5-year window and 8% discount rate).
 - The fuel-conversion business case compares the two vessel types' fuel costs
   over their common remaining-lifetime window.
-- An empty `Speeds` or `PortDurations` on a `Route`, in `EVENTS` too, is
-  rejected at its deck line.
-- `CapacityUtilizations` (Route) is now `Utilizations`; the old name is a deck
-  error at its line.
-- Rescaling `InitialSplit` or `ConditionDistribution` by more than 1% is
-  logged as a warning, so it counts in the end-of-run summary.
+- Rescaling `InitialSplit` by more than 1% is logged as a warning, so it
+  counts in the end-of-run summary.
 - A `Report` property request that matches no node logs a warning instead of
   silently producing no columns.
 - The warning about a missing `TechnologyCostOfCapital` is removed; the
@@ -105,6 +112,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   assignment is read, so the calculator keeps them if the attribute is
   re-assigned later in `DEFINE`, as it always did across `EVENTS`.
 - The minimum supported Python version is 3.13 (was 3.12).
+- The 8 default bulk-carrier and tanker routes merge ballast and laden into one
+  utilization per speed. At equal speeds energy and cargo miles hold, but a
+  merged bin's lowest sailable speed shifts, nudging results slightly (#491).
 - A regulation's default fuel WTT averages over every port on the vessel's
   route, each once, not only the jurisdiction ports, where it was 0 without
   supply. Results move where a route leaves the jurisdiction.
@@ -161,6 +171,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - vessel Opex and activity output, policy emission factors, port bunker
     Wtw, fleet scrap-age statistics and the levy level.
 - The `producer_changes` plot.
+- The list attributes of `Route`; write the command keyed by the leg's
+  origin and destination ports instead (#491):
+  - `Speeds`: `set_speed`, and `ConditionDistribution`: a speed `Curve`;
+  - `CapacityUtilizations`: `set_utilization`, `Distances`: `set_distance`;
+  - `PortDurations`: `set_port_duration`, the days at the leg's destination;
+  - `PortCalls`: `set_port_calls`, keyed by one port.
 - The debug plots `fuel_supply_demand_expectation`, `fleet_newbuild_sources`,
   `fleet_fuel_conversion_sources`, `fleet_fuel_conversion_sources_normalized`,
   `technology_install_sources` and `technology_install_sources_normalized`,
@@ -194,8 +210,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - a Surface or Timetable header row is the y-axis and its first column the
     x-axis, not the other way round;
   - an enum wildcard in a command expands over every member of the enum;
-  - the `InitialSplit` and `ConditionDistribution` rescale is proportional,
-    not by equal fractions, and is logged above a 1% deviation;
+  - the `InitialSplit` rescale is proportional, not by equal fractions, and
+    is logged above a 1% deviation;
   - the `BunkerOptions` defaults, `Threads` type and exclusive minimums;
   - `Converter` `MinimumLoad`, `Efficiency` and `set_consumption_ttw` take no
     `Forecast`, and `PowerCapacity` takes a `Variable`;
@@ -205,8 +221,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - `set_include_vessel` on Levy and Regulation defaults to FALSE, so a vessel
     is only covered once included;
   - defaults that differed from the code: `Threads` 0, `MaximumRampUp` 1,
-    `JumpStartFraction` 0.1, `PortCalls` a list of 1s, the Region WTT commands
-    0, and `EmissionsLifetime` on a policy falls back to the ModelDefinition's;
+    `JumpStartFraction` 0.1, the Region WTT commands 0, and
+    `EmissionsLifetime` on a policy falls back to the ModelDefinition's;
   - `Dependency` (Source), `Efficiency` (Converter), `LowerHeatingValue`,
     `MassDensity`, `Source` (Plant), `MaximumDevelopment`, and `Electrical`
     and `Heat` (PowerSystem) are marked as required;
@@ -217,7 +233,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     `Tank` `Size` and `InitialVessels` take a `Variable`;
   - `Orderbooks` is a cumulative count, `set_newbuild_limit` caps yearly
     newbuilds as a fraction of the fleet's vessel count, and ports on a
-    REGIONAL_TRIP must be unique;
+    `TRAMP` must be unique;
   - `set_process_opex` (Region) accepts negative values, and
     `MaximumRampUp` and `set_existing_pipeline` (Producer) have the right
     units;
@@ -249,7 +265,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     enum token in a scalar slot (`Capex = FLAT`);
   - a wrong kind on a boolean, ID or ID-list attribute (`Active = [1.0]`);
   - an integer or boolean in a scalar slot, named by kind;
-  - a non-number in `InitialSplit` or `ConditionDistribution`;
+  - a non-number in `InitialSplit`;
   - an unparseable expression, or two statements on one line, when the file
     is read;
   - the `Surface` and `Timetable` messages that printed `{}` for the node;
@@ -288,8 +304,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   as they did for one written by name.
 - A wildcard matches its other characters literally; only `*` and `?` are
   wildcards, so `a.b` no longer matches `aXb`.
-- An `INF` entry in `InitialSplit` or `ConditionDistribution`, or entries
-  whose sum overflows, stop the deck at its line instead of yielding NaN.
+- An `INF` entry in `InitialSplit`, or entries whose sum overflows, stop the
+  deck at its line instead of yielding NaN.
 - `set_operational_saving_port` takes only `ELECTRICAL` and `HEAT`: its
   wildcard no longer reaches `PROPULSION` and fails, and an explicit
   `PROPULSION` is a deck error instead of a silently unread entry.
@@ -306,7 +322,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   of vessels that left a fleet no longer leak into later steps.
 - The LP is built in the same order on every run, so dual values no longer
   vary between runs in degenerate solves.
-- On a `REGIONAL_TRIP` `Route` with unequal shares in a port pair's two
+- On a `TRAMP` `Route` with unequal shares in a port pair's two
   directions, each direction's sea energy demand sat on the opposite leg in the
   bunker optimisation; decks with such shares (`business_as_usual`) shift.
 - Fuel-conversion expenses are booked on the elapsed-years axis, so
@@ -329,8 +345,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Curve` for the same energy-type pair no longer fails the run.
 - `FlexibilityHorizon` on a `Regulation` whose scheme is not `FLEXIBLE` logs
   a warning that it is ignored.
-- A wildcard node declaration whose `InitialSplit` or `ConditionDistribution`
-  is rescaled logs the rescale for every matched node, not just the first.
+- A wildcard node declaration whose `InitialSplit` is rescaled logs the
+  rescale for every matched node, not just the first.
 - The fuel-conversion proposal walk skips an increment with no eligible
   destination instead of stopping there.
 - `FairShareMaximumIterations` rejects a non-integer such as `2.5` at its line
@@ -365,8 +381,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A `Levy` whose `UpperThreshold` falls below its `LowerThreshold` at any time
   step stops the run with an error naming the date, instead of turning the
   penalty into a subsidy from then on (#335).
-- A sailing condition with a zero share in `ConditionDistribution` no longer
-  sets a vessel's minimum or maximum speed, nor makes its energy NaN under a
+- A sailing condition with a zero share of its leg's sea time no longer sets
+  a vessel's minimum or maximum speed, nor makes its energy NaN under a
   technology with a power transfer.
 - A `Producer`'s `JumpStartFraction` now also accepts a `Variable`, and an
   expression assigned to it is evaluated where the producer's evolution

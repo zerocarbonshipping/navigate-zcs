@@ -34,27 +34,48 @@ Vessel "coastal_*" {
 # MR loop: Helsinki - Stockholm - Gdansk
 # Longer legs, larger vessels, more time at sea
 Route "mid_range_route" {
-    RouteType = REGIONAL_TRIP
+    RouteType = TRAMP
 
     Ports = [Port("helsinki"), Port("stockholm"), Port("gdansk")]
-    PortCalls = [12, 10, 14] 
- 
-    TimeAtSea = 0.55
-    Speeds = [12.8, 13.0, 12.5]
+    set_port_calls("helsinki", 12)
+    set_port_calls("stockholm", 10)
+    set_port_calls("gdansk", 14)
 
-    ConditionDistribution = [0.34, 0.28, 0.38]
+    TimeAtSea = 0.55
+    set_voyage_distribution("*", "*", 1)
+
+    set_speed("*", "*", Curve("speed_distribution_mid_range_route"))
 }
 
 # Coastal loop: Helsinki - Tallinn - Stockholm
 # Short legs, frequent port calls, higher share of port time
 Route "coastal_route" {
-    RouteType = REGIONAL_TRIP
+    RouteType = TRAMP
 
     Ports = [Port("helsinki"), Port("tallinn"), Port("stockholm")]
-    PortCalls = [14, 12, 10]
+    set_port_calls("helsinki", 14)
+    set_port_calls("tallinn", 12)
+    set_port_calls("stockholm", 10)
 
     TimeAtSea = 0.40
-    Speeds = [11.5, 11.0, 11.2]
+    set_voyage_distribution("*", "*", 1)
 
-    ConditionDistribution = [0.40, 0.30, 0.30]
+    set_speed("*", "*", Curve("speed_distribution_coastal_route"))
+}
+
+# Share of the time at sea sailed at each speed (x = knots ; y = fraction)
+Curve "speed_distribution_mid_range_route" {
+    Table = [
+        12.5    0.38
+        12.8    0.34
+        13.0    0.28
+    ]
+}
+
+Curve "speed_distribution_coastal_route" {
+    Table = [
+        11.0    0.30
+        11.2    0.30
+        11.5    0.40
+    ]
 }

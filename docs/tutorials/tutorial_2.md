@@ -981,11 +981,11 @@ Converter "electrical_ice_ammonia" {
 
 # Define the vessel route below (same as in tutorial 1). 
 Route "route" {
-	RouteType = REGIONAL_TRIP
+	RouteType = TRAMP
 	Ports = [Port("port")]
 	TimeAtSea = 0.75
-	ConditionDistribution = [1.0]
-	Speeds = [10]
+	set_voyage_distribution("*", "*", 1)
+	set_speed("*", "*", 10)
 }
 
 # Define the vessel tank below.

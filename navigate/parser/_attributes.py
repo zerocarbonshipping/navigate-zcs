@@ -223,12 +223,6 @@ _ROUTE_ATTRIBUTES: dict[str, AllowedSections] = {
     "RouteType": SECTION_DEFINE,
     "Ports": SECTION_DEFINE,
     "TimeAtSea": SECTION_BOTH,
-    "PortDurations": SECTION_BOTH,
-    "PortCalls": SECTION_BOTH,
-    "Distances": SECTION_DEFINE,
-    "ConditionDistribution": SECTION_BOTH,
-    "Speeds": SECTION_BOTH,
-    "Utilizations": SECTION_BOTH,
 }
 
 _SOURCE_ATTRIBUTES: dict[str, AllowedSections] = {"Dependency": SECTION_DEFINE}
@@ -362,7 +356,7 @@ NODE_REQUIRED_ATTRIBUTES: dict[str, tuple[str, ...]] = {
         "Plants",
     ),
     REGULATION: (*_POLICY_REQUIRED, "Measure"),
-    ROUTE: ("RouteType", "Ports", "Speeds"),
+    ROUTE: ("RouteType", "Ports"),
     SOURCE: ("Dependency",),
     SURFACE: _TABLE_REQUIRED,
     TANK: ("FuelTypes", "Size"),

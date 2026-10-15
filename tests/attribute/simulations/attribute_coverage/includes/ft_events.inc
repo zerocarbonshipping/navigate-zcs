@@ -237,20 +237,27 @@ Region "region_a" {
 
 Date "01-01-2034"
 
-Route "route_regional" {
+Route "route_tramp" {
 	TimeAtSea = 0.70
-	PortCalls = [105]
-	ConditionDistribution = [1.0]
-	Speeds = [11]
-	Utilizations = [0.75]
+	set_port_calls("port_a", 105)
+	set_voyage_distribution("port_a", "port_b", 0.3)
+	set_voyage_distribution("port_b", "port_a", 0.1)
+	set_utilization("port_b", "port_b", 0.75)
 }
 
-Route "route_roundtrip" {
-	PortDurations = [2.5, 2.5]
-	Speeds = [11, 11]
-	Utilizations = [0.85, 0.55]
-	set_voyage_distribution("port_a", "port_b", 0.55)
-	set_voyage_distribution("port_b", "port_a", 0.45)
+# the same speeds, so the number of sailing conditions on each leg is unchanged
+Curve "curve_tramp_speed" {
+	Table = [
+		9	0.4
+		11	0.6
+	]
+}
+
+Route "route_liner" {
+	set_port_duration("*", "*", 2.5)
+	set_speed("*", "*", 11)
+	set_utilization("port_a", "port_b", 0.85)
+	set_utilization("port_b", "port_a", 0.55)
 }
 
 Variable "var_efficiency" {

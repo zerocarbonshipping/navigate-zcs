@@ -10,14 +10,14 @@ the leg miles, the port days stay fixed, and the voyages per year are the year o
 one voyage's days. Every annual time, distance, cargo-mile and energy is a voyage's
 value times the voyages per year, per condition and summed per leg, or per stop.
 
-A REGIONAL_TRIP's voyage is its reference year, so it fixes the port days per sea
-mile: the port time per call (turnaround, congestion and waiting) over the sea miles
-between calls (the trading-pattern geometry). The number of calls cancels from it, so
-the port calls only split the port time between the ports. The ratio lets speed
-management change speeds while port and sea time respond endogenously: higher speed
-raises sea miles per year, hence port calls per year, hence port time per year, which
-crowds out sea time and limits the throughput gain. A ROUND_TRIP's discrete voyages
-respond the same way, port time being a binding activity constraint on both.
+A TRAMP's voyage is its reference year, so it fixes the port days per sea mile: the port
+time per call (turnaround, congestion and waiting) over the sea miles between calls (the
+trading-pattern geometry). The number of calls cancels from it, so the port calls only
+split the port time between the ports. The ratio lets speed management change speeds
+while port and sea time respond endogenously: higher speed raises sea miles per year,
+hence port calls per year, hence port time per year, which crowds out sea time and
+limits the throughput gain. A LINER's discrete voyages respond the same way, port time
+being a binding activity constraint on both.
 """
 
 from __future__ import annotations

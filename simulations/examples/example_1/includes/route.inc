@@ -27,15 +27,21 @@ Vessel "feeder_*" {
 }
 
 Route "mainline_route" {
-    RouteType = ROUND_TRIP
+    RouteType = LINER
 
     Ports = [Port("singapore"), Port("rotterdam")]
-	PortDurations = [1.5, 1.0]
 
-	Distances = [8300, 8300]
-    Speeds = [15.5, 14.2]
+    # A port duration is the time, in days, at the port that ends the leg.
     # Fully laden outbound, almost empty return
-    Utilizations = [0.95, 0.1]
+    set_distance("singapore", "rotterdam", 8300)
+    set_speed("singapore", "rotterdam", 15.5)
+    set_utilization("singapore", "rotterdam", 0.95)
+    set_port_duration("singapore", "rotterdam", 1.0)
+
+    set_distance("rotterdam", "singapore", 8300)
+    set_speed("rotterdam", "singapore", 14.2)
+    set_utilization("rotterdam", "singapore", 0.1)
+    set_port_duration("rotterdam", "singapore", 1.5)
 }
 
 # Rotterdam to Hamburg to Aalborg
@@ -46,13 +52,23 @@ Route "mainline_route" {
 # Aalborg, while smaller and less developed, represents a realistic challenge in fuel access and port services.
 
 Route "feeder_route" {
-    RouteType = ROUND_TRIP
+    RouteType = LINER
 
     Ports = [Port("rotterdam"), Port("hamburg"), Port("aalborg")]
-    PortDurations = [1.5, 1.0, 1.0]
 
-    Distances = [270, 400, 800]
-    Speeds = [13.0, 12.5, 13.0]
     # Full outbound, partial mid-leg, empty return
-    Utilizations = [1.0, 0.7, 0.0]  
+    set_distance("rotterdam", "hamburg", 270)
+    set_speed("rotterdam", "hamburg", 13.0)
+    set_utilization("rotterdam", "hamburg", 1.0)
+    set_port_duration("rotterdam", "hamburg", 1.0)
+
+    set_distance("hamburg", "aalborg", 400)
+    set_speed("hamburg", "aalborg", 12.5)
+    set_utilization("hamburg", "aalborg", 0.7)
+    set_port_duration("hamburg", "aalborg", 1.0)
+
+    set_distance("aalborg", "rotterdam", 800)
+    set_speed("aalborg", "rotterdam", 13.0)
+    set_utilization("aalborg", "rotterdam", 0.0)
+    set_port_duration("aalborg", "rotterdam", 1.5)
 }

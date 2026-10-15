@@ -105,10 +105,11 @@ class _StubVessel:
             energies_sea, times_sea, energies_port, times_port
         )
 
-        # a round trip with one leg, and so one condition, per sea step
+        # a liner with one leg, and so one condition, per sea step
         self.route = Route(f"{name}_route")
-        self.route.route_type = RouteTypeID.ROUND_TRIP
+        self.route.route_type = RouteTypeID.LINER
         self.route.ports = [Port(f"p{i}") for i in range(len(times_sea))]
+        self.route.conditions_per_leg = (1,) * len(times_sea)
 
     def __repr__(self) -> str:
         return f'Vessel("{self.name}")'

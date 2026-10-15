@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -326,8 +325,8 @@ def _name_conditions(route: Route) -> list[str]:
     """
     Name each sailing condition of a route as its deck states it.
 
-    A condition that is the only one on its leg and on no other leg is that leg,
-    named by its ports; any other condition is named by its entry in 'Speeds'.
+    A condition that is the only one on its leg is that leg, named by its ports; any
+    other condition is named by its entry in the leg's speed Curve.
 
     Parameters
     ----------
@@ -339,20 +338,18 @@ def _name_conditions(route: Route) -> list[str]:
     list[str]
         Name of each condition, in the order of `Route.get_conditions`.
     """
-    conditions = route.get_conditions()
     legs = route.get_legs()
     ports = route.ports
 
-    conditions_per_leg = Counter(leg for leg, _ in conditions)
-    legs_per_entry = Counter(entry for _, entry in conditions)
-
     names = []
-    for leg, entry in conditions:
-        if conditions_per_leg[leg] == 1 and legs_per_entry[entry] == 1:
-            origin, destination = legs[leg]
-            names.append(f"the leg from {ports[origin]} to {ports[destination]}")
+    for leg, entry in route.get_conditions():
+        origin, destination = legs[leg]
+        leg_name = f"the leg from {ports[origin]} to {ports[destination]}"
+
+        if route.conditions_per_leg[leg] == 1:
+            names.append(leg_name)
         else:
-            names.append(f"condition {entry}")
+            names.append(f"condition {entry} on {leg_name}")
 
     return names
 

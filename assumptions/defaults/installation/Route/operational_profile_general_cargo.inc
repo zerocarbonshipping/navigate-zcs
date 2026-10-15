@@ -2,13 +2,15 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Route "operational_profile_general_cargo" {
-	RouteType = REGIONAL_TRIP
-	
+	RouteType = TRAMP
+
 	Ports = [Port("port_global"), Port("port_europe")]
-    PortCalls = [16, 4]
-	
+	set_port_calls("port_global", 16)
+	set_port_calls("port_europe", 4)
+
 	TimeAtSea = 0.548
-	ConditionDistribution = [1]
-	Speeds =                [11.2]
-	Utilizations =          [0.5]
+	set_voyage_distribution("*", "*", 1)
+
+	set_speed("*", "*", 11.2)
+	set_utilization("*", "*", 0.5)
 }

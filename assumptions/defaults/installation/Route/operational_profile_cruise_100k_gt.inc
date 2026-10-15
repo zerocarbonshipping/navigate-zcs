@@ -2,13 +2,17 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Route "operational_profile_cruise_100k_gt" {
-	RouteType = REGIONAL_TRIP
-	
+	# The route type is an internal calculation choice and does not describe how
+	# the segment operates.
+	RouteType = TRAMP
+
 	Ports = [Port("port_global"), Port("port_europe")]
-    PortCalls = [168, 42]
-	
+	set_port_calls("port_global", 168)
+	set_port_calls("port_europe", 42)
+
 	TimeAtSea = 0.6
-	ConditionDistribution = [0.05, 0.09, 0.18, 0.09, 0.14, 0.09, 0.27, 0.09]
-	Speeds = 				[  10,   12,   14,   15,   16,   17,   18,   21]
-	Utilizations = 			[ 0.8,  0.8,  0.8,  0.8,  0.8,  0.8,  0.8,  0.8]
+	set_voyage_distribution("*", "*", 1)
+
+	set_speed("*", "*", Curve("speed_distribution_cruise_100k_gt"))
+	set_utilization("*", "*", 0.8)
 }

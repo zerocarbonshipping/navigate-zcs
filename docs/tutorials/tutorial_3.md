@@ -1462,11 +1462,11 @@ Report "report" {
 # Definition of route 
 
 Route "route" {
-	RouteType = REGIONAL_TRIP 		
+	RouteType = TRAMP
 	Ports = [Port("port")]
-	TimeAtSea = 0.75		
-	ConditionDistribution = [1.0] 
-	Speeds = [10]
+	TimeAtSea = 0.75
+	set_voyage_distribution("*", "*", 1)
+	set_speed("*", "*", 10)
 }
 ```
 :::
