@@ -56,18 +56,18 @@ def calculate_policy_expectations(
         if not regulation.active:
             continue
 
-        _assign_regulation_forecasts(regulation, vessels, times, idx)
-        _assign_global_warming_potentials(regulation, emissions, emissions_lifetime)
+        _calculate_regulation_forecasts(regulation, vessels, times, idx)
+        _calculate_global_warming_potentials(regulation, emissions, emissions_lifetime)
 
     for levy in levies.values():
         if not levy.active:
             continue
 
-        _assign_levy_forecasts(levy, times, idx)
-        _assign_global_warming_potentials(levy, emissions, emissions_lifetime)
+        _calculate_levy_forecasts(levy, times, idx)
+        _calculate_global_warming_potentials(levy, emissions, emissions_lifetime)
 
 
-def _assign_regulation_forecasts(
+def _calculate_regulation_forecasts(
     regulation: Regulation, vessels: dict[str, Vessel], times: FloatArray, idx: int
 ) -> None:
     """Set the regulation's remedial cost and transport-measure vessel capacities."""
@@ -88,12 +88,12 @@ def _assign_regulation_forecasts(
             expectation.set_vessel_capacity(idx, vessel_name, capacity)
 
 
-def _assign_levy_forecasts(levy: Levy, times: FloatArray, idx: int) -> None:
+def _calculate_levy_forecasts(levy: Levy, times: FloatArray, idx: int) -> None:
     """Set the levy's level."""
     levy.expectation.set_level(idx, levy.level.get(times))
 
 
-def _assign_global_warming_potentials(
+def _calculate_global_warming_potentials(
     policy: Levy | Regulation,
     emissions: dict[str, Emission],
     emissions_lifetime: float,
