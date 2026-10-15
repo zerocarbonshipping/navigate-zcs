@@ -51,9 +51,7 @@ def update_imposed_levies(ports: dict[str, Port], levies: dict[str, Levy]) -> No
     levies
         All levies in the simulation, keyed by name.
     """
-    active_levies = [levy for levy in levies.values() if levy.is_active()]
+    active = [levy for levy in levies.values() if levy.is_active()]
 
     for port in ports.values():
-        port.imposed_levies = [
-            levy for levy in active_levies if port in levy.jurisdiction
-        ]
+        port.imposed_levies = [levy for levy in active if port in levy.jurisdiction]
