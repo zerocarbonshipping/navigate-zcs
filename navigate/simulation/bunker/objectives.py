@@ -76,9 +76,8 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             continue
 
         cost = float(port.expectation.get_shore_power_cost(alg.idx))
-        limit = float(shore_power_limits[p])
 
-        alg.shore_power[key].UB = limit
+        alg.shore_power[key].UB = float(shore_power_limits[p])
         alg.shore_power[key].Obj = multiplier * cost
 
 

@@ -220,9 +220,9 @@ class Simulation:
 
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
 
-            # the shore-power limits read the vessel operations and shore-power
-            # capacities, which are rewritten during the step, so they are
-            # recalculated before each bunkering run
+            # the times in port, electrical demands and shore-power capacities are
+            # rewritten during the step, so the shore-power limits are recalculated
+            # before each bunkering run
             calculate_shore_power_limits(self.nodes.fleets, self._idx)
 
             # the bunker LP takes energy demands as given, so demands must fit
@@ -247,10 +247,10 @@ class Simulation:
         self._calculate_fuel_import()
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
 
-        # the energy demands, times in port and shore-power capacities have been
-        # rewritten since the expected bunkering pass, so the shore-power limits
-        # are recalculated and the demands re-verified against the converter power
         calculate_shore_power_limits(self.nodes.fleets, self._idx)
+
+        # re-verify against the installed converter power: the energy demands
+        # have been rewritten since the expected bunkering pass
         verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXISTING)
         self._perform_existing_bunkering()
 

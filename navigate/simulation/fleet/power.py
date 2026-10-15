@@ -194,25 +194,6 @@ def verify_power_capacity(
                 verify_vessel_power_capacity(vessel, idx)
 
 
-def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
-    """
-    Calculate the most shore-power energy every vessel can take in each of its ports.
-
-    Shore power covers the connected share of the time in port, at the lesser of the
-    connection's capacity and the electrical load. The limits are in GJ/year.
-
-    Parameters
-    ----------
-    fleets
-        Fleets by name; the limits of each of their vessels are calculated.
-    idx
-        Current time-step index.
-    """
-    for fleet in fleets.values():
-        for vessel in fleet.vessels:
-            _calculate_vessel_shore_power_limits(vessel, idx)
-
-
 def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     """
     Verify that installed converter power covers every energy demand of a vessel.
@@ -291,6 +272,25 @@ def get_total_power_capacity(vessel: Vessel) -> float:
         converter.power_capacity.get()
         for converter in vessel.power_system.get_converters()
     )
+
+
+def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
+    """
+    Calculate the most shore-power energy every vessel can take in each of its ports.
+
+    Shore power covers the connected share of the time in port, at the lesser of the
+    vessel's shore-power capacity and the electrical load. The limits are in GJ/year.
+
+    Parameters
+    ----------
+    fleets
+        Fleets by name; the limits of each of their vessels are calculated.
+    idx
+        Current time-step index.
+    """
+    for fleet in fleets.values():
+        for vessel in fleet.vessels:
+            _calculate_vessel_shore_power_limits(vessel, idx)
 
 
 def _calculate_vessel_shore_power_limits(vessel: Vessel, idx: int) -> None:
