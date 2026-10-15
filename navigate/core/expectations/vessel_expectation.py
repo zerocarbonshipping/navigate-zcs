@@ -95,6 +95,7 @@ class VesselExpectation(_Expectation):
 
         # shore power
         self._shore_power_capacity: FloatArray = EMPTY_FLOAT
+        self._shore_power_limit_port: list[FloatArray] = []
 
         # costs
         self._fuel_cost_flow: FloatArray = EMPTY_FLOAT
@@ -203,6 +204,7 @@ class VesselExpectation(_Expectation):
 
         # shore power
         self._shore_power_capacity = self._default_array()
+        self._shore_power_limit_port = self._default_list_array(n_port)
 
         # expected bunker results (from BunkerAlgorithm)
         self._total_energy = self._default_array()
@@ -416,9 +418,15 @@ class VesselExpectation(_Expectation):
     def set_shore_power_capacity(self, idx: int, value: float) -> None:
         self._shore_power_capacity[idx:] = value
 
-    def get_shore_power_capacity(self, idx: int) -> float:
-        capacity: float = self._shore_power_capacity[idx]
-        return capacity
+    def get_shore_power_capacity(self, idx: Index) -> FloatLike:
+        return self._shore_power_capacity[idx]
+
+    def set_shore_power_limit_port(self, idx: int, limits: Iterable[FloatLike]) -> None:
+        for i, limit in enumerate(limits):
+            self._shore_power_limit_port[i][idx:] = limit
+
+    def get_shore_power_limit_port(self, idx: Index) -> list[FloatLike]:
+        return slice_list(self._shore_power_limit_port, idx)
 
     def set_fuel_cost_flow(self, cost_flow: FloatArray) -> None:
         self._fuel_cost_flow = cost_flow

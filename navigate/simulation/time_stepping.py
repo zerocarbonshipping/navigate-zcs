@@ -25,6 +25,7 @@ from navigate.simulation.fleet import (
     calculate_cargo_charter_properties,
     calculate_evolution_expectation,
     calculate_fleet_profile,
+    calculate_shore_power_limits,
     calculate_vessel_charter_properties,
     determine_fuel_type,
     determine_usable_fuel_types,
@@ -219,6 +220,11 @@ class Simulation:
 
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
 
+            # the shore-power limits read the vessel operations and shore-power
+            # capacities, which are rewritten during the step, so they are
+            # recalculated before each bunkering run
+            calculate_shore_power_limits(self.nodes.fleets, self._idx)
+
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
             verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXPECTED)
@@ -241,8 +247,10 @@ class Simulation:
         self._calculate_fuel_import()
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
 
-        # re-verify against the installed converter power: the energy demands
-        # have been rewritten since the expected bunkering pass
+        # the energy demands, times in port and shore-power capacities have been
+        # rewritten since the expected bunkering pass, so the shore-power limits
+        # are recalculated and the demands re-verified against the converter power
+        calculate_shore_power_limits(self.nodes.fleets, self._idx)
         verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXISTING)
         self._perform_existing_bunkering()
 

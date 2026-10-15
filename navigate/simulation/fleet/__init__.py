@@ -28,7 +28,10 @@ from navigate.simulation.fleet.post_process import (
     post_process_fleet_profile,
     post_process_investment_metric,
 )
-from navigate.simulation.fleet.power import verify_power_capacity
+from navigate.simulation.fleet.power import (
+    calculate_shore_power_limits,
+    verify_power_capacity,
+)
 from navigate.simulation.fleet.scarcity_beliefs import (
     record_investment_signals,
     update_vessel_scarcity_beliefs,
