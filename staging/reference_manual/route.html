@@ -653,7 +653,7 @@ Europe (if regional).</p>
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="set-voyage-distribution">
 <h3>set_voyage_distribution<a class="headerlink" href="#set-voyage-distribution" title="Link to this heading">#</a></h3>
-<p>This command sets the fraction of total sailing time spent traveling from ‘port_from’ to ‘port_to’. The fraction is evaluated once when the deck’s DEFINE block is read and again whenever an EVENTS block is read, so it does not vary between those reads.</p>
+<p>This command sets the share of the sea miles sailed from ‘port_from’ to ‘port_to’. The share is set when the deck’s DEFINE block is read and again whenever an EVENTS block is read, so it does not vary between those reads.</p>
 <p>Every ordered pair of the route’s ports, a port with itself included, holds a fraction. The fractions are rescaled to sum to 1; if they are all 0, every pair gets an equal share.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Port name; supports wildcards)</p></li>
