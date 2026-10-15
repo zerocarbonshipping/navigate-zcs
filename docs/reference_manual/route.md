@@ -239,7 +239,7 @@ The shares are rescaled to sum to 1 over the legs; if they are all 0, every leg 
 
 ### set\_port\_calls
 
-This command sets the number of calls at a port over the year a `TRAMP` route describes. The time in port is split between the ports in proportion to their calls. It only applies to a `TRAMP` route, and is an error on a `LINER`.
+This command sets the number of calls at a port over the year a `TRAMP` route describes. The time in port is split between the ports in proportion to their calls. It only applies to a `TRAMP` route, and is an error on a `LINER`. A port name that matches none of the route's `Ports` is an error.
 
 * **Primary key type**: String (Port name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`

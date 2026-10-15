@@ -17,7 +17,6 @@ from navigate.core import (
     assign_id,
     assign_reference_list,
     assign_value,
-    write_existing_key_pairs,
     write_matching_keys,
 )
 from navigate.core.enum_ import RouteTypeID
@@ -25,7 +24,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, PORT, ROUTE, VARIABLE
 from navigate.core.nodes.curve import Curve
 from navigate.exceptions import DeckInsufficientError, UnassignedAttributeError
-from navigate.util import ROUND_OFF, unique_list
+from navigate.util import ROUND_OFF, matching_keys, unique_list
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -106,6 +105,8 @@ class Route(Node):
         if isinstance(speed, Curve):
             value = assign_value(speed, type_=CURVE, lower=0.0, upper=1.0)
         else:
+            # CURVE lets an expression referencing a Curve through the reference
+            # walk, so that check_consistency rejects it with its own message
             value = assign_value(
                 as_scalar(speed),
                 type_=(CURVE, VARIABLE),
@@ -113,19 +114,19 @@ class Route(Node):
                 inclusive_lower=False,
             )
 
-        write_existing_key_pairs((port_name_from, port_name_to), value, self.speeds)
+        self._write_legs((port_name_from, port_name_to), value, self.speeds)
 
     def set_utilization(
         self, port_name_from: str, port_name_to: str, utilization: CurveForecastArgument
     ) -> None:
-        """Set the cargo capacity utilization on a leg, or per speed on a TRAMP leg."""
+        """Set the cargo capacity utilization on a leg."""
         if isinstance(utilization, Curve) and self.route_type != RouteTypeID.TRAMP:
             raise ValueError(
                 f"only accepts a Curve on a TRAMP route, but {self} is a"
                 f" {self.route_type.name} route"
             )
 
-        write_existing_key_pairs(
+        self._write_legs(
             (port_name_from, port_name_to),
             assign_value(
                 as_scalar(utilization),
@@ -139,10 +140,10 @@ class Route(Node):
     def set_distance(
         self, port_name_from: str, port_name_to: str, distance: NumberInput
     ) -> None:
-        """Set the distance of a LINER leg."""
+        """Set the distance of a leg."""
         self._check_route_type(RouteTypeID.LINER)
 
-        write_existing_key_pairs(
+        self._write_legs(
             (port_name_from, port_name_to),
             assign_value(as_scalar(distance), lower=0.0, inclusive_lower=False),
             self.distances,
@@ -151,10 +152,10 @@ class Route(Node):
     def set_port_duration(
         self, port_name_from: str, port_name_to: str, port_duration: ForecastArgument
     ) -> None:
-        """Set the time in port at the stop that ends a LINER leg."""
+        """Set the time in port at the stop that ends a leg."""
         self._check_route_type(RouteTypeID.LINER)
 
-        write_existing_key_pairs(
+        self._write_legs(
             (port_name_from, port_name_to),
             assign_value(
                 as_scalar(port_duration), type_=(FORECAST, VARIABLE), lower=0.0
@@ -165,18 +166,21 @@ class Route(Node):
     def set_voyage_distribution(
         self, port_name_from: str, port_name_to: str, fraction: ScalarArgument
     ) -> None:
-        """Set the share of the sea miles sailed on a TRAMP leg."""
+        """Set the share of the sea miles sailed on a leg."""
         self._check_route_type(RouteTypeID.TRAMP)
 
-        write_existing_key_pairs(
+        self._write_legs(
             (port_name_from, port_name_to),
             assign_value(as_scalar(fraction), type_=VARIABLE, lower=0.0, upper=1.0),
             self.voyage_distribution,
         )
 
     def set_port_calls(self, port_name: str, port_calls: ForecastArgument) -> None:
-        """Set the number of calls at a TRAMP port over the reference year."""
+        """Set the number of calls at a port over the reference year."""
         self._check_route_type(RouteTypeID.TRAMP)
+
+        if not matching_keys(port_name, self.port_calls):
+            raise ValueError(f'is given "{port_name}", which matches no port of {self}')
 
         write_matching_keys(
             port_name,
@@ -190,14 +194,6 @@ class Route(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def _check_route_type(self, route_type: RouteTypeID) -> None:
-        """Raise where a command applying to one route type is given to another."""
-        if self.route_type != route_type:
-            raise ValueError(
-                f"only applies to a {route_type.name} route, but {self} is a"
-                f" {self.route_type.name} route"
-            )
-
     def check_requirements(self) -> None:
 
         if self.route_type == RouteTypeID.TRAMP and self.time_at_sea is None:
@@ -210,18 +206,6 @@ class Route(Node):
         self._check_legs_assigned("set_port_duration", self.port_durations)
         self._check_legs_assigned("set_voyage_distribution", self.voyage_distribution)
 
-    def _check_legs_assigned[V](
-        self, command: str, inputs: Mapping[tuple[str, str], V | None]
-    ) -> None:
-        """Raise where a per-leg input the route type requires is unassigned."""
-        missing = [key for key, value in inputs.items() if value is None]
-
-        if missing:
-            raise DeckInsufficientError(
-                f"{self}: '{command}' is unassigned for the legs"
-                f" {', '.join(_name_leg(key) for key in missing)}."
-            )
-
     def apply_defaults(self) -> None:
         # the expectations are sized by the sailing conditions once DEFINE is read,
         # so the number on each leg is fixed from here on
@@ -230,7 +214,7 @@ class Route(Node):
     def apply_command_defaults(self) -> None:
         # initialize_dependencies seeds each dictionary in the order of get_legs
         self.leg_speeds = _in_seeded_order(self.speeds)
-        self.leg_utilizations = tuple(self.utilizations.values())
+        self.leg_utilizations = _in_seeded_order(self.utilizations)
         self.leg_distances = _in_seeded_order(self.distances)
         self.leg_port_durations = _in_seeded_order(self.port_durations)
         self.leg_voyage_shares = _in_seeded_order(self.voyage_distribution)
@@ -252,6 +236,68 @@ class Route(Node):
 
         self._check_conditions_per_leg()
 
+    def initialize_dependencies(self) -> None:
+        """Initialize dependent dictionaries so command calls can use wildcards."""
+        # stays None when unset: check_requirements names each leg left unassigned
+        for key in self.get_leg_keys():
+            self.speeds.setdefault(key, None)
+            self.utilizations.setdefault(key, Scalar(1.0))
+
+            if self.route_type == RouteTypeID.LINER:
+                self.distances.setdefault(key, None)
+                self.port_durations.setdefault(key, None)
+
+            elif self.route_type == RouteTypeID.TRAMP:
+                self.voyage_distribution.setdefault(key, None)
+
+        if self.route_type == RouteTypeID.TRAMP:
+            for port in self.ports:
+                self.port_calls.setdefault(port.name, Scalar(1.0))
+
+    def _write_legs[V](
+        self, key: tuple[str, str], value: V, inputs: dict[tuple[str, str], V]
+    ) -> None:
+        """Write a value to every leg of the route a pair of port names matches."""
+        # the pair is matched as a whole against the legs initialize_dependencies
+        # seeds, so a wildcard in one part never creates a pair that is no leg
+        pattern_from, pattern_to = key
+        legs = [
+            (port_from, port_to)
+            for port_from, port_to in inputs
+            if matching_keys(pattern_from, [port_from])
+            and matching_keys(pattern_to, [port_to])
+        ]
+
+        if not legs:
+            raise ValueError(
+                f"is given {_name_leg(key)}, which matches no leg of {self}"
+            )
+
+        # every matched leg holds the same object: a Scalar answers a getter and
+        # carries no per-leg state, and a node or an expression was always shared
+        for leg in legs:
+            inputs[leg] = value
+
+    def _check_route_type(self, route_type: RouteTypeID) -> None:
+        """Raise where a command applying to one route type is given to another."""
+        if self.route_type != route_type:
+            raise ValueError(
+                f"only applies to a {route_type.name} route, but {self} is a"
+                f" {self.route_type.name} route"
+            )
+
+    def _check_legs_assigned[V](
+        self, command: str, inputs: Mapping[tuple[str, str], V | None]
+    ) -> None:
+        """Raise where a per-leg input the route type requires is unassigned."""
+        missing = [key for key, value in inputs.items() if value is None]
+
+        if missing:
+            raise DeckInsufficientError(
+                f"{self}: '{command}' is unassigned for the legs"
+                f" {', '.join(_name_leg(key) for key in missing)}."
+            )
+
     def _check_liner(self) -> None:
         """Check the port sequence of a LINER, and that it is given no TimeAtSea."""
         if len(self.ports) < 2:
@@ -272,7 +318,7 @@ class Route(Node):
         if self.ports[0] is self.ports[-1]:
             raise ValueError(
                 f"{self}: The set of ports is assumed to wrap around for a"
-                f" 'LINER', so {self.ports[0]} cannot be placed both first and last."
+                f" LINER, so {self.ports[0]} cannot be placed both first and last."
             )
 
         # a port may be revisited, but each leg keys its own inputs
@@ -291,7 +337,7 @@ class Route(Node):
     def _check_tramp(self) -> None:
         """Check that the ports of a TRAMP are unique."""
         if len(self.ports) > len(unique_list(self.ports)):
-            raise ValueError(f"{self}: All ports on a 'TRAMP' must be unique.")
+            raise ValueError(f"{self}: All ports on a TRAMP must be unique.")
 
     def _check_speed(self, key: tuple[str, str], speed: CurveInput) -> None:
         """Check that a leg's speed Curve lists positive speeds and whole shares."""
@@ -368,24 +414,6 @@ class Route(Node):
                     f" sailing conditions, but had {count_define} once DEFINE was"
                     " read; the number of sailing conditions on a leg is fixed."
                 )
-
-    def initialize_dependencies(self) -> None:
-        """Initialize dependent dictionaries so command calls can use wildcards."""
-        # stays None when unset: check_requirements names each leg left unassigned
-        for key in self.get_leg_keys():
-            self.speeds.setdefault(key, None)
-            self.utilizations.setdefault(key, Scalar(1.0))
-
-            if self.route_type == RouteTypeID.LINER:
-                self.distances.setdefault(key, None)
-                self.port_durations.setdefault(key, None)
-
-            elif self.route_type == RouteTypeID.TRAMP:
-                self.voyage_distribution.setdefault(key, None)
-
-        if self.route_type == RouteTypeID.TRAMP:
-            for port in self.ports:
-                self.port_calls.setdefault(port.name, Scalar(1.0))
 
     def get_number_of_ports(self) -> int:
         return len(self.ports)

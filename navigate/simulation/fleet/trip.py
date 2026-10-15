@@ -112,7 +112,10 @@ def derive_reference_trip(route: Route) -> ReferenceTrip:
 
     inputs = zip(route.leg_speeds, route.leg_utilizations, strict=True)
     conditions = [_read_leg_conditions(*leg) for leg in inputs]
-    speeds, shares, utilizations = map(np.concatenate, zip(*conditions, strict=True))
+    speeds_per_leg, shares_per_leg, utilizations_per_leg = zip(*conditions, strict=True)
+    speeds = np.concatenate(speeds_per_leg)
+    shares = np.concatenate(shares_per_leg)
+    utilizations = np.concatenate(utilizations_per_leg)
 
     # check_requirements requires TimeAtSea on every TRAMP, so the None test only
     # narrows its type
