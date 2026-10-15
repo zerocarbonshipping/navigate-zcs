@@ -48,10 +48,10 @@ def update_energy_conservation_constraints(
     expectation = vessel.expectation
     power_system = vessel.power_system
     route = vessel.route
-    leg_idx = route.get_leg_indices()
+    leg_idx = route.get_legs()
     port_idx = range(route.get_number_of_ports())
 
-    demands_sea = expectation.get_regional_energy_sea(idx=alg.idx)
+    demands_sea = expectation.get_energy_sea_leg(idx=alg.idx)
     demands_port = expectation.get_energy_port(idx=alg.idx)
 
     # at sea all three demands are served

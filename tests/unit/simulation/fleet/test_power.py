@@ -4,7 +4,7 @@
 """
 Tests for converter power-capacity verification and vessel load-function checks.
 
-The power-capacity check asserts, per leg and per port, that the energy a
+The power-capacity check asserts, per sailing condition and per port, that the energy a
 converter delivers cannot exceed its power capacity times the time spent on
 the step. Port demands must fit the onboard converter alone: shore power gives
 no allowance. Only vessels whose multiplier admits them into a bunkering scope are
@@ -22,8 +22,15 @@ import numpy as np
 import pytest
 
 from navigate.core import Expression, Scalar
-from navigate.core.enum_ import PORT_ENERGY_DEMANDS, BunkerScopeID, EnergyDemandID
+from navigate.core.enum_ import (
+    PORT_ENERGY_DEMANDS,
+    BunkerScopeID,
+    EnergyDemandID,
+    RouteTypeID,
+)
 from navigate.core.expectations.vessel_expectation import VesselExpectation
+from navigate.core.nodes.port import Port
+from navigate.core.nodes.route import Route
 from navigate.core.nodes.variable import Variable
 from navigate.exceptions import PowerCapacityError
 from navigate.simulation.fleet.power import (
@@ -59,7 +66,7 @@ class _StubExpectation:
         self._energies_port = energies_port
         self._times_port = times_port
 
-    def get_time_sea(self, idx: int) -> list:
+    def get_time_sea_condition(self, idx: int) -> list:
         assert idx == IDX
         return self._times_sea
 
@@ -67,7 +74,7 @@ class _StubExpectation:
         assert idx == IDX
         return self._times_port
 
-    def get_energy_sea(self, idx: int) -> dict:
+    def get_energy_sea_condition(self, idx: int) -> dict:
         assert idx == IDX
         return self._energies_sea
 
@@ -98,12 +105,17 @@ class _StubVessel:
             energies_sea, times_sea, energies_port, times_port
         )
 
+        # a round trip with one leg, and so one condition, per sea step
+        self.route = Route(f"{name}_route")
+        self.route.route_type = RouteTypeID.ROUND_TRIP
+        self.route.ports = [Port(f"p{i}") for i in range(len(times_sea))]
+
     def __repr__(self) -> str:
         return f'Vessel("{self.name}")'
 
 
 def _make_vessel(**overrides) -> _StubVessel:
-    """Build a one-leg, one-port vessel, 10 MW converters at half load everywhere."""
+    """Build a one-condition, one-port vessel, 10 MW converters at half load."""
     half_load = 5.0 * 10.0 * MWD_TO_GJ
 
     defaults = {
@@ -162,7 +174,7 @@ class TestVerifyVesselPowerCapacity:
             verify_vessel_power_capacity(vessel, IDX)
 
         message = str(excinfo.value)
-        assert "propulsion demand on leg 1" in message
+        assert 'propulsion demand on the leg from Port("p1") to Port("p0")' in message
         assert "boat_propulsion" in message
         assert "12.00 MW" in message
         assert "10.00 MW" in message
@@ -209,8 +221,8 @@ class TestVerifyVesselPowerCapacity:
             verify_vessel_power_capacity(vessel, IDX)
 
         message = str(excinfo.value)
-        assert "propulsion demand on leg 0" in message
-        assert "heat demand on leg 0" in message
+        assert "propulsion demand on the leg from" in message
+        assert "heat demand on the leg from" in message
 
 
 class TestVerifyPowerCapacity:
@@ -294,9 +306,9 @@ class TestExpectationHorizonBroadcast:
     def expectation(self):
         expectation = VesselExpectation()
         expectation._initialize_expectation(self.LENGTH)
-        expectation._time_sea = expectation._default_list_array(1)
+        expectation._time_sea_condition = expectation._default_list_array(1)
         expectation._time_port = expectation._default_list_array(1)
-        expectation._energy_sea = expectation._default_dict_list_array(
+        expectation._energy_sea_condition = expectation._default_dict_list_array(
             EnergyDemandID, 1
         )
         expectation._energy_port = expectation._default_dict_list_array(
@@ -305,17 +317,19 @@ class TestExpectationHorizonBroadcast:
         return expectation
 
     def test_writes_broadcast_over_the_remaining_horizon(self, expectation):
-        expectation.set_time_sea(self.WRITE_IDX, [3.0])
+        expectation.set_time_sea_condition(self.WRITE_IDX, [3.0])
         expectation.set_time_port(self.WRITE_IDX, [4.0])
-        expectation.set_energy_sea(self.WRITE_IDX, {d: [100.0] for d in EnergyDemandID})
+        expectation.set_energy_sea_condition(
+            self.WRITE_IDX, {d: [100.0] for d in EnergyDemandID}
+        )
         expectation.set_energy_port(
             self.WRITE_IDX, {d: [50.0] for d in PORT_ENERGY_DEMANDS}
         )
 
         for idx in range(self.WRITE_IDX, self.LENGTH):
-            assert expectation.get_time_sea(idx) == [3.0]
+            assert expectation.get_time_sea_condition(idx) == [3.0]
             assert expectation.get_time_port(idx) == [4.0]
-            assert expectation.get_energy_sea(idx=idx) == {
+            assert expectation.get_energy_sea_condition(idx=idx) == {
                 d: [100.0] for d in EnergyDemandID
             }
             assert expectation.get_energy_port(idx=idx) == {
@@ -324,7 +338,7 @@ class TestExpectationHorizonBroadcast:
 
 
 class TestCalculateTechnicalSpeedLimits:
-    """A propulsion load with no speed-power curve sets no technical limit, per leg."""
+    """A propulsion load with no speed-power curve sets no limit, per condition."""
 
     @pytest.mark.parametrize(
         "load",
@@ -332,10 +346,10 @@ class TestCalculateTechnicalSpeedLimits:
         ids=["expression", "scalar", "variable"],
     )
     def test_curveless_propulsion_load_gives_no_technical_limit(self, load):
-        route = SimpleNamespace(get_number_of_legs=lambda: 3)
-        vessel = SimpleNamespace(propulsion_load=load, route=route)
+        trip = SimpleNamespace(speeds=np.ones(3))
+        vessel = SimpleNamespace(propulsion_load=load)
 
-        speed_min, speed_max = calculate_technical_speed_limits(vessel)
+        speed_min, speed_max = calculate_technical_speed_limits(vessel, trip)
 
         np.testing.assert_array_equal(speed_min, np.full(3, -np.inf))
         np.testing.assert_array_equal(speed_max, np.full(3, np.inf))

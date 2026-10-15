@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -12,7 +13,6 @@ import numpy as np
 from navigate.core import Expression, Scalar
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, BunkerScopeID, EnergyDemandID
 from navigate.core.node_type import is_surface, is_variable
-from navigate.core.wrap import to_numpy
 from navigate.exceptions import PowerCapacityError
 from navigate.util import MWD_TO_GJ, TOLERANCE
 
@@ -20,9 +20,11 @@ if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import SurfaceInput
+    from navigate.simulation.fleet.trip import ReferenceTrip
     from navigate.util.types_ import FloatArray, FloatLike
 
 
@@ -34,14 +36,17 @@ def calculate_speed_bounds(
     """
     Calculate a vessel's minimum and maximum mean speed from its technical bounds.
 
+    Only the conditions that take sea time are passed: a condition with a zero time
+    share bounds no speed.
+
     Parameters
     ----------
     speeds_min
-        Minimum speed per leg, knots.
+        Minimum speed per sailed condition, knots.
     speeds_max
-        Maximum speed per leg, knots.
+        Maximum speed per sailed condition, knots.
     speeds
-        Speed per leg, knots.
+        Speed per sailed condition, knots.
 
     Returns
     -------
@@ -62,7 +67,9 @@ def calculate_speed_bounds(
     return low, high
 
 
-def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatArray]:
+def calculate_technical_speed_limits(
+    vessel: Vessel, trip: ReferenceTrip
+) -> tuple[FloatArray, FloatArray]:
     """
     Calculate a vessel's minimum and maximum achievable speed from its propulsion load.
 
@@ -73,21 +80,23 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatA
     ----------
     vessel
         Vessel whose speed limits are calculated.
+    trip
+        Reference trip holding the sailing conditions.
 
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Minimum and maximum speed per leg, knots.
+        Minimum and maximum speed per condition, knots.
     """
     load = vessel.propulsion_load
 
     if isinstance(load, Expression):
         # an expression can only be evaluated, not read as a table, so it
         # cannot be reverse-looked-up; the other speed bounds govern instead
-        return _unbounded_speed_limits(vessel)
+        return _unbounded_speed_limits(trip)
 
     if isinstance(load, Scalar) or is_variable(load):
-        return _unbounded_speed_limits(vessel)
+        return _unbounded_speed_limits(trip)
 
     # the load is a Curve or a Surface
     converter = vessel.power_system.propulsion
@@ -96,13 +105,13 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatA
 
     if minimum_load is not None:
         power_minimum = minimum_load.get() * power_maximum
-        speed_minimum = _calculate_speed_extremum(vessel, power_minimum, load)
+        speed_minimum = _calculate_speed_extremum(trip, power_minimum, load)
 
     else:
         speed_minimum = load.x[0]
 
     # the power capacity may cap the speed below the load's largest speed
-    speed_maximum = _calculate_speed_extremum(vessel, power_maximum, load)
+    speed_maximum = _calculate_speed_extremum(trip, power_maximum, load)
 
     # the reverse lookup returns None for a load that is not strictly increasing
     if speed_minimum is None:
@@ -111,9 +120,9 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatA
     if speed_maximum is None:
         speed_maximum = load.x[-1]
 
-    # the limits are per leg, as the capacity utilization moves the power limit
-    speeds_minimum = _expand_speed_to_legs(vessel, speed_minimum)
-    speeds_maximum = _expand_speed_to_legs(vessel, speed_maximum)
+    # the limits are per condition, as the capacity utilization moves the power limit
+    speeds_minimum = _expand_speed_to_conditions(trip, speed_minimum)
+    speeds_maximum = _expand_speed_to_conditions(trip, speed_maximum)
 
     return speeds_minimum, speeds_maximum
 
@@ -190,11 +199,12 @@ def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     """
     Verify that installed converter power covers every energy demand of a vessel.
 
-    Each demand is compared per leg and per port: the energy a converter delivers over
-    a step cannot exceed its power capacity times the time spent on that step. Since
-    speed, and thus load, is constant within a leg, the per-leg comparison bounds the
-    load at every operating speed. Port demands must fit the onboard converter alone;
-    shore power gives no allowance.
+    Each demand is compared per sailing condition and per port: the energy a converter
+    delivers over a step cannot exceed its power capacity times the time spent on that
+    step. Since speed, and thus load, is constant within a condition, the comparison
+    per condition bounds the load at every operating speed. Port demands must fit the
+    onboard converter alone; shore power gives no allowance. A route-wide condition
+    overloaded alike on several legs is reported once.
 
     Parameters
     ----------
@@ -211,19 +221,22 @@ def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     expectation = vessel.expectation
     power_system = vessel.power_system
 
-    times_sea = [float(time) for time in expectation.get_time_sea(idx)]
+    times_sea = [float(time) for time in expectation.get_time_sea_condition(idx)]
     times_port = [float(time) for time in expectation.get_time_port(idx)]
-    energies_sea = expectation.get_energy_sea(idx=idx)
+    energies_sea = expectation.get_energy_sea_condition(idx=idx)
     energies_port = expectation.get_energy_port(idx=idx)
 
+    labels_sea = _name_conditions(vessel.route)
+    labels_port = [f"port {port}" for port in range(len(times_port))]
+
     domains = (
-        (energies_sea, times_sea, "leg", EnergyDemandID),
-        (energies_port, times_port, "port", PORT_ENERGY_DEMANDS),
+        (energies_sea, times_sea, labels_sea, EnergyDemandID),
+        (energies_port, times_port, labels_port, PORT_ENERGY_DEMANDS),
     )
 
     violations = []
 
-    for energies, times, step_label, demand_types in domains:
+    for energies, times, labels, demand_types in domains:
         for demand_type in demand_types:
             converter = power_system.get_converter_by_energy_type(demand_type)
             violations += _find_capacity_violations(
@@ -231,13 +244,13 @@ def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
                 demand_type,
                 [float(energy) for energy in energies[demand_type]],
                 times,
-                step_label,
+                labels,
             )
 
     if violations:
         raise PowerCapacityError(
             "{}: energy demand exceeds installed converter power:\n{}".format(
-                vessel, "\n".join(violations)
+                vessel, "\n".join(dict.fromkeys(violations))
             )
         )
 
@@ -267,10 +280,10 @@ def _find_capacity_violations(
     demand_type: EnergyDemandID,
     energies: list[float],
     times: list[float],
-    step_label: str,
+    labels: list[str],
 ) -> list[str]:
     """
-    Compare one energy demand against a converter's deliverable energy per leg or port.
+    Compare one energy demand against a converter's deliverable energy per step.
 
     Parameters
     ----------
@@ -282,8 +295,8 @@ def _find_capacity_violations(
         Energy demand per step, GJ/year.
     times
         Time spent on each step, days/year.
-    step_label
-        Name of the step dimension, "leg" or "port", used in violation messages.
+    labels
+        Name of each step, used in violation messages.
 
     Returns
     -------
@@ -293,7 +306,7 @@ def _find_capacity_violations(
     power_capacity = converter.power_capacity.get()
     violations = []
 
-    for step, (energy, time) in enumerate(zip(energies, times, strict=True)):
+    for label, energy, time in zip(labels, energies, times, strict=True):
         deliverable = power_capacity * time * MWD_TO_GJ
 
         if energy - deliverable <= TOLERANCE * max(1.0, deliverable):
@@ -301,7 +314,7 @@ def _find_capacity_violations(
 
         implied_power = energy / (time * MWD_TO_GJ) if time > 0.0 else float("inf")
         violations.append(
-            f"  {demand_type.name.lower()} demand on {step_label} {step} requires "
+            f"  {demand_type.name.lower()} demand on {label} requires "
             f"{implied_power:.2f} MW but {converter} has "
             f"{power_capacity:.2f} MW installed."
         )
@@ -309,43 +322,80 @@ def _find_capacity_violations(
     return violations
 
 
-def _unbounded_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatArray]:
+def _name_conditions(route: Route) -> list[str]:
     """
-    Give a vessel no technical speed limit, expanded to one value per leg.
+    Name each sailing condition of a route as its deck states it.
+
+    A condition that is the only one on its leg and on no other leg is that leg,
+    named by its ports; any other condition is named by its entry in 'Speeds'.
 
     Parameters
     ----------
-    vessel
-        Vessel for which the speed limits are expanded to legs.
+    route
+        Route holding the sailing conditions.
+
+    Returns
+    -------
+    list[str]
+        Name of each condition, in the order of `Route.get_conditions`.
+    """
+    conditions = route.get_conditions()
+    legs = route.get_legs()
+    ports = route.ports
+
+    conditions_per_leg = Counter(leg for leg, _ in conditions)
+    legs_per_entry = Counter(entry for _, entry in conditions)
+
+    names = []
+    for leg, entry in conditions:
+        if conditions_per_leg[leg] == 1 and legs_per_entry[entry] == 1:
+            origin, destination = legs[leg]
+            names.append(f"the leg from {ports[origin]} to {ports[destination]}")
+        else:
+            names.append(f"condition {entry}")
+
+    return names
+
+
+def _unbounded_speed_limits(trip: ReferenceTrip) -> tuple[FloatArray, FloatArray]:
+    """
+    Give a vessel no technical speed limit, expanded to one value per condition.
+
+    Parameters
+    ----------
+    trip
+        Reference trip holding the sailing conditions.
 
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Minimum and maximum speed per leg, both unbounded.
+        Minimum and maximum speed per condition, both unbounded.
     """
-    return _expand_speed_to_legs(vessel, -np.inf), _expand_speed_to_legs(vessel, np.inf)
+    return (
+        _expand_speed_to_conditions(trip, -np.inf),
+        _expand_speed_to_conditions(trip, np.inf),
+    )
 
 
-def _expand_speed_to_legs(vessel: Vessel, speed: FloatLike) -> FloatArray:
+def _expand_speed_to_conditions(trip: ReferenceTrip, speed: FloatLike) -> FloatArray:
     a = np.asarray(speed, dtype=float)
 
     if a.ndim == 0:
-        n = vessel.route.get_number_of_legs()
-        a = np.full(n, float(a), dtype=float)
+        a = np.full(len(trip.speeds), float(a), dtype=float)
 
     return a
 
 
 def _calculate_speed_extremum(
-    vessel: Vessel, power: float, load: Curve | Surface
+    trip: ReferenceTrip, power: float, load: Curve | Surface
 ) -> FloatLike | None:
     """
     Calculate the vessel speed at which a given minimum or maximum power is reached.
 
     Parameters
     ----------
-    vessel
-        Vessel whose speed extremum is calculated.
+    trip
+        Reference trip holding the capacity utilizations.
     power
         Minimum or maximum power of the converter, MW.
     load
@@ -358,8 +408,7 @@ def _calculate_speed_extremum(
         for a surface, or `None` when the load is not strictly increasing.
     """
     if is_surface(load):
-        utilization = to_numpy(vessel.route.utilizations)
-        return load.reverse_lookup(power, y=utilization)
+        return load.reverse_lookup(power, y=trip.utilizations)
 
     return load.reverse_lookup(power)
 

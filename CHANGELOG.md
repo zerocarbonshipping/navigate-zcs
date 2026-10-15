@@ -42,11 +42,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Wtt`/`Ttw`/`Wtw` (`TotalEquivalentWtt`). An old report property spelling
   is a deck error at its line.
 - An undersized converter raises a `PowerCapacityError` naming the vessel,
-  converter, leg or port and the required and installed power, instead of an
-  LP infeasibility. The check is also tighter:
+  converter, leg (by its ports) or sailing condition or port, and the required
+  and installed power, instead of an LP infeasibility. The check is also
+  tighter:
   - port electrical demand must fit the onboard electrical converter even
     where shore power is available;
-  - on regional routes it holds for each condition leg, not their mean.
+  - on regional routes it holds for each sailing condition, not their mean.
 - `Propulsion`, `Electrical` and `Heat` on a `PowerSystem` must be three
   distinct converters. One converter may still serve several power systems.
 - Fleet and global energy savings are energy-intensity savings against the
@@ -67,6 +68,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - `EVENTS` statements targeting only removed nodes are dropped;
   - a command naming a removed node fails with a hint naming it;
   - an incompletely configured unused node no longer errors.
+- On a `REGIONAL_TRIP` `Route`, the share set with `set_voyage_distribution`
+  is the share of the sea miles sailed between the two ports, no longer of the
+  sailing time. Results are unchanged where all legs sail the same conditions.
 - Technology `Capex`/`Opex` enters the vessel cost metrics, so newbuild choice
   shifts. `TechnologyExpenses` and `CumulativeTechnologyExpenses` replace the
   never-populated `TechnologyNewbuildExpenses` and
@@ -361,6 +365,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A `Levy` whose `UpperThreshold` falls below its `LowerThreshold` at any time
   step stops the run with an error naming the date, instead of turning the
   penalty into a subsidy from then on (#335).
+- A sailing condition with a zero share in `ConditionDistribution` no longer
+  sets a vessel's minimum or maximum speed, nor makes its energy NaN under a
+  technology with a power transfer.
 - A `Producer`'s `JumpStartFraction` now also accepts a `Variable`, and an
   expression assigned to it is evaluated where the producer's evolution
   expectation reads it, instead of crashing with a `TypeError` (#348).

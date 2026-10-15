@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import pytest
 
-import navigate.core.enum_ as enum_
 import navigate.simulation.bunker.solver as gp
 from navigate.simulation.bunker._build import add_variable, get_constraint
 from navigate.simulation.bunker.variables import update_vessel_variables
@@ -142,10 +141,12 @@ class _StubPort:
 class _StubRoute:
     def __init__(self, number_of_ports):
         self.ports = [_StubPort() for _ in range(number_of_ports)]
-        self.route_type = enum_.RouteTypeID.ROUND_TRIP
 
-    def get_leg_indices(self):
+    def get_legs(self):
         return ()
+
+    def get_tank_stops(self):
+        return tuple(range(len(self.ports)))
 
 
 class _StubVesselExpectation:
@@ -162,7 +163,7 @@ class _StubVessel:
         self.name = "vessel_a"
 
 
-def test_update_vessel_variables_adds_mass_tank_per_port_and_fuel():
+def test_update_vessel_variables_adds_mass_tank_per_tank_stop_and_fuel():
     """
     No committed test deck assigns a ROUND_TRIP route.
 

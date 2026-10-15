@@ -20,10 +20,10 @@ from navigate.core.expectations.vessel_expectation import VesselExpectation
 
 LENGTH = 4
 
-# distinct counts, so a sea belief sized by legs or ports instead of regional
+# distinct counts, so a sea belief sized by conditions or ports instead of
 # legs, or a port belief sized by legs, fails
-N_LEG = 2
-N_REGIONAL_LEG = 3
+N_CONDITION = 2
+N_LEG = 3
 N_PORT = 5
 
 
@@ -36,11 +36,11 @@ class _Route:
     def __init__(self):
         self.ports = [_Port(f"port_{i}") for i in range(N_PORT)]
 
-    def get_number_of_legs(self):
-        return N_LEG
+    def get_conditions(self):
+        return tuple((0, k) for k in range(N_CONDITION))
 
-    def get_number_of_regional_legs(self):
-        return N_REGIONAL_LEG
+    def get_legs(self):
+        return tuple((i, i) for i in range(N_LEG))
 
     def get_number_of_ports(self):
         return N_PORT
@@ -59,9 +59,9 @@ def test_regulation_flexibility_cost_belief_is_all_nan():
 @pytest.mark.parametrize(
     ("getter", "keys", "n_legs"),
     [
-        ("get_belief_pi_sea_technology", set(EnergyDemandID), N_REGIONAL_LEG),
+        ("get_belief_pi_sea_technology", set(EnergyDemandID), N_LEG),
         ("get_belief_pi_port_technology", set(PORT_ENERGY_DEMANDS), N_PORT),
-        ("get_belief_pi_sea_speed", set(EnergyDemandID), N_REGIONAL_LEG),
+        ("get_belief_pi_sea_speed", set(EnergyDemandID), N_LEG),
         ("get_belief_pi_port_speed", set(PORT_ENERGY_DEMANDS), N_PORT),
     ],
     ids=["pi_sea_technology", "pi_port_technology", "pi_sea_speed", "pi_port_speed"],

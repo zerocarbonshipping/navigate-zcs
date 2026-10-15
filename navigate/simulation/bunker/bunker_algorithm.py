@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-import navigate.core.enum_ as enum_
 import navigate.simulation.bunker.solver as gp
 from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
@@ -487,10 +486,9 @@ class BunkerAlgorithm:
         update_energy_conservation_constraints(self, vessel)
         update_pilot_fuel_constraints(self, vessel)
 
-        if vessel.route.route_type == enum_.RouteTypeID.ROUND_TRIP:
-            update_mass_conservation_constraints(self, vessel)
-            update_mass_sufficient_constraints(self, vessel)
-            update_tank_capacity_constraints(self, vessel)
+        update_mass_conservation_constraints(self, vessel)
+        update_mass_sufficient_constraints(self, vessel)
+        update_tank_capacity_constraints(self, vessel)
 
         update_bunkered_equals_spent_constraint(self, vessel)
 

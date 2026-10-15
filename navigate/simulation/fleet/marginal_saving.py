@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.fleet.operation import convert_to_regional_steps
 from navigate.simulation.fleet.residual_energy import calculate_residual_energy
+from navigate.simulation.fleet.trip import sum_energy_per_leg
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.technology_package import TechnologyPackage
+    from navigate.simulation.fleet.trip import ConditionLegs
     from navigate.util.types_ import FloatArray, FloatLike
 
 
@@ -79,7 +80,10 @@ def get_smoothed_energy_duals_speed(
 
 
 def calculate_marginal_technology_saving(
-    vessel: Vessel, package: TechnologyPackage, idx: slice
+    vessel: Vessel,
+    condition_legs: ConditionLegs,
+    package: TechnologyPackage,
+    idx: slice,
 ) -> FloatArray:
     """
     Calculate the marginal cost saving of installing a technology package.
@@ -96,6 +100,8 @@ def calculate_marginal_technology_saving(
     ----------
     vessel
         Vessel on which the package is evaluated.
+    condition_legs
+        Leg of each sailing condition of the vessel's route.
     package
         Technology package holding the precomputed savings, powers and transfer curves.
     idx
@@ -106,15 +112,13 @@ def calculate_marginal_technology_saving(
     FloatArray
         Marginal cost saving at each of the time-steps, USD/year.
     """
-    # the shadow prices are given per regional step, so the per-leg residual energy
-    # is converted to regional steps
     residual_energy_sea, residual_energy_port = calculate_residual_energy(
         vessel, package, idx
     )
-    residual_energy_sea = convert_to_regional_steps(vessel, residual_energy_sea)
+    residual_energy_sea_leg = sum_energy_per_leg(condition_legs, residual_energy_sea)
 
     baseline_energy_sea = _as_step_arrays(
-        vessel.expectation.get_regional_operational_energy_sea()
+        vessel.expectation.get_operational_energy_sea_leg()
     )
     baseline_energy_port = _as_step_arrays(
         vessel.expectation.get_operational_energy_port()
@@ -125,7 +129,7 @@ def calculate_marginal_technology_saving(
     # a slice of time-steps always yields an array
     return np.asarray(
         _calculate_marginal_saving(
-            residual_energy_sea,
+            residual_energy_sea_leg,
             residual_energy_port,
             baseline_energy_sea,
             baseline_energy_port,
@@ -138,6 +142,7 @@ def calculate_marginal_technology_saving(
 
 def calculate_marginal_speed_saving(
     vessel: Vessel,
+    condition_legs: ConditionLegs,
     residual_energy_sea: Mapping[EnergyDemandID, Sequence[FloatLike]],
     residual_energy_port: Mapping[EnergyDemandID, Sequence[FloatLike]],
     idx: int,
@@ -158,8 +163,10 @@ def calculate_marginal_speed_saving(
     ----------
     vessel
         Vessel whose speed changes.
+    condition_legs
+        Leg of each sailing condition of the vessel's route.
     residual_energy_sea
-        Residual energy at sea per energy demand type and leg, GJ/year.
+        Residual energy at sea per energy demand type and condition, GJ/year.
     residual_energy_port
         Residual energy in port per energy demand type and port, GJ/year.
     idx
@@ -174,7 +181,7 @@ def calculate_marginal_speed_saving(
     float
         Marginal cost saving, USD/year.
     """
-    residual_energy_sea = convert_to_regional_steps(vessel, residual_energy_sea)
+    residual_energy_sea_leg = sum_energy_per_leg(condition_legs, residual_energy_sea)
 
     baseline_energy_sea = vessel.expectation.get_energy_conservation_rhs_sea()
     baseline_energy_port = vessel.expectation.get_energy_conservation_rhs_port()
@@ -183,7 +190,7 @@ def calculate_marginal_speed_saving(
 
     return float(
         _calculate_marginal_saving(
-            residual_energy_sea,
+            residual_energy_sea_leg,
             residual_energy_port,
             baseline_energy_sea,
             baseline_energy_port,

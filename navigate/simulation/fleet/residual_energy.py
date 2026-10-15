@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import MWD_TO_GJ
+from navigate.util import MWD_TO_GJ, divide_nonzero
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -32,8 +32,8 @@ def calculate_residual_energy(
     Calculate a vessel's residual energy demand at sea and in port with a package.
 
     The package's combined savings and external powers reduce the operational energy
-    demand of each leg and port, and its power transfers move energy between the
-    energy demand types by the converter loads.
+    demand of each sailing condition and port, and its power transfers move energy
+    between the energy demand types by the converter loads.
 
     Parameters
     ----------
@@ -47,20 +47,22 @@ def calculate_residual_energy(
     Returns
     -------
     dict[EnergyDemandID, list[FloatLike]]
-        Residual energy at sea per energy demand type and leg, GJ/year.
+        Residual energy at sea per energy demand type and condition, GJ/year.
     dict[EnergyDemandID, list[FloatLike]]
         Residual energy in port per energy demand type and port, GJ/year.
     """
-    times_sea = vessel.expectation.get_time_sea(idx)
-    times_port = vessel.expectation.get_time_port(idx)
-    raw_demand_sea = vessel.expectation.get_operational_energy_sea(idx=idx)
-    raw_demand_port = vessel.expectation.get_operational_energy_port(idx=idx)
+    expectation = vessel.expectation
+
+    times_sea = expectation.get_time_sea_condition(idx)
+    times_port = expectation.get_time_port(idx)
+    raw_demand_sea = expectation.get_operational_energy_sea_condition(idx=idx)
+    raw_demand_port = expectation.get_operational_energy_port(idx=idx)
 
     if package.is_empty:
         return raw_demand_sea, raw_demand_port
 
-    energy_sea = _iterate_legs_or_ports(vessel, package, times_sea, raw_demand_sea)
-    energy_port = _iterate_legs_or_ports(vessel, package, times_port, raw_demand_port)
+    energy_sea = _iterate_steps(vessel, package, times_sea, raw_demand_sea)
+    energy_port = _iterate_steps(vessel, package, times_port, raw_demand_port)
 
     return energy_sea, energy_port
 
@@ -91,14 +93,14 @@ def net_energy_from_raw(
     return out
 
 
-def _iterate_legs_or_ports(
+def _iterate_steps(
     vessel: Vessel,
     package: TechnologyPackage,
     durations: Sequence[FloatLike],
     raw_demands: Mapping[EnergyDemandID, Sequence[FloatLike]],
 ) -> dict[EnergyDemandID, list[FloatLike]]:
     """
-    Calculate the residual energy of each leg or port.
+    Calculate the residual energy of each sailing condition or port.
 
     Per step, the combined saving and the external energy over the step's duration
     reduce the demand; with power transfers, the residual power sets each
@@ -226,5 +228,5 @@ def _power_to_energy(power: FloatLike, duration: FloatLike) -> FloatLike:
 
 
 def _energy_to_power(energy: FloatLike, duration: FloatLike) -> FloatLike:
-    """Convert an energy, GJ, over a duration, days, to power, MW."""
-    return energy / (duration * MWD_TO_GJ)
+    """Convert an energy, GJ, over a duration, days, to power, MW, zero without time."""
+    return divide_nonzero(energy, duration * MWD_TO_GJ)
