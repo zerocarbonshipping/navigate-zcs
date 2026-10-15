@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 from navigate.core import (
     SimulationResults,
     get_fuels_per_fuel_type,
-    update_port_levies,
+    update_imposed_levies,
 )
 from navigate.core.enum_ import BunkerScopeID
 from navigate.core.profiles import GlobalProfile
@@ -273,7 +273,7 @@ class Simulation:
 
     def _update_node_maps(self) -> None:
         """Rewrite the node maps that events can change."""
-        update_port_levies(self.nodes.ports, self.nodes.levies)
+        update_imposed_levies(self.nodes.ports, self.nodes.levies)
 
     def _calculate_expectations(self) -> None:
         """Precalculate certain expectations which are simulation bottlenecks."""

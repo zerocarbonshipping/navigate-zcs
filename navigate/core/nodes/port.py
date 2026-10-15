@@ -60,7 +60,7 @@ class Port(Node):
         self.profile: PortProfile = PortProfile()
 
         self.liquid_market_fuel: dict[str, bool] = {}
-        self.levies: list[Levy]
+        self.imposed_levies: list[Levy]
 
     # external methods (DSL commands) --------------------------------------------------
     def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:

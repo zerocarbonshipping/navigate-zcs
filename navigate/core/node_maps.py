@@ -40,9 +40,9 @@ def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fue
     return fuel_per_fuel_type
 
 
-def update_port_levies(ports: dict[str, Port], levies: dict[str, Levy]) -> None:
+def update_imposed_levies(ports: dict[str, Port], levies: dict[str, Levy]) -> None:
     """
-    Rewrite the levies of each port as the active levies whose jurisdiction holds it.
+    Write on each port the active levies whose jurisdiction holds that port.
 
     Parameters
     ----------
@@ -54,4 +54,6 @@ def update_port_levies(ports: dict[str, Port], levies: dict[str, Levy]) -> None:
     active_levies = [levy for levy in levies.values() if levy.is_active()]
 
     for port in ports.values():
-        port.levies = [levy for levy in active_levies if port in levy.jurisdiction]
+        port.imposed_levies = [
+            levy for levy in active_levies if port in levy.jurisdiction
+        ]

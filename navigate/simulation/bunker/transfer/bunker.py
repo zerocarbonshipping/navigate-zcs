@@ -71,7 +71,7 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
                 wtt_emissions = emission_factor * bunker.X
                 vessel.profile.add_wtt(f, emission_name, wtt_emissions, idx=alg.idx)
 
-        for levy in port.levies:
+        for levy in port.imposed_levies:
             if not levy.vessel_is_policed(v):
                 continue
 
