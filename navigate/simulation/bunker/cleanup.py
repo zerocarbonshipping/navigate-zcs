@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     """
-    Remove a vessel, its pre-computed values and its LP variables and constraints.
+    Remove a vessel, its multiplier and its LP variables and constraints.
 
     Parameters
     ----------
@@ -28,10 +28,6 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     """
     del alg.vessels[v]
     del alg.multipliers[v]
-
-    for key in list(alg.effective_lhv):
-        if key[0] == v:
-            del alg.effective_lhv[key]
 
     _remove_vessel_elements(alg, v, alg.bunker)
     _remove_vessel_elements(alg, v, alg.spend_sea)

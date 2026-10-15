@@ -13,8 +13,8 @@ Tests verify the correctness of:
   - _assign_regulation_wtt_factors: the equal-weight mean runs over every port
     on the vessel's route, jurisdiction or not, each port counted once, leaving
     out ports that disallow the fuel or have no estimate.
-  - _average_effective_lhv_over_converters: power/efficiency-weighted
-    (1 - slip) * LHV over the converters able to burn the fuel.
+  - _average_effective_lhv_over_converters: power/efficiency-weighted mean of
+    the vessel's (1 - slip) * LHV over the converters able to burn the fuel.
   - _calculate_threshold_adjusted_levy_emission_coefficient: the PENALTY,
     SUBSIDY and upper-threshold capping arithmetic, given already-evaluated
     threshold arrays and an effective LHV.
@@ -35,6 +35,7 @@ import pytest
 from navigate.core.enum_ import LevySchemeID, PolicyScopeID
 from navigate.core.expectations.plant_expectation import PlantExpectation
 from navigate.core.expectations.regulation_expectation import RegulationExpectation
+from navigate.core.expectations.vessel_expectation import VesselExpectation
 from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.fuel import Fuel
@@ -281,6 +282,15 @@ def _make_ammonia():
     return fuel
 
 
+def _make_vessel_expectation(fuel, slips):
+    """Seed the effective LHV of the fuel in each converter named in `slips`."""
+    expectation = VesselExpectation()
+    for converter_name, slip in slips.items():
+        effective_lhv = (1.0 - slip) * AMMONIA_LHV
+        expectation.set_effective_lhv(converter_name, fuel.name, effective_lhv)
+    return expectation
+
+
 def _make_vessel(fuel, main_slip, auxiliary_slip, port):
     vessel = MagicMock()
     vessel.name = "vessel"
@@ -291,6 +301,9 @@ def _make_vessel(fuel, main_slip, auxiliary_slip, port):
         _make_converter("auxiliary", "AMMONIA", 4.0, 0.4, auxiliary_slip),
         _make_converter("boiler", "OIL", 100.0, 0.5, 0.0),
     ]
+    vessel.expectation = _make_vessel_expectation(
+        fuel, {"main": main_slip, "auxiliary": auxiliary_slip}
+    )
     return vessel
 
 
@@ -300,7 +313,7 @@ class TestEffectiveHeatingValue:
         vessel = _make_vessel(fuel, MAIN_SLIP, AUXILIARY_SLIP, MagicMock())
 
         weights = _converter_weights(vessel, fuel)
-        result = _average_effective_lhv_over_converters(weights, fuel)
+        result = _average_effective_lhv_over_converters(vessel, weights, fuel)
 
         # (30 * 0.98 * 50 + 10 * 0.9 * 50) / 40 = (1470 + 450) / 40 = 48
         assert result == pytest.approx(48.0)
@@ -312,9 +325,12 @@ class TestEffectiveHeatingValue:
             _make_converter("main", "AMMONIA", 15.0, 0.5, MAIN_SLIP),
             _make_converter("idle", "AMMONIA", 4.0, 0.0, AUXILIARY_SLIP),
         ]
+        vessel.expectation = _make_vessel_expectation(
+            fuel, {"main": MAIN_SLIP, "idle": AUXILIARY_SLIP}
+        )
 
         weights = _converter_weights(vessel, fuel)
-        result = _average_effective_lhv_over_converters(weights, fuel)
+        result = _average_effective_lhv_over_converters(vessel, weights, fuel)
 
         # only the main converter weighs: 0.98 * 50 = 49
         assert result == pytest.approx(49.0)
@@ -322,7 +338,7 @@ class TestEffectiveHeatingValue:
     def test_no_weighted_converter_falls_back_to_the_lhv(self):
         fuel = _make_ammonia()
 
-        result = _average_effective_lhv_over_converters([], fuel)
+        result = _average_effective_lhv_over_converters(MagicMock(), [], fuel)
 
         assert result == pytest.approx(AMMONIA_LHV)
 

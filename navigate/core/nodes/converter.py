@@ -22,7 +22,6 @@ from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
@@ -147,20 +146,3 @@ class Converter(_Machinery):
 
     def is_dual_fuel(self) -> bool:
         return bool(self.pilot_fuel_types)
-
-    def get_effective_lhv(self, fuel: Fuel) -> float:
-        """
-        Return the heating value of a fuel net of slip, (1 - slip) * LHV.
-
-        Parameters
-        ----------
-        fuel
-            Fuel burned in the converter; its fuel type must be one of the converter's.
-
-        Returns
-        -------
-        float
-            Effective lower heating value, in GJ/ton fuel-in.
-        """
-        slip = self.slip_fraction[fuel.fuel_type].get()
-        return (1.0 - slip) * fuel.lower_heating_value.get()

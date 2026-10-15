@@ -28,6 +28,7 @@ from navigate.simulation.fleet import (
     assign_vessels_to_fleets,
     calculate_cargo_charter_properties,
     calculate_evolution_expectation,
+    calculate_fleet_expectations,
     calculate_fleet_profile,
     calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
@@ -287,7 +288,7 @@ class Simulation:
         update_imposed_levies(self.nodes.ports, self.nodes.levies)
 
     def _calculate_expectations(self) -> None:
-        """Precalculate certain expectations which are simulation bottlenecks."""
+        """Calculate the per-step expectations later phases and other domains read."""
         emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
 
         calculate_policy_expectations(
@@ -299,6 +300,8 @@ class Simulation:
             self.timeline,
             self._idx,
         )
+
+        calculate_fleet_expectations(self.nodes.vessels, self.nodes.fuels)
 
         for port in self.nodes.ports.values():
             port.calculate_expectation(self.timeline, self._idx)

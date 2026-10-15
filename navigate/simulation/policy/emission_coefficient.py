@@ -553,7 +553,7 @@ def _assign_levy_emission_coefficients(
 
         effective_lhvs = {
             fuel.name: _average_effective_lhv_over_converters(
-                _converter_weights(vessel, fuel), fuel
+                vessel, _converter_weights(vessel, fuel), fuel
             )
             for fuel in target_fuels
         }
@@ -873,7 +873,7 @@ def _average_ttw_over_converters(
 
 
 def _average_effective_lhv_over_converters(
-    weights: list[tuple[Converter, float]], fuel: Fuel
+    vessel: Vessel, weights: list[tuple[Converter, float]], fuel: Fuel
 ) -> FloatArray:
     """
     Estimate a vessel's effective LHV of a fuel as a power/efficiency weighted average.
@@ -883,6 +883,8 @@ def _average_effective_lhv_over_converters(
 
     Parameters
     ----------
+    vessel
+        Vessel on which the fuel is spent.
     weights
         Converters able to burn the fuel with their weights, from `_converter_weights`.
     fuel
@@ -893,11 +895,13 @@ def _average_effective_lhv_over_converters(
     FloatArray
         Effective lower heating value, (1 - slip) * LHV, in GJ/ton fuel.
     """
+    expectation = vessel.expectation
     weighted_lhv_sum = 0.0
     weight_total = 0.0
 
     for converter, weight in weights:
-        weighted_lhv_sum += weight * converter.get_effective_lhv(fuel)
+        effective_lhv = expectation.get_effective_lhv(converter.name, fuel.name)
+        weighted_lhv_sum += weight * effective_lhv
         weight_total += weight
 
     return divide_nonzero(

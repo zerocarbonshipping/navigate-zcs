@@ -25,7 +25,6 @@ from navigate.simulation.bunker.cleanup import (
     remove_redundant_vessel,
 )
 from navigate.simulation.bunker.coefficients import (
-    calculate_effective_lhv,
     calculate_emission_factors,
     calculate_policy_coefficients,
 )
@@ -142,11 +141,6 @@ class BunkerAlgorithm:
         self.fuels_per_converter: dict[tuple[str, str], dict[str, Fuel]] = {}
         self.converters_per_fuel: dict[tuple[str, str], tuple[str, ...]] = {}
         self.port_converters_per_fuel: dict[tuple[str, str], tuple[str, ...]] = {}
-
-        # local attributes for a specific vessel ---------------------------------------
-
-        # effective LHV per (vessel, converter, fuel)
-        self.effective_lhv: dict[tuple[str, str, str], float] = {}
 
         # dynamic properties updated at every time-step --------------------------------
 
@@ -330,7 +324,6 @@ class BunkerAlgorithm:
                     self.vessels[v] = vessel
                     self.multipliers[v] = np.float64(multiplier)
 
-                    calculate_effective_lhv(self, vessel)
                     calculate_emission_factors(self, vessel)
                     calculate_policy_coefficients(self, vessel)
 
