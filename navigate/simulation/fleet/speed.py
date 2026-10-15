@@ -212,9 +212,7 @@ def _optimize_vessel_speed(
     if np.isnan(mu_ref):
         # before a mean speed is first set, the distribution-weighted current speed
         # stands in
-        speeds_current = [
-            float(speed) for speed in expectation.get_speeds_condition(idx)
-        ]
+        speeds_current = np.array(expectation.get_speeds_condition(idx), dtype=float)
         mu_ref = float(np.average(speeds_current, weights=distribution))
 
     # the technical limits truncate each condition's speed, and those of the

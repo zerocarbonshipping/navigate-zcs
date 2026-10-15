@@ -228,10 +228,11 @@ def _calculate_trip(operations: Operations, trip: ReferenceTrip) -> None:
     legs = trip.condition_legs.legs
     shares = trip.shares
 
-    speeds_leg = sum_per_leg(trip.condition_legs, shares * speeds)
+    speeds_weighted = shares * speeds
+    speeds_leg = sum_per_leg(trip.condition_legs, speeds_weighted)
     days_leg = divide_nonzero(trip.leg_miles, speeds_leg) * HOUR_TO_DAYS
     days_condition = days_leg[legs] * shares
-    mile_shares = divide_nonzero(shares * speeds, speeds_leg[legs])
+    mile_shares = divide_nonzero(speeds_weighted, speeds_leg[legs])
 
     sea_days = np.sum(days_leg)
     port_days = np.sum(trip.port_days)
