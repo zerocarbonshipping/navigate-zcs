@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from itertools import product
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -54,13 +53,13 @@ def calculate_residual_energy(
     """
     expectation = vessel.expectation
 
-    times_sea = expectation.get_time_sea_condition(idx)
-    times_port = expectation.get_time_port(idx)
-    raw_demand_sea = expectation.get_operational_energy_sea_condition(idx=idx)
-    raw_demand_port = expectation.get_operational_energy_port(idx=idx)
+    times_sea = np.asarray(expectation.get_time_sea_condition(idx), dtype=float)
+    times_port = np.asarray(expectation.get_time_port(idx), dtype=float)
+    raw_demand_sea = _stack_steps(expectation.get_operational_energy_sea_condition(idx))
+    raw_demand_port = _stack_steps(expectation.get_operational_energy_port(idx))
 
     if package.is_empty:
-        return _stack_steps(raw_demand_sea), _stack_steps(raw_demand_port)
+        return raw_demand_sea, raw_demand_port
 
     energy_sea = _residual_energy(vessel, package, times_sea, raw_demand_sea)
     energy_port = _residual_energy(vessel, package, times_port, raw_demand_port)
@@ -78,14 +77,14 @@ def net_energy_from_raw(
     Parameters
     ----------
     raw_energies
-        Raw energy demand per energy demand type and step, GJ/year.
+        Raw energy demand per energy demand type and step, in GJ/year.
     savings
         Saving per energy demand type and step, fraction.
 
     Returns
     -------
     dict[EnergyDemandID, list[FloatLike]]
-        Net energy demand per energy demand type and step, GJ/year.
+        Net energy demand per energy demand type and step, in GJ/year.
     """
     out: dict[EnergyDemandID, list[FloatLike]] = {}
     for k, raw in raw_energies.items():
@@ -97,11 +96,11 @@ def net_energy_from_raw(
 def _residual_energy(
     vessel: Vessel,
     package: TechnologyPackage,
-    durations: Sequence[FloatLike],
-    raw_demands: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    times: FloatArray,
+    raw_demands: Mapping[EnergyDemandID, FloatArray],
 ) -> dict[EnergyDemandID, FloatArray]:
     """
-    Calculate the residual energy of every sailing condition or port at once.
+    Calculate the residual energy of each sailing condition or port.
 
     The combined saving and the external energy over each step's duration reduce the
     demand, floored at zero, before any power transfer moves energy between the
@@ -114,22 +113,24 @@ def _residual_energy(
         Vessel whose converters set the loads.
     package
         Technology package installed on the vessel.
-    durations
+    times
         Time spent on each step, in days/year.
     raw_demands
-        Operational energy demand per energy demand type and step, in GJ/year.
+        Operational energy demand per energy demand type, the step axis first, in
+        GJ/year.
 
     Returns
     -------
     dict[EnergyDemandID, FloatArray]
         Residual energy per energy demand type, the step axis first, in GJ/year.
     """
-    times = np.asarray(durations, dtype=float)
     residual_energy: dict[EnergyDemandID, FloatArray] = {}
 
-    for energy_id, raw_demand in _stack_steps(raw_demands).items():
+    for energy_id, raw_demand in raw_demands.items():
         saving = package.compound_savings[energy_id]
-        external_energy = _power_to_energy(package.compound_powers[energy_id], times)
+        power = package.compound_powers[energy_id]
+
+        external_energy = _power_to_energy(power, times)
         residual_energy[energy_id] = _raw_to_residual_energy(
             raw_demand, saving, external_energy
         )
@@ -137,10 +138,10 @@ def _residual_energy(
     if not package.includes_transfer:
         return residual_energy
 
-    return _residual_energy_after_transfer(vessel, package, times, residual_energy)
+    return _subtract_transfers(vessel, package, times, residual_energy)
 
 
-def _residual_energy_after_transfer(
+def _subtract_transfers(
     vessel: Vessel,
     package: TechnologyPackage,
     times: FloatArray,
@@ -176,9 +177,8 @@ def _residual_energy_after_transfer(
         for energy_id, energy in residual_energy.items()
     }
 
-    for source_id, sink_id in product(residual_energy, repeat=2):
-        curves = package.transfer_curves.get((source_id, sink_id))
-        if curves is None:
+    for (source_id, sink_id), curves in package.transfer_curves.items():
+        if source_id not in residual_energy or sink_id not in residual_energy:
             continue
 
         residual_power = _energy_to_power(residual_energy[source_id], times)
@@ -219,15 +219,14 @@ def _calculate_power_transfer(curves: list[CurveInput], load: FloatArray) -> Flo
         Power transferred from source to sink at each step, in MW.
     """
     powers = np.array([curve.get(load) for curve in curves])
-    transfer: FloatArray = np.sum(powers, axis=0, dtype=float)
-    return transfer
+    return np.sum(powers, axis=0, dtype=float)
 
 
 def _calculate_converter_load(
-    vessel: Vessel, power_system_id: EnergyDemandID, residual_power: FloatArray
+    vessel: Vessel, energy_id: EnergyDemandID, residual_power: FloatArray
 ) -> FloatArray:
     """Return the load of the converter serving a demand, fraction of capacity."""
-    converter = vessel.power_system.get_converter_by_energy_type(power_system_id)
+    converter = vessel.power_system.get_converter_by_energy_type(energy_id)
     capacity = converter.power_capacity.get()
     return residual_power / capacity
 

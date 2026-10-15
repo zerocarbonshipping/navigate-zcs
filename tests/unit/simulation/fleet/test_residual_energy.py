@@ -443,10 +443,10 @@ class TestCombinedResidualEnergy:
             }
         )
 
-        durations = [np.array([1.0])]  # 1 day
+        durations = np.array([[1.0]])  # 1 day
         raw_demands = {
-            PROPULSION: [np.array([1000.0])],
-            HEAT: [np.array([500.0])],
+            PROPULSION: np.array([[1000.0]]),
+            HEAT: np.array([[500.0]]),
         }
 
         return vessel, pkg, durations, raw_demands
@@ -484,10 +484,10 @@ class TestCombinedResidualEnergy:
         pkg = _make_package(whrs)
 
         vessel = _make_mock_vessel({PROPULSION: 20.0, HEAT: 5.0})
-        durations = [np.array([1.0])]
+        durations = np.array([[1.0]])
         raw_demands = {
-            PROPULSION: [np.array([1000.0])],
-            HEAT: [np.array([500.0])],
+            PROPULSION: np.array([[1000.0]]),
+            HEAT: np.array([[500.0]]),
         }
 
         result = _residual_energy(vessel, pkg, durations, raw_demands)
@@ -518,10 +518,10 @@ class TestCombinedResidualEnergy:
         pkg = _make_package(vfd, kite)
 
         vessel = _make_mock_vessel({PROPULSION: 20.0, HEAT: 5.0})
-        durations = [np.array([1.0])]
+        durations = np.array([[1.0]])
         raw_demands = {
-            PROPULSION: [np.array([1000.0])],
-            HEAT: [np.array([500.0])],
+            PROPULSION: np.array([[1000.0]]),
+            HEAT: np.array([[500.0]]),
         }
 
         result = _residual_energy(vessel, pkg, durations, raw_demands)
@@ -536,8 +536,8 @@ class TestCombinedResidualEnergy:
         pkg_two = _make_package(vfd, kite)
 
         vessel = _make_mock_vessel({PROPULSION: 20.0})
-        durations = [np.array([1.0])]
-        raw_demands = {PROPULSION: [np.array([1000.0])]}
+        durations = np.array([[1.0]])
+        raw_demands = {PROPULSION: np.array([[1000.0]])}
 
         r1 = _residual_energy(vessel, pkg_one, durations, raw_demands)
         r2 = _residual_energy(vessel, pkg_two, durations, raw_demands)
