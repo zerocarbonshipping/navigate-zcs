@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.levy import Levy
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
@@ -159,33 +158,3 @@ def _calculate_attribute_in_policy_jurisdiction(
         attribute += fraction * attribute_leg
 
     return float(attribute)
-
-
-def policies_affecting_port(port: Port, policies: dict[str, Levy]) -> list[Levy]:
-    """
-    Get a list of all the levies which jurisdiction affects the port.
-
-    Parameters
-    ----------
-    port
-        Port to find levies for.
-    policies
-        All levies in the simulation.
-
-    Returns
-    -------
-    list[Levy]
-        List of levies affecting the port.
-    """
-    affected = []
-
-    for policy in policies.values():
-        if not policy.is_active():
-            continue
-
-        jurisdiction = policy.jurisdiction
-
-        if port in jurisdiction:
-            affected.append(policy)
-
-    return affected

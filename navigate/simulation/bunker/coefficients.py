@@ -223,7 +223,6 @@ def calculate_levy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
     v = vessel.name
     ports = vessel.route.ports
-    port_levies = alg.port_levies
     idx = alg.idx
     usable_fuels = vessel.usable_fuels
 
@@ -232,9 +231,9 @@ def calculate_levy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             (v, port.name, f, levy.name): levy.expectation.get_level(idx)
             * levy.expectation.get_coefficient((v, port.name, f), idx)
             for port in ports
-            for levy in port_levies[port.name]
+            for levy in port.levies
             for f in usable_fuels
             if port.is_bunkering_allowed(f)
-            if levy.is_active() and levy.vessel_is_policed(v)
+            if levy.vessel_is_policed(v)
         }
     )

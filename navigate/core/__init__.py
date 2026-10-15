@@ -29,7 +29,7 @@ from navigate.core.assign import (
     write_matching_keys,
 )
 from navigate.core.expression import Expression
-from navigate.core.node_maps import get_fuels_per_fuel_type
+from navigate.core.node_maps import get_fuels_per_fuel_type, update_port_levies
 from navigate.core.scalar import Scalar
 from navigate.core.simulation_results import SimulationResults
 from navigate.core.wrap import as_list, as_scalar

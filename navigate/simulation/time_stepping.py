@@ -14,7 +14,11 @@ import logging
 import timeit
 from typing import TYPE_CHECKING
 
-from navigate.core import SimulationResults, get_fuels_per_fuel_type
+from navigate.core import (
+    SimulationResults,
+    get_fuels_per_fuel_type,
+    update_port_levies,
+)
 from navigate.core.enum_ import BunkerScopeID
 from navigate.core.profiles import GlobalProfile
 from navigate.simulation.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
@@ -176,6 +180,7 @@ class Simulation:
 
     def _perform_time_step(self) -> None:
         self._check_dynamic_consistency()
+        self._update_node_maps()
 
         # temporal calculators get the current time assigned or their value
         # precalculated, so they can be read through .get() without the time
@@ -265,6 +270,10 @@ class Simulation:
 
         for timetable in self.nodes.timetables.values():
             timetable.set_current_time(self._time)
+
+    def _update_node_maps(self) -> None:
+        """Rewrite the node maps that events can change."""
+        update_port_levies(self.nodes.ports, self.nodes.levies)
 
     def _calculate_expectations(self) -> None:
         """Precalculate certain expectations which are simulation bottlenecks."""
@@ -551,7 +560,6 @@ class Simulation:
             self.nodes.feedstocks,
             self.nodes.fleets,
             self.nodes.fuels,
-            self.nodes.levies,
             self.nodes.ports,
             self.nodes.regulations,
             self.general_nodes.bunker_options,
@@ -563,7 +571,6 @@ class Simulation:
             self.nodes.feedstocks,
             self.nodes.fleets,
             self.nodes.fuels,
-            self.nodes.levies,
             self.nodes.ports,
             self.nodes.regulations,
             self.general_nodes.bunker_options,

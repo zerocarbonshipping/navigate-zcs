@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.levy import Levy
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import FloatArray
 
@@ -59,6 +60,7 @@ class Port(Node):
         self.profile: PortProfile = PortProfile()
 
         self.liquid_market_fuel: dict[str, bool] = {}
+        self.levies: list[Levy]
 
     # external methods (DSL commands) --------------------------------------------------
     def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:
