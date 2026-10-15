@@ -257,7 +257,7 @@ Converter "heat_boiler_oil" {
 
 You introduced new nodes when you assigned them as values of the `"vessel_ice_oil"`’s attributes. One of them was the node `PowerSystem` which we defined in the above section.
 Others include the definition of a route that the vessel sails, and a definition of a tank node.
-The values assigned to the attributes of a Route, namely Ports, Distances, and Speeds are lists which are marked by squared brackets. In this example, the assigned lists only contain one item, respectively.
+The value assigned to the `Ports` attribute of a Route is a list, marked by square brackets. In this example, the list only contains one port.
 
 
 1. Define the node `"main_oil"` of the node type `Tank`.
@@ -273,19 +273,20 @@ Tank "main_oil" {
 ```
 
 2. Define the node `"route"` of the node type `Route`.
-Set the `RouteType`. This can be one of two values: `ROUND_TRIP` or `REGIONAL_TRIP`.
+Set the `RouteType`. This can be one of two values: `LINER` or `TRAMP`. A `LINER` sails its ports in the listed order, while a `TRAMP` describes a year of sailing between its ports in any order. Our example uses `TRAMP`.
 Set one or more ports at which a vessel stops. In our example, the vessel is only stopping at one port called `"port"`. In your future Navigate modeling, the port often covers a whole region is specified as Africa, Americas, Asia, Europe and Middle East. Hence, a port is often used as a proxy for a region.
 Set the `TimeAtSea`, which defines the proportion of a year that a vessel spends at sea. In our example, the ship is at sea for (0.75*365 days) 273 full days a year.
-Set the `ConditionDistribution`, which defines the proportion of the total TimeAtSea, that is spent for each leg of the journey (here: only one leg, i.e. 100% of the total `TimeAtSea` are spent on the leg).
-Set the Speeds of the vessel, given in knots, at each leg of the journey (here: only one leg).
+A leg is a voyage from one port to another. On a `TRAMP`, every pair of ports is a leg, a port with itself included, so our one port gives the one leg from `"port"` back to `"port"`. The inputs of a leg are set with commands, written `set_xxx(...)` (commands are explained further with the Fuel node below). They address a leg by the names of its two ports, and the wildcard `"*"` matches every port.
+Set the voyage distribution with `set_voyage_distribution`, which defines the share of the sea miles sailed on each leg (here: only one leg, i.e. all of the sea miles are sailed on the leg).
+Set the speed of the vessel with `set_speed`, given in knots, on each leg of the journey (here: only one leg).
 
 ```python
 Route "route" {
-    RouteType = REGIONAL_TRIP 
-    Ports = [Port("port")] 
+    RouteType = TRAMP
+    Ports = [Port("port")]
     TimeAtSea = 0.75
-    ConditionDistribution = [1.0]
-    Speeds = [10]
+    set_voyage_distribution("*", "*", 1)
+    set_speed("*", "*", 10)
 }
 ```
 
@@ -574,11 +575,11 @@ Tank "main_oil" {
 # Define the node "route" below.
 
 Route "route" {
-	RouteType = REGIONAL_TRIP 
-	Ports = [Port("port")] 
+	RouteType = TRAMP
+	Ports = [Port("port")]
 	TimeAtSea = 0.75
-	ConditionDistribution = [1.0]
-	Speeds = [10]
+	set_voyage_distribution("*", "*", 1)
+	set_speed("*", "*", 10)
 }
 
 # C) DEFINITION OF A PORT

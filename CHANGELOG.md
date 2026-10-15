@@ -22,6 +22,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   cargo-mile, counting the transport work lost when a vessel slows down.
 - Report properties `ShorePowerEnergy`, `ShorePowerExpenses` and
   `ShorePowerEmission` at vessel, fleet and global level.
+- `set_speed` on a `Route` takes a `Curve` of the share of a leg's sea time
+  at each speed, and on a `TRAMP` route `set_utilization` takes a `Curve` of
+  the utilization at those speeds, for ballast and laden sailing (#491).
 - The `Saving`, `RemedialUnits` and `LevyUnits` report properties can now be
   requested; they used to produce no column.
 
@@ -32,6 +35,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change
   cannot be changed in `EVENTS` either; re-assigning its attributes there is a
   deck error.
+- The `Route` types `ROUND_TRIP` and `REGIONAL_TRIP` are now `LINER` and
+  `TRAMP`, named after the calculation, not the market segment; the old names
+  are a deck error (#491).
 - A calculator or expression whose value reaches an attribute's exclusive
   minimum or maximum, such as a zero `Variable` as a Plant's `Capacity`, stops
   the run with an error naming the node instead of being clamped onto it.
@@ -59,6 +65,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Three wildcard uses are rejected at their line: a glob as a command
   argument, a glob on a single-valued attribute (`Route = Route("r_*")`), and
   a node listed beside a glob that also matches it.
+- A `Route`'s inputs are checked per leg, and these stop the deck (#491):
+  - a command key pair that is no leg of the route, or a required leg left
+    unset; `set_voyage_distribution` is required on every `TRAMP` leg;
+  - an input the route type does not read, such as `TimeAtSea` on a `LINER`;
+  - a speed `Curve` whose shares do not sum to 1, a `LINER` sailing a leg
+    twice, or an `EVENTS` change to the number of speeds on a leg.
 - A smoothed price belief (flexibility cost, energy scarcity) ramps up when a
   price first appears after a stretch of exactly zero instead of taking it in
   full; `basecase_mid_regulation` moves by up to about 0.5% from 2030 (#25).
@@ -105,6 +117,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   assignment is read, so the calculator keeps them if the attribute is
   re-assigned later in `DEFINE`, as it always did across `EVENTS`.
 - The minimum supported Python version is 3.13 (was 3.12).
+- The 8 default bulk-carrier and tanker routes merge ballast and laden into one
+  utilization per speed. Energy and cargo miles hold where load is linear in
+  utilization; converter load, the power check and speed limits move (#491).
 - A regulation's default fuel WTT averages over every port on the vessel's
   route, each once, not only the jurisdiction ports, where it was 0 without
   supply. Results move where a route leaves the jurisdiction.
@@ -161,6 +176,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - vessel Opex and activity output, policy emission factors, port bunker
     Wtw, fleet scrap-age statistics and the levy level.
 - The `producer_changes` plot.
+- The list attributes of `Route`; write the command keyed by the leg's
+  origin and destination ports instead (#491):
+  - `Speeds`: `set_speed`, and `ConditionDistribution`: a speed `Curve`;
+  - `Utilizations`: `set_utilization`, `Distances`: `set_distance`;
+  - `PortDurations`: `set_port_duration`, the days at the leg's destination;
+  - `PortCalls`: `set_port_calls`, keyed by one port.
 - The debug plots `fuel_supply_demand_expectation`, `fleet_newbuild_sources`,
   `fleet_fuel_conversion_sources`, `fleet_fuel_conversion_sources_normalized`,
   `technology_install_sources` and `technology_install_sources_normalized`,
