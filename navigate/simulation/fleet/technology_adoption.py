@@ -1127,14 +1127,10 @@ def _accumulate_technology_effect(
             )
 
             for demand, residual in residual_sea.items():
-                effect.saving_sea[demand] += w * (
-                    op_sea_arr[demand] - np.asarray(residual, dtype=float)
-                )
+                effect.saving_sea[demand] += w * (op_sea_arr[demand] - residual)
 
             for demand, residual in residual_port.items():
-                effect.saving_port[demand] += w * (
-                    op_port_arr[demand] - np.asarray(residual, dtype=float)
-                )
+                effect.saving_port[demand] += w * (op_port_arr[demand] - residual)
 
             effect.weight += w
             effect.shore_capacity += w * package.shore_power_capacity
