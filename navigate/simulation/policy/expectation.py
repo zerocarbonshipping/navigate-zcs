@@ -16,11 +16,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
 
-_TRANSPORT_MEASURES = (
-    RegulationMeasureID.TRANSPORT,
-    RegulationMeasureID.TRANSPORT_NOMINAL,
-)
-
 
 def calculate_policy_expectations(
     regulations: dict[str, Regulation],
@@ -80,7 +75,10 @@ def _assign_regulation_forecasts(
 
     expectation.set_remedial_cost(idx, regulation.remedial_cost.get(times))
 
-    if regulation.measure in _TRANSPORT_MEASURES:
+    if regulation.measure in (
+        RegulationMeasureID.TRANSPORT,
+        RegulationMeasureID.TRANSPORT_NOMINAL,
+    ):
         for vessel_name, own_capacity in regulation.vessel_capacity.items():
             if own_capacity is None:
                 capacity = vessels[vessel_name].nominal_capacity.get(times)
