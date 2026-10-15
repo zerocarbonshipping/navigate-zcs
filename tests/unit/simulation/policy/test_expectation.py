@@ -5,7 +5,7 @@
 Tests for the policy expectation helpers.
 
 Tests verify the correctness of:
-  - _calculate_global_warming_potentials: a policy's GWP override is read at the
+  - _assign_global_warming_potentials: a policy's GWP override is read at the
     model's emissions lifetime, or at the policy's own lifetime when it sets
     one, and an emission without an override falls back to its own GWP.
 """
@@ -18,7 +18,7 @@ from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.regulation import Regulation
 from navigate.core.table_data import TableData
-from navigate.simulation.policy.expectation import _calculate_global_warming_potentials
+from navigate.simulation.policy.expectation import _assign_global_warming_potentials
 
 # the model-wide emissions lifetime handed to the policy, years
 MODEL_EMISSIONS_LIFETIME = 100.0
@@ -69,10 +69,9 @@ def test_policy_global_warming_potential_is_read_at_emissions_lifetime(
 
     expectation = regulation.expectation
     expectation.initialize(1, ["methane"], {})
-    _calculate_global_warming_potentials(
+    _assign_global_warming_potentials(
         regulation, {"methane": emission}, MODEL_EMISSIONS_LIFETIME
     )
 
-    assert expectation.get_global_warming_potential("methane") == pytest.approx(
-        expected
-    )
+    gwp = expectation.get_global_warming_potential("methane")
+    assert gwp == pytest.approx(expected)

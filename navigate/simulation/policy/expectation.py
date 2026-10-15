@@ -55,31 +55,27 @@ def calculate_policy_expectations(
     idx
         Current time-step index.
     """
+    times = timeline[idx:]
+
     for regulation in regulations.values():
         if not regulation.active:
             continue
 
-        _calculate_regulation_expectation(
-            regulation, emissions, vessels, emissions_lifetime, timeline, idx
-        )
+        _assign_regulation_forecasts(regulation, vessels, times, idx)
+        _assign_global_warming_potentials(regulation, emissions, emissions_lifetime)
 
     for levy in levies.values():
         if not levy.active:
             continue
 
-        _calculate_levy_expectation(levy, emissions, emissions_lifetime, timeline, idx)
+        _assign_levy_forecasts(levy, times, idx)
+        _assign_global_warming_potentials(levy, emissions, emissions_lifetime)
 
 
-def _calculate_regulation_expectation(
-    regulation: Regulation,
-    emissions: dict[str, Emission],
-    vessels: dict[str, Vessel],
-    emissions_lifetime: float,
-    timeline: FloatArray,
-    idx: int,
+def _assign_regulation_forecasts(
+    regulation: Regulation, vessels: dict[str, Vessel], times: FloatArray, idx: int
 ) -> None:
-    """Set the regulation's remedial cost, capacities and global warming potentials."""
-    times = timeline[idx:]
+    """Set the regulation's remedial cost and transport-measure vessel capacities."""
     expectation = regulation.expectation
 
     expectation.set_remedial_cost(idx, regulation.remedial_cost.get(times))
@@ -93,23 +89,13 @@ def _calculate_regulation_expectation(
 
             expectation.set_vessel_capacity(idx, vessel_name, capacity)
 
-    _calculate_global_warming_potentials(regulation, emissions, emissions_lifetime)
+
+def _assign_levy_forecasts(levy: Levy, times: FloatArray, idx: int) -> None:
+    """Set the levy's level."""
+    levy.expectation.set_level(idx, levy.level.get(times))
 
 
-def _calculate_levy_expectation(
-    levy: Levy,
-    emissions: dict[str, Emission],
-    emissions_lifetime: float,
-    timeline: FloatArray,
-    idx: int,
-) -> None:
-    """Set the levy's level and global warming potentials."""
-    levy.expectation.set_level(idx, levy.level.get(timeline[idx:]))
-
-    _calculate_global_warming_potentials(levy, emissions, emissions_lifetime)
-
-
-def _calculate_global_warming_potentials(
+def _assign_global_warming_potentials(
     policy: Levy | Regulation,
     emissions: dict[str, Emission],
     emissions_lifetime: float,
@@ -124,6 +110,5 @@ def _calculate_global_warming_potentials(
         else:
             potential = own_potential
 
-        policy.expectation.set_global_warming_potential(
-            emission_name, potential.get(emissions_lifetime)
-        )
+        gwp = potential.get(emissions_lifetime)
+        policy.expectation.set_global_warming_potential(emission_name, gwp)
