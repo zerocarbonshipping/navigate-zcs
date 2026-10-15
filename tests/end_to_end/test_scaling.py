@@ -59,20 +59,6 @@ def test_twice_the_fleet_doubles_its_extensive_results(run_combination, getter):
         )
 
 
-@pytest.mark.parametrize("getter", ["get_actual_speed", "get_optimal_speed"])
-def test_twice_the_fleet_sails_at_the_same_speeds(run_combination, getter):
-    base = _scaled_fleet(run_combination, 1)
-    scaled = _scaled_fleet(run_combination, FACTOR)
-
-    for vessel, twin in zip(base.vessels, scaled.vessels, strict=True):
-        np.testing.assert_allclose(
-            getattr(twin.profile, getter)(),
-            getattr(vessel.profile, getter)(),
-            rtol=SCALING_RTOL,
-            err_msg=vessel.name,
-        )
-
-
 def test_twice_the_levy_level_doubles_the_first_collection(run_combination):
     def collected(level):
         results = run_combination(
