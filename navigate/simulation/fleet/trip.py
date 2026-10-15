@@ -5,8 +5,8 @@
 The reference trip a vessel's operation scales to a year, derived from its route.
 
 The derivation is the one reader of a route's operational inputs, and the one place
-that tells the route types apart: a ROUND_TRIP states its trip directly, while a
-REGIONAL_TRIP states a reference year, which becomes a trip of one voyage.
+that tells the route types apart: a LINER states its trip directly, while a TRAMP
+states a reference year, which becomes a trip of one voyage.
 """
 
 from __future__ import annotations
@@ -17,7 +17,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import RouteTypeID
-from navigate.core.wrap import to_floats, to_numpy
+from navigate.core.nodes.curve import Curve
+from navigate.core.wrap import to_numpy
 from navigate.util import HOUR_TO_DAYS, ROUND_OFF, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 
     from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.route import Route
+    from navigate.core.types_ import CurveForecastInput, CurveInput
     from navigate.util.types_ import BoolArray, FloatArray, FloatLike, IntArray
 
 
@@ -107,25 +109,23 @@ def derive_reference_trip(route: Route) -> ReferenceTrip:
         Reference trip of the route.
     """
     condition_legs = bind_conditions_to_legs(route)
-    entries = [entry for _, entry in route.get_conditions()]
 
-    speeds = to_numpy(route.speeds)[entries]
-    utilizations = to_numpy(route.utilizations)[entries]
+    inputs = zip(route.leg_speeds, route.leg_utilizations, strict=True)
+    conditions = [_read_leg_conditions(*leg) for leg in inputs]
+    speeds, shares, utilizations = map(np.concatenate, zip(*conditions, strict=True))
 
-    # check_requirements requires TimeAtSea on every REGIONAL_TRIP, so the None test
-    # only narrows its type
-    if route.route_type == RouteTypeID.REGIONAL_TRIP and route.time_at_sea is not None:
+    # check_requirements requires TimeAtSea on every TRAMP, so the None test only
+    # narrows its type
+    if route.route_type == RouteTypeID.TRAMP and route.time_at_sea is not None:
         time_at_sea = route.time_at_sea.get()
-        shares = np.array(route.condition_distribution)[entries]
 
         speeds_leg = sum_per_leg(condition_legs, shares * speeds)
-        leg_miles = _calculate_regional_leg_miles(route, speeds_leg, time_at_sea)
-        port_days = _calculate_regional_port_days(route, time_at_sea)
+        leg_miles = _calculate_tramp_leg_miles(route, speeds_leg, time_at_sea)
+        port_days = _calculate_tramp_port_days(route, time_at_sea)
 
     else:
-        shares = np.ones(len(entries))
-        leg_miles = to_numpy(route.distances)
-        port_days = to_numpy(route.port_durations)
+        leg_miles = to_numpy(route.leg_distances)
+        port_days = _calculate_liner_port_days(route)
 
     return ReferenceTrip(
         condition_legs, speeds, shares, utilizations, leg_miles, port_days
@@ -201,11 +201,71 @@ def sum_energy_per_leg(
     }
 
 
-def _calculate_regional_leg_miles(
+def _read_leg_conditions(
+    speed: CurveInput, utilization: CurveForecastInput
+) -> tuple[FloatArray, FloatArray, FloatArray]:
+    """
+    Read the speed, sea-time share and utilization of each sailing condition on a leg.
+
+    A speed Curve lists one condition per speed, its y the share of the leg's sea
+    time sailed at that speed; any other speed is the leg's one condition. A
+    utilization Curve is read at the speeds of the conditions.
+
+    Parameters
+    ----------
+    speed
+        Speed input of the leg.
+    utilization
+        Utilization input of the leg.
+
+    Returns
+    -------
+    tuple[FloatArray, FloatArray, FloatArray]
+        Speed, in knots, share of the leg's sea time and utilization of each
+        condition on the leg.
+    """
+    if isinstance(speed, Curve):
+        speeds = speed.x
+        shares = speed.get(speeds)
+    else:
+        speeds = np.array([speed.get()])
+        shares = np.ones(1)
+
+    if isinstance(utilization, Curve):
+        utilizations = utilization.get(speeds)
+    else:
+        utilizations = np.full(len(speeds), utilization.get())
+
+    return speeds, shares, utilizations
+
+
+def _calculate_liner_port_days(route: Route) -> FloatArray:
+    """
+    Place the port duration of each leg of a liner route at the stop ending it.
+
+    Parameters
+    ----------
+    route
+        Liner route holding the port durations.
+
+    Returns
+    -------
+    FloatArray
+        Time at each stop, in days/voyage.
+    """
+    destinations = [destination for _, destination in route.get_legs()]
+
+    port_days = np.zeros(route.get_number_of_ports())
+    port_days[destinations] = to_numpy(route.leg_port_durations)
+
+    return port_days
+
+
+def _calculate_tramp_leg_miles(
     route: Route, speeds_leg: FloatArray, time_at_sea: float
 ) -> FloatArray:
     """
-    Split the sea miles of a regional route's reference year over its legs.
+    Split the sea miles of a tramp route's reference year over its legs.
 
     A voyage share is the share of the sea miles sailed on its leg. The miles are
     those that fill the reference year's sea time at each leg's mean reference speed.
@@ -213,7 +273,7 @@ def _calculate_regional_leg_miles(
     Parameters
     ----------
     route
-        Regional route holding the voyage shares.
+        Tramp route holding the voyage shares.
     speeds_leg
         Mean reference speed on each leg, in knots.
     time_at_sea
@@ -232,14 +292,14 @@ def _calculate_regional_leg_miles(
     return voyage_shares * sea_days / days_per_mile
 
 
-def _calculate_regional_port_days(route: Route, time_at_sea: float) -> FloatArray:
+def _calculate_tramp_port_days(route: Route, time_at_sea: float) -> FloatArray:
     """
-    Split the port time of a regional route's reference year by the port calls.
+    Split the port time of a tramp route's reference year by the port calls.
 
     Parameters
     ----------
     route
-        Regional route holding the port calls.
+        Tramp route holding the port calls.
     time_at_sea
         Reference share of the year spent at sea.
 
@@ -248,7 +308,7 @@ def _calculate_regional_port_days(route: Route, time_at_sea: float) -> FloatArra
     FloatArray
         Time at each port, in days/year.
     """
-    port_calls = to_numpy(route.port_calls)
+    port_calls = to_numpy([route.port_calls[port.name] for port in route.ports])
     port_days = (1.0 - time_at_sea) * YEAR
 
     return port_days * divide_nonzero(port_calls, np.sum(port_calls))
@@ -256,24 +316,21 @@ def _calculate_regional_port_days(route: Route, time_at_sea: float) -> FloatArra
 
 def _normalize_voyage_shares(route: Route) -> FloatArray:
     """
-    Normalize a regional route's voyage shares to sum to unity, one per leg.
+    Normalize a tramp route's voyage shares to sum to unity, one per leg.
 
     The shares are rounded in total, and split equally where they total zero.
 
     Parameters
     ----------
     route
-        Regional route holding the voyage shares, keyed by port names.
+        Tramp route holding the voyage shares.
 
     Returns
     -------
     FloatArray
         Voyage share of each leg, in the order of `Route.get_legs`.
     """
-    shares = to_floats(route.voyage_distribution)
-    total = np.round(np.sum(list(shares.values()), axis=0), ROUND_OFF)
+    shares = to_numpy(route.leg_voyage_shares)
+    total = np.round(np.sum(shares), ROUND_OFF)
 
-    names = [port.name for port in route.ports]
-    shares_leg = np.array([shares[(names[i], names[j])] for i, j in route.get_legs()])
-
-    return divide_nonzero(shares_leg, total, default=1.0 / len(shares))
+    return divide_nonzero(shares, total, default=1.0 / len(shares))

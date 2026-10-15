@@ -25,6 +25,7 @@ from navigate.core.assign import (
     assign_value,
     command_assignment_to_boolean_dict,
     expand_id_wildcard,
+    write_existing_key_pairs,
     write_matching_key_pairs,
     write_matching_keys,
 )

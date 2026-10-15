@@ -326,8 +326,8 @@ def _name_conditions(route: Route) -> list[str]:
     """
     Name each sailing condition of a route as its deck states it.
 
-    A condition that is the only one on its leg and on no other leg is that leg,
-    named by its ports; any other condition is named by its entry in 'Speeds'.
+    A condition that is the only one on its leg is that leg, named by its ports; any
+    other condition is named by its entry in the leg's speed Curve.
 
     Parameters
     ----------
@@ -344,15 +344,16 @@ def _name_conditions(route: Route) -> list[str]:
     ports = route.ports
 
     conditions_per_leg = Counter(leg for leg, _ in conditions)
-    legs_per_entry = Counter(entry for _, entry in conditions)
 
     names = []
     for leg, entry in conditions:
-        if conditions_per_leg[leg] == 1 and legs_per_entry[entry] == 1:
-            origin, destination = legs[leg]
-            names.append(f"the leg from {ports[origin]} to {ports[destination]}")
+        origin, destination = legs[leg]
+        name_leg = f"the leg from {ports[origin]} to {ports[destination]}"
+
+        if conditions_per_leg[leg] == 1:
+            names.append(name_leg)
         else:
-            names.append(f"condition {entry}")
+            names.append(f"condition {entry} on {name_leg}")
 
     return names
 

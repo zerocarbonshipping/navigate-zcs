@@ -48,6 +48,10 @@ type ForecastArgument = float | Forecast | Variable | Expression
 type CurveInput = Scalar | Curve | Variable | Expression
 type CurveArgument = float | Curve | Variable | Expression
 
+# setters passing type_ CURVE, FORECAST, or VARIABLE
+type CurveForecastInput = Scalar | Curve | Forecast | Variable | Expression
+type CurveForecastArgument = float | Curve | Forecast | Variable | Expression
+
 # setters passing type_ CURVE, SURFACE, or VARIABLE
 type SurfaceInput = Scalar | Curve | Surface | Variable | Expression
 type SurfaceArgument = float | Curve | Surface | Variable | Expression

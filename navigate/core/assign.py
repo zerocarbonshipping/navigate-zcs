@@ -30,6 +30,7 @@ from navigate.util import (
     TOLERANCE,
     key_name,
     list_is_unique,
+    matching_keys,
     name_contains_wildcards,
     retrieve_keys,
     unique_list,
@@ -681,6 +682,42 @@ def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
     for key1 in keys1:
         for key2 in keys2:
             assignment_dict[(key1, key2)] = value
+
+
+def write_existing_key_pairs[V](
+    key: tuple[str, str],
+    value: V,
+    assignment_dict: _CommandDict[tuple[str, str], V],
+) -> None:
+    """
+    Write an already validated value to the existing dict entries a key pair matches.
+
+    The pair is matched as a whole against each existing key, so a wildcard in one
+    part writes only to the pairs the dict holds and never creates one.
+
+    Parameters
+    ----------
+    key
+        Pair of node names, possibly including wildcards.
+    value
+        Value assigned to every matched entry, validated by the caller.
+    assignment_dict
+        The dictionary being assigned to.
+    """
+    pattern1, pattern2 = key
+    keys = [
+        (key1, key2)
+        for key1, key2 in assignment_dict
+        if matching_keys(pattern1, [key1]) and matching_keys(pattern2, [key2])
+    ]
+
+    if not keys:
+        raise ValueError(f"matches no existing key pair ('{pattern1}', '{pattern2}')")
+
+    # every matched key holds the same object: a Scalar answers a getter and
+    # carries no per-key state, and a node or an expression was always shared
+    for key_ in keys:
+        assignment_dict[key_] = value
 
 
 def command_assignment_to_boolean_dict[K: str | Enum](
