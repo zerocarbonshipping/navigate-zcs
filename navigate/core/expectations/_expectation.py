@@ -66,14 +66,14 @@ class _Expectation:
     ) -> dict[K, FloatArray]:
         return {key: self._default_array(default) for key in keys}
 
-    def _default_tuple_dict_float(
-        self, keys1: Iterable[str], keys2: Iterable[str], default: float | None = None
-    ) -> dict[tuple[str, str], float]:
+    def _default_tuple_dict_float[K1, K2](
+        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float | None = None
+    ) -> dict[tuple[K1, K2], float]:
         return self._default_dict_float(itertools.product(keys1, keys2), default)
 
-    def _default_tuple_dict_array(
-        self, keys1: Iterable[str], keys2: Iterable[str], default: float | None = None
-    ) -> dict[tuple[str, str], FloatArray]:
+    def _default_tuple_dict_array[K1, K2](
+        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float | None = None
+    ) -> dict[tuple[K1, K2], FloatArray]:
         return self._default_dict_array(itertools.product(keys1, keys2), default)
 
     def _default_dict_list_array[K](
