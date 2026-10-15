@@ -302,6 +302,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   of vessels that left a fleet no longer leak into later steps.
 - The LP is built in the same order on every run, so dual values no longer
   vary between runs in degenerate solves.
+- On a `REGIONAL_TRIP` `Route` with unequal shares in a port pair's two
+  directions, each direction's sea energy demand sat on the opposite leg in the
+  bunker optimisation; decks with such shares (`business_as_usual`) shift.
 - Fuel-conversion expenses are booked on the elapsed-years axis, so
   calendar-date timelines no longer drop or distort the conversion year.
 - With sub-year time steps, the fuel-conversion business case no longer

@@ -25,7 +25,7 @@ from navigate.core import (
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
-from navigate.core.wrap import to_floats, to_numpy
+from navigate.core.wrap import to_floats
 from navigate.exceptions import UnassignedAttributeError
 from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 
@@ -322,13 +322,14 @@ class Route(Node):
         """
         Get the normalized voyage distribution, cached at (re-)initialization.
 
-        The returned mapping is shared between calls; treat it as read-only.
+        The returned mapping is shared between calls; treat it as read-only. As an
+        array, the fractions are listed in the order of `get_leg_indices`.
         """
         if to_array:
+            names = [port.name for port in self.ports]
             return [
-                self._voyage_fractions[(pi.name, pj.name)]
-                for pj in self.ports
-                for pi in self.ports
+                self._voyage_fractions[(names[i], names[j])]
+                for i, j in self.get_leg_indices()
             ]
 
         return self._voyage_fractions
@@ -384,9 +385,3 @@ class Route(Node):
             key: divide_nonzero(value, total, default=1.0 / count)
             for key, value in evaluated.items()
         }
-
-    def get_number_of_port_calls(self) -> FloatArray:
-        if self.route_type == RouteTypeID.ROUND_TRIP:
-            return np.ones((self.get_number_of_ports(),))
-
-        return to_numpy(self.port_calls)

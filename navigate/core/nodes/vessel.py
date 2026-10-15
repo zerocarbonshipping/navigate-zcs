@@ -203,9 +203,6 @@ class Vessel(Node):
             timeline, emissions, fuels, emissions_lifetime, regulation_names, levy_names
         )
 
-    def calculate_expectation(self, idx: int) -> None:
-        self.expectation.set_speeds(idx, [speed.get() for speed in self.route.speeds])
-
     def calculate_profile(self, idx: int) -> None:
         """
         Write the vessel lifetime and lead time to the profile at idx.

@@ -81,14 +81,15 @@ class TestVoyageDistributionNormalization:
 
         assert route.get_voyage_distribution() is route.get_voyage_distribution()
 
-    def test_to_array_orders_inner_index_by_origin_port(self):
+    def test_to_array_follows_the_leg_order(self):
         route = _make_regional_route(
             {("a", "b"): Scalar(0.75), ("b", "a"): Scalar(0.25)}
         )
 
-        # to_array orders as (origin, destination) pairs: aa, ba, ab, bb
+        # the legs run origin-major: aa, ab, ba, bb
         values = route.get_voyage_distribution(to_array=True)
-        assert values == pytest.approx([0.0, 0.25, 0.75, 0.0])
+        assert route.get_leg_indices() == ((0, 0), (0, 1), (1, 0), (1, 1))
+        assert values == pytest.approx([0.0, 0.75, 0.25, 0.0])
 
 
 class TestSetVoyageDistributionAcceptedKinds:
