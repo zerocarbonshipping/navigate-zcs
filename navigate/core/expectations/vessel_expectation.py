@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
     from typing import SupportsIndex
 
+    from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
@@ -83,6 +84,11 @@ class VesselExpectation(_Expectation):
         # effective lower heating value per converter and fuel
         self._effective_lhv: dict[tuple[str, str], float] = {}
 
+        # TTW emissions per converter, fuel and emission, in ton emission/ton fuel-in,
+        # before GWP
+        self._ttw_consumption: dict[tuple[str, str, str], float] = {}
+        self._ttw_slip: dict[tuple[str, str, str], float] = {}
+
         # bunkering/spend
         self._bunker_mass_expected: dict[tuple[str, str], float] = {}
         self._bunker_mass_existing: dict[tuple[str, str], float] = {}
@@ -121,6 +127,7 @@ class VesselExpectation(_Expectation):
         route: Route,
         power_system: PowerSystem,
         fuels: dict[str, Fuel],
+        emissions: dict[str, Emission],
     ) -> None:
         self._initialize_expectation(length)
 
@@ -203,18 +210,24 @@ class VesselExpectation(_Expectation):
             PORT_ENERGY_DEMANDS, n_port, default=np.nan
         )
 
-        # effective lower heating value, NaN until the first step sets it
-        converter_fuel_names: list[tuple[str, str]] = []
+        # the keys are each converter with each fuel it burns, and for the TTW each
+        # emission too; all values are NaN until the first step sets them
+        lhv_keys: list[tuple[str, str]] = []
+        ttw_keys: list[tuple[str, str, str]] = []
         for converter in power_system.get_converters():
             fuel_types = converter.get_fuel_types()
 
             for fuel_name, fuel in fuels.items():
-                if fuel.fuel_type in fuel_types:
-                    converter_fuel_names.append((converter.name, fuel_name))
+                if fuel.fuel_type not in fuel_types:
+                    continue
 
-        self._effective_lhv = self._default_dict_float(
-            converter_fuel_names, default=np.nan
-        )
+                lhv_keys.append((converter.name, fuel_name))
+                for emission_name in emissions:
+                    ttw_keys.append((converter.name, fuel_name, emission_name))
+
+        self._effective_lhv = self._default_dict_float(lhv_keys, default=np.nan)
+        self._ttw_consumption = self._default_dict_float(ttw_keys, default=np.nan)
+        self._ttw_slip = self._default_dict_float(ttw_keys, default=np.nan)
 
         # bunkering saved for inertia
         self._bunker_mass_expected = self._default_tuple_dict_float(port_names, fuels)
@@ -414,6 +427,16 @@ class VesselExpectation(_Expectation):
         self, converter_name: str, fuel_name: str, effective_lhv: float
     ) -> None:
         self._effective_lhv[(converter_name, fuel_name)] = effective_lhv
+
+    def set_ttw_consumption(
+        self, converter_name: str, fuel_name: str, emission_name: str, ttw: float
+    ) -> None:
+        self._ttw_consumption[(converter_name, fuel_name, emission_name)] = ttw
+
+    def set_ttw_slip(
+        self, converter_name: str, fuel_name: str, emission_name: str, ttw: float
+    ) -> None:
+        self._ttw_slip[(converter_name, fuel_name, emission_name)] = ttw
 
     def add_bunker_mass_expected(
         self, port_name: str, fuel_name: str, mass: float
@@ -626,6 +649,16 @@ class VesselExpectation(_Expectation):
 
     def get_effective_lhv(self, converter_name: str, fuel_name: str) -> float:
         return self._effective_lhv[(converter_name, fuel_name)]
+
+    def get_ttw_consumption(
+        self, converter_name: str, fuel_name: str, emission_name: str
+    ) -> float:
+        return self._ttw_consumption[(converter_name, fuel_name, emission_name)]
+
+    def get_ttw_slip(
+        self, converter_name: str, fuel_name: str, emission_name: str
+    ) -> float:
+        return self._ttw_slip[(converter_name, fuel_name, emission_name)]
 
     def get_bunker_mass_expected(self, port_name: str, fuel_name: str) -> float:
         return self._bunker_mass_expected[(port_name, fuel_name)]

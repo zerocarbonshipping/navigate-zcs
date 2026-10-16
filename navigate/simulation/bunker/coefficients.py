@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Compute the per-time-step emission and policy coefficients of the LP."""
+"""Compute the per-time-step policy coefficients of the LP."""
 
 from __future__ import annotations
 
@@ -12,81 +12,8 @@ from navigate.simulation.bunker.utils import get_converters
 from navigate.util import TON_TO_KG
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.converter import Converter
-    from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
-
-
-def _calculate_emission_factor_ttw(
-    converter: Converter, fuel: Fuel, emission: Emission
-) -> float:
-    """
-    Calculate the TTW emission factor for burning a fuel in a specific converter.
-
-    Should be multiplied by the amount of spent fuel in that converter.
-
-    The emission factor accounts for slip:
-    - Fuel-bound (TTW) emissions scale with burned fraction (1 - slip).
-    - Consumption emissions are per ton fuel-in and not scaled.
-    - Slip emissions are per ton fuel-in, gated by emission fuel_type.
-
-    Parameters
-    ----------
-    converter
-        Converter the fuel is consumed in.
-    fuel
-        Fuel being consumed.
-    emission
-        Emission node.
-
-    Returns
-    -------
-    float
-        TTW emission factor, in ton emission / ton fuel-in.
-    """
-    emission_name = emission.name
-    fuel_type = fuel.fuel_type
-
-    if fuel_type not in converter.get_fuel_types():
-        return 0.0
-
-    slip = converter.slip_fraction[fuel_type].get()
-
-    # fuel-bound TTW emissions scale with burned fraction
-    emission_factor = (1.0 - slip) * fuel.ttw[emission_name].get()
-
-    # consumption emissions per ton fuel-in, no slip scaling
-    emission_factor += converter.consumption_ttw[(fuel_type, emission_name)].get()
-
-    # slip emissions: slip per ton fuel-in, gated by emission fuel_type
-    emission_fuel_type = emission.fuel_type
-    if emission_fuel_type == fuel_type:
-        emission_factor += slip
-
-    return emission_factor
-
-
-def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Update the emission factors for a given vessel.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    vessel
-        The vessel object for which emission factors are to be updated.
-    """
-    v = vessel.name
-
-    for c, converter in get_converters(vessel).items():
-        for f, fuel in alg.fuels_per_converter[(v, c)].items():
-            for e, emission in alg.emissions.items():
-                alg.emission_factor[(v, c, f, e)] = _calculate_emission_factor_ttw(
-                    converter, fuel, emission
-                )
 
 
 def calculate_policy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:

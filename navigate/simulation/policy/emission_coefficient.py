@@ -203,6 +203,9 @@ def _assign_regulation_ttw_factors(
     """
     Calculate and assign the TTW emission factors related to a given regulation.
 
+    Each converter able to burn a fuel gets its own consumption and slip factors, read
+    from the vessel's expectation unless the regulation supplies a TTW.
+
     Parameters
     ----------
     regulation
@@ -214,8 +217,6 @@ def _assign_regulation_ttw_factors(
     idx
         Current time-step index.
     """
-    include_slip = regulation.include_slip
-
     expectation = regulation.expectation
     fuel_ttws = regulation.fuel_ttw
     target_emissions = regulation.emissions
@@ -228,18 +229,22 @@ def _assign_regulation_ttw_factors(
 
         for fuel in target_fuels:
             fuel_name = fuel.name
+            fuel_type = fuel.fuel_type
 
             for emission in target_emissions:
                 emission_name = emission.name
 
-                # if a user-supplied TTW is assigned on the regulation, it
-                # applies uniformly to every converter (with zero slip);
-                # otherwise the model derives a converter-specific value
+                # a user-supplied TTW on the regulation applies to every converter
+                # able to burn the fuel, with zero slip
                 key = (fuel_name, emission_name)
                 ttw = fuel_ttws[key]
                 ttw_supplied = ttw.get(timeline[idx:]) if ttw is not None else None
 
                 for converter in converters:
+                    # a converter that cannot burn the fuel spends none of it
+                    if fuel_type not in converter.get_fuel_types():
+                        continue
+
                     converter_name = converter.name
 
                     ttw_consumption: FloatLike
@@ -247,8 +252,8 @@ def _assign_regulation_ttw_factors(
                         ttw_consumption = ttw_supplied
                         ttw_slip = 0.0  # TODO: change if deciding to split input
                     else:
-                        ttw_consumption, ttw_slip = _calculate_converter_ttw(
-                            converter, fuel, emission, include_slip
+                        ttw_consumption, ttw_slip = _converter_ttw(
+                            regulation, vessel, converter, fuel, emission
                         )
 
                     factor_consumption = _apply_gwp(
@@ -472,8 +477,6 @@ def _assign_levy_ttw_factors(
     idx
         Current time-step index.
     """
-    include_slip = levy.include_slip
-
     expectation = levy.expectation
     fuel_ttws = levy.fuel_ttw
     target_emissions = levy.emissions
@@ -501,7 +504,7 @@ def _assign_levy_ttw_factors(
                     # otherwise approximate as a power/efficiency weighted average
                     # across the converters in the vessel's power system
                     ttw_consumption, ttw_slip = _average_ttw_over_converters(
-                        weights, fuel, emission, include_slip
+                        levy, vessel, weights, fuel, emission
                     )
 
                 factor_consumption = _apply_gwp(ttw_consumption, levy, emission)
@@ -693,52 +696,6 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
     return coefficient_ref
 
 
-def _calculate_converter_ttw(
-    converter: Converter, fuel: Fuel, emission: Emission, include_slip: bool
-) -> tuple[float, float]:
-    """
-    Calculate the TTW emission factor for a specific converter.
-
-    Parameters
-    ----------
-    converter
-        The converter for which the TTW is calculated.
-    fuel
-        The fuel for which the TTW is calculated.
-    emission
-        The emission for which the TTW is calculated.
-    include_slip
-        Whether to include gas slip or not.
-
-    Returns
-    -------
-    tuple[float, float]
-        Consumption TTW and slip TTW.
-    """
-    emission_name = emission.name
-    fuel_type = fuel.fuel_type
-
-    if fuel_type not in converter.get_fuel_types():
-        return 0.0, 0.0
-
-    slip = converter.slip_fraction[fuel_type].get()
-
-    # fuel-bound TTW emissions scale with burned fraction (1 - slip)
-    ttw_consumption = (1.0 - slip) * fuel.ttw[emission_name].get()
-
-    # consumption emissions per ton fuel-in, no slip scaling
-    ttw_consumption += converter.consumption_ttw[(fuel_type, emission_name)].get()
-
-    # slip emissions: X per ton fuel-in, gated by emission fuel_type
-    ttw_slip = 0.0
-    if include_slip:
-        emission_fuel_type = emission.fuel_type
-        if emission_fuel_type == fuel_type:
-            ttw_slip = slip
-
-    return ttw_consumption, ttw_slip
-
-
 def _average_wtt_over_route(
     ports: list[Port], fuel: Fuel, emission: Emission, plants: list[Plant], idx: int
 ) -> FloatLike:
@@ -826,11 +783,49 @@ def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, floa
     return weights
 
 
+def _converter_ttw(
+    policy: Levy | Regulation,
+    vessel: Vessel,
+    converter: Converter,
+    fuel: Fuel,
+    emission: Emission,
+) -> tuple[float, float]:
+    """
+    Return the consumption and slip TTW of burning a fuel in a vessel's converter.
+
+    Parameters
+    ----------
+    policy
+        Policy the TTW is read for; where it leaves out slip, the slip TTW is zero.
+    vessel
+        Vessel the converter is on board.
+    converter
+        Converter able to burn the fuel.
+    fuel
+        Fuel being spent.
+    emission
+        Emission.
+
+    Returns
+    -------
+    tuple[float, float]
+        Consumption TTW and slip TTW, in ton emission/ton fuel-in.
+    """
+    key = (converter.name, fuel.name, emission.name)
+    expectation = vessel.expectation
+
+    ttw_consumption = expectation.get_ttw_consumption(*key)
+    ttw_slip = expectation.get_ttw_slip(*key) if policy.include_slip else 0.0
+
+    return ttw_consumption, ttw_slip
+
+
 def _average_ttw_over_converters(
+    levy: Levy,
+    vessel: Vessel,
     weights: list[tuple[Converter, float]],
     fuel: Fuel,
     emission: Emission,
-    include_slip: bool,
 ) -> tuple[FloatArray, FloatArray]:
     """
     Estimate a vessel's TTW emissions as a power/efficiency weighted average.
@@ -839,14 +834,16 @@ def _average_ttw_over_converters(
 
     Parameters
     ----------
+    levy
+        Levy the TTW is estimated for; where it leaves out slip, the slip TTW is zero.
+    vessel
+        Vessel on which the fuel is spent.
     weights
         Converters able to burn the fuel with their weights, from `_converter_weights`.
     fuel
         Fuel being spent.
     emission
         Emission.
-    include_slip
-        Whether slip is included in the calculation of the levy TTW.
 
     Returns
     -------
@@ -858,9 +855,7 @@ def _average_ttw_over_converters(
     weight_total = 0.0
 
     for converter, weight in weights:
-        consumption, slip = _calculate_converter_ttw(
-            converter, fuel, emission, include_slip
-        )
+        consumption, slip = _converter_ttw(levy, vessel, converter, fuel, emission)
 
         weighted_consumption_sum += weight * consumption
         weighted_slip_sum += weight * slip
