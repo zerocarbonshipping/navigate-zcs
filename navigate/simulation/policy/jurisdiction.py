@@ -48,9 +48,6 @@ def calculate_jurisdiction_fractions(
     inter = regulation.inter_fraction.get(times)
     extra = regulation.extra_fraction.get(times)
 
-    # indexed by the number of a leg's ports inside the jurisdiction
-    leg_fractions = (extra, inter, intra)
-
     for route in routes.values():
         ports = route.ports
 
@@ -59,8 +56,17 @@ def calculate_jurisdiction_fractions(
             expectation.set_port_fraction(idx, port.name, fraction)
 
         for (i, j), leg in zip(route.get_legs(), route.get_leg_keys(), strict=True):
-            ports_inside = (ports[i] in jurisdiction) + (ports[j] in jurisdiction)
-            expectation.set_leg_fraction(idx, leg, leg_fractions[ports_inside])
+            departure_inside = ports[i] in jurisdiction
+            arrival_inside = ports[j] in jurisdiction
+
+            if departure_inside and arrival_inside:
+                fraction = intra
+            elif departure_inside or arrival_inside:
+                fraction = inter
+            else:
+                fraction = extra
+
+            expectation.set_leg_fraction(idx, leg, fraction)
 
 
 def calculate_regulation_measures(
