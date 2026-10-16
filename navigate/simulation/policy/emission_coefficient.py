@@ -9,10 +9,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import LevySchemeID, PolicyScopeID, RegulationMeasureID
+from navigate.core.enum_ import LevySchemeID, PolicyScopeID
 from navigate.util import (
     TON_PER_GJ_TO_GRAM_PR_MJ,
-    TON_TO_KG,
     list_intersection,
     unique_list,
 )
@@ -43,9 +42,7 @@ def calculate_policy_emission_coefficients(
     TTW emission factors can be used to calculate the overall emission factors, which
     are used in the calculation of the emission coefficients, which are used to
     convert a ton of fuel to a ton of emissions. A levy's coefficients, priced at
-    its level, give its cost per ton of fuel. A regulation's coefficients, net of the
-    vessel thresholds, give the spend coefficients its bunkering constraints weigh
-    fuel and shore power with.
+    its level, give its cost per ton of fuel.
 
     Reads the plants' production and delivery WTT, the ports' shore-power emission
     factors, the vessels' effective LHVs and the levies' levels of the current time
@@ -96,9 +93,8 @@ def _assign_regulation_emission_factors(
     """
     Calculate and assign the WTT and TTW emission factors related to a regulation.
 
-    From the factors follow the regulation's emission coefficients, and with its
-    shore-power coefficients and vessel thresholds, the spend coefficients its
-    bunkering constraints weigh.
+    From the factors follow the regulation's emission coefficients; its shore-power
+    coefficients and vessel thresholds are calculated alongside.
 
     Parameters
     ----------
@@ -127,7 +123,6 @@ def _assign_regulation_emission_factors(
     _assign_regulation_emission_coefficients(regulation, vessels, idx)
     _calculate_regulation_shore_power_coefficients(regulation, vessels, idx)
     _calculate_regulation_vessel_thresholds(regulation, timeline, idx)
-    _calculate_regulation_spend_coefficients(regulation, vessels, idx)
 
 
 def _assign_regulation_wtt_factors(
@@ -394,59 +389,6 @@ def _calculate_regulation_vessel_thresholds(
             continue
 
         expectation.set_vessel_threshold(idx, vessel_name, threshold.get(times))
-
-
-def _calculate_regulation_spend_coefficients(
-    regulation: Regulation, vessels: dict[str, Vessel], idx: int
-) -> None:
-    """
-    Calculate the spend coefficients the regulation's bunkering constraints weigh.
-
-    Under an INTENSITY measure, a spend coefficient is the emission coefficient net of
-    the vessel's threshold, converted from kg emission/GJ by the effective LHV, so the
-    constraint compares the weighted spend with zero; shore power is in GJ, so its
-    effective LHV is 1. Under any other measure the threshold enters the right-hand
-    side instead, and the spend coefficient is the emission coefficient. Every fuel a
-    converter can burn gets one, as the constraints weigh all spend: an untargeted
-    fuel, without an emission coefficient, nets out the threshold alone.
-
-    Parameters
-    ----------
-    regulation
-        Regulation to calculate the spend coefficients for.
-    vessels
-        All vessels in the simulation.
-    idx
-        Current time-step index.
-    """
-    expectation = regulation.expectation
-    from_idx = np.s_[idx:]
-    is_intensity = regulation.measure == RegulationMeasureID.INTENSITY
-
-    get_shore_power_emission = expectation.get_shore_power_emission_coefficient
-
-    for vessel_name, vessel in vessels.items():
-        vessel_expectation = vessel.expectation
-        threshold = expectation.get_vessel_threshold(vessel_name, from_idx)
-
-        # in ton emission/GJ; zero where the threshold enters the right-hand side
-        threshold_term = threshold / TON_TO_KG if is_intensity else 0.0
-
-        for converter_name, burned in vessel.fuels_per_converter.items():
-            for fuel_name in burned:
-                fuel_key = (vessel_name, converter_name, fuel_name)
-                lhv = vessel_expectation.get_effective_lhv(converter_name, fuel_name)
-                emission = expectation.get_emission_coefficient(fuel_key, from_idx)
-
-                spend = emission - threshold_term * lhv
-                expectation.set_spend_coefficient(idx, fuel_key, spend)
-
-        for port in unique_list(vessel.route.ports):
-            port_key = (vessel_name, port.name)
-            emission = get_shore_power_emission(port.name, from_idx)
-
-            spend = emission - threshold_term
-            expectation.set_shore_power_spend_coefficient(idx, port_key, spend)
 
 
 def _assign_levy_emission_factors(

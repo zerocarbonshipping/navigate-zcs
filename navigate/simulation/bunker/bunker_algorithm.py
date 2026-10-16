@@ -24,7 +24,6 @@ from navigate.simulation.bunker.cleanup import (
     remove_redundant_regulations,
     remove_redundant_vessel,
 )
-from navigate.simulation.bunker.coefficients import update_regulation_spend_coefficients
 from navigate.simulation.bunker.constraints.bunkered_equals_spent import (
     update_bunkered_equals_spent_constraint,
 )
@@ -58,7 +57,6 @@ from navigate.simulation.bunker.objectives import (
     update_regulation_objectives,
     update_vessel_objectives,
 )
-from navigate.simulation.bunker.threshold_adjustment import adjust_regulation_thresholds
 from navigate.simulation.bunker.transfer.allocation_fuel import transfer_allocation_fuel
 from navigate.simulation.bunker.transfer.bunker import transfer_bunker
 from navigate.simulation.bunker.transfer.dual_solution import transfer_dual_solution
@@ -149,8 +147,7 @@ class BunkerAlgorithm:
 
         # policies
         self.active_regulations: dict[str, Regulation] = {}
-        self.regulation_spend_coefficient: dict[tuple[str, str, str, str], float] = {}
-        self.shore_power_regulation_coefficient: dict[tuple[str, int, str], float] = {}
+        self.regulated_shore_power: set[tuple[str, int]] = set()
         self.regulation_rhs_individual: dict[tuple[str, str], float] = {}
         self.regulation_total_rhs_flexibility: dict[str, float] = {}
 
@@ -158,17 +155,13 @@ class BunkerAlgorithm:
         self.regulation_emission_terms: dict[tuple[str, str], gp.LinExpr] = {}
         self.regulation_energy_terms: dict[tuple[str, str], gp.LinExpr] = {}
 
-        # thresholds after threshold adjustment, per (regulation, vessel) and per
-        # regulation
-        self.adjusted_vessel_thresholds: dict[tuple[str, str], float] = {}
-        self.adjusted_shared_thresholds: dict[str, float] = {}
-
         # fair-share fuel properties ---------------------------------------------------
 
         self.previous_bunker: dict[tuple[str, int, str], float] = {}
         self.allocation_fuel: dict[tuple[str, str, str], float] = {}
         self.previously_released_fuel: dict[tuple[str, str, str], bool] = {}
         self.fair_share_convergence_statistics: dict[str, list[float]] = {}
+        self.fair_share_converged: bool
         self.fair_share_solutions: FairShareSolutions | None = None
 
         # primary model attributes -----------------------------------------------------
@@ -280,9 +273,10 @@ class BunkerAlgorithm:
         time_step
             Size of the current time-step, days.
         """
-        self.build_time = timeit.default_timer()
-        self.solve_time = 0
-        self.transfer_time = 0
+        start = timeit.default_timer()
+
+        self.solve_time = 0.0
+        self.transfer_time = 0.0
 
         self.current_idx = current_idx
         self.idx = idx
@@ -303,7 +297,10 @@ class BunkerAlgorithm:
                     self.vessels[v] = vessel
                     self.multipliers[v] = np.float64(multiplier)
 
-                    update_regulation_spend_coefficients(self, vessel)
+                    # before the vessel's variables are added, so a shore-power
+                    # connection this build adds is not regulated until the next
+                    # build: a known defect, kept so results do not move
+                    self._update_regulated_shore_power(vessel)
 
                     update_vessel_variables(self, vessel)
                     update_vessel_objectives(self, vessel)
@@ -323,30 +320,47 @@ class BunkerAlgorithm:
         update_individual_regulation_threshold_constraints(self)
         update_flexibility_regulation_threshold_constraints(self)
 
+        self.build_time = timeit.default_timer() - start
+
+    def update_regulation_constraints(self) -> None:
+        """Update the regulation constraints to the regulation inputs of the step."""
+        start = timeit.default_timer()
+
+        update_regulation_individual_rhs(self)
+        update_regulation_flexibility_rhs(self)
+        update_individual_regulation_threshold_constraints(self)
+        update_flexibility_regulation_threshold_constraints(self)
+
+        self.build_time += timeit.default_timer() - start
+
     def solve(self) -> None:
-        """
-        Solve the LP with fair-share iterations.
+        """Solve the LP with fair-share iterations."""
+        start = timeit.default_timer()
+        solve_time_at_entry = self.solve_time
 
-        A regulation that is non-compliant and allows threshold adjustment has its
-        threshold adjusted, and the LP is solved again against the adjusted thresholds.
-        """
-        converged = run_fair_share_solve(self)
-
-        if adjust_regulation_thresholds(self):
-            converged = run_fair_share_solve(self)
-
-        if self.scope == BunkerScopeID.EXISTING:
-            self._log_fair_share_convergence(converged)
+        self.fair_share_converged = run_fair_share_solve(self)
 
         # the fair-share iterations rebuild constraints between solves; that time
         # counts as build time, while optimize accumulates the solve time
-        self.build_time = timeit.default_timer() - self.build_time - self.solve_time
+        elapsed = timeit.default_timer() - start
+        self.build_time += elapsed - (self.solve_time - solve_time_at_entry)
+
+    def transfer_regulation_solution(self) -> None:
+        """Transfer the regulation results of the LP solution to the regulations."""
+        start = timeit.default_timer()
+
+        transfer_regulation_solution(self)
+
+        self.transfer_time += timeit.default_timer() - start
 
     def transfer(self) -> None:
         """Transfer the LP solution to the expectations and profiles of the nodes."""
         start = timeit.default_timer()
 
         if self.scope == BunkerScopeID.EXISTING:
+            # logged once per LP, for the solve its solution comes from
+            self._log_fair_share_convergence()
+
             # transfer_bunker accumulates the existing bunker masses, which the fuel
             # inertia constraints read, so they restart from zero at every transfer
             for vessel in self.vessels.values():
@@ -369,8 +383,7 @@ class BunkerAlgorithm:
 
         transfer_regulation_solution(self)
 
-        end = timeit.default_timer()
-        self.transfer_time = end - start
+        self.transfer_time += timeit.default_timer() - start
 
     def get_admitted_vessels(self, current_idx: int) -> list[Vessel]:
         """
@@ -439,20 +452,35 @@ class BunkerAlgorithm:
 
     def _reset_dynamic_properties(self) -> None:
         """Reset the containers recalculated at every time step, so none goes stale."""
-        self.regulation_spend_coefficient = {}
-        self.shore_power_regulation_coefficient = {}
+        self.regulated_shore_power = set()
 
         self.regulation_rhs_individual = {}
         self.regulation_total_rhs_flexibility = {}
         self.regulation_emission_terms = {}
         self.regulation_energy_terms = {}
 
-        self.adjusted_vessel_thresholds = {}
-        self.adjusted_shared_thresholds = {}
-
         self.active_regulations = {
             r: reg for r, reg in self.regulations.items() if reg.is_active()
         }
+
+    def _update_regulated_shore_power(self, vessel: Vessel) -> None:
+        """
+        Add the vessel's shore-power connections in the model to those regulated.
+
+        Only these are weighed by the regulation rows: a connection whose variable
+        this build adds is not weighed until the next build. That is a known defect,
+        kept so results do not move.
+
+        Parameters
+        ----------
+        vessel
+            Vessel whose connections are added.
+        """
+        v = vessel.name
+
+        for p in range(len(vessel.route.ports)):
+            if (v, p) in self.shore_power:
+                self.regulated_shore_power.add((v, p))
 
     def _update_vessel_constraints(self, vessel: Vessel) -> None:
         """
@@ -472,20 +500,13 @@ class BunkerAlgorithm:
 
         update_bunkered_equals_spent_constraint(self, vessel)
 
-    def _log_fair_share_convergence(self, converged: bool) -> None:
-        """
-        Log the outcome of the fair-share iterations, with a table of their statistics.
-
-        Parameters
-        ----------
-        converged
-            Whether the iterations reached the convergence criterion.
-        """
+    def _log_fair_share_convergence(self) -> None:
+        """Log the outcome of the last fair-share iterations, with their statistics."""
         statistics = self.fair_share_convergence_statistics
         iterations = len(statistics["Norm"])
         table = {"Iter.": range(1, iterations + 1), **statistics}
 
-        if converged:
+        if self.fair_share_converged:
             logger.info("Fair-share bunkering convergence status: Successful.")
             logger.debug(
                 "Fair-share bunkering convergence statistics:", extra={"table": table}

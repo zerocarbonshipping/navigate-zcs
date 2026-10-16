@@ -26,12 +26,15 @@ class RegulationExpectation(_PolicyExpectation):
     def __init__(self) -> None:
         super().__init__()
 
-        # keyed by (vessel_name, converter_name, fuel_name), in ton emission/ton fuel
+        # keyed by (vessel_name, converter_name, fuel_name), in ton emission/ton fuel;
+        # once threshold adjustment has run, a bunkering LP's own step holds the
+        # adjusted spend coefficients
         self._emission_coefficient: dict[tuple[str, str, str], FloatArray] = {}
         self._spend_coefficient: dict[tuple[str, str, str], FloatArray] = {}
 
         # in ton emission/GJ, the emission coefficient keyed by port_name and the
-        # spend coefficient by (vessel_name, port_name)
+        # spend coefficient by (vessel_name, port_name), adjusted at a bunkering LP's
+        # own step as the fuel spend coefficients are
         self._shore_power_emission_coefficient: dict[str, FloatArray] = {}
         self._shore_power_spend_coefficient: dict[tuple[str, str], FloatArray] = {}
 
@@ -50,7 +53,8 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_measure: dict[str, FloatArray] = {}
 
         # threshold times measure, in tons emission; zero under INTENSITY, whose
-        # threshold enters the spend coefficients instead
+        # threshold enters the spend coefficients instead; once threshold adjustment
+        # has run, a bunkering LP's own step holds the adjusted allowances
         self._vessel_allowance: dict[str, FloatArray] = {}
 
         # the results of the bunkering LP of each time step: per policed vessel the
@@ -64,7 +68,10 @@ class RegulationExpectation(_PolicyExpectation):
         self._pooled_shadow_price: FloatArray = EMPTY_FLOAT
 
         # the thresholds adjusted to the compliance achievable, written by the
-        # bunkering, which adjusts them; NaN where it adjusted none
+        # threshold adjustment after the first solve of each bunkering LP; a compliant
+        # vessel of an adjustable regulation holds its original threshold. NaN where
+        # the regulation allows no adjustment, and in the shared slot under INDIVIDUAL
+        # or of a compliant FLEXIBLE regulation
         self._adjusted_vessel_threshold: dict[str, FloatArray] = {}
         self._adjusted_shared_threshold: FloatArray = EMPTY_NAN
 
@@ -127,10 +134,10 @@ class RegulationExpectation(_PolicyExpectation):
         self._emission_coefficient[key][idx:] = coefficient
 
     def set_spend_coefficient(
-        self, idx: int, key: tuple[str, str, str], coefficient: FloatLike
+        self, idx: int | slice, key: tuple[str, str, str], coefficient: FloatLike
     ) -> None:
         self._spend_coefficient.setdefault(key, self._default_array())
-        self._spend_coefficient[key][idx:] = coefficient
+        self._spend_coefficient[key][idx] = coefficient
 
     def set_shore_power_emission_coefficient(
         self, idx: int, port_name: str, coefficient: FloatLike
@@ -138,9 +145,9 @@ class RegulationExpectation(_PolicyExpectation):
         self._shore_power_emission_coefficient[port_name][idx:] = coefficient
 
     def set_shore_power_spend_coefficient(
-        self, idx: int, key: tuple[str, str], coefficient: FloatLike
+        self, idx: int | slice, key: tuple[str, str], coefficient: FloatLike
     ) -> None:
-        self._shore_power_spend_coefficient[key][idx:] = coefficient
+        self._shore_power_spend_coefficient[key][idx] = coefficient
 
     def set_flexibility_cost(self, idx: int, cost: float) -> None:
         self._flexibility_cost[idx] = cost
@@ -177,9 +184,9 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_measure[vessel_name][idx:] = measure
 
     def set_vessel_allowance(
-        self, idx: int, vessel_name: str, allowance: FloatLike
+        self, idx: int | slice, vessel_name: str, allowance: FloatLike
     ) -> None:
-        self._vessel_allowance[vessel_name][idx:] = allowance
+        self._vessel_allowance[vessel_name][idx] = allowance
 
     def set_vessel_emissions(
         self, idx: int, vessel_name: str, emissions: float

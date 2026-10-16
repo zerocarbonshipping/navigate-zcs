@@ -68,11 +68,12 @@ from navigate.simulation.fuel import (
     update_plant_ages,
 )
 from navigate.simulation.policy import (
+    calculate_adjusted_regulation_thresholds,
     calculate_flexibility_markets,
     calculate_individual_remedial_expenses,
     calculate_policy_emission_coefficients,
     calculate_policy_expectations,
-    calculate_regulation_allowances,
+    calculate_regulation_bunkering_inputs,
     calculate_regulation_compliance,
     calculate_regulation_measures,
     calculate_regulation_profile,
@@ -217,11 +218,11 @@ class Simulation:
                 timeit.default_timer() - start_time_overhead, self._idx
             )
 
-        # nothing the policy coefficients read (plant production and delivery WTT,
-        # port WTT overwrites, bunkering flags and shore-power emission factors,
-        # the vessels' effective LHVs, the levies' levels and the vessels each
-        # policy polices) changes later in the step, so one pass serves both
-        # bunkering runs
+        # nothing the policy emission coefficients, vessel thresholds and levy costs
+        # read (plant production and delivery WTT, port WTT overwrites, bunkering
+        # flags and shore-power emission factors, the vessels' effective LHVs, the
+        # levies' levels and the vessels each policy polices) changes later in the
+        # step, so one pass serves both bunkering runs
         self._calculate_policy_emission_coefficients()
 
         # technology costs are excluded here: they enter the cargo charter
@@ -242,12 +243,13 @@ class Simulation:
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
 
             # the times in port, electrical demands, shore-power capacities and cargo
-            # miles are rewritten during the step, so the shore-power limits and the
-            # regulation measures and allowances are recalculated before each
-            # bunkering run
+            # miles are rewritten during the step, and the threshold adjustment of
+            # each bunkering LP rewrites the regulation inputs of its own time step,
+            # so the shore-power limits, the regulation measures and the regulation
+            # bunkering inputs are recalculated before each bunkering run
             calculate_shore_power_limits(self.nodes.fleets, self._idx)
             self._calculate_regulation_measures()
-            self._calculate_regulation_allowances()
+            self._calculate_regulation_bunkering_inputs()
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
@@ -278,7 +280,7 @@ class Simulation:
 
         calculate_shore_power_limits(self.nodes.fleets, self._idx)
         self._calculate_regulation_measures()
-        self._calculate_regulation_allowances()
+        self._calculate_regulation_bunkering_inputs()
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
@@ -412,10 +414,10 @@ class Simulation:
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
 
-    def _calculate_regulation_allowances(self) -> None:
+    def _calculate_regulation_bunkering_inputs(self) -> None:
         start_time = timeit.default_timer()
 
-        calculate_regulation_allowances(
+        calculate_regulation_bunkering_inputs(
             self.nodes.regulations, self.nodes.vessels, self._idx
         )
 
@@ -511,25 +513,19 @@ class Simulation:
         for regulation in self.nodes.regulations.values():
             regulation.expectation.reset_expected_bunkering()
 
+        bunker = self._bunker_expected
+
         for i in range(self._idx, self.timeline.size):
             time_step_i = self.timeline[i] - self.timeline[i - 1]
 
-            self._bunker_expected.build(self._idx, i, self.timeline[i], time_step_i)
-            self._bunker_expected.solve()
-            self._bunker_expected.transfer()
+            self._perform_bunkering(bunker, i, self.timeline[i], time_step_i)
 
-            self.profile.add_expected_build_time(
-                self._bunker_expected.build_time, self._idx
-            )
-            self.profile.add_expected_solve_time(
-                self._bunker_expected.solve_time, self._idx
-            )
-            self.profile.add_expected_transfer_time(
-                self._bunker_expected.transfer_time, self._idx
-            )
+            self.profile.add_expected_build_time(bunker.build_time, self._idx)
+            self.profile.add_expected_solve_time(bunker.solve_time, self._idx)
+            self.profile.add_expected_transfer_time(bunker.transfer_time, self._idx)
 
-            self._calculate_individual_remedial_expenses(self._bunker_expected)
-            self._calculate_flexibility_markets(self._bunker_expected)
+            self._calculate_individual_remedial_expenses(bunker)
+            self._calculate_flexibility_markets(bunker)
 
     def _calculate_fleet_fuel_demand(self) -> None:
         start_time = timeit.default_timer()
@@ -599,19 +595,45 @@ class Simulation:
         )
 
     def _perform_existing_bunkering(self) -> None:
-        self._bunker_existing.build(self._idx, self._idx, self._time, self._time_step)
-        self._bunker_existing.solve()
-        self._bunker_existing.transfer()
+        bunker = self._bunker_existing
 
-        self.profile.set_existing_build_time(
-            self._idx, self._bunker_existing.build_time
+        self._perform_bunkering(bunker, self._idx, self._time, self._time_step)
+
+        self.profile.set_existing_build_time(self._idx, bunker.build_time)
+        self.profile.set_existing_solve_time(self._idx, bunker.solve_time)
+        self.profile.set_existing_transfer_time(self._idx, bunker.transfer_time)
+
+    def _perform_bunkering(
+        self, bunker: BunkerAlgorithm, idx: int, time: float, time_step: float
+    ) -> None:
+        """
+        Build, solve and transfer the bunkering LP of one evaluated time step.
+
+        The LP is solved again where the threshold adjustment rewrote its regulation
+        inputs after the first solve.
+        """
+        bunker.build(self._idx, idx, time, time_step)
+        bunker.solve()
+        bunker.transfer_regulation_solution()
+
+        if self._calculate_adjusted_regulation_thresholds(bunker):
+            bunker.update_regulation_constraints()
+            bunker.solve()
+
+        bunker.transfer()
+
+    def _calculate_adjusted_regulation_thresholds(
+        self, bunker: BunkerAlgorithm
+    ) -> bool:
+        start_time = timeit.default_timer()
+
+        needs_resolve = calculate_adjusted_regulation_thresholds(
+            self.nodes.regulations, self.nodes.vessels, bunker.multipliers, bunker.idx
         )
-        self.profile.set_existing_solve_time(
-            self._idx, self._bunker_existing.solve_time
-        )
-        self.profile.set_existing_transfer_time(
-            self._idx, self._bunker_existing.transfer_time
-        )
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+        return needs_resolve
 
     def _calculate_regulation_compliance(self, bunker: BunkerAlgorithm) -> None:
         start_time = timeit.default_timer()
