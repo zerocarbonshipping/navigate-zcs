@@ -23,6 +23,7 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import RegulationProfile
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import FloatArray
@@ -164,8 +165,11 @@ class Regulation(_Policy):
 
         self._initialize_policy_dependencies(vessels)
 
-    def initialize_expectation(self, length: int, vessels: dict[str, Vessel]) -> None:
-        self.expectation.initialize(length, [e.name for e in self.emissions], vessels)
+    def initialize_expectation(
+        self, length: int, routes: dict[str, Route], vessels: dict[str, Vessel]
+    ) -> None:
+        emission_names = [e.name for e in self.emissions]
+        self.expectation.initialize(length, emission_names, routes, vessels)
 
     def initialize_profile(
         self, timeline: FloatArray, vessels: dict[str, Vessel]
