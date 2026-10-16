@@ -46,8 +46,6 @@ from navigate.util.numeric import (
     divide_nonzero,
     find_nearest,
     find_nearest_index,
-    get_increment_origin_index,
-    get_increment_origin_indexes,
     interpolate_yearly_flow,
     is_non_strictly_increasing,
     is_strictly_increasing,

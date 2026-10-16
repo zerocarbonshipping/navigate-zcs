@@ -12,7 +12,11 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.increment import PlantIncrement
-from navigate.simulation.cohort import calculate_share_below, extends_past
+from navigate.simulation.cohort import (
+    calculate_share_below,
+    extends_past,
+    get_increment_origin_indexes,
+)
 from navigate.simulation.fuel.planning import (
     calculate_constrained_uptakes,
     perform_pipeline_planning,
@@ -21,7 +25,6 @@ from navigate.util import (
     TOLERANCE,
     YEAR,
     divide_nonzero,
-    get_increment_origin_indexes,
     slice_dict,
 )
 

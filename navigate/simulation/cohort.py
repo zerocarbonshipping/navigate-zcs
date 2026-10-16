@@ -15,13 +15,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.nodes.curve import Curve
+from navigate.util import find_nearest, find_nearest_index
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from navigate.core.increment import Increment
     from navigate.core.types_ import CurveTableInput
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, IntArray
 
 
 def split_by_age(
@@ -129,3 +130,56 @@ def find_insertion_index(increments: Sequence[Increment], age: float) -> int:
 
     ages = np.array([increment.age for increment in increments])
     return int(np.searchsorted(-ages, -age, side="right"))
+
+
+def get_increment_origin_index(
+    years: FloatArray, current_year: float, age: float
+) -> int:
+    """
+    Find the time-step index at which an increment entered the simulation.
+
+    The increment (vessel or plant) is treated as having entered 'age' years
+    before current_year. An entity present at the initialization of the node
+    gets index 0 - the best available approximation, as historical data is
+    unavailable.
+
+    Parameters
+    ----------
+    years
+        Simulation timeline in years.
+    current_year
+        The current year (years[idx]).
+    age
+        Age of the increment in years.
+
+    Returns
+    -------
+    int
+        Time-step index.
+    """
+    return find_nearest_index(years, current_year - age)
+
+
+def get_increment_origin_indexes(
+    years: FloatArray, current_year: float, ages: FloatArray
+) -> IntArray:
+    """
+    Find the time-step indexes at which increments entered the simulation.
+
+    Array counterpart of `get_increment_origin_index`, one index per age.
+
+    Parameters
+    ----------
+    years
+        Simulation timeline in years.
+    current_year
+        The current year (years[idx]).
+    ages
+        Ages of the increments in years.
+
+    Returns
+    -------
+    IntArray
+        Time-step indexes, one per age.
+    """
+    return find_nearest(years, current_year - ages)

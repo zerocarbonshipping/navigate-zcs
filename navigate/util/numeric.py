@@ -106,59 +106,6 @@ def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:
     return np.interp(age * YEAR, time_flow, yearly_flow)
 
 
-def get_increment_origin_index(
-    years: FloatArray, current_year: float, age: float
-) -> int:
-    """
-    Find the time-step index at which an increment entered the simulation.
-
-    The increment (vessel or plant) is treated as having entered 'age' years
-    before current_year. An entity present at the initialization of the node
-    gets index 0 - the best available approximation, as historical data is
-    unavailable.
-
-    Parameters
-    ----------
-    years
-        Simulation timeline in years.
-    current_year
-        The current year (years[idx]).
-    age
-        Age of the increment in years.
-
-    Returns
-    -------
-    int
-        Time-step index.
-    """
-    return find_nearest_index(years, current_year - age)
-
-
-def get_increment_origin_indexes(
-    years: FloatArray, current_year: float, ages: FloatArray
-) -> IntArray:
-    """
-    Find the time-step indexes at which increments entered the simulation.
-
-    Array counterpart of `get_increment_origin_index`, one index per age.
-
-    Parameters
-    ----------
-    years
-        Simulation timeline in years.
-    current_year
-        The current year (years[idx]).
-    ages
-        Ages of the increments in years.
-
-    Returns
-    -------
-    IntArray
-        Time-step indexes, one per age.
-    """
-    return find_nearest(years, current_year - ages)
-
-
 def find_nearest(array: npt.ArrayLike, values: FloatArray) -> IntArray:
     """
     Find the index of the entry in 'array' nearest to each of 'values'.

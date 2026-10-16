@@ -9,12 +9,11 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import (
-    YEAR,
+from navigate.simulation.cohort import (
     get_increment_origin_index,
     get_increment_origin_indexes,
-    interpolate_yearly_flow,
 )
+from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.port import Port

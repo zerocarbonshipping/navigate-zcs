@@ -16,8 +16,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
+from navigate.simulation.cohort import get_increment_origin_index
 from navigate.simulation.fleet.power import get_total_power_capacity
-from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_flow
+from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
