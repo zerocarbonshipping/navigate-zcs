@@ -52,11 +52,12 @@ from navigate.simulation.fuel import (
     calculate_development_potential,
     calculate_expected_fuel_demand,
     calculate_expected_fuel_supply,
-    calculate_export_expectation,
+    calculate_export_expectations,
     calculate_fuel_import_to_ports,
     calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
+    calculate_port_expectations,
     calculate_producer_profile,
     initialize_existing_producer,
     perform_planning,
@@ -303,11 +304,8 @@ class Simulation:
 
         calculate_fleet_expectations(self.nodes.vessels, self.nodes.fuels)
 
-        for port in self.nodes.ports.values():
-            port.calculate_expectation(self.timeline, self._idx)
-
-        for producer in self.nodes.producers.values():
-            calculate_export_expectation(producer, self.timeline, self._idx)
+        calculate_port_expectations(self.nodes.ports, self.timeline, self._idx)
+        calculate_export_expectations(self.nodes.producers, self.timeline, self._idx)
 
     def _update_vessel_operations(self) -> None:
         start_time = timeit.default_timer()
