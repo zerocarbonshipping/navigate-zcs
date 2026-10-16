@@ -54,6 +54,7 @@ class PortExpectation(_Expectation):
             fuels, emissions, default=np.nan
         )
 
+        self._bunker_supply = self._default_dict_array(fuels)
         self._bunker_price = self._default_dict_array(fuels)
         self._bunker_wtt = self._default_tuple_dict_array(fuels, emissions)
 
@@ -61,12 +62,6 @@ class PortExpectation(_Expectation):
         self._shore_power_cost = self._default_array()
         self._shore_power_connection_share = self._default_array()
         self._shore_power_emission_factor = self._default_dict_array(emissions)
-
-        for fuel_name, fuel in fuels.items():
-            if fuel.liquid_market:
-                self._bunker_supply[fuel_name] = self._default_array(default=np.inf)
-            else:
-                self._bunker_supply[fuel_name] = self._default_array()
 
     def set_handling_cost(
         self, idx: int, fuel_name: str, handling_cost: FloatLike

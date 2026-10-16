@@ -98,12 +98,9 @@ def _calculate_import_from_liquid_market(
             if allowed:
                 port.profile.set_bunker_price(idx, f, price[0])
 
-            # propagate the declared bunkering limit as the liquid-market supply.
-            # _bunkering_limit defaults to np.inf, so ports that do not call
-            # set_bunkering_limit keep supply effectively unconstrained and the
-            # fair_share_fuel LP constraint stays inactive (skipped on non-finite
-            # supply). A finite cap flows through to fair-share allocation and
-            # makes the per-port bunkering limit bind on the LP.
+            # a liquid-market fuel is never short of supply, so a port offers as much as
+            # it may bunker: its bunkering limit, unlimited where none is declared, and
+            # only a finite limit turns on the fair-share constraint
             if allowed:
                 supply = np.asarray(port.expectation.get_bunkering_limit(f, idx_))
             else:
