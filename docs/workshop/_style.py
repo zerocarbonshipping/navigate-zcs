@@ -10,8 +10,8 @@ and projectors, so figures use levels 1 to 8 only.
 The roles (fuels, accents, greys) start from Navigate's own palette
 (`navigate/illustrations/plots/_colors.py` and `_labels.py`) and are snapped to
 the nearest swatch, so a fuel keeps its hue and its step while the hex is the
-Center's. The PNGs notebook 4 displays straight from a run's output folder are
-drawn by Navigate itself and keep the library's colours.
+Center's. The charts Navigate draws itself, which notebook 4 shows, are drawn
+again in this palette by `navigate_charts()` at the end of this module.
 
 Why the two methanols are not the same colour
 ---------------------------------------------
@@ -35,6 +35,8 @@ do this, and minting one colour per meaning would exhaust the palette. Chrome
 (grid, axis, tick, ink) may share a hex with a series: a 0.8px spine and a filled
 band with a legend entry are never confused.
 """
+
+import contextlib
 
 from navigate.illustrations.plots._colors import (
     CENTER_COLORS_BLUE,
@@ -265,3 +267,92 @@ SCEN_COLOUR = {"basecase_no_regulation": swatch("black", 5),
 
 def scen_colour(name):
     return SCEN_COLOUR.get(name, SUBINK)
+
+
+# ---------------------------------------------------------------------------
+# Navigate's own charts
+# ---------------------------------------------------------------------------
+# Navigate draws its charts with the library's older seven-step ramps. Rather
+# than display those PNGs, notebook 4 draws the same charts again from the run's
+# solved model, with Navigate's own plotting code and these colours swapped in
+# for the duration. Its RED ramp is the Center's peach, step for step.
+_NAVIGATE_RAMPS = {"CENTER_COLORS_BLUE": "blue", "CENTER_COLORS_GREEN": "green",
+                   "CENTER_COLORS_GREY": "black", "CENTER_COLORS_RED": "peach",
+                   "CENTER_COLORS_YELLOW": "yellow"}
+_NAVIGATE_LEVELS = (1, 2, 3, 4, 5, 7, 8)   # its seven steps, kept distinct and in order
+
+
+@contextlib.contextmanager
+def navigate_palette():
+    """Inside this block, Navigate's plots draw in the workshop palette.
+
+    The ramps are swapped in place, because the plot modules hold references to
+    them; matplotlib's single-letter "r", "b" and "k", which a few of them use,
+    are remapped too. Everything is restored on exit.
+    """
+    import matplotlib.colors as mcolors
+    from navigate.illustrations.plots import _colors, _labels
+
+    arrays = [c for name in _NAVIGATE_RAMPS for c in getattr(_colors, name)]
+    arrays.append(_colors.SHORE_POWER_COLOR)
+    saved_arrays = [a.copy() for a in arrays]
+    saved_fuels = dict(_labels.FUEL_COLOR)
+    saved_default = list(_colors.DEFAULT_COLOURS)
+    saved_letters = {k: mcolors._colors_full_map[k] for k in ("r", "b", "k")}
+    try:
+        for name, hue in _NAVIGATE_RAMPS.items():
+            for colour, level in zip(getattr(_colors, name), _NAVIGATE_LEVELS):
+                colour[:] = _to_rgb(swatch(hue, level))
+        _colors.SHORE_POWER_COLOR[:] = _to_rgb(nearest(saved_arrays[-1]))
+        for fuel in _labels.FUEL_COLOR:
+            _labels.FUEL_COLOR[fuel] = fuel_colour(fuel)
+        _colors.DEFAULT_COLOURS[:] = [SERIES[i % len(SERIES)]
+                                      for i in range(len(saved_default))]
+        mcolors._colors_full_map["r"] = swatch("red", 6)
+        mcolors._colors_full_map["b"] = BLUE
+        mcolors._colors_full_map["k"] = INK
+        yield
+    finally:
+        for colour, saved in zip(arrays, saved_arrays):
+            colour[:] = saved
+        _labels.FUEL_COLOR.clear()
+        _labels.FUEL_COLOR.update(saved_fuels)
+        _colors.DEFAULT_COLOURS[:] = saved_default
+        for k, v in saved_letters.items():
+            mcolors._colors_full_map[k] = v
+
+
+def navigate_charts(run_folder, out_folder, plot_folder="plots"):
+    """Draw a run's charts again in the workshop palette; returns the PNG paths.
+
+    Reads the run's plot_data.pkl and draws the charts its deck sends to
+    `plot_folder` (DefaultPlot's headline set by default) into `out_folder`.
+    """
+    import glob
+    import os
+
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+    from navigate.illustrations.render import render_plots
+    from navigate.output.plot_data import PlotData
+
+    data = PlotData.load(os.path.join(run_folder, "plot_data.pkl"))
+    config = next(c for c in data.get_plot_configs()
+                  if os.path.normpath(c["directory"]) == plot_folder)
+    # Navigate switches matplotlib to Agg and sets its own fonts; without this the
+    # notebook's later figures would no longer display. Switching back is not
+    # enough in a notebook: leaving the inline backend unregisters its image
+    # output, which only `%matplotlib inline` puts back.
+    backend = plt.get_backend()
+    try:
+        with mpl.rc_context(), navigate_palette():
+            render_plots(data, directory=out_folder,
+                         selected_plots=config["selected_plots"] or None)
+    finally:
+        if "inline" in backend:
+            from IPython import get_ipython
+            get_ipython().run_line_magic("matplotlib", "inline")
+        else:
+            plt.switch_backend(backend)
+    return sorted(glob.glob(os.path.join(out_folder, "*.png")))

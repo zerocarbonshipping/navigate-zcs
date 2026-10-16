@@ -40,6 +40,16 @@ When the workshop moves to another branch, change all of them together
 (`grep blob/dev-workshop`); one left behind keeps working until the old branch is
 deleted.
 
+## Navigate's code
+
+Work on the workshop does not change Navigate's core code, `navigate/`. When an
+error turns up in it, do not fix it there: describe it to the workshop authors,
+with the file and line, what goes wrong and the change you would suggest, so it
+can be filed as an issue against Navigate. A notebook may work around a model
+behaviour at run time, as `navigate_charts()` swaps colours while Navigate draws,
+but never by patching the package. A change to `navigate/` is made only when the
+authors ask for that specific change, and then as a commit of its own.
+
 ## Prose
 
 - Name the actor. The **owners** order, retrofit and scrap ships and fit
@@ -69,9 +79,10 @@ listed in the `.nav` header.
 - Colours come from `PALETTE` in `_style.py`, through `swatch(hue, level)`, never
   as a raw hex. Use levels 1 to 8: level 0 does not show on a projector. The
   scripts in `docs/_figures/` use the same colours. Every figure the workshop
-  shows follows this palette, results of a Navigate run included: draw them from
-  the run's report rather than displaying the `.png` files Navigate writes, which
-  use the library's older palette.
+  shows follows this palette, results of a Navigate run included. Navigate's own
+  charts use the library's older palette, so draw them again with
+  `navigate_charts()` in `_style.py`, which re-renders a run's charts from its
+  `plot_data.pkl` in this palette, rather than displaying the `.png` files.
 - Show a result with a figure the workshop already draws, so the reader can
   compare it with the others. Factor the plotting code into a function rather than
   adding a chart; propose a new type of figure only when none fits.
