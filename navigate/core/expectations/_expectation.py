@@ -85,6 +85,10 @@ class _Expectation:
         for key in dict_:
             dict_[key] = self._default_float()
 
+    def _reset_dict_array[K](self, dict_: dict[K, FloatArray]) -> None:
+        for key in dict_:
+            dict_[key] = self._default_array()
+
     def _reset_dict_array_partial[K](
         self, dict_: dict[K, FloatArray], idx: int
     ) -> None:

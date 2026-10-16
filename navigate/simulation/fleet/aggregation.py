@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import itertools
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -280,16 +281,15 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     demand: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
 
     for vessel in fleet.vessels:
+        expectation = vessel.expectation
         multipliers = fleet.expectation.get_multiplier(vessel.name, scope, horizon)
 
         # the bunkered mass is per port, so a port the route calls more than once
         # counts once
-        for port in dict.fromkeys(vessel.route.ports):
-            for fuel_name in fuels:
-                mass = vessel.expectation.get_bunker_mass_expected(
-                    port.name, fuel_name, horizon
-                )
-                demand[fuel_name] += multipliers * mass
+        ports = dict.fromkeys(vessel.route.ports)
+        for port, fuel_name in itertools.product(ports, fuels):
+            mass = expectation.get_bunker_mass_expected(port.name, fuel_name, horizon)
+            demand[fuel_name] += multipliers * mass
 
     for key, value in demand.items():
         fleet.expectation.set_fuel_demand(idx, key, value)

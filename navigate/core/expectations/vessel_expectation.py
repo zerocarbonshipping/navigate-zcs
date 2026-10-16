@@ -245,7 +245,7 @@ class VesselExpectation(_Expectation):
             fuels, emissions, default=np.nan
         )
 
-        # bunkered masses, read by the inertia floors; the expected ones also by the
+        # bunkered masses for the inertia floors, the expected ones also for the
         # fleet's fuel demand
         self._bunker_mass_expected = self._default_tuple_dict_array(port_names, fuels)
         self._bunker_mass_existing = self._default_tuple_dict_float(port_names, fuels)
@@ -291,8 +291,7 @@ class VesselExpectation(_Expectation):
         self._fuel_expenses = self._default_array()
         self._policy_expenses = self._default_array()
 
-        for mass in self._bunker_mass_expected.values():
-            mass[:] = 0.0
+        self._reset_dict_array(self._bunker_mass_expected)
 
     def reset_bunker_mass_existing(self) -> None:
         self._reset_dict_float(self._bunker_mass_existing)
