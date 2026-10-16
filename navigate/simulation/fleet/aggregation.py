@@ -1,7 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-step fleet cost transfers, fuel-type totals, fuel demand and vessel profiles."""
+"""
+Per-step fleet cost transfers, fuel-type totals, fuel demand and vessel profiles.
+
+The vessel count of each type, which the fleet decisions read, is summed here from
+the fleet's increments.
+"""
 
 from __future__ import annotations
 
@@ -11,8 +16,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
+from navigate.simulation.cohort import find_origin_index
 from navigate.simulation.fleet.power import get_total_power_capacity
-from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_flow
+from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -70,12 +76,12 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     years = timeline / YEAR
     current_year = years[idx]
 
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         for inc in fleet.increments[v]:
             # the cost profile is that of a vessel entering the fleet 'age' years
             # ago; an increment of the initial fleet uses the profile at the
             # simulation start, as historical cost data is unknown
-            origin = get_increment_origin_index(years, current_year, inc.age)
+            origin = find_origin_index(years, current_year, inc.age)
             cost = vessel.expectation.get_asset_charter_rate(origin)
             tied_capital_flow = vessel.expectation.get_tied_capital(origin)
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
@@ -104,15 +110,13 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
+        incs = fleet.increments[v]
         power = get_total_power_capacity(vessel)
 
-        age_power_sum = (
-            float(sum(inc.age * inc.multiplier for inc in fleet.increments[v])) * power
-        )
-        count_power_sum = (
-            float(sum(inc.multiplier for inc in fleet.increments[v])) * power
-        )
+        age_power_sum = float(sum(inc.age * inc.multiplier for inc in incs)) * power
+        count_power_sum = float(get_multiplier(fleet, v)) * power
+
         fleet.profile.add_weighted_age(
             vessel.primary_fuel_type, age_power_sum, count_power_sum, idx
         )
@@ -136,8 +140,8 @@ def _gather_fuel_type_capacity(fleet: Fleet) -> None:
     # totals
     fleet.expectation.reset_fuel_type_totals()
 
-    for v, vessel in enumerate(fleet.assets):
-        multiplier = fleet.get_multiplier(v)
+    for v, vessel in enumerate(fleet.vessels):
+        multiplier = get_multiplier(fleet, v)
 
         if multiplier == 0.0:
             continue
@@ -180,8 +184,8 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.assets):
-        multiplier = fleet.get_multiplier(v)
+    for v, vessel in enumerate(fleet.vessels):
+        multiplier = get_multiplier(fleet, v)
 
         if multiplier == 0.0:
             continue
@@ -246,6 +250,42 @@ def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
         )
 
 
+def get_multiplier(fleet: Fleet, vessel_idx: int) -> float:
+    """
+    Return the number of vessels of one type in the fleet.
+
+    Parameters
+    ----------
+    fleet
+        Fleet holding the vessels.
+    vessel_idx
+        Index of the vessel type in the fleet.
+
+    Returns
+    -------
+    float
+        Number of vessels of the type.
+    """
+    return sum(inc.multiplier for inc in fleet.increments[vessel_idx])
+
+
+def get_multipliers(fleet: Fleet) -> list[float]:
+    """
+    Return the number of vessels of each type in the fleet.
+
+    Parameters
+    ----------
+    fleet
+        Fleet holding the vessels.
+
+    Returns
+    -------
+    list[float]
+        Number of vessels of each type.
+    """
+    return [get_multiplier(fleet, v) for v in range(len(fleet.increments))]
+
+
 def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     """
     Transfer the current multiplier state to the profile for output.
@@ -257,8 +297,8 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.assets):
-        fleet.profile.set_existing_vessels(idx, vessel.name, fleet.get_multiplier(v))
+    for v, vessel in enumerate(fleet.vessels):
+        fleet.profile.set_existing_vessels(idx, vessel.name, get_multiplier(fleet, v))
 
 
 def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:

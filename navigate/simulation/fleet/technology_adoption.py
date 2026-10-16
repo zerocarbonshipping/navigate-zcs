@@ -36,6 +36,7 @@ from navigate.simulation.economics.flows import (
     timeline_to_yearly,
     trim_flow_to_lifetime,
 )
+from navigate.simulation.fleet.aggregation import get_multiplier, get_multipliers
 from navigate.simulation.fleet.conversion import is_retrofit_cycle
 from navigate.simulation.fleet.marginal_saving import (
     calculate_marginal_technology_saving,
@@ -80,7 +81,7 @@ class _AdoptionBasis:
     vessel
         Vessel type of the pass.
     vessel_idx
-        Index of the vessel in ``fleet.assets`` and ``fleet.increments``.
+        Index of the vessel in ``fleet.vessels`` and ``fleet.increments``.
     packages_saving
         Marginal-saving cash flow of each package, USD/year.
     discount_rate
@@ -110,7 +111,7 @@ class _RetrofitProposal:
     Parameters
     ----------
     vessel_idx
-        Index of the vessel in ``fleet.assets``; it groups the proposals per vessel in
+        Index of the vessel in ``fleet.vessels``; it groups the proposals per vessel in
         the transfer.
     increment
         Age cohort whose ``package_uptake`` the apply step updates.
@@ -316,7 +317,7 @@ def define_initial_technology(fleet: Fleet) -> None:
         Fleet to initialize technology for.
     """
     n_pkgs = fleet.get_number_of_packages()
-    n_vessels = len(fleet.assets)
+    n_vessels = len(fleet.vessels)
 
     fleet.newbuild_package_uptake = [
         np.zeros(n_pkgs, dtype=float) for _ in range(n_vessels)
@@ -325,7 +326,7 @@ def define_initial_technology(fleet: Fleet) -> None:
     if all(share is None for share in fleet.initial_technology_share.values()):
         return
 
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         _seed_vessel_initial_uptake(fleet, vessel, v)
 
 
@@ -344,7 +345,7 @@ def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -
     vessel
         Vessel to seed the initial uptake for.
     vessel_idx
-        Index of `vessel` in `fleet.assets`.
+        Index of `vessel` in `fleet.vessels`.
     """
     vessel_name = vessel.name
     truncation_count = 0
@@ -508,10 +509,10 @@ def perform_technology_installation(
 
     # the fleet count before newbuilds is the denominator of both the retrofit and the
     # newbuild technology caps
-    multipliers_total = float(sum(fleet.get_multipliers()))
+    multipliers_total = float(sum(get_multipliers(fleet)))
 
     proposals = []
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         basis = _extract_adoption_basis(fleet, vessel, v, timeline, idx)
         fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(
             fleet, basis, technology_sensitivity
@@ -544,7 +545,7 @@ def _extract_adoption_basis(
     vessel
         Vessel type the basis is built for.
     vessel_idx
-        Index of `vessel` in `fleet.assets`.
+        Index of `vessel` in `fleet.vessels`.
     timeline
         Simulation timeline, days.
     idx
@@ -808,7 +809,7 @@ def reconcile_newbuild_technology_caps(
         k_start = i + 1
 
         contributions = []
-        for v in range(len(fleet.assets)):
+        for v in range(len(fleet.vessels)):
             uptake = fleet.newbuild_package_uptake[v]
             if k_start >= len(uptake) or increments[v] <= 0.0:
                 continue
@@ -933,8 +934,8 @@ def _transfer_retrofit_uptake(
                 np.sum(proposal.choices[k_start:])
             )
 
-    for v, vessel in enumerate(fleet.assets):
-        multipliers_total = float(sum(inc.multiplier for inc in fleet.increments[v]))
+    for v, vessel in enumerate(fleet.vessels):
+        multipliers_total = float(get_multiplier(fleet, v))
         for i, technology in enumerate(sorted_technologies):
             count = retrofit_counts.get((v, i), 0.0)
             share = float(divide_nonzero(count, multipliers_total))
@@ -960,7 +961,7 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         total = 0.0
         weight = 0.0
         for inc in fleet.increments[v]:
@@ -984,7 +985,7 @@ def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         for p, _package in enumerate(fleet.technology_packages[1:], start=1):
             t = fleet.package_to_technology_map[p]
             technology = fleet.technologies[t]
@@ -1020,7 +1021,7 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
     """
     transfer_operational_savings(fleet)
 
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         op_sea, op_port = _apply_operational_savings(vessel, idx)
         op_sea_arr = {d: np.asarray(op_sea[d], dtype=float) for d in EnergyDemandID}
         op_port_arr = {
@@ -1112,7 +1113,7 @@ def _accumulate_technology_effect(
     fleet
         Fleet owning the increments and technology packages.
     vessel_idx
-        Index of `vessel` in `fleet.assets`.
+        Index of `vessel` in `fleet.vessels`.
     vessel
         Vessel to accumulate the effect for.
     op_sea_arr
@@ -1271,7 +1272,7 @@ def _average_retrofit_savings(
             continue
 
         for v, vessel in enumerate(fleet.vessels):
-            multiplier = fleet.get_multiplier(v)
+            multiplier = get_multiplier(fleet, v)
             expectation = vessel.expectation
 
             raw_energy_sea = expectation.get_raw_energy_sea_condition(idx=idx)

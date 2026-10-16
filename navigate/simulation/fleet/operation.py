@@ -208,7 +208,7 @@ def transfer_operational_savings(fleet: Fleet) -> None:
     saving_sea = to_floats(fleet.operational_saving_sea)
     saving_port = to_floats(fleet.operational_saving_port)
 
-    for vessel in fleet.assets:
+    for vessel in fleet.vessels:
         vessel.expectation.set_operational_saving_fraction_sea(saving_sea)
         vessel.expectation.set_operational_saving_fraction_port(saving_port)
 

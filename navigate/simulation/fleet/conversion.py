@@ -24,9 +24,11 @@ import numpy as np
 
 from navigate.core.enum_ import FuelTypeID, UtilityID
 from navigate.core.increment import VesselIncrement
+from navigate.simulation.cohort import find_insertion_index
 from navigate.simulation.economics.decision import calculate_asset_shares
 from navigate.simulation.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.simulation.economics.metric import calculate_net_present_value
+from navigate.simulation.fleet.aggregation import get_multipliers
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -147,7 +149,7 @@ def perform_fuel_conversions(
         return
 
     # counted before the newbuilds, which are inserted later in the same time-step
-    existing_total = sum(fleet.get_multipliers())
+    existing_total = sum(get_multipliers(fleet))
 
     proposals = propose_fuel_conversions(fleet, idx, time_step)
     if not proposals:
@@ -722,11 +724,7 @@ def _insert_converted_increment(
     dt
         Age-bin width of the converted increment, years.
     """
-    if increments_to:
-        ages_to = np.array([increment.age for increment in increments_to])
-        idx_to = int(np.searchsorted(-ages_to, -age, side="right"))
-    else:
-        idx_to = 0
+    idx_to = find_insertion_index(increments_to, age)
 
     # the carried technology charter rate rides along unchanged; the amortization window
     # and discount rate stay those of the source vessel type, a simplification of the

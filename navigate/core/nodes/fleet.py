@@ -21,6 +21,7 @@ from navigate.core import (
     assign_member,
     assign_reference_list,
     assign_value,
+    check_curves_are_finite,
     command_assignment_to_boolean_dict,
     write_matching_key_pairs,
     write_matching_keys,
@@ -32,11 +33,9 @@ from navigate.core.enum_ import (
     SpeedAlignmentID,
 )
 from navigate.core.expectations import FleetExpectation
-from navigate.core.increment import VesselIncrement
+from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
-from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.forecast import Forecast
-from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
 from navigate.core.technology_package import PackageCostFlows, TechnologyPackage
 from navigate.exceptions import UnassignedAttributeError
@@ -46,11 +45,15 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from navigate.core.expression import Expression
+    from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.technology import Technology
+    from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import (
+        CurveTableArgument,
+        CurveTableInput,
         ForecastArgument,
         ForecastInput,
         ScalarArgument,
@@ -61,13 +64,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Fleet(_AssetManager[Vessel, VesselIncrement]):
+class Fleet(Node):
     """A segment of vessel types with its newbuild, scrap and retrofit decisions."""
 
     def __init__(self, name: str) -> None:
         super().__init__(name, FLEET)
 
         # external variables -----------------------------------------------------------
+        self.vessels: list[Vessel]
         self.trade_growth: ForecastInput = Scalar(0.0)
         self.fixed_scrap_rate: ForecastInput | None = None
         self.allow_secondary_scrapping: bool = True
@@ -75,6 +79,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         self.inter_fuel_sensitivity: ForecastInput
         self.fuel_conversion_sensitivity: ForecastInput = Scalar(2.0)
         self.memory: ForecastInput = Scalar(0.5)
+        self.inertia: ForecastInput = Scalar(0.0)
         self.initial_vessels: ScalarInput
         self.allow_speed_management: bool = False
         self.maximum_speed_change: ForecastInput = Scalar(np.inf)
@@ -88,6 +93,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         self.fuel_conversion_minimum_age: ForecastInput = Scalar(0.0)
         self.allow_technology_approximation: bool = True
         self.initial_split: list[float] = []
+        self.initial_age_distribution: list[CurveTableInput] = []
         self.initial_technology_share: dict[
             tuple[str, str], Curve | Expression | None
         ] = {}
@@ -112,6 +118,8 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         self.expectation: FleetExpectation = FleetExpectation()
         self.profile: FleetProfile = FleetProfile()
 
+        self.increments: list[list[VesselIncrement]]
+        self.current_uptake: FloatArray = np.empty(0)
         self.fuel_conversion_expenses: FloatArray = np.empty(0)
         self.trade: FloatArray = np.ndarray(0)
         self.newbuild_package_uptake: list[FloatArray] = []
@@ -124,12 +132,18 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
     # external methods (DSL attributes) ------------------------------------------------
     def set_vessels(self, vessels: Vessel | list[Vessel]) -> None:
         """Set the vessel types that exist for the fleet."""
-        self.assets = assign_reference_list(vessels, VESSEL, min_length=1, unique=True)
+        self.vessels = assign_reference_list(vessels, VESSEL, min_length=1, unique=True)
 
     def set_memory(self, memory: ForecastArgument) -> None:
         """Set the memory's exponential decay used in the newbuild uptake decision."""
         self.memory = assign_value(
             as_scalar(memory), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
+
+    def set_inertia(self, inertia: ForecastArgument) -> None:
+        """Set the inertia used in the uptake decision of newbuild vessels."""
+        self.inertia = assign_value(
+            as_scalar(inertia), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     def set_fixed_scrap_rate(self, fixed_scrap_rate: ForecastArgument) -> None:
@@ -165,6 +179,18 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
             logger.warning(
                 "%s: 'InitialSplit' is rescaled proportionally to sum to 1.", self
             )
+
+    def set_initial_age_distribution(
+        self, initial_age_distribution: CurveTableArgument | list[CurveTableArgument]
+    ) -> None:
+        """Set the initial age distribution of each vessel type."""
+        entries: list[CurveTableArgument] = as_list(initial_age_distribution)
+        self.initial_age_distribution = assign_list(
+            [as_scalar(entry) for entry in entries],
+            type_=CURVE,
+            lower=0.0,
+            allow_expression=False,
+        )
 
     def set_technologies(self, technologies: Technology | list[Technology]) -> None:
         """Set the technologies that can be installed on the fleet's vessels."""
@@ -426,6 +452,15 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         if self.technologies and self.technology_sensitivity is None:
             raise UnassignedAttributeError(str(self), "TechnologySensitivity")
 
+    def apply_defaults(self) -> None:
+
+        # without a supplied initial split, the cargo-miles are split uniformly
+        if not self.initial_split:
+            self.initial_split = [1.0 / len(self.vessels) for _ in self.vessels]
+
+        if not self.initial_age_distribution:
+            self.initial_age_distribution = [Scalar(0.0) for _ in self.vessels]
+
     def apply_command_defaults(self) -> None:
 
         # cross-pair keys exist only after commands fill fuel_conversion_cost, so
@@ -436,29 +471,28 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
 
     def check_consistency(self) -> None:
 
-        if self.initial_split and (len(self.assets) != len(self.initial_split)):
+        if len(self.vessels) != len(self.initial_split):
             raise ValueError(
-                f"{self}: The length of Vessel ({len(self.assets)}) and "
+                f"{self}: The length of Vessel ({len(self.vessels)}) and "
                 f"InitialSplit ({len(self.initial_split)}) must correspond."
             )
 
-        if self._initial_age_distribution and (
-            len(self.assets) != len(self._initial_age_distribution)
-        ):
+        if len(self.vessels) != len(self.initial_age_distribution):
             raise ValueError(
-                f"{self}: The length of Vessel ({len(self.assets)}) and "
-                f"InitialAgeDistribution ({len(self._initial_age_distribution)}) "
+                f"{self}: The length of Vessel ({len(self.vessels)}) and "
+                f"InitialAgeDistribution ({len(self.initial_age_distribution)}) "
                 "must correspond."
             )
 
-        self._check_initial_age_distribution_is_finite()
+        distributions = self.initial_age_distribution
+        check_curves_are_finite(self, "InitialAgeDistribution", distributions)
 
         if not self.orderbooks:
             return
 
-        if len(self.assets) != len(self.orderbooks):
+        if len(self.vessels) != len(self.orderbooks):
             raise ValueError(
-                f"{self}: The length of Vessel ({len(self.assets)}) and "
+                f"{self}: The length of Vessel ({len(self.vessels)}) and "
                 f"Orderbooks ({len(self.orderbooks)}) must correspond."
             )
 
@@ -482,7 +516,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
 
     def initialize_dependencies(self) -> None:
         """Initialize dependent dictionaries so command calls can use wildcards."""
-        for vessel in self.assets:
+        for vessel in self.vessels:
             name = vessel.name
             # stays None when unset: a None cost marks the pair as not convertible
             self.fuel_conversion_cost.setdefault((name, name), None)
@@ -505,7 +539,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
 
-        vessel_names = [vessel.name for vessel in self.assets]
+        vessel_names = [vessel.name for vessel in self.vessels]
 
         self.expectation.initialize(length, vessel_names, fuels)
 
@@ -519,7 +553,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         levy_names: Sequence[str] = (),
     ) -> None:
 
-        vessel_names = [vessel.name for vessel in self.assets]
+        vessel_names = [vessel.name for vessel in self.vessels]
         technology_names = [technology.name for technology in self.technologies]
 
         self.profile.initialize(
@@ -533,26 +567,6 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
             levy_names,
         )
 
-    # _AssetManager abstract interface
-
-    def _get_initial_multiplier(self, index: int) -> float:
-        return self.initial_split[index] * self.initial_vessels.get()
-
-    def _new_increment(self, age: float, age_span: float) -> VesselIncrement:
-        return VesselIncrement(
-            multiplier=0.0,
-            age=age,
-            age_span=age_span,
-            package_uptake=np.zeros(self.get_number_of_packages()),
-        )
-
-    def _adjust_lifetime_for_age(self, lifetime: float) -> float:
-        if self.fixed_scrap_rate is not None:
-            scrap_rate = self.fixed_scrap_rate.get()
-            if scrap_rate > 0.0:
-                lifetime = min(lifetime, 1.0 / scrap_rate)
-        return lifetime
-
     def can_retrofit(self) -> bool:
         return bool(self.technologies)
 
@@ -563,8 +577,3 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         # the packages are cumulative and start from the empty one, so their count
         # is known from the technologies before the packages themselves are built
         return len(self.technologies) + 1
-
-    # public domain name for the inherited assets list
-    @property
-    def vessels(self) -> list[Vessel]:
-        return self.assets

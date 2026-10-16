@@ -82,7 +82,7 @@ def _fleet_chain():
     nodes.routes["route"] = route = Route("route")
     nodes.ports["port"] = port = Port("port")
 
-    fleet.assets = [vessel]
+    fleet.vessels = [vessel]
     vessel.power_system = power_system
     vessel.tanks = [tank]
     vessel.route = route
@@ -139,7 +139,7 @@ class TestFindUnreachable:
         nodes.plants["plant"] = plant = Plant("plant")
         processes = {name: Process(name) for name in "abcd"}
         nodes.processes.update(processes)
-        producer.assets = [plant]
+        producer.plants = [plant]
         plant.process = processes["a"]
         processes["a"].feeds = [processes["b"]]
         processes["b"].feeds = [processes["a"]]
