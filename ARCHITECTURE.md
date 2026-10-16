@@ -60,9 +60,9 @@ util, __init__, simulation         → (nothing)
 exceptions                         → util
 core                               → foundation
 simulation.economics               → core, foundation
-simulation.policy                  → core, foundation
 simulation.fleet, simulation.fuel  → simulation.economics, core, foundation
-simulation.bunker                  → simulation.policy, core, foundation
+simulation.bunker,
+simulation.policy                  → core, foundation
 parser, output                     → core, foundation
 app                                → driver, foundation
 simulation.time_stepping           → domains, core, foundation
@@ -77,8 +77,11 @@ dotted path; `__init__` is `navigate/__init__.py` and `simulation` is
 contains it; a unit imports itself and its row, nothing else from
 `navigate`. The foundation is `util/` and `exceptions.py`; the domains are
 the five `simulation.<domain>` units. Every file must fall in a unit, so a
-new top-level module or package needs a row here. No row may link `simulation.fleet` and `simulation.fuel`,
-`parser` and `output`, or either of those two and a simulation unit.
+new top-level module or package needs a row here. No row may link two of
+`simulation.bunker`, `simulation.fleet`, `simulation.fuel` and
+`simulation.policy`, nor link `simulation.economics` to `simulation.bunker` or
+`simulation.policy`, nor link `parser` and `output`, nor link either of them
+to a simulation unit.
 
 Inside `core/`, runtime imports run one way: `nodes/` imports
 `expectations/`, `profiles/` and the flat modules directly in `core/`;
