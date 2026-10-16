@@ -307,6 +307,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `technology_uptake` curves now extrapolate flat outside their tables (#273).
 - The `RemedialUnits` and `LevyUnits` report columns sum over the vessels at
   fleet and global scope, where they were zero.
+- Setting `Active = FALSE` on a `Regulation` in `EVENTS` no longer stops the
+  run with a `KeyError`; the regulation stops applying from that step (#496).
 - `set_bunkering_cost` is rejected on a `Port` at its line instead of failing
   the run; use `set_handling_cost`.
 - The CLI rejects a deck path whose name is only dots before `.nav`.
