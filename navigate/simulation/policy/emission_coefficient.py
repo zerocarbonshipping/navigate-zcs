@@ -553,9 +553,7 @@ def _calculate_levy_costs(
 
         for fuel in target_fuels:
             weights = _converter_weights(vessel, fuel)
-            effective_lhv = _average_effective_lhv_over_converters(
-                vessel, weights, fuel
-            )
+            lhv = _average_effective_lhv_over_converters(vessel, weights, fuel)
 
             for port in ports:
                 if not port.is_bunkering_allowed(fuel.name):
@@ -580,7 +578,7 @@ def _calculate_levy_costs(
                     continue
 
                 coefficient = _calculate_threshold_adjusted_levy_emission_coefficient(
-                    coefficient, levy, effective_lhv, lower_threshold, upper_threshold
+                    coefficient, levy, lhv, lower_threshold, upper_threshold
                 )
 
                 expectation.set_cost(idx, key, level * coefficient)
