@@ -199,11 +199,12 @@ def propose_fuel_conversions(
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
 
-    # a working copy of the previous step's totals, which the profile phase writes
-    # after this runs; the proposals debit it so the DCM supply cap stays realistic
+    # the supply beyond what the fleet can already burn, from the previous step's
+    # totals (the profile phase writes this step's after this runs); the proposals
+    # debit this working copy so the DCM supply cap stays realistic
     supply_excess = {
         fuel_type: fleet.expectation.get_fuel_type_supply(fuel_type)
-        - fleet.expectation.get_fuel_type_demand(fuel_type)
+        - fleet.expectation.get_fuel_type_capacity(fuel_type)
         for fuel_type in FuelTypeID
     }
 

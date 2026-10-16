@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Fuel supply against demand, one panel per fuel type a deck uses."""
+"""Fuel supply against fleet capacity, one panel per fuel type a deck uses."""
 
 from __future__ import annotations
 
@@ -48,8 +48,8 @@ def _select_fuel_types(
     """
     Fuel types with a declared Fuel or a converter using them, in FUEL_TYPE_ORDER.
 
-    A converter can carry demand for a fuel type with no declared Fuel (fleet
-    aggregation sums demand by MainFuelTypes/PilotFuelTypes alone), so a panel
+    A converter can add capacity for a fuel type with no declared Fuel (fleet
+    aggregation sums capacity by MainFuelTypes/PilotFuelTypes alone), so a panel
     also appears for a type no Fuel declares but some converter does.
     """
     converter_fuel_types = {
@@ -65,7 +65,7 @@ def _select_fuel_types(
 
 
 def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) -> None:
-    """Plot fuel supply against demand for each fuel type a deck uses."""
+    """Plot fuel supply against fleet capacity for each fuel type a deck uses."""
     dateline = results.dateline
     ports = results.nodes.ports
     fuels = results.nodes.fuels
@@ -78,7 +78,7 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
     if not fuel_types:
         return
 
-    fuel_type_demand = profile.get_fuel_type_demand()
+    fuel_type_capacity = profile.get_fuel_type_capacity()
     production_type_energy = profile.get_production_type_energy()
     port_bunkering = [port.profile.get_bunker_energy() for port in ports.values()]
 
@@ -86,7 +86,7 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
     all_values: dict[FuelTypeID, list[FloatArray]] = {}
     all_colors: dict[FuelTypeID, list[ColorType]] = {}
     all_labels: dict[FuelTypeID, list[str]] = {}
-    all_demand: dict[FuelTypeID, FloatArray] = {}
+    all_fuel_capacity: dict[FuelTypeID, FloatArray] = {}
     all_fuel_supply: dict[FuelTypeID, FloatArray] = {}
 
     maximum = 0.0
@@ -94,7 +94,7 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
     for fuel_type in fuel_types:
         usable_fuels = fuel_type_to_fuels[fuel_type]
         fuel_spend: dict[str, FloatArray] = {}
-        fuel_demand = fuel_type_demand[fuel_type]
+        fuel_capacity = fuel_type_capacity[fuel_type]
         fuel_supply = production_type_energy[fuel_type]
 
         for bunkering in port_bunkering:
@@ -115,7 +115,7 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
 
         maximum = max(
             maximum,
-            np.amax(fuel_demand),
+            np.amax(fuel_capacity),
             *(np.amax(value) for value in values),
             np.amax(fuel_supply),
         )
@@ -123,7 +123,7 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
         all_values[fuel_type] = values
         all_colors[fuel_type] = colors
         all_labels[fuel_type] = labels
-        all_demand[fuel_type] = fuel_demand
+        all_fuel_capacity[fuel_type] = fuel_capacity
         all_fuel_supply[fuel_type] = fuel_supply
 
     if maximum <= 0.0:
@@ -133,12 +133,14 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
 
     fig, axes = subplot_grid(len(fuel_types))
 
+    dashed = (0, (5, 3))
+
     for ax, fuel_type in zip(axes, fuel_types, strict=False):
         values = [value / divisor for value in all_values[fuel_type]]
         colors = all_colors[fuel_type]
         labels = all_labels[fuel_type]
 
-        fuel_demand = all_demand[fuel_type] / divisor
+        fuel_capacity = all_fuel_capacity[fuel_type] / divisor
         fuel_supply = all_fuel_supply[fuel_type] / divisor
 
         handles: list[Artist] = []
@@ -149,15 +151,11 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
             )
             handles.extend(stack)
 
-        line_demand = ax.plot(
-            dateline, fuel_demand, label="Demand", ls=(0, (5, 3)), color="r", lw=2
-        )
-        handles.extend(line_demand)
-        legend_labels = [*labels, "Demand"]
+        line_capacity = ax.plot(dateline, fuel_capacity, ls=dashed, color="r", lw=2)
+        handles.extend(line_capacity)
+        legend_labels = [*labels, "Fleet capacity"]
 
-        line_supply = ax.plot(
-            dateline, fuel_supply, label="Supply", ls=(0, (5, 3)), color="b", lw=2
-        )
+        line_supply = ax.plot(dateline, fuel_supply, ls=dashed, color="b", lw=2)
         handles.extend(line_supply)
         legend_labels.append("Supply")
 
