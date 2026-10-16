@@ -19,15 +19,14 @@ from navigate.core.expectations import PortExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, VARIABLE
 from navigate.core.profiles import PortProfile
-from navigate.util import MWH_TO_GJ
 
 if TYPE_CHECKING:
     import numpy as np
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.levy import Levy
     from navigate.core.types_ import ForecastArgument, ForecastInput
-    from navigate.util import FloatArray
 
 
 class Port(Node):
@@ -59,6 +58,7 @@ class Port(Node):
         self.profile: PortProfile = PortProfile()
 
         self.liquid_market_fuel: dict[str, bool] = {}
+        self.imposed_levies: list[Levy]
 
     # external methods (DSL commands) --------------------------------------------------
     def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:
@@ -199,42 +199,6 @@ class Port(Node):
     ) -> None:
 
         self.profile.initialize(timeline, emissions, fuels, lifetime)
-
-    def calculate_expectation(self, timeline: FloatArray, idx: int) -> None:
-
-        times = timeline[idx:]
-
-        for fuel_name, limit in self.bunkering_limit.items():
-            if limit is not None:
-                self.expectation.set_bunkering_limit(idx, fuel_name, limit.get(times))
-
-        for fuel_name, handling_cost in self.handling_cost.items():
-            self.expectation.set_handling_cost(idx, fuel_name, handling_cost.get(times))
-
-        for fuel_name, overwrite in self.bunker_price_overwrite.items():
-            if overwrite is not None:
-                self.expectation.set_bunker_price_overwrite(
-                    idx, fuel_name, overwrite.get(times)
-                )
-
-        for (fuel_name, emission_name), overwrite in self.bunker_wtt_overwrite.items():
-            if overwrite is not None:
-                self.expectation.set_bunker_wtt_overwrite(
-                    idx, fuel_name, emission_name, overwrite.get(times)
-                )
-
-        # shore power (convert from USD/MWh to USD/GJ, and ton/MWh to ton/GJ)
-        self.expectation.set_shore_power_cost(
-            idx, self.shore_power_cost.get(times) / MWH_TO_GJ
-        )
-        self.expectation.set_shore_power_connection_share(
-            idx, self.shore_power_connection_share.get(times)
-        )
-
-        for emission_name, ef in self.shore_power_emission_factor.items():
-            self.expectation.set_shore_power_emission_factor(
-                idx, emission_name, ef.get(times) / MWH_TO_GJ
-            )
 
     def calculate_profile(self, idx: int) -> None:
 

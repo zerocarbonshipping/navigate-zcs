@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-import navigate.core.enum_ as enum_
 import navigate.simulation.bunker.solver as gp
 from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
@@ -25,11 +24,7 @@ from navigate.simulation.bunker.cleanup import (
     remove_redundant_regulations,
     remove_redundant_vessel,
 )
-from navigate.simulation.bunker.coefficients import (
-    calculate_effective_lhv,
-    calculate_emission_factors,
-    calculate_policy_coefficients,
-)
+from navigate.simulation.bunker.coefficients import calculate_regulation_coefficients
 from navigate.simulation.bunker.constraints.bunkered_equals_spent import (
     update_bunkered_equals_spent_constraint,
 )
@@ -67,6 +62,7 @@ from navigate.simulation.bunker.objectives import (
     update_vessel_objectives,
 )
 from navigate.simulation.bunker.threshold_adjustment import adjust_regulation_thresholds
+from navigate.simulation.bunker.transfer.allocation_fuel import transfer_allocation_fuel
 from navigate.simulation.bunker.transfer.bunker import transfer_bunker
 from navigate.simulation.bunker.transfer.dual_solution import transfer_dual_solution
 from navigate.simulation.bunker.transfer.regulation_flexibility import (
@@ -89,7 +85,6 @@ from navigate.simulation.bunker.variables import (
     update_regulation_variables,
     update_vessel_variables,
 )
-from navigate.simulation.policy import policies_affecting_port
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -100,13 +95,36 @@ if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.levy import Levy
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.fair_share import FairShareSolutions
+    from navigate.util.types_ import FloatLike
 
 logger = logging.getLogger(__name__)
+
+
+def _is_admitted(multiplier: FloatLike) -> bool:
+    """
+    Check whether a vessel multiplier admits the vessel into a bunkering LP.
+
+    A vessel enters the LP of its step only with a positive multiplier. Expected
+    bunkering needs a solution for every vessel type, as its results feed the uptake
+    metrics of the vessel; vessel types not in the fleet therefore carry a low
+    multiplier, so every vessel type enters the expected LPs, while existing bunkering
+    drops a vessel whose multiplier is zero.
+
+    Parameters
+    ----------
+    multiplier
+        Multiplier of the vessel at one time step or over several.
+
+    Returns
+    -------
+    bool
+        True if the multiplier is positive at any of the steps.
+    """
+    return bool(np.max(multiplier) > 0.0)
 
 
 class BunkerAlgorithm:
@@ -132,7 +150,6 @@ class BunkerAlgorithm:
         self.feedstock: dict[str, Feedstock] = {}
         self.fleets: dict[str, Fleet] = {}
         self.fuels: dict[str, Fuel] = {}
-        self.levies: dict[str, Levy] = {}
         self.ports: dict[str, Port] = {}
         self.regulations: dict[str, Regulation] = {}
 
@@ -147,17 +164,10 @@ class BunkerAlgorithm:
         self.converters_per_fuel: dict[tuple[str, str], tuple[str, ...]] = {}
         self.port_converters_per_fuel: dict[tuple[str, str], tuple[str, ...]] = {}
 
-        # local attributes for a specific vessel ---------------------------------------
-
-        # effective LHV per (vessel, converter, fuel)
-        self.effective_lhv: dict[tuple[str, str, str], float] = {}
-
         # dynamic properties updated at every time-step --------------------------------
 
         # policies
         self.active_regulations: dict[str, Regulation] = {}
-        self.port_levies: dict[str, list[Levy]] = {}
-        self.cost_levy: dict[tuple[str, str, str, str], float] = {}
         self.regulation_vessel_threshold: dict[tuple[str, str], float] = {}
         self.regulation_emission_factor: dict[tuple[str, str, str, str], float] = {}
         self.regulation_spend_coefficient: dict[tuple[str, str, str, str], float] = {}
@@ -181,9 +191,6 @@ class BunkerAlgorithm:
         # regulation
         self.adjusted_vessel_thresholds: dict[tuple[str, str], float] = {}
         self.adjusted_shared_thresholds: dict[str, float] = {}
-
-        # emission factors
-        self.emission_factor: dict[tuple[str, str, str, str], float] = {}
 
         # fair-share fuel properties ---------------------------------------------------
 
@@ -239,7 +246,6 @@ class BunkerAlgorithm:
         feedstock: dict[str, Feedstock],
         fleets: dict[str, Fleet],
         fuels: dict[str, Fuel],
-        levies: dict[str, Levy],
         ports: dict[str, Port],
         regulations: dict[str, Regulation],
         options: BunkerOptions,
@@ -259,8 +265,6 @@ class BunkerAlgorithm:
             All fleets in the simulation.
         fuels
             All fuels in the simulation.
-        levies
-            All levies in the simulation.
         ports
             All ports in the simulation.
         regulations
@@ -282,7 +286,6 @@ class BunkerAlgorithm:
         self.feedstock = feedstock
         self.emissions = emissions
         self.regulations = regulations
-        self.levies = levies
 
         self.fuels_per_fuel_type = get_fuels_per_fuel_type(self.fuels)
 
@@ -326,22 +329,13 @@ class BunkerAlgorithm:
             for vessel in fleet.vessels:
                 v = vessel.name
 
-                # expected bunkering needs a solution for every vessel type, as its
-                # results feed the uptake metrics of the vessel; vessel types not in
-                # the fleet therefore carry a low multiplier, which limits their
-                # impact on the overall solution but still yields a result
-                if self.scope == BunkerScopeID.EXISTING:
-                    multiplier = fleet.expectation.get_existing_multipliers(v, self.idx)
-                else:
-                    multiplier = fleet.expectation.get_expected_multipliers(v, self.idx)
+                multiplier = fleet.expectation.get_multiplier(v, self.scope, self.idx)
 
-                if multiplier > 0.0:
+                if _is_admitted(multiplier):
                     self.vessels[v] = vessel
                     self.multipliers[v] = np.float64(multiplier)
 
-                    calculate_effective_lhv(self, vessel)
-                    calculate_emission_factors(self, vessel)
-                    calculate_policy_coefficients(self, vessel)
+                    calculate_regulation_coefficients(self, vessel)
 
                     update_vessel_variables(self, vessel)
                     update_vessel_objectives(self, vessel)
@@ -399,6 +393,7 @@ class BunkerAlgorithm:
         transfer_spend_sea(self)
         transfer_spend_port(self)
         transfer_shore_power(self)
+        transfer_allocation_fuel(self)
 
         if self.scope == BunkerScopeID.EXPECTED:
             transfer_dual_solution(self)
@@ -412,6 +407,38 @@ class BunkerAlgorithm:
 
         end = timeit.default_timer()
         self.transfer_time = end - start
+
+    def get_admitted_vessels(self, current_idx: int) -> list[Vessel]:
+        """
+        Get the vessels that enter at least one LP built from a time step.
+
+        Existing bunkering builds one LP, at the time step itself; expected bunkering
+        builds one for every step of the remaining horizon.
+
+        Parameters
+        ----------
+        current_idx
+            Time-step index at which current or forward bunkering is initiated.
+
+        Returns
+        -------
+        list[Vessel]
+            Vessels of every fleet with a positive multiplier in a built LP.
+        """
+        is_existing = self.scope == BunkerScopeID.EXISTING
+        steps = current_idx if is_existing else np.s_[current_idx:]
+
+        admitted = []
+
+        for fleet in self.fleets.values():
+            for vessel in fleet.vessels:
+                v = vessel.name
+                multiplier = fleet.expectation.get_multiplier(v, self.scope, steps)
+
+                if _is_admitted(multiplier):
+                    admitted.append(vessel)
+
+        return admitted
 
     def _initialize_model(self) -> None:
         """Create the LP model and its empty variable and constraint containers."""
@@ -453,7 +480,6 @@ class BunkerAlgorithm:
         self.regulation_spend_coefficient = {}
         self.shore_power_regulation_emission_factor = {}
         self.shore_power_regulation_coefficient = {}
-        self.cost_levy = {}
 
         self.regulation_measure = {}
         self.regulation_rhs_individual = {}
@@ -466,14 +492,9 @@ class BunkerAlgorithm:
         self.adjusted_vessel_thresholds = {}
         self.adjusted_shared_thresholds = {}
 
-        self.emission_factor = {}
-
         self.active_regulations = {
             r: reg for r, reg in self.regulations.items() if reg.is_active()
         }
-        self.port_levies = {}
-        for port_name, port in self.ports.items():
-            self.port_levies[port_name] = policies_affecting_port(port, self.levies)
 
     def _update_vessel_constraints(self, vessel: Vessel) -> None:
         """
@@ -487,10 +508,9 @@ class BunkerAlgorithm:
         update_energy_conservation_constraints(self, vessel)
         update_pilot_fuel_constraints(self, vessel)
 
-        if vessel.route.route_type == enum_.RouteTypeID.ROUND_TRIP:
-            update_mass_conservation_constraints(self, vessel)
-            update_mass_sufficient_constraints(self, vessel)
-            update_tank_capacity_constraints(self, vessel)
+        update_mass_conservation_constraints(self, vessel)
+        update_mass_sufficient_constraints(self, vessel)
+        update_tank_capacity_constraints(self, vessel)
 
         update_bunkered_equals_spent_constraint(self, vessel)
 

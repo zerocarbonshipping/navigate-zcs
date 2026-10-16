@@ -195,7 +195,7 @@ Technology "tech_shore" {
 
 Vessel "vessel_oil" {
 	PowerSystem = PowerSystem("ps_oil")
-	Route = Route("route_regional")
+	Route = Route("route_tramp")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_oil")]
 	PropulsionLoad = 10
@@ -212,7 +212,7 @@ Vessel "vessel_oil" {
 
 Vessel "vessel_methane" {
 	PowerSystem = PowerSystem("ps_methane")
-	Route = Route("route_roundtrip")
+	Route = Route("route_liner")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_methane"), Tank("tank_pilot")]
 	PropulsionLoad = 10
@@ -221,7 +221,7 @@ Vessel "vessel_methane" {
 
 Vessel "vessel_methanol" {
 	PowerSystem = PowerSystem("ps_methanol")
-	Route = Route("route_regional")
+	Route = Route("route_tramp")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_methanol"), Tank("tank_pilot")]
 	PropulsionLoad = Surface("surface_load")
@@ -229,7 +229,7 @@ Vessel "vessel_methanol" {
 
 Vessel "vessel_ammonia" {
 	PowerSystem = PowerSystem("ps_ammonia")
-	Route = Route("route_regional")
+	Route = Route("route_tramp")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_ammonia"), Tank("tank_pilot")]
 	PropulsionLoad = Surface("surface_load_strict")

@@ -317,7 +317,7 @@ def _rebuild_regulation_constraints_for_adjustment(
                 for f in alg.fuels_per_converter[v, c]:
                     coefficient_key = (v, c, f, r)
                     emission_factor = alg.regulation_emission_factor[coefficient_key]
-                    effective_lhv = alg.effective_lhv[(v, c, f)]
+                    effective_lhv = vessel.expectation.get_effective_lhv(c, f)
                     alg.regulation_spend_coefficient[coefficient_key] = (
                         emission_factor - adjusted_threshold / TON_TO_KG * effective_lhv
                     )

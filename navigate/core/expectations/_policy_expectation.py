@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The emission-coefficient storage shared by the levy and regulation expectations."""
+"""The emission-factor storage shared by the levy and regulation expectations."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class _PolicyExpectation(_Expectation):
-    """Well-to-tank, tank-to-wake and combined emission coefficients of a policy."""
+    """Global warming potentials and WTT and TTW emission factors of a policy."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -31,10 +31,6 @@ class _PolicyExpectation(_Expectation):
         # for regulation the key is: (converter_name, fuel_name, emission_name)
         self._ttw_consumption: dict[tuple[str, ...], FloatArray] = {}
         self._ttw_slip: dict[tuple[str, ...], FloatArray] = {}
-
-        # for levy the key is:       (vessel_name, port_name, fuel_name)
-        # for regulation the key is: (vessel_name, converter_name, fuel_name)
-        self._coefficient: dict[tuple[str, ...], FloatArray] = {}
 
     def _initialize_policy_expectation(self, emission_names: Iterable[str]) -> None:
 
@@ -59,12 +55,6 @@ class _PolicyExpectation(_Expectation):
         self._ttw_slip.setdefault(key, self._default_array())
         self._ttw_slip[key][idx:] = ttw
 
-    def set_coefficient(
-        self, idx: int, key: tuple[str, ...], coefficient: FloatLike
-    ) -> None:
-        self._coefficient.setdefault(key, self._default_array())
-        self._coefficient[key][idx:] = coefficient
-
     def get_global_warming_potential(self, emission_name: str) -> float:
         return self._global_warming_potential[emission_name]
 
@@ -86,13 +76,5 @@ class _PolicyExpectation(_Expectation):
 
         if key in self._ttw_slip:
             return self._ttw_slip[key][idx]
-
-        return 0.0
-
-    def get_coefficient(self, key: tuple[str, ...], idx: int) -> float:
-
-        if key in self._coefficient:
-            coefficient: float = self._coefficient[key][idx]
-            return coefficient
 
         return 0.0

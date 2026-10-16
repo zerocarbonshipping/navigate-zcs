@@ -10,9 +10,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-import navigate.core.enum_ as enum_
 from navigate.core.enum_ import BunkerScopeID
-from navigate.util import MWD_TO_GJ, TOLERANCE
+from navigate.util import TOLERANCE
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -35,23 +34,21 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     v = vessel.name
     multiplier = alg.multipliers[v]
     ports = vessel.route.ports
-    port_levies = alg.port_levies
 
     for p, port in enumerate(ports):
         port_name = port.name
-        levies = port_levies[port_name]
 
         for f, fuel in vessel.usable_fuels.items():
             if not port.is_bunkering_allowed(f):
                 continue
 
             price = np.float64(port.expectation.get_bunker_price(f, alg.idx))
-            cost_levy = sum(
-                alg.cost_levy[(v, port_name, f, levy.name)]
-                for levy in levies
-                if levy.vessel_is_policed(v)
-            )
-            total_price = price + cost_levy
+
+            levy_cost = 0.0
+            for levy in port.imposed_levies:
+                levy_cost += levy.expectation.get_cost((v, port_name, f), alg.idx)
+
+            total_price = price + levy_cost
 
             alg.bunker[v, p, f].Obj = multiplier * total_price
 
@@ -68,11 +65,7 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                         round(total_price, 1),
                     )
 
-    time_port = vessel.expectation.get_time_port(alg.idx)
-    vessel_capacity = vessel.expectation.get_shore_power_capacity(alg.idx)
-    electrical_demand = vessel.expectation.get_energy_port(idx=alg.idx).get(
-        enum_.EnergyDemandID.ELECTRICAL, [0.0] * len(ports)
-    )
+    shore_power_limits = vessel.expectation.get_shore_power_limit_port(alg.idx)
 
     for p, port in enumerate(ports):
         key = (v, p)
@@ -81,16 +74,8 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             continue
 
         cost = float(port.expectation.get_shore_power_cost(alg.idx))
-        connection_share = float(
-            port.expectation.get_shore_power_connection_share(alg.idx)
-        )
 
-        # shore power flows only for the connected share of the time in port, at the
-        # lesser of the connection's capacity and the constant load
-        capacity_bound = vessel_capacity * float(time_port[p]) * MWD_TO_GJ
-        demand_bound = float(electrical_demand[p])
-        alg.shore_power[key].UB = connection_share * min(capacity_bound, demand_bound)
-
+        alg.shore_power[key].UB = float(shore_power_limits[p])
         alg.shore_power[key].Obj = multiplier * cost
 
 

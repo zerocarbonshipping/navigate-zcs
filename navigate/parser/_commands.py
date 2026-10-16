@@ -170,7 +170,14 @@ _REPORT_COMMANDS: dict[str, AllowedSections] = {
     "add_vessel_property": SECTION_DEFINE,
 }
 
-_ROUTE_COMMANDS: dict[str, AllowedSections] = {"set_voyage_distribution": SECTION_BOTH}
+_ROUTE_COMMANDS: dict[str, AllowedSections] = {
+    "set_speed": SECTION_BOTH,
+    "set_utilization": SECTION_BOTH,
+    "set_distance": SECTION_DEFINE,
+    "set_port_duration": SECTION_BOTH,
+    "set_voyage_distribution": SECTION_BOTH,
+    "set_port_calls": SECTION_BOTH,
+}
 
 _SOURCE_COMMANDS: dict[str, AllowedSections] = {}
 _SURFACE_COMMANDS: dict[str, AllowedSections] = {}

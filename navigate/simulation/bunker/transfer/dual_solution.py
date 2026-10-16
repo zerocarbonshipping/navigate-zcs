@@ -20,14 +20,16 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-    for (
-        v,
-        port_start,
-        port_end,
-        energy_id,
-    ), constr in alg.energy_conservation_sea.items():
+    # the sea rows are keyed by each leg's stops, the expectation lists the legs in
+    # the order of their route
+    leg_positions = {
+        v: {leg: position for position, leg in enumerate(vessel.route.get_legs())}
+        for v, vessel in alg.vessels.items()
+    }
+
+    for (v, i, e, energy_id), constr in alg.energy_conservation_sea.items():
         vessel = alg.vessels[v]
-        leg = vessel.route.local_to_global_leg_idx(port_start, port_end)
+        position = leg_positions[v][i, e]
 
         # the objective scales the shadow price by the number of vessels, so
         # dividing by it gives the impact per vessel; the rhs is already per vessel
@@ -35,9 +37,11 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
         rhs = constr.RHS
 
         vessel.expectation.set_energy_conservation_pi_sea(
-            alg.idx, energy_id, leg, shadow_price
+            alg.idx, energy_id, position, shadow_price
         )
-        vessel.expectation.set_energy_conservation_rhs_sea(alg.idx, energy_id, leg, rhs)
+        vessel.expectation.set_energy_conservation_rhs_sea(
+            alg.idx, energy_id, position, rhs
+        )
 
     for (v, p, energy_id), constr in alg.energy_conservation_port.items():
         # the objective scales the shadow price by the number of vessels, so

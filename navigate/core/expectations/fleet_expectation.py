@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import BunkerScopeID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import slice_dict
@@ -76,18 +76,15 @@ class FleetExpectation(_Expectation):
     def set_uptakes(self, idx: int, uptakes: FloatArray) -> None:
         self._uptakes[:, idx] = uptakes
 
-    def get_existing_multipliers(
-        self, vessel_name: str, idx: Index = np.s_[:]
+    def get_multiplier(
+        self, vessel_name: str, scope: BunkerScopeID, idx: Index
     ) -> FloatLike:
-        return self._existing_multipliers[vessel_name][idx]
+        existing = self._existing_multipliers[vessel_name][idx]
 
-    def get_expected_multipliers(
-        self, vessel_name: str, idx: Index = np.s_[:]
-    ) -> FloatLike:
-        return (
-            self._existing_multipliers[vessel_name][idx]
-            + self._newbuild_multipliers[vessel_name][idx]
-        )
+        if scope == BunkerScopeID.EXISTING:
+            return existing
+
+        return existing + self._newbuild_multipliers[vessel_name][idx]
 
     def get_fuel_demand(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
         return slice_dict(self._fuel_demand, idx)

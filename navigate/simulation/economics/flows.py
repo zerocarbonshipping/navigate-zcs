@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from math import floor
 from typing import TYPE_CHECKING
 
@@ -311,55 +312,32 @@ def add_variable_opex(
     component.add_opex_flow(fixed * variable)
 
 
-def add_fixed_wtt(
-    component: Component, wtt_callables: dict[str, Callable[[float], float]]
-) -> None:
+def add_fixed_wtt(component: Component, wtt: Callable[[str, float], float]) -> None:
     """
-    Add fixed/locked WTT for multiple emissions in one pass over staircase segments.
+    Add the fixed WTT of every emission, locked at installation and each replacement.
 
     Parameters
     ----------
     component
         Component for which WTT emissions are added.
-    wtt_callables
-        Mapping of emission name to callable returning locked WTT factor at anchor time,
-        in days.
+    wtt
+        Callable returning the WTT of an emission locked at an anchor time, in days.
     """
-    if not wtt_callables:
-        return
-
-    cycle = component.replacement_cycle
-    if cycle is None:
-        time_initial = component.time_initial
-        overlap = component.constant_overlap
-
-        for emission_name, wtt in wtt_callables.items():
-            component.add_wtt_flow(emission_name, wtt(time_initial) * overlap)
-
-        return
-
-    segments = cycle.staircase_segments
-    n = component.get_length()
-    flows = {e: np.zeros(n, dtype=float) for e in wtt_callables}
-
-    for anchor_time, normalized_overlap in segments:
-        for emission_name, wtt in wtt_callables.items():
-            flows[emission_name] += wtt(anchor_time) * normalized_overlap
-
-    for emission_name, flow in flows.items():
-        component.add_wtt_flow(emission_name, flow)
+    for emission in component.wtt_flow:
+        fixed = _build_staircase_flow(component=component, value=partial(wtt, emission))
+        component.add_wtt_flow(emission, fixed)
 
 
 def add_variable_wtt(
     component: Component,
     metric: Callable[[float], float],
-    wtt_callables: dict[str, Callable[[FloatArray], FloatArray]],
+    wtt: Callable[[str, FloatArray], FloatArray],
 ) -> None:
     """
-    Add variable WTT (metric * factor) for multiple emissions.
+    Add the variable WTT (metric * factor) of every emission.
 
-    Computes the staircase flow for the shared metric once, then multiplies
-    by each emission's variable WTT factor.
+    Computes the staircase flow for the shared metric once, then multiplies it by
+    each emission's variable WTT factor.
 
     Parameters
     ----------
@@ -368,18 +346,19 @@ def add_variable_wtt(
     metric
         Callable returning locked metric at anchor time, in days. Shared across
         emissions.
-    wtt_callables
-        Mapping of emission name to callable returning time-dependent WTT factor.
+    wtt
+        Callable returning the WTT factor of an emission as a function of absolute
+        time, in days. Vectorized over arrays of days.
     """
-    if not wtt_callables:
+    if not component.wtt_flow:
         return
 
     fixed = _build_staircase_flow(component=component, value=metric)
     year_flow = component.year_flow
 
-    for emission_name, wtt in wtt_callables.items():
-        variable = wtt(year_flow)
-        component.add_wtt_flow(emission_name, fixed * variable)
+    for emission in component.wtt_flow:
+        variable = wtt(emission, year_flow)
+        component.add_wtt_flow(emission, fixed * variable)
 
 
 def timeline_to_yearly(vessel: Vessel, idx: int, timeline: FloatArray) -> FloatArray:

@@ -2,13 +2,17 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Route "operational_profile_roro_7000_ceu" {
-	RouteType = REGIONAL_TRIP
-	
+	# The route type is an internal calculation choice and does not describe how
+	# the segment operates.
+	RouteType = TRAMP
+
 	Ports = [Port("port_global"), Port("port_europe")]
-    PortCalls = [100, 25]
-	
+	set_port_calls("port_global", 100)
+	set_port_calls("port_europe", 25)
+
 	TimeAtSea = 0.876
-	ConditionDistribution = [1]
-	Speeds =                [15.5]
-	CapacityUtilizations =  [0.75]
+	set_voyage_distribution("*", "*", 1)
+
+	set_speed("*", "*", 15.5)
+	set_utilization("*", "*", 0.75)
 }

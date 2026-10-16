@@ -53,11 +53,11 @@ arbiter.
 - Read and write attributes directly. Do not add a method that only returns
   or assigns an attribute, except the DSL setters, the expectation and profile
   accessors, and `.get`.
-- Prepopulate a dictionary with its full key set wherever the set is known up
-  front, so a missing key fails loudly instead of growing the dictionary. A
-  dictionary keyed by nodes or enum members is always prepopulated at
-  initialization: every node is known after parsing, and the enum types in
-  `navigate/core/enum_.py` are fixed.
+- A dictionary an expectation or profile class holds as state gets its full
+  key set at initialization and never allocates a key on first write, so a
+  missing key fails loudly instead of growing the dictionary. A dictionary
+  that code builds as a local or return value, by a loop or a comprehension,
+  is outside the rule.
 
 ## Nodes and the DSL
 
@@ -81,8 +81,7 @@ arbiter.
   it overrides, in the order `check_requirements`, `apply_defaults`,
   `apply_command_defaults`, `check_consistency`, `initialize_dependencies`,
   `initialize_expectation`, `initialize_profile`, `check_dynamic_consistency`,
-  `calculate_expectation`, `calculate_profile`; other `calculate_*` methods;
-  getters last.
+  `calculate_profile`; other `calculate_*` methods; getters last.
 - Name the kinds a setter may be handed and store once, in
   `navigate/core/types_.py`, and use those aliases at every attribute
   definition and setter parameter. The alias matches the setter's `type_=`
@@ -103,8 +102,11 @@ arbiter.
 
 ## Dynamic state and results
 
-- A value computed during the time loop and read by another module lives on
-  `node.expectation` or `node.profile`, not on a plain node attribute.
+- A numeric value computed during the time loop and read by another module
+  lives on `node.expectation` or `node.profile`, not on a plain node
+  attribute. A relation between nodes that events can change is the
+  exception: a plain node attribute holding node references, rewritten once
+  per time step by `navigate/core/node_maps.py`.
 - The expectation classes (`navigate/core/expectations/`) and profile classes
   (`navigate/core/profiles/`) are accessed through getters, adders and
   setters, which keep dynamic state and output apart from user input and

@@ -7,12 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
-from navigate.core.enum_ import RouteTypeID
-
 if TYPE_CHECKING:
-    from navigate.core.nodes.levy import Levy
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
@@ -42,7 +37,7 @@ def calculate_cargo_miles_in_policy_jurisdiction(
         Cargo miles within the regulation jurisdiction.
     """
     expectation = vessel.expectation
-    cargo_miles = expectation.get_cargo_miles_per_leg(idx)
+    cargo_miles = expectation.get_cargo_miles_leg(idx)
 
     return _calculate_attribute_in_policy_jurisdiction(
         regulation, vessel, time, cargo_miles
@@ -72,7 +67,7 @@ def calculate_nominal_cargo_miles_in_policy_jurisdiction(
         Nominal cargo miles within the regulation jurisdiction.
     """
     expectation = vessel.expectation
-    nominal_cargo_miles = expectation.get_cargo_miles_per_leg_nominal(idx)
+    nominal_cargo_miles = expectation.get_cargo_miles_leg_nominal(idx)
 
     return _calculate_attribute_in_policy_jurisdiction(
         regulation, vessel, time, nominal_cargo_miles
@@ -137,7 +132,7 @@ def _calculate_attribute_in_policy_jurisdiction(
     time
         Time since start of simulation, in days.
     attribute_sea
-        Attribute per leg at sea.
+        Attribute at sea per leg, in the order of `Route.get_legs`.
 
     Returns
     -------
@@ -150,56 +145,16 @@ def _calculate_attribute_in_policy_jurisdiction(
     inter = regulation.inter_fraction.get(time)
     extra = regulation.extra_fraction.get(time)
 
-    # scale the demand by the fraction of time
-    # spent in the jurisdiction of the regulation
-    route = vessel.route
-    ports = route.ports
-    leg_idx = route.get_leg_indices()
-
-    attribute_per_leg = attribute_sea
-    if route.route_type != RouteTypeID.ROUND_TRIP:
-        attribute_total = np.add.reduce(np.asarray(attribute_sea))
-        voyage_distribution = route.get_voyage_distribution()
-        attribute_per_leg = [
-            attribute_total * fraction for fraction in voyage_distribution.values()
-        ]
+    # scale each leg's attribute by the fraction of it spent in the jurisdiction
+    ports = vessel.route.ports
+    legs = vessel.route.get_legs()
 
     attribute: FloatLike = 0.0
 
-    for leg, (pi, pe) in enumerate(leg_idx):
+    for (pi, pe), attribute_leg in zip(legs, attribute_sea, strict=True):
         fraction = leg_jurisdiction_fraction(
             ports[pi], ports[pe], jurisdiction, intra, inter, extra
         )
-        attribute += fraction * attribute_per_leg[leg]
+        attribute += fraction * attribute_leg
 
     return float(attribute)
-
-
-def policies_affecting_port(port: Port, policies: dict[str, Levy]) -> list[Levy]:
-    """
-    Get a list of all the levies which jurisdiction affects the port.
-
-    Parameters
-    ----------
-    port
-        Port to find levies for.
-    policies
-        All levies in the simulation.
-
-    Returns
-    -------
-    list[Levy]
-        List of levies affecting the port.
-    """
-    affected = []
-
-    for policy in policies.values():
-        if not policy.is_active():
-            continue
-
-        jurisdiction = policy.jurisdiction
-
-        if port in jurisdiction:
-            affected.append(policy)
-
-    return affected

@@ -54,10 +54,11 @@ every change. The detail lives in the files it points to.
   content under CC-BY-4.0, not code.
 - `simulations/` — `scenarios/` are the reference runs, about 25 minutes
   each; they are not tests. `examples/` are small decks that CI smoke-runs.
-- `tutorials/` — teaching decks with example solutions, also smoke-run in
-  CI.
 - `docs/` — the Sphinx/MyST source of the user manual. It publishes to
-  `gh-pages`; `dev` publishes to `/staging/`.
+  `gh-pages`; `dev` publishes to `/staging/`. `docs/tutorials/` holds each
+  tutorial's starting files next to its page; the docs build zips them into
+  the page's download, and the example solution is written into the page.
+  Nothing runs the tutorials.
 - `syntax/` — editor syntax highlighting for the DSL, including a committed
   VS Code `.vsix`.
 

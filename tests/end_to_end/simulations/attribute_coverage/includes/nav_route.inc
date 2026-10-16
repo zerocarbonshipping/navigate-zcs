@@ -4,17 +4,17 @@
 # Routes and Ports
 #
 # Attributes covered:
-#   Route: RouteType, Ports, TimeAtSea, PortDurations, PortCalls,
-#          Distances, ConditionDistribution, Speeds, CapacityUtilizations
+#   Route: RouteType, Ports, TimeAtSea
 #   Port:  ShorePowerCost, ShorePowerConnectionShare
 #
 # Commands covered:
-#   Route: set_voyage_distribution
+#   Route: set_speed, set_utilization, set_distance, set_port_duration,
+#          set_voyage_distribution, set_port_calls
 #   Port:  set_bunkering_allowed, set_bunkering_limit, set_bunkering_inertia,
 #          set_handling_cost, set_bunker_price_overwrite, set_bunker_wtt_overwrite,
 #          set_shore_power_emission_factor
 
-# Two ports for ROUND_TRIP legs
+# Two ports for the legs of both route types
 Port "port_a" {
 	ShorePowerCost = 50
 	ShorePowerConnectionShare = 0.1
@@ -45,25 +45,44 @@ Port "port_b" {
 	set_bunker_price_overwrite("electricity", 260)
 }
 
-# REGIONAL_TRIP covers: TimeAtSea, PortCalls, ConditionDistribution
-Route "route_regional" {
-	RouteType = REGIONAL_TRIP
-	Ports = Port("port_a")
+# TRAMP covers: TimeAtSea, set_voyage_distribution, set_port_calls, and a
+# speed Curve with a utilization Curve over the same speeds
+Route "route_tramp" {
+	RouteType = TRAMP
+	Ports = [Port("port_a"), Port("port_b")]
 	TimeAtSea = 0.75
-	PortCalls = [100]
-	ConditionDistribution = [1.0]
-	Speeds = [10]
-	CapacityUtilizations = [0.7]
+	set_port_calls("port_a", 100)
+	set_port_calls("port_b", 20)
+	set_voyage_distribution("*", "*", 0.2)
+	set_voyage_distribution("port_a", "port_a", 0.4)
+	set_speed("*", "*", Curve("curve_tramp_speed"))
+	set_utilization("*", "*", Curve("curve_tramp_utilization"))
+	set_utilization("port_b", "port_b", 0.7)
 }
 
-# ROUND_TRIP covers: Distances, PortDurations, set_voyage_distribution
-Route "route_roundtrip" {
-	RouteType = ROUND_TRIP
+# LINER covers: set_distance, set_port_duration, and one speed per leg
+Route "route_liner" {
+	RouteType = LINER
 	Ports = [Port("port_a"), Port("port_b")]
-	Distances = [1000, 1000]
-	PortDurations = [2, 2]
-	Speeds = [12, 12]
-	CapacityUtilizations = [0.8, 0.5]
-	set_voyage_distribution("port_a", "port_b", 0.5)
-	set_voyage_distribution("port_b", "port_a", 0.5)
+	set_distance("*", "*", 1000)
+	set_port_duration("*", "*", 2)
+	set_speed("*", "*", 12)
+	set_utilization("port_a", "port_b", 0.8)
+	set_utilization("port_b", "port_a", 0.5)
+}
+
+# Share of the time at sea sailed at each speed
+Curve "curve_tramp_speed" {
+	Table = [
+		9	0.3
+		11	0.7
+	]
+}
+
+# Cargo capacity utilization at each speed: ballast at 9 knots, laden at 11
+Curve "curve_tramp_utilization" {
+	Table = [
+		9	0
+		11	1
+	]
 }

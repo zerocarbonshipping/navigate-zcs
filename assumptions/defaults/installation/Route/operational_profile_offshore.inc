@@ -2,13 +2,15 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Route "operational_profile_offshore" {
-	RouteType = REGIONAL_TRIP
-	
+	RouteType = TRAMP
+
 	Ports = [Port("port_global"), Port("port_europe")]
-    PortCalls = [8, 2]
+	set_port_calls("port_global", 8)
+	set_port_calls("port_europe", 2)
 
 	TimeAtSea = 0.22
-	ConditionDistribution = [1]
-	Speeds = 				[10]
-	CapacityUtilizations = 	[0.5]
+	set_voyage_distribution("*", "*", 1)
+
+	set_speed("*", "*", 10)
+	set_utilization("*", "*", 0.5)
 }

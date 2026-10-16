@@ -90,7 +90,12 @@ class Region(Node):
         """Set the lifetime of a production process."""
         write_matching_keys(
             process_name,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(FORECAST, VARIABLE),
+                lower=0.0,
+                inclusive_lower=False,
+            ),
             self.process_lifetime,
         )
 

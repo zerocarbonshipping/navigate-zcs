@@ -7,8 +7,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.simulation.bunker._build import get_constraint
 from navigate.simulation.bunker.constraints.regulation_terms import (
-    calculate_regulation_emission_term,
+    calculate_regulation_terms,
 )
 
 if TYPE_CHECKING:
@@ -23,43 +24,43 @@ def update_individual_regulation_threshold_constraints(alg: BunkerAlgorithm) -> 
 
         E_{r,v} - w_{r,v} <= R_{r,v}
 
-    where E is the vessel's regulated constraint term -- a linear expression over
-    its sea and port fuel spend and shore power, weighted by regulation
-    coefficients and jurisdiction fractions: the coefficient expression of
-    calculate_regulation_emission_term, which for intensity measures already
-    folds in the threshold and is distinct from the emission and energy
-    expressions stored for reporting -- w the remedial units bought for the
-    vessel, and R the threshold-derived bound (update_regulation_individual_rhs).
-    The remedial variable keeps the model feasible when the cap cannot be met;
-    its objective cost prices non-compliance.
+    where E is T of calculate_regulation_terms, the vessel's fuel spend and shore
+    power weighted by regulation coefficients and jurisdiction fractions (for an
+    intensity measure the coefficients fold in the threshold), w the remedial
+    units bought for the vessel, and R the threshold-derived bound
+    (update_regulation_individual_rhs). The remedial variable keeps the model
+    feasible when the cap cannot be met; its objective cost prices non-compliance.
 
-    The constraint is removed and re-added each build instead of mutated in place:
-    which spend variables enter E changes between builds (legs move between
-    jurisdiction fractions), so the row's sparsity pattern is not stable.
+    The row is rewritten in place each build: every variable it has ever held is
+    written again, at weight 0 where its jurisdiction fraction is 0.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     """
-    for (r, v), rhs in alg.regulation_rhs_individual.items():
-        key = (r, v)
-        regulation = alg.regulations[r]
-        vessel = alg.vessels[v]
+    change_coefficient = alg.model.chgCoeff
 
-        coefficients, emissions, energy = calculate_regulation_emission_term(
-            alg, vessel, regulation
+    for key, rhs in alg.regulation_rhs_individual.items():
+        constraint = get_constraint(
+            alg,
+            alg.regulation_threshold_individual,
+            key,
+            "<=",
+            "regulation_threshold_individual",
         )
-        lhs = coefficients - alg.remedial_factor_individual[r, v]
+        constraint.rhs = rhs
+
+        r, v = key
+        terms, emissions, energy = calculate_regulation_terms(
+            alg, alg.vessels[v], alg.regulations[r]
+        )
 
         # kept for evaluating the regulation properties after the solve
-        alg.regulation_emission_terms[(r, v)] = emissions
-        alg.regulation_energy_terms[(r, v)] = energy
+        alg.regulation_emission_terms[key] = emissions
+        alg.regulation_energy_terms[key] = energy
 
-        if key in alg.regulation_threshold_individual:
-            alg.model.remove(alg.regulation_threshold_individual[key])
+        for variable, weight in terms:
+            change_coefficient(constraint, variable, weight)
 
-        name = "regulation_threshold_individual_{}_{}".format(*key)
-        alg.regulation_threshold_individual[key] = alg.model.addConstr(
-            lhs <= rhs, name=name
-        )
+        change_coefficient(constraint, alg.remedial_factor_individual[key], -1.0)

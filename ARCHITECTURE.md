@@ -21,7 +21,8 @@ step, and `driver/` runs it from a read deck to its output.
     `planning.py` and `aggregation.py` play the same role in each.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/bunker/` — the per-time-step bunkering LP.
-  - `simulation/policy/` — policy emission coefficients and beliefs.
+  - `simulation/policy/` — policy expectations, emission coefficients, levy
+    costs and beliefs.
 - `core/` — the model definition only: the DSL value types and their
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
   nodes (`general_nodes/`), the node maps, `expectations/`, `profiles/`, the
@@ -49,14 +50,11 @@ Node classes hold state, and the calculators among them (`Curve`,
 `simulation/`. The node methods below are a known exception, and the list
 must not grow:
 
-- `calculate_expectation` on `Port`, `Regulation`, `Vessel` and `Levy`,
-  `calculate_profile` on the first three, and
-  `_Policy._calculate_policy_expectations`;
+- `calculate_profile` on `Port`, `Regulation` and `Vessel`;
 - `_AssetManager`'s `update_increment_ages`, `_age_increments`,
   `define_initial_age` and `define_initial_multipliers`, with the hooks
   `Fleet` and `Producer` implement for them, and
-  `Producer.define_initial_decided`;
-- `Route._normalize_voyage_distribution`.
+  `Producer.define_initial_decided`.
 
 ## Layering
 
@@ -100,12 +98,15 @@ re-export there would load far more than an import needs.
 ## Data-flow invariants
 
 - Cross-module dynamic results flow through the node's `expectation`: the
-  computing module writes (`set_*`, `add_*`), the others read (`get_*`).
+  computing module writes (`set_*`, `add_*`), the others read (`get_*`). A
+  relation between nodes that events can change is not such a result: it is
+  a node attribute holding node references, rewritten once per time step by
+  `core/node_maps.py`.
 - `profile` is output for reports and plots, never a decision's input.
   Deriving one profile value from another is fine in post-processing and
   `Simulation._calculate_profile`, which feed no decision.
 - Direct attribute access (`node.some_input.get()`) is reserved for
-  DSL-defined inputs.
+  DSL-defined inputs and those node maps.
 - `simulation/` handles no files, console output or arguments; its one file
   write is the bunker's infeasible-LP dump into the directory it is given.
 

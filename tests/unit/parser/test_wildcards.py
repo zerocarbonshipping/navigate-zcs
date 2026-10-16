@@ -113,7 +113,7 @@ def test_a_wildcard_inside_a_list_is_spliced_in_place():
 
 
 # input:    | Route "r" { Ports = Port("*") }   with ports port_a and port_b
-# expected: -> route.ports stays empty until the pending assignments are
+# expected: -> route.ports stays unset until the pending assignments are
 #              flushed, then holds port_a and port_b
 def test_a_pending_assignment_reaches_the_setter_expanded():
     parser = _parser_with_ports("port_a", "port_b")
@@ -128,7 +128,7 @@ def test_a_pending_assignment_reaches_the_setter_expanded():
     )
 
     # held back, so the setter has not run yet
-    assert route.ports == []
+    assert not hasattr(route, "ports")
 
     parser._flush_pending_assignments()
 

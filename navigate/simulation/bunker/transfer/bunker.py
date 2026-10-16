@@ -28,15 +28,6 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         fleet_name: dict.fromkeys(alg.fuels, 0.0) for fleet_name in alg.fleets
     }
 
-    # the levy levels depend on neither vessel nor fuel, so each is read once
-    levy_level_cache = {}
-    if alg.scope == BunkerScopeID.EXISTING:
-        for levies in alg.port_levies.values():
-            for levy in levies:
-                name = levy.name
-                if name not in levy_level_cache:
-                    levy_level_cache[name] = levy.expectation.get_level(alg.idx)
-
     for (v, p, f), bunker in alg.bunker.items():
         if alg.options.solution_tolerance > bunker.X:
             continue
@@ -80,17 +71,15 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
                 wtt_emissions = emission_factor * bunker.X
                 vessel.profile.add_wtt(f, emission_name, wtt_emissions, idx=alg.idx)
 
-        for levy in alg.port_levies[port_name]:
-            if not levy.vessel_is_policed(v):
-                continue
-
-            collected = alg.cost_levy[(v, port_name, f, levy.name)] * bunker.X
+        for levy in port.imposed_levies:
+            cost = levy.expectation.get_cost((v, port_name, f), alg.idx)
+            collected = cost * bunker.X
 
             if alg.scope == BunkerScopeID.EXISTING:
                 levy.profile.add_collected(collected * alg.multipliers[v], alg.idx)
                 vessel.profile.add_levy_expenses(f, collected, alg.idx)
 
-                level = levy_level_cache[levy.name]
+                level = float(levy.expectation.get_level(alg.idx))
                 if level > 0.0:
                     vessel.profile.add_levy_units(levy.name, collected / level, alg.idx)
 

@@ -28,7 +28,6 @@ from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.plant import Plant
 from navigate.core.profiles import ProducerProfile
-from navigate.exceptions import UnassignedAttributeError
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
@@ -96,7 +95,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
     # external methods (DSL attributes) ------------------------------------------------
     def set_plants(self, plants: Plant | list[Plant]) -> None:
         """Set the list of plant types the producer can build."""
-        self.assets = assign_reference_list(plants, PLANT, unique=True)
+        self.assets = assign_reference_list(plants, PLANT, min_length=1, unique=True)
 
     def set_minimum_offtake_duration(
         self, minimum_offtake_duration: ForecastArgument
@@ -212,11 +211,6 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if not self.assets:
-            raise UnassignedAttributeError(str(self), "Plants")
-
     def check_consistency(self) -> None:
 
         if self._initial_capacity and (len(self.assets) != len(self._initial_capacity)):

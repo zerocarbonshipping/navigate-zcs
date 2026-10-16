@@ -7,9 +7,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import navigate.simulation.bunker.solver as gp
+from navigate.simulation.bunker._build import get_constraint
 from navigate.simulation.bunker.constraints.regulation_terms import (
-    calculate_regulation_emission_term,
+    calculate_regulation_terms,
 )
 
 if TYPE_CHECKING:
@@ -24,47 +24,52 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
 
         \sum_{v policed} M_v E_{r,v} - w_r <= R_r
 
-    where E is a vessel's regulated constraint term (the coefficient expression of
-    calculate_regulation_emission_term -- see regulation_individual for how it
-    differs from the stored emission and energy expressions), M the number of
-    vessels it represents, w the remedial units bought for the pool, and R the
-    pooled threshold bound (update_regulation_flexibility_rhs). Vessels over their
-    individual target are balanced by vessels under it; only the pooled excess is
-    priced through the remedial variable.
+    where E is a vessel's T of calculate_regulation_terms (see
+    regulation_individual), M the number of vessels it represents, w the remedial
+    units bought for the pool, and R the pooled threshold bound
+    (update_regulation_flexibility_rhs). Vessels over their individual target are
+    balanced by vessels under it; only the pooled excess is priced through the
+    remedial variable.
 
-    The constraint is removed and re-added each build instead of mutated in place:
-    which spend variables enter E changes between builds (legs move between
-    jurisdiction fractions), so the row's sparsity pattern is not stable.
+    The row is rewritten in place each build: every variable it has ever held for
+    a vessel still in the model is written again, at weight 0 where its
+    jurisdiction fraction is 0 or its vessel is not policed.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     """
+    change_coefficient = alg.model.chgCoeff
+
     for r, rhs in alg.regulation_total_rhs_flexibility.items():
+        constraint = get_constraint(
+            alg,
+            alg.regulation_threshold_flexibility,
+            r,
+            "<=",
+            "regulation_threshold_flexibility",
+        )
+        constraint.rhs = rhs
+
         regulation = alg.regulations[r]
 
-        terms = gp.create_linear_expression()
-
         for v, vessel in alg.vessels.items():
-            if not regulation.vessel_is_policed(v):
-                continue
+            is_policed = regulation.vessel_is_policed(v)
+            multiplier = alg.multipliers[v] if is_policed else 0.0
 
-            coefficients_v, emissions_v, energy_v = calculate_regulation_emission_term(
+            terms, emissions, energy = calculate_regulation_terms(
                 alg, vessel, regulation
             )
-            terms += coefficients_v * alg.multipliers[v]
 
-            # kept for evaluating the regulation properties after the solve
-            alg.regulation_emission_terms[(r, v)] = emissions_v
-            alg.regulation_energy_terms[(r, v)] = energy_v
+            if is_policed:
+                # kept for evaluating the regulation properties after the solve
+                alg.regulation_emission_terms[(r, v)] = emissions
+                alg.regulation_energy_terms[(r, v)] = energy
 
-        lhs = terms - alg.remedial_factor_flexibility[r]
+            # a vessel out of the pool is still written, to zero its columns
+            # out of the pooled row
+            for variable, weight in terms:
+                change_coefficient(constraint, variable, weight * multiplier)
 
-        if r in alg.regulation_threshold_flexibility:
-            alg.model.remove(alg.regulation_threshold_flexibility[r])
-
-        name = f"regulation_threshold_flexibility_{r}"
-        alg.regulation_threshold_flexibility[r] = alg.model.addConstr(
-            lhs <= rhs, name=name
-        )
+        change_coefficient(constraint, alg.remedial_factor_flexibility[r], -1.0)

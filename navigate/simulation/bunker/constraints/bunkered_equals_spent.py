@@ -27,8 +27,8 @@ def update_bunkered_equals_spent_constraint(
 
     where b is the fuel mass bunkered at port p, x the fuel mass spent by converter c
     at sea on leg (i, e), and y the fuel mass spent by converter c in port. Closes the
-    route-wide fuel balance; the per-port mass_conservation constraint (ROUND_TRIP
-    routes only) additionally tracks when along the route fuel is spent.
+    route-wide fuel balance; the mass_conservation constraint at each tank stop of the
+    route additionally tracks when along the route fuel is spent.
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def update_bunkered_equals_spent_constraint(
     route = vessel.route
     converters_per_fuel = alg.converters_per_fuel
     port_converters_per_fuel = alg.port_converters_per_fuel
-    leg_idx = route.get_leg_indices()
+    leg_idx = route.get_legs()
     port_idx = range(route.get_number_of_ports())
 
     change_coefficient = alg.model.chgCoeff
