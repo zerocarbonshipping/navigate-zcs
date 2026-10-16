@@ -186,7 +186,7 @@ def calculate_development_potential(
 
     potential = dict.fromkeys(producer.fuels, 0.0)
 
-    for plant in producer.assets:
+    for plant in producer.plants:
         plant_name = plant.name
         fuel_name = plant.fuel.name
         production = float(plant.expectation.get_production(idx))

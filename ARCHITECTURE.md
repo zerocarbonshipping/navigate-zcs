@@ -20,6 +20,8 @@ step, and `driver/` runs it from a read deck to its output.
     The two mirror each other: `initialization.py`, `evolution.py`,
     `planning.py` and `aggregation.py` play the same role in each.
   - `simulation/economics/` — valuation and choice used by both domains.
+  - `simulation/cohort.py` — vintage-stock accounting over the asset
+    cohorts of both domains.
   - `simulation/bunker/` — the per-time-step bunkering LP.
   - `simulation/policy/` — policy expectations, emission coefficients, levy
     costs, regulation compliance, and the flexibility market and its beliefs.
@@ -42,16 +44,13 @@ in `core/expectations/x_expectation.py` and its output in
 `core/profiles/x_profile.py`; the domain's calculations live in
 `simulation/<domain>/`. The fleet domain owns `Fleet` and `Vessel`, fuel
 owns `Producer`, `Plant` and `Port`, and policy owns `Regulation` and
-`Levy`. `simulation/economics/` owns no nodes, and `simulation/bunker/`'s
-settings are the general node `core/general_nodes/bunker_options.py`.
+`Levy`. `simulation/economics/` and `simulation/cohort.py` own no nodes, and
+`simulation/bunker/`'s settings are the general node
+`core/general_nodes/bunker_options.py`.
 
 Node classes hold state, and the calculators among them (`Curve`,
 `Forecast` and the like) their value semantics; model work lives in
-`simulation/`. The known exceptions, a list that must not grow, are
-`_AssetManager`'s `update_increment_ages`, `_age_increments`,
-`define_initial_age` and `define_initial_multipliers`, with the hooks
-`Fleet` and `Producer` implement for them, and
-`Producer.define_initial_decided`.
+`simulation/`.
 
 ## Layering
 
@@ -60,7 +59,9 @@ util, __init__, simulation         → (nothing)
 exceptions                         → util
 core                               → foundation
 simulation.economics               → core, foundation
-simulation.fleet, simulation.fuel  → simulation.economics, core, foundation
+simulation.cohort                  → core, foundation
+simulation.fleet, simulation.fuel  → simulation.economics, simulation.cohort,
+                                     core, foundation
 simulation.bunker,
 simulation.policy                  → core, foundation
 parser, output                     → core, foundation
@@ -76,10 +77,11 @@ dotted path; `__init__` is `navigate/__init__.py` and `simulation` is
 `simulation/__init__.py` alone. A file belongs to the longest unit that
 contains it; a unit imports itself and its row, nothing else from
 `navigate`. The foundation is `util/` and `exceptions.py`; the domains are
-the five `simulation.<domain>` units. Every file must fall in a unit, so a
-new top-level module or package needs a row here. No row may link two of
-`simulation.bunker`, `simulation.fleet`, `simulation.fuel` and
-`simulation.policy`, nor link `simulation.economics` to `simulation.bunker` or
+the five packages under `simulation/`. Every file must fall in a unit, so a
+new top-level module or package, or a new module or package directly under
+`simulation/`, needs a row here. No row may link two of `simulation.bunker`,
+`simulation.fleet`, `simulation.fuel` and `simulation.policy`, nor link
+`simulation.economics` or `simulation.cohort` to `simulation.bunker` or
 `simulation.policy`, nor link `parser` and `output`, nor link either of them
 to a simulation unit.
 

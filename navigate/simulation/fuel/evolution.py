@@ -5,12 +5,18 @@
 
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.core.increment import PlantIncrement
+from navigate.simulation.cohort import (
+    calculate_share_below,
+    extends_past,
+    find_origin_indexes,
+)
 from navigate.simulation.fuel.planning import (
     calculate_constrained_uptakes,
     perform_pipeline_planning,
@@ -19,7 +25,6 @@ from navigate.util import (
     TOLERANCE,
     YEAR,
     divide_nonzero,
-    get_increment_origin_indexes,
     slice_dict,
 )
 
@@ -205,25 +210,47 @@ def _calculate_increments_production(
     return total
 
 
+def update_plant_ages(producer: Producer, time_step: float) -> None:
+    """
+    Age the producer's plants and its pipeline by the time since the last time-step.
+
+    The time since decision advances with the age, as it dates the plant attributes
+    an increment was decided with.
+
+    Parameters
+    ----------
+    producer
+        Producer whose plants are aged.
+    time_step
+        Current time-step size, days.
+    """
+    dt = time_step / YEAR
+
+    for increments in itertools.chain(producer.increments, producer.pipeline):
+        for increment in increments:
+            increment.age += dt
+            increment.decided += dt
+
+
 def perform_decommissioning(producer: Producer) -> None:
     """
-    Decommission increments that have exceeded their asset's lifetime.
+    Decommission increments that have exceeded their plant's lifetime.
 
     Parameters
     ----------
     producer
         The producer instance.
     """
-    for a, asset in enumerate(producer.assets):
-        incs = producer.increments[a]
-        lifetime = asset.lifetime.get()
+    for p, plant in enumerate(producer.plants):
+        incs = producer.increments[p]
+        lifetime = plant.lifetime.get()
 
-        producer.increments[a] = [inc for inc in incs if inc.age < lifetime]
+        producer.increments[p] = [inc for inc in incs if inc.age < lifetime]
 
         # partially decommission increments whose age_span spans the lifetime boundary
-        for inc in producer.increments[a]:
-            if inc.age + inc.age_span > lifetime:
-                alpha = (lifetime - inc.age) / inc.age_span
+        for inc in producer.increments[p]:
+            if extends_past(inc, lifetime):
+                alpha = calculate_share_below(inc, lifetime)
                 decommissioning = inc.multiplier * (1.0 - alpha)
 
                 inc.multiplier -= decommissioning
@@ -259,10 +286,10 @@ def calculate_evolution_expectation(
 
     year_steps = time_steps / YEAR
 
-    n = len(producer.assets)
+    n = len(producer.plants)
 
     # every plant carries the same emissions, so an arbitrary one names them
-    emissions = producer.assets[0].expectation.get_emissions() if n > 0 else []
+    emissions = producer.plants[0].expectation.get_emissions() if n > 0 else []
 
     cost = np.zeros((n, times.size))
     wtt = {emission_name: np.zeros((n, times.size)) for emission_name in emissions}
@@ -270,13 +297,13 @@ def calculate_evolution_expectation(
 
     existing = np.zeros((n, times.size))
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         incs = producer.increments[p]
         if not len(incs):
             continue
 
         decided = np.array([inc.decided for inc in incs])
-        origins = get_increment_origin_indexes(years, years[idx], decided)
+        origins = find_origin_indexes(years, years[idx], decided)
         production = np.asarray(plant.expectation.get_production(origins))
 
         existing[p, :] = _calculate_increments_production(
@@ -299,13 +326,13 @@ def calculate_evolution_expectation(
 
     pipeline = np.zeros((n, times.size))
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         pinc = producer.pipeline[p]
         if not len(pinc):
             continue
 
         decided = np.array([inc.decided for inc in pinc])
-        origins = get_increment_origin_indexes(years, years[idx], decided)
+        origins = find_origin_indexes(years, years[idx], decided)
         production = np.asarray(plant.expectation.get_production(origins))
 
         pipeline[p, :] = _calculate_increments_production(
@@ -330,7 +357,7 @@ def calculate_evolution_expectation(
     # no supply is expected and thus no demand; a partially uniform uptake
     # expectation weighted by the jump-start fraction starts it
     allowed = np.array(
-        [producer.allow_plant[plant.name] for plant in producer.assets], dtype=bool
+        [producer.allow_plant[plant.name] for plant in producer.plants], dtype=bool
     )
     total = np.count_nonzero(allowed)
     uniform = np.zeros_like(producer.current_uptake)
@@ -382,7 +409,7 @@ def calculate_evolution_expectation(
             additional_consumption=consumption,
         )
 
-        for p, plant in enumerate(producer.assets):
+        for p, plant in enumerate(producer.plants):
             lifetime = plant.lifetime.get(time)
             lead_time = plant.lead_time.get(time)
 
@@ -425,20 +452,20 @@ def calculate_evolution_expectation(
         for emission_name, unit_wtt in wtt.items()
     }
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         producer.expectation.set_existing_production(idx, plant.name, existing[p, :])
         producer.expectation.set_pipeline_production(idx, plant.name, pipeline[p, :])
         producer.expectation.set_newbuild_production(idx, plant.name, newbuild[p, :])
 
     supply = existing[:, 0] + pipeline[:, 0] + newbuild[:, 0]
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         plant.expectation.set_expected_production_cost(idx, cost_avg[p, :])
 
         for e in plant.expectation.get_emissions():
             plant.expectation.set_expected_production_wtt(idx, e, wtt_avg[e][p, :])
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         if supply[p] > TOLERANCE:
             plant.profile.set_instantaneous_cost(idx, cost_avg[p, 0])
 
@@ -459,7 +486,7 @@ def perform_pipeline_delivery(producer: Producer) -> None:
     producer
         The producer instance.
     """
-    for p in range(len(producer.assets)):
+    for p in range(len(producer.plants)):
         pinc = producer.pipeline[p]
         incs = producer.increments[p]
         last_idx = None
@@ -481,8 +508,8 @@ def perform_pipeline_delivery(producer: Producer) -> None:
             else:
                 # the ongoing increment delivers the part that has crossed zero, as
                 # plants enter uniformly over a time step
-                if pinc_i.age + pinc_i.age_span > 0.0:
-                    alpha = -pinc_i.age / pinc_i.age_span
+                if extends_past(pinc_i, 0.0):
+                    alpha = calculate_share_below(pinc_i, 0.0)
                     remaining = increment * alpha
                     delivered = increment - remaining
                     delivered_dt = pinc_i.age + pinc_i.age_span
@@ -533,7 +560,7 @@ def calculate_feed_availability(
         if constraint is None:
             continue
 
-        for plant in producer.assets:
+        for plant in producer.plants:
             expectation = plant.expectation
             current_production = float(expectation.get_production(idx))
             current_conversion = float(expectation.get_feed_mass(feed_name, idx))
@@ -541,7 +568,7 @@ def calculate_feed_availability(
 
             producer.expectation.set_plant_feed_consumption(plant.name, feed_name, mass)
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         incs = producer.increments[p]
         if not len(incs):
             continue
@@ -564,22 +591,19 @@ def calculate_feed_availability(
         # the first continued increment may be partly decommissioned, as the
         # model is continuous
         start = np.argmax(continued)
+        boundary = lifetime - lead_time
 
         for i in range(start, continued.size):
-            increment_i = multipliers[i]
-            age_i = ages[i]
-            dt_i = incs[i].age_span
-
-            if age_i + dt_i > (lifetime - lead_time):
-                alpha = ((lifetime - lead_time) - age_i) / dt_i
-                remaining = increment_i * alpha
+            if extends_past(incs[i], boundary):
+                alpha = calculate_share_below(incs[i], boundary)
+                remaining = multipliers[i] * alpha
 
                 existing_increments = np.append(existing_increments, remaining)
                 existing_decided = np.append(existing_decided, decided_arr[i])
 
         # production and feed use are those of when the plants were built
         expectation = plant.expectation
-        origins = get_increment_origin_indexes(years, today, existing_decided)
+        origins = find_origin_indexes(years, today, existing_decided)
         production = expectation.get_production(origins)
         conversions = expectation.get_feed_masses(origins)
 
@@ -587,7 +611,7 @@ def calculate_feed_availability(
             feed_mass = np.sum(production * conversion * existing_increments)
             producer.expectation.add_existing_feed(feed_name, feed_mass)
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         pinc = producer.pipeline[p]
         if not len(pinc):
             continue
@@ -597,7 +621,7 @@ def calculate_feed_availability(
         decided = np.array([inc.decided for inc in pinc])
         multipliers = np.array([inc.multiplier for inc in pinc])
 
-        origins = get_increment_origin_indexes(years, today, decided)
+        origins = find_origin_indexes(years, today, decided)
         production = expectation.get_production(origins)
         conversions = expectation.get_feed_masses(origins)
 
@@ -613,7 +637,7 @@ def calculate_feed_availability(
         # the minimum across plants guarantees consistency with the constraint
         lead_times = [
             plant.lead_time.get()
-            for plant in producer.assets
+            for plant in producer.plants
             if producer.expectation.get_plant_feed_consumption(plant.name, feed_name)
             > 0.0
         ]
@@ -661,8 +685,7 @@ def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
     timeline
         Simulation timeline, days.
     """
-    for _p in range(len(producer.assets)):
-        producer.pipeline.append([])
+    producer.pipeline = [[] for _ in producer.plants]
 
     for p, (_name, pipeline) in enumerate(producer.existing_pipelines.items()):
         if pipeline is None:
@@ -687,7 +710,7 @@ def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
         # the first increment is assumed to have entered over a year
         incremental_dt = np.insert(np.diff(incremental_delivery), 0, 1.0)
 
-        plant = producer.assets[p]
+        plant = producer.plants[p]
         capacity = plant.capacity.get()
         incremental_plants = incremental_capacity / capacity
 
@@ -705,7 +728,7 @@ def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
         producer.profile.set_development(0, np.sum(incremental_plants))
 
     # the current uptake is an inertia-weighted average over the pipeline
-    n = len(producer.assets)
+    n = len(producer.plants)
     sum_weights = 0.0
     uptake = np.zeros((n,), dtype=np.float64)
     inertia = producer.inertia.get()
@@ -716,7 +739,7 @@ def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
             continue
 
         # TODO: this may need to be based on continuous compound growth?
-        lead_time = producer.assets[p].lead_time.get()
+        lead_time = producer.plants[p].lead_time.get()
         ages = np.array([inc.age for inc in pinc])
         multipliers = np.array([inc.multiplier for inc in pinc])
         weights = inertia ** (np.maximum(lead_time + ages, 0.0))

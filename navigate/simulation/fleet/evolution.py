@@ -10,7 +10,12 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.fleet.aggregation import transfer_multipliers_to_profile
+from navigate.simulation.cohort import calculate_share_below, extends_past
+from navigate.simulation.fleet.aggregation import (
+    get_multiplier,
+    get_multipliers,
+    transfer_multipliers_to_profile,
+)
 from navigate.simulation.fleet.planning import (
     add_newbuilds,
     calculate_modelled_newbuilds,
@@ -26,6 +31,24 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
+
+
+def update_vessel_ages(fleet: Fleet, time_step: float) -> None:
+    """
+    Age the fleet's vessels by the time since the last time-step.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose vessels are aged.
+    time_step
+        Current time-step size, days.
+    """
+    dt = time_step / YEAR
+
+    for increments in fleet.increments:
+        for increment in increments:
+            increment.age += dt
 
 
 def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float) -> None:
@@ -97,7 +120,7 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     for v, (vessel, incs) in enumerate(
-        zip(fleet.assets, fleet.increments, strict=True)
+        zip(fleet.vessels, fleet.increments, strict=True)
     ):
         scrapped_vessels = 0.0
         lifetime = vessel.lifetime.get()
@@ -118,24 +141,22 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int) -> None:
             if surviving:
                 surviving[0].baseline = surviving[0].multiplier
 
+        baseline = surviving[0].baseline if surviving else None
+
         # scrap the part of the oldest cohort beyond the lifetime, assuming its
         # vessels entered uniformly over its age span
-        if surviving and surviving[0].baseline is not None:
-            age_i = surviving[0].age
-            dt_i = surviving[0].age_span
+        if baseline is not None and extends_past(surviving[0], lifetime):
+            alpha = calculate_share_below(surviving[0], lifetime)
 
-            if age_i + dt_i > lifetime:
-                alpha = (lifetime - age_i) / dt_i
+            remaining = baseline * alpha
+            scrapping = surviving[0].multiplier - remaining
 
-                remaining = surviving[0].baseline * alpha
-                scrapping = surviving[0].multiplier - remaining
+            # conversions out of the cohort can leave fewer vessels than the
+            # baseline share that remains, so the scrapping is floored at zero
+            scrapping = max(scrapping, 0.0)
 
-                # conversions out of the cohort can leave fewer vessels than the
-                # baseline share that remains, so the scrapping is floored at zero
-                scrapping = max(scrapping, 0.0)
-
-                scrapped_vessels += scrapping
-                surviving[0].multiplier -= scrapping
+            scrapped_vessels += scrapping
+            surviving[0].multiplier -= scrapping
 
         fleet.profile.add_scrap(vessel.name, scrapped_vessels, idx)
 
@@ -161,7 +182,7 @@ def perform_fixed_rate_scrapping(
     target_scrap = scrap_rate * _get_cargo_miles(fleet, idx)
     perform_fixed_trade_scrapping(fleet, -target_scrap, idx)
 
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         if not fleet.increments[v]:
             continue
 
@@ -201,7 +222,7 @@ def perform_fixed_trade_scrapping(
     # (vessel, increment) indices are grouped by the rounded age
     age_to_group: dict[float, list[tuple[int, int]]] = {}
 
-    for v in range(len(fleet.assets)):
+    for v in range(len(fleet.vessels)):
         increment_ages = np.round([inc.age for inc in fleet.increments[v]], ROUND_OFF)
 
         for i, age in enumerate(increment_ages):
@@ -215,14 +236,14 @@ def perform_fixed_trade_scrapping(
     ages = list(age_to_group.keys())
     grouped_indices = list(age_to_group.values())
 
-    cargo_miles = extract_cargo_miles(fleet.assets, idx)
+    cargo_miles = extract_cargo_miles(fleet.vessels, idx)
     sorted_indices = np.argsort(ages)[::-1]
 
     trade_gap = -trade_gap
     initial_trade = trade_gap
 
     youngest_age = None
-    youngest_index = [0 for _ in range(len(fleet.assets))]
+    youngest_index = [0 for _ in range(len(fleet.vessels))]
 
     for i in sorted_indices:
         group = grouped_indices[i]
@@ -250,7 +271,7 @@ def perform_fixed_trade_scrapping(
                 # the increment's age span pass
                 youngest_age = age + dt * (1.0 - scrap_fraction)
 
-                fleet.profile.add_scrap(fleet.assets[v].name, to_scrap, idx)
+                fleet.profile.add_scrap(fleet.vessels[v].name, to_scrap, idx)
 
             trade_gap = 0.0
 
@@ -262,7 +283,7 @@ def perform_fixed_trade_scrapping(
         for v, ii in group:
             multiplier = fleet.increments[v][ii].multiplier
             youngest_index[v] = ii + 1
-            fleet.profile.add_scrap(fleet.assets[v].name, multiplier, idx)
+            fleet.profile.add_scrap(fleet.vessels[v].name, multiplier, idx)
 
     # drop the increments scrapped in full
     for v, i in enumerate(youngest_index):
@@ -286,7 +307,7 @@ def clean_up_multipliers(fleet: Fleet) -> None:
     fleet
         Fleet whose increments are cleaned up.
     """
-    for v in range(len(fleet.assets)):
+    for v in range(len(fleet.vessels)):
         incs = fleet.increments[v]
         n = len(incs)
         available = [True] * n
@@ -325,7 +346,7 @@ def clean_up_multipliers(fleet: Fleet) -> None:
                     incs[j].multiplier = 0.0
                     available[j] = False
 
-    for v in range(len(fleet.assets)):
+    for v in range(len(fleet.vessels)):
         fleet.increments[v] = [
             inc for inc in fleet.increments[v] if inc.multiplier >= 1e-3
         ]
@@ -353,11 +374,11 @@ def calculate_evolution_expectation(
     times = timeline[idx_] / YEAR
     future = times - times[0]
 
-    nv = len(fleet.assets)
+    nv = len(fleet.vessels)
     existing = np.zeros((nv, times.size))
 
     for v, (vessel, incs) in enumerate(
-        zip(fleet.assets, fleet.increments, strict=True)
+        zip(fleet.vessels, fleet.increments, strict=True)
     ):
         if not incs:
             continue
@@ -372,11 +393,11 @@ def calculate_evolution_expectation(
         cum_increments = np.cumsum(multipliers)
         cum_increments = np.interp(future, (lifetime - ages), cum_increments, left=0.0)
 
-        existing[v, :] = fleet.get_multiplier(v)
+        existing[v, :] = get_multiplier(fleet, v)
         existing[v, :] -= cum_increments
 
     # the multipliers become cargo-miles to take the speed expectations into account
-    cargo_miles = extract_cargo_miles_timeline(fleet.assets, idx_)
+    cargo_miles = extract_cargo_miles_timeline(fleet.vessels, idx_)
     existing_trade = np.zeros_like(existing)
     for v in range(nv):
         existing_trade[v, :] = existing[v, :] * cargo_miles[v]
@@ -420,7 +441,7 @@ def calculate_evolution_expectation(
     jump_start_rel = 1e-3
     total_multipliers = np.sum(existing + newbuild, axis=0)
     jump_start = jump_start_rel * total_multipliers
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]:
             non_existent = np.where(existing[v, :] + newbuild[v, :] == 0.0)
             newbuild[v, non_existent] = jump_start[non_existent]
@@ -428,7 +449,7 @@ def calculate_evolution_expectation(
     # the expected newbuilds need no scrapping of their own beyond the vessel
     # lifetime: the vessels replacing them are expected to follow the same
     # distribution
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         fleet.expectation.set_existing_multipliers(idx, vessel.name, existing[v, :])
         fleet.expectation.set_newbuild_multipliers(idx, vessel.name, newbuild[v, :])
 
@@ -469,8 +490,8 @@ def perform_fleet_evolution(
 
     # each vessel type's newbuild budget for this time-step, shared by the three
     # newbuild sources; the fleet count before newbuilds stands in for yard capacity
-    multipliers_total = float(sum(fleet.get_multipliers()))
-    limit_share = np.array([fleet.newbuild_limit[v.name].get() for v in fleet.assets])
+    multipliers_total = float(sum(get_multipliers(fleet)))
+    limit_share = np.array([fleet.newbuild_limit[v.name].get() for v in fleet.vessels])
     cap_count = limit_share * multipliers_total * (time_step / YEAR)
 
     increments, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
@@ -517,7 +538,7 @@ def perform_fleet_evolution(
         )
 
     if np.sum(increments) > 0.0:
-        cargo_miles = extract_cargo_miles(fleet.assets, idx)
+        cargo_miles = extract_cargo_miles(fleet.vessels, idx)
         fleet.current_uptake = (increments * cargo_miles) / np.dot(
             increments, cargo_miles
         )
@@ -532,7 +553,7 @@ def perform_fleet_evolution(
 
 
 def _get_cargo_miles(fleet: Fleet, idx: int) -> float:
-    multipliers = fleet.get_multipliers()
-    cargo_miles = extract_cargo_miles(fleet.assets, idx)
+    multipliers = get_multipliers(fleet)
+    cargo_miles = extract_cargo_miles(fleet.vessels, idx)
 
     return float(np.dot(multipliers, cargo_miles))

@@ -12,6 +12,7 @@ from navigate.simulation.fuel.aggregation import (
 from navigate.simulation.fuel.evolution import (
     perform_planning,
     perform_progression,
+    update_plant_ages,
 )
 from navigate.simulation.fuel.expectation import (
     calculate_export_expectations,

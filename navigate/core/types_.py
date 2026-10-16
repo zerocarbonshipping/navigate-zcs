@@ -32,6 +32,11 @@ if TYPE_CHECKING:
 # the node classes 'CALCULATOR_TYPES' names
 type Calculator = Curve | Forecast | Surface | Timetable | Variable
 
+# setters passing type_ CURVE with allow_expression False, which read their
+# Curves as tables rather than evaluate them, so take no Variable or Expression
+type CurveTableInput = Scalar | Curve
+type CurveTableArgument = float | Curve
+
 # 'Expression' is a member of every alias below: 'assign_value' accepts an
 # expression wherever the setter accepts scalars or a calculator type, and
 # every alias here spells such a setter.
