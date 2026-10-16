@@ -86,7 +86,7 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
     all_values: dict[FuelTypeID, list[FloatArray]] = {}
     all_colors: dict[FuelTypeID, list[ColorType]] = {}
     all_labels: dict[FuelTypeID, list[str]] = {}
-    all_capacity: dict[FuelTypeID, FloatArray] = {}
+    all_fuel_capacity: dict[FuelTypeID, FloatArray] = {}
     all_fuel_supply: dict[FuelTypeID, FloatArray] = {}
 
     maximum = 0.0
@@ -123,7 +123,7 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
         all_values[fuel_type] = values
         all_colors[fuel_type] = colors
         all_labels[fuel_type] = labels
-        all_capacity[fuel_type] = fuel_capacity
+        all_fuel_capacity[fuel_type] = fuel_capacity
         all_fuel_supply[fuel_type] = fuel_supply
 
     if maximum <= 0.0:
@@ -133,12 +133,14 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
 
     fig, axes = subplot_grid(len(fuel_types))
 
+    dashed = (0, (5, 3))
+
     for ax, fuel_type in zip(axes, fuel_types, strict=False):
         values = [value / divisor for value in all_values[fuel_type]]
         colors = all_colors[fuel_type]
         labels = all_labels[fuel_type]
 
-        fuel_capacity = all_capacity[fuel_type] / divisor
+        fuel_capacity = all_fuel_capacity[fuel_type] / divisor
         fuel_supply = all_fuel_supply[fuel_type] / divisor
 
         handles: list[Artist] = []
@@ -149,13 +151,11 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
             )
             handles.extend(stack)
 
-        line_capacity = ax.plot(
-            dateline, fuel_capacity, ls=(0, (5, 3)), color="r", lw=2
-        )
+        line_capacity = ax.plot(dateline, fuel_capacity, ls=dashed, color="r", lw=2)
         handles.extend(line_capacity)
         legend_labels = [*labels, "Fleet capacity"]
 
-        line_supply = ax.plot(dateline, fuel_supply, ls=(0, (5, 3)), color="b", lw=2)
+        line_supply = ax.plot(dateline, fuel_supply, ls=dashed, color="b", lw=2)
         handles.extend(line_supply)
         legend_labels.append("Supply")
 

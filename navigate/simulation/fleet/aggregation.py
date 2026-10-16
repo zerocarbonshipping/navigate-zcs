@@ -141,10 +141,7 @@ def _gather_fuel_type_capacity(fleet: Fleet) -> None:
         if multiplier == 0.0:
             continue
 
-        power_system = vessel.power_system
-        converters = power_system.get_converters()
-
-        for converter in converters:
+        for converter in vessel.power_system.get_converters():
             converter_energy = vessel.expectation.get_spend_energy(converter.name)
             fleet_energy = converter_energy * multiplier
 
@@ -156,15 +153,14 @@ def _gather_fuel_type_capacity(fleet: Fleet) -> None:
             else:
                 pilot_fuel_share = 0.0
 
+            main_capacity = (1.0 - pilot_fuel_share) * fleet_energy
+            pilot_capacity = pilot_fuel_share * fleet_energy
+
             for fuel_type in converter.main_fuel_types:
-                fleet.expectation.add_fuel_type_capacity(
-                    fuel_type, (1.0 - pilot_fuel_share) * fleet_energy
-                )
+                fleet.expectation.add_fuel_type_capacity(fuel_type, main_capacity)
 
             for fuel_type in converter.pilot_fuel_types:
-                fleet.expectation.add_fuel_type_capacity(
-                    fuel_type, pilot_fuel_share * fleet_energy
-                )
+                fleet.expectation.add_fuel_type_capacity(fuel_type, pilot_capacity)
 
         # clear the spend energy so no later step reads this solution's values
         vessel.expectation.reset_spend_energy()
