@@ -17,8 +17,8 @@ step, and `driver/` runs it from a read deck to its output.
   orchestrates the domains in a fixed phase order.
   - `simulation/fleet/` — the shipowner domain: operation and decisions.
   - `simulation/fuel/` — the fuel-supply domain: production and planning.
-    The two mirror each other: `initialization.py`, `evolution.py`,
-    `planning.py` and `aggregation.py` play the same role in each.
+    Each domain names its files for its own concepts, and `Simulation`
+    sequences their phases.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/cohort.py` — vintage-stock accounting over the asset
     cohorts of both domains.

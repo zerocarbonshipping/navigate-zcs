@@ -13,8 +13,8 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
-from navigate.simulation.fleet.aggregation import get_multipliers
 from navigate.simulation.fleet.charter import calculate_fuel_and_policy_expenses
+from navigate.simulation.fleet.composition import get_multipliers
 from navigate.simulation.fleet.marginal_saving import calculate_marginal_speed_saving
 from navigate.simulation.fleet.operation import (
     calculate_operations,

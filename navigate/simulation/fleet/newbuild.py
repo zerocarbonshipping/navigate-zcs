@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Newbuild planning: orderbook deliveries, inertia and modelled newbuilds."""
+"""Vessels added to the fleet: orderbook deliveries, inertia and modelled newbuilds."""
 
 from __future__ import annotations
 
@@ -14,9 +14,8 @@ from navigate.core.enum_ import UtilityID
 from navigate.core.increment import VesselIncrement
 from navigate.core.wrap import to_numpy
 from navigate.simulation.economics.decision import calculate_two_axis_uptake
-from navigate.simulation.fleet.technology_adoption import (
-    calculate_package_charter_rates,
-)
+from navigate.simulation.fleet.composition import extract_cargo_miles
+from navigate.simulation.fleet.package import calculate_package_charter_rates
 from navigate.util import TOLERANCE, YEAR
 
 if TYPE_CHECKING:
@@ -365,44 +364,6 @@ def add_newbuilds(fleet: Fleet, increments: FloatArray, time_step: float) -> Non
 
             if was_empty:
                 fleet.increments[v][0].baseline = increment
-
-
-def extract_cargo_miles(vessels: list[Vessel], idx: int) -> FloatArray:
-    """
-    Extract each vessel's cargo-miles at a single time-step index.
-
-    Parameters
-    ----------
-    vessels
-        Vessels to extract cargo-miles for.
-    idx
-        Time-step index.
-
-    Returns
-    -------
-    FloatArray
-        Cargo-miles of one vessel of each type, cargo-miles/year.
-    """
-    return np.array([vessel.expectation.get_cargo_miles(idx) for vessel in vessels])
-
-
-def extract_cargo_miles_timeline(vessels: list[Vessel], idx: slice) -> list[FloatArray]:
-    """
-    Extract each vessel's cargo-miles across a slice of the timeline.
-
-    Parameters
-    ----------
-    vessels
-        Vessels to extract cargo-miles for.
-    idx
-        Timeline slice.
-
-    Returns
-    -------
-    list[FloatArray]
-        Cargo-miles of one vessel of each type over the slice, cargo-miles/year.
-    """
-    return [np.asarray(vessel.expectation.get_cargo_miles(idx)) for vessel in vessels]
 
 
 def _calculate_increments(

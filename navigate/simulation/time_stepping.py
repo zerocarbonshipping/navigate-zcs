@@ -27,24 +27,30 @@ from navigate.simulation.fleet import (
     approximate_missing_technology,
     assign_vessels_to_fleets,
     calculate_cargo_charter_properties,
-    calculate_evolution_expectation,
+    calculate_fleet_evolution_expectation,
     calculate_fleet_expectations,
     calculate_fleet_fuel_demand,
     calculate_fleet_profile,
+    calculate_fuel_type_balance,
     calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
     calculate_vessel_charter_properties,
     calculate_vessel_profile,
     check_fuel_options,
+    close_trade_gap,
     determine_fuel_type,
     initialize_existing_fleet,
-    perform_fleet_evolution,
+    perform_fuel_conversions,
+    perform_primary_scrapping,
     perform_speed_management,
     perform_technology_installation,
     post_process_fleet_profile,
     post_process_investment_metric,
     record_investment_signals,
+    transfer_technology_charter_rate,
+    transfer_technology_uptake,
     update_operations,
+    update_residual_energy_demand,
     update_vessel_ages,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
@@ -293,6 +299,7 @@ class Simulation:
         self._calculate_individual_remedial_expenses(self._bunker_existing)
         self._calculate_flexibility_markets(self._bunker_existing)
 
+        self._calculate_fuel_type_balance()
         self._calculate_profile()
         self.profile.set_total_time(
             self._idx, timeit.default_timer() - self._computational_time
@@ -511,7 +518,7 @@ class Simulation:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            calculate_evolution_expectation(fleet, self.timeline, self._idx)
+            calculate_fleet_evolution_expectation(fleet, self.timeline, self._idx)
 
         self.profile.add_fleet_state_time(
             timeit.default_timer() - start_time, self._idx
@@ -596,10 +603,31 @@ class Simulation:
         self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
 
     def _perform_fleet_evolution(self) -> None:
+        """
+        Evolve each fleet by one time-step and recalculate its evolution expectation.
+
+        Each fleet scraps its oldest vessels, converts vessels to other fuels and
+        closes the gap between its trade and the capacity left. The residual energy
+        demand and technology uptake of the resulting fleet are then updated.
+        """
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            perform_fleet_evolution(fleet, self.timeline, self._time_step, self._idx)
+            perform_primary_scrapping(fleet, self._idx, self._time_step)
+            perform_fuel_conversions(fleet, self._idx, self.timeline, self._time_step)
+            close_trade_gap(fleet, self._time_step, self._idx)
+
+            # the residual energy demand reads the updated fleet composition
+            update_residual_energy_demand(fleet, self._idx)
+
+            # transfer the technology uptake and refresh the fleet-average carried
+            # technology charge after evolution, so both profile series consistently
+            # reflect this timestep's scrapping, conversions, and newbuilds (the
+            # pre-evolution charge transfer already served the cargo charter)
+            transfer_technology_uptake(fleet, self._idx)
+            transfer_technology_charter_rate(fleet, self._idx)
+
+            calculate_fleet_evolution_expectation(fleet, self.timeline, self._idx)
 
         self.profile.add_fleet_evolution_time(
             timeit.default_timer() - start_time, self._idx
@@ -839,11 +867,21 @@ class Simulation:
         for producer in self.nodes.producers.values():
             initialize_existing_producer(producer, self.timeline)
 
+    def _calculate_fuel_type_balance(self) -> None:
+        start_time = timeit.default_timer()
+
+        for fleet in self.nodes.fleets.values():
+            calculate_fuel_type_balance(fleet, self.nodes.fuels, self._idx)
+
+        self.profile.add_fleet_state_time(
+            timeit.default_timer() - start_time, self._idx
+        )
+
     def _calculate_profile(self) -> None:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            calculate_fleet_profile(fleet, self.nodes.fuels, self.timeline, self._idx)
+            calculate_fleet_profile(fleet, self.timeline, self._idx)
 
         for port in self.nodes.ports.values():
             calculate_port_profile(port, self._idx)

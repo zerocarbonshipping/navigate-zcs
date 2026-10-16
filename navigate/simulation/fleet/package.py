@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Combined effects, cost flows, NPVs and levelized costs of technology packages."""
+"""Technology packages: building, combined effects, cost flows, charges."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import numpy as np
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandID
+from navigate.core.technology_package import TechnologyPackage
 from navigate.simulation.economics.flows import (
     Component,
     add_capex_flow,
@@ -27,9 +28,41 @@ from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
     from navigate.core.nodes.technology import Technology
-    from navigate.core.technology_package import PackageCostFlows, TechnologyPackage
+    from navigate.core.nodes.vessel import Vessel
+    from navigate.core.technology_package import PackageCostFlows
     from navigate.core.types_ import CurveInput
     from navigate.util.types_ import FloatArray
+
+
+def build_technology_packages(
+    technologies: list[Technology],
+) -> tuple[list[TechnologyPackage], dict[int, int]]:
+    """
+    Sort technologies by CAPEX and organize them into cumulative packages.
+
+    Parameters
+    ----------
+    technologies
+        Technologies to organize into packages.
+
+    Returns
+    -------
+    list[TechnologyPackage]
+        Technology packages from empty to full.
+    dict[int, int]
+        Map from a package index to the index, in ``technologies``, of the technology
+        that package adds.
+    """
+    sorted_pairs = sorted(enumerate(technologies), key=lambda p: p[1].capex.get())
+    sorted_techs = [t for _, t in sorted_pairs]
+    packages = [
+        TechnologyPackage(sorted_techs[:i]) for i in range(len(sorted_techs) + 1)
+    ]
+    package_to_technology_map = {
+        i: sorted_pairs[i - 1][0] for i in range(1, len(sorted_pairs) + 1)
+    }
+
+    return packages, package_to_technology_map
 
 
 def _refresh_combined_effects(package: TechnologyPackage) -> None:
@@ -274,6 +307,40 @@ def annual_costs_for_retrofit_steps(
         annual[step] = levelize_package_cost(inc_cost_flow, remaining, discount_rate)
 
     return annual
+
+
+def calculate_package_charter_rates(
+    packages: list[TechnologyPackage], cost_flows: PackageCostFlows, vessel: Vessel
+) -> FloatArray:
+    """
+    Levelize each package's cost, installed at build, over the vessel lifetime.
+
+    The vessel cost of capital levelizes it, so the charge is consistent with the
+    freight-rate NPVs it feeds; the adoption decision keeps its own discount rate.
+
+    Parameters
+    ----------
+    packages
+        All technology packages, from empty to full.
+    cost_flows
+        Package cost flows of the current decision time.
+    vessel
+        Vessel whose lifetime and cost of capital govern the levelization.
+
+    Returns
+    -------
+    FloatArray
+        Constant yearly charge per package, USD/year.
+    """
+    lifetime = vessel.lifetime.get()
+    discount_rate = vessel.cost_of_capital.get()
+
+    return np.array(
+        [
+            levelize_package_cost(cost_flow, lifetime, discount_rate)
+            for cost_flow in get_package_cost_flows(packages, cost_flows, lifetime)
+        ]
+    )
 
 
 def levelize_package_cost(

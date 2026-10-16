@@ -5,34 +5,37 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.core.increment import VesselIncrement
 from navigate.simulation.cohort import split_by_age
-from navigate.simulation.fleet.aggregation import (
-    get_multipliers,
-    transfer_multipliers_to_profile,
-)
-from navigate.simulation.fleet.evolution import calculate_evolution_expectation
-from navigate.simulation.fleet.package import preprocess_packages
-from navigate.simulation.fleet.planning import extract_cargo_miles
-from navigate.simulation.fleet.technology_adoption import (
+from navigate.simulation.fleet.composition import extract_cargo_miles, get_multipliers
+from navigate.simulation.fleet.expectation import calculate_fleet_evolution_expectation
+from navigate.simulation.fleet.package import (
     build_technology_packages,
-    define_initial_technology,
+    calculate_package_charter_rates,
+    preprocess_packages,
+)
+from navigate.simulation.fleet.technology_adoption import (
     transfer_technology_charter_rate,
     transfer_technology_uptake,
-    update_residual_energy_demand,
 )
+from navigate.simulation.fleet.technology_effect import update_residual_energy_demand
 from navigate.util import calculate_compound_growth
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.technology_package import TechnologyPackage
     from navigate.util.types_ import FloatArray
+
+logger = logging.getLogger(__name__)
 
 
 def assign_vessels_to_fleets(fleets: Iterable[Fleet]) -> None:
@@ -93,7 +96,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet.current_uptake = np.array(fleet.initial_split)
 
     fleet.increments = _build_initial_increments(fleet)
-    define_initial_technology(fleet)
+    _define_initial_technology(fleet)
     _define_initial_trade(fleet, timeline)
 
     fleet.orders_delivered = np.zeros((nv,))
@@ -107,9 +110,8 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     update_residual_energy_demand(fleet, idx)
 
     fleet.expectation.set_uptakes(idx, fleet.current_uptake)
-    calculate_evolution_expectation(fleet, timeline, idx)
+    calculate_fleet_evolution_expectation(fleet, timeline, idx)
 
-    transfer_multipliers_to_profile(fleet, idx)
     transfer_technology_uptake(fleet, idx)
     transfer_technology_charter_rate(fleet, idx)
 
@@ -201,6 +203,137 @@ def _calculate_initial_age_range(fleet: Fleet, vessel: Vessel) -> float:
         return min(lifetime, 1.0 / scrap_rate)
 
     return lifetime
+
+
+def _define_initial_technology(fleet: Fleet) -> None:
+    """
+    Initialize the technology-adoption storage for the fleet.
+
+    Seeds each vessel's initial package uptake; see
+    `_seed_vessel_initial_uptake`.
+
+    Parameters
+    ----------
+    fleet
+        Fleet to initialize technology for.
+    """
+    n_pkgs = fleet.get_number_of_packages()
+    n_vessels = len(fleet.vessels)
+
+    fleet.newbuild_package_uptake = [
+        np.zeros(n_pkgs, dtype=float) for _ in range(n_vessels)
+    ]
+
+    if all(share is None for share in fleet.initial_technology_share.values()):
+        return
+
+    for v, vessel in enumerate(fleet.vessels):
+        _seed_vessel_initial_uptake(fleet, vessel, v)
+
+
+def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -> None:
+    """
+    Seed one vessel's age-dependent initial package mix and carried technology charge.
+
+    Each (vessel, technology) pair may have an uptake Curve with age on the x-axis,
+    queried via interpolation at each increment's age. Shares exceeding what the
+    cumulative packages can represent are truncated, with one warning per vessel.
+
+    Parameters
+    ----------
+    fleet
+        Fleet owning the vessel.
+    vessel
+        Vessel to seed the initial uptake for.
+    vessel_idx
+        Index of `vessel` in `fleet.vessels`.
+    """
+    vessel_name = vessel.name
+    truncation_count = 0
+    truncated_tech_names = set()
+
+    # seeded uptake is charged as if installed at build (consistent with the
+    # hull, which the instantaneous freight rate charges at full newbuild cost)
+    package_rates = calculate_package_charter_rates(
+        fleet.technology_packages, fleet.package_cost_flows, vessel
+    )
+
+    for inc in fleet.increments[vessel_idx]:
+        shares = np.zeros(len(fleet.technologies))
+        for t, tech in enumerate(fleet.technologies):
+            curve = fleet.initial_technology_share.get((vessel_name, tech.name))
+            if curve is not None:
+                shares[t] = curve.get(inc.age)
+
+        package_mix, truncated = _shares_to_package_mix(
+            fleet.technologies, fleet.technology_packages, shares
+        )
+        inc.package_uptake[:] = package_mix
+        inc.technology_charter_rate = float(np.dot(package_mix, package_rates))
+
+        if truncated:
+            truncation_count += 1
+            truncated_tech_names |= truncated
+
+    if truncation_count > 0:
+        techs = ", ".join(sorted(truncated_tech_names))
+
+        logger.warning(
+            "Truncated initial technology shares for vessel '%s' across %d age "
+            "increment(s): %s",
+            vessel_name,
+            truncation_count,
+            techs,
+        )
+
+
+def _shares_to_package_mix(
+    technologies: list[Technology],
+    packages: list[TechnologyPackage],
+    shares: FloatArray,
+) -> tuple[FloatArray, set[str]]:
+    """
+    Convert per-technology shares into per-package shares.
+
+    Allocates greedily to larger packages first, then puts the remainder
+    into the empty package.
+
+    Parameters
+    ----------
+    technologies
+        Technologies the shares refer to.
+    packages
+        Packages sorted by size, the empty package at index 0.
+    shares
+        Uptake share of each technology, fraction.
+
+    Returns
+    -------
+    FloatArray
+        Share of each package, fraction.
+    set[str]
+        Names of the technologies whose shares were truncated.
+    """
+    tech_to_idx = {t: i for i, t in enumerate(technologies)}
+    tech_names = [t.name for t in technologies]
+
+    remaining = shares.astype(float, copy=True)
+    pkg_shares = np.zeros(len(packages), dtype=float)
+
+    for p in range(len(packages) - 1, 0, -1):
+        pkg = packages[p]
+        idxs = [tech_to_idx[t] for t in pkg.technologies]
+        take = remaining[idxs].min()
+        if take > 0:
+            pkg_shares[p] = take
+            remaining[idxs] -= take
+
+    truncated_techs = {
+        name for name, val in zip(tech_names, remaining, strict=True) if val > 0
+    }
+
+    pkg_shares[0] = 1.0 - pkg_shares[1:].sum()
+    return pkg_shares, truncated_techs
 
 
 def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
