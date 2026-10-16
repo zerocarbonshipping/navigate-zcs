@@ -1,20 +1,22 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""One-time initialization of the existing producers at simulation start."""
+"""The producer at simulation start: its existing plants and its decided pipeline."""
 
 from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from navigate.core.increment import PlantIncrement
 from navigate.simulation.cohort import split_by_age
-from navigate.simulation.fuel.evolution import (
-    calculate_evolution_expectation,
-    calculate_feed_availability,
-    define_existing_pipeline,
+from navigate.simulation.fuel.expectation import (
+    calculate_producer_evolution_expectation,
 )
+from navigate.simulation.fuel.feed import calculate_feed_availability
+from navigate.util import YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -50,7 +52,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     define_existing_pipeline(producer, timeline)
 
     calculate_feed_availability(producer, timeline, idx)
-    calculate_evolution_expectation(producer, timeline, idx)
+    calculate_producer_evolution_expectation(producer, timeline, idx)
 
     for plant in producer.plants:
         fuel = plant.fuel
@@ -152,3 +154,94 @@ def _calculate_initial_multiplier(
     )
 
     return 0.0
+
+
+def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
+    """
+    Define the initial number of plants of each type in the production pipeline.
+
+    Also derives the initial uptake and development-constraint utilization from the
+    pipeline counts.
+
+    Parameters
+    ----------
+    producer
+        Producer to define the pipeline for.
+    timeline
+        Simulation timeline, days.
+    """
+    producer.pipeline = [[] for _ in producer.plants]
+
+    for p, (_name, pipeline) in enumerate(producer.existing_pipelines.items()):
+        if pipeline is None:
+            continue
+
+        planned_delivery = pipeline.x
+        planned_capacity = pipeline.y
+
+        # interpolating on the timeline makes the deliveries overlap the
+        # simulation dates exactly
+        planned_capacity = np.interp(timeline, planned_delivery, planned_capacity)
+
+        incremental_delivery = timeline / YEAR
+        incremental_capacity = np.insert(
+            np.diff(planned_capacity), 0, planned_capacity[0]
+        )
+
+        non_zeros = incremental_capacity > 0.0
+        incremental_delivery = incremental_delivery[non_zeros]
+        incremental_capacity = incremental_capacity[non_zeros]
+
+        # the first increment is assumed to have entered over a year
+        incremental_dt = np.insert(np.diff(incremental_delivery), 0, 1.0)
+
+        plant = producer.plants[p]
+        capacity = plant.capacity.get()
+        incremental_plants = incremental_capacity / capacity
+
+        # a project was decided one lead time before its delivery
+        lead_time = plant.lead_time.get()
+
+        # the pipeline uses negative ages, as its plants are not yet delivered
+        producer.pipeline[p] = [
+            PlantIncrement(multiplier=m, age=-d, age_span=t, decided=lead_time - d)
+            for m, d, t in zip(
+                incremental_plants, incremental_delivery, incremental_dt, strict=True
+            )
+        ]
+
+        producer.profile.set_development(0, np.sum(incremental_plants))
+
+    # the current uptake is an inertia-weighted average over the pipeline
+    n = len(producer.plants)
+    sum_weights = 0.0
+    uptake = np.zeros((n,), dtype=np.float64)
+    inertia = producer.inertia.get()
+
+    for p in range(n):
+        pinc = producer.pipeline[p]
+        if not len(pinc):
+            continue
+
+        # TODO: this may need to be based on continuous compound growth?
+        lead_time = producer.plants[p].lead_time.get()
+        ages = np.array([inc.age for inc in pinc])
+        multipliers = np.array([inc.multiplier for inc in pinc])
+        weights = inertia ** (np.maximum(lead_time + ages, 0.0))
+
+        uptake[p] = np.dot(multipliers, weights)
+        sum_weights += np.sum(weights)
+
+    producer.current_uptake = divide_nonzero(
+        uptake, np.sum(uptake), default=1.0 / uptake.size
+    )
+
+    # the latest value of the development constraint is used, since the period
+    # to average it back over is hard to define: the pipeline and the lead time
+    # are inconsistent, and the lead time varies between plants
+    maximum_development = producer.maximum_development.get()
+    average_development = divide_nonzero(np.sum(uptake), sum_weights)
+
+    producer.current_utilization = min(
+        float(divide_nonzero(average_development, maximum_development)), 1.0
+    )

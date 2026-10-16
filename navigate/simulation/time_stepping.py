@@ -55,16 +55,19 @@ from navigate.simulation.fuel import (
     calculate_expected_fuel_demand,
     calculate_expected_fuel_supply,
     calculate_export_expectations,
+    calculate_feed_availability,
     calculate_fuel_import_to_ports,
     calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
     calculate_port_expectations,
     calculate_port_profile,
+    calculate_producer_evolution_expectation,
     calculate_producer_profile,
     initialize_existing_producer,
-    perform_planning,
-    perform_progression,
+    perform_decommissioning,
+    perform_pipeline_delivery,
+    perform_pipeline_planning,
     update_plant_ages,
 )
 from navigate.simulation.policy import (
@@ -448,14 +451,13 @@ class Simulation:
 
     def _perform_producer_evolution(self) -> None:
         """
-        Progress each producer in time and assign fair shares of the supply gap.
+        Progress each producer in time and plan its pipeline from its share of the gap.
 
-        The preparation per producer consists of:
-        - delivering from the pipeline,
-        - calculating feedstock gap.
-
-        Then the fuel/supply demand gap is calculated and producers are assigned a
-        fair-share of the gap and their pipeline is updated.
+        Each producer first decommissions its retired plants, takes delivery from its
+        pipeline, and updates its feed gap and development potential. The fuel
+        supply/demand gap is then shared out among the producers, and each plans new
+        plants into its pipeline, updates its feed gap again and recalculates its
+        evolution expectation.
         """
         start_time = timeit.default_timer()
 
@@ -466,7 +468,9 @@ class Simulation:
         }
 
         for producer in self.nodes.producers.values():
-            perform_progression(producer, self.timeline, self._idx)
+            perform_decommissioning(producer)
+            perform_pipeline_delivery(producer)
+            calculate_feed_availability(producer, self.timeline, self._idx)
             calculate_development_potential(producer, self._time_step, self._idx)
 
         demand = calculate_expected_fuel_demand(self.nodes.fleets, self._idx)
@@ -477,7 +481,14 @@ class Simulation:
         )
 
         for producer in self.nodes.producers.values():
-            perform_planning(producer, self.timeline, self._time_step, self._idx)
+            perform_pipeline_planning(
+                producer, self.timeline, self._time_step, self._idx
+            )
+
+            # the feed gap is updated again before the evolution expectation, to
+            # account for the plants just added to the pipeline
+            calculate_feed_availability(producer, self.timeline, self._idx)
+            calculate_producer_evolution_expectation(producer, self.timeline, self._idx)
 
         self.profile.add_producer_evolution_time(
             timeit.default_timer() - start_time, self._idx
