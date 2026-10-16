@@ -186,8 +186,12 @@ class Vessel(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
-        self.expectation.initialize(length, self.route, self.power_system, fuels)
+    def initialize_expectation(
+        self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
+    ) -> None:
+        self.expectation.initialize(
+            length, self.route, self.power_system, fuels, emissions
+        )
 
     def initialize_profile(
         self,

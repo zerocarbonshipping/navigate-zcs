@@ -70,7 +70,7 @@ def expectations(request):
     plant.initialize(LENGTH, emissions, feedstocks, ports, processes)
 
     vessel = VesselExpectation()
-    vessel.initialize(LENGTH, _Route(ports), _PowerSystem(), fuels)
+    vessel.initialize(LENGTH, _Route(ports), _PowerSystem(), fuels, emissions)
 
     return {"plant": plant, "vessel": vessel}
 

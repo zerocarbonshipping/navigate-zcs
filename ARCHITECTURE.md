@@ -50,8 +50,7 @@ Node classes hold state, and the calculators among them (`Curve`,
 `simulation/`. The node methods below are a known exception, and the list
 must not grow:
 
-- `calculate_expectation` on `Port`, and `calculate_profile` on `Port`,
-  `Regulation` and `Vessel`;
+- `calculate_profile` on `Port`, `Regulation` and `Vessel`;
 - `_AssetManager`'s `update_increment_ages`, `_age_increments`,
   `define_initial_age` and `define_initial_multipliers`, with the hooks
   `Fleet` and `Producer` implement for them, and

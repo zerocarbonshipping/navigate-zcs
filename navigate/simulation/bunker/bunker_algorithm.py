@@ -24,10 +24,7 @@ from navigate.simulation.bunker.cleanup import (
     remove_redundant_regulations,
     remove_redundant_vessel,
 )
-from navigate.simulation.bunker.coefficients import (
-    calculate_emission_factors,
-    calculate_regulation_coefficients,
-)
+from navigate.simulation.bunker.coefficients import calculate_regulation_coefficients
 from navigate.simulation.bunker.constraints.bunkered_equals_spent import (
     update_bunkered_equals_spent_constraint,
 )
@@ -169,9 +166,6 @@ class BunkerAlgorithm:
         # regulation
         self.adjusted_vessel_thresholds: dict[tuple[str, str], float] = {}
         self.adjusted_shared_thresholds: dict[str, float] = {}
-
-        # emission factors
-        self.emission_factor: dict[tuple[str, str, str, str], float] = {}
 
         # fair-share fuel properties ---------------------------------------------------
 
@@ -323,7 +317,6 @@ class BunkerAlgorithm:
                     self.vessels[v] = vessel
                     self.multipliers[v] = np.float64(multiplier)
 
-                    calculate_emission_factors(self, vessel)
                     calculate_regulation_coefficients(self, vessel)
 
                     update_vessel_variables(self, vessel)
@@ -447,8 +440,6 @@ class BunkerAlgorithm:
 
         self.adjusted_vessel_thresholds = {}
         self.adjusted_shared_thresholds = {}
-
-        self.emission_factor = {}
 
         self.active_regulations = {
             r: reg for r, reg in self.regulations.items() if reg.is_active()

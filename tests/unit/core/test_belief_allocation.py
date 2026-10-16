@@ -73,7 +73,9 @@ def test_regulation_flexibility_cost_belief_is_all_nan():
 )
 def test_vessel_scarcity_belief_is_all_nan(getter, keys, n_legs):
     expectation = VesselExpectation()
-    expectation.initialize(LENGTH, _Route(), _PowerSystem(), {"ammonia": None})
+    expectation.initialize(
+        LENGTH, _Route(), _PowerSystem(), {"ammonia": None}, {"carbon_dioxide": None}
+    )
 
     belief = getattr(expectation, getter)()
 
