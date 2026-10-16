@@ -20,9 +20,10 @@ def calculate_fleet_expectations(
     """
     Calculate the vessel expectations set once at the start of the step.
 
-    For every converter and each fuel it burns, the effective lower heating value, net
-    of slip, is set, and so are the TTW emissions of burning the fuel, split into the
-    consumption and slip parts.
+    For every vessel and fuel, each converter able to burn the fuel gets the fuel's
+    effective lower heating value, net of slip, and the TTW emissions of burning it,
+    split into the consumption and slip parts. The vessel gets the means of these over
+    those converters, weighted by the fuel power each draws.
 
     Parameters
     ----------
@@ -34,15 +35,15 @@ def calculate_fleet_expectations(
         All emissions in the simulation.
     """
     for vessel in vessels.values():
-        for converter in vessel.power_system.get_converters():
-            fuel_types = converter.get_fuel_types()
+        for fuel in fuels.values():
+            weights = _converter_weights(vessel, fuel)
 
-            for fuel in fuels.values():
-                if fuel.fuel_type not in fuel_types:
-                    continue
-
+            for converter, _ in weights:
                 _calculate_effective_lhv(vessel, converter, fuel)
                 _calculate_ttw(vessel, converter, fuel, emissions)
+
+            _calculate_mean_effective_lhv(vessel, weights, fuel)
+            _calculate_mean_ttw(vessel, weights, fuel, emissions)
 
 
 def _calculate_effective_lhv(vessel: Vessel, converter: Converter, fuel: Fuel) -> None:
@@ -77,3 +78,99 @@ def _calculate_ttw(
         key = (converter.name, fuel.name, emission_name)
         expectation.set_ttw_consumption(*key, ttw_consumption)
         expectation.set_ttw_slip(*key, ttw_slip)
+
+
+def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, float]]:
+    """
+    Weigh the vessel's converters that can burn a fuel by power over efficiency.
+
+    The weight is the fuel power a converter draws at full load, and so estimates its
+    share of the vessel's burn of the fuel. Converters that cannot burn the fuel are
+    left out, so they carry no weight in a mean over the weights. A converter with zero
+    efficiency delivers no energy and so burns no fuel; it weighs zero.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose converters are weighed.
+    fuel
+        Fuel being burned.
+
+    Returns
+    -------
+    list[tuple[Converter, float]]
+        Each converter able to burn the fuel with its weight, in MW.
+    """
+    fuel_type = fuel.fuel_type
+
+    weights: list[tuple[Converter, float]] = []
+    for converter in vessel.power_system.get_converters():
+        if fuel_type not in converter.get_fuel_types():
+            continue
+
+        power = converter.power_capacity.get()
+        efficiency = converter.efficiency.get()
+        weight = power / efficiency if efficiency > 0.0 else 0.0
+
+        weights.append((converter, weight))
+
+    return weights
+
+
+def _calculate_mean_effective_lhv(
+    vessel: Vessel, weights: list[tuple[Converter, float]], fuel: Fuel
+) -> None:
+    """
+    Set the vessel's mean effective LHV of the fuel, in GJ/ton fuel-in.
+
+    A vessel without weight on any converter able to burn the fuel has no slip to net
+    off, so it takes the fuel's LHV.
+    """
+    expectation = vessel.expectation
+    lhv_sum = 0.0
+    weight_total = 0.0
+
+    for converter, weight in weights:
+        effective_lhv = expectation.get_effective_lhv(converter.name, fuel.name)
+        lhv_sum += weight * effective_lhv
+        weight_total += weight
+
+    lhv = fuel.lower_heating_value.get()
+    mean_lhv = lhv_sum / weight_total if weight_total > 0.0 else lhv
+
+    expectation.set_mean_effective_lhv(fuel.name, mean_lhv)
+
+
+def _calculate_mean_ttw(
+    vessel: Vessel,
+    weights: list[tuple[Converter, float]],
+    fuel: Fuel,
+    emissions: dict[str, Emission],
+) -> None:
+    """
+    Set the vessel's mean TTW emissions of the fuel, in ton emission/ton fuel-in.
+
+    A vessel without weight on any converter able to burn the fuel emits nothing
+    from it.
+    """
+    expectation = vessel.expectation
+
+    for emission_name in emissions:
+        key = (fuel.name, emission_name)
+        consumption_sum = 0.0
+        slip_sum = 0.0
+        weight_total = 0.0
+
+        for converter, weight in weights:
+            consumption = expectation.get_ttw_consumption(converter.name, *key)
+            slip = expectation.get_ttw_slip(converter.name, *key)
+
+            consumption_sum += weight * consumption
+            slip_sum += weight * slip
+            weight_total += weight
+
+        mean_consumption = consumption_sum / weight_total if weight_total > 0.0 else 0.0
+        mean_slip = slip_sum / weight_total if weight_total > 0.0 else 0.0
+
+        expectation.set_mean_ttw_consumption(*key, mean_consumption)
+        expectation.set_mean_ttw_slip(*key, mean_slip)

@@ -13,8 +13,6 @@ Tests verify the correctness of:
   - _assign_regulation_wtt_factors: the equal-weight mean runs over every port
     on the vessel's route, jurisdiction or not, each port counted once, leaving
     out ports that disallow the fuel or have no estimate.
-  - _average_effective_lhv_over_converters: power/efficiency-weighted mean of
-    the vessel's (1 - slip) * LHV over the converters able to burn the fuel.
   - _calculate_threshold_adjusted_levy_emission_coefficient: the PENALTY,
     SUBSIDY and upper-threshold capping arithmetic, given already-evaluated
     threshold arrays and an effective LHV.
@@ -44,10 +42,8 @@ from navigate.simulation.policy.emission_coefficient import (
     _assign_levy_emission_factors,
     _assign_regulation_emission_factors,
     _assign_regulation_wtt_factors,
-    _average_effective_lhv_over_converters,
     _calculate_levy_costs,
     _calculate_threshold_adjusted_levy_emission_coefficient,
-    _converter_weights,
     _estimate_port_wtt,
     calculate_policy_emission_coefficients,
 )
@@ -257,115 +253,56 @@ class TestRegulationRouteMean:
 # 5. Effective heating value of a levy
 # ---------------------------------------------------------------------------
 
-# the ammonia converters weigh 15 / 0.5 = 30 MW and 4 / 0.4 = 10 MW; the oil
-# converter cannot burn ammonia and carries no weight
 AMMONIA_LHV = 50.0
-MAIN_SLIP = 0.02
-AUXILIARY_SLIP = 0.1
-
-
-def _make_converter(name, fuel_type, power, efficiency, slip):
-    converter = Converter(name)
-    converter.set_power_capacity(power)
-    converter.set_main_fuel_types(fuel_type)
-    converter.set_efficiency(efficiency)
-    converter.initialize_dependencies({})
-    converter.set_slip_fraction(fuel_type, slip)
-    converter.initialize()
-    return converter
 
 
 def _make_ammonia():
     fuel = Fuel("ammonia")
     fuel.set_fuel_type("AMMONIA")
-    fuel.set_lower_heating_value(AMMONIA_LHV)
     return fuel
 
 
-def _make_vessel_expectation(fuel, slips):
-    """Seed the effective LHV of the fuel in each converter named in `slips`."""
-    expectation = VesselExpectation()
-    for converter_name, slip in slips.items():
-        effective_lhv = (1.0 - slip) * AMMONIA_LHV
-        expectation.set_effective_lhv(converter_name, fuel.name, effective_lhv)
-    return expectation
+def _make_vessel(fuel, effective_lhv, port):
+    """Stub a vessel burning the fuel at the mean effective LHV the fleet sets."""
+    converter = Converter("main")
+    converter.set_main_fuel_types("AMMONIA")
+    converter.initialize()
 
-
-def _make_vessel(fuel, main_slip, auxiliary_slip, port):
     vessel = MagicMock()
     vessel.name = "vessel"
     vessel.usable_fuels = {fuel.name: fuel}
     vessel.route.ports = [port]
-    vessel.power_system.get_converters.return_value = [
-        _make_converter("main", "AMMONIA", 15.0, 0.5, main_slip),
-        _make_converter("auxiliary", "AMMONIA", 4.0, 0.4, auxiliary_slip),
-        _make_converter("boiler", "OIL", 100.0, 0.5, 0.0),
-    ]
-    vessel.expectation = _make_vessel_expectation(
-        fuel, {"main": main_slip, "auxiliary": auxiliary_slip}
-    )
+    vessel.power_system.get_converters.return_value = [converter]
+    vessel.expectation = VesselExpectation()
+    vessel.expectation.set_mean_effective_lhv(fuel.name, effective_lhv)
     return vessel
 
 
 class TestEffectiveHeatingValue:
-    def test_effective_lhv_is_the_weighted_average_over_burning_converters(self):
-        fuel = _make_ammonia()
-        vessel = _make_vessel(fuel, MAIN_SLIP, AUXILIARY_SLIP, MagicMock())
-
-        weights = _converter_weights(vessel, fuel)
-        result = _average_effective_lhv_over_converters(vessel, weights, fuel)
-
-        # (30 * 0.98 * 50 + 10 * 0.9 * 50) / 40 = (1470 + 450) / 40 = 48
-        assert result == pytest.approx(48.0)
-
-    def test_zero_efficiency_converter_carries_no_weight(self):
-        fuel = _make_ammonia()
-        vessel = MagicMock()
-        vessel.power_system.get_converters.return_value = [
-            _make_converter("main", "AMMONIA", 15.0, 0.5, MAIN_SLIP),
-            _make_converter("idle", "AMMONIA", 4.0, 0.0, AUXILIARY_SLIP),
-        ]
-        vessel.expectation = _make_vessel_expectation(
-            fuel, {"main": MAIN_SLIP, "idle": AUXILIARY_SLIP}
-        )
-
-        weights = _converter_weights(vessel, fuel)
-        result = _average_effective_lhv_over_converters(vessel, weights, fuel)
-
-        # only the main converter weighs: 0.98 * 50 = 49
-        assert result == pytest.approx(49.0)
-
-    def test_no_weighted_converter_falls_back_to_the_lhv(self):
-        fuel = _make_ammonia()
-
-        result = _average_effective_lhv_over_converters(MagicMock(), [], fuel)
-
-        assert result == pytest.approx(AMMONIA_LHV)
-
     @pytest.mark.parametrize(
-        ("main_slip", "auxiliary_slip", "expected"),
+        ("effective_lhv", "expected"),
         [
             # effective LHV 48: 2.4 / 48 * 1000 = 50 g/MJ, 30 above the
             # threshold, back to 30 * 48 / 1000 = 1.44 t/t
-            (MAIN_SLIP, AUXILIARY_SLIP, 1.44),
+            (48.0, 1.44),
             # no slip, the raw LHV 50: 2.4 / 50 * 1000 = 48 g/MJ, 28 above
             # the threshold, back to 28 * 50 / 1000 = 1.4 t/t
-            (0.0, 0.0, 1.4),
+            (AMMONIA_LHV, 1.4),
             # full slip, an effective LHV of 0: the fuel delivers no energy, so
             # the threshold allows nothing and the whole 2.4 t/t is levied
-            (1.0, 1.0, 2.4),
+            (0.0, 2.4),
         ],
         ids=["slip", "no_slip", "full_slip"],
     )
     def test_levy_threshold_is_measured_on_the_effective_lhv(
-        self, main_slip, auxiliary_slip, expected
+        self, effective_lhv, expected
     ):
         fuel = _make_ammonia()
         emission = Emission("carbon_dioxide")
         port = MagicMock()
         port.name = "port"
         port.is_bunkering_allowed.return_value = True
-        vessel = _make_vessel(fuel, main_slip, auxiliary_slip, port)
+        vessel = _make_vessel(fuel, effective_lhv, port)
 
         levy = Levy("levy")
         levy.set_scheme("PENALTY")
@@ -401,12 +338,6 @@ def _make_levy(scheme):
     levy = MagicMock()
     levy.scheme = scheme
     return levy
-
-
-def _make_fuel(lower_heating_value):
-    fuel = MagicMock()
-    fuel.lower_heating_value.get.return_value = lower_heating_value
-    return fuel
 
 
 class TestThresholdAdjustedLevyEmissionCoefficient:
@@ -492,7 +423,7 @@ class TestCalculateLevyCostsSlicing:
         """
         idx = 1  # timeline[idx:] == [365.0, 730.0]
 
-        fuel = _make_fuel(40.0)
+        fuel = MagicMock()
         fuel.name = "fuel_bio"
 
         port = MagicMock()
@@ -503,8 +434,8 @@ class TestCalculateLevyCostsSlicing:
         vessel.name = "vessel1"
         vessel.usable_fuels = {"fuel_bio": fuel}
         vessel.route.ports = [port]
-        # no converter weighs, so the effective LHV falls back to the fuel's raw LHV
-        vessel.power_system.get_converters.return_value = []
+        # the vessel's mean effective LHV of the fuel, in GJ/ton fuel
+        vessel.expectation.get_mean_effective_lhv.return_value = 40.0
 
         levy = _make_levy(LevySchemeID.PENALTY)
         levy.emissions = [EMISSION]
@@ -552,7 +483,7 @@ class TestNanWttLeavesNoCoefficient:
         emission = Emission("carbon_dioxide")
         # no plant produces the fuel and the port has no overwrite
         port = _make_port("port_a", fuel_name=fuel.name)
-        vessel = _make_vessel(fuel, MAIN_SLIP, AUXILIARY_SLIP, port)
+        vessel = _make_vessel(fuel, AMMONIA_LHV, port)
 
         regulation = MagicMock()
         regulation.scope = PolicyScopeID.WTT
@@ -580,7 +511,7 @@ class TestNanWttLeavesNoCoefficient:
         emission = Emission("carbon_dioxide")
         port_with_estimate = _make_port("port_a", overwrite=[2.4], fuel_name=fuel.name)
         port_without_estimate = _make_port("port_b", fuel_name=fuel.name)
-        vessel = _make_vessel(fuel, 0.0, 0.0, port_with_estimate)
+        vessel = _make_vessel(fuel, AMMONIA_LHV, port_with_estimate)
         vessel.route.ports = [port_with_estimate, port_without_estimate]
 
         levy = Levy("levy")

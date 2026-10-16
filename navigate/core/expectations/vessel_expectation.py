@@ -89,6 +89,12 @@ class VesselExpectation(_Expectation):
         self._ttw_consumption: dict[tuple[str, str, str], float] = {}
         self._ttw_slip: dict[tuple[str, str, str], float] = {}
 
+        # the vessel's means over its converters: the effective lower heating value per
+        # fuel, and the TTW emissions per fuel and emission
+        self._mean_effective_lhv: dict[str, float] = {}
+        self._mean_ttw_consumption: dict[tuple[str, str], float] = {}
+        self._mean_ttw_slip: dict[tuple[str, str], float] = {}
+
         # bunkering/spend
         self._bunker_mass_expected: dict[tuple[str, str], float] = {}
         self._bunker_mass_existing: dict[tuple[str, str], float] = {}
@@ -229,6 +235,15 @@ class VesselExpectation(_Expectation):
         self._effective_lhv = self._default_dict_float(lhv_keys, default=np.nan)
         self._ttw_consumption = self._default_dict_float(ttw_keys, default=np.nan)
         self._ttw_slip = self._default_dict_float(ttw_keys, default=np.nan)
+
+        # the means are keyed by every fuel, burned on board or not
+        self._mean_effective_lhv = self._default_dict_float(fuels, default=np.nan)
+        self._mean_ttw_consumption = self._default_tuple_dict_float(
+            fuels, emissions, default=np.nan
+        )
+        self._mean_ttw_slip = self._default_tuple_dict_float(
+            fuels, emissions, default=np.nan
+        )
 
         # bunkering saved for inertia
         self._bunker_mass_expected = self._default_tuple_dict_float(port_names, fuels)
@@ -444,6 +459,17 @@ class VesselExpectation(_Expectation):
         self, converter_name: str, fuel_name: str, emission_name: str, ttw: float
     ) -> None:
         self._ttw_slip[(converter_name, fuel_name, emission_name)] = ttw
+
+    def set_mean_effective_lhv(self, fuel_name: str, effective_lhv: float) -> None:
+        self._mean_effective_lhv[fuel_name] = effective_lhv
+
+    def set_mean_ttw_consumption(
+        self, fuel_name: str, emission_name: str, ttw: float
+    ) -> None:
+        self._mean_ttw_consumption[(fuel_name, emission_name)] = ttw
+
+    def set_mean_ttw_slip(self, fuel_name: str, emission_name: str, ttw: float) -> None:
+        self._mean_ttw_slip[(fuel_name, emission_name)] = ttw
 
     def add_bunker_mass_expected(
         self, port_name: str, fuel_name: str, mass: float
@@ -671,6 +697,15 @@ class VesselExpectation(_Expectation):
         self, converter_name: str, fuel_name: str, emission_name: str
     ) -> float:
         return self._ttw_slip[(converter_name, fuel_name, emission_name)]
+
+    def get_mean_effective_lhv(self, fuel_name: str) -> float:
+        return self._mean_effective_lhv[fuel_name]
+
+    def get_mean_ttw_consumption(self, fuel_name: str, emission_name: str) -> float:
+        return self._mean_ttw_consumption[(fuel_name, emission_name)]
+
+    def get_mean_ttw_slip(self, fuel_name: str, emission_name: str) -> float:
+        return self._mean_ttw_slip[(fuel_name, emission_name)]
 
     def get_bunker_mass_expected(self, port_name: str, fuel_name: str) -> float:
         return self._bunker_mass_expected[(port_name, fuel_name)]
