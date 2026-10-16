@@ -204,10 +204,12 @@ def _calculate_uptake_intra_metric(
         Current time-step index.
     """
     expectation = plant.expectation
+    production_cost = expectation.get_levelized_production_cost(idx)
     metric = 0.0
 
     for port_name, export in export_distribution.items():
-        lcof = float(expectation.get_levelized_delivered_cost(port_name, idx))
+        delivery_cost = expectation.get_levelized_delivery_cost(port_name, idx)
+        lcof = float(production_cost + delivery_cost)
         metric += float(export) * lcof
 
     expectation.set_intra_fuel_metric(metric)
@@ -341,18 +343,17 @@ def calculate_modelled_uptake(producer: Producer) -> FloatArray:
     FloatArray
         Uptake shares per plant type.
     """
-    try:
-        index, plants = zip(
-            *(
-                (i, plant)
-                for i, plant in enumerate(producer.plants)
-                if producer.allow_plant[plant.name] and plant.expectation.is_in_demand()
-            ),
-            strict=True,
-        )
+    index: list[int] = []
+    plants: list[Plant] = []
 
-    except ValueError:
-        # unpacking the empty zip fails when no plant is in demand: nothing is taken up
+    for p, plant in enumerate(producer.plants):
+        is_in_demand = plant.expectation.get_inter_fuel_metric() > 0.0
+
+        if producer.allow_plant[plant.name] and is_in_demand:
+            index.append(p)
+            plants.append(plant)
+
+    if not plants:
         return np.zeros((len(producer.plants),))
 
     group_keys = [plant.fuel.name for plant in plants]

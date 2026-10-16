@@ -182,20 +182,6 @@ class PlantExpectation(_Expectation):
     ) -> FloatLike:
         return self._levelized_delivery_cost[port_name][idx]
 
-    def get_levelized_delivered_cost(
-        self, port_name: str, idx: Index = np.s_[:]
-    ) -> FloatLike:
-        return self.get_levelized_production_cost(
-            idx
-        ) + self.get_levelized_delivery_cost(port_name, idx)
-
-    def get_expected_delivered_cost(
-        self, port_name: str, idx: Index = np.s_[:]
-    ) -> FloatLike:
-        return self._expected_production_cost[idx] + self.get_levelized_delivery_cost(
-            port_name, idx
-        )
-
     def get_tied_capital(self, idx: SupportsIndex) -> FloatArray:
         return self._tied_capital[idx]
 
@@ -209,17 +195,13 @@ class PlantExpectation(_Expectation):
     ) -> FloatLike:
         return self._delivery_wtt[(port_name, emission_name)][idx]
 
+    def get_expected_production_cost(self, idx: Index = np.s_[:]) -> FloatLike:
+        return self._expected_production_cost[idx]
+
     def get_expected_production_wtt(
         self, emission_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
         return self._expected_production_wtt[emission_name][idx]
-
-    def get_expected_delivered_wtt(
-        self, port_name: str, emission_name: str, idx: Index = np.s_[:]
-    ) -> FloatLike:
-        return self.get_delivery_wtt(
-            port_name, emission_name, idx
-        ) + self.get_expected_production_wtt(emission_name, idx)
 
     def get_demand_newbuilds(self) -> float:
         return self._demand_newbuilds
@@ -229,6 +211,3 @@ class PlantExpectation(_Expectation):
 
     def get_intra_fuel_metric(self) -> float:
         return self._intra_fuel_metric
-
-    def is_in_demand(self) -> bool:
-        return self._inter_fuel_metric > 0.0

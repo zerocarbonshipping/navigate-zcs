@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from navigate.core.enum_ import BunkerScopeID
 from navigate.simulation.cohort import calculate_share_below, extends_past
 from navigate.simulation.fleet.aggregation import (
     get_multiplier,
@@ -356,7 +357,7 @@ def calculate_evolution_expectation(
     fleet: Fleet, timeline: FloatArray, idx: int
 ) -> None:
     """
-    Calculate the expected existing and newbuild multipliers from this time-step on.
+    Calculate the multipliers of the existing and expected fleet from this time-step on.
 
     The existing vessels decline by their expected scrapping; the trade gap this
     leaves is filled with newbuilds split by the memory-weighted recent uptake.
@@ -449,9 +450,13 @@ def calculate_evolution_expectation(
     # the expected newbuilds need no scrapping of their own beyond the vessel
     # lifetime: the vessels replacing them are expected to follow the same
     # distribution
+    expected = existing + newbuild
+    expectation = fleet.expectation
+
     for v, vessel in enumerate(fleet.vessels):
-        fleet.expectation.set_existing_multipliers(idx, vessel.name, existing[v, :])
-        fleet.expectation.set_newbuild_multipliers(idx, vessel.name, newbuild[v, :])
+        name = vessel.name
+        expectation.set_multiplier(idx, name, BunkerScopeID.EXISTING, existing[v, :])
+        expectation.set_multiplier(idx, name, BunkerScopeID.EXPECTED, expected[v, :])
 
 
 def perform_fleet_evolution(

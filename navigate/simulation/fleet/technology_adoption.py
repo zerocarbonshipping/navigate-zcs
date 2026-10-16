@@ -51,6 +51,7 @@ from navigate.simulation.fleet.package import (
     preprocess_packages,
 )
 from navigate.simulation.fleet.residual_energy import (
+    calculate_energy_savings,
     calculate_net_energy,
     calculate_residual_energy,
 )
@@ -1275,10 +1276,13 @@ def _average_retrofit_savings(
             multiplier = get_multiplier(fleet, v)
             expectation = vessel.expectation
 
-            raw_energy_sea = expectation.get_raw_energy_sea_condition(idx=idx)
-            raw_energy_port = expectation.get_raw_energy_port(idx=idx)
-            savings_sea = expectation.get_energy_saving_sea_condition(idx=idx)
-            savings_port = expectation.get_energy_saving_port(idx=idx)
+            energy_sea = expectation.get_energy_sea_condition(idx)
+            energy_port = expectation.get_energy_port(idx)
+            raw_energy_sea = expectation.get_raw_energy_sea_condition(idx)
+            raw_energy_port = expectation.get_raw_energy_port(idx)
+
+            savings_sea = calculate_energy_savings(energy_sea, raw_energy_sea)
+            savings_port = calculate_energy_savings(energy_port, raw_energy_port)
 
             _accumulate_energy_weighted_saving(
                 raw_energy_sea, savings_sea, multiplier, average_saving_sea, weight_sea

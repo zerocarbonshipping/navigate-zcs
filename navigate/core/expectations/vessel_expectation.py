@@ -12,7 +12,7 @@ import numpy as np
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.util import divide_nonzero, slice_dict_list, slice_list
+from navigate.util import slice_dict_list, slice_list
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -623,47 +623,6 @@ class VesselExpectation(_Expectation):
     ) -> dict[EnergyDemandID, list[FloatLike]]:
         return slice_dict_list(self._energy_port, idx)
 
-    def get_total_demand(self, idx: Index = np.s_[:]) -> FloatLike:
-        energies = [
-            energy[idx]
-            for area in (self._energy_sea_leg, self._energy_port)
-            for step in area.values()
-            for energy in step
-        ]
-
-        # a route always has at least one leg and one port and the energy dicts are
-        # keyed by a fixed enum, so the list is never empty
-        total: FloatLike = np.add.reduce(energies)
-        return total
-
-    def get_energy_saving_sea_condition(
-        self, idx: int
-    ) -> dict[EnergyDemandID, list[float]]:
-        return {
-            energy_id: [
-                1.0 - float(divide_nonzero(energy[idx], raw_energy[idx], default=1.0))
-                for (energy, raw_energy) in zip(
-                    self._energy_sea_condition[energy_id],
-                    self._raw_energy_sea_condition[energy_id],
-                    strict=True,
-                )
-            ]
-            for energy_id in self._energy_sea_condition
-        }
-
-    def get_energy_saving_port(self, idx: int) -> dict[EnergyDemandID, list[float]]:
-        return {
-            energy_id: [
-                1.0 - float(divide_nonzero(energy[idx], raw_energy[idx], default=1.0))
-                for (energy, raw_energy) in zip(
-                    self._energy_port[energy_id],
-                    self._raw_energy_port[energy_id],
-                    strict=True,
-                )
-            ]
-            for energy_id in self._energy_port
-        }
-
     def get_energy_conservation_pi_sea(self) -> dict[EnergyDemandID, list[FloatArray]]:
         return self._energy_conservation_pi_sea
 
@@ -745,9 +704,14 @@ class VesselExpectation(_Expectation):
     def get_total_energy(self, idx: Index = np.s_[:]) -> FloatLike:
         return self._total_energy[idx]
 
-    def get_total_fuel_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
-        policy_expenses = self._remedial_expenses[idx] + self._flexibility_expenses[idx]
-        return self._fuel_expenses[idx] + policy_expenses
+    def get_fuel_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
+        return self._fuel_expenses[idx]
+
+    def get_remedial_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
+        return self._remedial_expenses[idx]
+
+    def get_flexibility_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
+        return self._flexibility_expenses[idx]
 
     def get_fuel_cost_flow(self) -> FloatArray:
         return self._fuel_cost_flow

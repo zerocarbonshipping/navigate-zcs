@@ -25,8 +25,7 @@ class FleetExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._existing_multipliers: dict[str, FloatArray] = {}
-        self._newbuild_multipliers: dict[str, FloatArray] = {}
+        self._multipliers: dict[tuple[str, BunkerScopeID], FloatArray] = {}
 
         self._fuel_demand: dict[str, FloatArray] = {}
 
@@ -40,8 +39,7 @@ class FleetExpectation(_Expectation):
     ) -> None:
         self._initialize_expectation(length)
 
-        self._existing_multipliers = self._default_dict_array(vessel_names)
-        self._newbuild_multipliers = self._default_dict_array(vessel_names)
+        self._multipliers = self._default_tuple_dict_array(vessel_names, BunkerScopeID)
 
         self._fuel_demand = self._default_dict_array(fuels)
 
@@ -54,15 +52,10 @@ class FleetExpectation(_Expectation):
         self._reset_dict_float(self._fuel_type_capacity)
         self._reset_dict_float(self._fuel_type_supply)
 
-    def set_existing_multipliers(
-        self, idx: int, vessel_name: str, multipliers: FloatLike
+    def set_multiplier(
+        self, idx: int, vessel_name: str, scope: BunkerScopeID, multiplier: FloatLike
     ) -> None:
-        self._existing_multipliers[vessel_name][idx:] = multipliers
-
-    def set_newbuild_multipliers(
-        self, idx: int, vessel_name: str, multipliers: FloatLike
-    ) -> None:
-        self._newbuild_multipliers[vessel_name][idx:] = multipliers
+        self._multipliers[vessel_name, scope][idx:] = multiplier
 
     def set_fuel_demand(self, idx: int, fuel_name: str, demand: FloatLike) -> None:
         self._fuel_demand[fuel_name][idx:] = demand
@@ -79,12 +72,7 @@ class FleetExpectation(_Expectation):
     def get_multiplier(
         self, vessel_name: str, scope: BunkerScopeID, idx: Index
     ) -> FloatLike:
-        existing = self._existing_multipliers[vessel_name][idx]
-
-        if scope == BunkerScopeID.EXISTING:
-            return existing
-
-        return existing + self._newbuild_multipliers[vessel_name][idx]
+        return self._multipliers[vessel_name, scope][idx]
 
     def get_fuel_demand(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
         return slice_dict(self._fuel_demand, idx)
