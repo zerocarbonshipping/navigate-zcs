@@ -20,7 +20,7 @@ from navigate.simulation.fleet.evolution import (
 )
 from navigate.simulation.fleet.expectation import calculate_fleet_expectations
 from navigate.simulation.fleet.fuel_option import (
-    check_usable_fuels,
+    check_fuel_options,
     determine_fuel_type,
 )
 from navigate.simulation.fleet.initialization import (

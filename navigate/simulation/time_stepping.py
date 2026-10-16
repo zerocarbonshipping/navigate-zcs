@@ -35,7 +35,7 @@ from navigate.simulation.fleet import (
     calculate_shore_power_limits,
     calculate_vessel_charter_properties,
     calculate_vessel_profile,
-    check_usable_fuels,
+    check_fuel_options,
     determine_fuel_type,
     initialize_existing_fleet,
     perform_fleet_evolution,
@@ -737,7 +737,7 @@ class Simulation:
     def _initialize_existing_fleet(self) -> None:
         for vessel in self.nodes.vessels.values():
             determine_fuel_type(vessel)
-            check_usable_fuels(vessel)
+            check_fuel_options(vessel)
 
         assign_vessels_to_fleets(self.nodes.fleets.values())
 

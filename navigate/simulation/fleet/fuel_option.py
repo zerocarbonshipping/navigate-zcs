@@ -101,7 +101,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
     vessel.primary_fuel_type = fuel_type
 
 
-def check_usable_fuels(vessel: Vessel) -> None:
+def check_fuel_options(vessel: Vessel) -> None:
     """
     Raise where a vessel's tanks cannot store what its converters need to burn.
 
