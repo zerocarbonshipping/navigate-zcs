@@ -153,7 +153,7 @@ def verify_power_capacity(vessels: list[Vessel], idx: int) -> None:
     """
     Verify converter power capacity of each vessel at a time step.
 
-    Checking at the current time-step alone covers every LP the scope builds: a
+    Checking at the current time-step alone covers every LP built from it: a
     vessel-expectation write at a time-step broadcasts over the remaining horizon, so
     each future expected-bunkering build reads the same demands and times.
 
