@@ -87,21 +87,23 @@ def calculate_cargo_charter_properties(
     _calculate_cargo_unit_properties(vessel, component, timeline, idx)
 
 
-def calculate_total_fuel_expenses(vessel: Vessel, idx: Index) -> FloatLike:
+def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: Index) -> FloatLike:
     """
-    Calculate a vessel's expected fuel expenses including the policy expenses.
+    Calculate a vessel's expected fuel expenses plus its policy expenses.
+
+    The policy expenses are the remedial and the flexibility expenses.
 
     Parameters
     ----------
     vessel
-        Vessel whose expected bunkering carries the expenses.
+        Vessel whose expected expenses are summed.
     idx
         Time-step index or slice of the expenses.
 
     Returns
     -------
     FloatLike
-        Fuel, remedial and flexibility expenses, in USD/year.
+        Fuel plus policy (remedial and flexibility) expenses, in USD/year.
     """
     expectation = vessel.expectation
 
@@ -109,7 +111,8 @@ def calculate_total_fuel_expenses(vessel: Vessel, idx: Index) -> FloatLike:
     remedial = expectation.get_remedial_expenses(idx)
     flexibility = expectation.get_flexibility_expenses(idx)
 
-    return fuel + (remedial + flexibility)
+    policy_expenses = remedial + flexibility
+    return fuel + policy_expenses
 
 
 def _calculate_vessel_unit_properties(
@@ -380,7 +383,7 @@ def _calculate_fuel_cost(
         Current time-step index.
     """
     _idx = np.s_[idx:]
-    expenses = calculate_total_fuel_expenses(vessel, _idx)
+    expenses = calculate_fuel_and_policy_expenses(vessel, _idx)
 
     def metric(time: float) -> float:
         return 1.0

@@ -102,12 +102,14 @@ re-export there would load far more than an import needs.
 
 - Cross-module dynamic results flow through the node's `expectation`: the
   computing module writes (`set_*`, `add_*`), the others read (`get_*`). A
-  getter returns what its writer stored; a quantity derived from stored
-  values is computed in `simulation/`. A relation between nodes is not such
-  a result: it is a node map, a node attribute derived from other nodes'
-  attributes, written by `core/node_maps.py` once at initialization where
-  those are DSL-defined, and once per time step where events can change
-  them.
+  relation between nodes is not such a result: it is a node map, a node
+  attribute derived from other nodes' attributes, written by
+  `core/node_maps.py` once at initialization where those are DSL-defined,
+  and once per time step where events can change them.
+- An expectation getter returns what its writer stored. A quantity derived
+  from stored values is computed in the `simulation/` package of the domain
+  that reads it; where the parts of a sum are never read on their own, the
+  writer stores the sum instead.
 - `profile` is output for reports and plots, never a decision's input.
   Deriving one profile value from another is fine in post-processing and
   `Simulation._calculate_profile`, which feed no decision.

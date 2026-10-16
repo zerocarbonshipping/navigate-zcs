@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Residual energy demand of a vessel after the effects of a technology package."""
+"""Residual energy demand of a vessel after a technology package, and its savings."""
 
 from __future__ import annotations
 
@@ -121,8 +121,8 @@ def calculate_energy_savings(
 
     for energy_id, net_energy in net_energies.items():
         steps = zip(net_energy, raw_energies[energy_id], strict=True)
-        fractions = [divide_nonzero(net, raw, default=1.0) for net, raw in steps]
-        savings[energy_id] = [1.0 - float(fraction) for fraction in fractions]
+        remaining = [divide_nonzero(net, raw, default=1.0) for net, raw in steps]
+        savings[energy_id] = [1.0 - float(ratio) for ratio in remaining]
 
     return savings
 

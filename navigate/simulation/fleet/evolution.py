@@ -450,13 +450,13 @@ def calculate_evolution_expectation(
     # the expected newbuilds need no scrapping of their own beyond the vessel
     # lifetime: the vessels replacing them are expected to follow the same
     # distribution
-    multipliers = {
-        BunkerScopeID.EXISTING: existing,
-        BunkerScopeID.EXPECTED: existing + newbuild,
-    }
+    expected = existing + newbuild
+    expectation = fleet.expectation
+
     for v, vessel in enumerate(fleet.vessels):
-        for key, value in multipliers.items():
-            fleet.expectation.set_multipliers(idx, vessel.name, key, value[v, :])
+        name = vessel.name
+        expectation.set_multiplier(idx, name, BunkerScopeID.EXISTING, existing[v, :])
+        expectation.set_multiplier(idx, name, BunkerScopeID.EXPECTED, expected[v, :])
 
 
 def perform_fleet_evolution(

@@ -14,7 +14,7 @@ from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
 from navigate.simulation.fleet.aggregation import get_multipliers
-from navigate.simulation.fleet.charter import calculate_total_fuel_expenses
+from navigate.simulation.fleet.charter import calculate_fuel_and_policy_expenses
 from navigate.simulation.fleet.marginal_saving import calculate_marginal_speed_saving
 from navigate.simulation.fleet.operation import (
     calculate_operations,
@@ -225,7 +225,7 @@ def _optimize_vessel_speed(
         speed_min[sailed], speed_max[sailed], trip.speeds[sailed]
     )
 
-    fuel_ref = float(calculate_total_fuel_expenses(vessel, idx))
+    fuel_ref = float(calculate_fuel_and_policy_expenses(vessel, idx))
     charter_rate = expectation.get_asset_charter_rate(idx)
 
     energy_sea_ref = expectation.get_energy_sea_condition(idx)
