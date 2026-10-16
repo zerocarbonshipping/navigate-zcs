@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.increment import VesselIncrement
-from navigate.core.nodes.curve import Curve
+from navigate.simulation.cohort import split_by_age
 from navigate.simulation.fleet.aggregation import (
     get_multipliers,
     transfer_multipliers_to_profile,
@@ -138,21 +138,21 @@ def _build_initial_increments(fleet: Fleet) -> list[list[VesselIncrement]]:
         distribution = fleet.initial_age_distribution[v]
 
         if multiplier > 0.0:
-            increments.append(_split_by_age(fleet, vessel, multiplier, distribution))
+            increments.append(_split_vessels(fleet, vessel, multiplier, distribution))
         else:
             increments.append([])
 
     return increments
 
 
-def _split_by_age(
+def _split_vessels(
     fleet: Fleet, vessel: Vessel, multiplier: float, distribution: CurveTableInput
 ) -> list[VesselIncrement]:
     """
-    Split the initial vessels of one type into one increment per age bin.
+    Split the initial vessels of one type into increments, one per age bin.
 
-    A Curve distribution sets the ages and the share of each; otherwise the vessels
-    are spread evenly over yearly bins across their initial age range.
+    Where the distribution is a number, the vessels are spread evenly over the
+    type's initial age range.
 
     Parameters
     ----------
@@ -170,18 +170,8 @@ def _split_by_age(
     list[VesselIncrement]
         The increments of the type, oldest first.
     """
-    if isinstance(distribution, Curve):
-        ages = distribution.x[::-1]
-        multipliers = multiplier * distribution.y[::-1]
-
-    else:
-        age_range = _calculate_initial_age_range(fleet, vessel)
-        bins = int(age_range)
-        ages = np.linspace(age_range - 1.0, 0.0, bins)
-        multipliers = [multiplier / bins for _ in range(bins)]
-
-    # the oldest increment is assumed to have entered over a year
-    spans = np.insert(ages[:-1] - ages[1:], 0, 1.0)
+    age_range = _calculate_initial_age_range(fleet, vessel)
+    ages, spans, multipliers = split_by_age(multiplier, distribution, age_range)
     packages = fleet.get_number_of_packages()
     increments: list[VesselIncrement] = []
 

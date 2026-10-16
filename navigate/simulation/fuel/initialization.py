@@ -8,10 +8,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.increment import PlantIncrement
-from navigate.core.nodes.curve import Curve
+from navigate.simulation.cohort import split_by_age
 from navigate.simulation.fuel.evolution import (
     calculate_evolution_expectation,
     calculate_feed_availability,
@@ -82,7 +80,7 @@ def _build_initial_increments(producer: Producer) -> list[list[PlantIncrement]]:
         distribution = producer.initial_age_distribution[p]
 
         if multiplier > 0.0:
-            increments.append(_split_by_age(plant, multiplier, distribution))
+            increments.append(_split_plants(plant, multiplier, distribution))
         else:
             increments.append([])
 
@@ -125,16 +123,15 @@ def _calculate_initial_multiplier(
     return 0.0
 
 
-def _split_by_age(
+def _split_plants(
     plant: Plant, multiplier: float, distribution: CurveTableInput
 ) -> list[PlantIncrement]:
     """
-    Split the initial plants of one type into one increment per age bin.
+    Split the initial plants of one type into increments, one per age bin.
 
-    A Curve distribution sets the ages and the share of each; otherwise the plants
-    are spread evenly over yearly bins across the plant lifetime. A bin without
-    plants gets no increment, and each plant was decided one lead time before its
-    delivery.
+    Where the distribution is a number, the plants are spread evenly over the plant
+    lifetime. A bin without plants gets no increment, and each plant was decided
+    one lead time before its delivery.
 
     Parameters
     ----------
@@ -150,18 +147,8 @@ def _split_by_age(
     list[PlantIncrement]
         The increments of the type, oldest first.
     """
-    if isinstance(distribution, Curve):
-        ages = distribution.x[::-1]
-        multipliers = multiplier * distribution.y[::-1]
-
-    else:
-        lifetime = plant.lifetime.get()
-        bins = int(lifetime)
-        ages = np.linspace(lifetime - 1.0, 0.0, bins)
-        multipliers = [multiplier / bins for _ in range(bins)]
-
-    # the oldest increment is assumed to have entered over a year
-    spans = np.insert(ages[:-1] - ages[1:], 0, 1.0)
+    lifetime = plant.lifetime.get()
+    ages, spans, multipliers = split_by_age(multiplier, distribution, lifetime)
     lead_time = plant.lead_time.get()
     increments: list[PlantIncrement] = []
 

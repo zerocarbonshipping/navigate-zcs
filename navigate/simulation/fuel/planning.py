@@ -12,6 +12,7 @@ import numpy as np
 
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import PlantIncrement
+from navigate.simulation.cohort import find_insertion_index
 from navigate.simulation.economics.decision import calculate_two_axis_uptake
 from navigate.simulation.economics.metric import calculate_age_levelized_cost
 from navigate.util import YEAR, calculate_inertia, divide_nonzero
@@ -116,12 +117,7 @@ def perform_pipeline_planning(
         # inserted at the position its lead time gives it
         pinc = producer.pipeline[p]
         new_age = -lead_time
-
-        if len(pinc):
-            ages = np.array([inc.age for inc in pinc])
-            i = int(np.searchsorted(-ages, -new_age, side="right"))
-        else:
-            i = 0
+        i = find_insertion_index(pinc, new_age)
 
         pinc.insert(i, PlantIncrement(increments[p], new_age, dt, decided=0.0))
 
