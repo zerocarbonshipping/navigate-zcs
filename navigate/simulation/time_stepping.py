@@ -66,6 +66,7 @@ from navigate.simulation.fuel import (
 from navigate.simulation.policy import (
     calculate_policy_emission_coefficients,
     calculate_policy_expectations,
+    calculate_regulation_measures,
     update_regulation_flexibility_beliefs,
 )
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
@@ -229,10 +230,11 @@ class Simulation:
             self._calculate_potential_fuel_type_demand()
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
 
-            # the times in port, electrical demands and shore-power capacities are
-            # rewritten during the step, so the shore-power limits are recalculated
-            # before each bunkering run
+            # the times in port, electrical demands, shore-power capacities and cargo
+            # miles are rewritten during the step, so the shore-power limits and the
+            # regulation measures are recalculated before each bunkering run
             calculate_shore_power_limits(self.nodes.fleets, self._idx)
+            self._calculate_regulation_measures()
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
@@ -258,6 +260,7 @@ class Simulation:
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
 
         calculate_shore_power_limits(self.nodes.fleets, self._idx)
+        self._calculate_regulation_measures()
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
@@ -296,6 +299,7 @@ class Simulation:
             self.nodes.regulations,
             self.nodes.levies,
             self.nodes.emissions,
+            self.nodes.routes,
             self.nodes.vessels,
             emissions_lifetime,
             self.timeline,
@@ -376,6 +380,15 @@ class Simulation:
             self.nodes.plants,
             self.timeline,
             self._idx,
+        )
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+    def _calculate_regulation_measures(self) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_regulation_measures(
+            self.nodes.regulations, self.nodes.vessels, self.timeline, self._idx
         )
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
@@ -632,7 +645,9 @@ class Simulation:
             )
 
         for regulation in self.nodes.regulations.values():
-            regulation.initialize_expectation(length, self.nodes.vessels)
+            regulation.initialize_expectation(
+                length, self.nodes.routes, self.nodes.vessels
+            )
 
         for vessel in self.nodes.vessels.values():
             vessel.initialize_expectation(

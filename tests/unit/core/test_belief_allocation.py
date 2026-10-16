@@ -53,7 +53,7 @@ class _PowerSystem:
 
 def test_regulation_flexibility_cost_belief_is_all_nan():
     expectation = RegulationExpectation()
-    expectation.initialize(LENGTH, ["carbon_dioxide"], {"vessel_a": None})
+    expectation.initialize(LENGTH, ["carbon_dioxide"], {}, {"vessel_a": None})
 
     belief = expectation.get_belief_flexibility_cost()
 
