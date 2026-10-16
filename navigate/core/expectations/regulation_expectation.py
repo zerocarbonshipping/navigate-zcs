@@ -53,11 +53,13 @@ class RegulationExpectation(_PolicyExpectation):
         # threshold enters the spend coefficients instead
         self._vessel_allowance: dict[str, FloatArray] = {}
 
-        # the results of the bunkering LP of each time step: the regulated emissions,
-        # in tons, and energy, in GJ, of each policed vessel, and under FLEXIBLE the
-        # pooled remedial units and the shadow price of the pooled threshold
+        # the results of the bunkering LP of each time step: per policed vessel the
+        # regulated emissions, in tons, the energy, in GJ, and under INDIVIDUAL the
+        # remedial units; under FLEXIBLE the pooled remedial units and the shadow
+        # price of the pooled threshold
         self._vessel_emissions: dict[str, FloatArray] = {}
         self._vessel_energy: dict[str, FloatArray] = {}
+        self._vessel_remedial_units: dict[str, FloatArray] = {}
         self._pooled_remedial_units: FloatArray = EMPTY_FLOAT
         self._pooled_shadow_price: FloatArray = EMPTY_FLOAT
 
@@ -103,6 +105,7 @@ class RegulationExpectation(_PolicyExpectation):
 
         self._vessel_emissions = self._default_dict_array(vessels)
         self._vessel_energy = self._default_dict_array(vessels)
+        self._vessel_remedial_units = self._default_dict_array(vessels)
         self._pooled_remedial_units = self._default_array()
         self._pooled_shadow_price = self._default_array()
 
@@ -185,6 +188,11 @@ class RegulationExpectation(_PolicyExpectation):
 
     def set_vessel_energy(self, idx: int, vessel_name: str, energy: float) -> None:
         self._vessel_energy[vessel_name][idx] = energy
+
+    def set_vessel_remedial_units(
+        self, idx: int, vessel_name: str, units: float
+    ) -> None:
+        self._vessel_remedial_units[vessel_name][idx] = units
 
     def set_pooled_remedial_units(self, idx: int, units: float) -> None:
         self._pooled_remedial_units[idx] = units
@@ -296,6 +304,10 @@ class RegulationExpectation(_PolicyExpectation):
     def get_vessel_energy(self, vessel_name: str, idx: int) -> float:
         energy: float = self._vessel_energy[vessel_name][idx]
         return energy
+
+    def get_vessel_remedial_units(self, vessel_name: str, idx: int) -> float:
+        units: float = self._vessel_remedial_units[vessel_name][idx]
+        return units
 
     def get_pooled_remedial_units(self, idx: int) -> float:
         units: float = self._pooled_remedial_units[idx]
