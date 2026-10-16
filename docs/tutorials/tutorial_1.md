@@ -5,6 +5,14 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Tutorial 1
 
+```{button-link} tutorial_1.zip
+:color: primary
+
+Download the tutorial 1 files
+```
+
+The download holds the folder `tutorial_1` with a skeleton `tutorial_1.nav` and an `includes` folder with `define.inc` and `events.inc`, which you fill in as you go. Unzip it where you want to work. An [example solution](#example-solution) is at the bottom of this page.
+
 **Why are you doing this tutorial?**
 
 This tutorial gives you an introduction into how Navigate works, and a walk-through of how to build the necessary input files. This should help you understand the main concepts of Navigate and introduce how to build a Navigate simulation model using assumptions about the fleet, technologies, and fuels.
@@ -77,7 +85,7 @@ You will now learn what a node is. In this example, the node is a fuel node and 
 
 ![Node-Definition](../_static/node.png)
 
-In the instructions, everything within the brackets {} are assignments on the Fuel node `low_sulfur_fuel_oil`. Everything left of an equal sign is an attribute to the specific node. Everything on the right side of an equal sign is the value assigned to the attribute – values can be an ID, a separate node, or a number dependent on the specific attribute being assigned to. If the value of an attribute is another node then that node needs to be defined separately. We e.g., assign a node of the type Variable to the Fuel attribute `LowerHeatingValue`. In the defaults made by Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, and found in `Navigate/navigate/defaults/installation/*` variables such as the Lower heating value of fuel oil are defined. For simplicity these are not imported in this tutorial modeling, where you will be defining such values yourself. The node `ModelDefinition` you previously defined belongs to a group of unique nodes called General Nodes. Assignment of attributes to these works similar to other nodes but the difference is that general nodes do not have names. This is because only one can be defined per simulation.
+In the instructions, everything within the brackets {} are assignments on the Fuel node `low_sulfur_fuel_oil`. Everything left of an equal sign is an attribute to the specific node. Everything on the right side of an equal sign is the value assigned to the attribute – values can be an ID, a separate node, or a number dependent on the specific attribute being assigned to. If the value of an attribute is another node then that node needs to be defined separately. We e.g., assign a node of the type Variable to the Fuel attribute `LowerHeatingValue`. In the defaults made by Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, and found in `Navigate/assumptions/defaults/installation/*` variables such as the Lower heating value of fuel oil are defined. For simplicity these are not imported in this tutorial modeling, where you will be defining such values yourself. The node `ModelDefinition` you previously defined belongs to a group of unique nodes called General Nodes. Assignment of attributes to these works similar to other nodes but the difference is that general nodes do not have names. This is because only one can be defined per simulation.
 
 **Time to define your first node**
 
@@ -249,7 +257,7 @@ Converter "heat_boiler_oil" {
 
 You introduced new nodes when you assigned them as values of the `"vessel_ice_oil"`’s attributes. One of them was the node `PowerSystem` which we defined in the above section.
 Others include the definition of a route that the vessel sails, and a definition of a tank node.
-The values assigned to the attributes of a Route, namely Ports, Distances, and Speeds are lists which are marked by squared brackets. In this example, the assigned lists only contain one item, respectively.
+The value assigned to the `Ports` attribute of a Route is a list, marked by square brackets. In this example, the list only contains one port.
 
 
 1. Define the node `"main_oil"` of the node type `Tank`.
@@ -265,19 +273,20 @@ Tank "main_oil" {
 ```
 
 2. Define the node `"route"` of the node type `Route`.
-Set the `RouteType`. This can be one of two values: `ROUND_TRIP` or `REGIONAL_TRIP`.
+Set the `RouteType`. This can be one of two values: `LINER` or `TRAMP`. A `LINER` sails its ports in the listed order, while a `TRAMP` describes a year of sailing between its ports in any order. Our example uses `TRAMP`.
 Set one or more ports at which a vessel stops. In our example, the vessel is only stopping at one port called `"port"`. In your future Navigate modeling, the port often covers a whole region is specified as Africa, Americas, Asia, Europe and Middle East. Hence, a port is often used as a proxy for a region.
 Set the `TimeAtSea`, which defines the proportion of a year that a vessel spends at sea. In our example, the ship is at sea for (0.75*365 days) 273 full days a year.
-Set the `ConditionDistribution`, which defines the proportion of the total TimeAtSea, that is spent for each leg of the journey (here: only one leg, i.e. 100% of the total `TimeAtSea` are spent on the leg).
-Set the Speeds of the vessel, given in knots, at each leg of the journey (here: only one leg).
+A leg is a voyage from one port to another. On a `TRAMP`, every pair of ports is a leg, a port with itself included, so our one port gives the one leg from `"port"` back to `"port"`. The inputs of a leg are set with commands, written `set_xxx(...)` (commands are explained further with the Fuel node below). They address a leg by the names of its two ports, and the wildcard `"*"` matches every port.
+Set the voyage distribution with `set_voyage_distribution`, which defines the share of the sea miles sailed on each leg (here: only one leg, i.e. all of the sea miles are sailed on the leg).
+Set the speed of the vessel with `set_speed`, given in knots, on each leg of the journey (here: only one leg).
 
 ```python
 Route "route" {
-    RouteType = REGIONAL_TRIP 
-    Ports = [Port("port")] 
+    RouteType = TRAMP
+    Ports = [Port("port")]
     TimeAtSea = 0.75
-    ConditionDistribution = [1.0]
-    Speeds = [10]
+    set_voyage_distribution("*", "*", 1)
+    set_speed("*", "*", 10)
 }
 ```
 
@@ -463,3 +472,214 @@ Together, the input from these three files allowed you to run a simulation in Na
 However, this minimalistic version of a Navigate model is of course extremely simplified so not particularly useful to make predictions. In most real-world fleets/scenarios, there are for example more than one vessel, more than one fuel, and a multitude of different routes that vessels take. 
 
 That is why in the next tutorial, you will add some complexity to the files you have already worked on - for example, adding more fuels and more vessels, so you can experiment with the output you receive and understand the principles of the Navigate analysis in more depth.
+
+## Example solution
+
+One way to complete this tutorial. Each box holds one file, at its path inside the `tutorial_1` folder.
+
+:::{dropdown} tutorial_1.nav
+```python
+### START OF tutorial_1.nav FILE ###
+
+# Define the model.
+DEFINE {
+	Include "./includes/define.inc"
+}
+
+
+# Define the timeline and events.
+EVENTS {
+	Include "./includes/events.inc"
+}
+
+
+### END OF tutorial_1.nav FILE ###
+```
+:::
+
+:::{dropdown} includes/define.inc
+```python
+# This is an example of a DEFINE file with the minimum amount 
+# of parameters needed to run a meaningful modelling scenario in Navigate. 
+
+# Define ModelDefinition below.
+ModelDefinition {
+	StartDate = "01/01/2025"
+}
+
+
+# A) DEFINITION OF A FLEET
+# Define the node "fleet" below.
+Fleet "fleet" {
+	Vessels = [Vessel("vessel_ice_oil")]
+	InterFuelSensitivity = 0.5
+	IntraFuelSensitivity = 0.5
+	InitialVessels = 100
+}
+
+# B) DEFINITION OF A VESSEL
+# Bi) Define vessel node "vessel_ice_oil" below.
+Vessel "vessel_ice_oil" {
+	PowerSystem = PowerSystem("ice_oil")
+	Route = Route("route")
+	NominalCapacity = 8000
+	Tanks = [Tank("main_oil")]
+	PropulsionLoad = 10
+}
+
+
+# Define and assign attributes of the node "vessel_ice_oil" 
+# Above, edit the vessel node so that each attribute and its value is written within the curly
+# brackets of the "vessel_ice_oil" node (i.e. PowerSystem, Route, Finance etc.). 
+
+
+# Bii) Define PowerSystem below.
+PowerSystem "ice_oil" {
+	Propulsion = Converter("propulsion_ice_oil")
+	Electrical = Converter("electrical_ice_oil")
+	Heat = Converter("heat_boiler_oil")
+}
+
+
+# Define the node "propulsion_ice_oil" below.
+Converter "propulsion_ice_oil" {
+	PowerCapacity = 50
+	MainFuelTypes = OIL
+	Efficiency = 0.5
+}
+
+# Define the node "electrical_ice_oil" below.
+
+Converter "electrical_ice_oil" {
+	PowerCapacity = 10
+	MainFuelTypes = OIL
+	Efficiency = 0.5
+}
+
+# Define the node "heat_boiler_oil" below. 
+
+Converter "heat_boiler_oil" {
+	PowerCapacity = 5
+	MainFuelTypes = OIL
+	Efficiency = 0.5
+}
+
+# Biii) DEFINITION OF NODES THAT WERE INTRODUCED IN THE DEFINITION OF THE NODE "vessel_ice_oil".
+# Define the node "main_oil" below.
+
+Tank "main_oil" {
+	FuelTypes = OIL
+	Size = 9000
+}
+
+# Define the node "route" below.
+
+Route "route" {
+	RouteType = TRAMP
+	Ports = [Port("port")]
+	TimeAtSea = 0.75
+	set_voyage_distribution("*", "*", 1)
+	set_speed("*", "*", 10)
+}
+
+# C) DEFINITION OF A PORT
+# Define the node "port" below.
+
+Port "port" {	
+	set_bunker_price_overwrite("heavy_fuel_oil", 250)
+	set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)
+}
+
+
+# D) DEFINITION OF A FUEL
+# Define the node "heavy_fuel_oil" below.
+
+# Define the fuel node "heavy_fuel_oil" below.		
+
+Fuel "heavy_fuel_oil" {	
+	FuelType = OIL
+	LiquidMarket = TRUE
+	LowerHeatingValue = 41.2
+	MassDensity = 0.9
+
+	set_ttw("carbon_dioxide", 3.114)
+	set_ttw("methane", 0.00005)
+	set_ttw("nitrous_oxide", 0.00018)
+}
+
+# E) DEFINITION OF A EMISSION
+
+Emission "carbon_dioxide" {
+	GlobalWarmingPotential = 1
+}
+
+Emission "methane" {
+	GlobalWarmingPotential = 25
+}
+
+Emission "nitrous_oxide" {
+	GlobalWarmingPotential = 273
+}
+
+
+# F) DEFINITION OF OUTPUT
+# The Plot node tells Navigate which plots to produce and where to save them.
+# Directory points at the "plots" subfolder; each add_plot(...) selects one plot.
+
+Plot "plots" {
+	Directory = "./plots/"
+
+	add_plot("global_emission_absolute")
+	add_plot("global_fuel_consumed")
+	add_plot("port_bunker_price")
+}
+
+
+# END OF NAV FILE
+```
+:::
+
+:::{dropdown} includes/events.inc
+```python
+# This events file defines the timeline for the fleet transition module.
+
+# Define the Start below.
+
+Start
+
+# A) TIME STEPS AND END OF TIMELINE
+# Define annual time steps below.
+Date "01-01-2025"
+Date "01-01-2026"
+Date "01-01-2027"
+Date "01-01-2028"
+Date "01-01-2029"
+Date "01-01-2030"
+Date "01-01-2031"
+Date "01-01-2032"
+Date "01-01-2033"
+Date "01-01-2034"
+Date "01-01-2035"
+Date "01-01-2036"
+Date "01-01-2037"
+Date "01-01-2038"
+Date "01-01-2039"
+Date "01-01-2040"
+Date "01-01-2041"
+Date "01-01-2042"
+Date "01-01-2043"
+Date "01-01-2044"
+Date "01-01-2045"
+Date "01-01-2046"
+Date "01-01-2047"
+Date "01-01-2048"
+Date "01-01-2049"
+Date "01-01-2050"
+
+# Define the End of the timeline.
+
+End
+
+# END OF events.inc FILE
+```
+:::

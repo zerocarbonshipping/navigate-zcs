@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""WTT, TTW and overall emission coefficients of regulations and levies."""
+"""Emission factors and coefficients of policies, regulation thresholds, levy costs."""
 
 from __future__ import annotations
 
@@ -9,15 +9,17 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import LevySchemeID, PolicyScopeID
+from navigate.core.enum_ import LevySchemeID, PolicyScopeID, RegulationMeasureID
 from navigate.util import (
     TON_PER_GJ_TO_GRAM_PR_MJ,
-    divide_nonzero,
+    TON_TO_KG,
     list_intersection,
     unique_list,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
@@ -38,15 +40,19 @@ def calculate_policy_emission_coefficients(
     idx: int,
 ) -> None:
     """
-    Calculate WTT and TTW emission factors for each combination of inputs.
+    Calculate the active policies' coefficients, regulation thresholds and levy costs.
 
     Combinations span regulations, levies, vessels, fuels, and emissions. The WTT and
     TTW emission factors can be used to calculate the overall emission factors, which
     are used in the calculation of the emission coefficients, which are used to
-    converter a ton of fuel to a ton of emissions.
+    convert a ton of fuel to a ton of emissions. A levy's coefficients, priced at
+    its level, give its cost per ton of fuel. A regulation's coefficients, net of the
+    vessel thresholds, give the spend coefficients its bunkering constraints weigh
+    fuel and shore power with.
 
-    Reads the plants' production and delivery WTT of the current time step, so it runs
-    after those are calculated.
+    Reads the plants' production and delivery WTT, the ports' shore-power emission
+    factors, the vessels' effective LHVs and the levies' levels of the current time
+    step, so it runs after those are calculated.
 
     Parameters
     ----------
@@ -93,6 +99,10 @@ def _assign_regulation_emission_factors(
     """
     Calculate and assign the WTT and TTW emission factors related to a regulation.
 
+    From the factors follow the regulation's emission coefficients, and with its
+    shore-power coefficients and vessel thresholds, the spend coefficients its
+    bunkering constraints weigh.
+
     Parameters
     ----------
     regulation
@@ -118,6 +128,9 @@ def _assign_regulation_emission_factors(
         _assign_regulation_ttw_factors(regulation, vessels, timeline, idx)
 
     _assign_regulation_emission_coefficients(regulation, vessels, idx)
+    _calculate_regulation_shore_power_coefficients(regulation, vessels, idx)
+    _calculate_regulation_vessel_thresholds(regulation, timeline, idx)
+    _calculate_regulation_spend_coefficients(regulation, vessels, idx)
 
 
 def _assign_regulation_wtt_factors(
@@ -203,6 +216,9 @@ def _assign_regulation_ttw_factors(
     """
     Calculate and assign the TTW emission factors related to a given regulation.
 
+    Each converter able to burn a fuel gets its own consumption and slip factors, read
+    from the vessel's expectation unless the regulation supplies a TTW.
+
     Parameters
     ----------
     regulation
@@ -214,8 +230,6 @@ def _assign_regulation_ttw_factors(
     idx
         Current time-step index.
     """
-    include_slip = regulation.include_slip
-
     expectation = regulation.expectation
     fuel_ttws = regulation.fuel_ttw
     target_emissions = regulation.emissions
@@ -228,18 +242,22 @@ def _assign_regulation_ttw_factors(
 
         for fuel in target_fuels:
             fuel_name = fuel.name
+            fuel_type = fuel.fuel_type
 
             for emission in target_emissions:
                 emission_name = emission.name
 
-                # if a user-supplied TTW is assigned on the regulation, it
-                # applies uniformly to every converter (with zero slip);
-                # otherwise the model derives a converter-specific value
+                # a user-supplied TTW on the regulation applies to every converter
+                # able to burn the fuel, with zero slip
                 key = (fuel_name, emission_name)
                 ttw = fuel_ttws[key]
                 ttw_supplied = ttw.get(timeline[idx:]) if ttw is not None else None
 
                 for converter in converters:
+                    # a converter that cannot burn the fuel spends none of it
+                    if fuel_type not in converter.get_fuel_types():
+                        continue
+
                     converter_name = converter.name
 
                     ttw_consumption: FloatLike
@@ -247,8 +265,8 @@ def _assign_regulation_ttw_factors(
                         ttw_consumption = ttw_supplied
                         ttw_slip = 0.0  # TODO: change if deciding to split input
                     else:
-                        ttw_consumption, ttw_slip = _calculate_converter_ttw(
-                            converter, fuel, emission, include_slip
+                        ttw_consumption, ttw_slip = _converter_ttw(
+                            regulation, vessel, converter, fuel, emission
                         )
 
                     factor_consumption = _apply_gwp(
@@ -282,36 +300,25 @@ def _assign_regulation_emission_coefficients(
     target_emissions = regulation.emissions
 
     for vessel_name, vessel in vessels.items():
-        usable_fuels = vessel.usable_fuels
-        target_fuels = _usable_target_fuels(regulation, usable_fuels)
+        target_fuels = _usable_target_fuels(regulation, vessel.usable_fuels)
 
-        for converter in vessel.power_system.get_converters():
-            converter_name = converter.name
-            fuel_types = converter.get_fuel_types()
+        for converter, fuel in _converter_fuels(vessel, target_fuels):
+            coefficient: FloatLike = 0.0
+            for emission in target_emissions:
+                coefficient += _calculate_regulation_emission_factor(
+                    regulation, vessel, converter, fuel, emission, idx
+                )
 
-            for fuel in target_fuels:
-                fuel_name = fuel.name
+            # a NaN WTT factor, as where no route port has an estimate for the
+            # fuel, leaves the fuel without a coefficient, its TTW part included;
+            # without an estimate no route port supplies the fuel, so the LP
+            # spends none of it, and the missing coefficient reads as zero
+            if np.isnan(coefficient).any():
+                continue
 
-                if fuel.fuel_type not in fuel_types:
-                    continue
+            key = (vessel_name, converter.name, fuel.name)
 
-                coefficient: FloatLike = 0.0
-                for emission in target_emissions:
-                    coefficient += _calculate_regulation_emission_factor(
-                        regulation, vessel, converter, fuel, emission, idx
-                    )
-
-                # a NaN WTT factor, as where no route port has an estimate for the
-                # fuel, leaves the fuel without a coefficient, its TTW part
-                # included; without an estimate no route port supplies the fuel,
-                # so the LP spends none of it and reads the missing coefficient
-                # as zero
-                if np.isnan(coefficient).any():
-                    continue
-
-                key = (vessel_name, converter_name, fuel_name)
-
-                regulation.expectation.set_coefficient(idx, key, coefficient)
+            regulation.expectation.set_emission_coefficient(idx, key, coefficient)
 
 
 def _calculate_regulation_emission_factor(
@@ -358,6 +365,119 @@ def _calculate_regulation_emission_factor(
     return _calculate_emission_factor(regulation, key_wtt, key_ttw, idx)
 
 
+def _calculate_regulation_shore_power_coefficients(
+    regulation: Regulation, vessels: dict[str, Vessel], idx: int
+) -> None:
+    """
+    Calculate the regulation's shore-power emission coefficient at each route port.
+
+    Parameters
+    ----------
+    regulation
+        Regulation to calculate the coefficients for.
+    vessels
+        All vessels in the simulation.
+    idx
+        Current time-step index.
+    """
+    expectation = regulation.expectation
+    from_idx = np.s_[idx:]
+
+    route_ports = (port for vessel in vessels.values() for port in vessel.route.ports)
+
+    for port in unique_list(route_ports):
+        get_emission_factor = port.expectation.get_shore_power_emission_factor
+
+        coefficient: FloatLike = 0.0
+        for emission in regulation.emissions:
+            factor = get_emission_factor(emission.name, from_idx)
+            coefficient += _apply_gwp(factor, regulation, emission)
+
+        expectation.set_shore_power_emission_coefficient(idx, port.name, coefficient)
+
+
+def _calculate_regulation_vessel_thresholds(
+    regulation: Regulation, timeline: FloatArray, idx: int
+) -> None:
+    """
+    Calculate the threshold each vessel must satisfy, zero where it is not policed.
+
+    Parameters
+    ----------
+    regulation
+        Regulation to calculate the thresholds for.
+    timeline
+        Simulation timeline.
+    idx
+        Current time-step index.
+    """
+    expectation = regulation.expectation
+    times = timeline[idx:]
+
+    for vessel_name, threshold in regulation.vessel_threshold.items():
+        # zero rather than unwritten: an event can stop the regulation policing the
+        # vessel, and the threshold written while it did would remain;
+        # check_consistency guarantees every policed vessel a threshold
+        if not regulation.vessel_is_policed(vessel_name) or threshold is None:
+            expectation.set_vessel_threshold(idx, vessel_name, 0.0)
+            continue
+
+        expectation.set_vessel_threshold(idx, vessel_name, threshold.get(times))
+
+
+def _calculate_regulation_spend_coefficients(
+    regulation: Regulation, vessels: dict[str, Vessel], idx: int
+) -> None:
+    """
+    Calculate the spend coefficients the regulation's bunkering constraints weigh.
+
+    Under an INTENSITY measure, a spend coefficient is the emission coefficient net of
+    the vessel's threshold, converted from kg emission/GJ by the effective LHV, so the
+    constraint compares the weighted spend with zero; shore power is in GJ, so its
+    effective LHV is 1. Under any other measure the threshold enters the right-hand
+    side instead, and the spend coefficient is the emission coefficient. Every fuel a
+    converter can burn gets one, as the constraints weigh all spend: an untargeted
+    fuel, without an emission coefficient, nets out the threshold alone.
+
+    Parameters
+    ----------
+    regulation
+        Regulation to calculate the spend coefficients for.
+    vessels
+        All vessels in the simulation.
+    idx
+        Current time-step index.
+    """
+    expectation = regulation.expectation
+    from_idx = np.s_[idx:]
+    is_intensity = regulation.measure == RegulationMeasureID.INTENSITY
+
+    get_shore_power_emission = expectation.get_shore_power_emission_coefficient
+
+    for vessel_name, vessel in vessels.items():
+        vessel_expectation = vessel.expectation
+        usable_fuels = vessel.usable_fuels.values()
+        threshold = expectation.get_vessel_threshold(vessel_name, from_idx)
+
+        # in ton emission/GJ; zero where the threshold enters the right-hand side
+        threshold_term = threshold / TON_TO_KG if is_intensity else 0.0
+
+        for converter, fuel in _converter_fuels(vessel, usable_fuels):
+            fuel_key = (vessel_name, converter.name, fuel.name)
+            lhv = vessel_expectation.get_effective_lhv(converter.name, fuel.name)
+            emission = expectation.get_emission_coefficient(fuel_key, from_idx)
+
+            spend = emission - threshold_term * lhv
+            expectation.set_spend_coefficient(idx, fuel_key, spend)
+
+        for port in unique_list(vessel.route.ports):
+            port_key = (vessel_name, port.name)
+            emission = get_shore_power_emission(port.name, from_idx)
+
+            spend = emission - threshold_term
+            expectation.set_shore_power_spend_coefficient(idx, port_key, spend)
+
+
 def _assign_levy_emission_factors(
     levy: Levy,
     vessels: dict[str, Vessel],
@@ -366,7 +486,7 @@ def _assign_levy_emission_factors(
     idx: int,
 ) -> None:
     """
-    Calculate and assign the WTT and TTW emission factors related to a given levy.
+    Calculate and assign the WTT and TTW emission factors of a levy, and its costs.
 
     Parameters
     ----------
@@ -390,7 +510,7 @@ def _assign_levy_emission_factors(
     if scope in (PolicyScopeID.TTW, PolicyScopeID.WTW):
         _assign_levy_ttw_factors(levy, vessels, timeline, idx)
 
-    _assign_levy_emission_coefficients(levy, vessels, timeline, idx)
+    _calculate_levy_costs(levy, vessels, timeline, idx)
 
 
 def _assign_levy_wtt_factors(
@@ -472,8 +592,6 @@ def _assign_levy_ttw_factors(
     idx
         Current time-step index.
     """
-    include_slip = levy.include_slip
-
     expectation = levy.expectation
     fuel_ttws = levy.fuel_ttw
     target_emissions = levy.emissions
@@ -484,7 +602,6 @@ def _assign_levy_ttw_factors(
 
         for fuel in target_fuels:
             fuel_name = fuel.name
-            weights = _converter_weights(vessel, fuel)
 
             for emission in target_emissions:
                 emission_name = emission.name
@@ -492,17 +609,12 @@ def _assign_levy_ttw_factors(
                 key = (vessel_name, fuel_name, emission_name)
                 ttw = fuel_ttws[(fuel_name, emission_name)]
 
-                ttw_slip: FloatLike
                 if ttw is not None:
                     # user-supplied TTW applies uniformly with zero slip
                     ttw_consumption = ttw.get(timeline[idx:])
                     ttw_slip = 0.0  # TODO: change if deciding to split input
                 else:
-                    # otherwise approximate as a power/efficiency weighted average
-                    # across the converters in the vessel's power system
-                    ttw_consumption, ttw_slip = _average_ttw_over_converters(
-                        weights, fuel, emission, include_slip
-                    )
+                    ttw_consumption, ttw_slip = _mean_ttw(levy, vessel, fuel, emission)
 
                 factor_consumption = _apply_gwp(ttw_consumption, levy, emission)
                 factor_slip = _apply_gwp(ttw_slip, levy, emission)
@@ -511,19 +623,20 @@ def _assign_levy_ttw_factors(
                 expectation.set_ttw_slip(idx, key, factor_slip)
 
 
-def _assign_levy_emission_coefficients(
-    levy: Levy,
-    vessels: dict[str, Vessel],
-    timeline: FloatArray,
-    idx: int,
+def _calculate_levy_costs(
+    levy: Levy, vessels: dict[str, Vessel], timeline: FloatArray, idx: int
 ) -> None:
     """
-    Calculate and assign the emission coefficients related to a given levy.
+    Calculate the levy's cost per ton of each fuel a vessel bunkers in its ports.
+
+    The cost is the levy's level times the fuel's threshold-adjusted emission
+    coefficient, from the current time step onward, and zero for a vessel the levy
+    does not police.
 
     Parameters
     ----------
     levy
-        Levy to calculate emission coefficients for.
+        Levy to calculate costs for.
     vessels
         All vessels in the simulation.
     timeline
@@ -531,111 +644,91 @@ def _assign_levy_emission_coefficients(
     idx
         Current time-step index.
     """
-    target_emissions = levy.emissions
+    expectation = levy.expectation
+    upper = levy.upper_threshold
+    times = timeline[idx:]
 
-    # thresholds are levy-wide, not vessel/port/fuel-specific, so they are
-    # evaluated once per pass rather than inside the loops below
-    lower_threshold = levy.lower_threshold.get(timeline[idx:])
-    upper_threshold_obj = levy.upper_threshold
-    upper_threshold = (
-        upper_threshold_obj.get(timeline[idx:])
-        if upper_threshold_obj is not None
-        else None
-    )
+    # the level and thresholds are levy-wide, not vessel/port/fuel-specific, so
+    # they are read once per pass rather than inside the loops below
+    level = expectation.get_level(np.s_[idx:])
+    lower_threshold = levy.lower_threshold.get(times)
+    upper_threshold = None if upper is None else upper.get(times)
 
     for vessel_name, vessel in vessels.items():
-        usable_fuels = vessel.usable_fuels
-        target_fuels = _usable_target_fuels(levy, usable_fuels)
-
         ports = list_intersection(vessel.route.ports, levy.jurisdiction)
         if not ports:
             continue
 
-        effective_lhvs = {
-            fuel.name: _average_effective_lhv_over_converters(
-                _converter_weights(vessel, fuel), fuel
-            )
-            for fuel in target_fuels
-        }
+        policed = levy.vessel_is_policed(vessel_name)
+        target_fuels = _usable_target_fuels(levy, vessel.usable_fuels)
 
-        for port in ports:
-            port_name = port.name
+        for fuel in target_fuels:
+            lhv = vessel.expectation.get_mean_effective_lhv(fuel.name)
 
-            for fuel in target_fuels:
-                fuel_name = fuel.name
-
-                if not port.is_bunkering_allowed(fuel_name):
+            for port in ports:
+                if not port.is_bunkering_allowed(fuel.name):
                     continue
 
-                coefficient: FloatLike = 0.0
-                for emission in target_emissions:
-                    coefficient += _calculate_levy_emission_factor(
-                        levy, vessel, port, fuel, emission, idx
-                    )
+                key = (vessel_name, port.name, fuel.name)
+
+                # zero rather than unwritten: an event can stop the levy policing
+                # the vessel, and the cost written while it did would remain
+                if not policed:
+                    expectation.set_cost(idx, key, 0.0)
+                    continue
+
+                coefficient = _calculate_levy_coefficient(levy, vessel, port, fuel, idx)
 
                 # a NaN WTT factor, as where the port has no estimate for the fuel,
-                # leaves the fuel without a coefficient at the port, its TTW part
-                # included; without an estimate the port has no supply of the
-                # fuel, so the LP bunkers none of it there and reads the missing
-                # coefficient as zero
+                # makes the whole coefficient NaN, TTW part included, so the fuel
+                # gets no cost at the port; without an estimate the port has no
+                # supply of the fuel, so the LP bunkers none of it there and reads
+                # the missing cost as zero
                 if np.isnan(coefficient).any():
                     continue
 
                 coefficient = _calculate_threshold_adjusted_levy_emission_coefficient(
-                    coefficient,
-                    levy,
-                    effective_lhvs[fuel_name],
-                    lower_threshold,
-                    upper_threshold,
+                    coefficient, levy, lhv, lower_threshold, upper_threshold
                 )
 
-                key = (vessel_name, port_name, fuel_name)
-
-                levy.expectation.set_coefficient(idx, key, coefficient)
+                expectation.set_cost(idx, key, level * coefficient)
 
 
-def _calculate_levy_emission_factor(
-    levy: Levy,
-    vessel: Vessel,
-    port: Port,
-    fuel: Fuel,
-    emission: Emission,
-    idx: int,
+def _calculate_levy_coefficient(
+    levy: Levy, vessel: Vessel, port: Port, fuel: Fuel, idx: int
 ) -> FloatLike:
     """
-    Calculate the emission factor, in ton emissions per ton fuel, for one emission.
+    Calculate the levy's emission coefficient of a fuel a vessel bunkers at a port.
 
-    Used in the calculation of a levy emission coefficient.
+    The coefficient sums, over the levy's emissions, the fuel's WTT factor at the
+    port and its TTW factors on the vessel.
 
     Parameters
     ----------
     levy
-        Levy to calculate emission factor for.
+        Levy to calculate the emission coefficient for.
     vessel
         Vessel impacted by the levy.
     port
-        Port in which the fuel was produced.
+        Port in which the fuel is bunkered.
     fuel
         Fuel with certain emissions impacted by the levy.
-    emission
-        Emission for which the emission factor is calculated.
     idx
-        Time-step index.
+        Current time-step index.
 
     Returns
     -------
     FloatLike
-        Emission factor, in ton emissions per ton fuel.
+        Emission coefficient, in ton emissions per ton fuel, from idx onward.
     """
-    vessel_name = vessel.name
-    port_name = port.name
-    fuel_name = fuel.name
-    emission_name = emission.name
+    coefficient: FloatLike = 0.0
 
-    key_wtt = (port_name, fuel_name, emission_name)
-    key_ttw = (vessel_name, fuel_name, emission_name)
+    for emission in levy.emissions:
+        key_wtt = (port.name, fuel.name, emission.name)
+        key_ttw = (vessel.name, fuel.name, emission.name)
+        coefficient += _calculate_emission_factor(levy, key_wtt, key_ttw, idx)
 
-    return _calculate_emission_factor(levy, key_wtt, key_ttw, idx)
+    return coefficient
 
 
 def _calculate_threshold_adjusted_levy_emission_coefficient(
@@ -693,52 +786,6 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
     return coefficient_ref
 
 
-def _calculate_converter_ttw(
-    converter: Converter, fuel: Fuel, emission: Emission, include_slip: bool
-) -> tuple[float, float]:
-    """
-    Calculate the TTW emission factor for a specific converter.
-
-    Parameters
-    ----------
-    converter
-        The converter for which the TTW is calculated.
-    fuel
-        The fuel for which the TTW is calculated.
-    emission
-        The emission for which the TTW is calculated.
-    include_slip
-        Whether to include gas slip or not.
-
-    Returns
-    -------
-    tuple[float, float]
-        Consumption TTW and slip TTW.
-    """
-    emission_name = emission.name
-    fuel_type = fuel.fuel_type
-
-    if fuel_type not in converter.get_fuel_types():
-        return 0.0, 0.0
-
-    slip = converter.slip_fraction[fuel_type].get()
-
-    # fuel-bound TTW emissions scale with burned fraction (1 - slip)
-    ttw_consumption = (1.0 - slip) * fuel.ttw[emission_name].get()
-
-    # consumption emissions per ton fuel-in, no slip scaling
-    ttw_consumption += converter.consumption_ttw[(fuel_type, emission_name)].get()
-
-    # slip emissions: X per ton fuel-in, gated by emission fuel_type
-    ttw_slip = 0.0
-    if include_slip:
-        emission_fuel_type = emission.fuel_type
-        if emission_fuel_type == fuel_type:
-            ttw_slip = slip
-
-    return ttw_consumption, ttw_slip
-
-
 def _average_wtt_over_route(
     ports: list[Port], fuel: Fuel, emission: Emission, plants: list[Plant], idx: int
 ) -> FloatLike:
@@ -790,119 +837,75 @@ def _average_wtt_over_route(
     return np.stack(estimates).mean(axis=0)
 
 
-def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, float]]:
-    """
-    Weigh the vessel's converters that can burn a fuel by power over efficiency.
-
-    Converters that cannot burn the fuel are left out, so they carry no weight in an
-    average over the weights. A converter with zero efficiency delivers no energy and
-    so burns no fuel; it weighs zero.
-
-    Parameters
-    ----------
-    vessel
-        Vessel on which the fuel is spent.
-    fuel
-        Fuel being spent.
-
-    Returns
-    -------
-    list[tuple[Converter, float]]
-        Each converter able to burn the fuel with its weight, in MW.
-    """
-    fuel_type = fuel.fuel_type
-
-    weights: list[tuple[Converter, float]] = []
-    for converter in vessel.power_system.get_converters():
-        if fuel_type not in converter.get_fuel_types():
-            continue
-
-        power = converter.power_capacity.get()
-        efficiency = converter.efficiency.get()
-        weight = power / efficiency if efficiency > 0.0 else 0.0
-
-        weights.append((converter, weight))
-
-    return weights
-
-
-def _average_ttw_over_converters(
-    weights: list[tuple[Converter, float]],
+def _converter_ttw(
+    regulation: Regulation,
+    vessel: Vessel,
+    converter: Converter,
     fuel: Fuel,
     emission: Emission,
-    include_slip: bool,
-) -> tuple[FloatArray, FloatArray]:
+) -> tuple[float, float]:
     """
-    Estimate a vessel's TTW emissions as a power/efficiency weighted average.
-
-    Averaged over the converters in the vessel's power system that can burn the fuel.
+    Return the consumption and slip TTW of burning a fuel in a vessel's converter.
 
     Parameters
     ----------
-    weights
-        Converters able to burn the fuel with their weights, from `_converter_weights`.
+    regulation
+        Regulation the TTW is read for; where it leaves out slip, the slip TTW is zero.
+    vessel
+        Vessel the converter is on board.
+    converter
+        Converter able to burn the fuel.
     fuel
         Fuel being spent.
     emission
         Emission.
-    include_slip
-        Whether slip is included in the calculation of the levy TTW.
 
     Returns
     -------
-    tuple[FloatArray, FloatArray]
-        Approximate consumption TTW and slip TTW of the vessel.
+    tuple[float, float]
+        Consumption TTW and slip TTW, in ton emission/ton fuel-in.
     """
-    weighted_consumption_sum = 0.0
-    weighted_slip_sum = 0.0
-    weight_total = 0.0
+    key = (converter.name, fuel.name, emission.name)
+    expectation = vessel.expectation
 
-    for converter, weight in weights:
-        consumption, slip = _calculate_converter_ttw(
-            converter, fuel, emission, include_slip
-        )
-
-        weighted_consumption_sum += weight * consumption
-        weighted_slip_sum += weight * slip
-        weight_total += weight
-
-    ttw_consumption = divide_nonzero(weighted_consumption_sum, weight_total)
-    ttw_slip = divide_nonzero(weighted_slip_sum, weight_total)
+    ttw_consumption = expectation.get_ttw_consumption(*key)
+    ttw_slip = expectation.get_ttw_slip(*key) if regulation.include_slip else 0.0
 
     return ttw_consumption, ttw_slip
 
 
-def _average_effective_lhv_over_converters(
-    weights: list[tuple[Converter, float]], fuel: Fuel
-) -> FloatArray:
+def _mean_ttw(
+    levy: Levy, vessel: Vessel, fuel: Fuel, emission: Emission
+) -> tuple[float, float]:
     """
-    Estimate a vessel's effective LHV of a fuel as a power/efficiency weighted average.
+    Return the vessel's mean consumption and slip TTW of burning a fuel.
 
-    A vessel without weight on any converter able to burn the fuel has no slip to net
-    off, so it falls back to the fuel's LHV.
+    A levy prices the fuel a vessel bunkers, whichever converter burns it, so it reads
+    the vessel's means over its converters rather than each converter's TTW.
 
     Parameters
     ----------
-    weights
-        Converters able to burn the fuel with their weights, from `_converter_weights`.
+    levy
+        Levy the TTW is read for; where it leaves out slip, the slip TTW is zero.
+    vessel
+        Vessel on which the fuel is spent.
     fuel
         Fuel being spent.
+    emission
+        Emission.
 
     Returns
     -------
-    FloatArray
-        Effective lower heating value, (1 - slip) * LHV, in GJ/ton fuel.
+    tuple[float, float]
+        Consumption TTW and slip TTW, in ton emission/ton fuel-in.
     """
-    weighted_lhv_sum = 0.0
-    weight_total = 0.0
+    key = (fuel.name, emission.name)
+    expectation = vessel.expectation
 
-    for converter, weight in weights:
-        weighted_lhv_sum += weight * converter.get_effective_lhv(fuel)
-        weight_total += weight
+    ttw_consumption = expectation.get_mean_ttw_consumption(*key)
+    ttw_slip = expectation.get_mean_ttw_slip(*key) if levy.include_slip else 0.0
 
-    return divide_nonzero(
-        weighted_lhv_sum, weight_total, default=fuel.lower_heating_value.get()
-    )
+    return ttw_consumption, ttw_slip
 
 
 def _calculate_emission_factor(
@@ -944,9 +947,7 @@ def _calculate_emission_factor(
     # results are adjusted for scope, inclusion
     # of slip, etc. so that reconstruction of the
     # emission factor can be made without checks
-    factor = wtt + ttw_consumption + ttw_slip
-
-    return factor
+    return wtt + ttw_consumption + ttw_slip
 
 
 def _apply_gwp(
@@ -993,6 +994,37 @@ def _usable_target_fuels(
         Targeted fuels also usable by the vessel.
     """
     return [fuel for fuel in policy.fuels if fuel.name in usable_fuels]
+
+
+def _converter_fuels(
+    vessel: Vessel, fuels: Collection[Fuel]
+) -> list[tuple[Converter, Fuel]]:
+    """
+    Pair each converter on board a vessel with each of the fuels it can burn.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose converters are paired.
+    fuels
+        Fuels to pair the converters with.
+
+    Returns
+    -------
+    list[tuple[Converter, Fuel]]
+        Every converter with every fuel of `fuels` it can burn, converter by
+        converter.
+    """
+    pairs: list[tuple[Converter, Fuel]] = []
+
+    for converter in vessel.power_system.get_converters():
+        fuel_types = converter.get_fuel_types()
+
+        for fuel in fuels:
+            if fuel.fuel_type in fuel_types:
+                pairs.append((converter, fuel))
+
+    return pairs
 
 
 def _estimate_port_wtt(

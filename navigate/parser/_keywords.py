@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
 from navigate.core.node_type import (
@@ -79,11 +79,11 @@ DATE = "Date"
 END = "End"
 START = "Start"
 
-type AllowedSections = tuple[SimulationSectionID, ...]
+type AllowedSections = tuple[SectionID, ...]
 
-SECTION_DEFINE: AllowedSections = (SimulationSectionID.DEFINE,)
-SECTION_EVENTS: AllowedSections = (SimulationSectionID.EVENTS,)
-SECTION_BOTH: AllowedSections = (SimulationSectionID.DEFINE, SimulationSectionID.EVENTS)
+SECTION_DEFINE: AllowedSections = (SectionID.DEFINE,)
+SECTION_EVENTS: AllowedSections = (SectionID.EVENTS,)
+SECTION_BOTH: AllowedSections = (SectionID.DEFINE, SectionID.EVENTS)
 
 NODE_CLASS: dict[str, Callable[[str], Node]] = {
     CONVERTER: Converter,
@@ -189,9 +189,9 @@ KEYWORD_SECTIONS: dict[str, AllowedSections] = {
     END: SECTION_EVENTS,
 }
 
-SECTION_NAME: dict[SimulationSectionID, str] = {
-    SimulationSectionID.DEFINE: "DEFINE",
-    SimulationSectionID.EVENTS: "EVENTS",
+SECTION_NAME: dict[SectionID, str] = {
+    SectionID.DEFINE: "DEFINE",
+    SectionID.EVENTS: "EVENTS",
 }
 
 

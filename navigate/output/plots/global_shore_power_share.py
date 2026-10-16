@@ -16,10 +16,12 @@ from navigate.output.plots._figure import (
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_shore_power_share(results: SimulationResults, directory: str) -> None:
+def plot_global_shore_power_share(results: SimulationResults, directory: Path) -> None:
     """Plot the global shore power share of the port energy."""
     dateline = results.dateline
 

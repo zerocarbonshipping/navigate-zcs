@@ -12,7 +12,6 @@ Font sizes and subplot layout come from
 
 from __future__ import annotations
 
-import os
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
@@ -28,6 +27,7 @@ from navigate.output.plots._style import SAVE_OPTIONS
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from pathlib import Path
 
     from matplotlib.axes import Axes
     from matplotlib.collections import PolyCollection
@@ -122,8 +122,7 @@ def format_axes(
                 patch.set_height(patch.get_height() * 0.8)
 
 
-def save_figure(fig: Figure, directory: str, filename: str) -> None:
+def save_figure(fig: Figure, directory: Path, filename: str) -> None:
     """Save *fig* to ``directory/filename`` with the standard options and close it."""
-    path = os.path.join(directory, filename)
-    fig.savefig(path, bbox_inches="tight", **SAVE_OPTIONS)
+    fig.savefig(directory / filename, bbox_inches="tight", **SAVE_OPTIONS)
     plt.close(fig)

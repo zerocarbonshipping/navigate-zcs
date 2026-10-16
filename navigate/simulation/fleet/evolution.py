@@ -110,31 +110,32 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int) -> None:
             else:
                 break  # the increments are ordered oldest first
 
+        surviving = incs
         if scrap_count > 0:
-            fleet.increments[v] = incs[scrap_count:]
-            incs = fleet.increments[v]
+            surviving = incs[scrap_count:]
+            fleet.increments[v] = surviving
 
-            if incs:
-                incs[0].baseline = incs[0].multiplier
+            if surviving:
+                surviving[0].baseline = surviving[0].multiplier
 
         # scrap the part of the oldest cohort beyond the lifetime, assuming its
         # vessels entered uniformly over its age span
-        if incs and incs[0].baseline is not None:
-            age_i = incs[0].age
-            dt_i = incs[0].age_span
+        if surviving and surviving[0].baseline is not None:
+            age_i = surviving[0].age
+            dt_i = surviving[0].age_span
 
             if age_i + dt_i > lifetime:
                 alpha = (lifetime - age_i) / dt_i
 
-                remaining = incs[0].baseline * alpha
-                scrapping = incs[0].multiplier - remaining
+                remaining = surviving[0].baseline * alpha
+                scrapping = surviving[0].multiplier - remaining
 
                 # conversions out of the cohort can leave fewer vessels than the
                 # baseline share that remains, so the scrapping is floored at zero
                 scrapping = max(scrapping, 0.0)
 
                 scrapped_vessels += scrapping
-                incs[0].multiplier -= scrapping
+                surviving[0].multiplier -= scrapping
 
         fleet.profile.add_scrap(vessel.name, scrapped_vessels, idx)
 
@@ -255,14 +256,13 @@ def perform_fixed_trade_scrapping(
 
             break
 
-        else:
-            # the gap exceeds the age group's capacity: scrap all of its increments
-            trade_gap -= capacity
+        # the gap exceeds the age group's capacity: scrap all of its increments
+        trade_gap -= capacity
 
-            for v, ii in group:
-                multiplier = fleet.increments[v][ii].multiplier
-                youngest_index[v] = ii + 1
-                fleet.profile.add_scrap(fleet.assets[v].name, multiplier, idx)
+        for v, ii in group:
+            multiplier = fleet.increments[v][ii].multiplier
+            youngest_index[v] = ii + 1
+            fleet.profile.add_scrap(fleet.assets[v].name, multiplier, idx)
 
     # drop the increments scrapped in full
     for v, i in enumerate(youngest_index):

@@ -22,10 +22,12 @@ from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._units import get_best_unit_energy
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_fuel_consumed(results: SimulationResults, directory: str) -> None:
+def plot_fleet_fuel_consumed(results: SimulationResults, directory: Path) -> None:
     """Plot the energy consumed per fuel and as shore power, per fleet."""
     dateline = results.dateline
     fuels = results.nodes.fuels

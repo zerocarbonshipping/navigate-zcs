@@ -18,12 +18,14 @@ from navigate.output.plots._labels import FUEL_TYPE_COLOR
 from navigate.output.plots._style import LEGEND_OPTIONS
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from matplotlib.lines import Line2D
 
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_regulation_flexibility(results: SimulationResults, directory: str) -> None:
+def plot_regulation_flexibility(results: SimulationResults, directory: Path) -> None:
     """Plot the shared and individual compliance of flexible intensity regulations."""
     dateline = results.dateline
     regulations = results.nodes.regulations

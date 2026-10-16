@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from math import floor
 from typing import TYPE_CHECKING
 
@@ -37,11 +38,11 @@ class Component:
     Parameters
     ----------
     lead_time
-        Asset lead time (years).
+        Asset lead time, in years.
     lifetime
-        Asset lifetime (years).
+        Asset lifetime, in years.
     time_initial
-        Time of investment decision (days since start of simulation).
+        Time of investment decision since the start of the simulation, in days.
     emissions
         Names of the emissions to allocate a WTT flow for.
     """
@@ -183,10 +184,10 @@ class _ReplacementCycle:
     Parameters
     ----------
     lifetime
-        Callable returning the component lifetime (years) locked at a time (days).
+        Callable returning the component lifetime, in years, locked at a time, in days.
     replacement
-        Callable returning the replaceable share of the CAPEX locked at a time
-        (days).
+        Callable returning the replaceable share of the CAPEX locked at a time,
+        in days.
     component
         Component whose time context the schedules are walked over.
     """
@@ -209,7 +210,7 @@ class _ReplacementCycle:
 
 def build_production_flow(component: Component, production: float) -> FloatArray:
     """
-    Expand a fixed annual production (tons/year) into a calendar-year flow vector.
+    Expand a fixed annual production, in tons/year, into a calendar-year flow vector.
 
     Zeros are applied during construction lead time. The first operational year is
     automatically fractional via overlap between the operation window and the first
@@ -234,7 +235,7 @@ def build_cargo_flow(
     component: Component, cargo: FloatArray, timeline: FloatArray
 ) -> FloatArray:
     """
-    Expand a variable annual cargo-miles (cargo-miles/year) into a calendar-year flow.
+    Expand variable annual cargo-miles, in cargo-miles/year, into a calendar-year flow.
 
     Zeros are applied during construction lead time. The first operational year is
     automatically fractional via overlap between the operation window and the first
@@ -282,7 +283,7 @@ def add_fixed_opex(component: Component, value: Callable[[float], float]) -> Non
     component
         Component for which OPEX costs are added.
     value
-        Callable returning per-year cost locked at anchor time (days).
+        Callable returning per-year cost locked at anchor time, in days.
     """
     fixed = _build_staircase_flow(component=component, value=value)
     component.add_opex_flow(fixed)
@@ -301,84 +302,63 @@ def add_variable_opex(
     component
         Component for which OPEX costs are added.
     metric
-        Callable returning locked metric (e.g., tons/year) at anchor time (days).
+        Callable returning locked metric (e.g. in tons/year) at anchor time, in days.
     cost
-        Callable returning price as a function of absolute time (days). Vectorized over
-        arrays of days.
+        Callable returning price as a function of absolute time, in days. Vectorized
+        over arrays of days.
     """
     fixed = _build_staircase_flow(component=component, value=metric)
     variable = cost(component.year_flow)
     component.add_opex_flow(fixed * variable)
 
 
-def add_fixed_wtt(
-    component: Component, wtt_callables: dict[str, Callable[[float], float]]
-) -> None:
+def add_fixed_wtt(component: Component, wtt: Callable[[str, float], float]) -> None:
     """
-    Add fixed/locked WTT for multiple emissions in one pass over staircase segments.
+    Add the fixed WTT of every emission, locked at installation and each replacement.
 
     Parameters
     ----------
     component
         Component for which WTT emissions are added.
-    wtt_callables
-        Mapping of emission name to callable returning locked WTT factor at anchor time
-        (days).
+    wtt
+        Callable returning the WTT of an emission locked at an anchor time, in days.
     """
-    if not wtt_callables:
-        return
-
-    cycle = component.replacement_cycle
-    if cycle is None:
-        time_initial = component.time_initial
-        overlap = component.constant_overlap
-
-        for emission_name, wtt in wtt_callables.items():
-            component.add_wtt_flow(emission_name, wtt(time_initial) * overlap)
-
-        return
-
-    segments = cycle.staircase_segments
-    n = component.get_length()
-    flows = {e: np.zeros(n, dtype=float) for e in wtt_callables}
-
-    for anchor_time, normalized_overlap in segments:
-        for emission_name, wtt in wtt_callables.items():
-            flows[emission_name] += wtt(anchor_time) * normalized_overlap
-
-    for emission_name, flow in flows.items():
-        component.add_wtt_flow(emission_name, flow)
+    for emission in component.wtt_flow:
+        fixed = _build_staircase_flow(component=component, value=partial(wtt, emission))
+        component.add_wtt_flow(emission, fixed)
 
 
 def add_variable_wtt(
     component: Component,
     metric: Callable[[float], float],
-    wtt_callables: dict[str, Callable[[FloatArray], FloatArray]],
+    wtt: Callable[[str, FloatArray], FloatArray],
 ) -> None:
     """
-    Add variable WTT (metric * factor) for multiple emissions.
+    Add the variable WTT (metric * factor) of every emission.
 
-    Computes the staircase flow for the shared metric once, then multiplies
-    by each emission's variable WTT factor.
+    Computes the staircase flow for the shared metric once, then multiplies it by
+    each emission's variable WTT factor.
 
     Parameters
     ----------
     component
         Component for which WTT emissions are added.
     metric
-        Callable returning locked metric at anchor time (days). Shared across emissions.
-    wtt_callables
-        Mapping of emission name to callable returning time-dependent WTT factor.
+        Callable returning locked metric at anchor time, in days. Shared across
+        emissions.
+    wtt
+        Callable returning the WTT factor of an emission as a function of absolute
+        time, in days. Vectorized over arrays of days.
     """
-    if not wtt_callables:
+    if not component.wtt_flow:
         return
 
     fixed = _build_staircase_flow(component=component, value=metric)
     year_flow = component.year_flow
 
-    for emission_name, wtt in wtt_callables.items():
-        variable = wtt(year_flow)
-        component.add_wtt_flow(emission_name, fixed * variable)
+    for emission in component.wtt_flow:
+        variable = wtt(emission, year_flow)
+        component.add_wtt_flow(emission, fixed * variable)
 
 
 def timeline_to_yearly(vessel: Vessel, idx: int, timeline: FloatArray) -> FloatArray:
@@ -394,21 +374,19 @@ def timeline_to_yearly(vessel: Vessel, idx: int, timeline: FloatArray) -> FloatA
     idx
         Current time-step index.
     timeline
-        Simulation timeline (days).
+        Simulation timeline, in days.
 
     Returns
     -------
     FloatArray
-        Yearly times (in days) for the lifetime of the vessel.
+        Yearly times over the lifetime of the vessel, in days.
     """
     lifetime = vessel.lifetime.get()
 
     start = timeline[idx]
     end = start + lifetime * YEAR
 
-    times = np.arange(start, end, YEAR)
-
-    return times
+    return np.arange(start, end, YEAR)
 
 
 def get_age_flow(lead_time: float, lifetime: float) -> FloatArray:
@@ -446,9 +424,9 @@ def build_operating_age_flow(lead_time: float, lifetime: float) -> FloatArray:
     Parameters
     ----------
     lead_time
-        Lead time for constructing the asset (years).
+        Lead time for constructing the asset, in years.
     lifetime
-        Operational lifetime of the asset (years).
+        Operational lifetime of the asset, in years.
 
     Returns
     -------
@@ -471,23 +449,23 @@ def build_operating_flows(
     Build the lead-aware operating-year grid and overlap fractions at a given time.
 
     The overlap is zero during the construction lead time and (prorated) one during
-    operational years; the year grid gives the absolute calendar time (days) of each
-    bin, anchored at the evaluation time. Both span `lead_time + lifetime` years so
+    operational years; the year grid gives the absolute calendar time of each bin,
+    in days, anchored at the evaluation time. Both span `lead_time + lifetime` years so
     reconstructed cost, production, and age flows share one basis.
 
     Parameters
     ----------
     time_initial
-        Absolute time (days) at which the asset is evaluated.
+        Absolute time at which the asset is evaluated, in days.
     lead_time
-        Construction lead time (years).
+        Construction lead time, in years.
     lifetime
-        Operational lifetime (years).
+        Operational lifetime, in years.
 
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Absolute year grid (days) and per-year operating fraction.
+        Absolute year grid, in days, and per-year operating fraction.
     """
     overlap = build_operating_age_flow(lead_time, lifetime)
     year_flow = time_initial + np.arange(overlap.size, dtype=float) * YEAR
@@ -713,7 +691,7 @@ def _add_straight_line_depreciation(
     basis
         Initial tied up capital to depreciate (e.g., CAPEX tranche).
     years_total
-        Depreciation horizon (years). If non-positive, no changes are applied.
+        Depreciation horizon, in years. If non-positive, no changes are applied.
     """
     tied_capital_flow = component.tied_capital_flow
     year_flow = component.year_flow
@@ -750,7 +728,7 @@ def _compute_staircase_segments(
     component
         Component whose time context to walk.
     lifetime
-        Callable returning the component lifetime (years) locked at a time (days).
+        Callable returning the component lifetime, in years, locked at a time, in days.
 
     Returns
     -------
@@ -797,7 +775,7 @@ def _compute_replacement_times(
     component
         Component whose time context to walk.
     lifetime
-        Callable returning the component lifetime (years) locked at a time (days).
+        Callable returning the component lifetime, in years, locked at a time, in days.
 
     Returns
     -------
@@ -838,7 +816,7 @@ def _build_staircase_flow(
     component
         Component for which value flow is calculated.
     value
-        Callable returning the locked value at the anchor time (days).
+        Callable returning the locked value at the anchor time, in days.
 
     Returns
     -------
@@ -1034,7 +1012,7 @@ def expand_to_flow(lifetime: float, value: float) -> FloatArray:
     Parameters
     ----------
     lifetime
-        Lifetime of an asset (years).
+        Lifetime of an asset, in years.
     value
         Yearly value of operations.
 
@@ -1059,7 +1037,7 @@ def correct_flow_residual(lifetime: float, cost: FloatArray) -> None:
     Parameters
     ----------
     lifetime
-        Lifetime of the asset (years).
+        Lifetime of the asset, in years.
     cost
         Cost-flow whose last time-step is corrected in place.
     """
@@ -1078,7 +1056,7 @@ def get_flow_residual(lifetime: float) -> tuple[bool, float]:
     Parameters
     ----------
     lifetime
-        Lifetime of the asset (years).
+        Lifetime of the asset, in years.
 
     Returns
     -------

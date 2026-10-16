@@ -22,10 +22,12 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_cost
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_tied_capital(results: SimulationResults, directory: str) -> None:
+def plot_global_tied_capital(results: SimulationResults, directory: Path) -> None:
     """Plot the capital tied in vessels and plants."""
     dateline = results.dateline
 

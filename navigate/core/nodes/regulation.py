@@ -23,7 +23,7 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import RegulationProfile
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import FloatArray
@@ -165,58 +165,13 @@ class Regulation(_Policy):
 
         self._initialize_policy_dependencies(vessels)
 
-    def initialize_expectation(self, length: int, vessels: dict[str, Vessel]) -> None:
-        self.expectation.initialize(length, [e.name for e in self.emissions], vessels)
+    def initialize_expectation(
+        self, length: int, routes: dict[str, Route], vessels: dict[str, Vessel]
+    ) -> None:
+        emission_names = [e.name for e in self.emissions]
+        self.expectation.initialize(length, emission_names, routes, vessels)
 
     def initialize_profile(
         self, timeline: FloatArray, vessels: dict[str, Vessel]
     ) -> None:
         self.profile.initialize(timeline, vessels)
-
-    def calculate_expectation(
-        self,
-        emissions: dict[str, Emission],
-        vessels: dict[str, Vessel],
-        emissions_lifetime: float,
-        timeline: FloatArray,
-        idx: int,
-    ) -> None:
-
-        if not self.active:
-            return
-
-        times = timeline[idx:]
-
-        self.expectation.set_remedial_cost(idx, self.remedial_cost.get(times))
-
-        if self.measure in (
-            RegulationMeasureID.TRANSPORT,
-            RegulationMeasureID.TRANSPORT_NOMINAL,
-        ):
-            for vessel_name, capacity in self.vessel_capacity.items():
-                if capacity is not None:
-                    self.expectation.set_vessel_capacity(
-                        idx, vessel_name, capacity.get(times)
-                    )
-
-                else:
-                    nominal_capacity = vessels[vessel_name].nominal_capacity.get(times)
-                    self.expectation.set_vessel_capacity(
-                        idx, vessel_name, nominal_capacity
-                    )
-
-        self._calculate_policy_expectations(
-            self.expectation, emissions, emissions_lifetime
-        )
-
-    def calculate_profile(self, idx: int) -> None:
-
-        if not self.active:
-            return
-
-        self.profile.set_remedial_cost(idx, self.remedial_cost.get())
-
-        # check_consistency guarantees every policed vessel a threshold
-        for vessel_name, threshold in self.vessel_threshold.items():
-            if self.vessel_is_policed(vessel_name) and threshold is not None:
-                self.profile.set_vessel_threshold(idx, vessel_name, threshold.get())

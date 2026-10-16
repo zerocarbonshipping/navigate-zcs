@@ -24,7 +24,6 @@ from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import LevySchemeID, RegulationSchemeID
-    from navigate.core.expectations import LevyExpectation, RegulationExpectation
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
@@ -54,8 +53,8 @@ class _Policy(Node):
         self.jurisdiction: list[Port] = []
 
         # emissions
-        self.emissions: list[Emission] = []
-        self.fuels: list[Fuel] = []
+        self.emissions: list[Emission]
+        self.fuels: list[Fuel]
         self.scope: PolicyScopeID = PolicyScopeID.WTW
         self.emissions_lifetime: ScalarInput | None = None
         self.include_slip: bool = True
@@ -82,11 +81,13 @@ class _Policy(Node):
 
     def set_emissions(self, emissions: Emission | list[Emission]) -> None:
         """Set the emissions targeted by the policy."""
-        self.emissions = assign_reference_list(emissions, EMISSION, unique=True)
+        self.emissions = assign_reference_list(
+            emissions, EMISSION, min_length=1, unique=True
+        )
 
     def set_fuels(self, fuels: Fuel | list[Fuel]) -> None:
         """Set the fuels targeted by the policy."""
-        self.fuels = assign_reference_list(fuels, FUEL, unique=True)
+        self.fuels = assign_reference_list(fuels, FUEL, min_length=1, unique=True)
 
     def set_scope(self, scope: str) -> None:
         """Set the scope of emissions targeted by the policy."""
@@ -145,12 +146,6 @@ class _Policy(Node):
         if not self.jurisdiction:
             raise UnassignedAttributeError(str(self), "Jurisdiction")
 
-        if not self.emissions:
-            raise UnassignedAttributeError(str(self), "Emissions")
-
-        if not self.fuels:
-            raise UnassignedAttributeError(str(self), "Fuels")
-
     def _initialize_policy_dependencies(self, vessels: dict[str, Vessel]) -> None:
 
         # fuel_wtt, fuel_ttw, and global_warming_potential stay None when unset:
@@ -176,29 +171,6 @@ class _Policy(Node):
             self.in_jurisdiction_vessel[vessel_name] = not jurisdiction.isdisjoint(
                 vessel.route.ports
             )
-
-    def _calculate_policy_expectations(
-        self,
-        expectation: LevyExpectation | RegulationExpectation,
-        emissions: dict[str, Emission],
-        emissions_lifetime: float,
-    ) -> None:
-
-        if self.emissions_lifetime is not None:
-            emissions_lifetime = self.emissions_lifetime.get()
-
-        for (
-            emissions_name,
-            global_warming_potential,
-        ) in self.global_warming_potential.items():
-            if global_warming_potential is not None:
-                gwp = global_warming_potential.get(emissions_lifetime)
-            else:
-                gwp = emissions[emissions_name].global_warming_potential.get(
-                    emissions_lifetime
-                )
-
-            expectation.set_global_warming_potential(emissions_name, gwp)
 
     def is_active(self) -> bool:
         return self.active

@@ -11,12 +11,13 @@ import numpy as np
 
 if TYPE_CHECKING:
     import navigate.simulation.bunker.solver as gp
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
 def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     """
-    Remove a vessel, its pre-computed values and its LP variables and constraints.
+    Remove a vessel, its multiplier and its LP variables and constraints.
 
     Parameters
     ----------
@@ -27,10 +28,6 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     """
     del alg.vessels[v]
     del alg.multipliers[v]
-
-    for key in list(alg.effective_lhv):
-        if key[0] == v:
-            del alg.effective_lhv[key]
 
     _remove_vessel_elements(alg, v, alg.bunker)
     _remove_vessel_elements(alg, v, alg.spend_sea)
@@ -108,9 +105,10 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
             del alg.regulation_threshold_flexibility[r]
 
 
-def _remove_vessel_elements[E: (gp.Var, gp.Constr)](
-    alg: BunkerAlgorithm, v: str, container: dict[tuple, E]
-) -> None:
+def _remove_vessel_elements[
+    K: tuple[str, *tuple[str | int | EnergyDemandID, ...]],
+    E: (gp.Var, gp.Constr),
+](alg: BunkerAlgorithm, v: str, container: dict[K, E]) -> None:
     """
     Remove a vessel's variables or constraints from the LP model and their dict.
 

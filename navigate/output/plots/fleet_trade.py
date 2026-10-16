@@ -22,10 +22,12 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_cargo_miles
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_trade(results: SimulationResults, directory: str) -> None:
+def plot_fleet_trade(results: SimulationResults, directory: Path) -> None:
     """Plot the modelled against the target trade per fleet."""
     dateline = results.dateline
     fleets = results.nodes.fleets
@@ -41,10 +43,7 @@ def plot_fleet_trade(results: SimulationResults, directory: str) -> None:
     assumed_trades = [fleet.trade for fleet in fleets.values()]
 
     divisor, unit = get_best_unit_cargo_miles(
-        max(
-            max(np.amax(trade) for trade in fleet_trades),
-            max(np.amax(trade) for trade in assumed_trades),
-        )
+        max(np.amax(trade) for trade in [*fleet_trades, *assumed_trades])
     )
 
     fleet_trades = [trade / divisor for trade in fleet_trades]

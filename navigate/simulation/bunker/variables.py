@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import navigate.core.enum_ as enum_
 from navigate.simulation.bunker._build import add_variable
 from navigate.simulation.bunker.utils import get_converters, get_port_converters
 
@@ -34,7 +33,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     converters = get_converters(vessel)
     port_converters = get_port_converters(vessel)
     fuels_per_converter = alg.fuels_per_converter
-    leg_idx = route.get_leg_indices()
+    leg_idx = route.get_legs()
     port_idx = range(len(ports))
 
     for p, port in enumerate(ports):
@@ -55,21 +54,15 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             for p in port_idx:
                 add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
 
-    if route.route_type == enum_.RouteTypeID.ROUND_TRIP:
-        for p in port_idx:
-            for f in usable_fuels:
-                add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank")
+    for p in route.get_tank_stops():
+        for f in usable_fuels:
+            add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank")
 
-    vessel_capacity = vessel.expectation.get_shore_power_capacity(alg.idx)
+    shore_power_limits = vessel.expectation.get_shore_power_limit_port(alg.idx)
 
-    if vessel_capacity > 0.0:
-        for p, port in enumerate(ports):
-            connection_share = port.expectation.get_shore_power_connection_share(
-                alg.idx
-            )
-
-            if connection_share > 0.0:
-                add_variable(alg, alg.shore_power, (v, p), "shore_power")
+    for p, limit in enumerate(shore_power_limits):
+        if limit > 0.0:
+            add_variable(alg, alg.shore_power, (v, p), "shore_power")
 
 
 def update_regulation_variables(alg: BunkerAlgorithm) -> None:

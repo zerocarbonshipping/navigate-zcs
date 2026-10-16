@@ -75,13 +75,15 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     idx = 0
     nv = len(fleet.assets)
 
-    # build the technology packages and their cost flows; the cost flows
-    # must exist before the initial technology uptake is seeded, since the
-    # seeding levelizes them into the carried technology charter rate
+    # build the technology packages and anchor their cost flows at the start;
+    # this must precede seeding the initial technology uptake, which levelizes
+    # the cost flows into the carried technology charter rate
     fleet.technology_packages, fleet.package_to_technology_map = (
         build_technology_packages(fleet.technologies)
     )
-    preprocess_packages(fleet.technology_packages, fleet.assets, timeline[idx])
+    preprocess_packages(
+        fleet.technology_packages, fleet.package_cost_flows, timeline[idx]
+    )
 
     # the initial split must be defined before the age discretization, as
     # _get_initial_multiplier reads it

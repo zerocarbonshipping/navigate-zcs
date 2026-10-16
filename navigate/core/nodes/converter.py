@@ -19,12 +19,9 @@ from navigate.core import (
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.exceptions import UnassignedAttributeError
-from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
@@ -45,7 +42,7 @@ class Converter(_Machinery):
         self.minimum_load: ScalarInput | None = None
 
         # fuels
-        self.main_fuel_types: list[FuelTypeID] = []
+        self.main_fuel_types: list[FuelTypeID]
         self.pilot_fuel_types: list[FuelTypeID] = []
         self.minimum_pilot_fuel: ForecastInput = Scalar(0.0)
 
@@ -71,12 +68,14 @@ class Converter(_Machinery):
 
     def set_main_fuel_types(self, main_fuel_types: str | list[str]) -> None:
         """Set the main fuel types of the converter."""
-        self.main_fuel_types = assign_id_list(main_fuel_types, FuelTypeID, min_length=1)
+        self.main_fuel_types = assign_id_list(
+            main_fuel_types, FuelTypeID, min_length=1, unique=True
+        )
 
     def set_pilot_fuel_types(self, pilot_fuel_types: str | list[str]) -> None:
         """Set the pilot fuel types of the converter."""
         self.pilot_fuel_types = assign_id_list(
-            pilot_fuel_types, FuelTypeID, min_length=1
+            pilot_fuel_types, FuelTypeID, min_length=1, unique=True
         )
 
     def set_minimum_pilot_fuel(self, minimum_pilot_fuel: ForecastArgument) -> None:
@@ -114,22 +113,17 @@ class Converter(_Machinery):
         write_matching_key_pairs((id_, emission_name), value_, self.consumption_ttw)
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if not self.main_fuel_types:
-            raise UnassignedAttributeError(str(self), "MainFuelTypes")
-
     def check_consistency(self) -> None:
 
-        if not list_is_unique(self.main_fuel_types):
-            raise ValueError(f"{self}: All 'MainFuelTypes' must be unique.")
-
-        if self.pilot_fuel_types and not list_is_unique(
-            self.main_fuel_types + self.pilot_fuel_types
-        ):
+        shared = [
+            fuel_type.name
+            for fuel_type in self.pilot_fuel_types
+            if fuel_type in self.main_fuel_types
+        ]
+        if shared:
             raise ValueError(
-                f"{self}: All fuel types across 'MainFuelTypes' and 'PilotFuelTypes'"
-                " must be unique."
+                f"{self}: No fuel type may be in both 'MainFuelTypes' and"
+                f" 'PilotFuelTypes', but got {', '.join(shared)} in both."
             )
 
     def initialize_dependencies(self, emissions: dict[str, Emission]) -> None:
@@ -152,20 +146,3 @@ class Converter(_Machinery):
 
     def is_dual_fuel(self) -> bool:
         return bool(self.pilot_fuel_types)
-
-    def get_effective_lhv(self, fuel: Fuel) -> float:
-        """
-        Return the heating value of a fuel net of slip, (1 - slip) * LHV.
-
-        Parameters
-        ----------
-        fuel
-            Fuel burned in the converter; its fuel type must be one of the converter's.
-
-        Returns
-        -------
-        float
-            Effective lower heating value, in GJ/ton fuel-in.
-        """
-        slip = self.slip_fraction[fuel.fuel_type].get()
-        return (1.0 - slip) * fuel.lower_heating_value.get()

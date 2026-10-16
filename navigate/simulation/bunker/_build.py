@@ -15,13 +15,18 @@ from typing import TYPE_CHECKING, Literal
 import navigate.simulation.bunker.solver as gp
 
 if TYPE_CHECKING:
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
+
+# the key of an LP element within its family: a single name, or the node names,
+# route indices and energy demand type the element spans
+type _ElementKey = str | tuple[str | int | EnergyDemandID, ...]
 
 # the model's spelling of each sense get_constraint accepts
 _MODEL_SENSES = {"==": gp.EQUAL, "<=": gp.LESS_EQUAL, ">=": gp.GREATER_EQUAL}
 
 
-def add_variable[K: (tuple, str)](
+def add_variable[K: _ElementKey](
     alg: BunkerAlgorithm,
     container: dict[K, gp.Var],
     key: K,
@@ -48,10 +53,10 @@ def add_variable[K: (tuple, str)](
     container[key] = alg.model.addVar(vtype=gp.CONTINUOUS, name=_full_name(name, key))
 
 
-def get_constraint(
+def get_constraint[K: _ElementKey](
     alg: BunkerAlgorithm,
-    container: dict[tuple, gp.Constr],
-    key: tuple,
+    container: dict[K, gp.Constr],
+    key: K,
     sense: Literal["==", "<=", ">="],
     name: str,
 ) -> gp.Constr:
@@ -62,6 +67,7 @@ def get_constraint(
     not the fixed zero) and re-apply every coefficient via ``model.chgCoeff`` on every
     build, new or reused -- re-applying is what lets a variable created after the
     constraint (e.g. a fuel that later becomes bunkerable at a port) join the row.
+    A variable that leaves the row must be written at zero, not skipped.
 
     Parameters
     ----------
@@ -98,7 +104,7 @@ def get_constraint(
     return constraint
 
 
-def _full_name(name: str, key: tuple | str) -> str:
+def _full_name(name: str, key: _ElementKey) -> str:
     """
     Return the name of an LP model element.
 

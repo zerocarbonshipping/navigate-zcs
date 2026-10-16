@@ -14,7 +14,11 @@ import logging
 import timeit
 from typing import TYPE_CHECKING
 
-from navigate.core import SimulationResults, get_fuels_per_fuel_type
+from navigate.core import (
+    SimulationResults,
+    get_fuels_per_fuel_type,
+    update_imposed_levies,
+)
 from navigate.core.enum_ import BunkerScopeID
 from navigate.core.profiles import GlobalProfile
 from navigate.simulation.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
@@ -24,8 +28,13 @@ from navigate.simulation.fleet import (
     assign_vessels_to_fleets,
     calculate_cargo_charter_properties,
     calculate_evolution_expectation,
+    calculate_fleet_expectations,
+    calculate_fleet_fuel_demand,
     calculate_fleet_profile,
+    calculate_potential_fuel_type_demand,
+    calculate_shore_power_limits,
     calculate_vessel_charter_properties,
+    calculate_vessel_profile,
     determine_fuel_type,
     determine_usable_fuel_types,
     determine_usable_fuels,
@@ -36,7 +45,7 @@ from navigate.simulation.fleet import (
     post_process_fleet_profile,
     post_process_investment_metric,
     record_investment_signals,
-    update_operational_profile,
+    update_operations,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
 )
@@ -45,11 +54,13 @@ from navigate.simulation.fuel import (
     calculate_development_potential,
     calculate_expected_fuel_demand,
     calculate_expected_fuel_supply,
-    calculate_export_expectation,
+    calculate_export_expectations,
     calculate_fuel_import_to_ports,
     calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
+    calculate_port_expectations,
+    calculate_port_profile,
     calculate_producer_profile,
     initialize_existing_producer,
     perform_planning,
@@ -57,11 +68,16 @@ from navigate.simulation.fuel import (
 )
 from navigate.simulation.policy import (
     calculate_policy_emission_coefficients,
+    calculate_policy_expectations,
+    calculate_regulation_measures,
+    calculate_regulation_profile,
     update_regulation_flexibility_beliefs,
 )
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     import numpy as np
 
     from navigate.core.node_registry import GeneralNodes, Nodes
@@ -91,11 +107,11 @@ class Simulation:
         nodes: Nodes,
         general_nodes: GeneralNodes,
         dateline: DateArray,
-        output_directory: str,
+        output_directory: Path,
     ) -> None:
         self.nodes: Nodes = nodes
         self.general_nodes: GeneralNodes = general_nodes
-        self._output_directory: str = output_directory
+        self._output_directory: Path = output_directory
 
         # properties -------------------------------------------------------------------
         # the current time-step size and elapsed simulation time, in days
@@ -173,6 +189,7 @@ class Simulation:
 
     def _perform_time_step(self) -> None:
         self._check_dynamic_consistency()
+        self._update_node_maps()
 
         # temporal calculators get the current time assigned or their value
         # precalculated, so they can be read through .get() without the time
@@ -182,7 +199,7 @@ class Simulation:
         self._calculate_expectations()
         self.profile.add_temporal_time(timeit.default_timer() - start_time, self._idx)
 
-        self._calculate_vessel_operational_profile()
+        self._update_vessel_operations()
         self._calculate_fuel_production_properties()
         self._calculate_fuel_logistics_properties()
 
@@ -195,9 +212,10 @@ class Simulation:
             )
 
         # nothing the policy coefficients read (plant production and delivery WTT,
-        # port WTT overwrites and bunkering flags, the vessels' usable fuels and
-        # converters) changes later in the step, so one pass serves both
-        # bunkering runs
+        # port WTT overwrites, bunkering flags and shore-power emission factors,
+        # the vessels' usable fuels, converters and effective LHVs, the levies'
+        # levels and the vessels each policy polices) changes later in the step,
+        # so one pass serves both bunkering runs
         self._calculate_policy_emission_coefficients()
 
         # technology costs are excluded here: they enter the cargo charter
@@ -214,12 +232,23 @@ class Simulation:
             # non-zero multiplier
             self._update_fleet_evolution_expectation()
 
+            self._calculate_potential_fuel_type_demand()
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
+
+            # the times in port, electrical demands, shore-power capacities and cargo
+            # miles are rewritten during the step, so the shore-power limits and the
+            # regulation measures are recalculated before each bunkering run
+            calculate_shore_power_limits(self.nodes.fleets, self._idx)
+            self._calculate_regulation_measures()
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
-            verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXPECTED)
+            self._verify_power_capacity(self._bunker_expected)
             self._calculate_expected_bunkering()
+
+            # the fuel demand weights the expected bunkering with the expected
+            # multipliers the LPs ran with, which the fleet evolution below rewrites
+            self._calculate_fleet_fuel_demand()
 
             # smooth the energy-conservation LP duals into scarcity belief paths
             # consumed by the technology and speed-management heuristics below
@@ -236,11 +265,15 @@ class Simulation:
 
         self._missing_technology_approximation()
         self._calculate_fuel_import()
+        self._calculate_potential_fuel_type_demand()
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
+
+        calculate_shore_power_limits(self.nodes.fleets, self._idx)
+        self._calculate_regulation_measures()
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
-        verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXISTING)
+        self._verify_power_capacity(self._bunker_existing)
         self._perform_existing_bunkering()
 
         self._calculate_profile()
@@ -263,41 +296,40 @@ class Simulation:
         for timetable in self.nodes.timetables.values():
             timetable.set_current_time(self._time)
 
+    def _update_node_maps(self) -> None:
+        """Rewrite the node maps that events can change."""
+        update_imposed_levies(self.nodes.ports, self.nodes.levies)
+
     def _calculate_expectations(self) -> None:
-        """Precalculate certain expectations which are simulation bottlenecks."""
+        """Calculate the per-step expectations later phases and other domains read."""
         emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
 
-        for levy in self.nodes.levies.values():
-            levy.calculate_expectation(
-                self.nodes.emissions, emissions_lifetime, self.timeline, self._idx
-            )
+        calculate_policy_expectations(
+            self.nodes.regulations,
+            self.nodes.levies,
+            self.nodes.emissions,
+            self.nodes.routes,
+            self.nodes.vessels,
+            emissions_lifetime,
+            self.timeline,
+            self._idx,
+        )
 
-        for port in self.nodes.ports.values():
-            port.calculate_expectation(self.timeline, self._idx)
+        calculate_fleet_expectations(
+            self.nodes.vessels, self.nodes.fuels, self.nodes.emissions
+        )
 
-        for producer in self.nodes.producers.values():
-            calculate_export_expectation(producer, self.timeline, self._idx)
+        calculate_port_expectations(self.nodes.ports, self.timeline, self._idx)
+        calculate_export_expectations(self.nodes.producers, self.timeline, self._idx)
 
-        for regulation in self.nodes.regulations.values():
-            regulation.calculate_expectation(
-                self.nodes.emissions,
-                self.nodes.vessels,
-                emissions_lifetime,
-                self.timeline,
-                self._idx,
-            )
-
-        for vessel in self.nodes.vessels.values():
-            vessel.calculate_expectation(self._idx)
-
-    def _calculate_vessel_operational_profile(self) -> None:
+    def _update_vessel_operations(self) -> None:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
             allow_speed_management = fleet.allow_speed_management
 
             for vessel in fleet.vessels:
-                update_operational_profile(vessel, allow_speed_management, self._idx)
+                update_operations(vessel, allow_speed_management, self._idx)
 
         self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
 
@@ -361,6 +393,22 @@ class Simulation:
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
 
+    def _calculate_regulation_measures(self) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_regulation_measures(
+            self.nodes.regulations, self.nodes.vessels, self.timeline, self._idx
+        )
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+    def _calculate_potential_fuel_type_demand(self) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_potential_fuel_type_demand(self.nodes.fleets, self._idx)
+
+        self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
+
     def _calculate_fair_share_fuel_supply(self, scope: BunkerScopeID) -> None:
         start_time = timeit.default_timer()
 
@@ -369,11 +417,13 @@ class Simulation:
             for fuel_name, fuel in self.nodes.fuels.items()
             if not fuel.liquid_market
         }
-        calculate_fair_share_fuel_supply(
-            self.nodes.fleets, fuels, self.nodes.ports, self._idx, scope
-        )
+        calculate_fair_share_fuel_supply(self.nodes.fleets, fuels, self._idx, scope)
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+    def _verify_power_capacity(self, bunker: BunkerAlgorithm) -> None:
+        vessels = bunker.get_admitted_vessels(self._idx)
+        verify_power_capacity(vessels, self._idx)
 
     def _perform_producer_evolution(self) -> None:
         """
@@ -459,6 +509,16 @@ class Simulation:
             self.profile.add_expected_transfer_time(
                 self._bunker_expected.transfer_time, self._idx
             )
+
+    def _calculate_fleet_fuel_demand(self) -> None:
+        start_time = timeit.default_timer()
+
+        for fleet in self.nodes.fleets.values():
+            calculate_fleet_fuel_demand(fleet, self.nodes.fuels, self._idx)
+
+        self.profile.add_fleet_state_time(
+            timeit.default_timer() - start_time, self._idx
+        )
 
     def _update_scarcity_signals(self) -> None:
         start_time = timeit.default_timer()
@@ -555,7 +615,6 @@ class Simulation:
             self.nodes.feedstocks,
             self.nodes.fleets,
             self.nodes.fuels,
-            self.nodes.levies,
             self.nodes.ports,
             self.nodes.regulations,
             self.general_nodes.bunker_options,
@@ -567,7 +626,6 @@ class Simulation:
             self.nodes.feedstocks,
             self.nodes.fleets,
             self.nodes.fuels,
-            self.nodes.levies,
             self.nodes.ports,
             self.nodes.regulations,
             self.general_nodes.bunker_options,
@@ -606,10 +664,14 @@ class Simulation:
             )
 
         for regulation in self.nodes.regulations.values():
-            regulation.initialize_expectation(length, self.nodes.vessels)
+            regulation.initialize_expectation(
+                length, self.nodes.routes, self.nodes.vessels
+            )
 
         for vessel in self.nodes.vessels.values():
-            vessel.initialize_expectation(length, self.nodes.fuels)
+            vessel.initialize_expectation(
+                length, self.nodes.fuels, self.nodes.emissions
+            )
 
     def _initialize_profiles(self) -> None:
         timeline = self.timeline / YEAR
@@ -694,16 +756,16 @@ class Simulation:
             calculate_fleet_profile(fleet, self.nodes.fuels, self.timeline, self._idx)
 
         for port in self.nodes.ports.values():
-            port.calculate_profile(self._idx)
+            calculate_port_profile(port, self._idx)
 
         for producer in self.nodes.producers.values():
             calculate_producer_profile(producer, self.timeline, self._idx)
 
         for regulation in self.nodes.regulations.values():
-            regulation.calculate_profile(self._idx)
+            calculate_regulation_profile(regulation, self._idx)
 
         for vessel in self.nodes.vessels.values():
-            vessel.calculate_profile(self._idx)
+            calculate_vessel_profile(vessel, self._idx)
 
         self.profile.add_profile_agg_time(
             timeit.default_timer() - start_time, self._idx

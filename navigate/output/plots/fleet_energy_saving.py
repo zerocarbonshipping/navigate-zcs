@@ -24,10 +24,12 @@ from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_energy_saving(results: SimulationResults, directory: str) -> None:
+def plot_fleet_energy_saving(results: SimulationResults, directory: Path) -> None:
     """Plot the operational, technology and total energy intensity saving per fleet."""
     dateline = results.dateline
     fleets = results.nodes.fleets

@@ -24,6 +24,7 @@ from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
     from navigate.core.profiles.vessel_profile import VesselProfile
     from navigate.core.simulation_results import SimulationResults
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 
 
 def plot_fleet_investment_signal_technology_per_vessel(
-    results: SimulationResults, directory: str
+    results: SimulationResults, directory: Path
 ) -> None:
     """Plot the technology investment signal of each vessel per fleet."""
     _plot_investment_signal_per_vessel(
@@ -43,7 +44,7 @@ def plot_fleet_investment_signal_technology_per_vessel(
 
 
 def plot_fleet_investment_signal_speed_per_vessel(
-    results: SimulationResults, directory: str
+    results: SimulationResults, directory: Path
 ) -> None:
     """Plot the speed investment signal of each vessel per fleet."""
     _plot_investment_signal_per_vessel(
@@ -56,7 +57,7 @@ def plot_fleet_investment_signal_speed_per_vessel(
 
 def _plot_investment_signal_per_vessel(
     results: SimulationResults,
-    directory: str,
+    directory: Path,
     signal_getter: Callable[[VesselProfile], FloatArray],
     filename: str,
 ) -> None:

@@ -56,18 +56,10 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
 
     # the floor is scaled by the change in vessel multipliers, so that only the
     # vessels that actually bunkered previously are affected
-    fleet = alg.fleets[vessel.fleet_assignment]
+    expectation = alg.fleets[vessel.fleet_assignment].expectation
+    multiplier_old = np.float64(expectation.get_multiplier(v, alg.scope, alg.idx - 1))
+    multiplier_scaling = min(multiplier_old / alg.multipliers[v], 1.0)
 
-    if alg.scope == BunkerScopeID.EXISTING:
-        previous_multiplier = np.float64(
-            fleet.expectation.get_existing_multipliers(v, alg.idx - 1)
-        )
-    else:
-        previous_multiplier = np.float64(
-            fleet.expectation.get_expected_multipliers(v, alg.idx - 1)
-        )
-
-    multiplier_scaling = min(previous_multiplier / alg.multipliers[v], 1.0)
     change_coefficient = alg.model.chgCoeff
 
     for f in vessel.usable_fuels:
@@ -87,7 +79,10 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
             # the first expected time-step continues from what the existing
             # solution actually bunkered
             if alg.scope == BunkerScopeID.EXPECTED and alg.idx > alg.current_idx:
-                bunkering = vessel.expectation.get_bunker_mass_expected(port_name, f)
+                mass = vessel.expectation.get_bunker_mass_expected(
+                    port_name, f, alg.idx - 1
+                )
+                bunkering = np.float64(mass)
             else:
                 bunkering = vessel.expectation.get_bunker_mass_existing(port_name, f)
 

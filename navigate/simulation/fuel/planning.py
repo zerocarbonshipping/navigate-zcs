@@ -183,7 +183,7 @@ def _calculate_uptake_inter_metric(
 
     # the lowest equivalent multiplier within the sufficient offtake duration is
     # the most plants it makes sense to sanction
-    to_ = min(min(ceil(minimum_duration), ceil(lifetime)), demand_int.size)
+    to_ = min(ceil(minimum_duration), ceil(lifetime), demand_int.size)
     demand_newbuilds = max(np.amin(demand_multipliers[:to_]), 0)
 
     demand_energy = demand_int * lhv

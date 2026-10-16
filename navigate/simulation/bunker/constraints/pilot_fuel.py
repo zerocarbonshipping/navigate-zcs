@@ -28,7 +28,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     i.e. the pilot fuels carry at least the fraction \phi of the converter's fuel
     energy, where \phi is the converter's minimum pilot fuel fraction and \lambda
-    the effective lower heating value (GJ/t). Dual-fuel combustion needs a
+    the effective lower heating value in GJ/t. Dual-fuel combustion needs a
     pilot-fuel share to ignite the main fuel. The propulsion converter gets no
     port rows: it serves no port energy demand.
 
@@ -43,7 +43,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     route = vessel.route
     usable_fuels = vessel.usable_fuels
     port_converters = get_port_converters(vessel)
-    leg_idx = route.get_leg_indices()
+    leg_idx = route.get_legs()
     port_idx = range(route.get_number_of_ports())
 
     for c, converter in get_converters(vessel).items():
@@ -76,7 +76,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                 alg,
                 constraint,
                 alg.spend_sea,
-                v,
+                vessel,
                 c,
                 (port_start, port_end),
                 pilot_fuels,
@@ -97,7 +97,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                 alg,
                 constraint,
                 alg.spend_port,
-                v,
+                vessel,
                 c,
                 (p,),
                 pilot_fuels,
@@ -106,13 +106,13 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             )
 
 
-def _apply_pilot_fuel_coefficients(
+def _apply_pilot_fuel_coefficients[*Indices](
     alg: BunkerAlgorithm,
     constraint: gp.Constr,
-    spend: dict[tuple, gp.Var],
-    v: str,
+    spend: dict[tuple[str, str, str, *Indices], gp.Var],
+    vessel: Vessel,
     c: str,
-    indices: tuple[int, ...],
+    indices: tuple[*Indices],
     pilot_fuels: list[str],
     main_fuels: list[str],
     fraction: float,
@@ -128,8 +128,8 @@ def _apply_pilot_fuel_coefficients(
         Row to apply the coefficients to.
     spend
         Spend variables of the row's domain (``alg.spend_sea`` or ``alg.spend_port``).
-    v
-        Vessel name.
+    vessel
+        Vessel whose converter the row constrains.
     c
         Converter name.
     indices
@@ -142,17 +142,20 @@ def _apply_pilot_fuel_coefficients(
     fraction
         Minimum pilot fuel fraction of the converter.
     """
+    v = vessel.name
+    expectation = vessel.expectation
     change_coefficient = alg.model.chgCoeff
-    effective_lhv = alg.effective_lhv
 
     for f in pilot_fuels:
         change_coefficient(
             constraint,
             spend[(v, c, f, *indices)],
-            (1.0 - fraction) * effective_lhv[(v, c, f)],
+            (1.0 - fraction) * expectation.get_effective_lhv(c, f),
         )
 
     for f in main_fuels:
         change_coefficient(
-            constraint, spend[(v, c, f, *indices)], -fraction * effective_lhv[(v, c, f)]
+            constraint,
+            spend[(v, c, f, *indices)],
+            -fraction * expectation.get_effective_lhv(c, f),
         )

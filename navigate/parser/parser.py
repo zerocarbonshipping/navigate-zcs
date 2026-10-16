@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import copy
 import logging
-import os
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -21,7 +20,7 @@ from typing import TYPE_CHECKING, ClassVar
 import numpy as np
 
 from navigate.core import Expression
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
 from navigate.core.node_registry import GeneralNodes, Nodes
@@ -170,11 +169,11 @@ class Parser:
 
         # paths; the deck's are set when it is read, the assumptions folders only
         # when a data folder is given
-        self.deck_directory: str | None = None
-        self._user_default_directory: str | None = None
-        self._user_module_directory: str | None = None
-        self._installation_default_directory: str | None = None
-        self._installation_module_directory: str | None = None
+        self.deck_directory: Path
+        self._user_default_directory: Path | None = None
+        self._user_module_directory: Path | None = None
+        self._installation_default_directory: Path | None = None
+        self._installation_module_directory: Path | None = None
 
         # dynamic flags
         self._reading_default: bool = False
@@ -214,8 +213,8 @@ class Parser:
 
         # section flags; the current section outlives its block, as it also
         # selects the pass once every block is read
-        self._current_section: SimulationSectionID
-        self._finished_sections: list[SimulationSectionID] = []
+        self._current_section: SectionID
+        self._finished_sections: list[SectionID] = []
 
         # source tracking, set per include-file processing pass
         self._current_deck_line: int = 0
@@ -237,12 +236,11 @@ class Parser:
         path = Path(path).resolve()
 
         try:
-            with open(path, encoding="utf8") as f:
-                content = f.read()
+            content = path.read_text(encoding="utf8")
         except FileNotFoundError:
             raise FileNotFoundError(f"Unable to locate {path}.") from None
 
-        self.deck_directory = str(path.parent)
+        self.deck_directory = path.parent
         self._define_internal_directories(data_dir=data_dir)
 
         blocks = parse_deck_content(content, file=str(path))
@@ -257,7 +255,7 @@ class Parser:
 
         self._initialize_general_nodes()
 
-        self._current_section = SimulationSectionID.DEFINE
+        self._current_section = SectionID.DEFINE
         self._update_dependencies()
         self._reject_unresolved_references()
         self._pin_define_only_calculators()
@@ -266,14 +264,14 @@ class Parser:
         self._timeline_is_consistent()
         self._reject_events_changing_pinned_calculators()
 
-        self._current_section = SimulationSectionID.EVENTS
+        self._current_section = SectionID.EVENTS
 
     def _process_deck_block(self, block: DeckBlock) -> None:
         """Process a single Define or Events block from the deck AST."""
         if isinstance(block, DefineBlock):
-            section = SimulationSectionID.DEFINE
+            section = SectionID.DEFINE
         else:
-            section = SimulationSectionID.EVENTS
+            section = SectionID.EVENTS
 
         self._begin_reading_section(section)
 
@@ -282,7 +280,7 @@ class Parser:
 
             if isinstance(directive, IncludeDirective):
                 logger.debug('[%s] Include "%s"', section.name, directive.path)
-                self._read_include_file(directive.path)
+                self._read_include_file(Path(directive.path))
 
             elif isinstance(directive, LoadModuleDirective):
                 logger.debug("[%s] Load %s", section.name, directive.name)
@@ -344,40 +342,37 @@ class Parser:
             return
 
         assumptions_directory = Path(data_dir).resolve()
-        self._user_default_directory = str(assumptions_directory / "defaults/user")
-        self._user_module_directory = str(assumptions_directory / "modules/user")
-        self._installation_default_directory = str(
+        self._user_default_directory = assumptions_directory / "defaults/user"
+        self._user_module_directory = assumptions_directory / "modules/user"
+        self._installation_default_directory = (
             assumptions_directory / "defaults/installation"
         )
-        self._installation_module_directory = str(
+        self._installation_module_directory = (
             assumptions_directory / "modules/installation"
         )
 
     # include and import ---------------------------------------------------------------
 
-    def _read_include_file(self, path: str) -> None:
+    def _read_include_file(self, path: Path) -> None:
         """
         Read, parse, and process an include file.
 
         Parameters
         ----------
         path
-            Path of include file (relative to deck directory).
+            Path of include file, absolute or relative to the deck directory.
         """
-        if not os.path.isabs(path):
-            path = os.path.join(self.deck_directory or "", path)
+        include_path = self.deck_directory / path
 
         try:
-            with open(path, encoding="utf8") as f:
-                content = f.read()
+            content = include_path.read_text(encoding="utf8")
         except FileNotFoundError:
             raise FileNotFoundError(
-                self._deck_error_prefix() + f": Include file '{path}' not found."
+                self._deck_error_prefix()
+                + f": Include file '{include_path}' not found."
             ) from None
 
-        abs_path = os.path.abspath(path) if not os.path.isabs(path) else path
-
-        statements = parse_include_content(content, file=abs_path)
+        statements = parse_include_content(content, file=str(include_path))
 
         # the walk moves the location onto each statement it reads; a nested
         # read hands the reading frame its own location back when it returns
@@ -475,12 +470,12 @@ class Parser:
             self._current_source = statement.source
             self._process_event_statement(statement)
 
-    def _begin_reading_section(self, section: SimulationSectionID) -> None:
+    def _begin_reading_section(self, section: SectionID) -> None:
         self._check_section(section)
         self._current_section = section
         logger.debug("Reading section %s", section.name)
 
-    def _check_section(self, section: SimulationSectionID) -> None:
+    def _check_section(self, section: SectionID) -> None:
         if section in self._finished_sections:
             raise DeckFormatError(
                 self._deck_error_prefix()
@@ -490,10 +485,7 @@ class Parser:
                 ).format(", ".join(SECTION_NAME.values()))
             )
 
-        if (
-            section == SimulationSectionID.DEFINE
-            and SimulationSectionID.EVENTS in self._finished_sections
-        ):
+        if section == SectionID.DEFINE and SectionID.EVENTS in self._finished_sections:
             raise DeckFormatError(
                 self._deck_error_prefix()
                 + (
@@ -502,7 +494,7 @@ class Parser:
                 ).format(", ".join(SECTION_NAME.values()))
             )
 
-    def _end_reading_section(self, section: SimulationSectionID) -> None:
+    def _end_reading_section(self, section: SectionID) -> None:
         self._finished_sections.append(section)
         self._current_event = None
 
@@ -992,7 +984,7 @@ class Parser:
         return general_node
 
     def _check_allow_new_node(self, action: str) -> None:
-        if self._current_section != SimulationSectionID.DEFINE:
+        if self._current_section != SectionID.DEFINE:
             raise DeckKeywordError(
                 self._error_prefix() + f": Unable to {action} new nodes outside DEFINE."
             )
@@ -1046,17 +1038,17 @@ class Parser:
 
         pattern = re.compile(wildcard_to_regex(name_pattern))
 
-        user_dir = os.path.join(self._user_default_directory, node_type)
-        install_dir = os.path.join(self._installation_default_directory, node_type)
+        user_dir = self._user_default_directory / node_type
+        install_dir = self._installation_default_directory / node_type
 
-        matched_names: dict[str, str] = {}
+        matched_names: dict[str, Path] = {}
 
         for directory in (user_dir, install_dir):
-            if not os.path.isdir(directory):
+            if not directory.is_dir():
                 continue
 
-            for file_name in _get_files_in_directory(directory):
-                basename = os.path.splitext(file_name)[0]
+            for file_path in _get_files_in_directory(directory):
+                basename = file_path.stem
                 if pattern.match(basename) and basename not in matched_names:
                     matched_names[basename] = directory
 
@@ -1143,10 +1135,10 @@ class Parser:
         """
         Replace references, execute commands, initialize nodes.
 
-        The sequence is: expand held-back wildcards → replace refs → build
-        tables → prune unreachable nodes and check required attributes (DEFINE
-        pass only) → init dicts → execute commands → replace refs again
-        (commands may create new ones) → build tables again → run the node
+        The sequence is: expand held-back wildcards -> replace refs -> build
+        tables -> prune unreachable nodes and check required attributes (DEFINE
+        pass only) -> init dicts -> execute commands -> replace refs again
+        (commands may create new ones) -> build tables again -> run the node
         lifecycle hooks, whose requirement checks, the required attributes'
         among them, run on the DEFINE pass only.
         """
@@ -1157,7 +1149,7 @@ class Parser:
         # prune before the dependency dicts are seeded so no dict carries a
         # key for a node that is absent from the registry; the per-time-step
         # calls arrive under EVENTS, so the prune runs exactly once
-        if self._current_section == SimulationSectionID.DEFINE:
+        if self._current_section == SectionID.DEFINE:
             self._prune_unreachable_nodes()
 
             # before anything reads a node's attributes, including another
@@ -1652,7 +1644,7 @@ class Parser:
         re-runs every pass, because a command may add a dictionary key and most
         attributes may be re-assigned under EVENTS.
         """
-        first_pass = self._current_section == SimulationSectionID.DEFINE
+        first_pass = self._current_section == SectionID.DEFINE
 
         # a node a command argument named arrives with the reference pass after
         # the commands, so the check runs again over it
@@ -1824,9 +1816,7 @@ class Parser:
                 + f": {_no_assumptions_directory(f'Default {node_type}("{name}")')}"
             )
 
-        installation_directory = os.path.join(
-            self._installation_default_directory, node_type
-        )
+        installation_directory = self._installation_default_directory / node_type
 
         # nothing lies beyond the installation branch, so re-entering it would
         # read the same file until the recursion limit
@@ -1852,7 +1842,7 @@ class Parser:
                 self._user_defaults_in_progress.add(name)
                 try:
                     if self._read_default_folder(
-                        name, os.path.join(self._user_default_directory, node_type)
+                        name, self._user_default_directory / node_type
                     ):
                         found_in = "User"
                 finally:
@@ -1887,17 +1877,14 @@ class Parser:
         finally:
             self._reading_default = reading_default
 
-    def _read_default_folder(self, name: str, directory: str) -> bool:
+    def _read_default_folder(self, name: str, directory: Path) -> bool:
         # a branch without a folder for the type holds no defaults of it
-        if not os.path.isdir(directory):
+        if not directory.is_dir():
             return False
 
-        file_names = _get_files_in_directory(directory)
-
-        for file_name in file_names:
-            basename = os.path.splitext(file_name)[0]
-            if name == basename:
-                self._read_include_file(os.path.join(directory, file_name))
+        for file_path in _get_files_in_directory(directory):
+            if file_path.stem == name:
+                self._read_include_file(file_path)
                 return True
 
         return False
@@ -1909,9 +1896,9 @@ class Parser:
         Return the node a ``Type("name")`` reference names.
 
         A declared node is the registry object. An undeclared one is
-        constructed here and kept in ``_deferred`` — outside the registry, so
+        constructed here and kept in ``_deferred`` - outside the registry, so
         declaration order, pruning and wildcard matching see declared nodes
-        only — until its declaration adopts it or the reference walk pulls it
+        only - until its declaration adopts it or the reference walk pulls it
         from the default library.
 
         Parameters
@@ -2051,9 +2038,9 @@ def _no_assumptions_directory(subject: str) -> str:
     )
 
 
-def _get_files_in_directory(directory: str) -> list[str]:
+def _get_files_in_directory(directory: Path) -> list[Path]:
     """
-    List file names in the top level directory, excluding helper/placeholder files.
+    List the files in the top level directory, excluding helper/placeholder files.
 
     For example, ``.gitkeep``.
 
@@ -2064,16 +2051,15 @@ def _get_files_in_directory(directory: str) -> list[str]:
 
     Returns
     -------
-    list[str]
-        List of file names.
+    list[Path]
+        Paths of the files.
     """
     ignored = frozenset({".gitkeep"})
 
     return [
-        file_name
-        for file_name in os.listdir(directory)
-        if os.path.isfile(os.path.join(directory, file_name))
-        and file_name not in ignored
+        file_path
+        for file_path in directory.iterdir()
+        if file_path.is_file() and file_path.name not in ignored
     ]
 
 
@@ -2132,8 +2118,8 @@ def _transplant(node: Node, copied: Node) -> None:
     """
     Move a copy's state into the node already held under the copy's name.
 
-    The node's state is cleared first, so the copy replaces all of it — a
-    placeholder's, or the declaration a pulled file gave it — including a
+    The node's state is cleared first, so the copy replaces all of it - a
+    placeholder's, or the declaration a pulled file gave it - including a
     required attribute the copy has not been assigned. The bounds references
     imposed on the node are the one thing to keep: they are merged back after
     the update, which brought the source's, each keeping whether it is

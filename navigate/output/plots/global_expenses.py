@@ -26,11 +26,13 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_cost
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
 def _plot_global_expenses(
-    results: SimulationResults, directory: str, cumulative: bool
+    results: SimulationResults, directory: Path, cumulative: bool
 ) -> None:
     dateline = results.dateline
 
@@ -82,11 +84,13 @@ def _plot_global_expenses(
     save_figure(fig, directory, f"global_expenses{suffix}.png")
 
 
-def plot_global_expenses(results: SimulationResults, directory: str) -> None:
+def plot_global_expenses(results: SimulationResults, directory: Path) -> None:
     """Plot the yearly global expenses by category."""
     _plot_global_expenses(results, directory, cumulative=False)
 
 
-def plot_global_expenses_cumulative(results: SimulationResults, directory: str) -> None:
+def plot_global_expenses_cumulative(
+    results: SimulationResults, directory: Path
+) -> None:
     """Plot the cumulative global expenses by category."""
     _plot_global_expenses(results, directory, cumulative=True)

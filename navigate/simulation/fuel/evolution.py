@@ -739,41 +739,6 @@ def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
     )
 
 
-def calculate_export_expectation(
-    producer: Producer, timeline: FloatArray, idx: int
-) -> None:
-    """
-    Calculate the producer's expected export distribution over the remaining timeline.
-
-    Parameters
-    ----------
-    producer
-        Producer to calculate the export distribution for.
-    timeline
-        Simulation timeline, days.
-    idx
-        Current time-step index.
-    """
-    times = timeline[idx:]
-
-    if not producer.export_distribution:
-        return
-
-    exports = {
-        port_name: export.get(times)
-        for port_name, export in producer.export_distribution.items()
-    }
-    norm = sum(exports.values())
-
-    # default to equal export distribution if nothing is defined
-    default = 1.0 / len(producer.export_distribution)
-
-    for port_name, export in exports.items():
-        producer.expectation.set_export_distribution(
-            idx, port_name, divide_nonzero(export, norm, default=default)
-        )
-
-
 def perform_progression(producer: Producer, timeline: FloatArray, idx: int) -> None:
     """
     Progress the existing production in time.

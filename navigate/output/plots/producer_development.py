@@ -16,11 +16,13 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._style import LEGEND_OPTIONS
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
 def _plot_producer_development(
-    results: SimulationResults, directory: str, cumulative: bool
+    results: SimulationResults, directory: Path, cumulative: bool
 ) -> None:
     dateline = results.dateline
     producers = results.nodes.producers
@@ -60,13 +62,13 @@ def _plot_producer_development(
     save_figure(fig, directory, f"producer_development{suffix}.png")
 
 
-def plot_producer_development(results: SimulationResults, directory: str) -> None:
+def plot_producer_development(results: SimulationResults, directory: Path) -> None:
     """Plot the yearly plant development per producer against its constraint."""
     _plot_producer_development(results, directory, cumulative=False)
 
 
 def plot_producer_development_cumulative(
-    results: SimulationResults, directory: str
+    results: SimulationResults, directory: Path
 ) -> None:
     """Plot the cumulative plant development per producer against its constraint."""
     _plot_producer_development(results, directory, cumulative=True)

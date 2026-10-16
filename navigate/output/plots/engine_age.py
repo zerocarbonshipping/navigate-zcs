@@ -21,10 +21,12 @@ from navigate.output.plots._labels import (
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_engine_age(results: SimulationResults, directory: str) -> None:
+def plot_engine_age(results: SimulationResults, directory: Path) -> None:
     """Plot the weighted average vessel age per fuel type."""
     dateline = results.dateline
 

@@ -2,13 +2,17 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Route "operational_profile_ferry" {
-	RouteType = REGIONAL_TRIP
-	
+	# The route type is an internal calculation choice and does not describe how
+	# the segment operates.
+	RouteType = TRAMP
+
 	Ports = [Port("port_global"), Port("port_europe")]
-    PortCalls = [40, 10]
-	
+	set_port_calls("port_global", 40)
+	set_port_calls("port_europe", 10)
+
 	TimeAtSea = 0.5
-	ConditionDistribution = [1]
-	Speeds =                [14]
-	CapacityUtilizations =  [0.75]
+	set_voyage_distribution("*", "*", 1)
+
+	set_speed("*", "*", 14)
+	set_utilization("*", "*", 0.75)
 }

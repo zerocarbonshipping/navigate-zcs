@@ -5,11 +5,17 @@
 
 from __future__ import annotations
 
-from navigate.simulation.fuel.aggregation import calculate_producer_profile
+from navigate.simulation.fuel.aggregation import (
+    calculate_port_profile,
+    calculate_producer_profile,
+)
 from navigate.simulation.fuel.evolution import (
-    calculate_export_expectation,
     perform_planning,
     perform_progression,
+)
+from navigate.simulation.fuel.expectation import (
+    calculate_export_expectations,
+    calculate_port_expectations,
 )
 from navigate.simulation.fuel.initialization import initialize_existing_producer
 from navigate.simulation.fuel.logistics import calculate_plant_logistics_expectations

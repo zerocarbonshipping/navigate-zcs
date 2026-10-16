@@ -29,7 +29,6 @@ from navigate.core.node_type import (
     VESSEL,
 )
 from navigate.core.profiles import VesselProfile
-from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -67,7 +66,7 @@ class Vessel(Node):
 
         # fuel based power
         self.power_system: PowerSystem
-        self.tanks: list[Tank] = []
+        self.tanks: list[Tank]
 
         # voyage
         self.route: Route
@@ -140,7 +139,7 @@ class Vessel(Node):
 
     def set_tanks(self, tanks: Tank | list[Tank]) -> None:
         """Set the tanks used for onboard fuel storage."""
-        self.tanks = assign_reference_list(tanks, TANK, unique=True)
+        self.tanks = assign_reference_list(tanks, TANK, min_length=1, unique=True)
 
     def set_route(self, route: Route) -> None:
         """Set the route the vessel sails on."""
@@ -149,7 +148,10 @@ class Vessel(Node):
     def set_nominal_capacity(self, nominal_capacity: ScalarArgument) -> None:
         """Set the nominal cargo carrying capacity of the vessel."""
         self.nominal_capacity = assign_value(
-            as_scalar(nominal_capacity), type_=VARIABLE, lower=0.0
+            as_scalar(nominal_capacity),
+            type_=VARIABLE,
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     def set_lifetime(self, lifetime: ForecastArgument) -> None:
@@ -184,13 +186,12 @@ class Vessel(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if not self.tanks:
-            raise UnassignedAttributeError(str(self), "Tanks")
-
-    def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
-        self.expectation.initialize(length, self.route, fuels)
+    def initialize_expectation(
+        self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
+    ) -> None:
+        self.expectation.initialize(
+            length, self.route, self.power_system, fuels, emissions
+        )
 
     def initialize_profile(
         self,
@@ -205,18 +206,3 @@ class Vessel(Node):
         self.profile.initialize(
             timeline, emissions, fuels, emissions_lifetime, regulation_names, levy_names
         )
-
-    def calculate_expectation(self, idx: int) -> None:
-        self.expectation.set_speeds(idx, [speed.get() for speed in self.route.speeds])
-
-    def calculate_profile(self, idx: int) -> None:
-        """
-        Write the vessel lifetime and lead time to the profile at idx.
-
-        Parameters
-        ----------
-        idx
-            Current time-step index.
-        """
-        self.profile.set_lifetime(idx, self.lifetime.get())
-        self.profile.set_lead_time(idx, self.lead_time.get())

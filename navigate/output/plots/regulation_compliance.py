@@ -28,12 +28,14 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import find_best_metric_prefix
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from matplotlib.artist import Artist
 
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_regulation_compliance(results: SimulationResults, directory: str) -> None:
+def plot_regulation_compliance(results: SimulationResults, directory: Path) -> None:
     """Plot the compliance against the threshold, one figure per regulation."""
     dateline = results.dateline
     regulations = results.nodes.regulations
@@ -105,6 +107,7 @@ def plot_regulation_compliance(results: SimulationResults, directory: str) -> No
 
             compliant = np.minimum(measured, effective_threshold)
             non_compliant = np.maximum(measured - effective_threshold, 0.0)
+            plotted_threshold = threshold
 
             if (
                 (scheme == RegulationSchemeID.FLEXIBLE)
@@ -132,7 +135,7 @@ def plot_regulation_compliance(results: SimulationResults, directory: str) -> No
                 )
                 compliant /= divisor
                 non_compliant /= divisor
-                threshold = threshold / divisor
+                plotted_threshold = threshold / divisor
                 if name in adjusted:
                     effective_threshold = effective_threshold / divisor
                 unit = f"{prefix}ton/year"
@@ -177,7 +180,7 @@ def plot_regulation_compliance(results: SimulationResults, directory: str) -> No
                 handles.extend(line)
                 line_original = ax.plot(
                     dateline,
-                    threshold,
+                    plotted_threshold,
                     color="grey",
                     ls=(0, (3, 3)),
                     label="Original Threshold",
@@ -189,7 +192,7 @@ def plot_regulation_compliance(results: SimulationResults, directory: str) -> No
             else:
                 line = ax.plot(
                     dateline,
-                    threshold,
+                    plotted_threshold,
                     color="k",
                     ls=(0, (3, 3)),
                     label="Threshold",

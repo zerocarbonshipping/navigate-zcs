@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
@@ -15,25 +15,46 @@ from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
 class RegulationExpectation(_PolicyExpectation):
-    """Compliance costs of a regulation and the capacity each vessel is measured on."""
+    """Coefficients, thresholds, costs, capacities, jurisdiction fractions, measures."""
 
     def __init__(self) -> None:
         super().__init__()
+
+        # keyed by (vessel_name, converter_name, fuel_name), in ton emission/ton fuel
+        self._emission_coefficient: dict[tuple[str, str, str], FloatArray] = {}
+        self._spend_coefficient: dict[tuple[str, str, str], FloatArray] = {}
+
+        # in ton emission/GJ, the emission coefficient keyed by port_name and the
+        # spend coefficient by (vessel_name, port_name)
+        self._shore_power_emission_coefficient: dict[str, FloatArray] = {}
+        self._shore_power_spend_coefficient: dict[tuple[str, str], FloatArray] = {}
 
         self._flexibility_cost: FloatArray = EMPTY_FLOAT
         self._belief_flexibility_cost: FloatArray = EMPTY_NAN
         self._vessel_net_flexibility_units: dict[str, FloatArray] = {}
         self._remedial_cost: FloatArray = EMPTY_FLOAT
 
+        self._port_fraction: dict[str, FloatArray] = {}
+        # keyed by (departure port_name, arrival port_name)
+        self._leg_fraction: dict[tuple[str, str], FloatArray] = {}
+
+        # vessel thresholds in the regulation's unit, kg emission/GJ under INTENSITY
+        self._vessel_threshold: dict[str, FloatArray] = {}
         self._vessel_capacity: dict[str, FloatArray] = {}
+        self._vessel_measure: dict[str, FloatArray] = {}
 
     def initialize(
-        self, length: int, emission_names: Iterable[str], vessels: dict[str, Vessel]
+        self,
+        length: int,
+        emission_names: Iterable[str],
+        routes: dict[str, Route],
+        vessels: dict[str, Vessel],
     ) -> None:
         self._initialize_expectation(length)
         self._initialize_policy_expectation(emission_names)
@@ -45,13 +66,50 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_net_flexibility_units = self._default_dict_array(vessels)
         self._remedial_cost = self._default_array()
 
+        port_names = [port.name for route in routes.values() for port in route.ports]
+        legs = [leg for route in routes.values() for leg in route.get_leg_keys()]
+
+        vessel_ports: list[tuple[str, str]] = []
+        for vessel_name, vessel in vessels.items():
+            vessel_ports.extend((vessel_name, port.name) for port in vessel.route.ports)
+
+        self._shore_power_emission_coefficient = self._default_dict_array(port_names)
+        self._shore_power_spend_coefficient = self._default_dict_array(vessel_ports)
+
+        self._port_fraction = self._default_dict_array(port_names)
+        self._leg_fraction = self._default_dict_array(legs)
+
+        self._vessel_threshold = self._default_dict_array(vessels)
         self._vessel_capacity = self._default_dict_array(vessels)
+        self._vessel_measure = self._default_dict_array(vessels)
 
     def reset_expected_bunkering(self) -> None:
         self._flexibility_cost[:] = 0.0
 
         for units in self._vessel_net_flexibility_units.values():
             units[:] = 0.0
+
+    def set_emission_coefficient(
+        self, idx: int, key: tuple[str, str, str], coefficient: FloatLike
+    ) -> None:
+        self._emission_coefficient.setdefault(key, self._default_array())
+        self._emission_coefficient[key][idx:] = coefficient
+
+    def set_spend_coefficient(
+        self, idx: int, key: tuple[str, str, str], coefficient: FloatLike
+    ) -> None:
+        self._spend_coefficient.setdefault(key, self._default_array())
+        self._spend_coefficient[key][idx:] = coefficient
+
+    def set_shore_power_emission_coefficient(
+        self, idx: int, port_name: str, coefficient: FloatLike
+    ) -> None:
+        self._shore_power_emission_coefficient[port_name][idx:] = coefficient
+
+    def set_shore_power_spend_coefficient(
+        self, idx: int, key: tuple[str, str], coefficient: FloatLike
+    ) -> None:
+        self._shore_power_spend_coefficient[key][idx:] = coefficient
 
     def set_flexibility_cost(self, idx: int, cost: float) -> None:
         self._flexibility_cost[idx] = cost
@@ -64,10 +122,72 @@ class RegulationExpectation(_PolicyExpectation):
     def set_remedial_cost(self, idx: int, cost: FloatLike) -> None:
         self._remedial_cost[idx:] = cost
 
+    def set_port_fraction(self, idx: int, port_name: str, fraction: FloatLike) -> None:
+        self._port_fraction[port_name][idx:] = fraction
+
+    def set_leg_fraction(
+        self, idx: int, leg: tuple[str, str], fraction: FloatLike
+    ) -> None:
+        self._leg_fraction[leg][idx:] = fraction
+
+    def set_vessel_threshold(
+        self, idx: int, vessel_name: str, threshold: FloatLike
+    ) -> None:
+        self._vessel_threshold[vessel_name][idx:] = threshold
+
     def set_vessel_capacity(
         self, idx: int, vessel_name: str, capacity: FloatLike
     ) -> None:
         self._vessel_capacity[vessel_name][idx:] = capacity
+
+    def set_vessel_measure(
+        self, idx: int, vessel_name: str, measure: FloatLike
+    ) -> None:
+        self._vessel_measure[vessel_name][idx:] = measure
+
+    @overload
+    def get_emission_coefficient(
+        self, key: tuple[str, str, str], idx: int
+    ) -> float: ...
+
+    @overload
+    def get_emission_coefficient(
+        self, key: tuple[str, str, str], idx: slice
+    ) -> FloatLike: ...
+
+    def get_emission_coefficient(
+        self, key: tuple[str, str, str], idx: int | slice
+    ) -> FloatLike:
+
+        if key in self._emission_coefficient:
+            return self._emission_coefficient[key][idx]
+
+        return 0.0
+
+    def get_spend_coefficient(self, key: tuple[str, str, str], idx: int) -> float:
+        coefficient: float = self._spend_coefficient[key][idx]
+        return coefficient
+
+    @overload
+    def get_shore_power_emission_coefficient(
+        self, port_name: str, idx: int
+    ) -> float: ...
+
+    @overload
+    def get_shore_power_emission_coefficient(
+        self, port_name: str, idx: slice
+    ) -> FloatArray: ...
+
+    def get_shore_power_emission_coefficient(
+        self, port_name: str, idx: int | slice
+    ) -> FloatLike:
+        return self._shore_power_emission_coefficient[port_name][idx]
+
+    def get_shore_power_spend_coefficient(
+        self, key: tuple[str, str], idx: int
+    ) -> float:
+        coefficient: float = self._shore_power_spend_coefficient[key][idx]
+        return coefficient
 
     def get_flexibility_cost(self) -> FloatArray:
         return self._flexibility_cost
@@ -82,6 +202,25 @@ class RegulationExpectation(_PolicyExpectation):
         cost: float = self._remedial_cost[idx]
         return cost
 
-    def get_vessel_capacity(self, vessel_name: str, idx: int) -> float:
-        capacity: float = self._vessel_capacity[vessel_name][idx]
-        return capacity
+    def get_port_fraction(self, port_name: str, idx: int) -> float:
+        fraction: float = self._port_fraction[port_name][idx]
+        return fraction
+
+    def get_leg_fraction(self, leg: tuple[str, str], idx: Index) -> FloatLike:
+        return self._leg_fraction[leg][idx]
+
+    @overload
+    def get_vessel_threshold(self, vessel_name: str, idx: int) -> float: ...
+
+    @overload
+    def get_vessel_threshold(self, vessel_name: str, idx: slice) -> FloatArray: ...
+
+    def get_vessel_threshold(self, vessel_name: str, idx: int | slice) -> FloatLike:
+        return self._vessel_threshold[vessel_name][idx]
+
+    def get_vessel_capacity(self, vessel_name: str, idx: slice) -> FloatArray:
+        return self._vessel_capacity[vessel_name][idx]
+
+    def get_vessel_measure(self, vessel_name: str, idx: int) -> float:
+        measure: float = self._vessel_measure[vessel_name][idx]
+        return measure

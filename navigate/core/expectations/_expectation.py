@@ -33,23 +33,23 @@ class _Expectation:
 
         if default is None:
             return 0.0
-        else:
-            return default
+
+        return default
 
     def _default_array(self, default: float | None = None) -> FloatArray:
 
         if default is None:
             return np.zeros(self.get_shape())
-        else:
-            return np.full(self.get_shape(), default, dtype=np.float64)
+
+        return np.full(self.get_shape(), default, dtype=np.float64)
 
     def _default_2d_array(self, n: int, default: float | None = None) -> FloatArray:
         shape = (n, self._length)
 
         if default is None:
             return np.zeros(shape)
-        else:
-            return np.full(shape, default, dtype=np.float64)
+
+        return np.full(shape, default, dtype=np.float64)
 
     def _default_list_array(
         self, n: int, default: float | None = None
@@ -66,14 +66,14 @@ class _Expectation:
     ) -> dict[K, FloatArray]:
         return {key: self._default_array(default) for key in keys}
 
-    def _default_tuple_dict_float(
-        self, keys1: Iterable[str], keys2: Iterable[str], default: float | None = None
-    ) -> dict[tuple[str, str], float]:
+    def _default_tuple_dict_float[K1, K2](
+        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float | None = None
+    ) -> dict[tuple[K1, K2], float]:
         return self._default_dict_float(itertools.product(keys1, keys2), default)
 
-    def _default_tuple_dict_array(
-        self, keys1: Iterable[str], keys2: Iterable[str], default: float | None = None
-    ) -> dict[tuple[str, str], FloatArray]:
+    def _default_tuple_dict_array[K1, K2](
+        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float | None = None
+    ) -> dict[tuple[K1, K2], FloatArray]:
         return self._default_dict_array(itertools.product(keys1, keys2), default)
 
     def _default_dict_list_array[K](
@@ -84,6 +84,10 @@ class _Expectation:
     def _reset_dict_float[K](self, dict_: dict[K, float]) -> None:
         for key in dict_:
             dict_[key] = self._default_float()
+
+    def _reset_dict_array[K](self, dict_: dict[K, FloatArray]) -> None:
+        for key in dict_:
+            dict_[key] = self._default_array()
 
     def _reset_dict_array_partial[K](
         self, dict_: dict[K, FloatArray], idx: int

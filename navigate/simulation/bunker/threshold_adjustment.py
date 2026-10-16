@@ -16,9 +16,6 @@ from navigate.simulation.bunker.constraints.regulation_flexibility import (
 from navigate.simulation.bunker.constraints.regulation_individual import (
     update_individual_regulation_threshold_constraints,
 )
-from navigate.simulation.bunker.constraints.regulation_terms import (
-    get_regulation_vessel_threshold,
-)
 from navigate.simulation.bunker.utils import get_converters
 from navigate.util import TON_TO_KG, divide_nonzero
 
@@ -77,9 +74,8 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
 
         # a compliant vessel keeps its original threshold
         if remedial_factor.X <= 0.0:
-            alg.adjusted_vessel_thresholds[(r, v)] = get_regulation_vessel_threshold(
-                alg, regulation, v
-            )
+            threshold = regulation.expectation.get_vessel_threshold(v, alg.idx)
+            alg.adjusted_vessel_thresholds[(r, v)] = threshold
             continue
 
         measure = regulation.measure
@@ -114,7 +110,7 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
             # per-vessel targets the initial build solved against
             alg.adjusted_vessel_thresholds.update(
                 {
-                    (r, v): get_regulation_vessel_threshold(alg, regulation, v)
+                    (r, v): regulation.expectation.get_vessel_threshold(v, alg.idx)
                     for v in alg.vessels
                     if regulation.vessel_is_policed(v)
                 }
@@ -286,6 +282,8 @@ def _rebuild_regulation_constraints_for_adjustment(
     """
     _update_regulation_rhs_for_adjustment(alg, adjustable_regulations)
 
+    idx = alg.idx
+
     for r, regulation in adjustable_regulations.items():
         if regulation.measure != RegulationMeasureID.INTENSITY:
             continue
@@ -300,6 +298,9 @@ def _rebuild_regulation_constraints_for_adjustment(
             if regulation.scheme == RegulationSchemeID.FLEXIBLE
             else None
         )
+
+        expectation = regulation.expectation
+        get_shore_power_emission = expectation.get_shore_power_emission_coefficient
 
         for v, vessel in alg.vessels.items():
             key = (r, v)
@@ -316,20 +317,17 @@ def _rebuild_regulation_constraints_for_adjustment(
             for c in get_converters(vessel):
                 for f in alg.fuels_per_converter[v, c]:
                     coefficient_key = (v, c, f, r)
-                    emission_factor = alg.regulation_emission_factor[coefficient_key]
-                    effective_lhv = alg.effective_lhv[(v, c, f)]
+                    emission = expectation.get_emission_coefficient((v, c, f), idx)
+                    effective_lhv = vessel.expectation.get_effective_lhv(c, f)
                     alg.regulation_spend_coefficient[coefficient_key] = (
-                        emission_factor - adjusted_threshold / TON_TO_KG * effective_lhv
+                        emission - adjusted_threshold / TON_TO_KG * effective_lhv
                     )
 
-            for p in range(len(vessel.route.ports)):
+            for p, port in enumerate(vessel.route.ports):
                 if (v, p, r) in alg.shore_power_regulation_coefficient:
-                    shore_power_emission_factor = (
-                        alg.shore_power_regulation_emission_factor.get((v, p, r), 0.0)
-                    )
+                    shore_power_emission = get_shore_power_emission(port.name, idx)
                     alg.shore_power_regulation_coefficient[(v, p, r)] = (
-                        shore_power_emission_factor
-                        - adjusted_threshold / TON_TO_KG * 1.0
+                        shore_power_emission - adjusted_threshold / TON_TO_KG * 1.0
                     )
 
     # each update rebuilds every threshold constraint of its scheme, so it runs at

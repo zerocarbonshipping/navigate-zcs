@@ -114,7 +114,7 @@ def get_increment_origin_index(
 
     The increment (vessel or plant) is treated as having entered 'age' years
     before current_year. An entity present at the initialization of the node
-    gets index 0 — the best available approximation, as historical data is
+    gets index 0 - the best available approximation, as historical data is
     unavailable.
 
     Parameters
@@ -277,7 +277,7 @@ def derive_smoothing_alpha(
     idx
         Current outer time-step index.
     decision_horizon_years
-        Characteristic decision horizon (years).
+        Characteristic decision horizon, in years.
     timeline
         Simulation timeline in days.
 

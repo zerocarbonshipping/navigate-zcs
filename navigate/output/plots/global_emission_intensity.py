@@ -14,10 +14,12 @@ from navigate.output.plots._figure import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_emission_intensity(results: SimulationResults, directory: str) -> None:
+def plot_global_emission_intensity(results: SimulationResults, directory: Path) -> None:
     """Plot the global WTW CO2-equivalent emission intensity."""
     dateline = results.dateline
 

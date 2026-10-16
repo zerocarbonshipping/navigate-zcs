@@ -87,8 +87,8 @@ def parse_table_cells(table_block: str) -> list[list[float | str]]:
     inner = re.sub(r"\s*]\s*$", "", inner)
 
     rows: list[list[float | str]] = []
-    for line in inner.split("\n"):
-        line = re.sub(r"#.*$", "", line).strip()
+    for raw_line in inner.split("\n"):
+        line = re.sub(r"#.*$", "", raw_line).strip()
         if not line:
             continue
 

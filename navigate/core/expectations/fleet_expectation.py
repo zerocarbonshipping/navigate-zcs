@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import BunkerScopeID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import slice_dict
@@ -30,7 +30,7 @@ class FleetExpectation(_Expectation):
 
         self._fuel_demand: dict[str, FloatArray] = {}
 
-        self._fuel_type_demand: dict[FuelTypeID, float] = {}
+        self._fuel_type_capacity: dict[FuelTypeID, float] = {}
         self._fuel_type_supply: dict[FuelTypeID, float] = {}
 
         self._uptakes: FloatArray = EMPTY_FLOAT
@@ -45,13 +45,13 @@ class FleetExpectation(_Expectation):
 
         self._fuel_demand = self._default_dict_array(fuels)
 
-        self._fuel_type_demand = self._default_dict_float(FuelTypeID)
+        self._fuel_type_capacity = self._default_dict_float(FuelTypeID)
         self._fuel_type_supply = self._default_dict_float(FuelTypeID)
 
         self._uptakes = self._default_2d_array(len(vessel_names))
 
     def reset_fuel_type_totals(self) -> None:
-        self._reset_dict_float(self._fuel_type_demand)
+        self._reset_dict_float(self._fuel_type_capacity)
         self._reset_dict_float(self._fuel_type_supply)
 
     def set_existing_multipliers(
@@ -64,11 +64,11 @@ class FleetExpectation(_Expectation):
     ) -> None:
         self._newbuild_multipliers[vessel_name][idx:] = multipliers
 
-    def set_fuel_demand(self, idx: int, fuel_name: str, demand: float) -> None:
-        self._fuel_demand[fuel_name][idx] = demand
+    def set_fuel_demand(self, idx: int, fuel_name: str, demand: FloatLike) -> None:
+        self._fuel_demand[fuel_name][idx:] = demand
 
-    def add_fuel_type_demand(self, fuel_type: FuelTypeID, demand: float) -> None:
-        self._fuel_type_demand[fuel_type] += demand
+    def add_fuel_type_capacity(self, fuel_type: FuelTypeID, capacity: float) -> None:
+        self._fuel_type_capacity[fuel_type] += capacity
 
     def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float) -> None:
         self._fuel_type_supply[fuel_type] += supply
@@ -76,24 +76,21 @@ class FleetExpectation(_Expectation):
     def set_uptakes(self, idx: int, uptakes: FloatArray) -> None:
         self._uptakes[:, idx] = uptakes
 
-    def get_existing_multipliers(
-        self, vessel_name: str, idx: Index = np.s_[:]
+    def get_multiplier(
+        self, vessel_name: str, scope: BunkerScopeID, idx: Index
     ) -> FloatLike:
-        return self._existing_multipliers[vessel_name][idx]
+        existing = self._existing_multipliers[vessel_name][idx]
 
-    def get_expected_multipliers(
-        self, vessel_name: str, idx: Index = np.s_[:]
-    ) -> FloatLike:
-        return (
-            self._existing_multipliers[vessel_name][idx]
-            + self._newbuild_multipliers[vessel_name][idx]
-        )
+        if scope == BunkerScopeID.EXISTING:
+            return existing
+
+        return existing + self._newbuild_multipliers[vessel_name][idx]
 
     def get_fuel_demand(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
         return slice_dict(self._fuel_demand, idx)
 
-    def get_fuel_type_demand(self, fuel_type: FuelTypeID) -> float:
-        return self._fuel_type_demand[fuel_type]
+    def get_fuel_type_capacity(self, fuel_type: FuelTypeID) -> float:
+        return self._fuel_type_capacity[fuel_type]
 
     def get_fuel_type_supply(self, fuel_type: FuelTypeID) -> float:
         return self._fuel_type_supply[fuel_type]

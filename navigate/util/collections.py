@@ -164,7 +164,7 @@ def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
 
 def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
     """
-    Sum a dict's array values element-wise.
+    Sum a dict's array values element-wise, adding the arrays across its keys.
 
     Parameters
     ----------
@@ -178,6 +178,25 @@ def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
     """
     summed: FloatArray = np.add.reduce(list(result.values()))
     return summed
+
+
+def sum_per_key[K](
+    dict_: Mapping[K, FloatArray | Sequence[FloatArray]],
+) -> dict[K, float]:
+    """
+    Sum the values held under each key of a dict into one number per key.
+
+    Parameters
+    ----------
+    dict_
+        Values to sum, by key: an array or a sequence of arrays per key.
+
+    Returns
+    -------
+    dict[K, float]
+        Total of the values under each key.
+    """
+    return {key: float(np.sum(values)) for key, values in dict_.items()}
 
 
 def sum_by_first_key[K1: Hashable, K2: Hashable](

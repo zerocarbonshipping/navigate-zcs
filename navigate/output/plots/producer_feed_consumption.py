@@ -26,11 +26,13 @@ from navigate.output.plots._units import get_best_unit_mass
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 
-def plot_producer_feed_consumption(results: SimulationResults, directory: str) -> None:
+def plot_producer_feed_consumption(results: SimulationResults, directory: Path) -> None:
     """Plot the feed consumption against the constraint, one figure per producer."""
     dateline = results.dateline
     producers = results.nodes.producers

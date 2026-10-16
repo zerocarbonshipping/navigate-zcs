@@ -17,10 +17,12 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_changes(results: SimulationResults, directory: str) -> None:
+def plot_fleet_changes(results: SimulationResults, directory: Path) -> None:
     """Plot the yearly newbuilds and scrapped vessels per fleet."""
     dateline = results.dateline
     fleets = results.nodes.fleets

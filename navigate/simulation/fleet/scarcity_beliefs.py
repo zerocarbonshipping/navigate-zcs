@@ -14,7 +14,7 @@ from navigate.util import derive_smoothing_alpha, update_belief_path
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.fleet import Fleet
     from navigate.util.types_ import FloatArray
 
@@ -113,10 +113,10 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
 
 
 def _energy_weighted_signal(
-    belief_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-    belief_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-    rhs_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-    rhs_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    belief_sea: Mapping[EnergyDemandID, Sequence[FloatArray]],
+    belief_port: Mapping[EnergyDemandID, Sequence[FloatArray]],
+    rhs_sea: Mapping[EnergyDemandID, Sequence[FloatArray]],
+    rhs_port: Mapping[EnergyDemandID, Sequence[FloatArray]],
     idx: int,
 ) -> float:
     """
@@ -161,8 +161,8 @@ def _energy_weighted_signal(
 
 
 def _smooth_pi_dict(
-    raw_dict: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-    belief_dict: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    raw_dict: Mapping[EnergyDemandID, Sequence[FloatArray]],
+    belief_dict: Mapping[EnergyDemandID, Sequence[FloatArray]],
     alpha: float,
     idx: int,
 ) -> None:

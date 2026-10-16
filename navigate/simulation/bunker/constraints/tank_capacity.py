@@ -18,11 +18,11 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     r"""
     Add the constraints that the fuel stored in each tank fits its volume.
 
-    For each port p and tank t (vessel index omitted):
+    For each tank stop p and tank t (vessel index omitted):
 
         \sum_{f in fuels(t)} m_{p,f} / \rho_f <= size_t
 
-    where m is the fuel mass in tank when departing port p, \rho the fuel mass
+    where m is the fuel mass in tank when departing stop p, \rho the fuel mass
     density, and fuels(t) the usable fuels matching the tank's fuel types. A tank
     stores every such fuel, so it is their combined volume that the tank bounds.
 
@@ -38,7 +38,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     usable_fuels = vessel.usable_fuels
     change_coefficient = alg.model.chgCoeff
 
-    for p in range(vessel.route.get_number_of_ports()):
+    for p in vessel.route.get_tank_stops():
         for tank in tanks:
             t = tank.name
             key = (v, p, t)
