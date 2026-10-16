@@ -277,7 +277,7 @@ The properties are applicable for the following commands:
 | VesselTime           | Second | The time spent on the operational profiles and charter properties of the vessels.  |
 | FuelSupplyTime       | Second | The time spent on the production, logistics and port import properties of the fuels. |
 | PolicyTime           | Second | The time spent on the policy emission coefficients and the fair share fuel supply. |
-| FleetStateTime       | Second | The time spent updating increment ages, fleet evolution expectations and the missing technology approximation. |
+| FleetStateTime       | Second | The time spent updating increment ages, fleet evolution expectations, fuel demands and fuel-type balances, and the missing technology approximation. |
 | ProfileAggTime       | Second | The time spent aggregating the profiles of the fleet, port, producer, regulation and vessel nodes. |
 | OverheadTime         | Second | The time spent initializing the existing fleet and production, and updating the investment signal beliefs. |
 
