@@ -1,7 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Define the asset cohorts, used by the Fleet (vessels) and Producer (plants) nodes."""
+"""
+Define the asset cohorts held by the Fleet (vessels) and Producer (plants) nodes.
+
+The fleet and fuel domains build and age them; navigate.simulation.cohort holds
+the accounting the two share.
+"""
 
 from __future__ import annotations
 

@@ -20,6 +20,9 @@ step, and `driver/` runs it from a read deck to its output.
     The two mirror each other: `initialization.py`, `evolution.py`,
     `planning.py` and `aggregation.py` play the same role in each.
   - `simulation/economics/` — valuation and choice used by both domains.
+  - `simulation/cohort.py` — vintage-stock accounting over the asset
+    cohorts of both domains: the initial age bins, splits at an age, the
+    insertion order and the time step a cohort entered.
   - `simulation/bunker/` — the per-time-step bunkering LP.
   - `simulation/policy/` — policy expectations, emission coefficients, levy
     costs and beliefs.
@@ -42,8 +45,9 @@ in `core/expectations/x_expectation.py` and its output in
 `core/profiles/x_profile.py`; the domain's calculations live in
 `simulation/<domain>/`. The fleet domain owns `Fleet` and `Vessel`, fuel
 owns `Producer`, `Plant` and `Port`, and policy owns `Regulation` and
-`Levy`. `simulation/economics/` owns no nodes, and `simulation/bunker/`'s
-settings are the general node `core/general_nodes/bunker_options.py`.
+`Levy`. `simulation/economics/` and `simulation/cohort.py` own no nodes, and
+`simulation/bunker/`'s settings are the general node
+`core/general_nodes/bunker_options.py`.
 
 Node classes hold state, and the calculators among them (`Curve`,
 `Forecast` and the like) their value semantics; model work lives in
@@ -56,8 +60,10 @@ util, __init__, simulation         → (nothing)
 exceptions                         → util
 core                               → foundation
 simulation.economics               → core, foundation
+simulation.cohort                  → core, foundation
 simulation.policy                  → core, foundation
-simulation.fleet, simulation.fuel  → simulation.economics, core, foundation
+simulation.fleet, simulation.fuel  → simulation.economics, simulation.cohort,
+                                     core, foundation
 simulation.bunker                  → simulation.policy, core, foundation
 parser, output                     → core, foundation
 app                                → driver, foundation
@@ -72,9 +78,11 @@ dotted path; `__init__` is `navigate/__init__.py` and `simulation` is
 `simulation/__init__.py` alone. A file belongs to the longest unit that
 contains it; a unit imports itself and its row, nothing else from
 `navigate`. The foundation is `util/` and `exceptions.py`; the domains are
-the five `simulation.<domain>` units. Every file must fall in a unit, so a
-new top-level module or package needs a row here. No row may link `simulation.fleet` and `simulation.fuel`,
-`parser` and `output`, or either of those two and a simulation unit.
+the five packages `simulation.fleet`, `simulation.fuel`,
+`simulation.economics`, `simulation.bunker` and `simulation.policy`. Every
+file must fall in a unit, so a new top-level module or package needs a row
+here. No row may link `simulation.fleet` and `simulation.fuel`, `parser` and
+`output`, or either of those two and a simulation unit.
 
 Inside `core/`, runtime imports run one way: `nodes/` imports
 `expectations/`, `profiles/` and the flat modules directly in `core/`;
