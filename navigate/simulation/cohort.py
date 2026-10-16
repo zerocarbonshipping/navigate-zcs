@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Vintage-stock accounting over asset cohorts, shared by the fleet and fuel domains.
+Vintage-stock accounting over the asset cohorts of the fleet and fuel domains.
 
-The functions read Increment fields and plain numbers only; each domain builds its
-own Increment subclass from what they return.
+What a domain adds to its cohorts, such as baseline or decided, and building its
+Increment subclass stay in that domain.
 """
 
 from __future__ import annotations
@@ -109,9 +109,9 @@ def calculate_share_below(increment: Increment, boundary: float) -> float:
 
 def find_insertion_index(increments: Sequence[Increment], age: float) -> int:
     """
-    Return where an increment of an age goes in an oldest-first increment list.
+    Find where an increment of a given age goes in a list sorted oldest first.
 
-    It goes after the increments of equal age, so the list stays sorted.
+    It goes after any increment of equal age.
 
     Parameters
     ----------
@@ -132,25 +132,22 @@ def find_insertion_index(increments: Sequence[Increment], age: float) -> int:
     return int(np.searchsorted(-ages, -age, side="right"))
 
 
-def get_increment_origin_index(
-    years: FloatArray, current_year: float, age: float
-) -> int:
+def find_origin_index(years: FloatArray, current_year: float, age: float) -> int:
     """
     Find the time-step index at which an increment entered the simulation.
 
-    The increment (vessel or plant) is treated as having entered 'age' years
-    before current_year. An entity present at the initialization of the node
-    gets index 0 - the best available approximation, as historical data is
-    unavailable.
+    The increment is treated as having entered 'age' years before current_year.
+    An increment of the initial cohorts gets index 0 - the best available
+    approximation, as historical data is unavailable.
 
     Parameters
     ----------
     years
-        Simulation timeline in years.
+        Simulation timeline, in years.
     current_year
-        The current year (years[idx]).
+        Current year, years[idx].
     age
-        Age of the increment in years.
+        Age of the increment, in years.
 
     Returns
     -------
@@ -160,22 +157,22 @@ def get_increment_origin_index(
     return find_nearest_index(years, current_year - age)
 
 
-def get_increment_origin_indexes(
+def find_origin_indexes(
     years: FloatArray, current_year: float, ages: FloatArray
 ) -> IntArray:
     """
     Find the time-step indexes at which increments entered the simulation.
 
-    Array counterpart of `get_increment_origin_index`, one index per age.
+    Array counterpart of `find_origin_index`, one index per age.
 
     Parameters
     ----------
     years
-        Simulation timeline in years.
+        Simulation timeline, in years.
     current_year
-        The current year (years[idx]).
+        Current year, years[idx].
     ages
-        Ages of the increments in years.
+        Ages of the increments, in years.
 
     Returns
     -------

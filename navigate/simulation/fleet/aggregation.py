@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
-from navigate.simulation.cohort import get_increment_origin_index
+from navigate.simulation.cohort import find_origin_index
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import YEAR, interpolate_yearly_flow
 
@@ -81,7 +81,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
             # the cost profile is that of a vessel entering the fleet 'age' years
             # ago; an increment of the initial fleet uses the profile at the
             # simulation start, as historical cost data is unknown
-            origin = get_increment_origin_index(years, current_year, inc.age)
+            origin = find_origin_index(years, current_year, inc.age)
             cost = vessel.expectation.get_asset_charter_rate(origin)
             tied_capital_flow = vessel.expectation.get_tied_capital(origin)
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)

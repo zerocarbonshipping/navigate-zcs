@@ -15,7 +15,7 @@ from navigate.core.increment import PlantIncrement
 from navigate.simulation.cohort import (
     calculate_share_below,
     extends_past,
-    get_increment_origin_indexes,
+    find_origin_indexes,
 )
 from navigate.simulation.fuel.planning import (
     calculate_constrained_uptakes,
@@ -303,7 +303,7 @@ def calculate_evolution_expectation(
             continue
 
         decided = np.array([inc.decided for inc in incs])
-        origins = get_increment_origin_indexes(years, years[idx], decided)
+        origins = find_origin_indexes(years, years[idx], decided)
         production = np.asarray(plant.expectation.get_production(origins))
 
         existing[p, :] = _calculate_increments_production(
@@ -332,7 +332,7 @@ def calculate_evolution_expectation(
             continue
 
         decided = np.array([inc.decided for inc in pinc])
-        origins = get_increment_origin_indexes(years, years[idx], decided)
+        origins = find_origin_indexes(years, years[idx], decided)
         production = np.asarray(plant.expectation.get_production(origins))
 
         pipeline[p, :] = _calculate_increments_production(
@@ -603,7 +603,7 @@ def calculate_feed_availability(
 
         # production and feed use are those of when the plants were built
         expectation = plant.expectation
-        origins = get_increment_origin_indexes(years, today, existing_decided)
+        origins = find_origin_indexes(years, today, existing_decided)
         production = expectation.get_production(origins)
         conversions = expectation.get_feed_masses(origins)
 
@@ -621,7 +621,7 @@ def calculate_feed_availability(
         decided = np.array([inc.decided for inc in pinc])
         multipliers = np.array([inc.multiplier for inc in pinc])
 
-        origins = get_increment_origin_indexes(years, today, decided)
+        origins = find_origin_indexes(years, today, decided)
         production = expectation.get_production(origins)
         conversions = expectation.get_feed_masses(origins)
 

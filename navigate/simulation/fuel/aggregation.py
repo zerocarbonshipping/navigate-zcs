@@ -9,10 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import (
-    get_increment_origin_index,
-    get_increment_origin_indexes,
-)
+from navigate.simulation.cohort import find_origin_index, find_origin_indexes
 from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
@@ -92,7 +89,7 @@ def _transfer_production_and_feed_mass(
         decided = np.array([inc.decided for inc in incs])
         multipliers = np.array([inc.multiplier for inc in incs])
 
-        origins = get_increment_origin_indexes(years, today, decided)
+        origins = find_origin_indexes(years, today, decided)
         production_unit = expectation.get_production(origins)
         production = np.sum(production_unit * multipliers)
 
@@ -127,7 +124,7 @@ def _transfer_plant_tied_capital(
             # the cost profile is that of a plant entering production 'age' years
             # ago; a plant of the initial production uses the profile of a plant at
             # age 0, the best available approximation as historical data is unknown
-            origin = get_increment_origin_index(years, today, inc.age)
+            origin = find_origin_index(years, today, inc.age)
 
             tied_capital_flow = plant.expectation.get_tied_capital(origin)
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)

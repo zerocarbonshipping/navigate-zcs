@@ -112,9 +112,6 @@ def perform_pipeline_planning(
             continue
 
         lead_time = plant.lead_time.get()
-
-        # the pipeline is sorted by descending age, so the new increment is
-        # inserted at the position its lead time gives it
         pinc = producer.pipeline[p]
         new_age = -lead_time
         i = find_insertion_index(pinc, new_age)
