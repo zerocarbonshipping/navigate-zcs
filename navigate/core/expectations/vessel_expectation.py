@@ -210,7 +210,8 @@ class VesselExpectation(_Expectation):
             PORT_ENERGY_DEMANDS, n_port, default=np.nan
         )
 
-        # each converter with the fuels it burns, NaN until the first step sets them
+        # the keys are each converter with each fuel it burns, and for the TTW each
+        # emission too; all values are NaN until the first step sets them
         lhv_keys: list[tuple[str, str]] = []
         ttw_keys: list[tuple[str, str, str]] = []
         for converter in power_system.get_converters():
