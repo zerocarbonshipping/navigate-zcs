@@ -62,9 +62,6 @@ from navigate.simulation.bunker.threshold_adjustment import adjust_regulation_th
 from navigate.simulation.bunker.transfer.allocation_fuel import transfer_allocation_fuel
 from navigate.simulation.bunker.transfer.bunker import transfer_bunker
 from navigate.simulation.bunker.transfer.dual_solution import transfer_dual_solution
-from navigate.simulation.bunker.transfer.regulation_individual import (
-    transfer_regulation_individual,
-)
 from navigate.simulation.bunker.transfer.regulation_solution import (
     transfer_regulation_solution,
 )
@@ -371,7 +368,6 @@ class BunkerAlgorithm:
             transfer_dual_solution(self)
 
         transfer_regulation_solution(self)
-        transfer_regulation_individual(self)
 
         end = timeit.default_timer()
         self.transfer_time = end - start

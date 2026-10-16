@@ -17,11 +17,11 @@ def transfer_regulation_solution(alg: BunkerAlgorithm) -> None:
     """
     Transfer the LP solution of each active regulation to its expectation.
 
-    Per policed vessel the regulated emissions and energy, and per FLEXIBLE regulation
-    the pooled remedial units and the shadow price of the pooled threshold: the cost
-    of a unit of emissions, set by the remedial cost or by the cheapest compliant fuel
-    available at scale. The thresholds adjusted to the compliance achievable go along,
-    NaN where none was adjusted.
+    Per policed vessel the regulated emissions and energy, and under INDIVIDUAL its
+    remedial units; per FLEXIBLE regulation the pooled remedial units and the shadow
+    price of the pooled threshold: the cost of a unit of emissions, set by the remedial
+    cost or by the cheapest compliant fuel available at scale. The thresholds adjusted
+    to the compliance achievable go along, NaN where none was adjusted.
 
     Parameters
     ----------
@@ -47,6 +47,10 @@ def transfer_regulation_solution(alg: BunkerAlgorithm) -> None:
 
         shared_threshold = alg.adjusted_shared_thresholds.get(r, np.nan)
         expectation.set_adjusted_shared_threshold(idx, shared_threshold)
+
+    for (r, v), remedial_factor in alg.remedial_factor_individual.items():
+        expectation = alg.regulations[r].expectation
+        expectation.set_vessel_remedial_units(idx, v, remedial_factor.X)
 
     for r, remedial_factor in alg.remedial_factor_flexibility.items():
         expectation = alg.regulations[r].expectation

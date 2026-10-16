@@ -69,6 +69,7 @@ from navigate.simulation.fuel import (
 )
 from navigate.simulation.policy import (
     calculate_flexibility_markets,
+    calculate_individual_remedial_expenses,
     calculate_policy_emission_coefficients,
     calculate_policy_expectations,
     calculate_regulation_allowances,
@@ -284,6 +285,7 @@ class Simulation:
         self._verify_power_capacity(self._bunker_existing)
         self._perform_existing_bunkering()
         self._calculate_regulation_compliance(self._bunker_existing)
+        self._calculate_individual_remedial_expenses(self._bunker_existing)
         self._calculate_flexibility_markets(self._bunker_existing)
 
         self._calculate_profile()
@@ -526,6 +528,7 @@ class Simulation:
                 self._bunker_expected.transfer_time, self._idx
             )
 
+            self._calculate_individual_remedial_expenses(self._bunker_expected)
             self._calculate_flexibility_markets(self._bunker_expected)
 
     def _calculate_fleet_fuel_demand(self) -> None:
@@ -615,6 +618,19 @@ class Simulation:
 
         calculate_regulation_compliance(
             self.nodes.regulations, bunker.multipliers, bunker.idx
+        )
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+    def _calculate_individual_remedial_expenses(self, bunker: BunkerAlgorithm) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_individual_remedial_expenses(
+            self.nodes.regulations,
+            self.nodes.vessels,
+            bunker.multipliers,
+            bunker.scope,
+            bunker.idx,
         )
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)

@@ -110,7 +110,11 @@ class VesselExpectation(_Expectation):
         # bunker results (expected bunkering)
         self._total_energy: FloatArray = EMPTY_FLOAT
         self._fuel_expenses: FloatArray = EMPTY_FLOAT
-        self._policy_expenses: FloatArray = EMPTY_FLOAT
+
+        # policy expenses (expected bunkering): the remedial expenses of each expected
+        # LP, and the net flexibility expenses valued at the smoothed flexibility cost
+        self._remedial_expenses: FloatArray = EMPTY_FLOAT
+        self._flexibility_expenses: FloatArray = EMPTY_FLOAT
 
         # shore power
         self._shore_power_capacity: FloatArray = EMPTY_FLOAT
@@ -270,7 +274,10 @@ class VesselExpectation(_Expectation):
         # expected bunker results (from BunkerAlgorithm)
         self._total_energy = self._default_array()
         self._fuel_expenses = self._default_array()
-        self._policy_expenses = self._default_array()
+
+        # expected policy expenses (from the policy domain)
+        self._remedial_expenses = self._default_array()
+        self._flexibility_expenses = self._default_array()
 
         # costs
         self._fuel_cost_flow = self._default_array()
@@ -286,7 +293,8 @@ class VesselExpectation(_Expectation):
     def reset_expected_bunkering(self) -> None:
         self._total_energy = self._default_array()
         self._fuel_expenses = self._default_array()
-        self._policy_expenses = self._default_array()
+        self._remedial_expenses = self._default_array()
+        self._flexibility_expenses = self._default_array()
 
         self._reset_dict_array(self._bunker_mass_expected)
 
@@ -509,11 +517,11 @@ class VesselExpectation(_Expectation):
     def add_fuel_expenses(self, idx: int, expenses: float) -> None:
         self._fuel_expenses[idx] += expenses
 
-    def add_policy_expenses(self, idx: int, expenses: float) -> None:
-        self._policy_expenses[idx] += expenses
+    def add_remedial_expenses(self, idx: int, expenses: float) -> None:
+        self._remedial_expenses[idx] += expenses
 
-    def add_policy_expenses_path(self, idx: int, expenses: FloatLike) -> None:
-        self._policy_expenses[idx:] += expenses
+    def add_flexibility_expenses_path(self, idx: int, expenses: FloatLike) -> None:
+        self._flexibility_expenses[idx:] += expenses
 
     def set_shore_power_capacity(self, idx: int, value: float) -> None:
         self._shore_power_capacity[idx:] = value
@@ -738,7 +746,8 @@ class VesselExpectation(_Expectation):
         return self._total_energy[idx]
 
     def get_total_fuel_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
-        return self._fuel_expenses[idx] + self._policy_expenses[idx]
+        policy_expenses = self._remedial_expenses[idx] + self._flexibility_expenses[idx]
+        return self._fuel_expenses[idx] + policy_expenses
 
     def get_fuel_cost_flow(self) -> FloatArray:
         return self._fuel_cost_flow

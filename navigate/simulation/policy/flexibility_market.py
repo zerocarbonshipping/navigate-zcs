@@ -106,9 +106,8 @@ def update_regulation_flexibility_beliefs(
                 continue
 
             net_units = expectation.get_vessel_net_flexibility_units(vessel_name)
-            vessel.expectation.add_policy_expenses_path(
-                idx, net_units[idx:] * belief[idx:]
-            )
+            expenses = net_units[idx:] * belief[idx:]
+            vessel.expectation.add_flexibility_expenses_path(idx, expenses)
 
 
 def _calculate_flexibility_market(
@@ -204,7 +203,7 @@ def _calculate_flexibility_market(
             vessel.profile.add_surplus_revenue(surplus_revenue, idx)
 
         else:
-            vessel.expectation.add_policy_expenses(idx, remedial_expenses)
+            vessel.expectation.add_remedial_expenses(idx, remedial_expenses)
 
             # the expected flexibility expenses and surplus revenue are not applied
             # with the raw flexibility cost: only the net units are stored, and the
