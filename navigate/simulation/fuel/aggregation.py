@@ -47,25 +47,6 @@ def calculate_producer_profile(
     producer.profile.set_maximum_development(idx, producer.maximum_development.get())
 
 
-def calculate_port_profile(port: Port, idx: int) -> None:
-    """
-    Write the port's bunkering permissions and limits to the profile.
-
-    Parameters
-    ----------
-    port
-        The port instance.
-    idx
-        Current time-step index.
-    """
-    for fuel_name, available in port.bunkering_allowed.items():
-        port.profile.set_bunkering_allowed(idx, fuel_name, available)
-
-    for fuel_name, limit in port.bunkering_limit.items():
-        if limit is not None:
-            port.profile.set_bunkering_limit_mass(idx, fuel_name, limit.get())
-
-
 def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
     """
     Transfer the current feed constraints to the profile.
@@ -153,3 +134,24 @@ def _transfer_plant_tied_capital(
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 
             producer.profile.add_plant_tied_capital(tied_capital * inc.multiplier, idx)
+
+
+def calculate_port_profile(port: Port, idx: int) -> None:
+    """
+    Write the port's bunkering permissions and limits to its profile.
+
+    Parameters
+    ----------
+    port
+        The port instance.
+    idx
+        Current time-step index.
+    """
+    profile = port.profile
+
+    for key, value in port.bunkering_allowed.items():
+        profile.set_bunkering_allowed(idx, key, value)
+
+    for key, value in port.bunkering_limit.items():
+        if value is not None:
+            profile.set_bunkering_limit_mass(idx, key, value.get())

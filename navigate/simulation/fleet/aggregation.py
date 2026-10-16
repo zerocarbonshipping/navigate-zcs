@@ -50,21 +50,6 @@ def calculate_fleet_profile(
     _transfer_fuel_type_capacity(fleet, idx)
 
 
-def calculate_vessel_profile(vessel: Vessel, idx: int) -> None:
-    """
-    Write the vessel lifetime and lead time to the profile at idx.
-
-    Parameters
-    ----------
-    vessel
-        Vessel instance.
-    idx
-        Current time-step index.
-    """
-    vessel.profile.set_lifetime(idx, vessel.lifetime.get())
-    vessel.profile.set_lead_time(idx, vessel.lead_time.get())
-
-
 def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
     """
     Transfer the running vessel expenses per increment.
@@ -276,3 +261,18 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     """
     for v, vessel in enumerate(fleet.assets):
         fleet.profile.set_existing_vessels(idx, vessel.name, fleet.get_multiplier(v))
+
+
+def calculate_vessel_profile(vessel: Vessel, idx: int) -> None:
+    """
+    Write the vessel's lifetime and lead time to its profile.
+
+    Parameters
+    ----------
+    vessel
+        Vessel instance.
+    idx
+        Current time-step index.
+    """
+    vessel.profile.set_lifetime(idx, vessel.lifetime.get())
+    vessel.profile.set_lead_time(idx, vessel.lead_time.get())
