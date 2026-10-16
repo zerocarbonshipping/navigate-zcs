@@ -200,15 +200,6 @@ class Port(Node):
 
         self.profile.initialize(timeline, emissions, fuels, lifetime)
 
-    def calculate_profile(self, idx: int) -> None:
-
-        for fuel_name, available in self.bunkering_allowed.items():
-            self.profile.set_bunkering_allowed(idx, fuel_name, available)
-
-        for fuel_name, limit in self.bunkering_limit.items():
-            if limit is not None:
-                self.profile.set_bunkering_limit_mass(idx, fuel_name, limit.get())
-
     def is_bunkering_allowed(self, fuel_name: str) -> bool:
         """
         Return whether fuel can be bunkered at this port in the current time-step.

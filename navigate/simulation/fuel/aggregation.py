@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Transfer of each producer's expectations to its end-of-run profile."""
+"""Transfer of producer expectations and port bunkering rules to profiles."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.port import Port
     from navigate.core.nodes.producer import Producer
     from navigate.util.types_ import FloatArray
 
@@ -44,6 +45,25 @@ def calculate_producer_profile(
     _transfer_plant_tied_capital(producer, years, today, idx)
 
     producer.profile.set_maximum_development(idx, producer.maximum_development.get())
+
+
+def calculate_port_profile(port: Port, idx: int) -> None:
+    """
+    Write the port's bunkering permissions and limits to the profile.
+
+    Parameters
+    ----------
+    port
+        The port instance.
+    idx
+        Current time-step index.
+    """
+    for fuel_name, available in port.bunkering_allowed.items():
+        port.profile.set_bunkering_allowed(idx, fuel_name, available)
+
+    for fuel_name, limit in port.bunkering_limit.items():
+        if limit is not None:
+            port.profile.set_bunkering_limit_mass(idx, fuel_name, limit.get())
 
 
 def _transfer_feed_constraints(producer: Producer, idx: int) -> None:

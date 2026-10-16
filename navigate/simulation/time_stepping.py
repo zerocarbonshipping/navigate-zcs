@@ -33,6 +33,7 @@ from navigate.simulation.fleet import (
     calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
     calculate_vessel_charter_properties,
+    calculate_vessel_profile,
     determine_fuel_type,
     determine_usable_fuel_types,
     determine_usable_fuels,
@@ -58,6 +59,7 @@ from navigate.simulation.fuel import (
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
     calculate_port_expectations,
+    calculate_port_profile,
     calculate_producer_profile,
     initialize_existing_producer,
     perform_planning,
@@ -67,6 +69,7 @@ from navigate.simulation.policy import (
     calculate_policy_emission_coefficients,
     calculate_policy_expectations,
     calculate_regulation_measures,
+    calculate_regulation_profile,
     update_regulation_flexibility_beliefs,
 )
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
@@ -737,16 +740,16 @@ class Simulation:
             calculate_fleet_profile(fleet, self.nodes.fuels, self.timeline, self._idx)
 
         for port in self.nodes.ports.values():
-            port.calculate_profile(self._idx)
+            calculate_port_profile(port, self._idx)
 
         for producer in self.nodes.producers.values():
             calculate_producer_profile(producer, self.timeline, self._idx)
 
         for regulation in self.nodes.regulations.values():
-            regulation.calculate_profile(self._idx)
+            calculate_regulation_profile(regulation, self._idx)
 
         for vessel in self.nodes.vessels.values():
-            vessel.calculate_profile(self._idx)
+            calculate_vessel_profile(vessel, self._idx)
 
         self.profile.add_profile_agg_time(
             timeit.default_timer() - start_time, self._idx

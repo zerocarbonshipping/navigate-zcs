@@ -5,7 +5,10 @@
 
 from __future__ import annotations
 
-from navigate.simulation.fuel.aggregation import calculate_producer_profile
+from navigate.simulation.fuel.aggregation import (
+    calculate_port_profile,
+    calculate_producer_profile,
+)
 from navigate.simulation.fuel.evolution import (
     perform_planning,
     perform_progression,
