@@ -198,6 +198,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A fleet whose vessels differ in `Lifetime` no longer stops with a
+  `ValueError` once it has `Technologies`. Technology costs are amortized over
+  each vessel's own lifetime, or the years left for a retrofit, so a
+  replacement outlasting them is charged only in part (#546).
 - `set_power_transfer` (Technology) accepts a transfer above 1 MW; the value
   is a power in MW and was capped at 1.
 - `--solver auto` no longer fails with a traceback (#402).

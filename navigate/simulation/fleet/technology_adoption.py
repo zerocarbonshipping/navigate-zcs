@@ -32,7 +32,10 @@ import numpy as np
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, UtilityID
 from navigate.core.technology_package import TechnologyPackage
 from navigate.simulation.economics.decision import calculate_asset_shares
-from navigate.simulation.economics.flows import timeline_to_yearly
+from navigate.simulation.economics.flows import (
+    timeline_to_yearly,
+    trim_flow_to_lifetime,
+)
 from navigate.simulation.fleet.conversion import is_retrofit_cycle
 from navigate.simulation.fleet.marginal_saving import (
     calculate_marginal_technology_saving,
@@ -40,6 +43,7 @@ from navigate.simulation.fleet.marginal_saving import (
 from navigate.simulation.fleet.operation import transfer_operational_savings
 from navigate.simulation.fleet.package import (
     annual_costs_for_retrofit_steps,
+    get_package_cost_flows,
     levelize_package_cost,
     npv_for_newbuilds,
     npv_for_retrofit_steps,
@@ -59,6 +63,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.technology_package import PackageCostFlows
     from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray, FloatLike
 
@@ -265,7 +270,7 @@ def build_technology_packages(
 
 
 def calculate_package_charter_rates(
-    packages: list[TechnologyPackage], vessel: Vessel
+    packages: list[TechnologyPackage], cost_flows: PackageCostFlows, vessel: Vessel
 ) -> FloatArray:
     """
     Levelize each package's cost, installed at build, over the vessel lifetime.
@@ -276,8 +281,9 @@ def calculate_package_charter_rates(
     Parameters
     ----------
     packages
-        All technology packages, from empty to full, with the cost flows of
-        ``preprocess_packages``.
+        All technology packages, from empty to full.
+    cost_flows
+        Package cost flows of the current decision time.
     vessel
         Vessel whose lifetime and cost of capital govern the levelization.
 
@@ -291,8 +297,8 @@ def calculate_package_charter_rates(
 
     return np.array(
         [
-            levelize_package_cost(pkg.cost_flow, lifetime, discount_rate)
-            for pkg in packages
+            levelize_package_cost(cost_flow, lifetime, discount_rate)
+            for cost_flow in get_package_cost_flows(packages, cost_flows, lifetime)
         ]
     )
 
@@ -346,7 +352,9 @@ def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -
 
     # seeded uptake is charged as if installed at build (consistent with the
     # hull, which the instantaneous freight rate charges at full newbuild cost)
-    package_rates = calculate_package_charter_rates(fleet.technology_packages, vessel)
+    package_rates = calculate_package_charter_rates(
+        fleet.technology_packages, fleet.package_cost_flows, vessel
+    )
 
     for inc in fleet.increments[vessel_idx]:
         shares = np.zeros(len(fleet.technologies))
@@ -430,7 +438,10 @@ def _calculate_packages_saving(
     vessel: Vessel, packages: list[TechnologyPackage], timeline: FloatArray, idx: int
 ) -> list[FloatArray]:
     """
-    Calculate each technology package's marginal saving on the vessel's year grid.
+    Calculate each technology package's marginal saving over the vessel lifetime.
+
+    The saving is sampled at the start of each year from the decision time; the last
+    partial year is prorated, as the package cost flows are.
 
     Parameters
     ----------
@@ -448,6 +459,7 @@ def _calculate_packages_saving(
     list[FloatArray]
         Saving flow of each package, USD/year.
     """
+    lifetime = vessel.lifetime.get()
     idx_ = np.s_[idx:]
     times = timeline[idx_]
 
@@ -459,7 +471,8 @@ def _calculate_packages_saving(
         saving = calculate_marginal_technology_saving(
             vessel, condition_legs, package, idx_
         )
-        savings.append(np.interp(time_flow, times, saving))
+        saving_flow = np.interp(time_flow, times, saving)
+        savings.append(trim_flow_to_lifetime(saving_flow, lifetime))
 
     return savings
 
@@ -489,7 +502,9 @@ def perform_technology_installation(
     if not fleet.technologies or technology_sensitivity is None:
         return
 
-    preprocess_packages(fleet.technology_packages, fleet.assets, timeline[idx])
+    preprocess_packages(
+        fleet.technology_packages, fleet.package_cost_flows, timeline[idx]
+    )
 
     # the fleet count before newbuilds is the denominator of both the retrofit and the
     # newbuild technology caps
@@ -587,9 +602,12 @@ def _propose_newbuild_uptake(
     FloatArray
         MNL share of each newbuild package, fraction.
     """
-    npv = npv_for_newbuilds(
-        basis.packages_saving, fleet.technology_packages, basis.discount_rate
+    cost_flows = get_package_cost_flows(
+        fleet.technology_packages,
+        fleet.package_cost_flows,
+        basis.vessel.lifetime.get(),
     )
+    npv = npv_for_newbuilds(basis.packages_saving, cost_flows, basis.discount_rate)
     choices, msg = calculate_asset_shares(
         npv,
         UtilityID.SIGNED_REFERENCE,
@@ -655,10 +673,14 @@ def _propose_retrofits(
             if eligible_share <= 0.0:
                 continue
 
+            # the step is amortized over the years the cohort still serves
+            cost_flows = get_package_cost_flows(
+                fleet.technology_packages, fleet.package_cost_flows, remaining
+            )
             npv = npv_for_retrofit_steps(
                 package_idx,
                 basis.packages_saving,
-                fleet.technology_packages,
+                cost_flows,
                 remaining,
                 basis.discount_rate,
             )
@@ -670,7 +692,7 @@ def _propose_retrofits(
             )
             annual_costs = annual_costs_for_retrofit_steps(
                 package_idx,
-                fleet.technology_packages,
+                cost_flows,
                 remaining,
                 basis.vessel_discount_rate,
             )

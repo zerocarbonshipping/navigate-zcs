@@ -346,7 +346,7 @@ def add_newbuilds(fleet: Fleet, increments: FloatArray, time_step: float) -> Non
             # the technology bundle chosen at build is charged as a constant
             # yearly rate levelized over the full vessel lifetime
             package_rates = calculate_package_charter_rates(
-                fleet.technology_packages, fleet.assets[v]
+                fleet.technology_packages, fleet.package_cost_flows, fleet.assets[v]
             )
             charter_rate = float(
                 np.dot(fleet.newbuild_package_uptake[v], package_rates)

@@ -47,7 +47,7 @@ This attribute represents the OPEX (operational expenditure) for maintaining the
 
 ### Lifetime
 
-This attribute sets the lifetime of the machinery.
+This attribute sets the lifetime of the machinery. A replacement that would outlast the vessel, or the years a retrofit has left, is charged in proportion to the share of its lifetime still used.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
