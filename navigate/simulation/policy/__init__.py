@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from navigate.simulation.policy.aggregation import calculate_regulation_profile
+from navigate.simulation.policy.compliance import calculate_regulation_allowances
 from navigate.simulation.policy.emission_coefficient import (
     calculate_policy_emission_coefficients,
 )

@@ -49,6 +49,10 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_capacity: dict[str, FloatArray] = {}
         self._vessel_measure: dict[str, FloatArray] = {}
 
+        # threshold times measure, in tons emission; zero under INTENSITY, whose
+        # threshold enters the spend coefficients instead
+        self._vessel_allowance: dict[str, FloatArray] = {}
+
     def initialize(
         self,
         length: int,
@@ -82,6 +86,7 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_threshold = self._default_dict_array(vessels)
         self._vessel_capacity = self._default_dict_array(vessels)
         self._vessel_measure = self._default_dict_array(vessels)
+        self._vessel_allowance = self._default_dict_array(vessels)
 
     def reset_expected_bunkering(self) -> None:
         self._flexibility_cost[:] = 0.0
@@ -144,6 +149,11 @@ class RegulationExpectation(_PolicyExpectation):
         self, idx: int, vessel_name: str, measure: FloatLike
     ) -> None:
         self._vessel_measure[vessel_name][idx:] = measure
+
+    def set_vessel_allowance(
+        self, idx: int, vessel_name: str, allowance: FloatLike
+    ) -> None:
+        self._vessel_allowance[vessel_name][idx:] = allowance
 
     @overload
     def get_emission_coefficient(
@@ -221,6 +231,15 @@ class RegulationExpectation(_PolicyExpectation):
     def get_vessel_capacity(self, vessel_name: str, idx: slice) -> FloatArray:
         return self._vessel_capacity[vessel_name][idx]
 
-    def get_vessel_measure(self, vessel_name: str, idx: int) -> float:
-        measure: float = self._vessel_measure[vessel_name][idx]
-        return measure
+    @overload
+    def get_vessel_measure(self, vessel_name: str, idx: int) -> float: ...
+
+    @overload
+    def get_vessel_measure(self, vessel_name: str, idx: slice) -> FloatArray: ...
+
+    def get_vessel_measure(self, vessel_name: str, idx: int | slice) -> FloatLike:
+        return self._vessel_measure[vessel_name][idx]
+
+    def get_vessel_allowance(self, vessel_name: str, idx: int) -> float:
+        allowance: float = self._vessel_allowance[vessel_name][idx]
+        return allowance

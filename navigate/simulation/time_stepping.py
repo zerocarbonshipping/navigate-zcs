@@ -69,6 +69,7 @@ from navigate.simulation.fuel import (
 from navigate.simulation.policy import (
     calculate_policy_emission_coefficients,
     calculate_policy_expectations,
+    calculate_regulation_allowances,
     calculate_regulation_measures,
     calculate_regulation_profile,
     update_regulation_flexibility_beliefs,
@@ -237,9 +238,11 @@ class Simulation:
 
             # the times in port, electrical demands, shore-power capacities and cargo
             # miles are rewritten during the step, so the shore-power limits and the
-            # regulation measures are recalculated before each bunkering run
+            # regulation measures and allowances are recalculated before each
+            # bunkering run
             calculate_shore_power_limits(self.nodes.fleets, self._idx)
             self._calculate_regulation_measures()
+            self._calculate_regulation_allowances()
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
@@ -270,6 +273,7 @@ class Simulation:
 
         calculate_shore_power_limits(self.nodes.fleets, self._idx)
         self._calculate_regulation_measures()
+        self._calculate_regulation_allowances()
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
@@ -398,6 +402,15 @@ class Simulation:
 
         calculate_regulation_measures(
             self.nodes.regulations, self.nodes.vessels, self.timeline, self._idx
+        )
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+    def _calculate_regulation_allowances(self) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_regulation_allowances(
+            self.nodes.regulations, self.nodes.vessels, self._idx
         )
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)

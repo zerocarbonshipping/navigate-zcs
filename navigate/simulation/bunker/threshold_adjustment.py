@@ -85,7 +85,7 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
             if measure == RegulationMeasureID.INTENSITY
             else 0.0
         )
-        vessel_measure = alg.regulation_measure.get((r, v), 0.0)
+        vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
 
         adjusted_threshold = _compute_vessel_adjusted_threshold(
             measure, emissions, energy, vessel_measure
@@ -118,6 +118,7 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
             continue
 
         measure = regulation.measure
+        expectation = regulation.expectation
 
         total_emissions = 0.0
         total_energy = 0.0
@@ -139,7 +140,7 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
                 RegulationMeasureID.TRANSPORT,
                 RegulationMeasureID.TRANSPORT_NOMINAL,
             ):
-                vessel_measure = alg.regulation_measure[(r, v)]
+                vessel_measure = expectation.get_vessel_measure(v, alg.idx)
                 total_measure += vessel_measure * multiplier
                 energy = 0.0
             else:
@@ -216,6 +217,7 @@ def _update_regulation_rhs_for_adjustment(
     """
     for r, regulation in adjustable_regulations.items():
         measure = regulation.measure
+        expectation = regulation.expectation
         if measure == RegulationMeasureID.INTENSITY:
             continue
 
@@ -232,7 +234,7 @@ def _update_regulation_rhs_for_adjustment(
                 if measure == RegulationMeasureID.ABSOLUTE:
                     new_rhs = adjusted_threshold
                 else:
-                    vessel_measure = alg.regulation_measure[(r, v)]
+                    vessel_measure = expectation.get_vessel_measure(v, alg.idx)
                     new_rhs = adjusted_threshold * vessel_measure
 
                 alg.regulation_rhs_individual[key] = new_rhs
@@ -257,10 +259,9 @@ def _update_regulation_rhs_for_adjustment(
                 if measure == RegulationMeasureID.ABSOLUTE:
                     vessel_rhs = adjusted_threshold
                 else:
-                    vessel_measure = alg.regulation_measure[(r, v)]
+                    vessel_measure = expectation.get_vessel_measure(v, alg.idx)
                     vessel_rhs = adjusted_threshold * vessel_measure
 
-                alg.regulation_rhs_flexibility[key] = vessel_rhs
                 total_rhs += vessel_rhs * alg.multipliers[v]
 
             alg.regulation_total_rhs_flexibility[r] = total_rhs

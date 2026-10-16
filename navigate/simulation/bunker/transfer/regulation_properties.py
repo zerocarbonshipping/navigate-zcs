@@ -88,7 +88,7 @@ def calculate_regulation_emission_properties(
                 rhs = threshold * vessel_measure
 
             else:
-                vessel_measure = alg.regulation_measure[(r, v)]
+                vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
 
                 threshold = _get_adjusted_threshold(alg, regulation, v)
                 if threshold is not None:
@@ -101,7 +101,7 @@ def calculate_regulation_emission_properties(
                     rhs = alg.regulation_rhs_individual[(r, v)]
 
                 else:
-                    rhs = alg.regulation_rhs_flexibility[(r, v)]
+                    rhs = regulation.expectation.get_vessel_allowance(v, alg.idx)
 
             properties[(r, v)] = (emissions, vessel_measure, rhs)
 

@@ -171,9 +171,7 @@ class BunkerAlgorithm:
         self.regulation_spend_coefficient: dict[tuple[str, str, str, str], float] = {}
         self.shore_power_regulation_coefficient: dict[tuple[str, int, str], float] = {}
         self.regulation_rhs_individual: dict[tuple[str, str], float] = {}
-        self.regulation_rhs_flexibility: dict[tuple[str, str], float] = {}
         self.regulation_total_rhs_flexibility: dict[str, float] = {}
-        self.regulation_measure: dict[tuple[str, str], float] = {}
 
         # regulation emission and energy terms per (regulation, vessel)
         self.regulation_emission_terms: dict[tuple[str, str], gp.LinExpr] = {}
@@ -476,9 +474,7 @@ class BunkerAlgorithm:
         self.regulation_spend_coefficient = {}
         self.shore_power_regulation_coefficient = {}
 
-        self.regulation_measure = {}
         self.regulation_rhs_individual = {}
-        self.regulation_rhs_flexibility = {}
         self.regulation_total_rhs_flexibility = {}
         self.regulation_emission_terms = {}
         self.regulation_energy_terms = {}

@@ -143,7 +143,7 @@ def calculate_regulation_terms(
 
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
     """
-    Update the per-vessel right-hand sides and measures of INDIVIDUAL regulations.
+    Update the per-vessel right-hand sides of INDIVIDUAL regulations.
 
     Parameters
     ----------
@@ -158,16 +158,15 @@ def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
             if not regulation.vessel_is_policed(v):
                 continue
 
-            threshold = regulation.expectation.get_vessel_threshold(v, alg.idx)
-            vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
-
-            alg.regulation_measure[(r, v)] = vessel_measure
-            alg.regulation_rhs_individual[(r, v)] = threshold * vessel_measure
+            allowance = regulation.expectation.get_vessel_allowance(v, alg.idx)
+            alg.regulation_rhs_individual[(r, v)] = allowance
 
 
 def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
     """
-    Update the pooled right-hand sides and vessel measures of FLEXIBLE regulations.
+    Update the pooled right-hand sides of FLEXIBLE regulations.
+
+    The pool sums the allowances of the policed vessels, weighted by multipliers.
 
     Parameters
     ----------
@@ -183,12 +182,7 @@ def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
             if not regulation.vessel_is_policed(v):
                 continue
 
-            threshold = regulation.expectation.get_vessel_threshold(v, alg.idx)
-            vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
-            vessel_rhs = threshold * vessel_measure
-            rhs += vessel_rhs * alg.multipliers[v]
-
-            alg.regulation_measure[(r, v)] = vessel_measure
-            alg.regulation_rhs_flexibility[(r, v)] = vessel_rhs
+            allowance = regulation.expectation.get_vessel_allowance(v, alg.idx)
+            rhs += allowance * alg.multipliers[v]
 
         alg.regulation_total_rhs_flexibility[r] = rhs
