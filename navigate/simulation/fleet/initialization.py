@@ -131,12 +131,11 @@ def _build_initial_increments(fleet: Fleet) -> list[list[VesselIncrement]]:
     list[list[VesselIncrement]]
         The increments of each vessel type, oldest first.
     """
-    distributions = fleet.initial_age_distribution
     increments: list[list[VesselIncrement]] = []
 
     for v, vessel in enumerate(fleet.vessels):
         multiplier = fleet.initial_split[v] * fleet.initial_vessels.get()
-        distribution = distributions[v] if distributions else None
+        distribution = fleet.initial_age_distribution[v]
 
         if multiplier > 0.0:
             increments.append(_split_by_age(fleet, vessel, multiplier, distribution))
@@ -150,7 +149,7 @@ def _split_by_age(
     fleet: Fleet,
     vessel: Vessel,
     multiplier: float,
-    distribution: Scalar | Curve | None,
+    distribution: Scalar | Curve,
 ) -> list[VesselIncrement]:
     """
     Split the initial vessels of one type into one increment per age bin.
@@ -167,7 +166,7 @@ def _split_by_age(
     multiplier
         Number of initial vessels of the type.
     distribution
-        Initial age distribution of the type, if any.
+        Initial age distribution of the type; a number spreads the ages evenly.
 
     Returns
     -------

@@ -239,6 +239,9 @@ class Producer(Node):
         if not self.initial_capacity:
             self.initial_capacity = [Scalar(0.0) for _ in self.plants]
 
+        if not self.initial_age_distribution:
+            self.initial_age_distribution = [Scalar(0.0) for _ in self.plants]
+
     def check_consistency(self) -> None:
 
         if len(self.plants) != len(self.initial_capacity):
@@ -247,9 +250,7 @@ class Producer(Node):
                 f" ({len(self.initial_capacity)}) must correspond."
             )
 
-        if self.initial_age_distribution and (
-            len(self.plants) != len(self.initial_age_distribution)
-        ):
+        if len(self.plants) != len(self.initial_age_distribution):
             raise ValueError(
                 f"{self}: The length of Plants ({len(self.plants)}) and"
                 f" InitialAgeDistribution"

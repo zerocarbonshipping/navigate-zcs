@@ -456,6 +456,9 @@ class Fleet(Node):
             nv = len(self.vessels)
             self.initial_split = [1.0 / nv] * nv
 
+        if not self.initial_age_distribution:
+            self.initial_age_distribution = [Scalar(0.0) for _ in self.vessels]
+
     def apply_command_defaults(self) -> None:
 
         # cross-pair keys exist only after commands fill fuel_conversion_cost, so
@@ -472,9 +475,7 @@ class Fleet(Node):
                 f"InitialSplit ({len(self.initial_split)}) must correspond."
             )
 
-        if self.initial_age_distribution and (
-            len(self.vessels) != len(self.initial_age_distribution)
-        ):
+        if len(self.vessels) != len(self.initial_age_distribution):
             raise ValueError(
                 f"{self}: The length of Vessel ({len(self.vessels)}) and "
                 f"InitialAgeDistribution ({len(self.initial_age_distribution)}) "

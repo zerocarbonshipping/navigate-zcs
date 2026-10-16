@@ -74,13 +74,12 @@ def _build_initial_increments(producer: Producer) -> list[list[PlantIncrement]]:
     list[list[PlantIncrement]]
         The increments of each plant type, oldest first.
     """
-    distributions = producer.initial_age_distribution
     increments: list[list[PlantIncrement]] = []
 
     for p, plant in enumerate(producer.plants):
         initial_capacity = producer.initial_capacity[p].get()
         multiplier = _calculate_initial_multiplier(producer, plant, initial_capacity)
-        distribution = distributions[p] if distributions else None
+        distribution = producer.initial_age_distribution[p]
 
         if multiplier > 0.0:
             increments.append(_split_by_age(plant, multiplier, distribution))
@@ -127,7 +126,7 @@ def _calculate_initial_multiplier(
 
 
 def _split_by_age(
-    plant: Plant, multiplier: float, distribution: Scalar | Curve | None
+    plant: Plant, multiplier: float, distribution: Scalar | Curve
 ) -> list[PlantIncrement]:
     """
     Split the initial plants of one type into one increment per age bin.
@@ -143,7 +142,7 @@ def _split_by_age(
     multiplier
         Number of initial plants of the type.
     distribution
-        Initial age distribution of the type, if any.
+        Initial age distribution of the type; a number spreads the ages evenly.
 
     Returns
     -------
