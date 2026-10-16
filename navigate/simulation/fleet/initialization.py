@@ -32,7 +32,6 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.types_ import CurveTableInput
     from navigate.util.types_ import FloatArray
 
 
@@ -131,58 +130,44 @@ def _build_initial_increments(fleet: Fleet) -> list[list[VesselIncrement]]:
     list[list[VesselIncrement]]
         The increments of each vessel type, oldest first.
     """
-    increments: list[list[VesselIncrement]] = []
-
-    for v, vessel in enumerate(fleet.vessels):
-        multiplier = fleet.initial_split[v] * fleet.initial_vessels.get()
-        distribution = fleet.initial_age_distribution[v]
-
-        if multiplier > 0.0:
-            increments.append(_split_vessels(fleet, vessel, multiplier, distribution))
-        else:
-            increments.append([])
-
-    return increments
+    return [_build_vessel_increments(fleet, v) for v in range(len(fleet.vessels))]
 
 
-def _split_vessels(
-    fleet: Fleet, vessel: Vessel, multiplier: float, distribution: CurveTableInput
-) -> list[VesselIncrement]:
+def _build_vessel_increments(fleet: Fleet, vessel_idx: int) -> list[VesselIncrement]:
     """
-    Split the initial vessels of one type into increments, one per age bin.
+    Build the initial increments of one vessel type, one per age bin.
 
-    Where the distribution is a number, the vessels are spread evenly over the
-    type's initial age range.
+    Where the type's initial age distribution is a number, its vessels are spread
+    evenly over its initial age range.
 
     Parameters
     ----------
     fleet
         Fleet the vessels belong to.
-    vessel
-        Vessel type of the vessels.
-    multiplier
-        Number of initial vessels of the type.
-    distribution
-        Initial age distribution of the type; a number spreads the ages evenly.
+    vessel_idx
+        Index of the vessel type in the fleet.
 
     Returns
     -------
     list[VesselIncrement]
         The increments of the type, oldest first.
     """
+    vessel = fleet.vessels[vessel_idx]
+    count = fleet.initial_split[vessel_idx] * fleet.initial_vessels.get()
+    distribution = fleet.initial_age_distribution[vessel_idx]
     age_range = _calculate_initial_age_range(fleet, vessel)
-    ages, spans, multipliers = split_by_age(multiplier, distribution, age_range)
     packages = fleet.get_number_of_packages()
     increments: list[VesselIncrement] = []
 
-    for i in range(ages.size):
-        increment = VesselIncrement(
-            multiplier=multipliers[i],
-            age=float(ages[i]),
-            age_span=float(spans[i]),
-            package_uptake=np.zeros(packages),
-        )
-        increments.append(increment)
+    if count > 0.0:
+        for age, span, multiplier in split_by_age(count, distribution, age_range):
+            increment = VesselIncrement(
+                multiplier=multiplier,
+                age=float(age),
+                age_span=float(span),
+                package_uptake=np.zeros(packages),
+            )
+            increments.append(increment)
 
     return increments
 

@@ -19,7 +19,6 @@ from navigate.simulation.fuel.evolution import (
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
-    from navigate.core.types_ import CurveTableInput
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
@@ -72,17 +71,49 @@ def _build_initial_increments(producer: Producer) -> list[list[PlantIncrement]]:
     list[list[PlantIncrement]]
         The increments of each plant type, oldest first.
     """
-    increments: list[list[PlantIncrement]] = []
+    return [_build_plant_increments(producer, p) for p in range(len(producer.plants))]
 
-    for p, plant in enumerate(producer.plants):
-        initial_capacity = producer.initial_capacity[p].get()
-        multiplier = _calculate_initial_multiplier(producer, plant, initial_capacity)
-        distribution = producer.initial_age_distribution[p]
 
-        if multiplier > 0.0:
-            increments.append(_split_plants(plant, multiplier, distribution))
-        else:
-            increments.append([])
+def _build_plant_increments(producer: Producer, plant_idx: int) -> list[PlantIncrement]:
+    """
+    Build the initial increments of one plant type, one per age bin.
+
+    Where the type's initial age distribution is a number, its plants are spread
+    evenly over the plant lifetime. A bin without plants gets no increment, and
+    each plant was decided one lead time before its delivery.
+
+    Parameters
+    ----------
+    producer
+        Producer the plants belong to.
+    plant_idx
+        Index of the plant type in the producer.
+
+    Returns
+    -------
+    list[PlantIncrement]
+        The increments of the type, oldest first.
+    """
+    plant = producer.plants[plant_idx]
+    initial_capacity = producer.initial_capacity[plant_idx].get()
+    count = _calculate_initial_multiplier(producer, plant, initial_capacity)
+    distribution = producer.initial_age_distribution[plant_idx]
+    lifetime = plant.lifetime.get()
+    lead_time = plant.lead_time.get()
+    increments: list[PlantIncrement] = []
+
+    if count > 0.0:
+        for age, span, multiplier in split_by_age(count, distribution, lifetime):
+            # only positive multipliers are kept, to reduce overhead and to avoid
+            # round-off errors in the increment average properties
+            if multiplier > 0.0:
+                increment = PlantIncrement(
+                    multiplier=multiplier,
+                    age=float(age),
+                    age_span=float(span),
+                    decided=float(age) + lead_time,
+                )
+                increments.append(increment)
 
     return increments
 
@@ -121,48 +152,3 @@ def _calculate_initial_multiplier(
     )
 
     return 0.0
-
-
-def _split_plants(
-    plant: Plant, multiplier: float, distribution: CurveTableInput
-) -> list[PlantIncrement]:
-    """
-    Split the initial plants of one type into increments, one per age bin.
-
-    Where the distribution is a number, the plants are spread evenly over the plant
-    lifetime. A bin without plants gets no increment, and each plant was decided
-    one lead time before its delivery.
-
-    Parameters
-    ----------
-    plant
-        Plant type of the plants.
-    multiplier
-        Number of initial plants of the type.
-    distribution
-        Initial age distribution of the type; a number spreads the ages evenly.
-
-    Returns
-    -------
-    list[PlantIncrement]
-        The increments of the type, oldest first.
-    """
-    lifetime = plant.lifetime.get()
-    ages, spans, multipliers = split_by_age(multiplier, distribution, lifetime)
-    lead_time = plant.lead_time.get()
-    increments: list[PlantIncrement] = []
-
-    for i in range(ages.size):
-        # only positive multipliers are kept, to reduce overhead and to avoid
-        # round-off errors in the increment average properties
-        if multipliers[i] > 0.0:
-            age = float(ages[i])
-            increment = PlantIncrement(
-                multiplier=multipliers[i],
-                age=age,
-                age_span=float(spans[i]),
-                decided=age + lead_time,
-            )
-            increments.append(increment)
-
-    return increments

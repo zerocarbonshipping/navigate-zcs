@@ -26,17 +26,18 @@ if TYPE_CHECKING:
 
 
 def split_by_age(
-    multiplier: float, distribution: CurveTableInput, age_range: float
-) -> tuple[FloatArray, FloatArray, FloatArray | list[float]]:
+    count: float, distribution: CurveTableInput, age_range: float
+) -> list[tuple[float, float, float]]:
     """
     Split an initial number of assets into age bins, oldest first.
 
     A Curve distribution sets the ages and the share of each; a number spreads the
-    assets evenly over yearly bins across the age range.
+    assets evenly over yearly bins across the age range, and an age range under a
+    year leaves no bin.
 
     Parameters
     ----------
-    multiplier
+    count
         Number of assets split.
     distribution
         Initial age distribution of the assets.
@@ -45,22 +46,25 @@ def split_by_age(
 
     Returns
     -------
-    tuple[FloatArray, FloatArray, FloatArray | list[float]]
-        The age of each bin and its width, in years, and the number of assets in it.
+    list[tuple[float, float, float]]
+        The age and width of each bin, in years, and the number of assets in it.
     """
     if isinstance(distribution, Curve):
         ages = distribution.x[::-1]
-        multipliers = multiplier * distribution.y[::-1]
+        multipliers = count * distribution.y[::-1]
 
     else:
         bins = int(age_range)
         ages = np.linspace(age_range - 1.0, 0.0, bins)
-        multipliers = [multiplier / bins for _ in range(bins)]
+        multipliers = [count / bins for _ in range(bins)]
+
+    if not ages.size:
+        return []
 
     # the oldest bin is assumed to have entered over a year
     spans = np.insert(ages[:-1] - ages[1:], 0, 1.0)
 
-    return ages, spans, multipliers
+    return list(zip(ages, spans, multipliers, strict=True))
 
 
 def extends_past(increment: Increment, boundary: float) -> bool:
