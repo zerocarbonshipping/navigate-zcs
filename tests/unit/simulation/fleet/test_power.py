@@ -7,8 +7,7 @@ Tests for converter power-capacity verification and vessel load-function checks.
 The power-capacity check asserts, per sailing condition and per port, that the energy a
 converter delivers cannot exceed its power capacity times the time spent on
 the step. Port demands must fit the onboard converter alone: shore power gives
-no allowance. Only vessels whose multiplier admits them into a bunkering scope are
-checked.
+no allowance.
 
 The load-function checks decide, from a vessel's propulsion, electrical, and
 heat loads, its technical speed limits and whether its loads are convex.
@@ -22,12 +21,7 @@ import numpy as np
 import pytest
 
 from navigate.core import Expression, Scalar
-from navigate.core.enum_ import (
-    PORT_ENERGY_DEMANDS,
-    BunkerScopeID,
-    EnergyDemandID,
-    RouteTypeID,
-)
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, RouteTypeID
 from navigate.core.expectations.vessel_expectation import VesselExpectation
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.route import Route
@@ -36,7 +30,6 @@ from navigate.exceptions import PowerCapacityError
 from navigate.simulation.fleet.power import (
     calculate_technical_speed_limits,
     loads_are_convex,
-    verify_power_capacity,
     verify_vessel_power_capacity,
 )
 from navigate.util import MWD_TO_GJ, TOLERANCE
@@ -226,78 +219,13 @@ class TestVerifyVesselPowerCapacity:
         assert "heat demand on the leg from" in message
 
 
-class TestVerifyPowerCapacity:
-    """Scope gating only verifies vessels whose multiplier admits them into LP scope."""
-
-    @staticmethod
-    def _make_fleets(vessel, existing_multiplier, expected_multipliers):
-        expectation = SimpleNamespace(
-            get_existing_multipliers=lambda v, idx: existing_multiplier,
-            get_expected_multipliers=lambda v, idx: np.asarray(expected_multipliers)[
-                idx
-            ],
-        )
-        fleet = SimpleNamespace(vessels=[vessel], expectation=expectation)
-        return {"fleet": fleet}
-
-    @staticmethod
-    def _make_overloaded_vessel():
-        return _make_vessel(
-            energies_sea={
-                PROPULSION: [12.0 * 10.0 * MWD_TO_GJ],
-                ELECTRICAL: [0.0],
-                HEAT: [0.0],
-            }
-        )
-
-    def test_zero_multiplier_vessel_is_skipped(self):
-        fleets = self._make_fleets(
-            self._make_overloaded_vessel(),
-            existing_multiplier=0.0,
-            expected_multipliers=[0.0] * (IDX + 3),
-        )
-
-        verify_power_capacity(fleets, IDX, BunkerScopeID.EXISTING)
-        verify_power_capacity(fleets, IDX, BunkerScopeID.EXPECTED)
-
-    def test_scope_selects_its_own_multiplier(self):
-        fleets = self._make_fleets(
-            self._make_overloaded_vessel(),
-            existing_multiplier=0.0,
-            expected_multipliers=[0.0] * IDX + [1.0, 1.0, 1.0],
-        )
-
-        verify_power_capacity(fleets, IDX, BunkerScopeID.EXISTING)
-
-        with pytest.raises(PowerCapacityError):
-            verify_power_capacity(fleets, IDX, BunkerScopeID.EXPECTED)
-
-    def test_expected_gating_covers_the_remaining_horizon(self):
-        """
-        A vessel entering only at a later forecast step is still verified.
-
-        Expected bunkering builds one LP per future step, so the gate spans the horizon.
-        """
-        fleets = self._make_fleets(
-            self._make_overloaded_vessel(),
-            existing_multiplier=0.0,
-            expected_multipliers=[0.0] * (IDX + 2) + [1.0],
-        )
-
-        verify_power_capacity(fleets, IDX, BunkerScopeID.EXISTING)
-
-        with pytest.raises(PowerCapacityError):
-            verify_power_capacity(fleets, IDX, BunkerScopeID.EXPECTED)
-
-
 class TestExpectationHorizonBroadcast:
     """
-    Pins the horizon-broadcast contract that expected-scope power gating relies on.
+    Pins the horizon-broadcast contract that verify_power_capacity relies on.
 
-    The expected-scope gating in verify_power_capacity checks demands
-    only at the current index; that is valid because a vessel-expectation write at idx
-    broadcasts over the whole remaining horizon, so every future expected-bunkering
-    build reads the same demands and times.
+    It checks demands only at the current index; that is valid because a
+    vessel-expectation write at idx broadcasts over the whole remaining horizon, so
+    every future expected-bunkering build reads the same demands and times.
     """
 
     LENGTH = 6

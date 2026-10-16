@@ -99,9 +99,7 @@ def _calculate_demand_based_fair_share_fuel_supply(
     }
 
     multipliers = {
-        vessel.name: fleet.expectation.get_existing_multipliers(vessel.name, time_index)
-        if scope == BunkerScopeID.EXISTING
-        else fleet.expectation.get_expected_multipliers(vessel.name, time_index)
+        vessel.name: fleet.expectation.get_multiplier(vessel.name, scope, time_index)
         for fleet in fleets.values()
         for vessel in fleet.vessels
     }

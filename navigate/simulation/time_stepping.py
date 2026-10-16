@@ -235,7 +235,7 @@ class Simulation:
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
-            verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXPECTED)
+            self._verify_power_capacity(self._bunker_expected)
             self._calculate_expected_bunkering()
 
             # smooth the energy-conservation LP duals into scarcity belief paths
@@ -260,7 +260,7 @@ class Simulation:
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
-        verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXISTING)
+        self._verify_power_capacity(self._bunker_existing)
         self._perform_existing_bunkering()
 
         self._calculate_profile()
@@ -398,6 +398,11 @@ class Simulation:
         calculate_fair_share_fuel_supply(self.nodes.fleets, fuels, self._idx, scope)
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+    def _verify_power_capacity(self, bunker: BunkerAlgorithm) -> None:
+        vessels = bunker.get_admitted_vessels(self._idx)
+
+        verify_power_capacity(vessels, self._idx)
 
     def _perform_producer_evolution(self) -> None:
         """

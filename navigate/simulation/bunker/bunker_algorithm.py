@@ -101,8 +101,32 @@ if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.fair_share import FairShareSolutions
+    from navigate.util.types_ import FloatLike
 
 logger = logging.getLogger(__name__)
+
+
+def _is_admitted(multiplier: FloatLike) -> bool:
+    """
+    Check whether a vessel multiplier admits the vessel into a bunkering LP.
+
+    A vessel enters the LP of its step only with a positive multiplier. Expected
+    bunkering needs a solution for every vessel type, as its results feed the uptake
+    metrics of the vessel; vessel types not in the fleet therefore carry a low
+    multiplier, so every vessel type enters the expected LPs, while existing bunkering
+    drops a vessel whose multiplier is zero.
+
+    Parameters
+    ----------
+    multiplier
+        Multiplier of the vessel at one time step or over several.
+
+    Returns
+    -------
+    bool
+        True if the multiplier is positive at any of the steps.
+    """
+    return bool(np.max(multiplier) > 0.0)
 
 
 class BunkerAlgorithm:
@@ -311,16 +335,9 @@ class BunkerAlgorithm:
             for vessel in fleet.vessels:
                 v = vessel.name
 
-                # expected bunkering needs a solution for every vessel type, as its
-                # results feed the uptake metrics of the vessel; vessel types not in
-                # the fleet therefore carry a low multiplier, which limits their
-                # impact on the overall solution but still yields a result
-                if self.scope == BunkerScopeID.EXISTING:
-                    multiplier = fleet.expectation.get_existing_multipliers(v, self.idx)
-                else:
-                    multiplier = fleet.expectation.get_expected_multipliers(v, self.idx)
+                multiplier = fleet.expectation.get_multiplier(v, self.scope, self.idx)
 
-                if multiplier > 0.0:
+                if _is_admitted(multiplier):
                     self.vessels[v] = vessel
                     self.multipliers[v] = np.float64(multiplier)
 
@@ -396,6 +413,39 @@ class BunkerAlgorithm:
 
         end = timeit.default_timer()
         self.transfer_time = end - start
+
+    def get_admitted_vessels(self, current_idx: int) -> list[Vessel]:
+        """
+        Get the vessels that enter at least one LP built from a time step.
+
+        Existing bunkering builds one LP, at the time step itself; expected bunkering
+        builds one for every step of the remaining horizon.
+
+        Parameters
+        ----------
+        current_idx
+            Time-step index at which current or forward bunkering is initiated.
+
+        Returns
+        -------
+        list[Vessel]
+            Vessels of every fleet with a positive multiplier in a built LP.
+        """
+        is_existing = self.scope == BunkerScopeID.EXISTING
+        steps = current_idx if is_existing else np.s_[current_idx:]
+
+        admitted = []
+
+        for fleet in self.fleets.values():
+            for vessel in fleet.vessels:
+                v = vessel.name
+
+                multiplier = fleet.expectation.get_multiplier(v, self.scope, steps)
+
+                if _is_admitted(multiplier):
+                    admitted.append(vessel)
+
+        return admitted
 
     def _initialize_model(self) -> None:
         """Create the LP model and its empty variable and constraint containers."""
