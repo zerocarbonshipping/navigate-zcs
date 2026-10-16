@@ -18,6 +18,7 @@ from navigate.core import (
     assign_list,
     assign_reference_list,
     assign_value,
+    check_curves_are_finite,
     command_assignment_to_boolean_dict,
     write_matching_keys,
 )
@@ -25,12 +26,12 @@ from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, PLANT, PRODUCER, VARIABLE
-from navigate.core.nodes.curve import Curve
 from navigate.core.profiles import ProducerProfile
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.increment import PlantIncrement
+    from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.fuel import Fuel
@@ -257,18 +258,8 @@ class Producer(Node):
                 f" ({len(self.initial_age_distribution)}) must correspond."
             )
 
-        # the distribution's Curves are read as tables, never evaluated, so no
-        # bound they are assigned under ever checks their fractions; the table
-        # itself rejects a non-finite age
-        for distribution in self.initial_age_distribution:
-            if not isinstance(distribution, Curve):
-                continue
-
-            if not np.all(np.isfinite(distribution.y)):
-                raise ValueError(
-                    f"{self}: InitialAgeDistribution ({distribution}) must hold "
-                    "finite values."
-                )
+        distributions = self.initial_age_distribution
+        check_curves_are_finite(self, "InitialAgeDistribution", distributions)
 
         for pipeline in self.existing_pipelines.values():
             if pipeline is None:

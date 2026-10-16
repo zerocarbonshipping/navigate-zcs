@@ -6,7 +6,9 @@ Validation of the values a deck assigns, shared by every DSL setter.
 
 A value failing its attribute's requirements raises a ValueError carrying only
 a partial message; the parser catches it and completes it with the deck
-location and the attribute assigned to.
+location and the attribute assigned to. The checks a node runs from its
+lifecycle hooks, once the tables its values reference are built, name the node
+and the attribute themselves.
 """
 
 from __future__ import annotations
@@ -36,7 +38,9 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Hashable, Iterator, Sized
+    from collections.abc import Collection, Hashable, Iterator, Sequence, Sized
+
+    from navigate.core.nodes.curve import Curve
 
 _BOOL_ID = {"FALSE": False, "TRUE": True}
 _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
@@ -622,6 +626,39 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
         rescaled = abs(total - 1) > 0.01
 
     return assign_list(fractions, lower=0.0, upper=1.0), rescaled
+
+
+def check_curves_are_finite(
+    node: Node, attribute: str, entries: Sequence[Scalar | Curve]
+) -> None:
+    """
+    Reject a Curve among an attribute's entries that holds a non-finite value.
+
+    The Curves are read as tables, never evaluated, so no bound they are
+    assigned under ever checks their values; the table itself rejects a
+    non-finite x-value. A node runs this from check_consistency, as the tables
+    are built only after its setters have run.
+
+    Parameters
+    ----------
+    node
+        Node holding the attribute, named in the error.
+    attribute
+        DSL name of the attribute, named in the error.
+    entries
+        The attribute's entries; a number among them is skipped.
+
+    Raises
+    ------
+    ValueError
+        If a Curve holds an INF, -INF or NaN value.
+    """
+    for entry in entries:
+        if isinstance(entry, Scalar):
+            continue
+
+        if not np.all(np.isfinite(entry.y)):
+            raise ValueError(f"{node}: {attribute} ({entry}) must hold finite values.")
 
 
 def write_matching_keys[K: str | Enum, V](

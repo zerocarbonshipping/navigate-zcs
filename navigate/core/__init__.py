@@ -23,6 +23,7 @@ from navigate.core.assign import (
     assign_reference,
     assign_reference_list,
     assign_value,
+    check_curves_are_finite,
     command_assignment_to_boolean_dict,
     expand_id_wildcard,
     write_matching_key_pairs,

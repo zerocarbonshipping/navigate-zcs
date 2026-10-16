@@ -21,6 +21,7 @@ from navigate.core import (
     assign_member,
     assign_reference_list,
     assign_value,
+    check_curves_are_finite,
     command_assignment_to_boolean_dict,
     write_matching_key_pairs,
     write_matching_keys,
@@ -34,7 +35,6 @@ from navigate.core.enum_ import (
 from navigate.core.expectations import FleetExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
-from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.profiles import FleetProfile
 from navigate.core.technology_package import PackageCostFlows, TechnologyPackage
@@ -46,6 +46,7 @@ if TYPE_CHECKING:
 
     from navigate.core.expression import Expression
     from navigate.core.increment import VesselIncrement
+    from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.technology import Technology
@@ -482,18 +483,8 @@ class Fleet(Node):
                 "must correspond."
             )
 
-        # the distribution's Curves are read as tables, never evaluated, so no
-        # bound they are assigned under ever checks their fractions; the table
-        # itself rejects a non-finite age
-        for distribution in self.initial_age_distribution:
-            if not isinstance(distribution, Curve):
-                continue
-
-            if not np.all(np.isfinite(distribution.y)):
-                raise ValueError(
-                    f"{self}: InitialAgeDistribution ({distribution}) must hold "
-                    "finite values."
-                )
+        distributions = self.initial_age_distribution
+        check_curves_are_finite(self, "InitialAgeDistribution", distributions)
 
         if not self.orderbooks:
             return
