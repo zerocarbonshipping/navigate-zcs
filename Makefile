@@ -15,7 +15,7 @@ else
   RUN := env PATH="$(CURDIR)/.venv/bin:$(PATH)"
 endif
 
-.PHONY: lint test-unit test-e2e test-all test-examples compare-results help setup conda-setup pip-setup docs docs-clean
+.PHONY: lint test-unit test-e2e test-all test-examples compare-results help setup conda-setup pip-setup docs docs-clean clean
 
 help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -89,3 +89,17 @@ docs:  ## Stage content and build the documentation site (needs docs/requirement
 
 docs-clean:  ## Remove the documentation build output
 	$(MAKE) -C docs clean
+
+# git clean -X removes only gitignored files, so tracked files and decks stay.
+# simulations/debug/ ignores one's own decks too, so there only the run output
+# goes: plots*/ folders, logs, reports and pickles.
+clean:  ## Remove build output, test and lint caches, and simulation run output
+	rm -rf build dist *.egg-info .eggs .pytest_cache .mypy_cache .ruff_cache \
+		.coverage .coverage.* htmlcov .hypothesis $(COMPARE_DIR)
+	git worktree prune
+	git clean -fdX -- navigate/ tests/ docs/_build/ simulations/ \
+		':!simulations/debug/'
+	[ ! -d simulations/debug ] || find simulations/debug -mindepth 1 \
+		\( -type d -name 'plots*' -prune -exec rm -rf {} + \) -o \
+		\( -type f \( -name '*.log' -o -name '*.xlsx' -o -name '*.pkl' \
+		-o -name '*.png' \) -delete \)
