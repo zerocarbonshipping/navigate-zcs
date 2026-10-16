@@ -88,9 +88,13 @@ class Vessel(Node):
 
         # convenience variables
         self.primary_fuel_type: FuelTypeID
-        self.usable_fuel_types: list[FuelTypeID] = []
-        self.usable_fuels: dict[str, Fuel] = {}
         self.fleet_assignment: str
+
+        # node maps
+        self.usable_fuel_types: list[FuelTypeID]
+        self.usable_fuels: dict[str, Fuel]
+        self.fuels_per_converter: dict[str, dict[str, Fuel]]
+        self.converters_per_fuel: dict[str, tuple[str, ...]]
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion_load(self, propulsion_load: SurfaceArgument) -> None:
