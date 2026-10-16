@@ -146,16 +146,13 @@ def _build_initial_increments(fleet: Fleet) -> list[list[VesselIncrement]]:
 
 
 def _split_by_age(
-    fleet: Fleet,
-    vessel: Vessel,
-    multiplier: float,
-    distribution: CurveTableInput,
+    fleet: Fleet, vessel: Vessel, multiplier: float, distribution: CurveTableInput
 ) -> list[VesselIncrement]:
     """
     Split the initial vessels of one type into one increment per age bin.
 
     A Curve distribution sets the ages and the share of each; otherwise the vessels
-    are spread evenly over yearly bins across the vessel lifetime.
+    are spread evenly over yearly bins across their initial age range.
 
     Parameters
     ----------
@@ -178,9 +175,9 @@ def _split_by_age(
         multipliers = multiplier * distribution.y[::-1]
 
     else:
-        lifetime = _calculate_initial_lifetime(fleet, vessel)
-        bins = int(lifetime)
-        ages = np.linspace(lifetime - 1.0, 0.0, bins)
+        age_range = _calculate_initial_age_range(fleet, vessel)
+        bins = int(age_range)
+        ages = np.linspace(age_range - 1.0, 0.0, bins)
         multipliers = [multiplier / bins for _ in range(bins)]
 
     # the oldest increment is assumed to have entered over a year
@@ -200,9 +197,9 @@ def _split_by_age(
     return increments
 
 
-def _calculate_initial_lifetime(fleet: Fleet, vessel: Vessel) -> float:
+def _calculate_initial_age_range(fleet: Fleet, vessel: Vessel) -> float:
     """
-    Return the lifetime the initial vessels of a type span in age, in years.
+    Return the age range the initial vessels of a type are spread over.
 
     It is the vessel lifetime, capped at the inverse of the fleet's fixed scrap rate.
 
@@ -216,7 +213,7 @@ def _calculate_initial_lifetime(fleet: Fleet, vessel: Vessel) -> float:
     Returns
     -------
     float
-        Lifetime, in years.
+        Age range, in years.
     """
     lifetime = vessel.lifetime.get()
 
@@ -224,7 +221,11 @@ def _calculate_initial_lifetime(fleet: Fleet, vessel: Vessel) -> float:
         return lifetime
 
     scrap_rate = fleet.fixed_scrap_rate.get()
-    return min(lifetime, 1.0 / scrap_rate) if scrap_rate > 0.0 else lifetime
+
+    if scrap_rate > 0.0:
+        return min(lifetime, 1.0 / scrap_rate)
+
+    return lifetime
 
 
 def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:

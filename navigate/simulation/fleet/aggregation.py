@@ -4,7 +4,8 @@
 """
 Per-step fleet cost transfers, fuel-type totals, fuel demand and vessel profiles.
 
-Also the vessel counts of each type, summed over the fleet's increments.
+The vessel count of each type, which the fleet decisions read, is summed here from
+the fleet's increments.
 """
 
 from __future__ import annotations
@@ -109,12 +110,12 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     for v, vessel in enumerate(fleet.vessels):
+        incs = fleet.increments[v]
         power = get_total_power_capacity(vessel)
 
-        age_power_sum = (
-            float(sum(inc.age * inc.multiplier for inc in fleet.increments[v])) * power
-        )
+        age_power_sum = float(sum(inc.age * inc.multiplier for inc in incs)) * power
         count_power_sum = float(get_multiplier(fleet, v)) * power
+
         fleet.profile.add_weighted_age(
             vessel.primary_fuel_type, age_power_sum, count_power_sum, idx
         )

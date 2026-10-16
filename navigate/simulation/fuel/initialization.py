@@ -133,7 +133,8 @@ def _split_by_age(
 
     A Curve distribution sets the ages and the share of each; otherwise the plants
     are spread evenly over yearly bins across the plant lifetime. A bin without
-    plants gets no increment.
+    plants gets no increment, and each plant was decided one lead time before its
+    delivery.
 
     Parameters
     ----------
@@ -169,14 +170,11 @@ def _split_by_age(
         # round-off errors in the increment average properties
         if multipliers[i] > 0.0:
             age = float(ages[i])
-            # a plant was decided one lead time before its delivery
-            decided = age + lead_time
-
             increment = PlantIncrement(
                 multiplier=multipliers[i],
                 age=age,
                 age_span=float(spans[i]),
-                decided=decided,
+                decided=age + lead_time,
             )
             increments.append(increment)
 
