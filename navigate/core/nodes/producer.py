@@ -211,9 +211,14 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         )
 
     # internal methods -----------------------------------------------------------------
+    def apply_defaults(self) -> None:
+
+        if not self._initial_capacity:
+            self._initial_capacity = [Scalar(0.0) for _ in self.assets]
+
     def check_consistency(self) -> None:
 
-        if self._initial_capacity and (len(self.assets) != len(self._initial_capacity)):
+        if len(self.assets) != len(self._initial_capacity):
             raise ValueError(
                 f"{self}: The length of Plants ({len(self.assets)}) and InitialCapacity"
                 f" ({len(self._initial_capacity)}) must correspond."
@@ -312,14 +317,6 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
     ) -> None:
 
         self.profile.initialize(timeline, feedstocks, fuels, processes)
-
-    def define_initial_capacity(self) -> None:
-        """Define the initial capacity of each plant type."""
-        if not self._initial_capacity:
-            # if the initial capacity is not
-            # supplied by the user, then assume
-            # zero initial capacity
-            self._initial_capacity = [Scalar(0.0) for _ in self.assets]
 
     def define_initial_decided(self) -> None:
         """Set the decided field on each increment based on age + lead time."""

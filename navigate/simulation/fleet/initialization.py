@@ -85,9 +85,11 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
         fleet.technology_packages, fleet.package_cost_flows, timeline[idx]
     )
 
-    # the initial split must be defined before the age discretization, as
-    # _get_initial_multiplier reads it
-    _define_initial_split(fleet)
+    # the initial split of the existing fleet need not match the current newbuild
+    # trend, but it is the best available proxy for it
+    # TODO: allow this to be user-defined
+    fleet.current_uptake = np.array(fleet.initial_split)
+
     fleet.define_initial_age()
     fleet.define_initial_multipliers()
     define_initial_technology(fleet)
@@ -111,26 +113,6 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     transfer_technology_charter_rate(fleet, idx)
 
     fleet.fuel_conversion_expenses = np.zeros_like(timeline)
-
-
-def _define_initial_split(fleet: Fleet) -> None:
-    """
-    Define the initial fraction of each vessel type in the fleet.
-
-    Parameters
-    ----------
-    fleet
-        Fleet to define the initial split for.
-    """
-    # without a supplied initial split, the cargo-miles are split uniformly
-    if not fleet.initial_split:
-        nv = len(fleet.assets)
-        fleet.initial_split = [1.0 / nv for v in range(nv)]
-
-    # the initial split of the existing fleet need not match the current newbuild
-    # trend, but it is the best available proxy for it
-    # TODO: allow this to be user-defined
-    fleet.current_uptake = np.array(fleet.initial_split)
 
 
 def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:

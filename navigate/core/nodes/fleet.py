@@ -426,6 +426,13 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         if self.technologies and self.technology_sensitivity is None:
             raise UnassignedAttributeError(str(self), "TechnologySensitivity")
 
+    def apply_defaults(self) -> None:
+
+        # without a supplied initial split, the cargo-miles are split uniformly
+        if not self.initial_split:
+            nv = len(self.assets)
+            self.initial_split = [1.0 / nv] * nv
+
     def apply_command_defaults(self) -> None:
 
         # cross-pair keys exist only after commands fill fuel_conversion_cost, so
@@ -436,7 +443,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
 
     def check_consistency(self) -> None:
 
-        if self.initial_split and (len(self.assets) != len(self.initial_split)):
+        if len(self.assets) != len(self.initial_split):
             raise ValueError(
                 f"{self}: The length of Vessel ({len(self.assets)}) and "
                 f"InitialSplit ({len(self.initial_split)}) must correspond."
