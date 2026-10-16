@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import get_constraint
+from navigate.simulation.bunker.utils import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -59,11 +60,12 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     bunker = alg.bunker
     spend_port = alg.spend_port
     spend_sea = alg.spend_sea
-    converters_per_fuel = alg.converters_per_fuel
-    port_converters_per_fuel = alg.port_converters_per_fuel
+    port_converters = get_port_converters(vessel)
     mass_conservation = alg.mass_conservation
 
-    for f in vessel.usable_fuels:
+    for f, converters in vessel.converters_per_fuel.items():
+        converters_in_port = [c for c in converters if c in port_converters]
+
         for p in route.get_tank_stops():
             key = (v, p, f)
 
@@ -76,14 +78,14 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
             if ports[p].is_bunkering_allowed(f):
                 change_coefficient(constraint, bunker[v, p, f], -1.0)
 
-            for c in port_converters_per_fuel[v, f]:
+            for c in converters_in_port:
                 change_coefficient(constraint, spend_port[v, c, f, p], 1.0)
 
         # a tank leg carries the tank from its origin's row into its destination's
         for i, e in route.get_tank_legs():
             constraint = mass_conservation[v, e, f]
 
-            for c in converters_per_fuel[v, f]:
+            for c in converters:
                 change_coefficient(constraint, spend_sea[v, c, f, i, e], 1.0)
 
             change_coefficient(constraint, mass_tank[v, i, f], -voyages)

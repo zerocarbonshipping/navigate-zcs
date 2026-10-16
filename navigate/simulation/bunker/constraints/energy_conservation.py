@@ -109,7 +109,7 @@ def _update_sea_energy_conservation(
     c = converter.name
     efficiency = converter.efficiency.get()
     demand = demands[energy_type]
-    fuels = alg.fuels_per_converter[(v, c)]
+    fuels = vessel.fuels_per_converter[c]
     spend_sea = alg.spend_sea
     change_coefficient = alg.model.chgCoeff
 
@@ -158,7 +158,7 @@ def _update_port_energy_conservation(
     c = converter.name
     efficiency = converter.efficiency.get()
     demand = demands[energy_type]
-    fuels = alg.fuels_per_converter[(v, c)]
+    fuels = vessel.fuels_per_converter[c]
     spend_port = alg.spend_port
     change_coefficient = alg.model.chgCoeff
 

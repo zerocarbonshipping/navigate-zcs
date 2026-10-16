@@ -80,7 +80,6 @@ from navigate.simulation.bunker.transfer.regulation_properties import (
 from navigate.simulation.bunker.transfer.shore_power import transfer_shore_power
 from navigate.simulation.bunker.transfer.spend_port import transfer_spend_port
 from navigate.simulation.bunker.transfer.spend_sea import transfer_spend_sea
-from navigate.simulation.bunker.utils import initialize_converter_fuel_maps
 from navigate.simulation.bunker.variables import (
     update_regulation_variables,
     update_vessel_variables,
@@ -157,12 +156,6 @@ class BunkerAlgorithm:
         self.vessels: dict[str, Vessel] = {}
         self.multipliers: dict[str, float] = {}
         self.fuels_per_fuel_type: dict[FuelTypeID, list[Fuel]] = {}
-
-        # static converter-fuel maps, built on the first call to build, as they
-        # depend on the existing fleet, which is initialized after this algorithm
-        self.fuels_per_converter: dict[tuple[str, str], dict[str, Fuel]] = {}
-        self.converters_per_fuel: dict[tuple[str, str], tuple[str, ...]] = {}
-        self.port_converters_per_fuel: dict[tuple[str, str], tuple[str, ...]] = {}
 
         # dynamic properties updated at every time-step --------------------------------
 
@@ -312,9 +305,6 @@ class BunkerAlgorithm:
         self.idx = idx
         self.time = time
         self.time_step = time_step
-
-        if not self.fuels_per_converter:
-            initialize_converter_fuel_maps(self)
 
         self._reset_dynamic_properties()
 
