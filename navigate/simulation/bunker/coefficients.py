@@ -47,7 +47,7 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     alg.regulation_vessel_threshold.update(thresholds)
 
     factors = {
-        (v, c, f, r): regulation.expectation.get_coefficient((v, c, f), idx)
+        (v, c, f, r): regulation.expectation.get_emission_coefficient((v, c, f), idx)
         for c in get_converters(vessel)
         for f in fuels_per_converter[v, c]
         for r, regulation in active_regulations.items()
