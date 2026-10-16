@@ -51,7 +51,7 @@ from navigate.parser._keywords import (
 from navigate.parser._lark_parser import Assignment, NodeDeclaration, SourceLocation
 from navigate.parser._node_reference import NodeReference
 from navigate.parser._reachability import ACTIVATION_EDGES, ROOT_TYPES, find_unreachable
-from navigate.util import attribute_to_instance_name
+from navigate.util import attribute_to_instance_name, attribute_to_setter
 
 NON_ROOT_TYPES = sorted(set(NODE_GROUP) - set(ROOT_TYPES))
 
@@ -365,15 +365,19 @@ class TestActivationEdges:
             assert target_type in NODE_GROUP
 
             for owner_type, attribute_name in edges:
-                owner = define_new_node(owner_type, "pin")
-                assert isinstance(getattr(owner, attribute_name), list)
-
                 dsl_names = [
                     key
                     for key in NODE_ATTRIBUTE_SECTIONS[owner_type]
                     if attribute_to_instance_name(key) == attribute_name
                 ]
                 assert len(dsl_names) == 1
+
+                # the attribute is unset until its setter runs
+                owner = define_new_node(owner_type, "pin")
+                setter = getattr(owner, attribute_to_setter(dsl_names[0]))
+                setter([define_new_node(target_type, "target")])
+                assert isinstance(getattr(owner, attribute_name), list)
+
                 assert (
                     NODE_ATTRIBUTE_SECTIONS[owner_type][dsl_names[0]] == SECTION_DEFINE
                 )

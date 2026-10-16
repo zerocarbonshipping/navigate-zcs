@@ -54,7 +54,17 @@ BASE = [
     ),
     ("Port", "a", []),
     ("Port", "b", []),
-    ("Route", "r", ["RouteType = ROUND_TRIP", 'Ports = [Port("a"), Port("b")]']),
+    (
+        "Route",
+        "r",
+        [
+            "RouteType = LINER",
+            'Ports = [Port("a"), Port("b")]',
+            'set_speed("*", "*", 10)',
+            'set_distance("*", "*", 1000)',
+            'set_port_duration("*", "*", 1)',
+        ],
+    ),
     ("Tank", "t", ["FuelTypes = OIL", "Size = 100"]),
     ("Surface", "s", ["Table = [\n        0 1\n        0 1 2\n        1 3 4\n    ]"]),
     (
@@ -81,8 +91,26 @@ BASE = [
     ("Curve", "cu", [TABLE_1D]),
     ("Emission", "e", ['GlobalWarmingPotential = Curve("cu")']),
     ("Forecast", "fc", [TABLE_1D]),
-    ("Levy", "l", ["Scheme = PENALTY", 'Level = Forecast("fc")']),
-    ("Regulation", "rg", ["Scheme = INDIVIDUAL", "Measure = ABSOLUTE"]),
+    (
+        "Levy",
+        "l",
+        [
+            "Scheme = PENALTY",
+            'Level = Forecast("fc")',
+            'Emissions = [Emission("e")]',
+            'Fuels = [Fuel("f")]',
+        ],
+    ),
+    (
+        "Regulation",
+        "rg",
+        [
+            "Scheme = INDIVIDUAL",
+            "Measure = ABSOLUTE",
+            'Emissions = [Emission("e")]',
+            'Fuels = [Fuel("f")]',
+        ],
+    ),
     ("Source", "src", ["Dependency = STANDALONE"]),
     ("Process", "p", []),
     (

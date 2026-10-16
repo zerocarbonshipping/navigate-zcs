@@ -20,7 +20,7 @@ import pytest
 
 from navigate.core.enum_ import RouteTypeID
 
-ROUTE_TYPES = ("ROUND_TRIP", "REGIONAL_TRIP")
+ROUTE_TYPES = ("LINER", "TRAMP")
 ALIGNMENTS = ("INDIVIDUAL", "MINIMUM", "MAXIMUM", "AVERAGE")
 ALIGNED = ALIGNMENTS[1:]
 
