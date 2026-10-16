@@ -41,11 +41,11 @@ def calculate_regulation_terms(
         Q = \sum_t \phi_t \lambda_t z_t    (energy)
 
     where z is a spend or shore-power variable, \phi the regulation's jurisdiction
-    fraction of its port or leg and e its emission coefficient, both read from the
-    regulation's expectation, k its regulation spend coefficient, and \lambda its
+    fraction of its port or leg, e its emission coefficient and k its spend
+    coefficient, all read from the regulation's expectation, and \lambda its
     effective lower heating value (1 for shore power, already in GJ). T enters
     the threshold constraints; M and Q are evaluated at the solution, for the
-    threshold adjustment and for the regulation's compliance and flexibility market.
+    regulation's compliance and flexibility market.
 
     A variable whose fraction is 0 stays in the list at weight 0, so between
     builds the list only grows, as the vessel's variables do.
@@ -66,13 +66,9 @@ def calculate_regulation_terms(
         keyed by a distinct converter, fuel and port or leg; then M and Q.
     """
     v = vessel.name
-    r = regulation.name
     idx = alg.idx
     expectation = regulation.expectation
     vessel_expectation = vessel.expectation
-
-    coefficients = alg.regulation_spend_coefficient
-    shore_power_coefficients = alg.shore_power_regulation_coefficient
 
     port_converters = get_port_converters(vessel)
     fuels_per_converter = vessel.fuels_per_converter
@@ -90,7 +86,7 @@ def calculate_regulation_terms(
         terms.extend(
             _Term(
                 alg.spend_port[v, c, f, p],
-                fraction * coefficients[(v, c, f, r)],
+                fraction * expectation.get_spend_coefficient((v, c, f), idx),
                 fraction * expectation.get_emission_coefficient((v, c, f), idx),
                 fraction * vessel_expectation.get_effective_lhv(c, f),
             )
@@ -106,7 +102,7 @@ def calculate_regulation_terms(
         terms.extend(
             _Term(
                 alg.spend_sea[v, c, f, port_start, port_end],
-                fraction * coefficients[(v, c, f, r)],
+                fraction * expectation.get_spend_coefficient((v, c, f), idx),
                 fraction * expectation.get_emission_coefficient((v, c, f), idx),
                 fraction * vessel_expectation.get_effective_lhv(c, f),
             )
@@ -116,15 +112,17 @@ def calculate_regulation_terms(
 
     # shore power, at the ports where the vessel can connect
     for p, (port, fraction) in enumerate(zip(route.ports, port_fractions, strict=True)):
-        if (v, p, r) not in shore_power_coefficients:
+        if (v, p) not in alg.regulated_shore_power:
             continue
 
-        emission = expectation.get_shore_power_emission_coefficient(port.name, idx)
+        port_name = port.name
+        spend = expectation.get_shore_power_spend_coefficient((v, port_name), idx)
+        emission = expectation.get_shore_power_emission_coefficient(port_name, idx)
 
         terms.append(
             _Term(
                 alg.shore_power[v, p],
-                fraction * shore_power_coefficients[(v, p, r)],
+                fraction * spend,
                 fraction * emission,
                 fraction,
             )

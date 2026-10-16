@@ -6,10 +6,10 @@
 from __future__ import annotations
 
 from navigate.simulation.policy.aggregation import calculate_regulation_profile
-from navigate.simulation.policy.compliance import (
-    calculate_regulation_allowances,
-    calculate_regulation_compliance,
+from navigate.simulation.policy.bunkering_inputs import (
+    calculate_regulation_bunkering_inputs,
 )
+from navigate.simulation.policy.compliance import calculate_regulation_compliance
 from navigate.simulation.policy.emission_coefficient import (
     calculate_policy_emission_coefficients,
 )
@@ -21,4 +21,7 @@ from navigate.simulation.policy.flexibility_market import (
 from navigate.simulation.policy.jurisdiction import calculate_regulation_measures
 from navigate.simulation.policy.remediation import (
     calculate_individual_remedial_expenses,
+)
+from navigate.simulation.policy.threshold_adjustment import (
+    calculate_adjusted_regulation_thresholds,
 )

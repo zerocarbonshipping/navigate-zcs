@@ -24,8 +24,9 @@ step, and `driver/` runs it from a read deck to its output.
     cohorts of both domains.
   - `simulation/bunker/` — the per-time-step bunkering LP.
   - `simulation/policy/` — policy expectations, emission coefficients, levy
-    costs, regulation compliance and remedial expenses, and the flexibility
-    market and its beliefs.
+    costs, the regulation inputs of the bunkering LP and their threshold
+    adjustment, regulation compliance and remedial expenses, and the
+    flexibility market and its beliefs.
 - `core/` — the model definition only: the DSL value types and their
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
   nodes (`general_nodes/`), the node maps, `expectations/`, `profiles/`, the
