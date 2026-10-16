@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""WTT, TTW and overall emission coefficients of regulations and levies."""
+"""Emission factors and coefficients of regulations and levies, and levy costs."""
 
 from __future__ import annotations
 
@@ -43,10 +43,11 @@ def calculate_policy_emission_coefficients(
     Combinations span regulations, levies, vessels, fuels, and emissions. The WTT and
     TTW emission factors can be used to calculate the overall emission factors, which
     are used in the calculation of the emission coefficients, which are used to
-    converter a ton of fuel to a ton of emissions.
+    converter a ton of fuel to a ton of emissions. A levy's coefficients, priced at
+    its level, give its cost per ton of fuel.
 
-    Reads the plants' production and delivery WTT of the current time step, so it runs
-    after those are calculated.
+    Reads the plants' production and delivery WTT and the levies' levels of the
+    current time step, so it runs after those are calculated.
 
     Parameters
     ----------
@@ -366,7 +367,7 @@ def _assign_levy_emission_factors(
     idx: int,
 ) -> None:
     """
-    Calculate and assign the WTT and TTW emission factors related to a given levy.
+    Calculate and assign the WTT and TTW emission factors of a levy, and its costs.
 
     Parameters
     ----------
@@ -390,7 +391,7 @@ def _assign_levy_emission_factors(
     if scope in (PolicyScopeID.TTW, PolicyScopeID.WTW):
         _assign_levy_ttw_factors(levy, vessels, timeline, idx)
 
-    _assign_levy_emission_coefficients(levy, vessels, timeline, idx)
+    _calculate_levy_costs(levy, vessels, timeline, idx)
 
 
 def _assign_levy_wtt_factors(
@@ -511,19 +512,20 @@ def _assign_levy_ttw_factors(
                 expectation.set_ttw_slip(idx, key, factor_slip)
 
 
-def _assign_levy_emission_coefficients(
-    levy: Levy,
-    vessels: dict[str, Vessel],
-    timeline: FloatArray,
-    idx: int,
+def _calculate_levy_costs(
+    levy: Levy, vessels: dict[str, Vessel], timeline: FloatArray, idx: int
 ) -> None:
     """
-    Calculate and assign the emission coefficients related to a given levy.
+    Calculate the levy's cost per ton of each fuel a vessel bunkers in its ports.
+
+    The cost is the levy's level times the fuel's threshold-adjusted emission
+    coefficient, from the current time step onward, and zero for a vessel the levy
+    does not police.
 
     Parameters
     ----------
     levy
-        Levy to calculate emission coefficients for.
+        Levy to calculate costs for.
     vessels
         All vessels in the simulation.
     timeline
@@ -531,67 +533,63 @@ def _assign_levy_emission_coefficients(
     idx
         Current time-step index.
     """
-    target_emissions = levy.emissions
+    expectation = levy.expectation
+    times = timeline[idx:]
 
-    # thresholds are levy-wide, not vessel/port/fuel-specific, so they are
-    # evaluated once per pass rather than inside the loops below
-    lower_threshold = levy.lower_threshold.get(timeline[idx:])
-    upper_threshold_obj = levy.upper_threshold
+    # the level and thresholds are levy-wide, not vessel/port/fuel-specific, so
+    # they are read once per pass rather than inside the loops below
+    level = expectation.get_level(np.s_[idx:])
+    lower_threshold = levy.lower_threshold.get(times)
     upper_threshold = (
-        upper_threshold_obj.get(timeline[idx:])
-        if upper_threshold_obj is not None
-        else None
+        levy.upper_threshold.get(times) if levy.upper_threshold is not None else None
     )
 
     for vessel_name, vessel in vessels.items():
-        usable_fuels = vessel.usable_fuels
-        target_fuels = _usable_target_fuels(levy, usable_fuels)
-
         ports = list_intersection(vessel.route.ports, levy.jurisdiction)
         if not ports:
             continue
 
-        effective_lhvs = {
-            fuel.name: _average_effective_lhv_over_converters(
-                vessel, _converter_weights(vessel, fuel), fuel
+        policed = levy.vessel_is_policed(vessel_name)
+        target_fuels = _usable_target_fuels(levy, vessel.usable_fuels)
+
+        for fuel in target_fuels:
+            fuel_name = fuel.name
+            weights = _converter_weights(vessel, fuel)
+            effective_lhv = _average_effective_lhv_over_converters(
+                vessel, weights, fuel
             )
-            for fuel in target_fuels
-        }
 
-        for port in ports:
-            port_name = port.name
-
-            for fuel in target_fuels:
-                fuel_name = fuel.name
-
+            for port in ports:
                 if not port.is_bunkering_allowed(fuel_name):
                     continue
 
+                key = (vessel_name, port.name, fuel_name)
+
+                # zero rather than unwritten: an event can stop the levy policing
+                # the vessel, and the cost written while it did would remain
+                if not policed:
+                    expectation.set_cost(idx, key, 0.0)
+                    continue
+
                 coefficient: FloatLike = 0.0
-                for emission in target_emissions:
+                for emission in levy.emissions:
                     coefficient += _calculate_levy_emission_factor(
                         levy, vessel, port, fuel, emission, idx
                     )
 
                 # a NaN WTT factor, as where the port has no estimate for the fuel,
-                # leaves the fuel without a coefficient at the port, its TTW part
+                # leaves the fuel without a cost at the port, its TTW part
                 # included; without an estimate the port has no supply of the
                 # fuel, so the LP bunkers none of it there and reads the missing
-                # coefficient as zero
+                # cost as zero
                 if np.isnan(coefficient).any():
                     continue
 
                 coefficient = _calculate_threshold_adjusted_levy_emission_coefficient(
-                    coefficient,
-                    levy,
-                    effective_lhvs[fuel_name],
-                    lower_threshold,
-                    upper_threshold,
+                    coefficient, levy, effective_lhv, lower_threshold, upper_threshold
                 )
 
-                key = (vessel_name, port_name, fuel_name)
-
-                levy.expectation.set_coefficient(idx, key, coefficient)
+                expectation.set_cost(idx, key, level * coefficient)
 
 
 def _calculate_levy_emission_factor(

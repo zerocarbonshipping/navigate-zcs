@@ -26,7 +26,7 @@ from navigate.simulation.bunker.cleanup import (
 )
 from navigate.simulation.bunker.coefficients import (
     calculate_emission_factors,
-    calculate_policy_coefficients,
+    calculate_regulation_coefficients,
 )
 from navigate.simulation.bunker.constraints.bunkered_equals_spent import (
     update_bunkered_equals_spent_constraint,
@@ -146,7 +146,6 @@ class BunkerAlgorithm:
 
         # policies
         self.active_regulations: dict[str, Regulation] = {}
-        self.cost_levy: dict[tuple[str, str, str, str], float] = {}
         self.regulation_vessel_threshold: dict[tuple[str, str], float] = {}
         self.regulation_emission_factor: dict[tuple[str, str, str, str], float] = {}
         self.regulation_spend_coefficient: dict[tuple[str, str, str, str], float] = {}
@@ -325,7 +324,7 @@ class BunkerAlgorithm:
                     self.multipliers[v] = np.float64(multiplier)
 
                     calculate_emission_factors(self, vessel)
-                    calculate_policy_coefficients(self, vessel)
+                    calculate_regulation_coefficients(self, vessel)
 
                     update_vessel_variables(self, vessel)
                     update_vessel_objectives(self, vessel)
@@ -437,7 +436,6 @@ class BunkerAlgorithm:
         self.regulation_spend_coefficient = {}
         self.shore_power_regulation_emission_factor = {}
         self.shore_power_regulation_coefficient = {}
-        self.cost_levy = {}
 
         self.regulation_measure = {}
         self.regulation_rhs_individual = {}

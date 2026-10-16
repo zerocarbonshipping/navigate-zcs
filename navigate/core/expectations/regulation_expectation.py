@@ -20,10 +20,13 @@ if TYPE_CHECKING:
 
 
 class RegulationExpectation(_PolicyExpectation):
-    """Compliance costs of a regulation and the capacity each vessel is measured on."""
+    """Emission coefficients, compliance costs and vessel capacities of a regulation."""
 
     def __init__(self) -> None:
         super().__init__()
+
+        # keyed by (vessel_name, converter_name, fuel_name)
+        self._coefficient: dict[tuple[str, str, str], FloatArray] = {}
 
         self._flexibility_cost: FloatArray = EMPTY_FLOAT
         self._belief_flexibility_cost: FloatArray = EMPTY_NAN
@@ -53,6 +56,12 @@ class RegulationExpectation(_PolicyExpectation):
         for units in self._vessel_net_flexibility_units.values():
             units[:] = 0.0
 
+    def set_coefficient(
+        self, idx: int, key: tuple[str, str, str], coefficient: FloatLike
+    ) -> None:
+        self._coefficient.setdefault(key, self._default_array())
+        self._coefficient[key][idx:] = coefficient
+
     def set_flexibility_cost(self, idx: int, cost: float) -> None:
         self._flexibility_cost[idx] = cost
 
@@ -68,6 +77,14 @@ class RegulationExpectation(_PolicyExpectation):
         self, idx: int, vessel_name: str, capacity: FloatLike
     ) -> None:
         self._vessel_capacity[vessel_name][idx:] = capacity
+
+    def get_coefficient(self, key: tuple[str, str, str], idx: int) -> float:
+
+        if key in self._coefficient:
+            coefficient: float = self._coefficient[key][idx]
+            return coefficient
+
+        return 0.0
 
     def get_flexibility_cost(self) -> FloatArray:
         return self._flexibility_cost

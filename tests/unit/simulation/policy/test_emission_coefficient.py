@@ -18,11 +18,11 @@ Tests verify the correctness of:
   - _calculate_threshold_adjusted_levy_emission_coefficient: the PENALTY,
     SUBSIDY and upper-threshold capping arithmetic, given already-evaluated
     threshold arrays and an effective LHV.
-  - _assign_levy_emission_coefficients: the thresholds it evaluates once per
-    pass stay sliced to timeline[idx:], not the whole timeline, and are
-    compared with, and converted back on, the vessel's effective LHV.
+  - _calculate_levy_costs: the thresholds it evaluates once per pass stay
+    sliced to timeline[idx:], not the whole timeline, and are compared with,
+    and converted back on, the vessel's effective LHV.
   - a NaN WTT factor, from a fuel without an estimate, leaves the regulation
-    or levy coefficient unwritten.
+    coefficient or the levy cost unwritten.
 """
 
 from __future__ import annotations
@@ -41,11 +41,11 @@ from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.levy import Levy
 from navigate.simulation.policy.emission_coefficient import (
-    _assign_levy_emission_coefficients,
     _assign_levy_emission_factors,
     _assign_regulation_emission_factors,
     _assign_regulation_wtt_factors,
     _average_effective_lhv_over_converters,
+    _calculate_levy_costs,
     _calculate_threshold_adjusted_levy_emission_coefficient,
     _converter_weights,
     _estimate_port_wtt,
@@ -373,18 +373,20 @@ class TestEffectiveHeatingValue:
         levy.fuels = [fuel]
         levy.emissions = [emission]
         levy.jurisdiction = [port]
+        levy.include_vessel = {vessel.name: True}
+        levy.in_jurisdiction_vessel = {vessel.name: True}
         levy.expectation.initialize(1, [emission.name])
+        # a level of 1 makes the cost the threshold-adjusted coefficient
+        levy.expectation.set_level(0, 1.0)
         levy.expectation.set_ttw_consumption(
             0, (vessel.name, fuel.name, emission.name), 2.4
         )
 
-        _assign_levy_emission_coefficients(
+        _calculate_levy_costs(
             levy, {vessel.name: vessel}, timeline=np.array([0.0]), idx=0
         )
 
-        result = levy.expectation.get_coefficient(
-            (vessel.name, port.name, fuel.name), 0
-        )
+        result = levy.expectation.get_cost((vessel.name, port.name, fuel.name), 0)
         assert np.isfinite(result)
         assert result == pytest.approx(expected)
 
@@ -452,7 +454,7 @@ class TestThresholdAdjustedLevyEmissionCoefficient:
 
 
 # ---------------------------------------------------------------------------
-# 7. Levy emission coefficients: thresholds stay sliced to the remaining
+# 7. Levy costs: thresholds stay sliced to the remaining
 #    timeline once their evaluation moves out of the vessel/port/fuel loop
 # ---------------------------------------------------------------------------
 
@@ -479,7 +481,7 @@ class _ThresholdLookup:
         return np.array([self._table[time] for time in times], dtype=float)
 
 
-class TestAssignLevyEmissionCoefficientsSlicing:
+class TestCalculateLevyCostsSlicing:
     def test_threshold_is_sliced_to_the_remaining_timeline(self):
         """
         The threshold, evaluated once before the loops, must cover only idx onward.
@@ -511,33 +513,36 @@ class TestAssignLevyEmissionCoefficientsSlicing:
             {0.0: 10.0, 365.0: 20.0, 730.0: 30.0}, current=10.0
         )
         levy.upper_threshold = None
+        levy.vessel_is_policed.return_value = True
+        # a level of 1 makes the cost the threshold-adjusted coefficient
+        levy.expectation.get_level.return_value = np.array([1.0, 1.0])
         levy.expectation.get_wtt.return_value = np.array([3.2, 3.2])
         levy.expectation.get_ttw_consumption.return_value = 0.0
         levy.expectation.get_ttw_slip.return_value = 0.0
 
-        _assign_levy_emission_coefficients(levy, {"vessel1": vessel}, TIMELINE, idx)
+        _calculate_levy_costs(levy, {"vessel1": vessel}, TIMELINE, idx)
 
-        call_idx, key, coefficient = levy.expectation.set_coefficient.call_args[0]
+        call_idx, key, cost = levy.expectation.set_cost.call_args[0]
 
         # lower threshold at idx onward is [20, 30]; g/MJ: 3.2 / 40 * 1000 = 80
         # for both steps; minus [20, 30] = [60, 50]; back to ton/ton fuel: * 40 / 1000
         assert call_idx == idx
         assert key == ("vessel1", "port1", "fuel_bio")
-        assert len(coefficient) == 2
-        assert coefficient == pytest.approx([2.4, 2.0])
+        assert len(cost) == 2
+        assert cost == pytest.approx([2.4, 2.0])
 
 
 # ---------------------------------------------------------------------------
-# 8. A NaN WTT factor leaves the coefficient unwritten
+# 8. A NaN WTT factor leaves the coefficient or cost unwritten
 # ---------------------------------------------------------------------------
 
 
 class TestNanWttLeavesNoCoefficient:
     """
-    A fuel without a WTT estimate keeps its NaN factor out of the coefficients.
+    A fuel without a WTT estimate keeps its NaN factor out of coefficients and costs.
 
-    Written from the NaN factor, a coefficient would read back NaN; the getter's
-    0.0 for a missing key shows that none was written.
+    Written from the NaN factor, a coefficient or cost would read back NaN; the
+    getter's 0.0 for a missing key shows that none was written.
     """
 
     def test_regulation_route_without_estimate_writes_no_coefficient(self):
@@ -568,7 +573,7 @@ class TestNanWttLeavesNoCoefficient:
         assert np.isnan(wtt)
         assert coefficient == 0.0
 
-    def test_levy_port_without_estimate_writes_no_coefficient(self):
+    def test_levy_port_without_estimate_writes_no_cost(self):
         fuel = _make_ammonia()
         emission = Emission("carbon_dioxide")
         port_with_estimate = _make_port("port_a", overwrite=[2.4], fuel_name=fuel.name)
@@ -583,7 +588,11 @@ class TestNanWttLeavesNoCoefficient:
         levy.emissions = [emission]
         levy.fuel_wtt = {(fuel.name, emission.name): None}
         levy.jurisdiction = [port_with_estimate, port_without_estimate]
+        levy.include_vessel = {vessel.name: True}
+        levy.in_jurisdiction_vessel = {vessel.name: True}
         levy.expectation.initialize(1, [emission.name])
+        # a level of 1 makes the cost the threshold-adjusted coefficient
+        levy.expectation.set_level(0, 1.0)
         levy.expectation.set_global_warming_potential(emission.name, 1.0)
 
         _assign_levy_emission_factors(
@@ -591,15 +600,11 @@ class TestNanWttLeavesNoCoefficient:
         )
 
         wtt = levy.expectation.get_wtt(("port_b", fuel.name, emission.name), 0)
-        coefficient = levy.expectation.get_coefficient(
-            (vessel.name, "port_b", fuel.name), 0
-        )
+        cost = levy.expectation.get_cost((vessel.name, "port_b", fuel.name), 0)
         assert np.isnan(wtt)
-        assert coefficient == 0.0
+        assert cost == 0.0
 
-        # the port with an estimate keeps its coefficient: the overwrite of
-        # 2.4 t/t against the default lower threshold of 0
-        coefficient = levy.expectation.get_coefficient(
-            (vessel.name, "port_a", fuel.name), 0
-        )
-        assert coefficient == pytest.approx(2.4)
+        # the port with an estimate keeps its cost: the overwrite of 2.4 t/t
+        # against the default lower threshold of 0
+        cost = levy.expectation.get_cost((vessel.name, "port_a", fuel.name), 0)
+        assert cost == pytest.approx(2.4)

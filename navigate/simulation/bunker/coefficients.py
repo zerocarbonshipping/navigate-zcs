@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Compute the per-time-step emission and policy coefficients of the LP."""
+"""Compute the per-time-step emission factors and regulation coefficients of the LP."""
 
 from __future__ import annotations
 
@@ -89,21 +89,6 @@ def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                 )
 
 
-def calculate_policy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Calculate the dynamic policy coefficients relevant for the current time-step.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    vessel
-        Vessel for which coefficients are calculated.
-    """
-    calculate_regulation_coefficients(alg, vessel)
-    calculate_levy_coefficients(alg, vessel)
-
-
 def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
     Calculate the dynamic regulation coefficients relevant for the current time-step.
@@ -188,32 +173,3 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
                 shore_power_emission_factor
             )
             alg.shore_power_regulation_coefficient[(v, p, r)] = shore_power_coefficient
-
-
-def calculate_levy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Calculate the dynamic levy coefficients relevant for the current time-step.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    vessel
-        Vessel for which coefficients are calculated.
-    """
-    v = vessel.name
-    ports = vessel.route.ports
-    idx = alg.idx
-    usable_fuels = vessel.usable_fuels
-
-    alg.cost_levy.update(
-        {
-            (v, port.name, f, levy.name): levy.expectation.get_level(idx)
-            * levy.expectation.get_coefficient((v, port.name, f), idx)
-            for port in ports
-            for levy in port.imposed_levies
-            for f in usable_fuels
-            if port.is_bunkering_allowed(f)
-            if levy.vessel_is_policed(v)
-        }
-    )

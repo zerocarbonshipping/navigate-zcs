@@ -72,16 +72,14 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
                 vessel.profile.add_wtt(f, emission_name, wtt_emissions, idx=alg.idx)
 
         for levy in port.imposed_levies:
-            if not levy.vessel_is_policed(v):
-                continue
-
-            collected = alg.cost_levy[(v, port_name, f, levy.name)] * bunker.X
+            cost = levy.expectation.get_cost((v, port_name, f), alg.idx)
+            collected = cost * bunker.X
 
             if alg.scope == BunkerScopeID.EXISTING:
                 levy.profile.add_collected(collected * alg.multipliers[v], alg.idx)
                 vessel.profile.add_levy_expenses(f, collected, alg.idx)
 
-                level = levy.expectation.get_level(alg.idx)
+                level = float(levy.expectation.get_level(alg.idx))
                 if level > 0.0:
                     vessel.profile.add_levy_units(levy.name, collected / level, alg.idx)
 
