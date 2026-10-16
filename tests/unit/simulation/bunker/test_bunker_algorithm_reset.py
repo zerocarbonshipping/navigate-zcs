@@ -26,7 +26,6 @@ DYNAMIC_CONTAINERS = (
     "flexible_unit_cost",
     "adjusted_vessel_thresholds",
     "adjusted_shared_thresholds",
-    "emission_factor",
 )
 
 

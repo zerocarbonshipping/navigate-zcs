@@ -301,7 +301,9 @@ class Simulation:
             self._idx,
         )
 
-        calculate_fleet_expectations(self.nodes.vessels, self.nodes.fuels)
+        calculate_fleet_expectations(
+            self.nodes.vessels, self.nodes.fuels, self.nodes.emissions
+        )
 
         for port in self.nodes.ports.values():
             port.calculate_expectation(self.timeline, self._idx)
@@ -631,7 +633,9 @@ class Simulation:
             regulation.initialize_expectation(length, self.nodes.vessels)
 
         for vessel in self.nodes.vessels.values():
-            vessel.initialize_expectation(length, self.nodes.fuels)
+            vessel.initialize_expectation(
+                length, self.nodes.fuels, self.nodes.emissions
+            )
 
     def _initialize_profiles(self) -> None:
         timeline = self.timeline / YEAR
