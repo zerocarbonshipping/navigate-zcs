@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import get_constraint
+from navigate.simulation.bunker.utils import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -39,14 +40,14 @@ def update_bunkered_equals_spent_constraint(
     """
     v = vessel.name
     route = vessel.route
-    converters_per_fuel = alg.converters_per_fuel
-    port_converters_per_fuel = alg.port_converters_per_fuel
+    port_converters = get_port_converters(vessel)
     leg_idx = route.get_legs()
     port_idx = range(route.get_number_of_ports())
 
     change_coefficient = alg.model.chgCoeff
 
-    for f in vessel.usable_fuels:
+    for f, converters in vessel.converters_per_fuel.items():
+        converters_in_port = [c for c in converters if c in port_converters]
         key = (v, f)
 
         constraint = get_constraint(
@@ -57,12 +58,12 @@ def update_bunkered_equals_spent_constraint(
             if (v, p, f) in alg.bunker:
                 change_coefficient(constraint, alg.bunker[v, p, f], 1.0)
 
-        for c in converters_per_fuel[v, f]:
+        for c in converters:
             for port_start, port_end in leg_idx:
                 change_coefficient(
                     constraint, alg.spend_sea[v, c, f, port_start, port_end], -1.0
                 )
 
-        for c in port_converters_per_fuel[v, f]:
+        for c in converters_in_port:
             for p in port_idx:
                 change_coefficient(constraint, alg.spend_port[v, c, f, p], -1.0)

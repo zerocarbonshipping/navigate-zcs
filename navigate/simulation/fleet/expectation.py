@@ -15,27 +15,25 @@ if TYPE_CHECKING:
 
 
 def calculate_fleet_expectations(
-    vessels: dict[str, Vessel], fuels: dict[str, Fuel], emissions: dict[str, Emission]
+    vessels: dict[str, Vessel], emissions: dict[str, Emission]
 ) -> None:
     """
     Calculate the vessel expectations set once at the start of the step.
 
-    For every vessel and fuel, each converter able to burn the fuel gets the fuel's
-    effective lower heating value, net of slip, and the TTW emissions of burning it,
-    split into the consumption and slip parts. The vessel gets the means of these over
-    those converters, weighted by the fuel power each draws.
+    For every vessel and usable fuel, each converter able to burn the fuel gets the
+    fuel's effective lower heating value, net of slip, and the TTW emissions of
+    burning it, split into the consumption and slip parts. The vessel gets the means
+    of these over those converters, weighted by the fuel power each draws.
 
     Parameters
     ----------
     vessels
         All vessels in the simulation.
-    fuels
-        All fuels in the simulation.
     emissions
         All emissions in the simulation.
     """
     for vessel in vessels.values():
-        for fuel in fuels.values():
+        for fuel in vessel.usable_fuels.values():
             weights = _converter_weights(vessel, fuel)
 
             for converter, _ in weights:
@@ -101,13 +99,8 @@ def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, floa
     list[tuple[Converter, float]]
         Each converter able to burn the fuel with its weight, in MW.
     """
-    fuel_type = fuel.fuel_type
-
     weights: list[tuple[Converter, float]] = []
-    for converter in vessel.power_system.get_converters():
-        if fuel_type not in converter.get_fuel_types():
-            continue
-
+    for converter in vessel.converters_per_fuel[fuel.name].values():
         power = converter.power_capacity.get()
         efficiency = converter.efficiency.get()
         weight = power / efficiency if efficiency > 0.0 else 0.0

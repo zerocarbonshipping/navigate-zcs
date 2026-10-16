@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.simulation.bunker.utils import get_converters
-
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
@@ -31,13 +29,12 @@ def update_regulation_spend_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -
     """
     v = vessel.name
     idx = alg.idx
-    converters = get_converters(vessel)
 
     for r, regulation in alg.active_regulations.items():
         expectation = regulation.expectation
 
-        for c in converters:
-            for f in alg.fuels_per_converter[v, c]:
+        for c, burned in vessel.fuels_per_converter.items():
+            for f in burned:
                 coefficient = expectation.get_spend_coefficient((v, c, f), idx)
                 alg.regulation_spend_coefficient[(v, c, f, r)] = coefficient
 

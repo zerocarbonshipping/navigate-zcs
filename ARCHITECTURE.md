@@ -96,9 +96,10 @@ re-export there would load far more than an import needs.
 
 - Cross-module dynamic results flow through the node's `expectation`: the
   computing module writes (`set_*`, `add_*`), the others read (`get_*`). A
-  relation between nodes that events can change is not such a result: it is
-  a node attribute holding node references, rewritten once per time step by
-  `core/node_maps.py`.
+  relation between nodes is not such a result: it is a node map, a node
+  attribute derived from other nodes' attributes, written by
+  `core/node_maps.py` once at initialization where those are DSL-defined,
+  and once per time step where events can change them.
 - `profile` is output for reports and plots, never a decision's input.
   Deriving one profile value from another is fine in post-processing and
   `Simulation._calculate_profile`, which feed no decision.

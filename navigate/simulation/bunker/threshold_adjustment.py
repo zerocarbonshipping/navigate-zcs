@@ -16,7 +16,6 @@ from navigate.simulation.bunker.constraints.regulation_flexibility import (
 from navigate.simulation.bunker.constraints.regulation_individual import (
     update_individual_regulation_threshold_constraints,
 )
-from navigate.simulation.bunker.utils import get_converters
 from navigate.util import TON_TO_KG, divide_nonzero
 
 if TYPE_CHECKING:
@@ -315,8 +314,8 @@ def _rebuild_regulation_constraints_for_adjustment(
                 else alg.adjusted_vessel_thresholds[key]
             )
 
-            for c in get_converters(vessel):
-                for f in alg.fuels_per_converter[v, c]:
+            for c, burned in vessel.fuels_per_converter.items():
+                for f in burned:
                     coefficient_key = (v, c, f, r)
                     emission = expectation.get_emission_coefficient((v, c, f), idx)
                     effective_lhv = vessel.expectation.get_effective_lhv(c, f)

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, NamedTuple
 
 import navigate.core.enum_ as enum_
 import navigate.simulation.bunker.solver as gp
-from navigate.simulation.bunker.utils import get_converters, get_port_converters
+from navigate.simulation.bunker.utils import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
@@ -74,9 +74,8 @@ def calculate_regulation_terms(
     coefficients = alg.regulation_spend_coefficient
     shore_power_coefficients = alg.shore_power_regulation_coefficient
 
-    converters = get_converters(vessel)
     port_converters = get_port_converters(vessel)
-    fuels_per_converter = alg.fuels_per_converter
+    fuels_per_converter = vessel.fuels_per_converter
 
     route = vessel.route
 
@@ -96,7 +95,7 @@ def calculate_regulation_terms(
                 fraction * vessel_expectation.get_effective_lhv(c, f),
             )
             for c in port_converters
-            for f in fuels_per_converter[v, c]
+            for f in fuels_per_converter[c]
         )
 
     # at sea
@@ -111,8 +110,8 @@ def calculate_regulation_terms(
                 fraction * expectation.get_emission_coefficient((v, c, f), idx),
                 fraction * vessel_expectation.get_effective_lhv(c, f),
             )
-            for c in converters
-            for f in fuels_per_converter[v, c]
+            for c, burned in fuels_per_converter.items()
+            for f in burned
         )
 
     # shore power, at the ports where the vessel can connect

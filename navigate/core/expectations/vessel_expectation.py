@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
@@ -132,8 +131,9 @@ class VesselExpectation(_Expectation):
         self,
         length: int,
         route: Route,
-        power_system: PowerSystem,
         fuels: dict[str, Fuel],
+        usable_fuels: dict[str, Fuel],
+        fuels_per_converter: dict[str, dict[str, Fuel]],
         emissions: dict[str, Emission],
     ) -> None:
         self._initialize_expectation(length)
@@ -221,28 +221,25 @@ class VesselExpectation(_Expectation):
         # emission too; all values are NaN until the first step sets them
         lhv_keys: list[tuple[str, str]] = []
         ttw_keys: list[tuple[str, str, str]] = []
-        for converter in power_system.get_converters():
-            fuel_types = converter.get_fuel_types()
-
-            for fuel_name, fuel in fuels.items():
-                if fuel.fuel_type not in fuel_types:
-                    continue
-
-                lhv_keys.append((converter.name, fuel_name))
+        for converter_name, burned in fuels_per_converter.items():
+            for fuel_name in burned:
+                lhv_keys.append((converter_name, fuel_name))
                 for emission_name in emissions:
-                    ttw_keys.append((converter.name, fuel_name, emission_name))
+                    ttw_keys.append((converter_name, fuel_name, emission_name))
 
         self._effective_lhv = self._default_dict_float(lhv_keys, default=np.nan)
         self._ttw_consumption = self._default_dict_float(ttw_keys, default=np.nan)
         self._ttw_slip = self._default_dict_float(ttw_keys, default=np.nan)
 
-        # the means are keyed by every fuel, burned on board or not
-        self._mean_effective_lhv = self._default_dict_float(fuels, default=np.nan)
+        # the means are keyed by every usable fuel, burned on board or only stored
+        self._mean_effective_lhv = self._default_dict_float(
+            usable_fuels, default=np.nan
+        )
         self._mean_ttw_consumption = self._default_tuple_dict_float(
-            fuels, emissions, default=np.nan
+            usable_fuels, emissions, default=np.nan
         )
         self._mean_ttw_slip = self._default_tuple_dict_float(
-            fuels, emissions, default=np.nan
+            usable_fuels, emissions, default=np.nan
         )
 
         # bunkered masses for the inertia floors, the expected ones also for the

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Primary fuel type, usable fuel types and usable fuels of each vessel."""
+"""Each vessel's primary fuel type, and the check that its tanks hold what it burns."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from navigate.core.enum_ import FuelTypeID
 from navigate.util import unique_list
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
 
 logger = logging.getLogger(__name__)
@@ -102,29 +101,22 @@ def determine_fuel_type(vessel: Vessel) -> None:
     vessel.primary_fuel_type = fuel_type
 
 
-def determine_usable_fuel_types(vessel: Vessel) -> None:
+def check_fuel_options(vessel: Vessel) -> None:
     """
-    Determine a vessel's usable fuel types.
+    Raise where a vessel's tanks cannot store what its converters need to burn.
 
-    The usable types are the union of tank and converter fuel types, after
-    checking that the tanks can store the fuels required by the converters.
+    A single-fuel converter needs a tank for one of its main fuel types, and a
+    dual-fuel converter that must burn a minimum of pilot fuel one for one of its
+    pilot fuel types; the vessel needs at least one usable fuel. The minimum pilot
+    fuel may be a forecast, so the check runs once its value is precalculated.
 
     Parameters
     ----------
     vessel
-        Vessel to determine the usable fuel types for; skipped if already determined.
+        Vessel whose fuel storage is checked.
     """
-    if vessel.usable_fuel_types:
-        return
-
     tank_fuel_types = [
         fuel_type for tank in vessel.tanks for fuel_type in tank.get_fuel_types()
-    ]
-
-    power_system_fuel_types = [
-        fuel_type
-        for converter in vessel.power_system.get_converters()
-        for fuel_type in converter.get_fuel_types()
     ]
 
     for converter in vessel.power_system.get_converters():
@@ -154,28 +146,6 @@ def determine_usable_fuel_types(vessel: Vessel) -> None:
                         converter,
                     )
                 )
-
-    vessel.usable_fuel_types = unique_list(tank_fuel_types + power_system_fuel_types)
-
-
-def determine_usable_fuels(
-    vessel: Vessel, fuels_by_fuel_type: dict[FuelTypeID, list[Fuel]]
-) -> None:
-    """
-    Determine the fuels usable by a vessel from its usable fuel types.
-
-    Parameters
-    ----------
-    vessel
-        Vessel to determine the usable fuels for.
-    fuels_by_fuel_type
-        All fuels in the simulation grouped by fuel type.
-    """
-    for fuel_type in vessel.usable_fuel_types:
-        fuels = fuels_by_fuel_type[fuel_type]
-
-        for fuel in fuels:
-            vessel.usable_fuels.setdefault(fuel.name, fuel)
 
     if not vessel.usable_fuels:
         raise ValueError(

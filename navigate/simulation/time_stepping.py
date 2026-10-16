@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from navigate.core import (
     SimulationResults,
-    get_fuels_per_fuel_type,
+    define_vessel_fuel_maps,
     update_imposed_levies,
 )
 from navigate.core.enum_ import BunkerScopeID
@@ -35,9 +35,8 @@ from navigate.simulation.fleet import (
     calculate_shore_power_limits,
     calculate_vessel_charter_properties,
     calculate_vessel_profile,
+    check_fuel_options,
     determine_fuel_type,
-    determine_usable_fuel_types,
-    determine_usable_fuels,
     initialize_existing_fleet,
     perform_fleet_evolution,
     perform_speed_management,
@@ -138,13 +137,14 @@ class Simulation:
         self._computational_time: float
 
     def initialize(self) -> None:
-        """Set up the expectations, profiles and bunker models the time steps use."""
+        """Set up the node maps, expectations, profiles and bunker models."""
         self._computational_time = timeit.default_timer()
 
         logger.info(
             "Initialize model before start of simulation", extra={"heading": True}
         )
 
+        self._define_node_maps()
         self._initialize_expectations()
         self._initialize_profiles()
         self._initialize_bunker_models()
@@ -216,9 +216,9 @@ class Simulation:
 
         # nothing the policy coefficients read (plant production and delivery WTT,
         # port WTT overwrites, bunkering flags and shore-power emission factors,
-        # the vessels' usable fuels, converters and effective LHVs, the levies'
-        # levels and the vessels each policy polices) changes later in the step,
-        # so one pass serves both bunkering runs
+        # the vessels' effective LHVs, the levies' levels and the vessels each
+        # policy polices) changes later in the step, so one pass serves both
+        # bunkering runs
         self._calculate_policy_emission_coefficients()
 
         # technology costs are excluded here: they enter the cargo charter
@@ -323,9 +323,7 @@ class Simulation:
             self._idx,
         )
 
-        calculate_fleet_expectations(
-            self.nodes.vessels, self.nodes.fuels, self.nodes.emissions
-        )
+        calculate_fleet_expectations(self.nodes.vessels, self.nodes.emissions)
 
         calculate_port_expectations(self.nodes.ports, self.timeline, self._idx)
         calculate_export_expectations(self.nodes.producers, self.timeline, self._idx)
@@ -647,6 +645,10 @@ class Simulation:
             timeit.default_timer() - start_time, self._idx
         )
 
+    def _define_node_maps(self) -> None:
+        """Write the node maps derived from DSL-defined attributes."""
+        define_vessel_fuel_maps(self.nodes.vessels, self.nodes.fuels)
+
     def _initialize_bunker_models(self) -> None:
         # the solver backend is chosen before any model is created
         set_solver_preference(self.general_nodes.bunker_options.solver)
@@ -774,12 +776,9 @@ class Simulation:
             )
 
     def _initialize_existing_fleet(self) -> None:
-        fuel_by_fuel_type = get_fuels_per_fuel_type(self.nodes.fuels)
-
         for vessel in self.nodes.vessels.values():
             determine_fuel_type(vessel)
-            determine_usable_fuel_types(vessel)
-            determine_usable_fuels(vessel, fuel_by_fuel_type)
+            check_fuel_options(vessel)
 
         assign_vessels_to_fleets(self.nodes.fleets.values())
 

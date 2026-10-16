@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Look up the converters, converter-fuel maps and port indices the LP is keyed by."""
+"""Look up the converters and port indices the LP is keyed by."""
 
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
-    from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
 def get_converters(vessel: Vessel) -> dict[str, Converter]:
@@ -49,44 +48,6 @@ def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
     """
     power_system = vessel.power_system
     return {c.name: c for c in (power_system.electrical, power_system.heat)}
-
-
-def initialize_converter_fuel_maps(alg: BunkerAlgorithm) -> None:
-    """
-    Precompute, per vessel, which fuels each converter can use, and the inverse maps.
-
-    Fills ``alg.fuels_per_converter``, ``alg.converters_per_fuel`` and
-    ``alg.port_converters_per_fuel``. The maps are static: converter fuel types and
-    vessel usable fuels are fixed once the existing fleet is initialized, which
-    happens after the algorithm itself is initialized -- hence they are built on the
-    first call to ``BunkerAlgorithm.build`` instead of in ``initialize``.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    """
-    for fleet in alg.fleets.values():
-        for vessel in fleet.vessels:
-            v = vessel.name
-            converters = get_converters(vessel)
-            port_converters = get_port_converters(vessel)
-
-            for c, converter in converters.items():
-                fuel_types = converter.get_fuel_types()
-                alg.fuels_per_converter[(v, c)] = {
-                    f: fuel
-                    for f, fuel in vessel.usable_fuels.items()
-                    if fuel.fuel_type in fuel_types
-                }
-
-            for f in vessel.usable_fuels:
-                alg.converters_per_fuel[(v, f)] = tuple(
-                    c for c in converters if f in alg.fuels_per_converter[(v, c)]
-                )
-                alg.port_converters_per_fuel[(v, f)] = tuple(
-                    c for c in port_converters if f in alg.fuels_per_converter[(v, c)]
-                )
 
 
 def get_port_name_to_indices(route: Route) -> dict[str, list[int]]:

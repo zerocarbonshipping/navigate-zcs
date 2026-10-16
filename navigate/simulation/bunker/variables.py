@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import add_variable
-from navigate.simulation.bunker.utils import get_converters, get_port_converters
+from navigate.simulation.bunker.utils import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -30,9 +30,8 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     route = vessel.route
     ports = route.ports
     usable_fuels = vessel.usable_fuels
-    converters = get_converters(vessel)
     port_converters = get_port_converters(vessel)
-    fuels_per_converter = alg.fuels_per_converter
+    fuels_per_converter = vessel.fuels_per_converter
     leg_idx = route.get_legs()
     port_idx = range(len(ports))
 
@@ -41,8 +40,8 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             if port.is_bunkering_allowed(f):
                 add_variable(alg, alg.bunker, (v, p, f), "bunker")
 
-    for c in converters:
-        for f in fuels_per_converter[v, c]:
+    for c, burned in fuels_per_converter.items():
+        for f in burned:
             for port_start, port_end in leg_idx:
                 add_variable(
                     alg, alg.spend_sea, (v, c, f, port_start, port_end), "spend_sea"
@@ -50,7 +49,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     # only the converters serving port energy demands spend in port
     for c in port_converters:
-        for f in fuels_per_converter[v, c]:
+        for f in fuels_per_converter[c]:
             for p in port_idx:
                 add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
 
