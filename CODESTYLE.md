@@ -81,8 +81,7 @@ arbiter.
   it overrides, in the order `check_requirements`, `apply_defaults`,
   `apply_command_defaults`, `check_consistency`, `initialize_dependencies`,
   `initialize_expectation`, `initialize_profile`, `check_dynamic_consistency`,
-  `calculate_expectation`, `calculate_profile`; other `calculate_*` methods;
-  getters last.
+  `calculate_profile`; other `calculate_*` methods; getters last.
 - Name the kinds a setter may be handed and store once, in
   `navigate/core/types_.py`, and use those aliases at every attribute
   definition and setter parameter. The alias matches the setter's `type_=`
