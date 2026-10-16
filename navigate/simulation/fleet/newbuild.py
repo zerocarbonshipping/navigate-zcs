@@ -16,7 +16,7 @@ from navigate.core.wrap import to_numpy
 from navigate.simulation.economics.decision import calculate_two_axis_uptake
 from navigate.simulation.fleet.composition import extract_cargo_miles
 from navigate.simulation.fleet.package import calculate_package_charter_rates
-from navigate.util import TOLERANCE, YEAR
+from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -364,6 +364,34 @@ def add_newbuilds(fleet: Fleet, increments: FloatArray, time_step: float) -> Non
 
             if was_empty:
                 fleet.increments[v][0].baseline = increment
+
+
+def update_current_uptake(fleet: Fleet, increments: FloatArray, idx: int) -> None:
+    """
+    Update the fleet's uptake shares from this time-step's newbuilds.
+
+    Each vessel type's share is the trade its newbuilds carry. The next time-step's
+    inertia decays the current shares and carries them into its newbuilds, and the
+    evolution expectation reads the memory-weighted history of the normalized shares.
+    Without newbuilds, the current shares carry over as inertia left them.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose uptake shares are updated.
+    increments
+        Newbuilds per vessel type this time-step, number of vessels.
+    idx
+        Current time-step index.
+    """
+    if np.sum(increments) > 0.0:
+        cargo_miles = extract_cargo_miles(fleet.vessels, idx)
+        fleet.current_uptake = (increments * cargo_miles) / np.dot(
+            increments, cargo_miles
+        )
+
+    current_uptake = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))
+    fleet.expectation.set_uptakes(idx, current_uptake)
 
 
 def _calculate_increments(

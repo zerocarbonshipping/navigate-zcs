@@ -17,8 +17,10 @@ step, and `driver/` runs it from a read deck to its output.
   orchestrates the domains in a fixed phase order.
   - `simulation/fleet/` — the shipowner domain: operation and decisions.
   - `simulation/fuel/` — the fuel-supply domain: production and planning.
-    Each domain names its files for its own concepts, and `Simulation`
-    sequences their phases.
+    Both keep `initialization.py` (simulation start), `expectation.py`
+    (what the domain publishes to later phases and other domains) and
+    `profile.py` (per-step output); every other file is named for a
+    domain concept.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/cohort.py` — vintage-stock accounting over the asset
     cohorts of both domains.

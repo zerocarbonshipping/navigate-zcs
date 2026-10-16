@@ -49,7 +49,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     idx = 0
 
     producer.increments = _build_initial_increments(producer)
-    define_existing_pipeline(producer, timeline)
+    _define_existing_pipeline(producer, timeline)
 
     calculate_feed_availability(producer, timeline, idx)
     calculate_producer_evolution_expectation(producer, timeline, idx)
@@ -156,7 +156,7 @@ def _calculate_initial_multiplier(
     return 0.0
 
 
-def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
+def _define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
     """
     Define the initial number of plants of each type in the production pipeline.
 

@@ -42,7 +42,7 @@ def update_vessel_ages(fleet: Fleet, time_step: float) -> None:
             increment.age += dt
 
 
-def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float) -> None:
+def perform_primary_scrapping(fleet: Fleet, time_step: float, idx: int) -> None:
     """
     Scrap vessels by age, or by the fixed scrap rate when the fleet sets one.
 
@@ -50,10 +50,10 @@ def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float) -> None:
     ----------
     fleet
         Fleet whose vessels are scrapped.
-    idx
-        Current time-step index.
     time_step
         Current time-step size, days.
+    idx
+        Current time-step index.
     """
     if fleet.fixed_scrap_rate is None:
         perform_age_based_scrapping(fleet, idx)

@@ -21,7 +21,6 @@ from navigate.simulation.fleet.package import (
 )
 from navigate.simulation.fleet.technology_adoption import (
     transfer_technology_charter_rate,
-    transfer_technology_uptake,
 )
 from navigate.simulation.fleet.technology_effect import update_residual_energy_demand
 from navigate.util import calculate_compound_growth
@@ -112,7 +111,6 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet.expectation.set_uptakes(idx, fleet.current_uptake)
     calculate_fleet_evolution_expectation(fleet, timeline, idx)
 
-    transfer_technology_uptake(fleet, idx)
     transfer_technology_charter_rate(fleet, idx)
 
     fleet.fuel_conversion_expenses = np.zeros_like(timeline)

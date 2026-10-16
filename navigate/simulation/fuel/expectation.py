@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-step expectations of ports and producers over the remaining timeline."""
+"""Expectations producers and ports set for later phases and other domains."""
 
 from __future__ import annotations
 

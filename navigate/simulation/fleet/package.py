@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Technology packages: building, combined effects, cost flows, charges."""
+"""Technology packages: building, combined effects, cost flows, NPVs and charges."""
 
 from __future__ import annotations
 
@@ -304,7 +304,7 @@ def annual_costs_for_retrofit_steps(
 
     for step in range(1, max_steps):
         inc_cost_flow = cost_flows[pkg_idx + step] - cost_flows[pkg_idx]
-        annual[step] = levelize_package_cost(inc_cost_flow, remaining, discount_rate)
+        annual[step] = _levelize_package_cost(inc_cost_flow, remaining, discount_rate)
 
     return annual
 
@@ -337,13 +337,13 @@ def calculate_package_charter_rates(
 
     return np.array(
         [
-            levelize_package_cost(cost_flow, lifetime, discount_rate)
+            _levelize_package_cost(cost_flow, lifetime, discount_rate)
             for cost_flow in get_package_cost_flows(packages, cost_flows, lifetime)
         ]
     )
 
 
-def levelize_package_cost(
+def _levelize_package_cost(
     cost_flow: FloatArray, window: float, discount_rate: float
 ) -> float:
     """

@@ -7,11 +7,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from navigate.core.enum_ import FuelTypeID
 from navigate.simulation.cohort import find_origin_index
 from navigate.simulation.fleet.composition import get_multiplier
 from navigate.simulation.fleet.power import get_total_power_capacity
-from navigate.util import YEAR, interpolate_yearly_flow
+from navigate.util import YEAR, divide_nonzero, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -21,7 +23,7 @@ if TYPE_CHECKING:
 
 def calculate_fleet_profile(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
     """
-    Transfer the fleet's expenses, weighted age, fuel-type capacity and vessel counts.
+    Transfer the fleet's expenses, weighted age, fuel-type capacity, counts and uptake.
 
     The increment-based cost transfers need the live cohort composition. Output-only
     profile aggregation happens in navigate.simulation.fleet.post_process after the
@@ -40,6 +42,7 @@ def calculate_fleet_profile(fleet: Fleet, timeline: FloatArray, idx: int) -> Non
     _transfer_weighted_age(fleet, idx)
     _transfer_fuel_type_capacity(fleet, idx)
     _transfer_multipliers(fleet, idx)
+    _transfer_technology_uptake(fleet, idx)
 
 
 def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
@@ -137,6 +140,40 @@ def _transfer_multipliers(fleet: Fleet, idx: int) -> None:
     """
     for v, vessel in enumerate(fleet.vessels):
         fleet.profile.set_existing_vessels(idx, vessel.name, get_multiplier(fleet, v))
+
+
+def _transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the newbuild and fleet-average technology uptake to the fleet profile.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose uptake is transferred.
+    idx
+        Current time-step index.
+    """
+    for v, vessel in enumerate(fleet.vessels):
+        for p, _package in enumerate(fleet.technology_packages[1:], start=1):
+            t = fleet.package_to_technology_map[p]
+            technology = fleet.technologies[t]
+
+            nb_uptake = np.sum(fleet.newbuild_package_uptake[v][p:])
+            fleet.profile.set_newbuild_technology_uptake(
+                idx, vessel.name, technology.name, nb_uptake
+            )
+
+            weighted_uptake = 0.0
+            weight = 0.0
+            for inc in fleet.increments[v]:
+                inc_uptake = float(np.sum(inc.package_uptake[p:]))
+                weighted_uptake += inc_uptake * inc.multiplier
+                weight += inc.multiplier
+
+            avg_uptake = float(divide_nonzero(weighted_uptake, weight))
+            fleet.profile.set_technology_uptake(
+                idx, vessel.name, technology.name, avg_uptake
+            )
 
 
 def calculate_vessel_profile(vessel: Vessel, idx: int) -> None:

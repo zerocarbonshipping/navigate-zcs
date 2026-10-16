@@ -16,8 +16,8 @@ The cumulative technology package is the unit of choice.
 
 The retrofit phases communicate through ``_RetrofitProposal`` objects. Newbuild uptake
 is reconciled later, in ``close_trade_gap`` (``reconcile_newbuild_technology_caps``),
-once newbuild counts per vessel type are known; ``transfer_technology_uptake`` writes
-the reconciled shares to the profile after the fleet evolution.
+once newbuild counts per vessel type are known; the fleet profile takes the reconciled
+shares at the end of the time-step.
 """
 
 from __future__ import annotations
@@ -204,49 +204,6 @@ class _CapContribution:
         self.adopting_share = float(np.sum(self.shares[self.start :]))
 
 
-def _calculate_packages_saving(
-    vessel: Vessel, packages: list[TechnologyPackage], timeline: FloatArray, idx: int
-) -> list[FloatArray]:
-    """
-    Calculate each technology package's marginal saving over the vessel lifetime.
-
-    The saving is sampled at the start of each year from the decision time; the last
-    partial year is prorated, as the package cost flows are.
-
-    Parameters
-    ----------
-    vessel
-        Vessel to calculate the savings for.
-    packages
-        All technology packages.
-    timeline
-        Simulation timeline, days.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    list[FloatArray]
-        Saving flow of each package, USD/year.
-    """
-    lifetime = vessel.lifetime.get()
-    idx_ = np.s_[idx:]
-    times = timeline[idx_]
-
-    time_flow = timeline_to_yearly(vessel, idx, timeline)
-    condition_legs = bind_conditions_to_legs(vessel.route)
-
-    savings = []
-    for package in packages:
-        saving = calculate_marginal_technology_saving(
-            vessel, condition_legs, package, idx_
-        )
-        saving_flow = np.interp(time_flow, times, saving)
-        savings.append(trim_flow_to_lifetime(saving_flow, lifetime))
-
-    return savings
-
-
 def perform_technology_installation(
     fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> None:
@@ -346,6 +303,49 @@ def _extract_adoption_basis(
         vessel.cost_of_capital.get(),
         capex_npv,
     )
+
+
+def _calculate_packages_saving(
+    vessel: Vessel, packages: list[TechnologyPackage], timeline: FloatArray, idx: int
+) -> list[FloatArray]:
+    """
+    Calculate each technology package's marginal saving over the vessel lifetime.
+
+    The saving is sampled at the start of each year from the decision time; the last
+    partial year is prorated, as the package cost flows are.
+
+    Parameters
+    ----------
+    vessel
+        Vessel to calculate the savings for.
+    packages
+        All technology packages.
+    timeline
+        Simulation timeline, days.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    list[FloatArray]
+        Saving flow of each package, USD/year.
+    """
+    lifetime = vessel.lifetime.get()
+    idx_ = np.s_[idx:]
+    times = timeline[idx_]
+
+    time_flow = timeline_to_yearly(vessel, idx, timeline)
+    condition_legs = bind_conditions_to_legs(vessel.route)
+
+    savings = []
+    for package in packages:
+        saving = calculate_marginal_technology_saving(
+            vessel, condition_legs, package, idx_
+        )
+        saving_flow = np.interp(time_flow, times, saving)
+        savings.append(trim_flow_to_lifetime(saving_flow, lifetime))
+
+    return savings
 
 
 def _propose_newbuild_uptake(
@@ -664,9 +664,10 @@ def _transfer_retrofit_uptake(
     """
     Write each (vessel, technology) retrofit count to the profile.
 
-    The stored value, laid out as in `transfer_technology_uptake`, is the share of the
-    vessel type's existing fleet that retrofitted to the technology this time-step,
-    directly comparable to `set_retrofit_technology_limit * time_step / YEAR`.
+    The stored value, laid out as the fleet profile's technology uptake, is the share
+    of the vessel type's existing fleet that retrofitted to the technology this
+    time-step, directly comparable to `set_retrofit_technology_limit * time_step /
+    YEAR`.
 
     Parameters
     ----------
@@ -740,37 +741,3 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
 
         vessel.expectation.set_technology_charter_rate(idx, average)
         vessel.profile.set_technology_cost(idx, average)
-
-
-def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
-    """
-    Transfer the newbuild and fleet-average technology uptake to the fleet profile.
-
-    Parameters
-    ----------
-    fleet
-        Fleet whose uptake is transferred.
-    idx
-        Current time-step index.
-    """
-    for v, vessel in enumerate(fleet.vessels):
-        for p, _package in enumerate(fleet.technology_packages[1:], start=1):
-            t = fleet.package_to_technology_map[p]
-            technology = fleet.technologies[t]
-
-            nb_uptake = np.sum(fleet.newbuild_package_uptake[v][p:])
-            fleet.profile.set_newbuild_technology_uptake(
-                idx, vessel.name, technology.name, nb_uptake
-            )
-
-            weighted_uptake = 0.0
-            weight = 0.0
-            for inc in fleet.increments[v]:
-                inc_uptake = float(np.sum(inc.package_uptake[p:]))
-                weighted_uptake += inc_uptake * inc.multiplier
-                weight += inc.multiplier
-
-            avg_uptake = float(divide_nonzero(weighted_uptake, weight))
-            fleet.profile.set_technology_uptake(
-                idx, vessel.name, technology.name, avg_uptake
-            )

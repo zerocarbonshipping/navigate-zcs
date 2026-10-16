@@ -16,7 +16,6 @@ import numpy as np
 
 from navigate.simulation.fleet.composition import (
     clean_up_multipliers,
-    extract_cargo_miles,
     get_multipliers,
     get_trade_capacity,
 )
@@ -24,12 +23,13 @@ from navigate.simulation.fleet.newbuild import (
     add_newbuilds,
     calculate_modelled_newbuilds,
     calculate_orderbook_newbuilds,
+    update_current_uptake,
 )
 from navigate.simulation.fleet.scrapping import perform_secondary_scrapping
 from navigate.simulation.fleet.technology_adoption import (
     reconcile_newbuild_technology_caps,
 )
-from navigate.util import TOLERANCE, YEAR, calculate_inertia, divide_nonzero
+from navigate.util import TOLERANCE, YEAR, calculate_inertia
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -41,10 +41,12 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     """
     Close the gap between the fleet's trade and the capacity its vessels carry.
 
-    Within each vessel type's newbuild budget, the orderbook and then the modelled
-    newbuilds fill a shortfall; secondary scrapping removes a surplus where the fleet
-    allows it. The newbuilds set the fleet's current uptake, and the trade carried
-    goes to the profile.
+    Within each vessel type's newbuild budget, a shortfall is filled by orderbook
+    deliveries, then by inertia newbuilds and modelled newbuilds; a surplus is removed
+    by secondary scrapping where the fleet allows it. The increments of equal age are
+    then merged and the negligible ones dropped, the newbuild technology caps are
+    reconciled and the newbuilds added. The newbuilds set the fleet's current uptake,
+    and the trade carried goes to the profile.
 
     Parameters
     ----------
@@ -97,13 +99,6 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
             round((1.0 - trade_gap / trade) * 100.0),
         )
 
-    if np.sum(increments) > 0.0:
-        cargo_miles = extract_cargo_miles(fleet.vessels, idx)
-        fleet.current_uptake = (increments * cargo_miles) / np.dot(
-            increments, cargo_miles
-        )
-
-    current_uptake = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))
-    fleet.expectation.set_uptakes(idx, current_uptake)
+    update_current_uptake(fleet, increments, idx)
 
     fleet.profile.set_trade(idx, trade - trade_gap)

@@ -127,7 +127,7 @@ class _ConversionSource:
 
 
 def perform_fuel_conversions(
-    fleet: Fleet, idx: int, timeline: FloatArray, time_step: float
+    fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> None:
     """
     Convert existing vessels to another vessel type where the business case holds.
@@ -140,12 +140,12 @@ def perform_fuel_conversions(
     ----------
     fleet
         Fleet whose vessels may convert.
-    idx
-        Current time-step index.
     timeline
         Simulation timeline, days.
     time_step
         Current time-step size, days.
+    idx
+        Current time-step index.
     """
     if not fleet.can_fuel_convert():
         return

@@ -50,7 +50,6 @@ from navigate.simulation.fleet.speed import perform_speed_management
 from navigate.simulation.fleet.technology_adoption import (
     perform_technology_installation,
     transfer_technology_charter_rate,
-    transfer_technology_uptake,
 )
 from navigate.simulation.fleet.technology_effect import (
     approximate_missing_technology,

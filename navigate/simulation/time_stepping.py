@@ -48,7 +48,6 @@ from navigate.simulation.fleet import (
     post_process_investment_metric,
     record_investment_signals,
     transfer_technology_charter_rate,
-    transfer_technology_uptake,
     update_operations,
     update_residual_energy_demand,
     update_vessel_ages,
@@ -299,6 +298,9 @@ class Simulation:
         self._calculate_individual_remedial_expenses(self._bunker_existing)
         self._calculate_flexibility_markets(self._bunker_existing)
 
+        # the fuel-type balance weighs this step's existing bunkering; the profile
+        # below transfers the capacity just calculated, and the next step's fuel
+        # conversion reads both totals
         self._calculate_fuel_type_balance()
         self._calculate_profile()
         self.profile.set_total_time(
@@ -613,18 +615,16 @@ class Simulation:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            perform_primary_scrapping(fleet, self._idx, self._time_step)
-            perform_fuel_conversions(fleet, self._idx, self.timeline, self._time_step)
+            perform_primary_scrapping(fleet, self._time_step, self._idx)
+            perform_fuel_conversions(fleet, self.timeline, self._time_step, self._idx)
             close_trade_gap(fleet, self._time_step, self._idx)
 
             # the residual energy demand reads the updated fleet composition
             update_residual_energy_demand(fleet, self._idx)
 
-            # transfer the technology uptake and refresh the fleet-average carried
-            # technology charge after evolution, so both profile series consistently
-            # reflect this timestep's scrapping, conversions, and newbuilds (the
-            # pre-evolution charge transfer already served the cargo charter)
-            transfer_technology_uptake(fleet, self._idx)
+            # refresh the fleet-average carried technology charge after evolution, so
+            # it reflects this timestep's scrapping, conversions and newbuilds (the
+            # pre-evolution transfer already served the cargo charter)
             transfer_technology_charter_rate(fleet, self._idx)
 
             calculate_fleet_evolution_expectation(fleet, self.timeline, self._idx)
