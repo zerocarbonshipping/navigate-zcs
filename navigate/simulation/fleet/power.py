@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import Expression, Scalar
-from navigate.core.enum_ import PORT_ENERGY_DEMANDS, BunkerScopeID, EnergyDemandID
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.core.node_type import is_surface, is_variable
 from navigate.exceptions import PowerCapacityError
 from navigate.util import MWD_TO_GJ, TOLERANCE
@@ -18,7 +18,6 @@ from navigate.util import MWD_TO_GJ, TOLERANCE
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.curve import Curve
-    from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.vessel import Vessel
@@ -150,48 +149,29 @@ def loads_are_convex(vessel: Vessel) -> bool:
     return propulsion and electrical and heat
 
 
-def verify_power_capacity(
-    fleets: dict[str, Fleet], idx: int, scope: BunkerScopeID
-) -> None:
+def verify_power_capacity(vessels: list[Vessel], idx: int) -> None:
     """
-    Verify converter power capacity for every vessel entering a bunkering scope.
+    Verify converter power capacity of each vessel at a time step.
 
-    Mirrors the multiplier gating of BunkerAlgorithm.build: only vessels with a
-    positive multiplier enter the LP. Expected bunkering builds one LP per future
-    time-step, each gated by that step's expected multiplier; the demands and
-    times it reads are constant over the remaining horizon within a time-step,
-    so gating on the horizon maximum covers every one of those builds.
+    Checking at the current time-step alone covers every LP built from it: a
+    vessel-expectation write at a time-step broadcasts over the remaining horizon, so
+    each future expected-bunkering build reads the same demands and times.
 
     Parameters
     ----------
-    fleets
-        Fleets by name; each vessel the scope admits is verified.
+    vessels
+        Vessels entering a bunkering LP of the time-step.
     idx
         Current time-step index.
-    scope
-        Bunkering scope about to be solved.
 
     Raises
     ------
     PowerCapacityError
-        If any vessel entering the scope has an energy demand that exceeds what its
-        serving converter can deliver.
+        If any vessel has an energy demand that exceeds what its serving converter
+        can deliver.
     """
-    for fleet in fleets.values():
-        for vessel in fleet.vessels:
-            if scope == BunkerScopeID.EXISTING:
-                multiplier = fleet.expectation.get_existing_multipliers(
-                    vessel.name, idx
-                )
-            else:
-                multiplier = np.max(
-                    fleet.expectation.get_expected_multipliers(
-                        vessel.name, slice(idx, None)
-                    )
-                )
-
-            if multiplier > 0.0:
-                verify_vessel_power_capacity(vessel, idx)
+    for vessel in vessels:
+        verify_vessel_power_capacity(vessel, idx)
 
 
 def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:

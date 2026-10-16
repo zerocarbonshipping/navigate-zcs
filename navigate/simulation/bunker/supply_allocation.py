@@ -94,17 +94,15 @@ def _calculate_demand_based_fair_share_fuel_supply(
     """
     time_index = idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]
 
-    vessels = {
-        vessel.name: vessel for fleet in fleets.values() for vessel in fleet.vessels
-    }
+    vessels: dict[str, Vessel] = {}
+    multipliers: dict[str, FloatLike] = {}
 
-    multipliers = {
-        vessel.name: fleet.expectation.get_existing_multipliers(vessel.name, time_index)
-        if scope == BunkerScopeID.EXISTING
-        else fleet.expectation.get_expected_multipliers(vessel.name, time_index)
-        for fleet in fleets.values()
-        for vessel in fleet.vessels
-    }
+    for fleet in fleets.values():
+        for vessel in fleet.vessels:
+            v = vessel.name
+
+            vessels[v] = vessel
+            multipliers[v] = fleet.expectation.get_multiplier(v, scope, time_index)
 
     all_demand: dict[tuple[str, str, FuelTypeID], FloatLike] = {}
     for v, vessel in vessels.items():
