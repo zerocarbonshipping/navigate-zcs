@@ -382,11 +382,12 @@ class TestEffectiveHeatingValue:
             0, (vessel.name, fuel.name, emission.name), 2.4
         )
 
-        _calculate_levy_costs(
-            levy, {vessel.name: vessel}, timeline=np.array([0.0]), idx=0
-        )
+        vessels = {vessel.name: vessel}
+        key = (vessel.name, port.name, fuel.name)
 
-        result = levy.expectation.get_cost((vessel.name, port.name, fuel.name), 0)
+        _calculate_levy_costs(levy, vessels, timeline=np.array([0.0]), idx=0)
+
+        result = levy.expectation.get_cost(key, 0)
         assert np.isfinite(result)
         assert result == pytest.approx(expected)
 

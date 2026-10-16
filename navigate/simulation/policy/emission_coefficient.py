@@ -534,15 +534,14 @@ def _calculate_levy_costs(
         Current time-step index.
     """
     expectation = levy.expectation
+    upper = levy.upper_threshold
     times = timeline[idx:]
 
     # the level and thresholds are levy-wide, not vessel/port/fuel-specific, so
     # they are read once per pass rather than inside the loops below
     level = expectation.get_level(np.s_[idx:])
     lower_threshold = levy.lower_threshold.get(times)
-    upper_threshold = (
-        levy.upper_threshold.get(times) if levy.upper_threshold is not None else None
-    )
+    upper_threshold = None if upper is None else upper.get(times)
 
     for vessel_name, vessel in vessels.items():
         ports = list_intersection(vessel.route.ports, levy.jurisdiction)
@@ -553,17 +552,16 @@ def _calculate_levy_costs(
         target_fuels = _usable_target_fuels(levy, vessel.usable_fuels)
 
         for fuel in target_fuels:
-            fuel_name = fuel.name
             weights = _converter_weights(vessel, fuel)
             effective_lhv = _average_effective_lhv_over_converters(
                 vessel, weights, fuel
             )
 
             for port in ports:
-                if not port.is_bunkering_allowed(fuel_name):
+                if not port.is_bunkering_allowed(fuel.name):
                     continue
 
-                key = (vessel_name, port.name, fuel_name)
+                key = (vessel_name, port.name, fuel.name)
 
                 # zero rather than unwritten: an event can stop the levy policing
                 # the vessel, and the cost written while it did would remain
@@ -571,11 +569,7 @@ def _calculate_levy_costs(
                     expectation.set_cost(idx, key, 0.0)
                     continue
 
-                coefficient: FloatLike = 0.0
-                for emission in levy.emissions:
-                    coefficient += _calculate_levy_emission_factor(
-                        levy, vessel, port, fuel, emission, idx
-                    )
+                coefficient = _calculate_levy_coefficient(levy, vessel, port, fuel, idx)
 
                 # a NaN WTT factor, as where the port has no estimate for the fuel,
                 # makes the whole coefficient NaN, TTW part included, so the fuel
@@ -592,48 +586,41 @@ def _calculate_levy_costs(
                 expectation.set_cost(idx, key, level * coefficient)
 
 
-def _calculate_levy_emission_factor(
-    levy: Levy,
-    vessel: Vessel,
-    port: Port,
-    fuel: Fuel,
-    emission: Emission,
-    idx: int,
+def _calculate_levy_coefficient(
+    levy: Levy, vessel: Vessel, port: Port, fuel: Fuel, idx: int
 ) -> FloatLike:
     """
-    Calculate the emission factor, in ton emissions per ton fuel, for one emission.
+    Calculate the levy's emission coefficient of a fuel a vessel bunkers at a port.
 
-    Used in the calculation of a levy emission coefficient.
+    The coefficient sums, over the levy's emissions, the fuel's WTT factor at the
+    port and its TTW factors on the vessel.
 
     Parameters
     ----------
     levy
-        Levy to calculate emission factor for.
+        Levy to calculate the emission coefficient for.
     vessel
         Vessel impacted by the levy.
     port
-        Port in which the fuel was produced.
+        Port in which the fuel is bunkered.
     fuel
         Fuel with certain emissions impacted by the levy.
-    emission
-        Emission for which the emission factor is calculated.
     idx
-        Time-step index.
+        Current time-step index.
 
     Returns
     -------
     FloatLike
-        Emission factor, in ton emissions per ton fuel.
+        Emission coefficient, in ton emissions per ton fuel, from idx onward.
     """
-    vessel_name = vessel.name
-    port_name = port.name
-    fuel_name = fuel.name
-    emission_name = emission.name
+    coefficient: FloatLike = 0.0
 
-    key_wtt = (port_name, fuel_name, emission_name)
-    key_ttw = (vessel_name, fuel_name, emission_name)
+    for emission in levy.emissions:
+        key_wtt = (port.name, fuel.name, emission.name)
+        key_ttw = (vessel.name, fuel.name, emission.name)
+        coefficient += _calculate_emission_factor(levy, key_wtt, key_ttw, idx)
 
-    return _calculate_emission_factor(levy, key_wtt, key_ttw, idx)
+    return coefficient
 
 
 def _calculate_threshold_adjusted_levy_emission_coefficient(
