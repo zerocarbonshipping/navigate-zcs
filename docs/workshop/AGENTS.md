@@ -1,0 +1,124 @@
+<!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
+# Editing the workshop
+
+This file is for anyone changing the workshop in `docs/workshop/`, human or coding
+agent. It states the conventions the notebooks follow and the checks a change
+needs. It does not explain Navigate: the notebooks do that. For building a deck
+from one of Session 5's prompts, see `building-a-deck.md`.
+
+## What is here
+
+Five sessions, each a notebook, in this order:
+
+1. `01-run-a-simple-case.ipynb`: one case, run and varied
+2. `02-understand-navigate.ipynb`: the same case, from the inside
+3. `03-run-a-global-case.ipynb`: the reference scenario on a coarse time grid
+4. `04-run-our-reference-scenarios.ipynb`: the full reference runs, about twenty
+   minutes each
+5. `05-build-your-own-case.ipynb`: prompts for an AI assistant (local install only)
+
+`_style.py` holds the shared figure style. `index.md` is the overview page. The
+decks the sessions run are in `simulations/examples/example_4/` and
+`simulations/scenarios/workshop_whatif/`; the maps and schematics are drawn by the
+scripts in `docs/_figures/`.
+
+## Branch
+
+The workshop is built on `main`, the released Navigate that participants install,
+not on `dev`. Do not merge `dev` into the workshop branch: its API changes break
+the decks and the notebooks. The workshop is never merged into or deployed from
+`main`.
+
+Every link to the workshop points at the `dev-workshop` branch, because no workshop
+page exists on the published site: the Open in Colab badges, `BRANCH` in each
+Setup cell, the links between notebooks, and the clone command in `index.md`.
+When the workshop moves to another branch, change all of them together
+(`grep blob/dev-workshop`); one left behind keeps working until the old branch is
+deleted.
+
+## Prose
+
+- Name the actor. The **owners** order, retrofit and scrap ships and fit
+  efficiency technology; the **operators** choose speed and bunkering. "The fleet"
+  is not an actor: write the owners, the operators, or both, and "the ships" for
+  the hulls. `Fleet` as the deck node keeps its name.
+- When restructuring, move paragraphs as they are. Corrections are limited to
+  spelling and grammar, which are fixed as soon as they are noticed. A factual
+  problem in existing prose is raised with the authors, not rewritten in place.
+- Teaching belongs in the notebook. Comments in `.nav` and `.inc` files stay
+  minimal: the SPDX header, a one-line title, the INVENTED marker and what a
+  number was derived from, and syntax traps the code cannot show.
+- Before changing a number in the prose to match a run, run again and check it is
+  stable. The global decks move in the last digit from one run to the next, so
+  quote them to no more precision than they reproduce at. The example_4 figures
+  reproduce exactly.
+
+## Numbers
+
+Every assumption comes from `assumptions/`, referenced by name. The example decks
+teach structure, never numbers: some of their values exist nowhere in the library.
+A number the library lacks is marked INVENTED, with what it was derived from, and
+listed in the `.nav` header.
+
+## Figures
+
+- Colours come from `PALETTE` in `_style.py`, through `swatch(hue, level)`, never
+  as a raw hex. Use levels 1 to 8: level 0 does not show on a projector. The
+  scripts in `docs/_figures/` use the same colours. Every figure the workshop
+  shows follows this palette, results of a Navigate run included: draw them from
+  the run's report rather than displaying the `.png` files Navigate writes, which
+  use the library's older palette.
+- Show a result with a figure the workshop already draws, so the reader can
+  compare it with the others. Factor the plotting code into a function rather than
+  adding a chart; propose a new type of figure only when none fits.
+
+## Notebooks
+
+- Keep each cell's `source` a list of lines, which is what keeps a notebook diff
+  readable. `nbformat.read` joins them into one string and `nbformat.writes`
+  splits them again, so write with `nbformat.writes`, never a raw `json.dumps` of
+  an nbformat object.
+- Keep each file's own line ending (detect it from the raw bytes; it is not the
+  same in every notebook) rather than forcing one.
+- Execute with `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` set before the kernel
+  starts, or Navigate's banner is saved as mojibake. Save the kernelspec as the
+  standard `python3`.
+- Before committing, check: the notebook validates, no output is an error, no
+  output contains mojibake (`â€`, `Ã`), and no output contains a local path or
+  user name.
+- The docs build does not execute the notebooks (`nb_execution_mode = 'off'`), so
+  what is saved is what is published.
+
+## Prompts
+
+The start-up prompt and the full prompts in Sessions 1, 3 and 5 are tested as a
+chain, cold, by an assistant that sees only the prompt text:
+
+1. the start-up prompt, carried through: it writes a full prompt, and a fresh
+   assistant builds and runs it;
+2. each full prompt, run directly.
+
+Check that every instruction of the start-up prompt (the new folder and its `_2`,
+no change to existing files, INVENTED marking, what to report) reaches the
+generated prompt and is obeyed by the build. Keep the start-up prompt as short as
+a participant could write it, and shorten it only with a chain test showing the
+cut breaks nothing. The rules Session 5's prompts share live in
+`building-a-deck.md`: change them there, not in each prompt, and test the chain
+again afterwards.
+
+## Running decks
+
+From the repository root, `python -m navigate <deck>.nav -d ./assumptions`
+(`-s` skips the plots). The shorter `navigate` command may run another installed
+copy of Navigate. Do not install or upgrade packages into an environment you did
+not create.
+
+## Improving this file
+
+A convention that a review had to correct, or a check that would have caught a
+problem, belongs here. Add it in the section it concerns, in a sentence, with the
+reason when the reason is not obvious.

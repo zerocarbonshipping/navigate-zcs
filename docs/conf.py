@@ -30,8 +30,10 @@ locale_dirs = []
 
 # '_figures' holds the scripts and source data that generate the workshop
 # figures, not documentation. It carries a README.md, which myst_nb would
-# otherwise pick up as an orphan document and warn about.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '_figures']
+# otherwise pick up as an orphan document and warn about. The AGENTS.md and
+# CLAUDE.md in workshop/ are for people editing the workshop, not its readers.
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '_figures',
+                    'workshop/AGENTS.md', 'workshop/CLAUDE.md']
 
 extensions = [
     # myst_nb supersedes myst_parser: it registers the same Markdown parser
