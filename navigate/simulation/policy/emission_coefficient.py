@@ -18,9 +18,6 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
-
-    from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
@@ -244,19 +241,23 @@ def _assign_regulation_ttw_factors(
     for vessel_name, vessel in vessels.items():
         target_fuels = _usable_target_fuels(regulation, vessel.usable_fuels)
 
-        for converter, fuel in _converter_fuels(vessel, target_fuels):
-            for emission in target_emissions:
-                supplied_ttw = supplied_ttws[(fuel.name, emission.name)]
-                ttw_consumption, ttw_slip = _regulation_ttw(
-                    regulation, vessel, converter, fuel, emission, supplied_ttw
-                )
+        for converter_name, burned in vessel.fuels_per_converter.items():
+            for fuel in target_fuels:
+                if fuel.name not in burned:
+                    continue
 
-                factor_consumption = _apply_gwp(ttw_consumption, regulation, emission)
-                factor_slip = _apply_gwp(ttw_slip, regulation, emission)
+                for emission in target_emissions:
+                    supplied_ttw = supplied_ttws[(fuel.name, emission.name)]
+                    ttw_consumption, ttw_slip = _regulation_ttw(
+                        regulation, vessel, converter_name, fuel, emission, supplied_ttw
+                    )
 
-                key = (vessel_name, converter.name, fuel.name, emission.name)
-                expectation.set_ttw_consumption(idx, key, factor_consumption)
-                expectation.set_ttw_slip(idx, key, factor_slip)
+                    consumption = _apply_gwp(ttw_consumption, regulation, emission)
+                    slip = _apply_gwp(ttw_slip, regulation, emission)
+
+                    key = (vessel_name, converter_name, fuel.name, emission.name)
+                    expectation.set_ttw_consumption(idx, key, consumption)
+                    expectation.set_ttw_slip(idx, key, slip)
 
 
 def _assign_regulation_emission_coefficients(
@@ -281,29 +282,34 @@ def _assign_regulation_emission_coefficients(
     for vessel_name, vessel in vessels.items():
         target_fuels = _usable_target_fuels(regulation, vessel.usable_fuels)
 
-        for converter, fuel in _converter_fuels(vessel, target_fuels):
-            coefficient: FloatLike = 0.0
-            for emission in target_emissions:
-                coefficient += _calculate_regulation_emission_factor(
-                    regulation, vessel, converter, fuel, emission, idx
-                )
+        for converter_name, burned in vessel.fuels_per_converter.items():
+            for fuel in target_fuels:
+                if fuel.name not in burned:
+                    continue
 
-            # a NaN WTT factor, as where no route port has an estimate for the
-            # fuel, leaves the fuel without a coefficient, its TTW part included;
-            # without an estimate no route port supplies the fuel, so the LP
-            # spends none of it, and the missing coefficient reads as zero
-            if np.isnan(coefficient).any():
-                continue
+                coefficient: FloatLike = 0.0
+                for emission in target_emissions:
+                    coefficient += _calculate_regulation_emission_factor(
+                        regulation, vessel, converter_name, fuel, emission, idx
+                    )
 
-            key = (vessel_name, converter.name, fuel.name)
+                # a NaN WTT factor, as where no route port has an estimate for the
+                # fuel, leaves the fuel without a coefficient, its TTW part
+                # included; without an estimate no route port supplies the fuel,
+                # so the LP spends none of it, and the missing coefficient reads
+                # as zero
+                if np.isnan(coefficient).any():
+                    continue
 
-            regulation.expectation.set_emission_coefficient(idx, key, coefficient)
+                key = (vessel_name, converter_name, fuel.name)
+
+                regulation.expectation.set_emission_coefficient(idx, key, coefficient)
 
 
 def _calculate_regulation_emission_factor(
     regulation: Regulation,
     vessel: Vessel,
-    converter: Converter,
+    converter_name: str,
     fuel: Fuel,
     emission: Emission,
     idx: int,
@@ -319,8 +325,8 @@ def _calculate_regulation_emission_factor(
         Regulation to calculate emission factor for.
     vessel
         Vessel impacted by the regulation.
-    converter
-        Converter on board the vessel.
+    converter_name
+        Name of the converter on board the vessel.
     fuel
         Fuel with certain emissions impacted by the regulation.
     emission
@@ -334,7 +340,6 @@ def _calculate_regulation_emission_factor(
         Emission factor, in ton emissions per ton fuel.
     """
     vessel_name = vessel.name
-    converter_name = converter.name
     fuel_name = fuel.name
     emission_name = emission.name
 
@@ -435,19 +440,19 @@ def _calculate_regulation_spend_coefficients(
 
     for vessel_name, vessel in vessels.items():
         vessel_expectation = vessel.expectation
-        usable_fuels = vessel.usable_fuels.values()
         threshold = expectation.get_vessel_threshold(vessel_name, from_idx)
 
         # in ton emission/GJ; zero where the threshold enters the right-hand side
         threshold_term = threshold / TON_TO_KG if is_intensity else 0.0
 
-        for converter, fuel in _converter_fuels(vessel, usable_fuels):
-            fuel_key = (vessel_name, converter.name, fuel.name)
-            lhv = vessel_expectation.get_effective_lhv(converter.name, fuel.name)
-            emission = expectation.get_emission_coefficient(fuel_key, from_idx)
+        for converter_name, burned in vessel.fuels_per_converter.items():
+            for fuel_name in burned:
+                fuel_key = (vessel_name, converter_name, fuel_name)
+                lhv = vessel_expectation.get_effective_lhv(converter_name, fuel_name)
+                emission = expectation.get_emission_coefficient(fuel_key, from_idx)
 
-            spend = emission - threshold_term * lhv
-            expectation.set_spend_coefficient(idx, fuel_key, spend)
+                spend = emission - threshold_term * lhv
+                expectation.set_spend_coefficient(idx, fuel_key, spend)
 
         for port in unique_list(vessel.route.ports):
             port_key = (vessel_name, port.name)
@@ -819,7 +824,7 @@ def _average_wtt_over_route(
 def _regulation_ttw(
     regulation: Regulation,
     vessel: Vessel,
-    converter: Converter,
+    converter_name: str,
     fuel: Fuel,
     emission: Emission,
     supplied_ttw: FloatArray | None,
@@ -836,8 +841,8 @@ def _regulation_ttw(
         Regulation the TTW is read for; where it leaves out slip, the slip TTW is zero.
     vessel
         Vessel the converter is on board.
-    converter
-        Converter able to burn the fuel.
+    converter_name
+        Name of the converter, one able to burn the fuel.
     fuel
         Fuel being spent.
     emission
@@ -853,7 +858,7 @@ def _regulation_ttw(
     if supplied_ttw is not None:
         return supplied_ttw, 0.0  # TODO: change if deciding to split input
 
-    key = (converter.name, fuel.name, emission.name)
+    key = (converter_name, fuel.name, emission.name)
     expectation = vessel.expectation
 
     ttw_consumption = expectation.get_ttw_consumption(*key)
@@ -982,37 +987,6 @@ def _usable_target_fuels(
         Targeted fuels also usable by the vessel.
     """
     return [fuel for fuel in policy.fuels if fuel.name in usable_fuels]
-
-
-def _converter_fuels(
-    vessel: Vessel, fuels: Collection[Fuel]
-) -> list[tuple[Converter, Fuel]]:
-    """
-    Pair each converter on board a vessel with each of the fuels it can burn.
-
-    Parameters
-    ----------
-    vessel
-        Vessel whose converters are paired.
-    fuels
-        Fuels to pair the converters with.
-
-    Returns
-    -------
-    list[tuple[Converter, Fuel]]
-        Every converter with every fuel of `fuels` it can burn, converter by
-        converter.
-    """
-    pairs: list[tuple[Converter, Fuel]] = []
-
-    for converter in vessel.power_system.get_converters():
-        fuel_types = converter.get_fuel_types()
-
-        for fuel in fuels:
-            if fuel.fuel_type in fuel_types:
-                pairs.append((converter, fuel))
-
-    return pairs
 
 
 def _estimate_port_wtt(
