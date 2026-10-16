@@ -352,6 +352,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   rescale for every matched node, not just the first.
 - The fuel-conversion proposal walk skips an increment with no eligible
   destination instead of stopping there.
+- Fuel conversion's supply limit counts a port's supply once however often a
+  route calls there, and each vessel's share as the bunkering allocates it;
+  results change where a route repeats a port or port supply is short (#520).
 - `FairShareMaximumIterations` rejects a non-integer such as `2.5` at its line
   instead of truncating it, and an expression instead of ending in a Python
   error.

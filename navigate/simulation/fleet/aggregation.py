@@ -16,6 +16,8 @@ from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_f
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
 
 
@@ -166,7 +168,8 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
     """
     Gather the fleet's fuel-type supply onto the fleet expectation.
 
-    Each vessel's supply is its fair share of the port supplies.
+    Each vessel's supply is its allocation of the port supplies in the latest
+    existing bunkering; an infinite port supply counts in full.
 
     Parameters
     ----------
@@ -183,29 +186,47 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
         if multiplier == 0.0:
             continue
 
-        ports = vessel.route.ports
-
-        for port in ports:
-            port_name = port.name
-
+        # the allocation is per port, so a port the route calls more than once
+        # counts once
+        for port in dict.fromkeys(vessel.route.ports):
             for fuel_name, fuel in fuels.items():
                 if not port.is_bunkering_allowed(fuel_name):
                     continue
 
-                fuel_type = fuel.fuel_type
-                supply_mass = float(port.expectation.get_bunker_supply(fuel_name, idx))
-                supply_energy = supply_mass * fuel.lower_heating_value.get()
+                supply_mass = _get_supply_mass(vessel, port, fuel_name, idx)
+                supply = supply_mass * fuel.lower_heating_value.get() * multiplier
+                fleet.expectation.add_fuel_type_supply(fuel.fuel_type, supply)
 
-                if np.isinf(supply_energy):
-                    fair_share_supply = np.inf
 
-                else:
-                    fair_share = vessel.expectation.get_fair_share_fuel_existing(
-                        port_name, fuel_name
-                    )
-                    fair_share_supply = supply_energy * fair_share * multiplier
+def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> float:
+    """
+    Return the mass of a port's fuel supply that counts for one vessel.
 
-                fleet.expectation.add_fuel_type_supply(fuel_type, fair_share_supply)
+    A finite supply counts as the existing bunkering's allocation to the vessel. The
+    bunkering allocates no infinite supply, which counts in full instead: a fuel
+    type no active vessel can use yet still has supply to convert to.
+
+    Parameters
+    ----------
+    vessel
+        Vessel holding the allocation.
+    port
+        Port supplying the fuel.
+    fuel_name
+        Name of the fuel.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    float
+        Fuel mass counting for one vessel, in tons.
+    """
+    supply = float(port.expectation.get_bunker_supply(fuel_name, idx))
+    if not np.isfinite(supply):
+        return supply
+
+    return vessel.expectation.get_allocation_fuel_existing(port.name, fuel_name)
 
 
 def _transfer_fuel_type_demand(fleet: Fleet, idx: int) -> None:
