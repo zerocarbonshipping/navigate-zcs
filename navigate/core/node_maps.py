@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Maps between nodes: derived from static attributes or rewritten each time step."""
+"""Node maps: node attributes derived from other nodes', written once or each step."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from navigate.core.enum_ import FuelTypeID
 from navigate.util import unique_list
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
     from navigate.core.nodes.port import Port
@@ -44,7 +45,7 @@ def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fue
 
 def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) -> None:
     """
-    Write on each vessel the fuels it can use and which of its converters burns which.
+    Write on each vessel its usable fuel types and fuels and its converter-fuel pairs.
 
     A usable fuel type is one a tank stores or a converter burns, and a usable fuel
     is a fuel of a usable type. Each converter is paired with the usable fuels of
@@ -64,7 +65,9 @@ def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) 
         usable_fuel_types = _usable_fuel_types(vessel)
         usable_fuels = _usable_fuels(usable_fuel_types, fuels_per_fuel_type)
         fuels_per_converter = _fuels_per_converter(vessel, usable_fuels)
-        converters_per_fuel = _converters_per_fuel(usable_fuels, fuels_per_converter)
+        converters_per_fuel = _converters_per_fuel(
+            vessel, usable_fuels, fuels_per_converter
+        )
 
         vessel.usable_fuel_types = usable_fuel_types
         vessel.usable_fuels = usable_fuels
@@ -118,14 +121,19 @@ def _fuels_per_converter(
 
 
 def _converters_per_fuel(
-    usable_fuels: dict[str, Fuel], fuels_per_converter: dict[str, dict[str, Fuel]]
-) -> dict[str, tuple[str, ...]]:
-    """Return, per usable fuel name, the names of the converters burning it."""
-    converters_per_fuel: dict[str, tuple[str, ...]] = dict.fromkeys(usable_fuels, ())
+    vessel: Vessel,
+    usable_fuels: dict[str, Fuel],
+    fuels_per_converter: dict[str, dict[str, Fuel]],
+) -> dict[str, dict[str, Converter]]:
+    """Return, per usable fuel name, the converters burning it, keyed by name."""
+    converters_per_fuel: dict[str, dict[str, Converter]] = {}
 
-    for converter_name, burned in fuels_per_converter.items():
-        for fuel_name in burned:
-            converters_per_fuel[fuel_name] += (converter_name,)
+    for fuel_name in usable_fuels:
+        converters_per_fuel[fuel_name] = {}
+
+    for converter in vessel.power_system.get_converters():
+        for fuel_name in fuels_per_converter[converter.name]:
+            converters_per_fuel[fuel_name][converter.name] = converter
 
     return converters_per_fuel
 

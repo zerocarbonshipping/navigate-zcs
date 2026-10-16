@@ -35,6 +35,7 @@ if TYPE_CHECKING:
 
     import numpy as np
 
+    from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.power_system import PowerSystem
@@ -94,7 +95,7 @@ class Vessel(Node):
         self.usable_fuel_types: list[FuelTypeID]
         self.usable_fuels: dict[str, Fuel]
         self.fuels_per_converter: dict[str, dict[str, Fuel]]
-        self.converters_per_fuel: dict[str, tuple[str, ...]]
+        self.converters_per_fuel: dict[str, dict[str, Converter]]
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion_load(self, propulsion_load: SurfaceArgument) -> None:

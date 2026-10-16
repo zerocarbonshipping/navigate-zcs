@@ -99,13 +99,8 @@ def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, floa
     list[tuple[Converter, float]]
         Each converter able to burn the fuel with its weight, in MW.
     """
-    converter_names = vessel.converters_per_fuel[fuel.name]
-
     weights: list[tuple[Converter, float]] = []
-    for converter in vessel.power_system.get_converters():
-        if converter.name not in converter_names:
-            continue
-
+    for converter in vessel.converters_per_fuel[fuel.name].values():
         power = converter.power_capacity.get()
         efficiency = converter.efficiency.get()
         weight = power / efficiency if efficiency > 0.0 else 0.0
