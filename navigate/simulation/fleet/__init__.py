@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from navigate.simulation.fleet.aggregation import (
+    calculate_fleet_fuel_demand,
     calculate_fleet_profile,
     calculate_vessel_profile,
 )

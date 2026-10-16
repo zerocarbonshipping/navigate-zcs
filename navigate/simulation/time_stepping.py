@@ -29,6 +29,7 @@ from navigate.simulation.fleet import (
     calculate_cargo_charter_properties,
     calculate_evolution_expectation,
     calculate_fleet_expectations,
+    calculate_fleet_fuel_demand,
     calculate_fleet_profile,
     calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
@@ -244,6 +245,10 @@ class Simulation:
             # the installed converter power for it to be feasible
             self._verify_power_capacity(self._bunker_expected)
             self._calculate_expected_bunkering()
+
+            # the fuel demand weights the expected bunkering with the expected
+            # multipliers the LPs ran with, which the fleet evolution below rewrites
+            self._calculate_fleet_fuel_demand()
 
             # smooth the energy-conservation LP duals into scarcity belief paths
             # consumed by the technology and speed-management heuristics below
@@ -504,6 +509,16 @@ class Simulation:
             self.profile.add_expected_transfer_time(
                 self._bunker_expected.transfer_time, self._idx
             )
+
+    def _calculate_fleet_fuel_demand(self) -> None:
+        start_time = timeit.default_timer()
+
+        for fleet in self.nodes.fleets.values():
+            calculate_fleet_fuel_demand(fleet, self.nodes.fuels, self._idx)
+
+        self.profile.add_fleet_state_time(
+            timeit.default_timer() - start_time, self._idx
+        )
 
     def _update_scarcity_signals(self) -> None:
         start_time = timeit.default_timer()

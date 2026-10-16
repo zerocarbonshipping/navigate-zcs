@@ -96,7 +96,7 @@ class VesselExpectation(_Expectation):
         self._mean_ttw_slip: dict[tuple[str, str], float] = {}
 
         # bunkering/spend
-        self._bunker_mass_expected: dict[tuple[str, str], float] = {}
+        self._bunker_mass_expected: dict[tuple[str, str], FloatArray] = {}
         self._bunker_mass_existing: dict[tuple[str, str], float] = {}
         self._spend_energy: dict[str, float] = {}
 
@@ -245,8 +245,9 @@ class VesselExpectation(_Expectation):
             fuels, emissions, default=np.nan
         )
 
-        # bunkering saved for inertia
-        self._bunker_mass_expected = self._default_tuple_dict_float(port_names, fuels)
+        # bunkered masses for the inertia floors, the expected ones also for the
+        # fleet's fuel demand
+        self._bunker_mass_expected = self._default_tuple_dict_array(port_names, fuels)
         self._bunker_mass_existing = self._default_tuple_dict_float(port_names, fuels)
 
         # potential fuel-type demand at each port of the route
@@ -290,8 +291,7 @@ class VesselExpectation(_Expectation):
         self._fuel_expenses = self._default_array()
         self._policy_expenses = self._default_array()
 
-    def reset_bunker_mass_expected(self) -> None:
-        self._reset_dict_float(self._bunker_mass_expected)
+        self._reset_dict_array(self._bunker_mass_expected)
 
     def reset_bunker_mass_existing(self) -> None:
         self._reset_dict_float(self._bunker_mass_existing)
@@ -472,9 +472,9 @@ class VesselExpectation(_Expectation):
         self._mean_ttw_slip[(fuel_name, emission_name)] = ttw
 
     def add_bunker_mass_expected(
-        self, port_name: str, fuel_name: str, mass: float
+        self, idx: int, port_name: str, fuel_name: str, mass: float
     ) -> None:
-        self._bunker_mass_expected[(port_name, fuel_name)] += mass
+        self._bunker_mass_expected[(port_name, fuel_name)][idx] += mass
 
     def add_bunker_mass_existing(
         self, port_name: str, fuel_name: str, mass: float
@@ -707,8 +707,10 @@ class VesselExpectation(_Expectation):
     def get_mean_ttw_slip(self, fuel_name: str, emission_name: str) -> float:
         return self._mean_ttw_slip[(fuel_name, emission_name)]
 
-    def get_bunker_mass_expected(self, port_name: str, fuel_name: str) -> float:
-        return self._bunker_mass_expected[(port_name, fuel_name)]
+    def get_bunker_mass_expected(
+        self, port_name: str, fuel_name: str, idx: Index
+    ) -> FloatLike:
+        return self._bunker_mass_expected[(port_name, fuel_name)][idx]
 
     def get_bunker_mass_existing(self, port_name: str, fuel_name: str) -> float:
         return self._bunker_mass_existing[(port_name, fuel_name)]
