@@ -439,7 +439,6 @@ class BunkerAlgorithm:
         for fleet in self.fleets.values():
             for vessel in fleet.vessels:
                 v = vessel.name
-
                 multiplier = fleet.expectation.get_multiplier(v, self.scope, steps)
 
                 if _is_admitted(multiplier):

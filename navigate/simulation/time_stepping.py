@@ -401,7 +401,6 @@ class Simulation:
 
     def _verify_power_capacity(self, bunker: BunkerAlgorithm) -> None:
         vessels = bunker.get_admitted_vessels(self._idx)
-
         verify_power_capacity(vessels, self._idx)
 
     def _perform_producer_evolution(self) -> None:
