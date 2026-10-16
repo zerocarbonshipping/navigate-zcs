@@ -63,7 +63,7 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
             )
 
             if is_policed:
-                # kept for evaluating the regulation properties after the solve
+                # kept for transferring the regulation solution after the solve
                 alg.regulation_emission_terms[(r, v)] = emissions
                 alg.regulation_energy_terms[(r, v)] = energy
 

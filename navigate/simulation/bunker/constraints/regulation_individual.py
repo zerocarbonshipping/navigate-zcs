@@ -56,7 +56,7 @@ def update_individual_regulation_threshold_constraints(alg: BunkerAlgorithm) -> 
             alg, alg.vessels[v], alg.regulations[r]
         )
 
-        # kept for evaluating the regulation properties after the solve
+        # kept for transferring the regulation solution after the solve
         alg.regulation_emission_terms[key] = emissions
         alg.regulation_energy_terms[key] = energy
 

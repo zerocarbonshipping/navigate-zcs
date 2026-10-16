@@ -37,14 +37,15 @@ def calculate_regulation_terms(
     one variable list and differ only in their weights:
 
         T = \sum_t \phi_t k_t z_t    (constraint term)
-        M = \sum_t \phi_t e_t z_t    (emissions, reporting only)
-        Q = \sum_t \phi_t \lambda_t z_t    (energy, reporting only)
+        M = \sum_t \phi_t e_t z_t    (emissions)
+        Q = \sum_t \phi_t \lambda_t z_t    (energy)
 
     where z is a spend or shore-power variable, \phi the regulation's jurisdiction
     fraction of its port or leg and e its emission coefficient, both read from the
     regulation's expectation, k its regulation spend coefficient, and \lambda its
     effective lower heating value (1 for shore power, already in GJ). T enters
-    the threshold constraints; M and Q are stored for reporting.
+    the threshold constraints; M and Q are evaluated at the solution, for the
+    threshold adjustment and for the regulation's compliance and flexibility market.
 
     A variable whose fraction is 0 stays in the list at weight 0, so between
     builds the list only grows, as the vessel's variables do.
