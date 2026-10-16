@@ -454,8 +454,8 @@ class TestThresholdAdjustedLevyEmissionCoefficient:
 
 
 # ---------------------------------------------------------------------------
-# 7. Levy costs: thresholds stay sliced to the remaining
-#    timeline once their evaluation moves out of the vessel/port/fuel loop
+# 7. Levy costs: thresholds stay sliced to the remaining timeline once their
+#    evaluation moves out of the vessel/port/fuel loop
 # ---------------------------------------------------------------------------
 
 TIMELINE = np.array([0.0, 365.0, 730.0])
@@ -514,8 +514,7 @@ class TestCalculateLevyCostsSlicing:
         )
         levy.upper_threshold = None
         levy.vessel_is_policed.return_value = True
-        # a level of 1 makes the cost the threshold-adjusted coefficient
-        levy.expectation.get_level.return_value = np.array([1.0, 1.0])
+        levy.expectation.get_level.return_value = np.array([2.0, 3.0])
         levy.expectation.get_wtt.return_value = np.array([3.2, 3.2])
         levy.expectation.get_ttw_consumption.return_value = 0.0
         levy.expectation.get_ttw_slip.return_value = 0.0
@@ -526,10 +525,12 @@ class TestCalculateLevyCostsSlicing:
 
         # lower threshold at idx onward is [20, 30]; g/MJ: 3.2 / 40 * 1000 = 80
         # for both steps; minus [20, 30] = [60, 50]; back to ton/ton fuel: * 40 / 1000
+        # = [2.4, 2.0]; times the level at idx onward, [2, 3], = [4.8, 6.0]
+        levy.expectation.get_level.assert_called_once_with(np.s_[idx:])
         assert call_idx == idx
         assert key == ("vessel1", "port1", "fuel_bio")
         assert len(cost) == 2
-        assert cost == pytest.approx([2.4, 2.0])
+        assert cost == pytest.approx([4.8, 6.0])
 
 
 # ---------------------------------------------------------------------------

@@ -38,12 +38,12 @@ def calculate_policy_emission_coefficients(
     idx: int,
 ) -> None:
     """
-    Calculate WTT and TTW emission factors for each combination of inputs.
+    Calculate the active policies' emission factors and coefficients, and levy costs.
 
     Combinations span regulations, levies, vessels, fuels, and emissions. The WTT and
     TTW emission factors can be used to calculate the overall emission factors, which
     are used in the calculation of the emission coefficients, which are used to
-    converter a ton of fuel to a ton of emissions. A levy's coefficients, priced at
+    convert a ton of fuel to a ton of emissions. A levy's coefficients, priced at
     its level, give its cost per ton of fuel.
 
     Reads the plants' production and delivery WTT and the levies' levels of the
@@ -578,10 +578,10 @@ def _calculate_levy_costs(
                     )
 
                 # a NaN WTT factor, as where the port has no estimate for the fuel,
-                # leaves the fuel without a cost at the port, its TTW part
-                # included; without an estimate the port has no supply of the
-                # fuel, so the LP bunkers none of it there and reads the missing
-                # cost as zero
+                # makes the whole coefficient NaN, TTW part included, so the fuel
+                # gets no cost at the port; without an estimate the port has no
+                # supply of the fuel, so the LP bunkers none of it there and reads
+                # the missing cost as zero
                 if np.isnan(coefficient).any():
                     continue
 
