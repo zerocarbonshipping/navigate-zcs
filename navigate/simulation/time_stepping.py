@@ -315,9 +315,7 @@ class Simulation:
             self._idx,
         )
 
-        calculate_fleet_expectations(
-            self.nodes.vessels, self.nodes.fuels, self.nodes.emissions
-        )
+        calculate_fleet_expectations(self.nodes.vessels, self.nodes.emissions)
 
         calculate_port_expectations(self.nodes.ports, self.timeline, self._idx)
         calculate_export_expectations(self.nodes.producers, self.timeline, self._idx)

@@ -194,7 +194,12 @@ class Vessel(Node):
         self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
     ) -> None:
         self.expectation.initialize(
-            length, self.route, self.power_system, fuels, emissions
+            length,
+            self.route,
+            fuels,
+            self.usable_fuels,
+            self.fuels_per_converter,
+            emissions,
         )
 
     def initialize_profile(
