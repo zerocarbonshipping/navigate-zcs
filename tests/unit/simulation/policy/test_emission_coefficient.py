@@ -561,7 +561,7 @@ class TestNanWttLeavesNoCoefficient:
         regulation.fuel_wtt = {(fuel.name, emission.name): None}
         regulation.in_jurisdiction_vessel = {vessel.name: True}
         regulation.expectation = RegulationExpectation()
-        regulation.expectation.initialize(1, [emission.name], {})
+        regulation.expectation.initialize(1, [emission.name], {}, {})
         regulation.expectation.set_global_warming_potential(emission.name, 1.0)
 
         _assign_regulation_emission_factors(

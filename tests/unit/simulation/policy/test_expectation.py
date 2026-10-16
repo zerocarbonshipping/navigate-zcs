@@ -68,7 +68,7 @@ def test_policy_global_warming_potential_is_read_at_emissions_lifetime(
         regulation.set_emissions_lifetime(policy_lifetime)
 
     expectation = regulation.expectation
-    expectation.initialize(1, ["methane"], {})
+    expectation.initialize(1, ["methane"], {}, {})
     _calculate_global_warming_potentials(
         regulation, {"methane": emission}, MODEL_EMISSIONS_LIFETIME
     )

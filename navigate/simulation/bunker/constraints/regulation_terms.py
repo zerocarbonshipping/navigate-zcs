@@ -9,14 +9,7 @@ from typing import TYPE_CHECKING, NamedTuple
 
 import navigate.core.enum_ as enum_
 import navigate.simulation.bunker.solver as gp
-from navigate.core.enum_ import RegulationMeasureID
 from navigate.simulation.bunker.utils import get_converters, get_port_converters
-from navigate.simulation.policy import (
-    calculate_cargo_miles_in_policy_jurisdiction,
-    calculate_nominal_cargo_miles_in_policy_jurisdiction,
-    leg_jurisdiction_fraction,
-)
-from navigate.util import TON_TO_GRAM
 
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
@@ -47,9 +40,8 @@ def calculate_regulation_terms(
         M = \sum_t \phi_t e_t z_t    (emissions, reporting only)
         Q = \sum_t \phi_t \lambda_t z_t    (energy, reporting only)
 
-    where z is a spend or shore-power variable, \phi its jurisdiction fraction
-    (intra at a regulated port and 0 at any other, for port spend and shore
-    power; intra/inter/extra for sea legs by their ports' membership), k its
+    where z is a spend or shore-power variable, \phi the regulation's jurisdiction
+    fraction of its port or leg, read from the regulation's expectation, k its
     regulation spend coefficient, e its emission factor, and \lambda its
     effective lower heating value (1 for shore power, already in GJ). T enters
     the threshold constraints; M and Q are stored for reporting.
@@ -74,7 +66,9 @@ def calculate_regulation_terms(
     """
     v = vessel.name
     r = regulation.name
+    idx = alg.idx
     expectation = vessel.expectation
+    regulation_expectation = regulation.expectation
 
     coefficients = alg.regulation_spend_coefficient
     emission_factors = alg.regulation_emission_factor
@@ -87,19 +81,13 @@ def calculate_regulation_terms(
 
     route = vessel.route
     ports = route.ports
-    jurisdiction = regulation.jurisdiction
-
-    intra_fraction = regulation.intra_fraction.get(alg.time)
-    inter_fraction = regulation.inter_fraction.get(alg.time)
-    extra_fraction = regulation.extra_fraction.get(alg.time)
-
-    # a port inside the jurisdiction is intra-jurisdiction, one outside unregulated
-    port_fractions = [intra_fraction if port in jurisdiction else 0.0 for port in ports]
 
     terms: list[_Term] = []
 
     # in ports
-    for p, fraction in enumerate(port_fractions):
+    for p, port in enumerate(ports):
+        fraction = regulation_expectation.get_port_fraction(port.name, idx)
+
         terms.extend(
             _Term(
                 alg.spend_port[v, c, f, p],
@@ -111,16 +99,10 @@ def calculate_regulation_terms(
             for f in fuels_per_converter[v, c]
         )
 
-    # at sea, weighted per leg by its ports' jurisdiction membership
+    # at sea
     for port_start, port_end in route.get_legs():
-        fraction = leg_jurisdiction_fraction(
-            ports[port_start],
-            ports[port_end],
-            jurisdiction,
-            intra_fraction,
-            inter_fraction,
-            extra_fraction,
-        )
+        leg = (ports[port_start].name, ports[port_end].name)
+        fraction = float(regulation_expectation.get_leg_fraction(leg, idx))
 
         terms.extend(
             _Term(
@@ -134,9 +116,11 @@ def calculate_regulation_terms(
         )
 
     # shore power, at the ports where the vessel can connect
-    for p, fraction in enumerate(port_fractions):
+    for p, port in enumerate(ports):
         if (v, p, r) not in shore_power_coefficients:
             continue
+
+        fraction = regulation_expectation.get_port_fraction(port.name, idx)
 
         terms.append(
             _Term(
@@ -203,48 +187,12 @@ def get_regulation_vessel_rhs(
     -------
     tuple[float, float]
         Right-hand side of the vessel's threshold constraint, and the vessel's
-        measure: 1 for ABSOLUTE, 0 for INTENSITY, and the capacity-scaled cargo
-        miles in the jurisdiction for the transport measures.
+        measure under the regulation, read from the regulation's expectation.
     """
-    vessel = alg.vessels[v]
     threshold = get_regulation_vessel_threshold(alg, regulation, v)
+    vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
 
-    measure = regulation.measure
-
-    if measure == RegulationMeasureID.ABSOLUTE:
-        vessel_measure = 1.0
-        rhs = threshold
-
-    elif measure == RegulationMeasureID.INTENSITY:
-        # the energy of an intensity regulation depends on the bunker solution, so
-        # its threshold sits inside the spend coefficient and the rhs is zero
-        vessel_measure = 0.0
-        rhs = 0.0
-
-    elif measure == RegulationMeasureID.TRANSPORT:
-        vessel_measure = calculate_cargo_miles_in_policy_jurisdiction(
-            regulation, vessel, alg.time, alg.idx
-        )
-        vessel_measure *= regulation.expectation.get_vessel_capacity(
-            v, alg.idx
-        ) / vessel.nominal_capacity.get(alg.time)
-        vessel_measure /= TON_TO_GRAM
-        rhs = threshold * vessel_measure
-
-    elif measure == RegulationMeasureID.TRANSPORT_NOMINAL:
-        vessel_measure = calculate_nominal_cargo_miles_in_policy_jurisdiction(
-            regulation, vessel, alg.time, alg.idx
-        )
-        vessel_measure *= regulation.expectation.get_vessel_capacity(
-            v, alg.idx
-        ) / vessel.nominal_capacity.get(alg.time)
-        vessel_measure /= TON_TO_GRAM
-        rhs = threshold * vessel_measure
-
-    else:
-        raise ValueError("Bug in code, Regulation 'Measure' not defined correctly.")
-
-    return rhs, vessel_measure
+    return threshold * vessel_measure, vessel_measure
 
 
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:

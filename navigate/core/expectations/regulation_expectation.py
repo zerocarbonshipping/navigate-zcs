@@ -15,12 +15,13 @@ from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from navigate.core.nodes.port import Port
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
 class RegulationExpectation(_PolicyExpectation):
-    """Emission coefficients, compliance costs and vessel capacities of a regulation."""
+    """Emission coefficients, costs, fractions and vessel measures of a regulation."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -33,10 +34,19 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_net_flexibility_units: dict[str, FloatArray] = {}
         self._remedial_cost: FloatArray = EMPTY_FLOAT
 
+        self._port_fraction: dict[str, FloatArray] = {}
+        # keyed by (departure port_name, arrival port_name)
+        self._leg_fraction: dict[tuple[str, str], FloatArray] = {}
+
         self._vessel_capacity: dict[str, FloatArray] = {}
+        self._vessel_measure: dict[str, FloatArray] = {}
 
     def initialize(
-        self, length: int, emission_names: Iterable[str], vessels: dict[str, Vessel]
+        self,
+        length: int,
+        emission_names: Iterable[str],
+        ports: dict[str, Port],
+        vessels: dict[str, Vessel],
     ) -> None:
         self._initialize_expectation(length)
         self._initialize_policy_expectation(emission_names)
@@ -48,7 +58,11 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_net_flexibility_units = self._default_dict_array(vessels)
         self._remedial_cost = self._default_array()
 
+        self._port_fraction = self._default_dict_array(ports)
+        self._leg_fraction = self._default_tuple_dict_array(ports, ports)
+
         self._vessel_capacity = self._default_dict_array(vessels)
+        self._vessel_measure = self._default_dict_array(vessels)
 
     def reset_expected_bunkering(self) -> None:
         self._flexibility_cost[:] = 0.0
@@ -73,10 +87,23 @@ class RegulationExpectation(_PolicyExpectation):
     def set_remedial_cost(self, idx: int, cost: FloatLike) -> None:
         self._remedial_cost[idx:] = cost
 
+    def set_port_fraction(self, idx: int, port_name: str, fraction: FloatLike) -> None:
+        self._port_fraction[port_name][idx:] = fraction
+
+    def set_leg_fraction(
+        self, idx: int, leg: tuple[str, str], fraction: FloatLike
+    ) -> None:
+        self._leg_fraction[leg][idx:] = fraction
+
     def set_vessel_capacity(
         self, idx: int, vessel_name: str, capacity: FloatLike
     ) -> None:
         self._vessel_capacity[vessel_name][idx:] = capacity
+
+    def set_vessel_measure(
+        self, idx: int, vessel_name: str, measure: FloatLike
+    ) -> None:
+        self._vessel_measure[vessel_name][idx:] = measure
 
     def get_coefficient(self, key: tuple[str, str, str], idx: int) -> float:
 
@@ -99,6 +126,16 @@ class RegulationExpectation(_PolicyExpectation):
         cost: float = self._remedial_cost[idx]
         return cost
 
-    def get_vessel_capacity(self, vessel_name: str, idx: int) -> float:
-        capacity: float = self._vessel_capacity[vessel_name][idx]
-        return capacity
+    def get_port_fraction(self, port_name: str, idx: int) -> float:
+        fraction: float = self._port_fraction[port_name][idx]
+        return fraction
+
+    def get_leg_fraction(self, leg: tuple[str, str], idx: Index) -> FloatLike:
+        return self._leg_fraction[leg][idx]
+
+    def get_vessel_capacity(self, vessel_name: str, idx: slice) -> FloatArray:
+        return self._vessel_capacity[vessel_name][idx]
+
+    def get_vessel_measure(self, vessel_name: str, idx: int) -> float:
+        measure: float = self._vessel_measure[vessel_name][idx]
+        return measure
