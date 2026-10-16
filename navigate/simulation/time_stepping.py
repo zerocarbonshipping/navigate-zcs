@@ -299,7 +299,7 @@ class Simulation:
             self.nodes.regulations,
             self.nodes.levies,
             self.nodes.emissions,
-            self.nodes.ports,
+            self.nodes.routes,
             self.nodes.vessels,
             emissions_lifetime,
             self.timeline,
@@ -646,7 +646,7 @@ class Simulation:
 
         for regulation in self.nodes.regulations.values():
             regulation.initialize_expectation(
-                length, self.nodes.ports, self.nodes.vessels
+                length, self.nodes.routes, self.nodes.vessels
             )
 
         for vessel in self.nodes.vessels.values():

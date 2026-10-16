@@ -15,13 +15,13 @@ from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
 class RegulationExpectation(_PolicyExpectation):
-    """Emission coefficients, costs, fractions and vessel measures of a regulation."""
+    """Emission coefficients, costs, capacities, jurisdiction fractions and measures."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -45,7 +45,7 @@ class RegulationExpectation(_PolicyExpectation):
         self,
         length: int,
         emission_names: Iterable[str],
-        ports: dict[str, Port],
+        routes: dict[str, Route],
         vessels: dict[str, Vessel],
     ) -> None:
         self._initialize_expectation(length)
@@ -58,8 +58,11 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_net_flexibility_units = self._default_dict_array(vessels)
         self._remedial_cost = self._default_array()
 
-        self._port_fraction = self._default_dict_array(ports)
-        self._leg_fraction = self._default_tuple_dict_array(ports, ports)
+        port_names = [port.name for route in routes.values() for port in route.ports]
+        legs = [leg for route in routes.values() for leg in route.get_leg_keys()]
+
+        self._port_fraction = self._default_dict_array(port_names)
+        self._leg_fraction = self._default_dict_array(legs)
 
         self._vessel_capacity = self._default_dict_array(vessels)
         self._vessel_measure = self._default_dict_array(vessels)

@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import itertools
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -14,48 +13,54 @@ from navigate.core.enum_ import RegulationMeasureID
 from navigate.util import TON_TO_GRAM
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray, FloatLike
 
 
 def calculate_jurisdiction_fractions(
-    regulation: Regulation, ports: dict[str, Port], times: FloatArray, idx: int
+    regulation: Regulation, routes: dict[str, Route], times: FloatArray, idx: int
 ) -> None:
     """
-    Calculate the regulated fraction of every port and leg over the remaining timeline.
+    Calculate the regulated fraction of every route port and leg.
 
     A port inside the jurisdiction is regulated at the intra fraction and one outside
-    not at all. Every port and every pair of ports is written, so a port that an event
-    moves out of the jurisdiction keeps no fraction from an earlier step.
+    not at all; a leg at the intra, inter or extra fraction as both, one or neither of
+    its ports lie inside. The fractions are Forecasts that events can change, so they
+    are rewritten over the remaining timeline every step.
 
     Parameters
     ----------
     regulation
         Regulation whose jurisdiction the ports and legs are attributed to.
-    ports
-        All ports in the simulation.
+    routes
+        All routes in the simulation.
     times
         Remaining timeline, in days.
     idx
         Current time-step index.
     """
     expectation = regulation.expectation
-    jurisdiction = regulation.jurisdiction
+    jurisdiction = set(regulation.jurisdiction)
 
     intra = regulation.intra_fraction.get(times)
     inter = regulation.inter_fraction.get(times)
     extra = regulation.extra_fraction.get(times)
 
-    for port_name, port in ports.items():
-        fraction = intra if port in jurisdiction else 0.0
-        expectation.set_port_fraction(idx, port_name, fraction)
+    # indexed by the number of a leg's ports inside the jurisdiction
+    leg_fractions = (extra, inter, intra)
 
-    for departure, arrival in itertools.product(ports.values(), repeat=2):
-        leg = (departure.name, arrival.name)
-        fraction = _leg_fraction(departure, arrival, jurisdiction, intra, inter, extra)
-        expectation.set_leg_fraction(idx, leg, fraction)
+    for route in routes.values():
+        ports = route.ports
+
+        for port in ports:
+            fraction = intra if port in jurisdiction else 0.0
+            expectation.set_port_fraction(idx, port.name, fraction)
+
+        for (i, j), leg in zip(route.get_legs(), route.get_leg_keys(), strict=True):
+            ports_inside = (ports[i] in jurisdiction) + (ports[j] in jurisdiction)
+            expectation.set_leg_fraction(idx, leg, leg_fractions[ports_inside])
 
 
 def calculate_regulation_measures(
@@ -68,9 +73,7 @@ def calculate_regulation_measures(
     Calculate the measure of every policed vessel under each active regulation.
 
     A vessel's threshold, multiplied by its measure, gives the right-hand side of its
-    threshold constraint in the bunkering LP. The transport measures derive from the
-    vessels' cargo miles, which are rewritten during the step, so the measures are
-    recalculated before each bunkering run.
+    threshold constraint in the bunkering LP.
 
     Parameters
     ----------
@@ -83,7 +86,8 @@ def calculate_regulation_measures(
     idx
         Current time-step index.
     """
-    times = timeline[idx:]
+    horizon = np.s_[idx:]
+    times = timeline[horizon]
 
     for regulation in regulations.values():
         if not regulation.active:
@@ -93,12 +97,12 @@ def calculate_regulation_measures(
             if not regulation.vessel_is_policed(vessel_name):
                 continue
 
-            measure = _calculate_vessel_measure(regulation, vessel, times, idx)
+            measure = _calculate_vessel_measure(regulation, vessel, times, horizon)
             regulation.expectation.set_vessel_measure(idx, vessel_name, measure)
 
 
 def _calculate_vessel_measure(
-    regulation: Regulation, vessel: Vessel, times: FloatArray, idx: int
+    regulation: Regulation, vessel: Vessel, times: FloatArray, horizon: slice
 ) -> FloatLike:
     """
     Calculate a vessel's measure under a regulation over the remaining timeline.
@@ -111,8 +115,8 @@ def _calculate_vessel_measure(
         Vessel whose measure is calculated.
     times
         Remaining timeline, in days.
-    idx
-        Current time-step index.
+    horizon
+        Slice of the remaining timeline.
 
     Returns
     -------
@@ -120,25 +124,22 @@ def _calculate_vessel_measure(
         1 for ABSOLUTE, 0 for INTENSITY, and the capacity-scaled cargo miles in the
         jurisdiction for the transport measures.
     """
-    measure = regulation.measure
-    expectation = vessel.expectation
+    vessel_expectation = vessel.expectation
 
-    if measure == RegulationMeasureID.ABSOLUTE:
+    if regulation.measure == RegulationMeasureID.ABSOLUTE:
         return 1.0
 
-    if measure == RegulationMeasureID.INTENSITY:
-        # the energy of an intensity regulation depends on the bunker solution, so
-        # its threshold sits inside the spend coefficient and the measure is zero
+    if regulation.measure == RegulationMeasureID.INTENSITY:
+        # an intensity regulation measures emissions per unit of energy, which only
+        # the bunkering determines, so it has no fixed measure
         return 0.0
 
-    if measure == RegulationMeasureID.TRANSPORT:
-        cargo_miles = expectation.get_cargo_miles_leg(np.s_[idx:])
-    elif measure == RegulationMeasureID.TRANSPORT_NOMINAL:
-        cargo_miles = expectation.get_cargo_miles_leg_nominal(np.s_[idx:])
+    if regulation.measure == RegulationMeasureID.TRANSPORT:
+        cargo_miles = vessel_expectation.get_cargo_miles_leg(horizon)
     else:
-        raise ValueError("Bug in code, Regulation 'Measure' not defined correctly.")
+        cargo_miles = vessel_expectation.get_cargo_miles_leg_nominal(horizon)
 
-    return _calculate_transport_measure(regulation, vessel, cargo_miles, times, idx)
+    return _calculate_transport_measure(regulation, vessel, cargo_miles, times, horizon)
 
 
 def _calculate_transport_measure(
@@ -146,7 +147,7 @@ def _calculate_transport_measure(
     vessel: Vessel,
     cargo_miles: list[FloatLike],
     times: FloatArray,
-    idx: int,
+    horizon: slice,
 ) -> FloatLike:
     """
     Calculate a vessel's capacity-scaled cargo miles in the regulation's jurisdiction.
@@ -162,8 +163,8 @@ def _calculate_transport_measure(
         `Route.get_legs`.
     times
         Remaining timeline, in days.
-    idx
-        Current time-step index.
+    horizon
+        Slice of the remaining timeline.
 
     Returns
     -------
@@ -172,58 +173,18 @@ def _calculate_transport_measure(
         vessel over its nominal capacity, in units that turn a threshold in grams
         per cargo mile into tons.
     """
-    expectation = regulation.expectation
+    regulation_expectation = regulation.expectation
     legs = vessel.route.get_leg_keys()
 
-    measure: FloatLike = 0.0
+    transport_measure: FloatLike = 0.0
     for leg, cargo_miles_leg in zip(legs, cargo_miles, strict=True):
-        fraction = expectation.get_leg_fraction(leg, np.s_[idx:])
-        measure += fraction * cargo_miles_leg
+        fraction = regulation_expectation.get_leg_fraction(leg, horizon)
+        transport_measure += fraction * cargo_miles_leg
 
-    capacity = expectation.get_vessel_capacity(vessel.name, np.s_[idx:])
+    capacity = regulation_expectation.get_vessel_capacity(vessel.name, horizon)
     nominal_capacity = vessel.nominal_capacity.get(times)
 
-    measure *= capacity / nominal_capacity
-    measure /= TON_TO_GRAM
+    transport_measure *= capacity / nominal_capacity
+    transport_measure /= TON_TO_GRAM
 
-    return measure
-
-
-def _leg_fraction(
-    departure: Port,
-    arrival: Port,
-    jurisdiction: list[Port],
-    intra: FloatLike,
-    inter: FloatLike,
-    extra: FloatLike,
-) -> FloatLike:
-    """
-    Return the regulated fraction of a leg from its ports' jurisdiction membership.
-
-    Parameters
-    ----------
-    departure
-        Departure port of the leg.
-    arrival
-        Arrival port of the leg.
-    jurisdiction
-        Ports inside the regulation's jurisdiction.
-    intra
-        Fraction applied to legs with both ports inside.
-    inter
-        Fraction applied to legs with exactly one port inside.
-    extra
-        Fraction applied to legs with both ports outside.
-
-    Returns
-    -------
-    FloatLike
-        The fraction of the leg covered by the regulation.
-    """
-    if (departure in jurisdiction) and (arrival in jurisdiction):
-        return intra
-
-    if (departure in jurisdiction) or (arrival in jurisdiction):
-        return inter
-
-    return extra
+    return transport_measure

@@ -80,14 +80,15 @@ def calculate_regulation_terms(
     fuels_per_converter = alg.fuels_per_converter
 
     route = vessel.route
-    ports = route.ports
+
+    port_fractions: list[float] = []
+    for port in route.ports:
+        port_fractions.append(regulation_expectation.get_port_fraction(port.name, idx))
 
     terms: list[_Term] = []
 
     # in ports
-    for p, port in enumerate(ports):
-        fraction = regulation_expectation.get_port_fraction(port.name, idx)
-
+    for p, fraction in enumerate(port_fractions):
         terms.extend(
             _Term(
                 alg.spend_port[v, c, f, p],
@@ -100,8 +101,8 @@ def calculate_regulation_terms(
         )
 
     # at sea
-    for port_start, port_end in route.get_legs():
-        leg = (ports[port_start].name, ports[port_end].name)
+    legs = zip(route.get_legs(), route.get_leg_keys(), strict=True)
+    for (port_start, port_end), leg in legs:
         fraction = float(regulation_expectation.get_leg_fraction(leg, idx))
 
         terms.extend(
@@ -116,11 +117,9 @@ def calculate_regulation_terms(
         )
 
     # shore power, at the ports where the vessel can connect
-    for p, port in enumerate(ports):
+    for p, fraction in enumerate(port_fractions):
         if (v, p, r) not in shore_power_coefficients:
             continue
-
-        fraction = regulation_expectation.get_port_fraction(port.name, idx)
 
         terms.append(
             _Term(
@@ -168,33 +167,6 @@ def get_regulation_vessel_threshold(
     return alg.regulation_vessel_threshold[(regulation.name, v)]
 
 
-def get_regulation_vessel_rhs(
-    alg: BunkerAlgorithm, regulation: Regulation, v: str
-) -> tuple[float, float]:
-    """
-    Calculate a vessel's threshold right-hand side and measure under a regulation.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    regulation
-        Regulation being considered.
-    v
-        Vessel name.
-
-    Returns
-    -------
-    tuple[float, float]
-        Right-hand side of the vessel's threshold constraint, and the vessel's
-        measure under the regulation, read from the regulation's expectation.
-    """
-    threshold = get_regulation_vessel_threshold(alg, regulation, v)
-    vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
-
-    return threshold * vessel_measure, vessel_measure
-
-
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
     """
     Update the per-vessel right-hand sides and measures of INDIVIDUAL regulations.
@@ -212,9 +184,11 @@ def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
             if not regulation.vessel_is_policed(v):
                 continue
 
-            rhs, vessel_measure = get_regulation_vessel_rhs(alg, regulation, v)
+            threshold = get_regulation_vessel_threshold(alg, regulation, v)
+            vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
+
             alg.regulation_measure[(r, v)] = vessel_measure
-            alg.regulation_rhs_individual[(r, v)] = rhs
+            alg.regulation_rhs_individual[(r, v)] = threshold * vessel_measure
 
 
 def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
@@ -232,13 +206,15 @@ def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
 
         rhs = 0.0
         for v in alg.vessels:
-            if regulation.vessel_is_policed(v):
-                vessel_rhs, vessel_measure = get_regulation_vessel_rhs(
-                    alg, regulation, v
-                )
-                rhs += vessel_rhs * alg.multipliers[v]
+            if not regulation.vessel_is_policed(v):
+                continue
 
-                alg.regulation_measure[(r, v)] = vessel_measure
-                alg.regulation_rhs_flexibility[(r, v)] = vessel_rhs
+            threshold = get_regulation_vessel_threshold(alg, regulation, v)
+            vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
+            vessel_rhs = threshold * vessel_measure
+            rhs += vessel_rhs * alg.multipliers[v]
+
+            alg.regulation_measure[(r, v)] = vessel_measure
+            alg.regulation_rhs_flexibility[(r, v)] = vessel_rhs
 
         alg.regulation_total_rhs_flexibility[r] = rhs

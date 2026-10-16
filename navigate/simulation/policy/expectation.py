@@ -13,8 +13,8 @@ from navigate.simulation.policy.jurisdiction import calculate_jurisdiction_fract
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.levy import Levy
-    from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
 
@@ -23,7 +23,7 @@ def calculate_policy_expectations(
     regulations: dict[str, Regulation],
     levies: dict[str, Levy],
     emissions: dict[str, Emission],
-    ports: dict[str, Port],
+    routes: dict[str, Route],
     vessels: dict[str, Vessel],
     emissions_lifetime: float,
     timeline: FloatArray,
@@ -32,10 +32,9 @@ def calculate_policy_expectations(
     """
     Calculate the expectations of every active regulation and levy.
 
-    Levy levels, regulation remedial costs and transport-measure vessel capacities are
-    read over the remaining timeline, and the regulations' jurisdiction fractions of
-    every port and leg calculated over it; global warming potentials at each policy's
-    emissions lifetime.
+    Levy levels, regulation remedial costs, transport-measure vessel capacities and the
+    jurisdiction fractions of every route port and leg are set over the remaining
+    timeline; global warming potentials at each policy's emissions lifetime.
 
     Parameters
     ----------
@@ -45,8 +44,8 @@ def calculate_policy_expectations(
         All levies in the simulation.
     emissions
         All emissions in the simulation.
-    ports
-        All ports in the simulation.
+    routes
+        All routes in the simulation.
     vessels
         All vessels in the simulation.
     emissions_lifetime
@@ -63,7 +62,7 @@ def calculate_policy_expectations(
             continue
 
         _calculate_regulation_forecasts(regulation, vessels, times, idx)
-        calculate_jurisdiction_fractions(regulation, ports, times, idx)
+        calculate_jurisdiction_fractions(regulation, routes, times, idx)
         _calculate_global_warming_potentials(regulation, emissions, emissions_lifetime)
 
     for levy in levies.values():
