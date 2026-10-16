@@ -65,6 +65,7 @@ from navigate.simulation.bunker.objectives import (
     update_vessel_objectives,
 )
 from navigate.simulation.bunker.threshold_adjustment import adjust_regulation_thresholds
+from navigate.simulation.bunker.transfer.allocation_fuel import transfer_allocation_fuel
 from navigate.simulation.bunker.transfer.bunker import transfer_bunker
 from navigate.simulation.bunker.transfer.dual_solution import transfer_dual_solution
 from navigate.simulation.bunker.transfer.regulation_flexibility import (
@@ -383,6 +384,7 @@ class BunkerAlgorithm:
         transfer_spend_sea(self)
         transfer_spend_port(self)
         transfer_shore_power(self)
+        transfer_allocation_fuel(self)
 
         if self.scope == BunkerScopeID.EXPECTED:
             transfer_dual_solution(self)

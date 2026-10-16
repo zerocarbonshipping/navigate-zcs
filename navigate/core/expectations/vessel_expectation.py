@@ -91,9 +91,10 @@ class VesselExpectation(_Expectation):
         # potential fuel-type demand at each port of the route
         self._potential_fuel_type_demand: dict[tuple[str, FuelTypeID], FloatArray] = {}
 
-        # fair-share fuel supply
+        # fair-share fuel supply, and the existing bunkering's allocation of it
         self._fair_share_fuel_existing: dict[tuple[str, str], float] = {}
         self._fair_share_fuel_expected: dict[tuple[str, str], FloatArray] = {}
+        self._allocation_fuel_existing: dict[tuple[str, str], float] = {}
 
         # bunker results (expected bunkering)
         self._total_energy: FloatArray = EMPTY_FLOAT
@@ -232,6 +233,9 @@ class VesselExpectation(_Expectation):
         self._fair_share_fuel_expected = self._default_tuple_dict_array(
             port_names, fuels
         )
+        self._allocation_fuel_existing = self._default_tuple_dict_float(
+            port_names, fuels
+        )
 
         # shore power
         self._shore_power_capacity = self._default_array()
@@ -263,6 +267,9 @@ class VesselExpectation(_Expectation):
 
     def reset_bunker_mass_existing(self) -> None:
         self._reset_dict_float(self._bunker_mass_existing)
+
+    def reset_allocation_fuel_existing(self) -> None:
+        self._reset_dict_float(self._allocation_fuel_existing)
 
     def reset_spend_energy(self) -> None:
         self._spend_energy = {}
@@ -444,6 +451,11 @@ class VesselExpectation(_Expectation):
         self, idx: int, port_name: str, fuel_name: str, fair_share: FloatLike
     ) -> None:
         self._fair_share_fuel_expected[(port_name, fuel_name)][idx:] = fair_share
+
+    def set_allocation_fuel_existing(
+        self, port_name: str, fuel_name: str, allocation: float
+    ) -> None:
+        self._allocation_fuel_existing[(port_name, fuel_name)] = allocation
 
     def add_total_energy(self, idx: int, energy: float) -> None:
         self._total_energy[idx] += energy
@@ -651,6 +663,9 @@ class VesselExpectation(_Expectation):
         self, port_name: str, fuel_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
         return self._fair_share_fuel_expected[(port_name, fuel_name)][idx]
+
+    def get_allocation_fuel_existing(self, port_name: str, fuel_name: str) -> float:
+        return self._allocation_fuel_existing[(port_name, fuel_name)]
 
     def get_total_energy(self, idx: Index = np.s_[:]) -> FloatLike:
         return self._total_energy[idx]

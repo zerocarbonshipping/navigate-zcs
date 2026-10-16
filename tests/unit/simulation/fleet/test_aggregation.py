@@ -8,8 +8,9 @@ Verifies:
   - Fuel-type demand accumulates multiplier-weighted on the fleet expectation,
     split between main and pilot fuel for dual-fuel converters, and the step
     total transfers to the fleet profile.
-  - Fuel-type supply accumulates the fair-share port bunker supply across
-    ports on the fleet expectation, its only store.
+  - Fuel-type supply accumulates the vessels' allocations of the port bunker
+    supply on the fleet expectation, its only store, counting a port the route
+    calls more than once once.
   - The fuel-type totals reset between time-steps instead of accumulating
     across them.
   - The carried technology charter rate accumulates multiplier-weighted into
@@ -89,12 +90,12 @@ class TestFuelTypeTotals:
         fleet.profile.add_fuel_type_demand.assert_any_call(FuelTypeID.OIL, 14.0, 1)
         fleet.profile.add_fuel_type_demand.assert_any_call(FuelTypeID.METHANOL, 2.0, 1)
 
-    def test_supply_accumulates_fair_share(self):
+    def test_supply_accumulates_allocation(self):
         vessel = _vessel()
         vessel.power_system.get_converters.return_value = []
-        fair_shares = {("p0", "lng"): 0.5, ("p1", "lng"): 0.25}
-        vessel.expectation.get_fair_share_fuel_existing.side_effect = (
-            lambda port_name, fuel_name: fair_shares[(port_name, fuel_name)]
+        allocations = {("p0", "lng"): 1.5, ("p1", "lng"): 0.75}
+        vessel.expectation.get_allocation_fuel_existing.side_effect = (
+            lambda port_name, fuel_name: allocations[(port_name, fuel_name)]
         )
 
         ports = []
@@ -102,9 +103,13 @@ class TestFuelTypeTotals:
             port = MagicMock()
             port.name = name
             port.is_bunkering_allowed.return_value = True
+
+            # a finite supply, so the allocation counts rather than the supply
             port.expectation.get_bunker_supply.return_value = 3.0
             ports.append(port)
-        vessel.route.ports = ports
+
+        p0, p1 = ports
+        vessel.route.ports = [p0, p1, p0]
 
         fuel = MagicMock()
         fuel.fuel_type = FuelTypeID.METHANE
@@ -115,7 +120,7 @@ class TestFuelTypeTotals:
             fleet, fuels={"lng": fuel}, timeline=np.arange(4.0) * YEAR, idx=1
         )
 
-        # 3. mass x 2. LHV x fair share x 4 vessels: p0 contributes 12, p1 contributes 6
+        # allocated mass x 2. LHV x 4 vessels: p0 contributes 12 once, p1 contributes 6
         assert fleet.expectation.get_fuel_type_supply(FuelTypeID.METHANE) == 18.0
         assert fleet.expectation.get_fuel_type_supply(FuelTypeID.OIL) == 0.0
 
