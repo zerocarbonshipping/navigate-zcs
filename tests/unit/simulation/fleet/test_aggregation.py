@@ -5,7 +5,7 @@
 Tests for the fleet-level totals published by calculate_fleet_profile.
 
 Verifies:
-  - Fuel-type demand accumulates multiplier-weighted on the fleet expectation,
+  - Fuel-type capacity accumulates multiplier-weighted on the fleet expectation,
     split between main and pilot fuel for dual-fuel converters, and the step
     total transfers to the fleet profile.
   - Fuel-type supply accumulates the vessels' allocations of the port bunker
@@ -67,7 +67,7 @@ def _fleet(vessel: MagicMock, increment: VesselIncrement | None = None) -> Fleet
 
 
 class TestFuelTypeTotals:
-    def test_demand_accumulates_and_transfers_to_profile(self):
+    def test_capacity_accumulates_and_transfers_to_profile(self):
         vessel = _vessel()
         vessel.expectation.get_spend_energy.return_value = 2.0
 
@@ -85,10 +85,13 @@ class TestFuelTypeTotals:
 
         # per converter 2. spend energy x 4 vessels: c0 adds 8 oil, c1 splits its 8 as 6
         # oil + 2 pilot
-        assert fleet.expectation.get_fuel_type_demand(FuelTypeID.OIL) == 14.0
-        assert fleet.expectation.get_fuel_type_demand(FuelTypeID.METHANOL) == 2.0
-        fleet.profile.add_fuel_type_demand.assert_any_call(FuelTypeID.OIL, 14.0, 1)
-        fleet.profile.add_fuel_type_demand.assert_any_call(FuelTypeID.METHANOL, 2.0, 1)
+        expectation = fleet.expectation
+        add_capacity = fleet.profile.add_fuel_type_capacity
+
+        assert expectation.get_fuel_type_capacity(FuelTypeID.OIL) == 14.0
+        assert expectation.get_fuel_type_capacity(FuelTypeID.METHANOL) == 2.0
+        add_capacity.assert_any_call(FuelTypeID.OIL, 14.0, 1)
+        add_capacity.assert_any_call(FuelTypeID.METHANOL, 2.0, 1)
 
     def test_supply_accumulates_allocation(self):
         vessel = _vessel()
@@ -134,7 +137,7 @@ class TestFuelTypeTotals:
         calculate_fleet_profile(fleet, fuels={}, timeline=np.arange(4.0) * YEAR, idx=1)
         calculate_fleet_profile(fleet, fuels={}, timeline=np.arange(4.0) * YEAR, idx=2)
 
-        assert fleet.expectation.get_fuel_type_demand(FuelTypeID.OIL) == 8.0
+        assert fleet.expectation.get_fuel_type_capacity(FuelTypeID.OIL) == 8.0
 
 
 class TestFleetProfileTechnologyExpenses:

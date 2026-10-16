@@ -42,7 +42,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._weighted_age_numerator: dict[FuelTypeID, FloatArray] = {}
         self._weighted_age_denominator: dict[FuelTypeID, FloatArray] = {}
 
-        self._fuel_type_demand: dict[FuelTypeID, FloatArray] = {}
+        self._fuel_type_capacity: dict[FuelTypeID, FloatArray] = {}
 
     def _initialize_vessel_aggregate(self) -> None:
         self._baseline_energy = self._default_array()
@@ -60,7 +60,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._weighted_age_numerator = self._default_dict(FuelTypeID)
         self._weighted_age_denominator = self._default_dict(FuelTypeID)
 
-        self._fuel_type_demand = self._default_dict(FuelTypeID)
+        self._fuel_type_capacity = self._default_dict(FuelTypeID)
 
     def add_vessel_aggregate_profile(
         self, profile: _VesselAggregateProfile, idx: int | slice = np.s_[:]
@@ -112,8 +112,8 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
                 profile._weighted_age_denominator[fuel_type][idx]
             )
 
-        for fuel_type in self._fuel_type_demand:
-            self._fuel_type_demand[fuel_type][idx] += profile._fuel_type_demand[
+        for fuel_type in self._fuel_type_capacity:
+            self._fuel_type_capacity[fuel_type][idx] += profile._fuel_type_capacity[
                 fuel_type
             ][idx]
 
@@ -178,10 +178,10 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._weighted_age_numerator[fuel_type][idx] += numerator
         self._weighted_age_denominator[fuel_type][idx] += denominator
 
-    def add_fuel_type_demand(
-        self, fuel_type: FuelTypeID, demand: float, idx: int | slice = np.s_[:]
+    def add_fuel_type_capacity(
+        self, fuel_type: FuelTypeID, capacity: float, idx: int | slice = np.s_[:]
     ) -> None:
-        self._fuel_type_demand[fuel_type][idx] += demand
+        self._fuel_type_capacity[fuel_type][idx] += capacity
 
     def set_baseline_energy(self, idx: int | slice, energy: FloatLike) -> None:
         self._baseline_energy[idx] = energy
@@ -264,5 +264,5 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def get_vessel_tied_capital(self) -> FloatArray:
         return self._vessel_tied_capital
 
-    def get_fuel_type_demand(self) -> dict[FuelTypeID, FloatArray]:
-        return dict(self._fuel_type_demand)
+    def get_fuel_type_capacity(self) -> dict[FuelTypeID, FloatArray]:
+        return dict(self._fuel_type_capacity)

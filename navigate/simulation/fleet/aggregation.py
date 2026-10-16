@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-step fleet cost transfers and fuel-type demand and supply totals."""
+"""Per-step fleet cost transfers and fuel-type capacity and supply totals."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def calculate_fleet_profile(
     Calculate the per-step fleet state: cost transfers and fuel-type totals.
 
     The increment-based cost transfers need the live cohort composition. The
-    fuel-type demand/supply totals go on the fleet expectation, which the
+    fuel-type capacity/supply totals go on the fleet expectation, which the
     next step's fuel conversion reads. Output-only profile aggregation
     happens in navigate.simulation.fleet.post_process after the simulation.
 
@@ -45,9 +45,9 @@ def calculate_fleet_profile(
     """
     _transfer_increment_expenses(fleet, timeline, idx)
     _transfer_weighted_age(fleet, idx)
-    _gather_fuel_type_demand(fleet)
+    _gather_fuel_type_capacity(fleet)
     _gather_fuel_type_supply(fleet, fuels, idx)
-    _transfer_fuel_type_demand(fleet, idx)
+    _transfer_fuel_type_capacity(fleet, idx)
 
 
 def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
@@ -117,11 +117,14 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         )
 
 
-def _gather_fuel_type_demand(fleet: Fleet) -> None:
+def _gather_fuel_type_capacity(fleet: Fleet) -> None:
     """
-    Gather the fleet's fuel-type demand onto the fleet expectation.
+    Gather the fleet's fuel-type capacity onto the fleet expectation.
 
-    The demand is sourced from the latest bunkering solution.
+    The capacity is the energy the fleet's converters spent in the latest
+    bunkering solution, counted towards each main fuel type less a dual-fuel
+    converter's minimum pilot share, and towards each pilot fuel type at that
+    minimum share.
 
     Parameters
     ----------
@@ -142,22 +145,25 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
         converters = power_system.get_converters()
 
         for converter in converters:
-            converter_demand = vessel.expectation.get_spend_energy(converter.name)
-            fleet_demand = converter_demand * multiplier
+            converter_energy = vessel.expectation.get_spend_energy(converter.name)
+            fleet_energy = converter_energy * multiplier
 
+            # pilot fuel counts at its minimum share only: the figure tracks main
+            # fuel, and counting all the energy a converter could burn as pilot
+            # fuel would inflate the pilot fuel type, usually OIL
             if converter.is_dual_fuel():
                 pilot_fuel_share = converter.minimum_pilot_fuel.get()
             else:
                 pilot_fuel_share = 0.0
 
             for fuel_type in converter.main_fuel_types:
-                fleet.expectation.add_fuel_type_demand(
-                    fuel_type, (1.0 - pilot_fuel_share) * fleet_demand
+                fleet.expectation.add_fuel_type_capacity(
+                    fuel_type, (1.0 - pilot_fuel_share) * fleet_energy
                 )
 
             for fuel_type in converter.pilot_fuel_types:
-                fleet.expectation.add_fuel_type_demand(
-                    fuel_type, pilot_fuel_share * fleet_demand
+                fleet.expectation.add_fuel_type_capacity(
+                    fuel_type, pilot_fuel_share * fleet_energy
                 )
 
         # clear the spend energy so no later step reads this solution's values
@@ -229,9 +235,9 @@ def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> fl
     return vessel.expectation.get_allocation_fuel_existing(port.name, fuel_name)
 
 
-def _transfer_fuel_type_demand(fleet: Fleet, idx: int) -> None:
+def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
     """
-    Transfer the gathered fuel type demand totals to the output profile.
+    Transfer the gathered fuel-type capacity totals to the output profile.
 
     Parameters
     ----------
@@ -241,8 +247,8 @@ def _transfer_fuel_type_demand(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     for fuel_type in FuelTypeID:
-        fleet.profile.add_fuel_type_demand(
-            fuel_type, fleet.expectation.get_fuel_type_demand(fuel_type), idx
+        fleet.profile.add_fuel_type_capacity(
+            fuel_type, fleet.expectation.get_fuel_type_capacity(fuel_type), idx
         )
 
 

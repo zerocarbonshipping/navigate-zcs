@@ -30,7 +30,7 @@ class FleetExpectation(_Expectation):
 
         self._fuel_demand: dict[str, FloatArray] = {}
 
-        self._fuel_type_demand: dict[FuelTypeID, float] = {}
+        self._fuel_type_capacity: dict[FuelTypeID, float] = {}
         self._fuel_type_supply: dict[FuelTypeID, float] = {}
 
         self._uptakes: FloatArray = EMPTY_FLOAT
@@ -45,13 +45,13 @@ class FleetExpectation(_Expectation):
 
         self._fuel_demand = self._default_dict_array(fuels)
 
-        self._fuel_type_demand = self._default_dict_float(FuelTypeID)
+        self._fuel_type_capacity = self._default_dict_float(FuelTypeID)
         self._fuel_type_supply = self._default_dict_float(FuelTypeID)
 
         self._uptakes = self._default_2d_array(len(vessel_names))
 
     def reset_fuel_type_totals(self) -> None:
-        self._reset_dict_float(self._fuel_type_demand)
+        self._reset_dict_float(self._fuel_type_capacity)
         self._reset_dict_float(self._fuel_type_supply)
 
     def set_existing_multipliers(
@@ -67,8 +67,8 @@ class FleetExpectation(_Expectation):
     def set_fuel_demand(self, idx: int, fuel_name: str, demand: float) -> None:
         self._fuel_demand[fuel_name][idx] = demand
 
-    def add_fuel_type_demand(self, fuel_type: FuelTypeID, demand: float) -> None:
-        self._fuel_type_demand[fuel_type] += demand
+    def add_fuel_type_capacity(self, fuel_type: FuelTypeID, capacity: float) -> None:
+        self._fuel_type_capacity[fuel_type] += capacity
 
     def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float) -> None:
         self._fuel_type_supply[fuel_type] += supply
@@ -89,8 +89,8 @@ class FleetExpectation(_Expectation):
     def get_fuel_demand(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
         return slice_dict(self._fuel_demand, idx)
 
-    def get_fuel_type_demand(self, fuel_type: FuelTypeID) -> float:
-        return self._fuel_type_demand[fuel_type]
+    def get_fuel_type_capacity(self, fuel_type: FuelTypeID) -> float:
+        return self._fuel_type_capacity[fuel_type]
 
     def get_fuel_type_supply(self, fuel_type: FuelTypeID) -> float:
         return self._fuel_type_supply[fuel_type]

@@ -6,9 +6,9 @@ plot_fuel_type_supply_demand's fuel-type selection rule.
 
 Shows a panel for a fuel type the deck declares a Fuel for, or that some
 converter uses as a main or pilot fuel even without a declared Fuel -- fleet
-aggregation sums demand by MainFuelTypes/PilotFuelTypes alone
-(navigate/simulation/fleet/aggregation.py), so a converter can carry non-zero demand for
-a type no Fuel declares.
+aggregation sums capacity by MainFuelTypes/PilotFuelTypes alone
+(navigate/simulation/fleet/aggregation.py), so a converter can add non-zero capacity
+for a type no Fuel declares.
 """
 
 from __future__ import annotations

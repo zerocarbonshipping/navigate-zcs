@@ -254,7 +254,7 @@ The properties are applicable for the following commands:
 | CumulativeVesselRelatedExpenses       | USD      | Cumulative running expenses of all vessels.                            |
 | CumulativeExpenses                    | USD      | Cumulative running expenses including fuel of all vessels.             |
 | VesselTiedCapital                     | USD      | Capital tied up in vessels (following a linear depreciation schedule). |
-| FuelTypeDemand                        | GJ/year  | Demand for fuel if using minimum pilot fuel share per fuel type.       |
+| FuelTypeCapacity                      | GJ/year  | Fuel the fleet could burn per fuel type, at minimum pilot fuel share.  |
 
 The properties are applicable for the following commands:
 

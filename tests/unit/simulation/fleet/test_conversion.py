@@ -67,7 +67,7 @@ def _fleet(vessels: list, conversion_cost: dict, supply: dict) -> Fleet:
     fleet.expectation.get_fuel_type_supply.side_effect = lambda fuel_type: supply.get(
         fuel_type, 0.0
     )
-    fleet.expectation.get_fuel_type_demand.return_value = 0.0
+    fleet.expectation.get_fuel_type_capacity.return_value = 0.0
     return fleet
 
 

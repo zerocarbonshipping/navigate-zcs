@@ -23,7 +23,7 @@ Report "regression" {
 	add_property(ConsumedEnergy)
 	add_property(FuelTypeEnergy)
 	add_property(TotalConsumedEnergy)
-	add_property(FuelTypeDemand)
+	add_property(FuelTypeCapacity)
 	add_property(EquivalentWtt)
 	add_property(EquivalentTtw)
 	add_property(EquivalentWtw)
