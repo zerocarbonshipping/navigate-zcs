@@ -21,8 +21,7 @@ step, and `driver/` runs it from a read deck to its output.
     `planning.py` and `aggregation.py` play the same role in each.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/cohort.py` — vintage-stock accounting over the asset
-    cohorts of both domains: the initial age bins, splits at an age, the
-    insertion order and the time step a cohort entered.
+    cohorts of both domains.
   - `simulation/bunker/` — the per-time-step bunkering LP.
   - `simulation/policy/` — policy expectations, emission coefficients, levy
     costs and beliefs.
@@ -78,11 +77,11 @@ dotted path; `__init__` is `navigate/__init__.py` and `simulation` is
 `simulation/__init__.py` alone. A file belongs to the longest unit that
 contains it; a unit imports itself and its row, nothing else from
 `navigate`. The foundation is `util/` and `exceptions.py`; the domains are
-the five packages `simulation.fleet`, `simulation.fuel`,
-`simulation.economics`, `simulation.bunker` and `simulation.policy`. Every
-file must fall in a unit, so a new top-level module or package needs a row
-here. No row may link `simulation.fleet` and `simulation.fuel`, `parser` and
-`output`, or either of those two and a simulation unit.
+the five packages under `simulation/`. Every file must fall in a unit, so a
+new top-level module or package, or a new module or package directly under
+`simulation/`, needs a row here. No row may link `simulation.fleet` and
+`simulation.fuel`, `parser` and `output`, or either of those two and a
+simulation unit.
 
 Inside `core/`, runtime imports run one way: `nodes/` imports
 `expectations/`, `profiles/` and the flat modules directly in `core/`;
