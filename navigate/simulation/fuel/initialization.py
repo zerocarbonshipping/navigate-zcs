@@ -19,9 +19,9 @@ from navigate.simulation.fuel.evolution import (
 )
 
 if TYPE_CHECKING:
-    from navigate.core import Scalar
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
+    from navigate.core.types_ import CurveTableInput
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
@@ -126,7 +126,7 @@ def _calculate_initial_multiplier(
 
 
 def _split_by_age(
-    plant: Plant, multiplier: float, distribution: Scalar | Curve
+    plant: Plant, multiplier: float, distribution: CurveTableInput
 ) -> list[PlantIncrement]:
     """
     Split the initial plants of one type into one increment per age bin.

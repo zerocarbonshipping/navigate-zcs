@@ -31,7 +31,6 @@ from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.increment import PlantIncrement
-    from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.fuel import Fuel
@@ -39,6 +38,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
     from navigate.core.types_ import (
+        CurveTableArgument,
+        CurveTableInput,
         ForecastArgument,
         ForecastInput,
         ScalarArgument,
@@ -66,7 +67,7 @@ class Producer(Node):
 
         # initial conditions
         self.initial_capacity: list[ScalarInput] = []
-        self.initial_age_distribution: list[Scalar | Curve] = []
+        self.initial_age_distribution: list[CurveTableInput] = []
 
         # existing pipeline
         self.existing_pipelines: dict[str, Forecast | None] = {}
@@ -152,10 +153,10 @@ class Producer(Node):
         )
 
     def set_initial_age_distribution(
-        self, initial_age_distribution: float | Curve | list[float | Curve]
+        self, initial_age_distribution: CurveTableArgument | list[CurveTableArgument]
     ) -> None:
         """Set the initial age distribution of each plant type."""
-        entries: list[float | Curve] = as_list(initial_age_distribution)
+        entries: list[CurveTableArgument] = as_list(initial_age_distribution)
         self.initial_age_distribution = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=CURVE,

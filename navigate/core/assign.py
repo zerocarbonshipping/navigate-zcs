@@ -25,7 +25,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import AcceptedNodeTypes, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
-from navigate.core.types_ import Calculator
+from navigate.core.types_ import Calculator, CurveTableInput
 from navigate.core.wrap import as_list
 from navigate.util import (
     ROUND_OFF,
@@ -40,7 +40,6 @@ from navigate.util import (
 if TYPE_CHECKING:
     from collections.abc import Collection, Hashable, Iterator, Sequence, Sized
 
-    from navigate.core.nodes.curve import Curve
 
 _BOOL_ID = {"FALSE": False, "TRUE": True}
 _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
@@ -629,7 +628,7 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
 
 
 def check_curves_are_finite(
-    node: Node, attribute: str, entries: Sequence[Scalar | Curve]
+    node: Node, attribute: str, entries: Sequence[CurveTableInput]
 ) -> None:
     """
     Reject a Curve among an attribute's entries that holds a non-finite value.

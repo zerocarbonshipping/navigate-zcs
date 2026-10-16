@@ -52,6 +52,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import (
+        CurveTableArgument,
+        CurveTableInput,
         ForecastArgument,
         ForecastInput,
         ScalarArgument,
@@ -91,7 +93,7 @@ class Fleet(Node):
         self.fuel_conversion_minimum_age: ForecastInput = Scalar(0.0)
         self.allow_technology_approximation: bool = True
         self.initial_split: list[float] = []
-        self.initial_age_distribution: list[Scalar | Curve] = []
+        self.initial_age_distribution: list[CurveTableInput] = []
         self.initial_technology_share: dict[
             tuple[str, str], Curve | Expression | None
         ] = {}
@@ -179,10 +181,10 @@ class Fleet(Node):
             )
 
     def set_initial_age_distribution(
-        self, initial_age_distribution: float | Curve | list[float | Curve]
+        self, initial_age_distribution: CurveTableArgument | list[CurveTableArgument]
     ) -> None:
         """Set the initial age distribution of each vessel type."""
-        entries: list[float | Curve] = as_list(initial_age_distribution)
+        entries: list[CurveTableArgument] = as_list(initial_age_distribution)
         self.initial_age_distribution = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=CURVE,

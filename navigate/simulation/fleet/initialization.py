@@ -30,9 +30,9 @@ from navigate.util import calculate_compound_growth
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from navigate.core import Scalar
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import CurveTableInput
     from navigate.util.types_ import FloatArray
 
 
@@ -149,7 +149,7 @@ def _split_by_age(
     fleet: Fleet,
     vessel: Vessel,
     multiplier: float,
-    distribution: Scalar | Curve,
+    distribution: CurveTableInput,
 ) -> list[VesselIncrement]:
     """
     Split the initial vessels of one type into one increment per age bin.
