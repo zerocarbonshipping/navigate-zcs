@@ -9,8 +9,8 @@ Verifies:
     split between main and pilot fuel for dual-fuel converters, and the step
     total transfers to the fleet profile.
   - Fuel-type supply accumulates the vessels' allocations of the port bunker
-    supply on the fleet expectation, its only store, counting a port the route
-    calls more than once once.
+    supply on the fleet expectation, its only store, counting each port once
+    however often the route calls it.
   - The fuel-type totals reset between time-steps instead of accumulating
     across them.
   - The carried technology charter rate accumulates multiplier-weighted into
@@ -103,7 +103,6 @@ class TestFuelTypeTotals:
             port = MagicMock()
             port.name = name
             port.is_bunkering_allowed.return_value = True
-
             # a finite supply, so the allocation counts rather than the supply
             port.expectation.get_bunker_supply.return_value = 3.0
             ports.append(port)

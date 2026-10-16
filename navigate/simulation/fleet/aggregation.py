@@ -195,7 +195,6 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
 
                 supply_mass = _get_supply_mass(vessel, port, fuel_name, idx)
                 supply = supply_mass * fuel.lower_heating_value.get() * multiplier
-
                 fleet.expectation.add_fuel_type_supply(fuel.fuel_type, supply)
 
 
@@ -224,7 +223,6 @@ def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> fl
         Fuel mass counting for one vessel, in tons.
     """
     supply = float(port.expectation.get_bunker_supply(fuel_name, idx))
-
     if not np.isfinite(supply):
         return supply
 
