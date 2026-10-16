@@ -208,8 +208,8 @@ class Simulation:
 
         # nothing the policy coefficients read (plant production and delivery WTT,
         # port WTT overwrites and bunkering flags, the vessels' usable fuels and
-        # converters) changes later in the step, so one pass serves both
-        # bunkering runs
+        # converters, the levies' levels and the vessels they police) changes
+        # later in the step, so one pass serves both bunkering runs
         self._calculate_policy_emission_coefficients()
 
         # technology costs are excluded here: they enter the cargo charter

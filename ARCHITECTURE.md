@@ -21,7 +21,8 @@ step, and `driver/` runs it from a read deck to its output.
     `planning.py` and `aggregation.py` play the same role in each.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/bunker/` — the per-time-step bunkering LP.
-  - `simulation/policy/` — policy expectations, emission coefficients and beliefs.
+  - `simulation/policy/` — policy expectations, emission coefficients, levy
+    costs and beliefs.
 - `core/` — the model definition only: the DSL value types and their
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
   nodes (`general_nodes/`), the node maps, `expectations/`, `profiles/`, the

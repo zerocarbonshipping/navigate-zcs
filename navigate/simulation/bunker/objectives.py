@@ -43,12 +43,12 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                 continue
 
             price = np.float64(port.expectation.get_bunker_price(f, alg.idx))
-            cost_levy = sum(
-                alg.cost_levy[(v, port_name, f, levy.name)]
-                for levy in port.imposed_levies
-                if levy.vessel_is_policed(v)
-            )
-            total_price = price + cost_levy
+
+            levy_cost = 0.0
+            for levy in port.imposed_levies:
+                levy_cost += levy.expectation.get_cost((v, port_name, f), alg.idx)
+
+            total_price = price + levy_cost
 
             alg.bunker[v, p, f].Obj = multiplier * total_price
 

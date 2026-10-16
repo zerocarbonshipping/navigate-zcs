@@ -11,7 +11,6 @@ from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 # recalculated during build, so a stale entry surviving the reset can leak a
 # previous time-step's value (e.g. for a vessel that left the fleet)
 DYNAMIC_CONTAINERS = (
-    "cost_levy",
     "regulation_vessel_threshold",
     "regulation_emission_factor",
     "regulation_spend_coefficient",
