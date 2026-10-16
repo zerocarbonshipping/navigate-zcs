@@ -96,6 +96,37 @@ def calculate_net_energy(
     return net_energies
 
 
+def calculate_energy_savings(
+    net_energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    raw_energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
+) -> dict[EnergyDemandID, list[float]]:
+    """
+    Calculate the saving fraction of each step's net energy against its raw energy.
+
+    A step without raw energy saves nothing.
+
+    Parameters
+    ----------
+    net_energies
+        Net energy demand per energy demand type and step, in GJ/year.
+    raw_energies
+        Raw energy demand per energy demand type and step, in GJ/year.
+
+    Returns
+    -------
+    dict[EnergyDemandID, list[float]]
+        Saving per energy demand type and step, fraction.
+    """
+    savings: dict[EnergyDemandID, list[float]] = {}
+
+    for energy_id, net_energy in net_energies.items():
+        steps = zip(net_energy, raw_energies[energy_id], strict=True)
+        fractions = [divide_nonzero(net, raw, default=1.0) for net, raw in steps]
+        savings[energy_id] = [1.0 - float(fraction) for fraction in fractions]
+
+    return savings
+
+
 def _stack_steps(
     energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
 ) -> dict[EnergyDemandID, FloatArray]:

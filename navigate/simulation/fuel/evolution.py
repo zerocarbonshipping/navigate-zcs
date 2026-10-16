@@ -452,12 +452,15 @@ def calculate_evolution_expectation(
         for emission_name, unit_wtt in wtt.items()
     }
 
-    for p, plant in enumerate(producer.plants):
-        producer.expectation.set_existing_production(idx, plant.name, existing[p, :])
-        producer.expectation.set_pipeline_production(idx, plant.name, pipeline[p, :])
-        producer.expectation.set_newbuild_production(idx, plant.name, newbuild[p, :])
+    guaranteed = existing + pipeline
+    expected = guaranteed + newbuild
 
-    supply = existing[:, 0] + pipeline[:, 0] + newbuild[:, 0]
+    for p, plant in enumerate(producer.plants):
+        name = plant.name
+        producer.expectation.set_guaranteed_production(idx, name, guaranteed[p, :])
+        producer.expectation.set_expected_production(idx, name, expected[p, :])
+
+    supply = expected[:, 0]
 
     for p, plant in enumerate(producer.plants):
         plant.expectation.set_expected_production_cost(idx, cost_avg[p, :])

@@ -14,6 +14,7 @@ from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
 from navigate.simulation.fleet.aggregation import get_multipliers
+from navigate.simulation.fleet.charter import calculate_total_fuel_expenses
 from navigate.simulation.fleet.marginal_saving import calculate_marginal_speed_saving
 from navigate.simulation.fleet.operation import (
     calculate_operations,
@@ -25,7 +26,10 @@ from navigate.simulation.fleet.power import (
     calculate_technical_speed_limits,
     loads_are_convex,
 )
-from navigate.simulation.fleet.residual_energy import calculate_net_energy
+from navigate.simulation.fleet.residual_energy import (
+    calculate_energy_savings,
+    calculate_net_energy,
+)
 from navigate.simulation.fleet.trip import ReferenceTrip, derive_reference_trip
 from navigate.util import YEAR
 
@@ -221,10 +225,16 @@ def _optimize_vessel_speed(
         speed_min[sailed], speed_max[sailed], trip.speeds[sailed]
     )
 
-    fuel_ref = float(expectation.get_total_fuel_expenses(idx))
+    fuel_ref = float(calculate_total_fuel_expenses(vessel, idx))
     charter_rate = expectation.get_asset_charter_rate(idx)
-    savings_sea = expectation.get_energy_saving_sea_condition(idx)
-    savings_port = expectation.get_energy_saving_port(idx)
+
+    energy_sea_ref = expectation.get_energy_sea_condition(idx)
+    energy_port_ref = expectation.get_energy_port(idx)
+    raw_energy_sea = expectation.get_raw_energy_sea_condition(idx)
+    raw_energy_port = expectation.get_raw_energy_port(idx)
+
+    savings_sea = calculate_energy_savings(energy_sea_ref, raw_energy_sea)
+    savings_port = calculate_energy_savings(energy_port_ref, raw_energy_port)
 
     # pre-compute operational saving factors outside the objective closure
     saving_fraction_sea = expectation.get_operational_saving_fraction_sea()

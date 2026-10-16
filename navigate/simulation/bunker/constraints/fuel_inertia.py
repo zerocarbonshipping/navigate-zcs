@@ -16,6 +16,7 @@ from navigate.util import calculate_inertia
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
+    from navigate.util.types_ import FloatLike
 
 
 def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -50,8 +51,8 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     # a change in the vessel's energy demand since the last time-step scales the
     # floor by the ratio, downwards only: a vessel whose fuel consumption grew
     # need not match its previous bunkering
-    demand_new = np.float64(alg.vessels[v].expectation.get_total_demand(alg.idx))
-    demand_old = np.float64(alg.vessels[v].expectation.get_total_demand(alg.idx - 1))
+    demand_new = _calculate_total_demand(vessel, alg.idx)
+    demand_old = _calculate_total_demand(vessel, alg.idx - 1)
     energy_scaling = min(demand_new / demand_old, 1.0)
 
     # the floor is scaled by the change in vessel multipliers, so that only the
@@ -103,3 +104,20 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
                 fuel_inertia = 0.0
 
             constraint.rhs = fuel_inertia
+
+
+def _calculate_total_demand(vessel: Vessel, idx: int) -> np.float64:
+    """Sum a vessel's energy demand over every leg and port of its route, in GJ/year."""
+    expectation = vessel.expectation
+
+    energy_sea = expectation.get_energy_sea_leg(idx)
+    energy_port = expectation.get_energy_port(idx)
+
+    energies: list[FloatLike] = []
+    for area in (energy_sea, energy_port):
+        for steps in area.values():
+            energies.extend(steps)
+
+    # a route always has at least one leg and one port and the energy dicts are
+    # keyed by a fixed enum, so the list is never empty
+    return np.float64(np.add.reduce(np.asarray(energies)))

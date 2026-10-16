@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.tank import Tank
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
 def calculate_vessel_charter_properties(
@@ -85,6 +85,31 @@ def calculate_cargo_charter_properties(
 
     _calculate_fuel_cost(vessel, component, timeline, idx)
     _calculate_cargo_unit_properties(vessel, component, timeline, idx)
+
+
+def calculate_total_fuel_expenses(vessel: Vessel, idx: Index) -> FloatLike:
+    """
+    Calculate a vessel's expected fuel expenses including the policy expenses.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose expected bunkering carries the expenses.
+    idx
+        Time-step index or slice of the expenses.
+
+    Returns
+    -------
+    FloatLike
+        Fuel, remedial and flexibility expenses, in USD/year.
+    """
+    expectation = vessel.expectation
+
+    fuel = expectation.get_fuel_expenses(idx)
+    remedial = expectation.get_remedial_expenses(idx)
+    flexibility = expectation.get_flexibility_expenses(idx)
+
+    return fuel + (remedial + flexibility)
 
 
 def _calculate_vessel_unit_properties(
@@ -355,7 +380,7 @@ def _calculate_fuel_cost(
         Current time-step index.
     """
     _idx = np.s_[idx:]
-    expenses = vessel.expectation.get_total_fuel_expenses(_idx)
+    expenses = calculate_total_fuel_expenses(vessel, _idx)
 
     def metric(time: float) -> float:
         return 1.0
