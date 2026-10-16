@@ -166,16 +166,14 @@ def _assign_regulation_wtt_factors(
     fuel_wtts = regulation.fuel_wtt
     target_emissions = regulation.emissions
 
-    # precompute user-supplied WTT once per (fuel, emission); these are
-    # vessel-invariant, so evaluating them inside the vessel loop is wasted work.
-    wtt_supplied: dict[tuple[str, str], FloatArray | None] = {}
+    # a supplied WTT is vessel-invariant, so it is evaluated once per (fuel, emission)
+    times = timeline[idx:]
+    supplied_wtts: dict[tuple[str, str], FloatArray | None] = {}
     for fuel in regulation.fuels:
         for emission in target_emissions:
             key = (fuel.name, emission.name)
             supplied = fuel_wtts[key]
-            wtt_supplied[key] = (
-                supplied.get(timeline[idx:]) if supplied is not None else None
-            )
+            supplied_wtts[key] = None if supplied is None else supplied.get(times)
 
     for vessel_name, vessel in vessels.items():
         # a vessel with no route port in the jurisdiction is never policed (see
@@ -196,7 +194,7 @@ def _assign_regulation_wtt_factors(
                 key = (fuel_name, emission_name)
 
                 # user-supplied WTT overrides the route average
-                supplied_wtt = wtt_supplied[key]
+                supplied_wtt = supplied_wtts[key]
                 wtt: FloatLike
                 if supplied_wtt is not None:
                     wtt = supplied_wtt
@@ -216,8 +214,8 @@ def _assign_regulation_ttw_factors(
     """
     Calculate and assign the TTW emission factors related to a given regulation.
 
-    Each converter able to burn a fuel gets its own consumption and slip factors, read
-    from the vessel's expectation unless the regulation supplies a TTW.
+    Each converter able to burn a fuel on each vessel gets its own consumption and slip
+    factors, read from the vessel's expectation unless the regulation supplies a TTW.
 
     Parameters
     ----------
@@ -234,50 +232,31 @@ def _assign_regulation_ttw_factors(
     fuel_ttws = regulation.fuel_ttw
     target_emissions = regulation.emissions
 
-    for vessel in vessels.values():
-        usable_fuels = vessel.usable_fuels
-        target_fuels = _usable_target_fuels(regulation, usable_fuels)
+    # a supplied TTW is vessel-invariant, so it is evaluated once per (fuel, emission)
+    times = timeline[idx:]
+    supplied_ttws: dict[tuple[str, str], FloatArray | None] = {}
+    for fuel in regulation.fuels:
+        for emission in target_emissions:
+            key = (fuel.name, emission.name)
+            supplied = fuel_ttws[key]
+            supplied_ttws[key] = None if supplied is None else supplied.get(times)
 
-        converters = vessel.power_system.get_converters()
+    for vessel_name, vessel in vessels.items():
+        target_fuels = _usable_target_fuels(regulation, vessel.usable_fuels)
 
-        for fuel in target_fuels:
-            fuel_name = fuel.name
-            fuel_type = fuel.fuel_type
-
+        for converter, fuel in _converter_fuels(vessel, target_fuels):
             for emission in target_emissions:
-                emission_name = emission.name
+                supplied_ttw = supplied_ttws[(fuel.name, emission.name)]
+                ttw_consumption, ttw_slip = _regulation_ttw(
+                    regulation, vessel, converter, fuel, emission, supplied_ttw
+                )
 
-                # a user-supplied TTW on the regulation applies to every converter
-                # able to burn the fuel, with zero slip
-                key = (fuel_name, emission_name)
-                ttw = fuel_ttws[key]
-                ttw_supplied = ttw.get(timeline[idx:]) if ttw is not None else None
+                factor_consumption = _apply_gwp(ttw_consumption, regulation, emission)
+                factor_slip = _apply_gwp(ttw_slip, regulation, emission)
 
-                for converter in converters:
-                    # a converter that cannot burn the fuel spends none of it
-                    if fuel_type not in converter.get_fuel_types():
-                        continue
-
-                    converter_name = converter.name
-
-                    ttw_consumption: FloatLike
-                    if ttw_supplied is not None:
-                        ttw_consumption = ttw_supplied
-                        ttw_slip = 0.0  # TODO: change if deciding to split input
-                    else:
-                        ttw_consumption, ttw_slip = _converter_ttw(
-                            regulation, vessel, converter, fuel, emission
-                        )
-
-                    factor_consumption = _apply_gwp(
-                        ttw_consumption, regulation, emission
-                    )
-                    factor_slip = _apply_gwp(ttw_slip, regulation, emission)
-
-                    expectation.set_ttw_consumption(
-                        idx, (converter_name, *key), factor_consumption
-                    )
-                    expectation.set_ttw_slip(idx, (converter_name, *key), factor_slip)
+                key = (vessel_name, converter.name, fuel.name, emission.name)
+                expectation.set_ttw_consumption(idx, key, factor_consumption)
+                expectation.set_ttw_slip(idx, key, factor_slip)
 
 
 def _assign_regulation_emission_coefficients(
@@ -360,7 +339,7 @@ def _calculate_regulation_emission_factor(
     emission_name = emission.name
 
     key_wtt = (vessel_name, fuel_name, emission_name)
-    key_ttw = (converter_name, fuel_name, emission_name)
+    key_ttw = (vessel_name, converter_name, fuel_name, emission_name)
 
     return _calculate_emission_factor(regulation, key_wtt, key_ttw, idx)
 
@@ -837,15 +816,19 @@ def _average_wtt_over_route(
     return np.stack(estimates).mean(axis=0)
 
 
-def _converter_ttw(
+def _regulation_ttw(
     regulation: Regulation,
     vessel: Vessel,
     converter: Converter,
     fuel: Fuel,
     emission: Emission,
-) -> tuple[float, float]:
+    supplied_ttw: FloatArray | None,
+) -> tuple[FloatLike, FloatLike]:
     """
     Return the consumption and slip TTW of burning a fuel in a vessel's converter.
+
+    A TTW supplied on the regulation applies to every converter able to burn the fuel,
+    with zero slip.
 
     Parameters
     ----------
@@ -859,12 +842,17 @@ def _converter_ttw(
         Fuel being spent.
     emission
         Emission.
+    supplied_ttw
+        TTW the regulation supplies for the fuel and emission, if any.
 
     Returns
     -------
-    tuple[float, float]
+    tuple[FloatLike, FloatLike]
         Consumption TTW and slip TTW, in ton emission/ton fuel-in.
     """
+    if supplied_ttw is not None:
+        return supplied_ttw, 0.0  # TODO: change if deciding to split input
+
     key = (converter.name, fuel.name, emission.name)
     expectation = vessel.expectation
 

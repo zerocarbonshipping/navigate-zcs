@@ -23,12 +23,12 @@ class _PolicyExpectation(_Expectation):
 
         self._global_warming_potential: dict[str, float] = {}
 
-        # for levy the key is:       (port_name, fuel_name, emission_name)
-        # for regulation the key is: (vessel_name, fuel_name, emission_name)
+        # levy key:       (port_name, fuel_name, emission_name)
+        # regulation key: (vessel_name, fuel_name, emission_name)
         self._wtt: dict[tuple[str, ...], FloatArray] = {}
 
-        # for levy the key is:       (vessel_name, fuel_name, emission_name)
-        # for regulation the key is: (converter_name, fuel_name, emission_name)
+        # levy key:       (vessel_name, fuel_name, emission_name)
+        # regulation key: (vessel_name, converter_name, fuel_name, emission_name)
         self._ttw_consumption: dict[tuple[str, ...], FloatArray] = {}
         self._ttw_slip: dict[tuple[str, ...], FloatArray] = {}
 
