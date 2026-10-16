@@ -34,8 +34,8 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     This means discretizing the existing producer in time, by splitting the initial
     number of plants into individual increments with varying age.
 
-    Must be called exactly once per producer: discretization appends to the increment
-    stores.
+    Must be called exactly once per producer: the existing pipeline is appended to
+    `producer.pipeline`.
 
     Parameters
     ----------
@@ -62,7 +62,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
 
 def _build_initial_increments(producer: Producer) -> list[list[PlantIncrement]]:
     """
-    Split the initial capacity of each plant type into one increment per age bin.
+    Build the initial increments of every plant type from its initial capacity.
 
     Parameters
     ----------
@@ -165,16 +165,18 @@ def _split_by_age(
     increments: list[PlantIncrement] = []
 
     for i in range(ages.size):
-        # zero multipliers are dropped to reduce overhead and to avoid round-off
-        # errors in the increment average properties
+        # only positive multipliers are kept, to reduce overhead and to avoid
+        # round-off errors in the increment average properties
         if multipliers[i] > 0.0:
             age = float(ages[i])
             # a plant was decided one lead time before its delivery
+            decided = age + lead_time
+
             increment = PlantIncrement(
                 multiplier=multipliers[i],
                 age=age,
                 age_span=float(spans[i]),
-                decided=age + lead_time,
+                decided=decided,
             )
             increments.append(increment)
 

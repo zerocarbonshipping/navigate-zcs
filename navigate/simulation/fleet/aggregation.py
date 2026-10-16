@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-step fleet cost transfers, fuel-type totals, fuel demand and vessel profiles."""
+"""
+Per-step fleet cost transfers, fuel-type totals, fuel demand and vessel profiles.
+
+Also the vessel counts of each type, summed over the fleet's increments.
+"""
 
 from __future__ import annotations
 
@@ -110,9 +114,7 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         age_power_sum = (
             float(sum(inc.age * inc.multiplier for inc in fleet.increments[v])) * power
         )
-        count_power_sum = (
-            float(sum(inc.multiplier for inc in fleet.increments[v])) * power
-        )
+        count_power_sum = float(get_multiplier(fleet, v)) * power
         fleet.profile.add_weighted_age(
             vessel.primary_fuel_type, age_power_sum, count_power_sum, idx
         )
@@ -246,7 +248,7 @@ def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
         )
 
 
-def get_multiplier(fleet: Fleet, v: int) -> float:
+def get_multiplier(fleet: Fleet, vessel_idx: int) -> float:
     """
     Return the number of vessels of one type in the fleet.
 
@@ -254,7 +256,7 @@ def get_multiplier(fleet: Fleet, v: int) -> float:
     ----------
     fleet
         Fleet holding the vessels.
-    v
+    vessel_idx
         Index of the vessel type in the fleet.
 
     Returns
@@ -262,7 +264,7 @@ def get_multiplier(fleet: Fleet, v: int) -> float:
     float
         Number of vessels of the type.
     """
-    return sum(inc.multiplier for inc in fleet.increments[v])
+    return sum(inc.multiplier for inc in fleet.increments[vessel_idx])
 
 
 def get_multipliers(fleet: Fleet) -> list[float]:

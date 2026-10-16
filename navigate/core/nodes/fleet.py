@@ -116,7 +116,7 @@ class Fleet(Node):
         self.expectation: FleetExpectation = FleetExpectation()
         self.profile: FleetProfile = FleetProfile()
 
-        self.increments: list[list[VesselIncrement]] = []
+        self.increments: list[list[VesselIncrement]]
         self.current_uptake: FloatArray = np.empty(0)
         self.fuel_conversion_expenses: FloatArray = np.empty(0)
         self.trade: FloatArray = np.ndarray(0)
@@ -454,8 +454,7 @@ class Fleet(Node):
 
         # without a supplied initial split, the cargo-miles are split uniformly
         if not self.initial_split:
-            nv = len(self.vessels)
-            self.initial_split = [1.0 / nv] * nv
+            self.initial_split = [1.0 / len(self.vessels) for _ in self.vessels]
 
         if not self.initial_age_distribution:
             self.initial_age_distribution = [Scalar(0.0) for _ in self.vessels]

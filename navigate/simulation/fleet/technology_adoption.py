@@ -935,7 +935,7 @@ def _transfer_retrofit_uptake(
             )
 
     for v, vessel in enumerate(fleet.vessels):
-        multipliers_total = float(sum(inc.multiplier for inc in fleet.increments[v]))
+        multipliers_total = float(get_multiplier(fleet, v))
         for i, technology in enumerate(sorted_technologies):
             count = retrofit_counts.get((v, i), 0.0)
             share = float(divide_nonzero(count, multipliers_total))

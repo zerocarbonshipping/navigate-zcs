@@ -88,7 +88,7 @@ class Producer(Node):
         self.profile: ProducerProfile = ProducerProfile()
 
         # increments in service, and in the pipeline before their delivery
-        self.increments: list[list[PlantIncrement]] = []
+        self.increments: list[list[PlantIncrement]]
         self.pipeline: list[list[PlantIncrement]] = []
 
         # static variables

@@ -119,7 +119,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
 
 def _build_initial_increments(fleet: Fleet) -> list[list[VesselIncrement]]:
     """
-    Split the initial vessels of each type into one increment per age bin.
+    Build the initial increments of every vessel type from its initial count.
 
     Parameters
     ----------

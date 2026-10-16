@@ -432,7 +432,6 @@ class Simulation:
         Progress each producer in time and assign fair shares of the supply gap.
 
         The preparation per producer consists of:
-        - updating increment ages,
         - delivering from the pipeline,
         - calculating feedstock gap.
 
