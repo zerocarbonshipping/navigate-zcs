@@ -249,8 +249,8 @@ def perform_decommissioning(producer: Producer) -> None:
 
         # partially decommission increments whose age_span spans the lifetime boundary
         for inc in producer.increments[p]:
-            if extends_past(inc.age, inc.age_span, lifetime):
-                alpha = calculate_share_below(inc.age, inc.age_span, lifetime)
+            if extends_past(inc, lifetime):
+                alpha = calculate_share_below(inc, lifetime)
                 decommissioning = inc.multiplier * (1.0 - alpha)
 
                 inc.multiplier -= decommissioning
@@ -508,8 +508,8 @@ def perform_pipeline_delivery(producer: Producer) -> None:
             else:
                 # the ongoing increment delivers the part that has crossed zero, as
                 # plants enter uniformly over a time step
-                if extends_past(pinc_i.age, pinc_i.age_span, 0.0):
-                    alpha = calculate_share_below(pinc_i.age, pinc_i.age_span, 0.0)
+                if extends_past(pinc_i, 0.0):
+                    alpha = calculate_share_below(pinc_i, 0.0)
                     remaining = increment * alpha
                     delivered = increment - remaining
                     delivered_dt = pinc_i.age + pinc_i.age_span
@@ -594,13 +594,9 @@ def calculate_feed_availability(
         boundary = lifetime - lead_time
 
         for i in range(start, continued.size):
-            increment_i = multipliers[i]
-            age_i = ages[i]
-            dt_i = incs[i].age_span
-
-            if extends_past(age_i, dt_i, boundary):
-                alpha = calculate_share_below(age_i, dt_i, boundary)
-                remaining = increment_i * alpha
+            if extends_past(incs[i], boundary):
+                alpha = calculate_share_below(incs[i], boundary)
+                remaining = multipliers[i] * alpha
 
                 existing_increments = np.append(existing_increments, remaining)
                 existing_decided = np.append(existing_decided, decided_arr[i])

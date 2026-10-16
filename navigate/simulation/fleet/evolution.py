@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from navigate.simulation.cohort import calculate_share_below, extends_past
 from navigate.simulation.fleet.aggregation import (
     get_multiplier,
     get_multipliers,
@@ -140,24 +141,22 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int) -> None:
             if surviving:
                 surviving[0].baseline = surviving[0].multiplier
 
+        baseline = surviving[0].baseline if surviving else None
+
         # scrap the part of the oldest cohort beyond the lifetime, assuming its
         # vessels entered uniformly over its age span
-        if surviving and surviving[0].baseline is not None:
-            age_i = surviving[0].age
-            dt_i = surviving[0].age_span
+        if baseline is not None and extends_past(surviving[0], lifetime):
+            alpha = calculate_share_below(surviving[0], lifetime)
 
-            if age_i + dt_i > lifetime:
-                alpha = (lifetime - age_i) / dt_i
+            remaining = baseline * alpha
+            scrapping = surviving[0].multiplier - remaining
 
-                remaining = surviving[0].baseline * alpha
-                scrapping = surviving[0].multiplier - remaining
+            # conversions out of the cohort can leave fewer vessels than the
+            # baseline share that remains, so the scrapping is floored at zero
+            scrapping = max(scrapping, 0.0)
 
-                # conversions out of the cohort can leave fewer vessels than the
-                # baseline share that remains, so the scrapping is floored at zero
-                scrapping = max(scrapping, 0.0)
-
-                scrapped_vessels += scrapping
-                surviving[0].multiplier -= scrapping
+            scrapped_vessels += scrapping
+            surviving[0].multiplier -= scrapping
 
         fleet.profile.add_scrap(vessel.name, scrapped_vessels, idx)
 

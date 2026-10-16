@@ -63,48 +63,44 @@ def split_by_age(
     return ages, spans, multipliers
 
 
-def extends_past(age: float, age_span: float, boundary: float) -> bool:
+def extends_past(increment: Increment, boundary: float) -> bool:
     """
-    Return whether a cohort's age span reaches past an age boundary.
+    Return whether an increment's age span reaches past an age boundary.
 
     Parameters
     ----------
-    age
-        Age of the cohort, in years.
-    age_span
-        Width of the age bin the cohort spans, in years.
+    increment
+        Increment tested.
     boundary
-        Age the cohort is split at, in years.
+        Age the increment is split at, in years.
 
     Returns
     -------
     bool
         Whether the oldest end of the span lies past the boundary.
     """
-    return age + age_span > boundary
+    return increment.age + increment.age_span > boundary
 
 
-def calculate_share_below(age: float, age_span: float, boundary: float) -> float:
+def calculate_share_below(increment: Increment, boundary: float) -> float:
     """
-    Return the share of a cohort younger than an age boundary it extends past.
+    Return the share of an increment younger than an age boundary it extends past.
 
-    The assets of a cohort are spread uniformly over its age span.
+    The assets of an increment are spread uniformly over its age span.
 
     Parameters
     ----------
-    age
-        Age of the cohort, in years.
-    age_span
-        Width of the age bin the cohort spans, in years.
+    increment
+        Increment split.
     boundary
-        Age the cohort is split at, in years.
+        Age the increment is split at, in years.
 
     Returns
     -------
     float
-        Share of the cohort's assets younger than the boundary.
+        Share of the increment's assets younger than the boundary.
     """
-    return (boundary - age) / age_span
+    return (boundary - increment.age) / increment.age_span
 
 
 def find_insertion_index(increments: Sequence[Increment], age: float) -> int:
