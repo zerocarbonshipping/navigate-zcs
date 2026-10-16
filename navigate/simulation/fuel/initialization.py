@@ -34,8 +34,8 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     This means discretizing the existing producer in time, by splitting the initial
     number of plants into individual increments with varying age.
 
-    Must be called exactly once per producer: the existing pipeline is appended to
-    `producer.pipeline`.
+    Must be called exactly once per producer: it assigns the producer's plants to it,
+    which a second call rejects.
 
     Parameters
     ----------

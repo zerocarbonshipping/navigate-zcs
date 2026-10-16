@@ -90,7 +90,7 @@ class Producer(Node):
 
         # increments in service, and in the pipeline before their delivery
         self.increments: list[list[PlantIncrement]]
-        self.pipeline: list[list[PlantIncrement]] = []
+        self.pipeline: list[list[PlantIncrement]]
 
         # static variables
         self.fuels: dict[str, Fuel] = {}

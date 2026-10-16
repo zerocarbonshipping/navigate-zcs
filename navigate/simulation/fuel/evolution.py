@@ -684,8 +684,7 @@ def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
     timeline
         Simulation timeline, days.
     """
-    for _p in range(len(producer.plants)):
-        producer.pipeline.append([])
+    producer.pipeline = [[] for _ in producer.plants]
 
     for p, (_name, pipeline) in enumerate(producer.existing_pipelines.items()):
         if pipeline is None:
