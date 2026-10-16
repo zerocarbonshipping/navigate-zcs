@@ -68,5 +68,6 @@ analysis. Outputs depend on the assumptions selected and should not be interpret
 03-run-a-global-case
 04-run-our-reference-scenarios
 05-build-your-own-case
+building-a-deck
 references
 ```
