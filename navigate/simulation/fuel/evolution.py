@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.increment import PlantIncrement
+from navigate.simulation.cohort import calculate_share_below, extends_past
 from navigate.simulation.fuel.planning import (
     calculate_constrained_uptakes,
     perform_pipeline_planning,
@@ -245,8 +246,8 @@ def perform_decommissioning(producer: Producer) -> None:
 
         # partially decommission increments whose age_span spans the lifetime boundary
         for inc in producer.increments[p]:
-            if inc.age + inc.age_span > lifetime:
-                alpha = (lifetime - inc.age) / inc.age_span
+            if extends_past(inc.age, inc.age_span, lifetime):
+                alpha = calculate_share_below(inc.age, inc.age_span, lifetime)
                 decommissioning = inc.multiplier * (1.0 - alpha)
 
                 inc.multiplier -= decommissioning
@@ -504,8 +505,8 @@ def perform_pipeline_delivery(producer: Producer) -> None:
             else:
                 # the ongoing increment delivers the part that has crossed zero, as
                 # plants enter uniformly over a time step
-                if pinc_i.age + pinc_i.age_span > 0.0:
-                    alpha = -pinc_i.age / pinc_i.age_span
+                if extends_past(pinc_i.age, pinc_i.age_span, 0.0):
+                    alpha = calculate_share_below(pinc_i.age, pinc_i.age_span, 0.0)
                     remaining = increment * alpha
                     delivered = increment - remaining
                     delivered_dt = pinc_i.age + pinc_i.age_span
@@ -587,14 +588,15 @@ def calculate_feed_availability(
         # the first continued increment may be partly decommissioned, as the
         # model is continuous
         start = np.argmax(continued)
+        boundary = lifetime - lead_time
 
         for i in range(start, continued.size):
             increment_i = multipliers[i]
             age_i = ages[i]
             dt_i = incs[i].age_span
 
-            if age_i + dt_i > (lifetime - lead_time):
-                alpha = ((lifetime - lead_time) - age_i) / dt_i
+            if extends_past(age_i, dt_i, boundary):
+                alpha = calculate_share_below(age_i, dt_i, boundary)
                 remaining = increment_i * alpha
 
                 existing_increments = np.append(existing_increments, remaining)
