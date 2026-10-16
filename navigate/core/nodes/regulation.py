@@ -175,15 +175,3 @@ class Regulation(_Policy):
         self, timeline: FloatArray, vessels: dict[str, Vessel]
     ) -> None:
         self.profile.initialize(timeline, vessels)
-
-    def calculate_profile(self, idx: int) -> None:
-
-        if not self.active:
-            return
-
-        self.profile.set_remedial_cost(idx, self.remedial_cost.get())
-
-        # check_consistency guarantees every policed vessel a threshold
-        for vessel_name, threshold in self.vessel_threshold.items():
-            if self.vessel_is_policed(vessel_name) and threshold is not None:
-                self.profile.set_vessel_threshold(idx, vessel_name, threshold.get())

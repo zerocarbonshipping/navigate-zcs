@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-step fleet cost transfers and fuel-type capacity and supply totals."""
+"""Per-step fleet cost transfers, fuel-type totals and vessel profiles."""
 
 from __future__ import annotations
 
@@ -258,3 +258,18 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     """
     for v, vessel in enumerate(fleet.assets):
         fleet.profile.set_existing_vessels(idx, vessel.name, fleet.get_multiplier(v))
+
+
+def calculate_vessel_profile(vessel: Vessel, idx: int) -> None:
+    """
+    Write the vessel's lifetime and lead time to its profile.
+
+    Parameters
+    ----------
+    vessel
+        Vessel instance.
+    idx
+        Current time-step index.
+    """
+    vessel.profile.set_lifetime(idx, vessel.lifetime.get())
+    vessel.profile.set_lead_time(idx, vessel.lead_time.get())

@@ -206,15 +206,3 @@ class Vessel(Node):
         self.profile.initialize(
             timeline, emissions, fuels, emissions_lifetime, regulation_names, levy_names
         )
-
-    def calculate_profile(self, idx: int) -> None:
-        """
-        Write the vessel lifetime and lead time to the profile at idx.
-
-        Parameters
-        ----------
-        idx
-            Current time-step index.
-        """
-        self.profile.set_lifetime(idx, self.lifetime.get())
-        self.profile.set_lead_time(idx, self.lead_time.get())

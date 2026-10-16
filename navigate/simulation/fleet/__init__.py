@@ -5,7 +5,10 @@
 
 from __future__ import annotations
 
-from navigate.simulation.fleet.aggregation import calculate_fleet_profile
+from navigate.simulation.fleet.aggregation import (
+    calculate_fleet_profile,
+    calculate_vessel_profile,
+)
 from navigate.simulation.fleet.charter import (
     calculate_cargo_charter_properties,
     calculate_vessel_charter_properties,
