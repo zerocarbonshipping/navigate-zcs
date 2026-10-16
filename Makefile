@@ -15,7 +15,7 @@ else
   RUN := env PATH="$(CURDIR)/.venv/bin:$(PATH)"
 endif
 
-.PHONY: lint test-unit test-attribute test-guardrails test-regression regen-regression test-all test-examples help setup conda-setup pip-setup docs docs-clean
+.PHONY: lint test-unit test-e2e test-all test-examples compare-results help setup conda-setup pip-setup docs docs-clean
 
 help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -50,34 +50,39 @@ lint:  ## Run ruff, mypy, and REUSE checks
 test-unit:  ## Unit + contract tests
 	$(RUN) pytest tests/unit/ -v --tb=short
 
-test-attribute:  ## Attribute coverage tests
-	$(RUN) pytest tests/attribute/ -s -v --tb=short
+# --maxfail=0 overrides the -x in pyproject addopts: one failing combination
+# must not mask the others behind it.
+test-e2e:  ## End-to-end deck tests (attribute coverage + input combinations)
+	$(RUN) pytest tests/end_to_end/ -v --tb=short --maxfail=0
 
-# --maxfail=0 overrides the -x in pyproject addopts: guardrail failures are
-# domain findings, and one must not mask the assertions behind it.
-test-guardrails:  ## Behavior guardrails, suspended: see tests/guardrails/README.md
-	$(RUN) pytest tests/guardrails/ -v --tb=short --maxfail=0
-
-# --maxfail=0 overrides the -x in pyproject addopts: a failed activation guard
-# must not mask the golden diff behind it.
-test-regression:  ## Golden-baseline regression tests
-	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0
-
-# The one sanctioned way to update baselines (tests/regression/README.md);
-# -s so the per-file regeneration summary prints.
-regen-regression:  ## Regenerate golden baselines, then review the git diff
-	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0 -s --regen-baselines
-
-test-all:  ## Full test suite (required pytest suites + examples)
+test-all:  ## Full test suite (pytest suites + examples)
 	$(MAKE) test-unit
-	$(MAKE) test-attribute
-	$(MAKE) test-regression
+	$(MAKE) test-e2e
 	$(MAKE) test-examples
 
 test-examples:  ## Run simulations/examples
 	$(RUN) navigate simulations/examples/example_1/example_1.nav -d ./assumptions -s
 	$(RUN) navigate simulations/examples/example_2/example_2.nav -d ./assumptions -s
 	$(RUN) navigate simulations/examples/example_3/example_3.nav -d ./assumptions -s
+
+# The base ref is checked out into a worktree and installed into its own venv,
+# so neither side imports the other's source; the decks and the comparison come
+# from this checkout (tests/compare_results.py). CI runs the same comparison on
+# pull requests labelled maintenance (.github/workflows/compare-results.yml).
+BASE ?= dev
+COMPARE_DIR := $(CURDIR)/.compare
+
+compare-results:  ## Compare deck results with another ref: make compare-results BASE=<ref> (default dev)
+	rm -rf $(COMPARE_DIR) && git worktree prune
+	git worktree add --detach $(COMPARE_DIR)/base $(BASE)
+	$(RUN) python -m venv $(COMPARE_DIR)/env
+	$(COMPARE_DIR)/env/bin/pip install -q $(COMPARE_DIR)/base
+	$(COMPARE_DIR)/env/bin/python tests/compare_results.py snapshot \
+		--assumptions $(COMPARE_DIR)/base/assumptions --out $(COMPARE_DIR)/snapshots/base
+	$(RUN) python tests/compare_results.py snapshot --out $(COMPARE_DIR)/snapshots/head
+	$(RUN) python tests/compare_results.py diff \
+		$(COMPARE_DIR)/snapshots/base $(COMPARE_DIR)/snapshots/head; \
+		status=$$?; git worktree remove --force $(COMPARE_DIR)/base; exit $$status
 
 docs:  ## Stage content and build the documentation site (needs docs/requirements.txt installed)
 	$(RUN) $(MAKE) -C docs html

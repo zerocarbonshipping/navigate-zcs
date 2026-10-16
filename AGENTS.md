@@ -25,9 +25,9 @@ every change. The detail lives in the files it points to.
 - `CONTRIBUTING.md` — how a change gets in: an issue first for large
   features, what a pull request must carry, provenance for assumption
   changes.
-- `tests/AGENTS.md` — which suite a check belongs in, the rules every test
-  change follows, and what a test change touches. Read it before changing
-  anything under `tests/`.
+- `tests/AGENTS.md` — what earns a test, which suite it belongs in, and
+  the rule that agents propose tests rather than write them. Read it before
+  suggesting a test or touching anything under `tests/`.
 - `docs/` — the user manual, published as the documentation site.
   `docs/reference_manual/` describes the DSL and the model behaviour as
   users see it; it is written by hand, nothing generates it. Codebase
@@ -43,8 +43,9 @@ every change. The detail lives in the files it points to.
 
 - `navigate/` — the package. `navigate` is the command-line entry point;
   `ARCHITECTURE.md` maps the inside.
-- `tests/` — four pytest suites, shared helpers in `tests/helpers/`, and the
-  small decks the suites run.
+- `tests/` — two pytest suites, `unit/` and `end_to_end/`, shared helpers in
+  `tests/helpers/`, the small decks the end-to-end suite runs, and the
+  result comparison that maintenance pull requests must pass.
 - `assumptions/` — the model inputs, written in the DSL: `defaults/` holds
   the default nodes, one file per node, and `modules/` the default modules,
   `.inc` files shared across decks. Each has an `installation/` branch that
@@ -80,15 +81,14 @@ each other's files, and the test suites run decks too.
   plots. `ASSUMPTIONS_DATA_DIR` replaces `-d`.
 - `make lint` runs `ruff check` and `ruff format --check` over `navigate/`
   and `tests/`, `mypy` over `navigate/` only, and `reuse lint`.
-- The test targets are `test-unit`, `test-attribute`, `test-guardrails`,
-  `test-regression`, `test-examples` and `test-all`. What
-  each suite answers, how long it takes and its conventions are documented
-  under `tests/`. `test-guardrails` is suspended and is not part of
-  `test-all`; the status note in `tests/guardrails/README.md` has the
-  detail.
+- The test targets are `test-unit`, `test-e2e`, `test-examples` and
+  `test-all`; `compare-results` compares the results of a fixed set of decks
+  between this checkout and another ref. What each suite answers and its
+  conventions are in `tests/AGENTS.md`.
 - `make docs` builds the user manual.
 - CI runs on every pull request: Lint, Build package, and Run tests with the
-  unit, attribute, regression and example suites.
+  unit and end-to-end suites and the examples. A pull request labelled
+  `maintenance` also runs Compare results against its base.
 
 ## Rules for every change
 
@@ -118,18 +118,21 @@ each other's files, and the test suites run decks too.
   attribute as required when every deck must assign it; its entry on the
   node's page in `docs/reference_manual/`, the only place it is explained
   to users, with its units, limits, default and examples; and the attribute
-  coverage test. `tests/attribute/test_reference_manual_coverage.py` checks
-  the registries against the setters and the manual pages against the
-  registries, both in both directions; the report-property
+  coverage test. `tests/unit/docs/test_setters_registered.py` checks the
+  registries against the setters and `test_node_pages.py` the manual pages
+  against the registries, both in both directions; the report-property
   appendix of `docs/reference_manual/report.md` is checked against the
-  profile getters the same way by `test_report_property_docs.py`. Nothing
-  checks the coverage deck against the registries.
+  profile getters the same way by `test_report_property_docs.py`. The
+  coverage deck is checked against the registries by
+  `tests/end_to_end/test_attribute_coverage.py`.
 - A change that moves simulation results explains the difference in the
-  pull request and regenerates the regression baselines with
-  `make regen-regression` in a commit of their own. Baselines are never
-  edited by hand.
-- A new non-trivial calculation gets a unit test whose expected value is
-  derived independently of the implementation; `tests/unit/README.md` has
-  the conventions.
+  pull request and keeps `tests/end_to_end` green. A change meant to leave
+  them alone is labelled `maintenance`, and its Compare results check must
+  pass.
+- Coding agents never write or edit tests unless the user explicitly asks
+  for that test. Where a change makes a test critical or sensible by the
+  criteria in `tests/AGENTS.md`, the agent proposes it instead: the decision
+  it pins, the suite it belongs in, and how its expected value is derived
+  independently of the implementation. A human decides.
 - A user-visible change in behaviour updates the reference manual and the
   changelog.

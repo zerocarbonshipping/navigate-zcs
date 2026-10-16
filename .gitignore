@@ -55,6 +55,8 @@ coverage.xml
 # Environments
 .env
 .venv
+# make compare-results: base worktree, venv and snapshots
+/.compare/
 .nav-venv
 env/
 venv/

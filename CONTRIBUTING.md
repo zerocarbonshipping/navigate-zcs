@@ -80,12 +80,13 @@ works belongs in the pull request, not the changelog.
 All tests must pass before a pull request can be merged. Run the full suite
 with `make test-all`, or the individual suites during development.
 
-New code needs appropriate test coverage: `tests/AGENTS.md` says which suite
-a check belongs in and points to each suite's conventions. Changes that alter
+New code needs appropriate test coverage: `tests/AGENTS.md` says when a
+change needs a test and which suite it belongs in. Changes that alter
 simulation results should explain the difference in the pull request
-description; the regression baselines they move are regenerated only with
-`make regen-regression` and committed as their own commit, with the baseline
-diff as review material (`tests/regression/README.md`).
+description. A pull request that should not alter them carries the
+`maintenance` label; CI then runs a fixed set of decks on the pull request
+and on its base and fails on any difference. Run the same comparison locally
+with `make compare-results BASE=dev`.
 
 ## Questions
 

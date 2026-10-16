@@ -5,78 +5,48 @@ SPDX-License-Identifier: Apache-2.0
 
 # Testing Navigate
 
-Four pytest suites, two make targets that smoke-run committed decks, shared
-helpers in `tests/helpers/`, and each simulating suite's decks under its own
-`simulations/`. The layout encodes which suite answers which question.
+## Agents propose tests, they do not write them
 
-## Where a check belongs
+A coding agent never writes, edits or deletes a test, helper, fixture or test
+deck unless the user explicitly asks for that test. Where a change makes a test
+worthwhile, the agent proposes it: the decision it pins, the module it belongs
+in, and how the expected value is derived without running the code. A human
+decides. When a test fails, the agent checks the code under test first and
+reports the failure; it never changes the test to make it pass.
 
-- Exact behaviour of a function or class, with an expected value derivable
-  independently of the implementation → `tests/unit` (conventions:
-  `tests/unit/README.md`).
-- A convention `CODESTYLE.md` states, checked by reflection over the code
-  instead of by an expected value → `tests/unit`. The rule lives in
-  `CODESTYLE.md` and the test only checks conformance to it:
-  `tests/unit/core/test_profile_getters.py` and
-  `tests/unit/core/test_expectation_getters.py`.
-- Coverage of the DSL attribute/command surface → `tests/attribute` (no
-  README; conventions: the module docstrings of `test_attribute_coverage.py`,
-  `test_report_properties.py`, `test_reference_manual_coverage.py` and
-  `test_report_property_docs.py`). The third of these maps a node type to its
-  manual page, so a new page under `docs/reference_manual/` that describes no
-  node is listed in `tests/helpers/reference_manual.py`; the fourth reads the
-  report-property appendix of `report.md`, which carries no headings, from the
-  sentence that leads each table in.
-- "Did simulation results change when they shouldn't have?" →
-  `tests/regression` (golden baselines; conventions:
-  `tests/regression/README.md`).
-- "Shipped decks still parse and run" → `make test-examples` (exit-code
-  smoke over the committed example decks; never add assertions there).
+## Scope
 
-## Rules for every test change
+The suite is deliberately small. A test earns its place only when a plausible
+change could silently break the decision it pins.
 
-- Expected values come from an independent oracle or from domain reasoning,
-  never from current output. A value read off today's output is a regression
-  pin, and pinning is the regression suite's job.
-- Every deck whose results are asserted pins the solver through its suite's
-  `simulations/0_includes/options.inc` and pins scenario inputs as explicit
-  constants; assumption defaults are imported only where the calibrated
-  values are themselves the tested mechanism. The attribute coverage deck,
-  whose results are not asserted, leaves `Solver = AUTOMATIC`.
-- Full simulations go through `helpers.simulation.run_simulation` and call
-  `check_invariants` from the same module before their own assertions, never
-  the `navigate` CLI: its `--solver` flag overrides the deck's pin.
-- Numeric tolerances are module-level constants with the rationale in a
-  comment on the constant.
-- A change to a file under a suite's `simulations/0_includes/` re-sizes every
-  deck including it, and every guardrail or baseline built on those decks.
+**`unit/`**
+
+- `calculators/` — expressions, tables, interpolation, extrapolation,
+  transforms.
+- `parser/` — DSL input becomes the right node state, or the right error.
+- `docs/` — the reference manual matches the parser registries and the
+  profile getters, both ways.
+
+**`end_to_end/`**
+
+- Attribute coverage — one deck sets every registered attribute and command
+  once.
+- Behaviour — runs that differ by one input, asserting only the direction
+  the output moves; for example, raising a fleet or producer calibration
+  parameter moves its response up. Kept to about ten, low-hanging fruit first.
+- Linearity and invariance — scaling one input scales an output by the same
+  factor. Kept to about five.
+
+**Not tested:** basic maths, the bunker constraint, guarantees of the
+libraries Navigate uses, happy paths and identities, a test that restates the
+formula it checks, one rule repeated per caller or type, and mock
+choreography.
+
+Expected values come from an independent oracle or domain reasoning, never
+from current output. There are no golden baselines.
 
 ## Running
 
-- `pyproject.toml` puts `-x` in `addopts`, so a bare `pytest` stops at the
-  first failure; the guardrail and regression targets pass `--maxfail=0` so
-  one failure cannot mask the rest. Use the make targets.
-- `--regen-baselines` is registered by `tests/regression/conftest.py`, so it
-  exists only when `tests/regression/` is on the pytest command line;
-  `make regen-regression` is the way.
-- CI runs the suites against the built wheel, not the checkout: a test that
-  depends on a file absent from the wheel passes locally and fails only in CI.
-- Wall clock: `test-unit`, `test-attribute` and `test-regression` take a few
-  seconds each, `test-guardrails` about 10 s and `test-examples`
-  about a minute, longer with HiGHS than with Gurobi.
-
-## What a test change touches
-
-- A new DSL attribute or command goes into the attribute coverage deck under
-  `tests/attribute/simulations/attribute_coverage/includes/`: the include for
-  its node group, that include's "Attributes covered" or "Commands covered"
-  header, and for a `SECTION_BOTH` attribute or command also the `EVENTS`
-  include `ft_events.inc`. Nothing checks the deck against the registry, so
-  an omission is never noticed (issue #168 is one such omission).
-- A property added to the shared regression report follows the header
-  comment of `tests/regression/simulations/0_includes/report.inc`.
-  `tests/attribute/test_report_properties.py` checks that it resolves to a
-  profile getter; nothing checks that a committed deck activates it, and an
-  all-NaN column compares equal to its baseline and carries no signal.
-- A new regression deck: exact comparison at first, activation guards, and
-  the baseline in a commit of its own; `tests/regression/README.md`.
+`make test-unit`, `make test-e2e`, `make test-examples`, `make test-all`.
+`make compare-results BASE=<ref>` checks that a change meant to leave results
+alone leaves them alone; it is not a test suite.
