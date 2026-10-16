@@ -24,7 +24,7 @@ from navigate.simulation.bunker.cleanup import (
     remove_redundant_regulations,
     remove_redundant_vessel,
 )
-from navigate.simulation.bunker.coefficients import calculate_regulation_coefficients
+from navigate.simulation.bunker.coefficients import update_regulation_spend_coefficients
 from navigate.simulation.bunker.constraints.bunkered_equals_spent import (
     update_bunkered_equals_spent_constraint,
 )
@@ -168,12 +168,7 @@ class BunkerAlgorithm:
 
         # policies
         self.active_regulations: dict[str, Regulation] = {}
-        self.regulation_vessel_threshold: dict[tuple[str, str], float] = {}
-        self.regulation_emission_factor: dict[tuple[str, str, str, str], float] = {}
         self.regulation_spend_coefficient: dict[tuple[str, str, str, str], float] = {}
-        self.shore_power_regulation_emission_factor: dict[
-            tuple[str, int, str], float
-        ] = {}
         self.shore_power_regulation_coefficient: dict[tuple[str, int, str], float] = {}
         self.regulation_rhs_individual: dict[tuple[str, str], float] = {}
         self.regulation_rhs_flexibility: dict[tuple[str, str], float] = {}
@@ -335,7 +330,7 @@ class BunkerAlgorithm:
                     self.vessels[v] = vessel
                     self.multipliers[v] = np.float64(multiplier)
 
-                    calculate_regulation_coefficients(self, vessel)
+                    update_regulation_spend_coefficients(self, vessel)
 
                     update_vessel_variables(self, vessel)
                     update_vessel_objectives(self, vessel)
@@ -481,10 +476,7 @@ class BunkerAlgorithm:
 
     def _reset_dynamic_properties(self) -> None:
         """Reset the containers recalculated at every time step, so none goes stale."""
-        self.regulation_vessel_threshold = {}
-        self.regulation_emission_factor = {}
         self.regulation_spend_coefficient = {}
-        self.shore_power_regulation_emission_factor = {}
         self.shore_power_regulation_coefficient = {}
 
         self.regulation_measure = {}

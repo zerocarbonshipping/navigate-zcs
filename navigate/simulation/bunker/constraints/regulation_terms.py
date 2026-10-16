@@ -41,8 +41,8 @@ def calculate_regulation_terms(
         Q = \sum_t \phi_t \lambda_t z_t    (energy, reporting only)
 
     where z is a spend or shore-power variable, \phi the regulation's jurisdiction
-    fraction of its port or leg, read from the regulation's expectation, k its
-    regulation spend coefficient, e its emission factor, and \lambda its
+    fraction of its port or leg and e its emission coefficient, both read from the
+    regulation's expectation, k its regulation spend coefficient, and \lambda its
     effective lower heating value (1 for shore power, already in GJ). T enters
     the threshold constraints; M and Q are stored for reporting.
 
@@ -67,13 +67,11 @@ def calculate_regulation_terms(
     v = vessel.name
     r = regulation.name
     idx = alg.idx
-    expectation = vessel.expectation
-    regulation_expectation = regulation.expectation
+    expectation = regulation.expectation
+    vessel_expectation = vessel.expectation
 
     coefficients = alg.regulation_spend_coefficient
-    emission_factors = alg.regulation_emission_factor
     shore_power_coefficients = alg.shore_power_regulation_coefficient
-    shore_power_emission_factors = alg.shore_power_regulation_emission_factor
 
     converters = get_converters(vessel)
     port_converters = get_port_converters(vessel)
@@ -83,7 +81,7 @@ def calculate_regulation_terms(
 
     port_fractions: list[float] = []
     for port in route.ports:
-        port_fractions.append(regulation_expectation.get_port_fraction(port.name, idx))
+        port_fractions.append(expectation.get_port_fraction(port.name, idx))
 
     terms: list[_Term] = []
 
@@ -93,8 +91,8 @@ def calculate_regulation_terms(
             _Term(
                 alg.spend_port[v, c, f, p],
                 fraction * coefficients[(v, c, f, r)],
-                fraction * emission_factors[(v, c, f, r)],
-                fraction * expectation.get_effective_lhv(c, f),
+                fraction * expectation.get_emission_coefficient((v, c, f), idx),
+                fraction * vessel_expectation.get_effective_lhv(c, f),
             )
             for c in port_converters
             for f in fuels_per_converter[v, c]
@@ -103,29 +101,31 @@ def calculate_regulation_terms(
     # at sea
     legs = zip(route.get_legs(), route.get_leg_keys(), strict=True)
     for (port_start, port_end), leg in legs:
-        fraction = float(regulation_expectation.get_leg_fraction(leg, idx))
+        fraction = float(expectation.get_leg_fraction(leg, idx))
 
         terms.extend(
             _Term(
                 alg.spend_sea[v, c, f, port_start, port_end],
                 fraction * coefficients[(v, c, f, r)],
-                fraction * emission_factors[(v, c, f, r)],
-                fraction * expectation.get_effective_lhv(c, f),
+                fraction * expectation.get_emission_coefficient((v, c, f), idx),
+                fraction * vessel_expectation.get_effective_lhv(c, f),
             )
             for c in converters
             for f in fuels_per_converter[v, c]
         )
 
     # shore power, at the ports where the vessel can connect
-    for p, fraction in enumerate(port_fractions):
+    for p, (port, fraction) in enumerate(zip(route.ports, port_fractions, strict=True)):
         if (v, p, r) not in shore_power_coefficients:
             continue
+
+        emission = expectation.get_shore_power_emission_coefficient(port.name, idx)
 
         terms.append(
             _Term(
                 alg.shore_power[v, p],
                 fraction * shore_power_coefficients[(v, p, r)],
-                fraction * shore_power_emission_factors[(v, p, r)],
+                fraction * emission,
                 fraction,
             )
         )
@@ -139,32 +139,6 @@ def calculate_regulation_terms(
     energy = gp.create_linear_expression(energy_weights, variables)
 
     return constraint_terms, emissions, energy
-
-
-def get_regulation_vessel_threshold(
-    alg: BunkerAlgorithm, regulation: Regulation, v: str
-) -> float:
-    """
-    Get a vessel's threshold under a regulation at the current time-step.
-
-    The thresholds are evaluated once per build in
-    ``calculate_regulation_coefficients``; non-policed vessels carry zero.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    regulation
-        Regulation being considered.
-    v
-        Vessel name.
-
-    Returns
-    -------
-    float
-        Threshold of the vessel, in the unit of the regulation's threshold.
-    """
-    return alg.regulation_vessel_threshold[(regulation.name, v)]
 
 
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
@@ -184,7 +158,7 @@ def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
             if not regulation.vessel_is_policed(v):
                 continue
 
-            threshold = get_regulation_vessel_threshold(alg, regulation, v)
+            threshold = regulation.expectation.get_vessel_threshold(v, alg.idx)
             vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
 
             alg.regulation_measure[(r, v)] = vessel_measure
@@ -209,7 +183,7 @@ def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
             if not regulation.vessel_is_policed(v):
                 continue
 
-            threshold = get_regulation_vessel_threshold(alg, regulation, v)
+            threshold = regulation.expectation.get_vessel_threshold(v, alg.idx)
             vessel_measure = regulation.expectation.get_vessel_measure(v, alg.idx)
             vessel_rhs = threshold * vessel_measure
             rhs += vessel_rhs * alg.multipliers[v]

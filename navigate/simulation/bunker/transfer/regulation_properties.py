@@ -9,9 +9,6 @@ from typing import TYPE_CHECKING
 
 import navigate.core.enum_ as enum_
 from navigate.core.enum_ import RegulationMeasureID
-from navigate.simulation.bunker.constraints.regulation_terms import (
-    get_regulation_vessel_threshold,
-)
 from navigate.util import TON_TO_KG
 
 if TYPE_CHECKING:
@@ -86,7 +83,7 @@ def calculate_regulation_emission_properties(
 
                 threshold = _get_adjusted_threshold(alg, regulation, v)
                 if threshold is None:
-                    threshold = get_regulation_vessel_threshold(alg, regulation, v)
+                    threshold = regulation.expectation.get_vessel_threshold(v, alg.idx)
 
                 rhs = threshold * vessel_measure
 
