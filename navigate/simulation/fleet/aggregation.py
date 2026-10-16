@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-step fleet cost transfers, fuel-type totals and vessel profiles."""
+"""Per-step fleet cost transfers, fuel-type totals, fuel demand and vessel profiles."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import BunkerScopeID, FuelTypeID
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_flow
 
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def calculate_fleet_profile(
@@ -258,6 +258,41 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     """
     for v, vessel in enumerate(fleet.assets):
         fleet.profile.set_existing_vessels(idx, vessel.name, fleet.get_multiplier(v))
+
+
+def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
+    """
+    Calculate the fleet's fuel demand over the horizon from the expected bunkering.
+
+    Each vessel's expected bunkered mass is weighted by its expected multiplier.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    fuels
+        All fuels in the simulation.
+    idx
+        Current time-step index.
+    """
+    horizon = np.s_[idx:]
+    scope = BunkerScopeID.EXPECTED
+    demand: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
+
+    for vessel in fleet.vessels:
+        multipliers = fleet.expectation.get_multiplier(vessel.name, scope, horizon)
+
+        # the bunkered mass is per port, so a port the route calls more than once
+        # counts once
+        for port in dict.fromkeys(vessel.route.ports):
+            for fuel_name in fuels:
+                mass = vessel.expectation.get_bunker_mass_expected(
+                    port.name, fuel_name, horizon
+                )
+                demand[fuel_name] += multipliers * mass
+
+    for key, value in demand.items():
+        fleet.expectation.set_fuel_demand(idx, key, value)
 
 
 def calculate_vessel_profile(vessel: Vessel, idx: int) -> None:

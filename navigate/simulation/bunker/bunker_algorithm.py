@@ -380,12 +380,9 @@ class BunkerAlgorithm:
         """Transfer the LP solution to the expectations and profiles of the nodes."""
         start = timeit.default_timer()
 
-        # transfer_bunker accumulates the bunker masses, which the fuel inertia
-        # constraints read, so they restart from zero at every transfer
-        for vessel in self.vessels.values():
-            vessel.expectation.reset_bunker_mass_expected()
-
         if self.scope == BunkerScopeID.EXISTING:
+            # transfer_bunker accumulates the existing bunker masses, which the fuel
+            # inertia constraints read, so they restart from zero at every transfer
             for vessel in self.vessels.values():
                 vessel.expectation.reset_bunker_mass_existing()
 

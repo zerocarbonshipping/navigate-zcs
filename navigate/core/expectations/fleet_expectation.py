@@ -64,8 +64,8 @@ class FleetExpectation(_Expectation):
     ) -> None:
         self._newbuild_multipliers[vessel_name][idx:] = multipliers
 
-    def set_fuel_demand(self, idx: int, fuel_name: str, demand: float) -> None:
-        self._fuel_demand[fuel_name][idx] = demand
+    def set_fuel_demand(self, idx: int, fuel_name: str, demand: FloatLike) -> None:
+        self._fuel_demand[fuel_name][idx:] = demand
 
     def add_fuel_type_capacity(self, fuel_type: FuelTypeID, capacity: float) -> None:
         self._fuel_type_capacity[fuel_type] += capacity

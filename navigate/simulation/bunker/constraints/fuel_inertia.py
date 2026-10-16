@@ -79,7 +79,10 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
             # the first expected time-step continues from what the existing
             # solution actually bunkered
             if alg.scope == BunkerScopeID.EXPECTED and alg.idx > alg.current_idx:
-                bunkering = vessel.expectation.get_bunker_mass_expected(port_name, f)
+                mass = vessel.expectation.get_bunker_mass_expected(
+                    port_name, f, alg.idx - 1
+                )
+                bunkering = np.float64(mass)
             else:
                 bunkering = vessel.expectation.get_bunker_mass_existing(port_name, f)
 
