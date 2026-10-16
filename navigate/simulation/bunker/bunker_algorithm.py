@@ -53,10 +53,7 @@ from navigate.simulation.bunker.constraints.regulation_terms import (
 from navigate.simulation.bunker.constraints.tank_capacity import (
     update_tank_capacity_constraints,
 )
-from navigate.simulation.bunker.fair_share import (
-    perform_flexibility_unit_cost_evaluation,
-    run_fair_share_solve,
-)
+from navigate.simulation.bunker.fair_share import run_fair_share_solve
 from navigate.simulation.bunker.objectives import (
     update_regulation_objectives,
     update_vessel_objectives,
@@ -65,17 +62,11 @@ from navigate.simulation.bunker.threshold_adjustment import adjust_regulation_th
 from navigate.simulation.bunker.transfer.allocation_fuel import transfer_allocation_fuel
 from navigate.simulation.bunker.transfer.bunker import transfer_bunker
 from navigate.simulation.bunker.transfer.dual_solution import transfer_dual_solution
-from navigate.simulation.bunker.transfer.regulation_flexibility import (
-    transfer_regulation_flexibility,
-)
 from navigate.simulation.bunker.transfer.regulation_individual import (
     transfer_regulation_individual,
 )
-from navigate.simulation.bunker.transfer.regulation_measure import (
-    transfer_regulation_measure,
-)
-from navigate.simulation.bunker.transfer.regulation_properties import (
-    calculate_regulation_emission_properties,
+from navigate.simulation.bunker.transfer.regulation_solution import (
+    transfer_regulation_solution,
 )
 from navigate.simulation.bunker.transfer.shore_power import transfer_shore_power
 from navigate.simulation.bunker.transfer.spend_port import transfer_spend_port
@@ -171,16 +162,11 @@ class BunkerAlgorithm:
         self.regulation_spend_coefficient: dict[tuple[str, str, str, str], float] = {}
         self.shore_power_regulation_coefficient: dict[tuple[str, int, str], float] = {}
         self.regulation_rhs_individual: dict[tuple[str, str], float] = {}
-        self.regulation_rhs_flexibility: dict[tuple[str, str], float] = {}
         self.regulation_total_rhs_flexibility: dict[str, float] = {}
-        self.regulation_measure: dict[tuple[str, str], float] = {}
 
         # regulation emission and energy terms per (regulation, vessel)
         self.regulation_emission_terms: dict[tuple[str, str], gp.LinExpr] = {}
         self.regulation_energy_terms: dict[tuple[str, str], gp.LinExpr] = {}
-
-        # flexibility units
-        self.flexible_unit_cost: dict[str, float] = {}
 
         # thresholds after threshold adjustment, per (regulation, vessel) and per
         # regulation
@@ -362,8 +348,6 @@ class BunkerAlgorithm:
         if adjust_regulation_thresholds(self):
             converged = run_fair_share_solve(self)
 
-        perform_flexibility_unit_cost_evaluation(self)
-
         if self.scope == BunkerScopeID.EXISTING:
             self._log_fair_share_convergence(converged)
 
@@ -396,12 +380,8 @@ class BunkerAlgorithm:
         if self.scope == BunkerScopeID.EXPECTED:
             transfer_dual_solution(self)
 
-        # the regulation measures go first, as the individual and flexibility
-        # transfers read them
-        properties = calculate_regulation_emission_properties(self)
-        transfer_regulation_measure(self, properties)
+        transfer_regulation_solution(self)
         transfer_regulation_individual(self)
-        transfer_regulation_flexibility(self, properties)
 
         end = timeit.default_timer()
         self.transfer_time = end - start
@@ -476,13 +456,10 @@ class BunkerAlgorithm:
         self.regulation_spend_coefficient = {}
         self.shore_power_regulation_coefficient = {}
 
-        self.regulation_measure = {}
         self.regulation_rhs_individual = {}
-        self.regulation_rhs_flexibility = {}
         self.regulation_total_rhs_flexibility = {}
         self.regulation_emission_terms = {}
         self.regulation_energy_terms = {}
-        self.flexible_unit_cost = {}
 
         self.adjusted_vessel_thresholds = {}
         self.adjusted_shared_thresholds = {}

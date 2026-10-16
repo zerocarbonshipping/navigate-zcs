@@ -46,12 +46,3 @@ def transfer_regulation_individual(alg: BunkerAlgorithm) -> None:
 
         else:
             vessel.expectation.add_policy_expenses(alg.idx, vessel_remediation)
-
-        if (
-            alg.scope == BunkerScopeID.EXISTING
-            and regulation.allow_threshold_adjustment
-            and (r, v) in alg.adjusted_vessel_thresholds
-        ):
-            regulation.profile.set_adjusted_vessel_threshold(
-                alg.idx, v, alg.adjusted_vessel_thresholds[(r, v)]
-            )
