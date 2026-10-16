@@ -162,9 +162,6 @@ def _gather_fuel_type_capacity(fleet: Fleet) -> None:
             for fuel_type in converter.pilot_fuel_types:
                 fleet.expectation.add_fuel_type_capacity(fuel_type, pilot_capacity)
 
-        # clear the spend energy so no later step reads this solution's values
-        vessel.expectation.reset_spend_energy()
-
 
 def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
     """

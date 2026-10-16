@@ -389,6 +389,12 @@ class BunkerAlgorithm:
             for vessel in self.vessels.values():
                 vessel.expectation.reset_bunker_mass_existing()
 
+            # every vessel's spent energy restarts, as a vessel out of the LP
+            # spends none
+            for fleet in self.fleets.values():
+                for vessel in fleet.vessels:
+                    vessel.expectation.reset_spend_energy()
+
         transfer_bunker(self)
         transfer_spend_sea(self)
         transfer_spend_port(self)
