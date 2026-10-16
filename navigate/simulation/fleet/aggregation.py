@@ -137,7 +137,7 @@ def _gather_fuel_type_capacity(fleet: Fleet) -> None:
     fleet.expectation.reset_fuel_type_totals()
 
     for v, vessel in enumerate(fleet.assets):
-        multiplier = fleet.get_multiplier(v)
+        multiplier = get_multiplier(fleet, v)
 
         if multiplier == 0.0:
             continue
@@ -181,7 +181,7 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
         Current time-step index.
     """
     for v, vessel in enumerate(fleet.assets):
-        multiplier = fleet.get_multiplier(v)
+        multiplier = get_multiplier(fleet, v)
 
         if multiplier == 0.0:
             continue
@@ -246,6 +246,42 @@ def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
         )
 
 
+def get_multiplier(fleet: Fleet, v: int) -> float:
+    """
+    Return the number of vessels of one type in the fleet.
+
+    Parameters
+    ----------
+    fleet
+        Fleet holding the vessels.
+    v
+        Index of the vessel type in the fleet.
+
+    Returns
+    -------
+    float
+        Number of vessels of the type.
+    """
+    return sum(inc.multiplier for inc in fleet.increments[v])
+
+
+def get_multipliers(fleet: Fleet) -> list[float]:
+    """
+    Return the number of vessels of each type in the fleet.
+
+    Parameters
+    ----------
+    fleet
+        Fleet holding the vessels.
+
+    Returns
+    -------
+    list[float]
+        Number of vessels of each type.
+    """
+    return [get_multiplier(fleet, v) for v in range(len(fleet.increments))]
+
+
 def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     """
     Transfer the current multiplier state to the profile for output.
@@ -258,7 +294,7 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     for v, vessel in enumerate(fleet.assets):
-        fleet.profile.set_existing_vessels(idx, vessel.name, fleet.get_multiplier(v))
+        fleet.profile.set_existing_vessels(idx, vessel.name, get_multiplier(fleet, v))
 
 
 def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:

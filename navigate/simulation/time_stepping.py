@@ -46,6 +46,7 @@ from navigate.simulation.fleet import (
     post_process_investment_metric,
     record_investment_signals,
     update_operations,
+    update_vessel_ages,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
 )
@@ -65,6 +66,7 @@ from navigate.simulation.fuel import (
     initialize_existing_producer,
     perform_planning,
     perform_progression,
+    update_plant_ages,
 )
 from navigate.simulation.policy import (
     calculate_policy_emission_coefficients,
@@ -225,7 +227,7 @@ class Simulation:
         if self._idx > 0:
             # ages advance before any calculation that depends on the existing
             # fleet or production capacity
-            self._update_increment_ages()
+            self._update_ages()
 
             # the fleet evolution expectations are updated before the expected
             # bunkering so that vessels allowed in the current time-step have a
@@ -463,14 +465,14 @@ class Simulation:
             timeit.default_timer() - start_time, self._idx
         )
 
-    def _update_increment_ages(self) -> None:
+    def _update_ages(self) -> None:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            fleet.update_increment_ages(self._time_step)
+            update_vessel_ages(fleet, self._time_step)
 
         for producer in self.nodes.producers.values():
-            producer.update_increment_ages(self._time_step)
+            update_plant_ages(producer, self._time_step)
 
         self.profile.add_fleet_state_time(
             timeit.default_timer() - start_time, self._idx

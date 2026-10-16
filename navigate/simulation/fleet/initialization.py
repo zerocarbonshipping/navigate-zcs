@@ -9,7 +9,12 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.fleet.aggregation import transfer_multipliers_to_profile
+from navigate.core.increment import VesselIncrement
+from navigate.core.nodes.curve import Curve
+from navigate.simulation.fleet.aggregation import (
+    get_multipliers,
+    transfer_multipliers_to_profile,
+)
 from navigate.simulation.fleet.evolution import calculate_evolution_expectation
 from navigate.simulation.fleet.package import preprocess_packages
 from navigate.simulation.fleet.planning import extract_cargo_miles
@@ -25,6 +30,7 @@ from navigate.util import calculate_compound_growth
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from navigate.core import Scalar
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
@@ -62,9 +68,6 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     """
     Initialize the existing fleet, splitting its vessels into increments of varying age.
 
-    Must be called exactly once per fleet: discretization appends to the increment
-    stores.
-
     Parameters
     ----------
     fleet
@@ -90,8 +93,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     # TODO: allow this to be user-defined
     fleet.current_uptake = np.array(fleet.initial_split)
 
-    fleet.define_initial_age()
-    fleet.define_initial_multipliers()
+    fleet.increments = _build_initial_increments(fleet)
     define_initial_technology(fleet)
     _define_initial_trade(fleet, timeline)
 
@@ -115,6 +117,117 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet.fuel_conversion_expenses = np.zeros_like(timeline)
 
 
+def _build_initial_increments(fleet: Fleet) -> list[list[VesselIncrement]]:
+    """
+    Split the initial vessels of each type into one increment per age bin.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose initial vessels are split.
+
+    Returns
+    -------
+    list[list[VesselIncrement]]
+        The increments of each vessel type, oldest first.
+    """
+    distributions = fleet.initial_age_distribution
+    increments: list[list[VesselIncrement]] = []
+
+    for v, vessel in enumerate(fleet.vessels):
+        multiplier = fleet.initial_split[v] * fleet.initial_vessels.get()
+        distribution = distributions[v] if distributions else None
+
+        if multiplier > 0.0:
+            increments.append(_split_by_age(fleet, vessel, multiplier, distribution))
+        else:
+            increments.append([])
+
+    return increments
+
+
+def _split_by_age(
+    fleet: Fleet,
+    vessel: Vessel,
+    multiplier: float,
+    distribution: Scalar | Curve | None,
+) -> list[VesselIncrement]:
+    """
+    Split the initial vessels of one type into one increment per age bin.
+
+    A Curve distribution sets the ages and the share of each; otherwise the vessels
+    are spread evenly over yearly bins across the vessel lifetime.
+
+    Parameters
+    ----------
+    fleet
+        Fleet the vessels belong to.
+    vessel
+        Vessel type of the vessels.
+    multiplier
+        Number of initial vessels of the type.
+    distribution
+        Initial age distribution of the type, if any.
+
+    Returns
+    -------
+    list[VesselIncrement]
+        The increments of the type, oldest first.
+    """
+    if isinstance(distribution, Curve):
+        ages = distribution.x[::-1]
+        multipliers = multiplier * distribution.y[::-1]
+
+    else:
+        lifetime = _calculate_initial_lifetime(fleet, vessel)
+        bins = int(lifetime)
+        ages = np.linspace(lifetime - 1.0, 0.0, bins)
+        multipliers = [multiplier / bins for _ in range(bins)]
+
+    # the oldest increment is assumed to have entered over a year
+    spans = np.insert(ages[:-1] - ages[1:], 0, 1.0)
+    packages = fleet.get_number_of_packages()
+    increments: list[VesselIncrement] = []
+
+    for i in range(ages.size):
+        increment = VesselIncrement(
+            multiplier=multipliers[i],
+            age=float(ages[i]),
+            age_span=float(spans[i]),
+            package_uptake=np.zeros(packages),
+        )
+        increments.append(increment)
+
+    return increments
+
+
+def _calculate_initial_lifetime(fleet: Fleet, vessel: Vessel) -> float:
+    """
+    Return the lifetime the initial vessels of a type span in age, in years.
+
+    It is the vessel lifetime, capped at the inverse of the fleet's fixed scrap rate.
+
+    Parameters
+    ----------
+    fleet
+        Fleet the vessels belong to.
+    vessel
+        Vessel type of the vessels.
+
+    Returns
+    -------
+    float
+        Lifetime, in years.
+    """
+    lifetime = vessel.lifetime.get()
+
+    if fleet.fixed_scrap_rate is None:
+        return lifetime
+
+    scrap_rate = fleet.fixed_scrap_rate.get()
+    return min(lifetime, 1.0 / scrap_rate) if scrap_rate > 0.0 else lifetime
+
+
 def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     """
     Project the fleet's trade over the timeline by compound growth from its start.
@@ -129,7 +242,7 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     idx = 0
     cargo_miles = extract_cargo_miles(fleet.assets, idx)
 
-    multipliers = fleet.get_multipliers()
+    multipliers = get_multipliers(fleet)
     initial_trade = np.dot(multipliers, cargo_miles)
     trade_growth = fleet.trade_growth.get(timeline)
     fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)

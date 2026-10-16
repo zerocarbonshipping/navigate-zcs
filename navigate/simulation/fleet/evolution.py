@@ -10,7 +10,11 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.fleet.aggregation import transfer_multipliers_to_profile
+from navigate.simulation.fleet.aggregation import (
+    get_multiplier,
+    get_multipliers,
+    transfer_multipliers_to_profile,
+)
 from navigate.simulation.fleet.planning import (
     add_newbuilds,
     calculate_modelled_newbuilds,
@@ -26,6 +30,24 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
+
+
+def update_vessel_ages(fleet: Fleet, time_step: float) -> None:
+    """
+    Age the fleet's vessels by the time since the last time-step.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose vessels are aged.
+    time_step
+        Current time-step size, days.
+    """
+    dt = time_step / YEAR
+
+    for increments in fleet.increments:
+        for increment in increments:
+            increment.age += dt
 
 
 def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float) -> None:
@@ -372,7 +394,7 @@ def calculate_evolution_expectation(
         cum_increments = np.cumsum(multipliers)
         cum_increments = np.interp(future, (lifetime - ages), cum_increments, left=0.0)
 
-        existing[v, :] = fleet.get_multiplier(v)
+        existing[v, :] = get_multiplier(fleet, v)
         existing[v, :] -= cum_increments
 
     # the multipliers become cargo-miles to take the speed expectations into account
@@ -469,7 +491,7 @@ def perform_fleet_evolution(
 
     # each vessel type's newbuild budget for this time-step, shared by the three
     # newbuild sources; the fleet count before newbuilds stands in for yard capacity
-    multipliers_total = float(sum(fleet.get_multipliers()))
+    multipliers_total = float(sum(get_multipliers(fleet)))
     limit_share = np.array([fleet.newbuild_limit[v.name].get() for v in fleet.assets])
     cap_count = limit_share * multipliers_total * (time_step / YEAR)
 
@@ -532,7 +554,7 @@ def perform_fleet_evolution(
 
 
 def _get_cargo_miles(fleet: Fleet, idx: int) -> float:
-    multipliers = fleet.get_multipliers()
+    multipliers = get_multipliers(fleet)
     cargo_miles = extract_cargo_miles(fleet.assets, idx)
 
     return float(np.dot(multipliers, cargo_miles))

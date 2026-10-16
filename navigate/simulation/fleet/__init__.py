@@ -17,6 +17,7 @@ from navigate.simulation.fleet.charter import (
 from navigate.simulation.fleet.evolution import (
     calculate_evolution_expectation,
     perform_fleet_evolution,
+    update_vessel_ages,
 )
 from navigate.simulation.fleet.expectation import calculate_fleet_expectations
 from navigate.simulation.fleet.fuel_option import (

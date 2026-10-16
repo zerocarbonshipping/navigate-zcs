@@ -60,7 +60,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         self.fuel_cost_sensitivity: ForecastInput
 
         # initial conditions
-        self._initial_capacity: list[ScalarInput] = []
+        self.initial_capacity: list[ScalarInput] = []
 
         # existing pipeline
         self.existing_pipelines: dict[str, Forecast | None] = {}
@@ -84,7 +84,6 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         # pipeline increments (Producer-specific, separate from active increments in
         # _AssetManager)
         self.pipeline: list[list[PlantIncrement]] = []
-        self._increment_stores.append(self.pipeline)
 
         # static variables
         self.fuels: dict[str, Fuel] = {}
@@ -135,7 +134,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
     ) -> None:
         """Set the initial capacity of each plant type."""
         entries: list[ScalarArgument] = as_list(initial_capacity)
-        self._initial_capacity = assign_list(
+        self.initial_capacity = assign_list(
             [as_scalar(entry) for entry in entries], type_=VARIABLE, lower=0.0
         )
 
@@ -213,24 +212,24 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
     # internal methods -----------------------------------------------------------------
     def apply_defaults(self) -> None:
 
-        if not self._initial_capacity:
-            self._initial_capacity = [Scalar(0.0) for _ in self.assets]
+        if not self.initial_capacity:
+            self.initial_capacity = [Scalar(0.0) for _ in self.assets]
 
     def check_consistency(self) -> None:
 
-        if len(self.assets) != len(self._initial_capacity):
+        if len(self.assets) != len(self.initial_capacity):
             raise ValueError(
                 f"{self}: The length of Plants ({len(self.assets)}) and InitialCapacity"
-                f" ({len(self._initial_capacity)}) must correspond."
+                f" ({len(self.initial_capacity)}) must correspond."
             )
 
-        if self._initial_age_distribution and (
-            len(self.assets) != len(self._initial_age_distribution)
+        if self.initial_age_distribution and (
+            len(self.assets) != len(self.initial_age_distribution)
         ):
             raise ValueError(
                 f"{self}: The length of Plants ({len(self.assets)}) and"
                 f" InitialAgeDistribution"
-                f" ({len(self._initial_age_distribution)}) must correspond."
+                f" ({len(self.initial_age_distribution)}) must correspond."
             )
 
         self._check_initial_age_distribution_is_finite()
@@ -317,42 +316,6 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
     ) -> None:
 
         self.profile.initialize(timeline, feedstocks, fuels, processes)
-
-    def define_initial_decided(self) -> None:
-        """Set the decided field on each increment based on age + lead time."""
-        for p, plant in enumerate(self.assets):
-            lead_time = plant.lead_time.get()
-            for inc in self.increments[p]:
-                inc.decided = inc.age + lead_time
-
-    # _AssetManager abstract interface
-
-    def _get_initial_multiplier(self, index: int) -> float:
-        plant = self.plants[index]
-        capacity = plant.capacity.get()
-        if capacity > 0.0:
-            return self._initial_capacity[index].get() / capacity
-        logger.warning(
-            "%s: Unable to initialize a capacity of tons/day from %s (plant %s) as the "
-            "plant capacity is zero.",
-            self,
-            self._initial_capacity[index].get(),
-            plant,
-        )
-        return 0.0
-
-    def _new_increment(self, age: float, age_span: float) -> PlantIncrement:
-        # define_initial_decided sets the decided time before anything reads it
-        return PlantIncrement(multiplier=0.0, age=age, age_span=age_span, decided=0.0)
-
-    def _age_increments(
-        self, increment_lists: list[list[PlantIncrement]], dt: float
-    ) -> None:
-        # the time since decision dates the plant attributes a cohort was decided with
-        for incs in increment_lists:
-            for inc in incs:
-                inc.age += dt
-                inc.decided += dt
 
     def can_produce(self, fuel_name: str) -> bool:
         return fuel_name in self.fuels

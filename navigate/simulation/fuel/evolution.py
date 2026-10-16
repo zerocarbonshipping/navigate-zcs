@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import TYPE_CHECKING
 
@@ -203,6 +204,28 @@ def _calculate_increments_production(
         )
 
     return total
+
+
+def update_plant_ages(producer: Producer, time_step: float) -> None:
+    """
+    Age the producer's plants and its pipeline by the time since the last time-step.
+
+    The time since decision advances with the age, as it dates the plant attributes
+    an increment was decided with.
+
+    Parameters
+    ----------
+    producer
+        Producer whose plants are aged.
+    time_step
+        Current time-step size, days.
+    """
+    dt = time_step / YEAR
+
+    for increments in itertools.chain(producer.increments, producer.pipeline):
+        for increment in increments:
+            increment.age += dt
+            increment.decided += dt
 
 
 def perform_decommissioning(producer: Producer) -> None:
