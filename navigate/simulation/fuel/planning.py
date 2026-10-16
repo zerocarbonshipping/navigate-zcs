@@ -48,7 +48,7 @@ def perform_pipeline_planning(
     # demand untouched
     demand = dict(producer.expectation.get_fair_share_demand())
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         production = plant.expectation.get_production(idx) * inertia_increments[p]
         fuel_name = plant.fuel.name
         demand[fuel_name] = demand[fuel_name] - production
@@ -57,7 +57,7 @@ def perform_pipeline_planning(
 
     # the inter metric also checks that there is sufficient future offtake to
     # merit building plants
-    for plant in producer.assets:
+    for plant in producer.plants:
         _calculate_uptake_inter_metric(
             plant, demand, producer.minimum_offtake_duration, timeline, idx
         )
@@ -68,7 +68,7 @@ def perform_pipeline_planning(
             plant.expectation.get_demand_newbuilds()
             if producer.allow_plant[plant.name]
             else 0.0
-            for plant in producer.assets
+            for plant in producer.plants
         ]
     )
 
@@ -106,7 +106,7 @@ def perform_pipeline_planning(
 
     dt = time_step / YEAR
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         if increments[p] == 0.0:
             continue
 
@@ -275,12 +275,12 @@ def calculate_inertia_increments(
     # newbuilds, so the decay happens at every time step
     producer.current_uptake *= calculate_inertia(producer.inertia.get(), time_step)
 
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         if not producer.allow_plant[plant.name]:
             producer.current_uptake[p] = 0.0
 
     # inertia only happens if the producer is development constrained
-    increments = np.zeros((len(producer.assets),))
+    increments = np.zeros((len(producer.plants),))
 
     # the current utilization is the previous time step's, as this step's
     # planning has not run yet
@@ -297,7 +297,7 @@ def calculate_inertia_increments(
                 plant.expectation.get_demand_newbuilds()
                 if producer.allow_plant[plant.name]
                 else 0.0
-                for plant in producer.assets
+                for plant in producer.plants
             ]
         )
         demand_limits = np.array(
@@ -319,7 +319,7 @@ def calculate_inertia_increments(
 
             added_consumption = 0.0
 
-            for p, plant in enumerate(producer.assets):
+            for p, plant in enumerate(producer.plants):
                 consumption = producer.expectation.get_plant_feed_consumption(
                     plant.name, feed_name
                 )
@@ -352,7 +352,7 @@ def calculate_modelled_uptake(producer: Producer) -> FloatArray:
         index, plants = zip(
             *(
                 (i, plant)
-                for i, plant in enumerate(producer.assets)
+                for i, plant in enumerate(producer.plants)
                 if producer.allow_plant[plant.name] and plant.expectation.is_in_demand()
             ),
             strict=True,
@@ -360,7 +360,7 @@ def calculate_modelled_uptake(producer: Producer) -> FloatArray:
 
     except ValueError:
         # unpacking the empty zip fails when no plant is in demand: nothing is taken up
-        return np.zeros((len(producer.assets),))
+        return np.zeros((len(producer.plants),))
 
     group_keys = [plant.fuel.name for plant in plants]
     metrics_intra = [plant.expectation.get_intra_fuel_metric() for plant in plants]
@@ -377,7 +377,7 @@ def calculate_modelled_uptake(producer: Producer) -> FloatArray:
         context=str(producer),
     )
 
-    uptake_padded = np.zeros(len(producer.assets))
+    uptake_padded = np.zeros(len(producer.plants))
 
     for i, p in enumerate(index):
         uptake_padded[p] = uptake[i]
@@ -527,7 +527,7 @@ def calculate_feed_uptake_limit_iteration(
         additional_consumption.setdefault(feed_name, 0.0)
         total_spend.setdefault(feed_name, 0.0)
 
-        for p, plant in enumerate(producer.assets):
+        for p, plant in enumerate(producer.plants):
             key = (plant.name, feed_name)
             consumption = producer.expectation.get_plant_feed_consumption(*key)
 
@@ -543,7 +543,7 @@ def calculate_feed_uptake_limit_iteration(
         gap = feed_gap - float(additional_consumption[feed_name])
         scaling = max(gap / spend, 0.0)
 
-        for _p, plant in enumerate(producer.assets):
+        for _p, plant in enumerate(producer.plants):
             key = (plant.name, feed_name)
 
             if scaling == np.inf:
@@ -552,7 +552,7 @@ def calculate_feed_uptake_limit_iteration(
                 spend_map[key] *= scaling
 
     limits = np.ones_like(uptakes)
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         plant_name = plant.name
         current_limit = 1.0
 

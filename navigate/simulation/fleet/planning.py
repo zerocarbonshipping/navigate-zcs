@@ -57,7 +57,7 @@ def calculate_orderbook_newbuilds(
     FloatArray
         Newbuild budget left after the delivery, number of vessels.
     """
-    nv = len(fleet.assets)
+    nv = len(fleet.vessels)
     delivery = np.zeros((nv,))
 
     if not fleet.orderbooks:
@@ -66,11 +66,11 @@ def calculate_orderbook_newbuilds(
     allowed = np.array(
         [
             (fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name])
-            for vessel in fleet.assets
+            for vessel in fleet.vessels
         ]
     )
 
-    cargo_miles = extract_cargo_miles(fleet.assets, idx=idx)
+    cargo_miles = extract_cargo_miles(fleet.vessels, idx=idx)
 
     # the orders postponed earlier are delivered first
     postponed_before = fleet.orders_postponed.copy()
@@ -123,7 +123,7 @@ def calculate_orderbook_newbuilds(
         delivery -= excess_count
         log_orderbook_deferral(fleet, delivery, attempted, reason="newbuild limit")
 
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         fleet.profile.add_newbuilds(vessel.name, delivery[v], idx)
 
     cap_count_remaining = np.maximum(cap_count - delivery, 0.0)
@@ -248,7 +248,7 @@ def calculate_modelled_newbuilds(
     allowed_indices, allowed_vessels = zip(
         *(
             (i, vessel)
-            for i, vessel in enumerate(fleet.assets)
+            for i, vessel in enumerate(fleet.vessels)
             if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]
         ),
         strict=True,
@@ -278,11 +278,11 @@ def calculate_modelled_newbuilds(
         modelled_uptakes, cargo_miles, trade_gap
     )
 
-    increments = np.zeros(len(fleet.assets))
+    increments = np.zeros(len(fleet.vessels))
 
     for i, v in enumerate(index):
         increments[v] = inertia_increments[i] + modelled_increments[i]
-        fleet.profile.add_newbuilds(fleet.assets[v].name, increments[v], idx)
+        fleet.profile.add_newbuilds(fleet.vessels[v].name, increments[v], idx)
 
     return increments, np.dot(
         np.add(inertia_increments, modelled_increments), cargo_miles
@@ -346,7 +346,7 @@ def add_newbuilds(fleet: Fleet, increments: FloatArray, time_step: float) -> Non
             # the technology bundle chosen at build is charged as a constant
             # yearly rate levelized over the full vessel lifetime
             package_rates = calculate_package_charter_rates(
-                fleet.technology_packages, fleet.package_cost_flows, fleet.assets[v]
+                fleet.technology_packages, fleet.package_cost_flows, fleet.vessels[v]
             )
             charter_rate = float(
                 np.dot(fleet.newbuild_package_uptake[v], package_rates)

@@ -53,7 +53,7 @@ def assign_vessels_to_fleets(fleets: Iterable[Fleet]) -> None:
     first_fleet_names: dict[Vessel, str] = {}
 
     for fleet in fleets:
-        for vessel in fleet.assets:
+        for vessel in fleet.vessels:
             if vessel in first_fleet_names:
                 raise ValueError(
                     f'Fleet("{fleet.name}"): {vessel} is already assigned to a'
@@ -76,7 +76,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
         Simulation timeline, days.
     """
     idx = 0
-    nv = len(fleet.assets)
+    nv = len(fleet.vessels)
 
     # build the technology packages and anchor their cost flows at the start;
     # this must precede seeding the initial technology uptake, which levelizes
@@ -240,7 +240,7 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
         Simulation timeline, days.
     """
     idx = 0
-    cargo_miles = extract_cargo_miles(fleet.assets, idx)
+    cargo_miles = extract_cargo_miles(fleet.vessels, idx)
 
     multipliers = get_multipliers(fleet)
     initial_trade = np.dot(multipliers, cargo_miles)

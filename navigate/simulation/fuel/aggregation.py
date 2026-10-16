@@ -82,7 +82,7 @@ def _transfer_production_and_feed_mass(
     idx
         Current time-step index.
     """
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         incs = producer.increments[p]
         if not len(incs):
             continue
@@ -122,7 +122,7 @@ def _transfer_plant_tied_capital(
     idx
         Current time-step index.
     """
-    for p, plant in enumerate(producer.assets):
+    for p, plant in enumerate(producer.plants):
         incs = producer.increments[p]
         for inc in incs:
             # the cost profile is that of a plant entering production 'age' years

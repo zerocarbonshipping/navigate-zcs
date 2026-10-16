@@ -70,7 +70,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     years = timeline / YEAR
     current_year = years[idx]
 
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         for inc in fleet.increments[v]:
             # the cost profile is that of a vessel entering the fleet 'age' years
             # ago; an increment of the initial fleet uses the profile at the
@@ -104,7 +104,7 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         power = get_total_power_capacity(vessel)
 
         age_power_sum = (
@@ -136,7 +136,7 @@ def _gather_fuel_type_capacity(fleet: Fleet) -> None:
     # totals
     fleet.expectation.reset_fuel_type_totals()
 
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         multiplier = get_multiplier(fleet, v)
 
         if multiplier == 0.0:
@@ -180,7 +180,7 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         multiplier = get_multiplier(fleet, v)
 
         if multiplier == 0.0:
@@ -293,7 +293,7 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         fleet.profile.set_existing_vessels(idx, vessel.name, get_multiplier(fleet, v))
 
 

@@ -23,17 +23,18 @@ from navigate.core import (
 )
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
-from navigate.core.increment import PlantIncrement
-from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
-from navigate.core.nodes._asset_manager import _AssetManager
-from navigate.core.nodes.plant import Plant
+from navigate.core.node import Node
+from navigate.core.node_type import CURVE, FORECAST, PLANT, PRODUCER, VARIABLE
+from navigate.core.nodes.curve import Curve
 from navigate.core.profiles import ProducerProfile
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
+    from navigate.core.increment import PlantIncrement
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
     from navigate.core.types_ import (
@@ -47,20 +48,24 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Producer(_AssetManager[Plant, PlantIncrement]):
+class Producer(Node):
     """A fuel producer: its buildable plants, pipeline, constraints and exports."""
 
     def __init__(self, name: str) -> None:
         super().__init__(name, PRODUCER)
 
         # external variables -----------------------------------------------------------
+        self.plants: list[Plant]
+
         # plant uptake
         self.minimum_offtake_duration: ForecastInput = Scalar(1.0)
         self.fuel_demand_sensitivity: ForecastInput
         self.fuel_cost_sensitivity: ForecastInput
+        self.inertia: ForecastInput = Scalar(0.0)
 
         # initial conditions
         self.initial_capacity: list[ScalarInput] = []
+        self.initial_age_distribution: list[Scalar | Curve] = []
 
         # existing pipeline
         self.existing_pipelines: dict[str, Forecast | None] = {}
@@ -81,20 +86,21 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         self.expectation: ProducerExpectation = ProducerExpectation()
         self.profile: ProducerProfile = ProducerProfile()
 
-        # pipeline increments (Producer-specific, separate from active increments in
-        # _AssetManager)
+        # increments in service, and in the pipeline before their delivery
+        self.increments: list[list[PlantIncrement]] = []
         self.pipeline: list[list[PlantIncrement]] = []
 
         # static variables
         self.fuels: dict[str, Fuel] = {}
 
         # dynamic variables
+        self.current_uptake: FloatArray = np.empty(0)
         self.current_utilization: float = 0.0
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_plants(self, plants: Plant | list[Plant]) -> None:
         """Set the list of plant types the producer can build."""
-        self.assets = assign_reference_list(plants, PLANT, min_length=1, unique=True)
+        self.plants = assign_reference_list(plants, PLANT, min_length=1, unique=True)
 
     def set_minimum_offtake_duration(
         self, minimum_offtake_duration: ForecastArgument
@@ -129,6 +135,12 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
             inclusive_lower=False,
         )
 
+    def set_inertia(self, inertia: ForecastArgument) -> None:
+        """Set the inertia used in the uptake decision of newbuild plants."""
+        self.inertia = assign_value(
+            as_scalar(inertia), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
+
     def set_initial_capacity(
         self, initial_capacity: ScalarArgument | list[ScalarArgument]
     ) -> None:
@@ -136,6 +148,18 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         entries: list[ScalarArgument] = as_list(initial_capacity)
         self.initial_capacity = assign_list(
             [as_scalar(entry) for entry in entries], type_=VARIABLE, lower=0.0
+        )
+
+    def set_initial_age_distribution(
+        self, initial_age_distribution: float | Curve | list[float | Curve]
+    ) -> None:
+        """Set the initial age distribution of each plant type."""
+        entries: list[float | Curve] = as_list(initial_age_distribution)
+        self.initial_age_distribution = assign_list(
+            [as_scalar(entry) for entry in entries],
+            type_=CURVE,
+            lower=0.0,
+            allow_expression=False,
         )
 
     def set_maximum_development(self, maximum_development: ForecastArgument) -> None:
@@ -213,26 +237,37 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
     def apply_defaults(self) -> None:
 
         if not self.initial_capacity:
-            self.initial_capacity = [Scalar(0.0) for _ in self.assets]
+            self.initial_capacity = [Scalar(0.0) for _ in self.plants]
 
     def check_consistency(self) -> None:
 
-        if len(self.assets) != len(self.initial_capacity):
+        if len(self.plants) != len(self.initial_capacity):
             raise ValueError(
-                f"{self}: The length of Plants ({len(self.assets)}) and InitialCapacity"
+                f"{self}: The length of Plants ({len(self.plants)}) and InitialCapacity"
                 f" ({len(self.initial_capacity)}) must correspond."
             )
 
         if self.initial_age_distribution and (
-            len(self.assets) != len(self.initial_age_distribution)
+            len(self.plants) != len(self.initial_age_distribution)
         ):
             raise ValueError(
-                f"{self}: The length of Plants ({len(self.assets)}) and"
+                f"{self}: The length of Plants ({len(self.plants)}) and"
                 f" InitialAgeDistribution"
                 f" ({len(self.initial_age_distribution)}) must correspond."
             )
 
-        self._check_initial_age_distribution_is_finite()
+        # the distribution's Curves are read as tables, never evaluated, so no
+        # bound they are assigned under ever checks their fractions; the table
+        # itself rejects a non-finite age
+        for distribution in self.initial_age_distribution:
+            if not isinstance(distribution, Curve):
+                continue
+
+            if not np.all(np.isfinite(distribution.y)):
+                raise ValueError(
+                    f"{self}: InitialAgeDistribution ({distribution}) must hold "
+                    "finite values."
+                )
 
         for pipeline in self.existing_pipelines.values():
             if pipeline is None:
@@ -285,7 +320,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         for port_name in ports:
             self.export_distribution.setdefault(port_name, Scalar(0.0))
 
-        for plant in self.assets:
+        for plant in self.plants:
             name = plant.name
             self.allow_plant.setdefault(name, True)
             # stays None when unset: a None entry means the plant has no committed
@@ -301,7 +336,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         processes: dict[str, Process],
     ) -> None:
 
-        plant_names = [plant.name for plant in self.assets]
+        plant_names = [plant.name for plant in self.plants]
 
         self.expectation.initialize(
             length, plant_names, feedstocks, fuels, ports, processes
@@ -319,8 +354,3 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
 
     def can_produce(self, fuel_name: str) -> bool:
         return fuel_name in self.fuels
-
-    # public domain name for the inherited assets list
-    @property
-    def plants(self) -> list[Plant]:
-        return self.assets

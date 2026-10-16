@@ -47,11 +47,7 @@ settings are the general node `core/general_nodes/bunker_options.py`.
 
 Node classes hold state, and the calculators among them (`Curve`,
 `Forecast` and the like) their value semantics; model work lives in
-`simulation/`. The known exceptions, a list that must not grow, are
-`_AssetManager`'s `update_increment_ages`, `_age_increments`,
-`define_initial_age` and `define_initial_multipliers`, with the hooks
-`Fleet` and `Producer` implement for them, and
-`Producer.define_initial_decided`.
+`simulation/`.
 
 ## Layering
 

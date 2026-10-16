@@ -44,7 +44,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     timeline
         Simulation timeline.
     """
-    for plant in producer.assets:
+    for plant in producer.plants:
         plant.set_producer_assignment(producer.name)
 
     idx = 0
@@ -55,7 +55,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     calculate_feed_availability(producer, timeline, idx)
     calculate_evolution_expectation(producer, timeline, idx)
 
-    for plant in producer.assets:
+    for plant in producer.plants:
         fuel = plant.fuel
         producer.fuels.setdefault(fuel.name, fuel)
 

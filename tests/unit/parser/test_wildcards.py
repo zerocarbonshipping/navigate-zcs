@@ -62,7 +62,7 @@ def test_a_wildcard_value_matches_nodes_declared_after_it(read_deck, vessels, ex
 
     parser = read_deck(define)
 
-    assert [vessel.name for vessel in parser.nodes.fleets["fleet"].assets] == expected
+    assert [vessel.name for vessel in parser.nodes.fleets["fleet"].vessels] == expected
 
 
 # input:    | Fleet "fleet" { Vessels = Vessel("ghost*") }
