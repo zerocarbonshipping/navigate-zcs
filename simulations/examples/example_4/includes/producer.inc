@@ -13,7 +13,7 @@ Producer "producer_efuel" {
 
 	# Ceiling on biogenic CO2, the feedstock both its e-methanol plants draw on.
 
-	set_feed_constraint("carbon_dioxide_biogenic", <Forecast("carbon_dioxide_biogenic_availability") * Forecast("carbon_dioxide_biogenic_share_shipping") * Variable("trade_share_biogenic_carbon_dioxide")>)
+	set_feed_constraint("carbon_dioxide_biogenic", <Forecast("carbon_dioxide_biogenic_availability_flat") * Forecast("carbon_dioxide_biogenic_share_shipping") * Variable("trade_share_biogenic_carbon_dioxide")>)
 }
 
 Producer "producer_biofuel" {
@@ -35,4 +35,15 @@ Variable "trade_share_gasifiable_biomass" {
 
 Variable "trade_share_biogenic_carbon_dioxide" {
 	Value = 0.003
+}
+
+# INVENTED: the biogenic CO2 pool held flat at the library's 2026 value
+# (carbon_dioxide_biogenic_availability on 01-01-2026, 91.55 Mt/yr); the library
+# grows it to 350 Mt/yr by 2050.
+Forecast "carbon_dioxide_biogenic_availability_flat" {
+	Table = [
+		"01-01-2026"	91.55e6
+		"01-01-2050"	91.55e6
+	]
+	Extrapolate = FLAT
 }
