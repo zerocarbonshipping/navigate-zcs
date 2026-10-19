@@ -162,3 +162,194 @@ engines, both, or nothing. If the drop-in fuels never compete, work out from the
 bunker prices roughly what CO2 price they would need. Remind me which inputs are
 placeholders.
 ````
+
+### EU short-sea feeders: what EU ETS and FuelEU make the owners do
+
+**The study.** Container feeder ships between Rotterdam and Gothenburg, 2026 to
+2050, run twice: without policy, and under EU ETS and FuelEU Maritime at their
+library settings. Both ports are in the EU, so both instruments cover the whole
+voyage. The question is how the owners comply (which fuels, which ships) and
+what compliance costs them.
+
+**What comes from the library.** The ships (the 1,500 TEU class, with its age
+profile, fuel designs, retrofit costs and operating profile), both regulations,
+the fuels, their prices and the European fuel production.
+
+**What is INVENTED.** The fleet size, the sea distance, the bunker logistics and
+this trade's share of the library's feedstock ceilings.
+
+**Limits.** FuelEU pooling between companies and the ETS's free allowances are
+not in Navigate.
+
+**Tested:** 2026-10-19. The final prompt passed every check above on the first
+attempt, built cold and also through Session 5's start-up prompt from a different
+case (Antwerp to Helsinki). One earlier round showed that a larger feedstock share
+lets a small fleet live on Europe's biomass. Both builds found the owners mostly
+pay until the mid-2030s, then comply through new methanol and ammonia ships:
+well-to-wake emissions over 2026-2050 fall by 34 to 41 %, and e-fuels supply about
+half the energy by 2050. Treat that as a property of the placeholders.
+
+````text
+You are helping me build a simulation study for Navigate, the shipping
+decarbonisation model in this repository. Write the files yourself; do not only
+describe them.
+
+Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+THE DECKS
+A new folder, simulations/user/eu_feeder/, holding two decks that differ in one
+Include line only:
+- no_policy.nav: no regulation at all
+- eu_policy.nav: the same, plus includes/eu_policy.inc
+
+THE CASE
+Container feeder ships on one route between Rotterdam (the Netherlands) and
+Gothenburg (Sweden), 2026 to 2050, yearly steps.
+- Fleet: the library's 1,500 TEU container class, with its own split of ship
+  designs, age profile and fuel-conversion costs, built with Copy Vessel as
+  building-a-deck.md describes. All four designs (oil, LNG, methanol, ammonia)
+  can be ordered.
+- Fuels: fuel oil and LNG at their library prices; biodiesel (FAME),
+  bio-methanol, e-methanol and e-ammonia, all made in Europe.
+- Policy: none in no_policy.nav. eu_policy.inc imports the library's EU ETS and
+  FuelEU Maritime regulations (Import Regulation "eu_ets" and "fuel_eu"; do not
+  copy example_4's own versions) and sets the Jurisdiction of both to the two
+  ports. Both ports are in the EU, so both cover the whole voyage. Do not load
+  DefaultRegulation: it also brings CII, which is not part of this study.
+
+HOW TO BUILD IT
+Build the rest as building-a-deck.md describes for a deck on named ports: a
+ROUND_TRIP route between your own ports rotterdam and gothenburg with speeds and
+time in port from the class's operational profile, the ports, the bunker
+logistics, the European production region, the plants and the producers, with
+the shares of the library's feedstock ceilings given below. Leave out the
+library's orderbook for this class: it is sized for the world fleet.
+
+NUMBERS
+Everything not listed here comes from the library, by name. These are
+placeholders, INVENTED for this case: mark each one where it appears, list them
+all in both .nav headers, and keep them in includes/placeholders.inc (the plain
+numbers in their own files, listed there as comments).
+- Fleet: 80 ships in 2026, a segment owned by many companies
+- Route: 520 nm each way
+- Bunker logistics: 300 nm from the European plants to each port, 0.03 USD per
+  ton per nm
+- Feedstock: this trade's share of the library's shipping share, 0.001 of the
+  used cooking oil, the biomass and the biogenic CO2 (about this fleet's share of
+  world shipping's energy, as building-a-deck.md explains)
+
+BEFORE YOU TELL ME IT WORKS
+Run both decks one after the other and report on each as building-a-deck.md
+says. Then, from the two reports, give me side by side:
+- the share of energy by fuel in 2026, 2030, 2040 and 2050;
+- the fleet's well-to-wake emissions in 2026 and 2050, and summed over 2026-2050;
+- the ships of each design in 2050, and the fuel conversions over the period;
+- what EU ETS and FuelEU cost the owners each (RegulationExpenses per
+  regulation), in 2030 and 2050.
+Say plainly how the owners comply: by switching fuel in the ships they have, by
+new or converted ships, or mostly by paying. Remind me which inputs are
+placeholders.
+````
+
+### Green finance: do cheaper loans bring zero-emission ships forward?
+
+**The study.** Panamax bulk carriers carrying iron ore from Tubarão (Brazil) to
+Rotterdam, 2026 to 2050, under EU ETS and FuelEU Maritime as the library sets
+them. The voyage leaves the EU, so both cover half of it. Two runs: the library's
+cost of capital, and a green-finance case where ammonia and methanol ships borrow
+two percentage points cheaper. The question is whether cheaper finance alone
+changes when, and how many, such ships are ordered.
+
+**What comes from the library.** The ships (the 80,000 DWT class, with its age
+profile, designs, retrofit costs and operating profile), both regulations, the
+fuels and their prices, the cost of capital, and the fuel production in the
+Americas.
+
+**What is INVENTED.** The size of the green-finance discount, the fleet size,
+the sea distance, the bunker logistics and this trade's share of the feedstock
+ceilings.
+
+**Limits.** Navigate prices finance through the cost of capital only: no
+guarantees, grants or loan terms.
+
+**Tested:** 2026-10-19. The final prompt passed every check above on the first
+attempt, built cold and also through Session 5's start-up prompt from a different
+case (US Gulf grain to Rotterdam, 1.5 points). Both builds found that cheaper
+loans add a few ammonia and methanol ships (about 6 to 10 by 2050) but bring
+nothing forward, and cut emissions by 1 to 2 %: the gap is the fuel's cost, not
+the ship's finance. Treat that as a property of the placeholders.
+
+````text
+You are helping me build a simulation study for Navigate, the shipping
+decarbonisation model in this repository. Write the files yourself; do not only
+describe them.
+
+Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+THE DECKS
+A new folder, simulations/user/green_finance/, holding two decks that differ in
+one Include line only:
+- reference.nav: the library's cost of capital for every ship
+- green_finance.nav: the same, plus includes/green_finance.inc
+
+THE CASE
+Panamax bulk carriers (~80,000 DWT) carrying iron ore from Tubarão (Brazil) to
+Rotterdam, laden out and back in ballast, 2026 to 2050, yearly steps.
+- Fleet: the library's 80,000 DWT bulk carrier class, with its own split of ship
+  designs, age profile and fuel-conversion costs, built with Copy Vessel as
+  building-a-deck.md describes. All four designs (oil, LNG, methanol, ammonia)
+  can be ordered.
+- Fuels: fuel oil and LNG at their library prices; e-ammonia and e-methanol
+  made in the Americas (the library's "americas" region).
+- Policy, in both decks: the library's EU ETS and FuelEU Maritime (Import
+  Regulation "eu_ets" and "fuel_eu"; do not copy example_4's own versions), with
+  the Jurisdiction of both set to rotterdam only. The voyage leaves the EU, so
+  each covers half of it. Do not load DefaultRegulation: it also brings CII,
+  which is not part of this study.
+- Green finance: green_finance.inc sets the CostOfCapital of the ammonia and
+  methanol ships to their library value minus the discount below, as an
+  expression of the library's Forecast or Variable and a placeholder Variable.
+  Nothing else differs between the decks. Set the Fleet's
+  TechnologyCostOfCapital = Variable("cost_of_capital_vessel") in both decks:
+  without it, efficiency technology is financed at each ship's own rate, and the
+  discount would reach it too.
+
+HOW TO BUILD IT
+Build the rest as building-a-deck.md describes for a deck on named ports: a
+ROUND_TRIP route between your own ports tubarao and rotterdam with speeds and
+time in port from the class's operational profile, the ports, the bunker
+logistics, the americas production region, the plants and the producers, with
+the shares of the library's feedstock ceilings given below. Leave out the
+library's orderbook for this class: it is sized for the world fleet.
+
+NUMBERS
+Everything not listed here comes from the library, by name. These are
+placeholders, INVENTED for this case: mark each one where it appears, list them
+all in both .nav headers, and keep them in includes/placeholders.inc (the plain
+numbers in their own files, listed there as comments).
+- Green-finance discount: 0.02 (two percentage points) off the cost of capital
+  of ammonia and methanol ships
+- Fleet: 150 ships in 2026, a segment owned by many companies
+- Route: 5,000 nm each way
+- Bunker logistics: 500 nm from the plants to tubarao and 5,000 nm to rotterdam,
+  0.02 USD per ton per nm
+- Feedstock: this trade's share of the library's shipping share of biogenic CO2,
+  0.002 (about this fleet's share of world shipping's energy, as
+  building-a-deck.md explains)
+
+BEFORE YOU TELL ME IT WORKS
+Run both decks one after the other and report on each as building-a-deck.md
+says. Then, from the two reports, give me side by side:
+- the newbuilds of each design per year, and the ships of each design in 2035
+  and 2050;
+- the share of energy by fuel in 2026, 2035 and 2050;
+- the fleet's well-to-wake emissions summed over 2026-2050;
+- the investment freight rate of each design in 2030 and 2045.
+Say plainly what the cheaper finance changed: earlier or more zero-emission
+ships, a different fuel burnt, or nothing; and whether those ships actually
+burn the fuel they were built for. Remind me which inputs are placeholders.
+````
