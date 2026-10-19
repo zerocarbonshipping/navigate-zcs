@@ -37,5 +37,4 @@ from navigate.core.node_maps import (
 )
 from navigate.core.scalar import Scalar
 from navigate.core.simulation_results import SimulationResults
-from navigate.core.timings import Timings, timed
 from navigate.core.wrap import as_list, as_scalar

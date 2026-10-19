@@ -249,7 +249,7 @@ The properties are applicable for the following commands:
 
 | **Property name**    | **Unit** | **Description**                                                                  |
 |----------------------| --- |---------------------------------------------------------------------------------------|
-| ComputationalTime    | Second | The computational time of the time step, one column per phase of the step ([TimingID](appendix_ids.md#timingid)). |
+| ComputationalTime    | Second/year | The computational time of the time step, without initialization and reading events, one column per phase of the step ([TimingID](appendix_ids.md#timingid)). |
 
 The properties are applicable for the following commands:
 

@@ -13,17 +13,15 @@ from __future__ import annotations
 import functools
 import time
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Concatenate, Protocol
-
-from navigate.core.enum_ import TimingID
+from typing import TYPE_CHECKING, Any, Concatenate, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
+    from collections.abc import Callable, Hashable, Iterator
 
     from navigate.util.types_ import FloatArray
 
 
-class Timings:
+class Timings[K]:
     """
     Book the computational time of each time step to the phase that spends it.
 
@@ -36,30 +34,32 @@ class Timings:
         Seconds spent per phase and time step, added to in place.
     """
 
-    def __init__(self, seconds: dict[TimingID, FloatArray]) -> None:
-        self._seconds: dict[TimingID, FloatArray] = seconds
+    def __init__(self, seconds: dict[K, FloatArray]) -> None:
+        self._seconds: dict[K, FloatArray] = seconds
         self._idx: int
 
         # the seconds spent in the measurements nested in each open one
         self._nested: list[float] = []
 
     @contextmanager
-    def step(self, idx: int) -> Iterator[None]:
+    def step(self, idx: int, phase: K) -> Iterator[None]:
         """
-        Measure a time step, booking what no nested measurement claims as OTHER.
+        Measure a time step, booking what no nested measurement claims to a phase.
 
         Parameters
         ----------
         idx
             Index of the time step.
+        phase
+            Phase the time of the step outside nested measurements is booked to.
         """
         self._idx = idx
 
-        with self.measure(TimingID.OTHER):
+        with self.measure(phase):
             yield
 
     @contextmanager
-    def measure(self, phase: TimingID) -> Iterator[None]:
+    def measure(self, phase: K) -> Iterator[None]:
         """
         Book the time spent inside, less that of nested measurements, to a phase.
 
@@ -75,21 +75,24 @@ class Timings:
             yield
         finally:
             elapsed = time.perf_counter() - start
-            self._seconds[phase][self._idx] += elapsed - self._nested.pop()
+            nested = self._nested.pop()
+            self._seconds[phase][self._idx] += elapsed - nested
 
             if self._nested:
                 self._nested[-1] += elapsed
 
 
+# a type parameter bound cannot name another type parameter, so the owner's phase
+# key is left open and a phase of the wrong kind fails as a missing key
 class _Timed(Protocol):
-    timings: Timings
+    timings: Timings[Any]
 
 
 type _Method[T, **P, R] = Callable[Concatenate[T, P], R]
 
 
 def timed[T: _Timed, **P, R](
-    phase: TimingID,
+    phase: Hashable,
 ) -> Callable[[_Method[T, P, R]], _Method[T, P, R]]:
     """
     Decorate a method to book the time spent in it to a phase.

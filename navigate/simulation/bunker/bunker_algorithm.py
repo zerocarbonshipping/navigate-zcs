@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 import navigate.simulation.bunker.solver as gp
-from navigate.core import get_fuels_per_fuel_type, timed
+from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.simulation.bunker.cleanup import (
     remove_redundant_fuels_from_ports,
@@ -69,11 +69,11 @@ from navigate.simulation.bunker.variables import (
     update_regulation_variables,
     update_vessel_variables,
 )
+from navigate.util import timed
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core import Timings
     from navigate.core.enum_ import EnergyDemandID, FuelTypeID
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.core.nodes.emission import Emission
@@ -84,6 +84,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.fair_share import FairShareSolutions
+    from navigate.util import Timings
     from navigate.util.types_ import FloatLike
 
 logger = logging.getLogger(__name__)
@@ -123,7 +124,7 @@ class BunkerAlgorithm:
         self.scope: BunkerScopeID
         self.options: BunkerOptions
         self.output_directory: Path
-        self.timings: Timings
+        self.timings: Timings[TimingID]
 
         # time
         self.current_idx: int
@@ -211,7 +212,7 @@ class BunkerAlgorithm:
         options: BunkerOptions,
         scope: BunkerScopeID,
         output_directory: Path,
-        timings: Timings,
+        timings: Timings[TimingID],
     ) -> None:
         """
         Initialize the algorithm once, when the simulation is initialized.

@@ -8,9 +8,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import navigate.simulation.bunker.solver as gp
-from navigate.core import timed
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.exceptions import InfeasibleLPError
+from navigate.util import timed
 
 if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm

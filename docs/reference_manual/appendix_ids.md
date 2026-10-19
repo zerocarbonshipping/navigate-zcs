@@ -197,5 +197,5 @@ This ID describes the phase of a time step that its computational time is booked
 | TECHNOLOGY\_INSTALLATION | Technology installation on the newbuilds and existing vessels of the fleets. |
 | PLANT\_PRODUCTION | The production properties of the plants. |
 | PRODUCER\_EVOLUTION | Decommissioning, pipeline delivery and pipeline planning of the producers. |
-| POLICY | The emission coefficients, measures, threshold adjustment, compliance, remedial expenses and flexibility markets of the regulations and levies. |
+| POLICY | The emission coefficients of the regulations and levies, and the measures, bunkering inputs, threshold adjustment, compliance, individual remedial expenses and flexibility markets of the regulations. |
 | OTHER | Everything else in the time step. |

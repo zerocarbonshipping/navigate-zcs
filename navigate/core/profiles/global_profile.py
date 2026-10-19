@@ -31,7 +31,7 @@ class GlobalProfile(
 ):
     """Totals over every vessel, plant and port, plus the run's computational time."""
 
-    computational_time: dict[TimingID, FloatArray] = result("s")
+    computational_time: dict[TimingID, FloatArray] = result("s/year", per_step=True)
 
     def initialize(
         self,

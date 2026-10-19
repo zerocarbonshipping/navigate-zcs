@@ -15,9 +15,7 @@ from typing import TYPE_CHECKING
 
 from navigate.core import (
     SimulationResults,
-    Timings,
     define_vessel_fuel_maps,
-    timed,
     update_imposed_levies,
 )
 from navigate.core.enum_ import BunkerScopeID, TimingID
@@ -96,7 +94,7 @@ from navigate.simulation.policy import (
     complete_regulation_profile,
     update_regulation_flexibility_beliefs,
 )
-from navigate.util import YEAR, dates_to_days, timedelta_to_days
+from navigate.util import YEAR, Timings, dates_to_days, timed, timedelta_to_days
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -155,7 +153,7 @@ class Simulation:
         self._bunker_expected: BunkerAlgorithm = BunkerAlgorithm()
 
         # computational time -----------------------------------------------------------
-        self.timings: Timings
+        self.timings: Timings[TimingID]
 
     def initialize(self) -> None:
         """Set up the node maps, expectations, profiles and bunker models."""
@@ -178,7 +176,7 @@ class Simulation:
         date
             The date stepped to, its events already applied.
         """
-        with self.timings.step(self._idx):
+        with self.timings.step(self._idx, TimingID.OTHER):
             self._progress_date_time(date)
             self._perform_time_step()
 

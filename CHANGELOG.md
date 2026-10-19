@@ -74,8 +74,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   are now `*EnergyIntensitySaving` (they stay on `add_vessel_property`), and
   `SpeedEnergyIntensitySaving` is new.
 - The 18 timing report properties (`TotalTime`, `ExpectedBuildTime`, ...) are
-  now `ComputationalTime`, one column per phase in `TimingID`, or the total with
-  `BOTH`. The computational-performance plots group the time into these phases.
+  now `ComputationalTime`, one column per phase in `TimingID`:
+  - with `BOTH`, it gives each time step's own time, without initialization or
+    reading events, where `TotalTime` was the running time since initialization;
+  - the computational-performance plots group the time into these phases.
 - Three wildcard uses are rejected at their line: a glob as a command
   argument, a glob on a single-valued attribute (`Route = Route("r_*")`), and
   a node listed beside a glob that also matches it.
