@@ -95,7 +95,7 @@ class PlantExpectation(_Expectation):
         self._intra_fuel_metric = self._default_float()
 
     def reset_additive_properties(self, idx: int) -> None:
-        # reset from idx=0 since fuel properties are recomputed at all time-steps
+        # the steps before idx keep the feed masses of the plants decided then
         self._reset_dict_array_partial(self._feed_mass, idx=idx)
 
     def get_emissions(self) -> KeysView[str]:

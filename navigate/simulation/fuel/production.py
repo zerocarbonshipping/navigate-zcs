@@ -35,7 +35,7 @@ def calculate_plant_production_expectations(
     plant: Plant, emissions: dict[str, Emission], timeline: FloatArray, idx: int
 ) -> None:
     """
-    Calculate the levelized cost, WTT emissions and feed use of a plant's production.
+    Calculate the levelized cost, WTT emissions and feed use of a plant from a step on.
 
     The levelized cost covers the CAPEX and the fixed and variable OPEX of building
     and running the plant over its lifetime. A process living shorter than the plant,
@@ -80,13 +80,6 @@ def calculate_plant_production_expectations(
 
         _add_process_tree(component, plant, process, 1.0, t)
         _calculate_unit_properties(component, plant, t)
-
-    cost = float(expectation.get_levelized_production_cost(idx))
-    plant.profile.investment_cost[idx] = cost
-
-    for emission in emissions:
-        wtt = float(expectation.get_production_wtt(emission, idx))
-        plant.profile.investment_wtt[emission][idx] = wtt
 
 
 def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) -> None:
