@@ -484,6 +484,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `NominalCapacity` (Vessel), `RetrofitFrequency` (Fleet), `TimeAtSea` (Route)
   and `set_process_lifetime` (Region) must now be above 0; a 0 used to crash or
   hang the run or give invalid results.
+- `PlantTiedCapital` no longer repeats the capital tied up by the plants
+  invested in the last time step for every investment time; each time step
+  now reports its own plant capital (#588).
 
 ## [1.0.0] - 2026-07-16
 
