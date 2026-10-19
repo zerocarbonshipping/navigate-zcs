@@ -364,6 +364,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dsl_reference.html">DSL reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results_file.html">Results file</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">General nodes</span></p>
 <ul class="nav bd-sidenav">
@@ -715,6 +716,26 @@ SPDX-License-Identifier: CC-BY-4.0
 </table>
 </div>
 </section>
+<section id="reportaccumulationid">
+<h2>ReportAccumulationID<a class="headerlink" href="#reportaccumulationid" title="Link to this heading">#</a></h2>
+<p>ReportAccumulationID selects whether a report property is reported per date or accumulated over time.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NONE</p></td>
+<td><p>The property’s value at each date</p></td>
+</tr>
+<tr class="row-odd"><td><p>CUMULATIVE</p></td>
+<td><p>The property accumulated over the time steps up to and including each date, reported under its name prefixed with <code class="docutils literal notranslate"><span class="pre">Cumulative</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="reportreduceid">
 <h2>ReportReduceID<a class="headerlink" href="#reportreduceid" title="Link to this heading">#</a></h2>
 <p>ReportReduceID is used for reducing tuples in the reports for easier data manipulation.</p>
@@ -903,6 +924,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#policyscopeid">PolicyScopeID</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regulationmeasureid">RegulationMeasureID</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regulationschemeid">RegulationSchemeID</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reportaccumulationid">ReportAccumulationID</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reportreduceid">ReportReduceID</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#routetypeid">RouteTypeID</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solverbackendid">SolverBackendID</a></li>

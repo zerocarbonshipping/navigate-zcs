@@ -365,6 +365,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dsl_reference.html">DSL reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results_file.html">Results file</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">General nodes</span></p>
 <ul class="nav bd-sidenav">
@@ -510,6 +511,15 @@ contain wildcards, which are matched against the nodes of the simulation when
 the report is written; a key that matches no node is skipped with a warning.
 A property added more than once for the same key is reported once, with the
 reduction of the first command.</p>
+<p>A property keyed by fuel, emission or another key is totalled over its keys with
+a reduction: <code class="docutils literal notranslate"><span class="pre">add_fleet_property(&quot;*&quot;,</span> <span class="pre">EquivalentWtt,</span> <span class="pre">BOTH)</span></code> reports the fleet’s
+total well-to-tank emissions. A property accumulated with <code class="docutils literal notranslate"><span class="pre">CUMULATIVE</span></code> is
+reported under its name prefixed with <code class="docutils literal notranslate"><span class="pre">Cumulative</span></code>, beside the property itself if
+that is added too: <code class="docutils literal notranslate"><span class="pre">add_property(FuelExpenses,</span> <span class="pre">NONE,</span> <span class="pre">CUMULATIVE)</span></code> reports
+<code class="docutils literal notranslate"><span class="pre">CumulativeFuelExpenses</span></code>, the fuel expenses per fuel up to each date. The value
+at a date covers every time step up to and including the one ending at it: a rate
+is multiplied by the length of its time step, the first one year long, and a count
+per time step, such as <code class="docutils literal notranslate"><span class="pre">Newbuilds</span></code>, is summed.</p>
 <section id="add-property">
 <h3>add_property<a class="headerlink" href="#add-property" title="Link to this heading">#</a></h3>
 <p>This command adds a specified global property to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
@@ -517,6 +527,7 @@ reduction of the first command.</p>
 <ul class="simple">
 <li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
 <li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Accumulate</strong>: Whether the property is reported per date or accumulated over time; see <a class="reference internal" href="appendix_ids.html#reportaccumulationid"><span class="std std-ref">ReportAccumulationID</span></a>. Default: None (per date).</p></li>
 </ul>
 </section>
 <section id="add-fleet-property">
@@ -527,6 +538,7 @@ reduction of the first command.</p>
 <li><p><strong>Key</strong>: String (Fleet name; supports wildcards)</p></li>
 <li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
 <li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Accumulate</strong>: Whether the property is reported per date or accumulated over time; see <a class="reference internal" href="appendix_ids.html#reportaccumulationid"><span class="std std-ref">ReportAccumulationID</span></a>. Default: None (per date).</p></li>
 </ul>
 </section>
 <section id="add-vessel-property">
@@ -537,6 +549,7 @@ reduction of the first command.</p>
 <li><p><strong>Key</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
 <li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Accumulate</strong>: Whether the property is reported per date or accumulated over time; see <a class="reference internal" href="appendix_ids.html#reportaccumulationid"><span class="std std-ref">ReportAccumulationID</span></a>. Default: None (per date).</p></li>
 </ul>
 </section>
 <section id="add-plant-property">
@@ -547,6 +560,7 @@ reduction of the first command.</p>
 <li><p><strong>Key</strong>: String (Plant name; supports wildcards)</p></li>
 <li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
 <li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Accumulate</strong>: Whether the property is reported per date or accumulated over time; see <a class="reference internal" href="appendix_ids.html#reportaccumulationid"><span class="std std-ref">ReportAccumulationID</span></a>. Default: None (per date).</p></li>
 </ul>
 </section>
 <section id="add-port-property">
@@ -557,6 +571,7 @@ reduction of the first command.</p>
 <li><p><strong>Key</strong>: String (Port name; supports wildcards)</p></li>
 <li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
 <li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Accumulate</strong>: Whether the property is reported per date or accumulated over time; see <a class="reference internal" href="appendix_ids.html#reportaccumulationid"><span class="std std-ref">ReportAccumulationID</span></a>. Default: None (per date).</p></li>
 </ul>
 </section>
 <section id="add-regulation-property">
@@ -567,6 +582,7 @@ reduction of the first command.</p>
 <li><p><strong>Key</strong>: String (Regulation name; supports wildcards)</p></li>
 <li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
 <li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Accumulate</strong>: Whether the property is reported per date or accumulated over time; see <a class="reference internal" href="appendix_ids.html#reportaccumulationid"><span class="std std-ref">ReportAccumulationID</span></a>. Default: None (per date).</p></li>
 </ul>
 </section>
 <section id="add-levy-property">
@@ -577,6 +593,7 @@ reduction of the first command.</p>
 <li><p><strong>Key</strong>: String (Levy name; supports wildcards)</p></li>
 <li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
 <li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Accumulate</strong>: Whether the property is reported per date or accumulated over time; see <a class="reference internal" href="appendix_ids.html#reportaccumulationid"><span class="std std-ref">ReportAccumulationID</span></a>. Default: None (per date).</p></li>
 </ul>
 </section>
 <section id="add-producer-property">
@@ -587,6 +604,7 @@ reduction of the first command.</p>
 <li><p><strong>Key</strong>: String (Producer name; supports wildcards)</p></li>
 <li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
 <li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Accumulate</strong>: Whether the property is reported per date or accumulated over time; see <a class="reference internal" href="appendix_ids.html#reportaccumulationid"><span class="std std-ref">ReportAccumulationID</span></a>. Default: None (per date).</p></li>
 </ul>
 </section>
 </section>
@@ -642,113 +660,65 @@ reduction of the first command.</p>
 <td><p>GJ/year</p></td>
 <td><p>The total energy demand at sea and in port after operational measures and technologies.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalEnergyPort</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The total energy demand in port across demand types.</p></td>
-</tr>
-<tr class="row-even"><td><p>Saving</p></td>
+<tr class="row-odd"><td><p>Saving</p></td>
 <td><p>GJ/GJ</p></td>
 <td><p>Relative reduction of the energy demand from operational measures and technologies, one column per energy demand type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>BaselineEnergy</p></td>
+<tr class="row-even"><td><p>BaselineEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>The year-0 raw energy intensity applied to the transport work actually performed.</p></td>
 </tr>
-<tr class="row-even"><td><p>ConsumedEnergy</p></td>
+<tr class="row-odd"><td><p>ConsumedEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy for all fuels.</p></td>
 </tr>
-<tr class="row-odd"><td><p>FuelTypeEnergy</p></td>
+<tr class="row-even"><td><p>FuelTypeEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy, aggregated by fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>TotalConsumedEnergy</p></td>
+<tr class="row-odd"><td><p>TotalConsumedEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Total consumed energy across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ShorePowerEnergy</p></td>
+<tr class="row-even"><td><p>ShorePowerEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Shore power energy supplied.</p></td>
 </tr>
-<tr class="row-even"><td><p>ConverterEnergy</p></td>
+<tr class="row-odd"><td><p>ConverterEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy by the converters, one column per vessel fuel type and fuel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>PilotFuelShare</p></td>
+<tr class="row-even"><td><p>PilotFuelShare</p></td>
 <td><p>Ton/ton</p></td>
 <td><p>The fraction of total fuel spent which is pilot fuel for each vessel fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>EquivalentWtt</p></td>
+<tr class="row-odd"><td><p>EquivalentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Emitted well-to-tank emissions per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentWtt</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./year</p></td>
-<td><p>Total emitted well-to-tank emissions.</p></td>
 </tr>
 <tr class="row-even"><td><p>EquivalentTtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Emitted Tank-to-wake emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalEquivalentTtw</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./year</p></td>
-<td><p>Total emitted tank-to-wake emissions.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentWtw</p></td>
+<tr class="row-odd"><td><p>EquivalentWtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Emitted well-to-wake emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalEquivalentWtw</p></td>
+<tr class="row-even"><td><p>TotalEquivalentWtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Total emitted well-to-wake emissions across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-even"><td><p>ShorePowerEmission</p></td>
+<tr class="row-odd"><td><p>ShorePowerEmission</p></td>
 <td><p>Ton/year</p></td>
 <td><p>Shore power emission per emission (well-to-wake lump, no WTT/TTW split).</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeEquivalentWtt</p></td>
-<td><p>Ton CO<sub>2</sub>-eq.</p></td>
-<td><p>Cumulative emitted well-to-tank emissions per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeTotalEquivalentWtt</p></td>
-<td><p>Ton CO<sub>2</sub>-eq.</p></td>
-<td><p>Cumulative total emitted well-to-tank emissions.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeEquivalentTtw</p></td>
-<td><p>Ton CO<sub>2</sub>-eq.</p></td>
-<td><p>Cumulative emitted tank-to-wake emissions per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeTotalEquivalentTtw</p></td>
-<td><p>Ton CO<sub>2</sub>-eq.</p></td>
-<td><p>Cumulative total emitted tank-to-wake emissions.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeEquivalentWtw</p></td>
-<td><p>Ton CO<sub>2</sub>-eq.</p></td>
-<td><p>Cumulative emitted well-to-wake emissions per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeTotalEquivalentWtw</p></td>
-<td><p>Ton CO<sub>2</sub>-eq.</p></td>
-<td><p>Cumulative total emitted well-to-wake emissions, including shore power.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentWtt</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Emitted well-to-tank emissions per fuel and emission, per total consumed energy (including shore power).</p></td>
 </tr>
 <tr class="row-even"><td><p>IntensityTotalEquivalentWtt</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Total emitted well-to-tank emissions per total consumed energy (including shore power).</p></td>
 </tr>
-<tr class="row-odd"><td><p>IntensityEquivalentTtw</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Emitted tank-to-wake emissions per fuel and emission, per total consumed energy (including shore power).</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentTtw</p></td>
+<tr class="row-odd"><td><p>IntensityTotalEquivalentTtw</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Total emitted tank-to-wake emissions per total consumed energy (including shore power).</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentWtw</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Emitted well-to-wake emissions per fuel and emission, per total consumed energy (including shore power).</p></td>
 </tr>
 <tr class="row-even"><td><p>IntensityTotalEquivalentWtw</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
@@ -798,53 +768,9 @@ reduction of the first command.</p>
 <td><p>USD/year</p></td>
 <td><p>Shore power purchase cost.</p></td>
 </tr>
-<tr class="row-even"><td><p>TotalLevyExpenses</p></td>
-<td><p>USD/year</p></td>
-<td><p>Total levy expenses across all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalFuelRelatedExpenses</p></td>
+<tr class="row-even"><td><p>TotalFuelRelatedExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Total fuel related expenses (fuel expenses including shore power, plus levy expenses).</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeFuelExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative fuel expenses per fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeLevyExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative levy expenses per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeFuelRelatedExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative fuel related expenses (fuel and levy) per fuel</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeRemedialExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative remedial expenses due to non-compliance with regulations.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeFlexibilityExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative flexibility expenses due to non-compliance with regulations.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeSurplusRevenue</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative surplus revenue due to over-compliance with regulations.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeRegulationExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative remedial and flexibility expenses subtracted by surplus revenue from regulations.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeTotalFuelExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative fuel expenses across all fuels plus shore power.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeTotalLevyExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative levy expenses across all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeTotalFuelRelatedExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative fuel related expenses (fuel and levy) across all fuels plus shore power.</p></td>
 </tr>
 </tbody>
 </table>
@@ -946,61 +872,29 @@ reduction of the first command.</p>
 <td><p>MW/year</p></td>
 <td><p>Installed power fuel converted per fuel type to fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeNewbuildPower</p></td>
-<td><p>MW</p></td>
-<td><p>Cumulative installed power for newbuilds per fuel type.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeScrappedPower</p></td>
-<td><p>MW</p></td>
-<td><p>Cumulative installed power scrapped per fuel type.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeFuelConvertedPower</p></td>
-<td><p>MW</p></td>
-<td><p>Cumulative installed power fuel converted per fuel type to fuel type.</p></td>
-</tr>
-<tr class="row-odd"><td><p>WeightedAverageAge</p></td>
+<tr class="row-even"><td><p>WeightedAverageAge</p></td>
 <td><p>Year</p></td>
 <td><p>Power-weighted average age of the vessels in the fleet per fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>VesselExpenses</p></td>
+<tr class="row-odd"><td><p>VesselExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Running expenses of acquisition of all vessels.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TechnologyExpenses</p></td>
+<tr class="row-even"><td><p>TechnologyExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Running levelized expenses of all installed technologies.</p></td>
 </tr>
-<tr class="row-even"><td><p>FuelConversionExpenses</p></td>
+<tr class="row-odd"><td><p>FuelConversionExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Running expenses of all fuel conversions.</p></td>
 </tr>
-<tr class="row-odd"><td><p>VesselRelatedExpenses</p></td>
+<tr class="row-even"><td><p>VesselRelatedExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Running expenses of all vessels.</p></td>
 </tr>
-<tr class="row-even"><td><p>Expenses</p></td>
+<tr class="row-odd"><td><p>Expenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Running expenses including fuel of all vessels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeVesselExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative running expenses of acquisition of all vessels.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeTechnologyExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative running levelized expenses of all installed technologies.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeFuelConversionExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative running expenses of fuel conversions for all newbuilds.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeVesselRelatedExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative running expenses of all vessels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative running expenses including fuel of all vessels.</p></td>
 </tr>
 <tr class="row-even"><td><p>VesselTiedCapital</p></td>
 <td><p>USD</p></td>
@@ -1207,14 +1101,6 @@ reduction of the first command.</p>
 <td><p># of plants/year</p></td>
 <td><p>Number of plants added to the pipeline across all plants.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeMaximumDevelopment</p></td>
-<td><p># of plants</p></td>
-<td><p>Cumulative number of plants that can be added to the pipeline across all plants.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeDevelopment</p></td>
-<td><p># of plants</p></td>
-<td><p>Cumulative number of plants added to the pipeline across all plants.</p></td>
-</tr>
 <tr class="row-even"><td><p>FairShareFuelFraction</p></td>
 <td><p>Fraction</p></td>
 <td><p>Fraction of fuel demand allocated to the producer to supply.</p></td>
@@ -1334,6 +1220,10 @@ reduction of the first command.</p>
 <td><p>USD/GJ</p></td>
 <td><p>Energy-weighted average of the smoothed energy conservation duals over the speed horizon.</p></td>
 </tr>
+<tr class="row-odd"><td><p>InFleet</p></td>
+<td><p>-</p></td>
+<td><p>Whether the vessel is part of its fleet: 1 if so, 0 if not.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1353,49 +1243,17 @@ reduction of the first command.</p>
 <td><p>USD/ton</p></td>
 <td><p>Levelized production cost at time of investment.</p></td>
 </tr>
-<tr class="row-odd"><td><p>InvestmentIntensityCost</p></td>
-<td><p>USD/GJ</p></td>
-<td><p>Levelized production cost at time of investment per energy in fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>InstantaneousCost</p></td>
+<tr class="row-odd"><td><p>InstantaneousCost</p></td>
 <td><p>USD/ton</p></td>
 <td><p>Supply-weighted average cost over all plants.</p></td>
-</tr>
-<tr class="row-odd"><td><p>InstantaneousIntensityCost</p></td>
-<td><p>USD/GJ</p></td>
-<td><p>Supply-weighted average cost over all plants per energy in fuel.</p></td>
 </tr>
 <tr class="row-even"><td><p>EquivalentInvestmentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
 <td><p>Well-to-tank emissions at time of investment per ton of fuel per emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalEquivalentInvestmentWtt</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total well-to-tank emissions at time of investment per ton of fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEquivalentInvestmentWtt</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Well-to-tank emissions at time of investment per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityTotalEquivalentInvestmentWtt</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total well-to-tank emissions at time of investment per energy in fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentInstantaneousWtt</p></td>
+<tr class="row-odd"><td><p>EquivalentInstantaneousWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
 <td><p>Supply-weighted average well-to-tank emissions per ton of fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentInstantaneousWtt</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Supply-weighted average total well-to-tank emissions per ton of fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEquivalentInstantaneousWtt</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Supply-weighted average well-to-tank emissions per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityTotalEquivalentInstantaneousWtt</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Supply-weighted average total well-to-tank emissions per energy in fuel.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1420,33 +1278,13 @@ reduction of the first command.</p>
 <td><p>USD/ton</p></td>
 <td><p>Bunker price per ton of fuel.</p></td>
 </tr>
-<tr class="row-even"><td><p>BunkerIntensityPrice</p></td>
-<td><p>USD/GJ</p></td>
-<td><p>Bunker price per energy in fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>BunkerWtt</p></td>
+<tr class="row-even"><td><p>BunkerWtt</p></td>
 <td><p>Ton/ton</p></td>
 <td><p>Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>EquivalentBunkerWtt</p></td>
+<tr class="row-odd"><td><p>EquivalentBunkerWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
 <td><p>Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentBunkerWtt</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Well-to-tank emissions of bunker fuel per ton of fuel per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>BunkerIntensityWtt</p></td>
-<td><p>Kg/GJ</p></td>
-<td><p>Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>BunkerIntensityEquivalentWtt</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>BunkerIntensityTotalEquivalentWtt</p></td>
-<td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Well-to-tank emissions of bunker fuel per energy in per fuel.</p></td>
 </tr>
 </tbody>
 </table>
