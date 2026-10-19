@@ -447,7 +447,9 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     expectation.set_levelized_production_cost(idx, levelized_cost)
 
     commence_idx = component.get_commence_index()
-    expectation.set_tied_capital(idx, component.tied_capital_flow[commence_idx:])
+    # a copy, since the component is reused and refilled for the next step
+    tied_capital = component.tied_capital_flow[commence_idx:].copy()
+    expectation.set_tied_capital(idx, tied_capital)
 
     # TODO: recertify the plant every year instead of at its first operating year,
     # which requires reworking the Producer node. Unlike the cost, which converts to a
