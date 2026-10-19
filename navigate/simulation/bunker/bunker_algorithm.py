@@ -11,14 +11,13 @@ the other modules of the package build, solve and transfer through it.
 from __future__ import annotations
 
 import logging
-import timeit
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 import navigate.simulation.bunker.solver as gp
 from navigate.core import get_fuels_per_fuel_type
-from navigate.core.enum_ import BunkerScopeID
+from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.simulation.bunker.cleanup import (
     remove_redundant_fuels_from_ports,
     remove_redundant_regulations,
@@ -70,6 +69,7 @@ from navigate.simulation.bunker.variables import (
     update_regulation_variables,
     update_vessel_variables,
 )
+from navigate.util import timed
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -84,6 +84,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.fair_share import FairShareSolutions
+    from navigate.util import Timings
     from navigate.util.types_ import FloatLike
 
 logger = logging.getLogger(__name__)
@@ -123,6 +124,7 @@ class BunkerAlgorithm:
         self.scope: BunkerScopeID
         self.options: BunkerOptions
         self.output_directory: Path
+        self.timings: Timings[TimingID]
 
         # time
         self.current_idx: int
@@ -199,11 +201,6 @@ class BunkerAlgorithm:
         # fair-share constraints
         self.fair_share_fuel: dict[tuple[str, str, str], gp.Constr]
 
-        # timing -----------------------------------------------------------------------
-        self.build_time: float = 0.0
-        self.solve_time: float = 0.0
-        self.transfer_time: float = 0.0
-
     def initialize(
         self,
         emissions: dict[str, Emission],
@@ -215,6 +212,7 @@ class BunkerAlgorithm:
         options: BunkerOptions,
         scope: BunkerScopeID,
         output_directory: Path,
+        timings: Timings[TimingID],
     ) -> None:
         """
         Initialize the algorithm once, when the simulation is initialized.
@@ -239,10 +237,13 @@ class BunkerAlgorithm:
             Whether the algorithm bunkers the existing or the expected fleet.
         output_directory
             Directory the LP files of an infeasible model are written to.
+        timings
+            Timings the build, solve and transfer are booked to.
         """
         self.scope = scope
         self.options = options
         self.output_directory = output_directory
+        self.timings = timings
 
         self.fleets = fleets
         self.ports = ports
@@ -255,6 +256,7 @@ class BunkerAlgorithm:
 
         self._initialize_model()
 
+    @timed(TimingID.LP_BUILD)
     def build(self, current_idx: int, idx: int, time: float, time_step: float) -> None:
         """
         Build the LP model for a time step.
@@ -273,11 +275,6 @@ class BunkerAlgorithm:
         time_step
             Size of the current time-step, days.
         """
-        start = timeit.default_timer()
-
-        self.solve_time = 0.0
-        self.transfer_time = 0.0
-
         self.current_idx = current_idx
         self.idx = idx
         self.time = time
@@ -320,43 +317,32 @@ class BunkerAlgorithm:
         update_individual_regulation_threshold_constraints(self)
         update_flexibility_regulation_threshold_constraints(self)
 
-        self.build_time = timeit.default_timer() - start
-
+    @timed(TimingID.LP_BUILD)
     def update_regulation_constraints(self) -> None:
         """Update the regulation constraints to the regulation inputs of the step."""
-        start = timeit.default_timer()
-
         update_regulation_individual_rhs(self)
         update_regulation_flexibility_rhs(self)
         update_individual_regulation_threshold_constraints(self)
         update_flexibility_regulation_threshold_constraints(self)
 
-        self.build_time += timeit.default_timer() - start
-
+    @timed(TimingID.LP_BUILD)
     def solve(self) -> None:
-        """Solve the LP with fair-share iterations."""
-        start = timeit.default_timer()
-        solve_time_at_entry = self.solve_time
+        """
+        Solve the LP with fair-share iterations.
 
+        The constraint rebuilds between the iterations count as build time; optimize
+        books the solves themselves.
+        """
         self.fair_share_converged = run_fair_share_solve(self)
 
-        # the fair-share iterations rebuild constraints between solves; that time
-        # counts as build time, while optimize accumulates the solve time
-        elapsed = timeit.default_timer() - start
-        self.build_time += elapsed - (self.solve_time - solve_time_at_entry)
-
+    @timed(TimingID.LP_TRANSFER)
     def transfer_regulation_solution(self) -> None:
         """Transfer the regulation results of the LP solution to the regulations."""
-        start = timeit.default_timer()
-
         transfer_regulation_solution(self)
 
-        self.transfer_time += timeit.default_timer() - start
-
+    @timed(TimingID.LP_TRANSFER)
     def transfer(self) -> None:
         """Transfer the LP solution to the expectations and profiles of the nodes."""
-        start = timeit.default_timer()
-
         if self.scope == BunkerScopeID.EXISTING:
             # logged once per LP, for the solve its solution comes from
             self._log_fair_share_convergence()
@@ -382,8 +368,6 @@ class BunkerAlgorithm:
             transfer_dual_solution(self)
 
         transfer_regulation_solution(self)
-
-        self.transfer_time += timeit.default_timer() - start
 
     def get_admitted_vessels(self, current_idx: int) -> list[Vessel]:
         """

@@ -8,6 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from navigate.core.enum_ import TimingID
 from navigate.core.profiles._base_profile import result
 from navigate.core.profiles._fuel_infrastructure_profile import (
     _FuelInfrastructureProfile,
@@ -28,27 +29,9 @@ if TYPE_CHECKING:
 class GlobalProfile(
     _VesselAggregateProfile, _PlantAggregateProfile, _FuelInfrastructureProfile
 ):
-    """Totals over every vessel, plant and port, plus the timings of the run."""
+    """Totals over every vessel, plant and port, plus the run's computational time."""
 
-    # computational time in seconds; every entry below the total is part of it
-    total_time: FloatArray = result("s")
-    expected_build_time: FloatArray = result("s")
-    expected_solve_time: FloatArray = result("s")
-    expected_transfer_time: FloatArray = result("s")
-    speed_time: FloatArray = result("s")
-    retrofit_time: FloatArray = result("s")
-    fleet_evolution_time: FloatArray = result("s")
-    producer_evolution_time: FloatArray = result("s")
-    existing_build_time: FloatArray = result("s")
-    existing_solve_time: FloatArray = result("s")
-    existing_transfer_time: FloatArray = result("s")
-    temporal_time: FloatArray = result("s")
-    vessel_time: FloatArray = result("s")
-    fuel_supply_time: FloatArray = result("s")
-    policy_time: FloatArray = result("s")
-    fleet_state_time: FloatArray = result("s")
-    profile_agg_time: FloatArray = result("s")
-    overhead_time: FloatArray = result("s")
+    computational_time: dict[TimingID, FloatArray] = result("s/year", per_step=True)
 
     def initialize(
         self,
@@ -81,22 +64,4 @@ class GlobalProfile(
         self._initialize_vessel_aggregate()
         self._initialize_plant_aggregate()
 
-        # computational time
-        self.total_time = self._default_array()
-        self.expected_build_time = self._default_array()
-        self.expected_solve_time = self._default_array()
-        self.expected_transfer_time = self._default_array()
-        self.speed_time = self._default_array()
-        self.retrofit_time = self._default_array()
-        self.fleet_evolution_time = self._default_array()
-        self.producer_evolution_time = self._default_array()
-        self.existing_build_time = self._default_array()
-        self.existing_solve_time = self._default_array()
-        self.existing_transfer_time = self._default_array()
-        self.temporal_time = self._default_array()
-        self.vessel_time = self._default_array()
-        self.fuel_supply_time = self._default_array()
-        self.policy_time = self._default_array()
-        self.fleet_state_time = self._default_array()
-        self.profile_agg_time = self._default_array()
-        self.overhead_time = self._default_array()
+        self.computational_time = self._default_dict(TimingID)
