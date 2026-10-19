@@ -4,8 +4,8 @@
 
 Run from the repository root:  python docs/_figures/make_gfs_delay_chart.py
 
-Writes docs/_figures/gfs_delay_chart.png, the figure of Session 5's global-study
-prompt "The cost of waiting". It is the gfs_target_reduction chart of Session 3,
+Writes docs/_figures/gfs_delay_chart.png, the figure of the prompt bank's
+entry "A global study: the cost of waiting". It is the gfs_target_reduction chart of Session 3,
 with the delayed pathway the prompt describes drawn over it: every date before
 2050 moved DELAY years later, the 2050 target kept. The reference values are read
 from simulations/scenarios/0_includes/mid_regulation.inc, so the chart follows

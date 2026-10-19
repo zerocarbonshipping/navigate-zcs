@@ -12,8 +12,8 @@ The rules every deck shares are in [Building a deck with an AI
 assistant](building-a-deck.md); the prompts here only describe their case.
 
 [Session 5](05-build-your-own-case.ipynb) has four more: one trade between two
-ports, two fleets in one market, the world fleet cut down, and the cost of
-delaying a global fuel standard.
+ports, inland shipping on the Rhine (its test notes are below), two fleets in
+one market, and the world fleet cut down.
 
 ## What "it works" means here
 
@@ -76,94 +76,8 @@ to 150 USD/t the owners pay the price rather than switch fuel, and order a few
 more LNG ships; the drop-in fuels need roughly 440 USD/t (biodiesel) to 800-1,100
 USD/t (e-diesel). Treat that as a property of the placeholders, not of the Rhine.
 
-````text
-You are helping me build a simulation study for Navigate, the shipping
-decarbonisation model. Write the files yourself; do not only
-describe them.
-
-Before writing anything, find the Navigate repository on my machine (a folder
-usually named navigate-zcs; ask me where it is if you cannot find it), then read
-docs/workshop/building-a-deck.md in it and follow it. It
-says how Navigate works, how to run a deck and read its results, and the rules
-every deck follows. This prompt gives the case.
-
-THE DECKS
-A new folder, simulations/user/rhine_inland/, holding two decks that differ in
-one Include line only:
-- reference.nav: no policy at all
-- co2_price.nav: the same, plus includes/co2_price.inc
-
-THE CASE
-Inland dry-cargo shipping on the Rhine within Germany, 2026 to 2050, yearly steps.
-- Fleet: large Rhine motor cargo vessels, all on fuel oil at the start. The
-  owners can keep their ships, burn a drop-in fuel in them, or order ships with
-  LNG or methanol engines. No ammonia ships: they are not realistic on inland
-  waterways.
-- Trade: Duisburg to Mannheim, laden upstream, back in ballast.
-- Fuels: fuel oil and LNG at their library prices, biodiesel (FAME) and e-diesel,
-  which burn in the oil engines, and e-methanol, all made in Europe.
-- Policy: none in reference.nav. EU ETS and FuelEU Maritime do not cover inland
-  waterways, so do not load DefaultRegulation in either deck. co2_price.nav adds
-  Germany's national CO2 price as a copy of the library's EU ETS regulation:
-  Copy Regulation "eu_ets" to "co2_price_germany", with its Jurisdiction set to
-  the two ports and its RemedialCost set to the CO2 price below. Keep the rest of
-  it: it already counts biofuels and e-fuels as zero CO2. It names fuels this case
-  does not use (bio-methanol, bio-methane, e-methane, blue and e-ammonia), so
-  import those too, in both decks, or it will not parse. building-a-deck.md says
-  why this is a Regulation and not a Levy.
-
-HOW TO BUILD IT
-The library has no inland vessel. Build the ships from the library's general
-cargo vessels (general_cargo_ice_oil, _ice_methane, _ice_methanol) with Copy
-Vessel, and resize them for the Rhine with the placeholder values below. A
-vessel's engine power sits in its Converter nodes, which its PowerSystem names,
-so give each copied vessel its own copies of those, with the new power. Keep the
-library's tanks, fuel options and machinery costs, and say in the .nav header
-that the fuel-system and tank costs are a seagoing ship's. Ships cannot be
-converted to another fuel: leave the library's set_fuel_conversion_cost out. Set
-AllowSpeedManagement = FALSE: on a river the waterway sets the speed, and with it
-on the ships drift faster than the speeds below.
-
-Build the rest as building-a-deck.md describes for a deck on named ports: the
-Fleet node, a ROUND_TRIP route between your own ports duisburg and mannheim, the
-bunker logistics, the European production region and the producers. For the
-producers, use the library's plants for FAME, e-diesel and e-methanol in Europe,
-with the shares of the library's feedstock ceilings given below.
-
-NUMBERS
-Everything not listed here comes from the library, by name. These are
-placeholders, INVENTED for this case: mark each one where it appears, list them
-all in both .nav headers, and keep them in one file, includes/placeholders.inc,
-as Variables, Curves and Forecasts, so a user can replace them in one place. The
-route distance and the bunker logistics take plain numbers only: write those in
-their own files, marked INVENTED, and list them in placeholders.inc as comments.
-- Fleet: 300 ships in 2026, aged evenly from 0 to 39 years, so about one in
-  forty retires each year
-- Ship: 3,000 t capacity, 40-year lifetime, 6 M USD newbuild price for the hull,
-  1.5 MW propulsion power
-- Propulsion power at speed, MW: 4 kn 0.25, 6 kn 0.6, 8 kn 1.1, 9 kn 1.45
-- Auxiliary power: 0.1 MW at sea and 0.05 MW in port, with 0.2 MW generators
-  (the library's are a seagoing ship's)
-- Route: 190 nm each way; 7 kn laden upstream, 8 kn in ballast downstream (speed
-  through the water; Navigate has no river current); one day in port per call
-- Feedstock: this fleet's share of the library's shipping share, 0.02 of the
-  used cooking oil and 0.02 of the biogenic CO2
-- Bunker logistics: 400 nm from the European plants to each port, 0.03 USD per
-  ton per nm
-- CO2 price: 65 USD per t CO2 in 2026, rising linearly to 150 USD in 2050
-
-BEFORE YOU TELL ME IT WORKS
-Run both decks one after the other and report on each as building-a-deck.md
-says. Then, from the two reports, give me side by side:
-- the share of energy by fuel in 2026, 2035 and 2050;
-- the fleet's well-to-wake emissions in 2026 and 2050, and summed over 2026-2050;
-- the ships of each kind in 2050, and what the CO2 price cost the owners
-  (RegulationExpenses).
-Say plainly what the CO2 price changed: more drop-in fuel in the same ships, new
-engines, both, or nothing. If the drop-in fuels never compete, work out from the
-bunker prices roughly what CO2 price they would need. Remind me which inputs are
-placeholders.
-````
+**The prompt** is Session 5's example 2, "Inland waterways in Germany", in
+`docs/workshop/05-build-your-own-case.ipynb`.
 
 ### EU short-sea feeders: what EU ETS and FuelEU make the owners do
 
@@ -358,4 +272,89 @@ says. Then, from the two reports, give me side by side:
 Say plainly what the cheaper finance changed: earlier or more zero-emission
 ships, a different fuel burnt, or nothing; and whether those ships actually
 burn the fuel they were built for. Remind me which inputs are placeholders.
+````
+
+### A global study: the cost of waiting
+
+**The study.** The mid-regulation reference scenario includes a global fuel standard (`gfs`): a well-to-wake intensity limit that every ship is held to worldwide, tightening from 2028 to 2050. What if it started five years late, but kept the same 2050 target? No deck to build from scratch here: the scenario is run twice, as it is and with every date before 2050 moved later, on the coarse time grid of [Session 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-run-a-global-case.ipynb) so each run takes a few minutes. The answer is one number worth remembering: the extra megatonnes of CO2e a delay costs, and whether the fleet catches up by 2050. The change goes in a copy of the regulation file, so the reference scenario itself stays untouched.
+
+**How it differs from the scenarios in the repository.** The four reference scenarios in `simulations/scenarios/` differ in *how strict* the regulation is: none at all, EU ETS and FuelEU only (business as usual), or those plus a global fuel standard that is moderate (mid) or strict (strong). Both standards start in 2028. This case keeps the mid scenario exactly as it is and changes only *when* its standard starts, which none of them explores. It also runs on the coarse grid, so compare its two runs with each other, not with the yearly results of Session 4.
+
+![The global fuel standard's well-to-wake intensity limit from 2025 to 2050: the reference has its penalty from 2028, the delayed start from 2033, and both reach 28.0 gCO2eq/MJ in 2050](../_figures/gfs_delay_chart.png)
+
+*The global fuel standard of the mid-regulation scenario (grey) and the same standard started five years later, with the same 2050 target (blue).*
+
+**What comes from the library.** Everything: the decks are the Center's
+mid-regulation reference scenario on the coarse grid of
+`simulations/scenarios/workshop_whatif/`, run as it is.
+
+**What is INVENTED.** Nothing but the delay itself.
+
+**Limits.** The coarse grid: compare the two runs with each other, not with
+the yearly reference scenarios of Session 4.
+
+**Tested:** 2026-10-06, as Session 5's fourth example: built cold, it ran
+without errors on the first attempt. It has not yet been checked against the
+criteria above the way the other entries were.
+
+````text
+You are helping me run a global study with Navigate, the shipping
+decarbonisation model. Write the files yourself; do not only
+describe them.
+
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+ABOUT THESE DECKS
+- simulations/scenarios/ holds the Center's reference scenarios. The ones in
+  simulations/scenarios/workshop_whatif/ are the same scenarios on a coarse
+  time grid (2026, 2027, 2030, then every four years to 2050), so that one run
+  takes a few minutes instead of about twenty-five.
+- The reference decks load DefaultReport already, so every run writes the
+  report. Its "Global" sheet has one row per time step.
+
+THE STUDY
+The mid-regulation reference scenario includes a global fuel standard ("gfs"):
+a limit on the well-to-wake greenhouse-gas intensity of the energy every ship
+uses, applied worldwide and tightening year on year. A ship above the limit pays
+a penalty; a ship below it earns surplus units it can sell. It is defined in
+simulations/scenarios/0_includes/mid_regulation.inc: the Regulation "gfs", the
+limit as Forecast "gfs_target_reduction" (a fraction of 93.3 gCO2eq/MJ) and the
+penalty as Forecast "gfs_remedial_unit" (USD per t CO2eq above the limit, from
+2028).
+
+I want to know what it costs to start the standard late but keep its 2050
+target: [THE DELAY, e.g. "five years"].
+In my own copy of that file, move every date of both Forecasts that falls
+before 2050 by that many years (so the penalty starts in 2033 instead of 2028
+for a five-year delay), and leave the 2050 rows where they are. Mark each moved
+row with a comment giving its reference date. Nothing else changes.
+
+THE DECKS
+Work in a new folder, simulations/user/my_global_study/. Do not change the
+reference scenario or its includes.
+- reference.nav: a copy of
+  simulations/scenarios/workshop_whatif/workshop_basecase_mid_regulation.nav,
+  with its two Include paths rewritten so they still point at the original
+  files from the new folder.
+- delayed.nav: the same, except that it includes your own copy of
+  mid_regulation.inc (as includes/gfs_delayed.inc in the new folder) with the
+  dates moved as above.
+Both decks must differ in that one include line only.
+
+BEFORE YOU TELL ME IT WORKS
+Run both decks (a few minutes each; run them one after the other, or in the
+background, and wait for both), and report on each as building-a-deck.md says.
+Then, from each report, give me side by side:
+- the fleet's well-to-wake emissions at every time step (Mt CO2e per year);
+- the emissions summed over 2026-2050, weighting each step by the years it
+  stands for (say how you weighted them), and the difference: the extra Mt CO2e
+  the delay costs;
+- the share of the energy consumed in 2030, 2038 and 2050 by each fuel, and
+  whether the delayed run catches up with the reference by 2050.
+Say plainly that these are coarse-grid runs: compare them with each other, not
+with the yearly reference scenarios.
 ````

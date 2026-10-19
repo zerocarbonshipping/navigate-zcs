@@ -206,15 +206,15 @@ reproducible without a download.
 
 ## The global-study chart
 
-`gfs_delay_chart.png`, the figure of Session 5's prompt "A global study: the cost
-of waiting", is a matplotlib chart rather than an SVG. It reads the gfs limit and
+`gfs_delay_chart.png`, the figure of the prompt bank's entry "A global study: the
+cost of waiting" (`docs/workshop/prompt-bank.md`, which links the PNG rather than
+embedding it), is a matplotlib chart rather than an SVG. It reads the gfs limit and
 penalty from `simulations/scenarios/0_includes/mid_regulation.inc` and draws the
 delayed start of the prompt over them (every date before 2050 moved `DELAY` years,
 the 2050 target kept), in Session 3's style:
 
 ```bash
 python docs/_figures/make_gfs_delay_chart.py            # -> docs/_figures/gfs_delay_chart.png
-python docs/_figures/fig_to_notebook.py docs/_figures/gfs_delay_chart.png        docs/workshop/05-build-your-own-case.ipynb prompt4 --update
 ```
 
 `world_fleet_map.svg` has no generator: re-render it with
