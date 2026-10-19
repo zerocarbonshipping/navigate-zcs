@@ -96,10 +96,35 @@ a comment where it appears, and listed in the `.nav` header.
   realistic sea distance marked INVENTED.
 - A deck on named ports also rebuilds the other parts example_4 has, with its own
   values: the ports, the bunker logistics (how fuel travels from the plants to each
-  port) and the regions (where the fuels are made). BunkerLogistics takes its
+  port) and the regions (where the fuels are made). `Import Region` brings only
+  the region's own lines (power prices, grid emissions); the process costs and
+  most feedstocks are in the `Region "*"` block of
+  `assumptions/modules/installation/default_region.inc`, so restate the lines your
+  plants use. BunkerLogistics takes its
   distances and transport cost as plain numbers, not as Variables. Give the fuel
   producers a share of the library's global feedstock ceilings, marked INVENTED,
   as example_4's `producer.inc` does.
+- A ROUND_TRIP route has no time-at-sea setting: the year is sailing plus the
+  port stays, so the share of the year at sea follows from the distances, speeds
+  and port durations. Route distances, like BunkerLogistics, take plain numbers
+  only.
+- A Regulation or Levy you write covers no ship unless it says
+  `set_include_vessel("*", TRUE)` (or names the vessels). The reference manual
+  gives TRUE as the default, but Navigate's code uses FALSE, and nothing warns.
+- A carbon price meant to steer which ships are ordered is a Regulation, not a
+  Levy. A Levy changes what the existing ships bunker, but it is left out of the
+  expected costs the newbuild choice and the investment freight rate are made on.
+  The simplest Regulation is a copy of the library's `eu_ets` with its
+  Jurisdiction and RemedialCost changed. A Levy's Level is a Forecast, not a
+  Curve, and what it cost shows in TotalLevyExpenses, not RegulationExpenses.
+- A copied or imported library node brings every reference it makes: copying
+  `eu_ets` needs all the fuels it names to exist. Import the missing ones rather
+  than deleting lines from the copy.
+- With AllowSpeedManagement on, the ships may sail faster than the route's
+  speeds, not only slower. Check ActualSpeed before reading energy use or ship
+  counts.
+- Node names are unique across node types: a Regulation cannot share its name
+  with the Forecast that sets its price.
 - If you rename copied vessels, check that the Fleet file's
   `set_fuel_conversion_cost` wildcards still match the new names, and restate
   those lines if they do not.
@@ -126,10 +151,13 @@ Three things that are easy to misread:
 
 - A methanol or ammonia ship can run entirely on its oil pilot fuel, and does
   when no alternative fuel is on offer. A growing number of these ships is not a
-  fuel switch: judge it from the energy consumed by fuel (ConsumedEnergy or
-  FuelTypeEnergy), not from the ship count.
+  fuel switch: judge it from the energy consumed by fuel (ConsumedEnergy), not
+  from the ship count. FuelTypeEnergy cannot tell fuel oil, FAME and e-diesel
+  apart: all three are of fuel type OIL.
 - A bunker price of 0 for a fuel at a port means there is no supply of it, not
-  that it is free.
+  that it is free. To say how far such a fuel is from competing, add
+  `add_plant_property("*", InvestmentIntensityCost)` to your Report: it gives
+  each plant's levelized cost per GJ every year, even when none is built.
 - The investment freight rate has no value in the first time step; quote the
   second if the first is asked for. Whether any plant was built does not appear
   in DefaultReport: look at `plots/producer_development.png`.
