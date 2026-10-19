@@ -252,7 +252,7 @@ def _assign_fair_share_of_gap(
             key = (producer_name, fuel_name)
             demand_share = gap[fuel_name] * fair_share[key]
             expectation.set_fair_share_demand(idx, fuel_name, demand_share)
-            profile.set_fair_share_fuel_fraction(idx, fuel_name, fair_share[key])
+            profile.fair_share_fuel_fraction[fuel_name][idx] = fair_share[key]
 
 
 def _calculate_expected_producer_fuel_supply(

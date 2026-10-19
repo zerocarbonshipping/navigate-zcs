@@ -47,10 +47,10 @@ if TYPE_CHECKING:
     from navigate.core.expression import Expression
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.curve import Curve
-    from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.core.types_ import (
         CurveTableArgument,
         CurveTableInput,
@@ -545,10 +545,7 @@ class Fleet(Node):
 
     def initialize_profile(
         self,
-        timeline: np.ndarray,
-        fuels: dict[str, Fuel],
-        emissions: dict[str, Emission],
-        emissions_lifetime: float,
+        context: ProfileContext,
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
@@ -557,14 +554,7 @@ class Fleet(Node):
         technology_names = [technology.name for technology in self.technologies]
 
         self.profile.initialize(
-            timeline,
-            vessel_names,
-            technology_names,
-            fuels,
-            emissions,
-            emissions_lifetime,
-            regulation_names,
-            levy_names,
+            context, vessel_names, technology_names, regulation_names, levy_names
         )
 
     def can_retrofit(self) -> bool:

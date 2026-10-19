@@ -24,6 +24,7 @@ from navigate.output.plots._figure import (
 )
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_cost
+from navigate.util import sum_values
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -39,12 +40,12 @@ def _plot_global_expenses(
     fig, ax = single_panel()
 
     profile = results.profile
-    vessel_expenses = profile.get_vessel_expenses()
-    conversion_expenses = profile.get_fuel_conversion_expenses()
-    technology_expenses = profile.get_technology_expenses()
-    fuel_expenses = profile.get_total_fuel_expenses()
+    vessel_expenses = profile.vessel_expenses
+    conversion_expenses = profile.fuel_conversion_expenses
+    technology_expenses = profile.technology_expenses
+    fuel_expenses = profile.total_fuel_expenses
     policy_expenses = (
-        profile.get_total_levy_expenses() + profile.get_regulation_expenses()
+        sum_values(profile.levy_expenses, dateline.shape) + profile.regulation_expenses
     )
 
     values = [

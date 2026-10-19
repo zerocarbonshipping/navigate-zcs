@@ -11,7 +11,7 @@ SimulationResults of a finished run. The Report node is not assigned on any othe
 from __future__ import annotations
 
 from navigate.core import assign_id
-from navigate.core.enum_ import FileFormatID, ReportReduceID
+from navigate.core.enum_ import FileFormatID, ReportAccumulationID, ReportReduceID
 from navigate.core.node import Node
 from navigate.core.node_report import GLOBAL_PROFILE_KEY, NodeReport
 from navigate.core.node_type import REPORT
@@ -47,57 +47,96 @@ class Report(Node):
         self.file_format = assign_id(file_format, FileFormatID)
 
     # external methods (DSL commands) --------------------------------------------------
-    def add_property(self, attribute: str, reduce: str | None = None) -> None:
+    def add_property(
+        self,
+        attribute: str,
+        reduce: str | None = None,
+        accumulate: str | None = None,
+    ) -> None:
         """Record a global property to export."""
         self._add_property(
-            GLOBAL_PROFILE_KEY, self.global_reports, attribute, reduce=reduce
+            GLOBAL_PROFILE_KEY, self.global_reports, attribute, reduce, accumulate
         )
 
     def add_fleet_property(
-        self, fleet_name: str, attribute: str, reduce: str | None = None
+        self,
+        fleet_name: str,
+        attribute: str,
+        reduce: str | None = None,
+        accumulate: str | None = None,
     ) -> None:
         """Record a property of one or more fleets to export."""
-        self._add_property(fleet_name, self.fleet_reports, attribute, reduce=reduce)
+        self._add_property(
+            fleet_name, self.fleet_reports, attribute, reduce, accumulate
+        )
 
     def add_levy_property(
-        self, levy_name: str, attribute: str, reduce: str | None = None
+        self,
+        levy_name: str,
+        attribute: str,
+        reduce: str | None = None,
+        accumulate: str | None = None,
     ) -> None:
         """Record a property of one or more levies to export."""
-        self._add_property(levy_name, self.levy_reports, attribute, reduce=reduce)
+        self._add_property(levy_name, self.levy_reports, attribute, reduce, accumulate)
 
     def add_plant_property(
-        self, plant_name: str, attribute: str, reduce: str | None = None
+        self,
+        plant_name: str,
+        attribute: str,
+        reduce: str | None = None,
+        accumulate: str | None = None,
     ) -> None:
         """Record a property of one or more plants to export."""
-        self._add_property(plant_name, self.plant_reports, attribute, reduce=reduce)
+        self._add_property(
+            plant_name, self.plant_reports, attribute, reduce, accumulate
+        )
 
     def add_port_property(
-        self, port_name: str, attribute: str, reduce: str | None = None
+        self,
+        port_name: str,
+        attribute: str,
+        reduce: str | None = None,
+        accumulate: str | None = None,
     ) -> None:
         """Record a property of one or more ports to export."""
-        self._add_property(port_name, self.port_reports, attribute, reduce=reduce)
+        self._add_property(port_name, self.port_reports, attribute, reduce, accumulate)
 
     def add_producer_property(
-        self, producer_name: str, attribute: str, reduce: str | None = None
+        self,
+        producer_name: str,
+        attribute: str,
+        reduce: str | None = None,
+        accumulate: str | None = None,
     ) -> None:
         """Record a property of one or more producers to export."""
         self._add_property(
-            producer_name, self.producer_reports, attribute, reduce=reduce
+            producer_name, self.producer_reports, attribute, reduce, accumulate
         )
 
     def add_regulation_property(
-        self, regulation_name: str, attribute: str, reduce: str | None = None
+        self,
+        regulation_name: str,
+        attribute: str,
+        reduce: str | None = None,
+        accumulate: str | None = None,
     ) -> None:
         """Record a property of one or more regulations to export."""
         self._add_property(
-            regulation_name, self.regulation_reports, attribute, reduce=reduce
+            regulation_name, self.regulation_reports, attribute, reduce, accumulate
         )
 
     def add_vessel_property(
-        self, vessel_name: str, attribute: str, reduce: str | None = None
+        self,
+        vessel_name: str,
+        attribute: str,
+        reduce: str | None = None,
+        accumulate: str | None = None,
     ) -> None:
         """Record a property of one or more vessels to export."""
-        self._add_property(vessel_name, self.vessel_reports, attribute, reduce=reduce)
+        self._add_property(
+            vessel_name, self.vessel_reports, attribute, reduce, accumulate
+        )
 
     # internal methods -----------------------------------------------------------------
     @staticmethod
@@ -106,13 +145,20 @@ class Report(Node):
         assignment_dict: dict[str, NodeReport],
         attribute: str,
         reduce: str | None = None,
+        accumulate: str | None = None,
     ) -> None:
         internal_reduce = ReportReduceID.NONE
+        internal_accumulate = ReportAccumulationID.NONE
 
         if reduce is not None:
             internal_reduce = assign_id(reduce, ReportReduceID)
 
+        if accumulate is not None:
+            internal_accumulate = assign_id(accumulate, ReportAccumulationID)
+
         if node_name not in assignment_dict:
             assignment_dict[node_name] = NodeReport()
 
-        assignment_dict[node_name].add_property(attribute, internal_reduce)
+        assignment_dict[node_name].add_property(
+            attribute, internal_reduce, internal_accumulate
+        )

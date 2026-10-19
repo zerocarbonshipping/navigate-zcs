@@ -23,7 +23,7 @@ import pytest
 
 from helpers.simulation import check_invariants, run_simulation
 from navigate.core import enum_
-from navigate.core.enum_ import ReportReduceID
+from navigate.core.enum_ import ReportAccumulationID, ReportReduceID
 from navigate.parser._attributes import (
     GENERAL_NODE_ATTRIBUTE_SECTIONS,
     NODE_ATTRIBUTE_SECTIONS,
@@ -181,9 +181,13 @@ def _id_command_arguments() -> dict[tuple[str, int], set[str]]:
     for command in _REPORT_COMMANDS:
         cls = NODE_CLASS["Report"]
         parameters = list(inspect.signature(getattr(cls, command)).parameters)
-        # positions count deck arguments, which leave out self
-        index = parameters.index("reduce") - 1
-        domains[(command, index)] = {member.name for member in ReportReduceID}
+        for argument, ids in (
+            ("reduce", ReportReduceID),
+            ("accumulate", ReportAccumulationID),
+        ):
+            # positions count deck arguments, which leave out self
+            index = parameters.index(argument) - 1
+            domains[(command, index)] = {member.name for member in ids}
 
     return domains
 

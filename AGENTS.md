@@ -123,7 +123,7 @@ each other's files, and the test suites run decks too.
   registries against the setters and `test_node_pages.py` the manual pages
   against the registries, both in both directions; the report-property
   appendix of `docs/reference_manual/report.md` is checked against the
-  profile getters the same way by `test_report_property_docs.py`. The
+  profile results the same way by `test_report_property_docs.py`. The
   coverage deck is checked against the registries by
   `tests/end_to_end/test_attribute_coverage.py`.
 - A change that moves simulation results explains the difference in the

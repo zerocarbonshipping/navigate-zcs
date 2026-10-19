@@ -47,11 +47,11 @@ def plot_regulation_compliance(results: SimulationResults, directory: Path) -> N
         has_threshold_adjustment = regulation.allow_threshold_adjustment
 
         if scheme == RegulationSchemeID.INDIVIDUAL:
-            compliance = profile.get_vessel_compliance()
-            thresholds = profile.get_vessel_threshold()
+            compliance = profile.vessel_compliance
+            thresholds = profile.vessel_threshold
 
             if has_threshold_adjustment:
-                adjusted = profile.get_adjusted_vessel_threshold()
+                adjusted = profile.adjusted_vessel_threshold
                 adjusted = {
                     key: value
                     for key, value in adjusted.items()
@@ -62,19 +62,19 @@ def plot_regulation_compliance(results: SimulationResults, directory: Path) -> N
 
         else:
             if measure in (RegulationMeasureID.ABSOLUTE, RegulationMeasureID.INTENSITY):
-                compliance = {regulation_name: profile.get_shared_compliance()}
-                thresholds = {regulation_name: profile.get_shared_threshold()}
+                compliance = {regulation_name: profile.shared_compliance}
+                thresholds = {regulation_name: profile.shared_threshold}
 
             else:
                 # transport based regulations are not guaranteed to
                 # share the same unit (TEU, tons, CEU, etc.) and
                 # therefore they cannot be compared on an intensity basis
-                compliance = {regulation_name: profile.get_shared_units()}
-                thresholds = {regulation_name: profile.get_shared_allowance()}
+                compliance = {regulation_name: profile.shared_units}
+                thresholds = {regulation_name: profile.shared_allowance}
 
             adjusted = {}
             if has_threshold_adjustment:
-                shared_adjusted = profile.get_adjusted_shared_threshold()
+                shared_adjusted = profile.adjusted_shared_threshold
                 if np.any(np.isfinite(shared_adjusted)):
                     adjusted = {regulation_name: shared_adjusted}
 

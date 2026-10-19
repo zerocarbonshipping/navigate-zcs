@@ -33,7 +33,7 @@ def _select_fuel_types(vessels: dict[str, Vessel]) -> list[FuelTypeID]:
     """
     Primary fuel types of vessels with a matching dual-fuel converter.
 
-    In FUEL_TYPE_ORDER. get_pilot_fuel_share() keys its data by
+    In FUEL_TYPE_ORDER. pilot_fuel_share keys its data by
     vessel.primary_fuel_type (every fuel a vessel bunkers is recorded under
     that single type, see navigate.simulation.bunker.transfer.bunker.transfer_bunker). A
     vessel counts when one of its own converters is dual-fuel and lists the
@@ -91,7 +91,7 @@ def plot_engine_pilot_fuel_share(results: SimulationResults, directory: Path) ->
     if not relevant_fuel_types:
         return
 
-    fleet_pilot_fuel_share = results.profile.get_pilot_fuel_share()
+    fleet_pilot_fuel_share = results.profile.pilot_fuel_share
     pilot_fuel_share = {
         fuel_type: np.where(
             fleet_pilot_fuel_share[fuel_type] > 0.0,

@@ -41,12 +41,12 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
             # kept for the inertia floor of the next time-step
             vessel.expectation.add_bunker_mass_existing(port_name, f, bunker.X)
 
-            vessel.profile.add_consumed_mass(f, bunker.X, idx=alg.idx)
-            vessel.profile.add_converter_mass(
-                vessel.primary_fuel_type, f, bunker.X, idx=alg.idx
+            vessel.profile.consumed_mass[f][alg.idx] += bunker.X
+            vessel.profile.converter_mass[vessel.primary_fuel_type][f][alg.idx] += (
+                bunker.X
             )
-            vessel.profile.add_fuel_expenses(f, fuel_expenses, alg.idx)
-            port.profile.add_bunker_mass(f, alg.multipliers[v] * bunker.X, alg.idx)
+            vessel.profile.fuel_expenses[f][alg.idx] += fuel_expenses
+            port.profile.bunker_mass[f][alg.idx] += alg.multipliers[v] * bunker.X
 
         else:
             fuel_expenses = price * bunker.X
@@ -60,16 +60,16 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
                     port.expectation.get_bunker_wtt(f, emission_name, alg.idx)
                 )
                 wtt_emissions = emission_factor * bunker.X
-                vessel.profile.add_wtt(f, emission_name, wtt_emissions, idx=alg.idx)
+                vessel.profile.wtt[f, emission_name][alg.idx] += wtt_emissions
 
         for levy in port.imposed_levies:
             cost = levy.expectation.get_cost((v, port_name, f), alg.idx)
             collected = cost * bunker.X
 
             if alg.scope == BunkerScopeID.EXISTING:
-                levy.profile.add_collected(collected * alg.multipliers[v], alg.idx)
-                vessel.profile.add_levy_expenses(f, collected, alg.idx)
+                levy.profile.collected[alg.idx] += collected * alg.multipliers[v]
+                vessel.profile.levy_expenses[f][alg.idx] += collected
 
                 level = float(levy.expectation.get_level(alg.idx))
                 if level > 0.0:
-                    vessel.profile.add_levy_units(levy.name, collected / level, alg.idx)
+                    vessel.profile.levy_units[levy.name][alg.idx] += collected / level

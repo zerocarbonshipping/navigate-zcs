@@ -17,6 +17,7 @@ from navigate.output.plots._figure import (
 )
 from navigate.output.plots._labels import FUEL_COLOR
 from navigate.output.plots._layout import trim_axes
+from navigate.util import sum_values
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -65,12 +66,11 @@ def plot_plant_production_emissions(
                 ].get() * emission.global_warming_potential.get(emissions_lifetime)
 
             profile = plant.profile
-            investment = np.round(
-                (profile.get_total_equivalent_investment_wtt() + ttw) / lhv * 1e3, 5
-            )
-            instantaneous = np.round(
-                (profile.get_total_equivalent_instantaneous_wtt() + ttw) / lhv * 1e3, 5
-            )
+            shape = dateline.shape
+            investment_wtt = sum_values(profile.equivalent_investment_wtt, shape)
+            instantaneous_wtt = sum_values(profile.equivalent_instantaneous_wtt, shape)
+            investment = np.round((investment_wtt + ttw) / lhv * 1e3, 5)
+            instantaneous = np.round((instantaneous_wtt + ttw) / lhv * 1e3, 5)
 
             investment_lim = np.where(np.isnan(investment), 0.0, investment)
             instantaneous_lim = np.where(np.isnan(instantaneous), 0.0, instantaneous)

@@ -125,12 +125,12 @@ def _calculate_compliance_profile(
             continue
 
         vessel_compliance = account.emissions / account.measure
-        profile.set_vessel_compliance(idx, vessel_name, vessel_compliance)
-        profile.set_vessel_allowance(idx, vessel_name, account.allowance)
-        profile.set_vessel_units(idx, vessel_name, account.emissions)
+        profile.vessel_compliance[vessel_name][idx] = vessel_compliance
+        profile.vessel_allowance[vessel_name][idx] = account.allowance
+        profile.vessel_units[vessel_name][idx] = account.emissions
 
-    profile.set_shared_allowance(idx, total_allowance)
-    profile.set_shared_units(idx, total_emissions)
+    profile.shared_allowance[idx] = total_allowance
+    profile.shared_units[idx] = total_emissions
 
     # shared compliance and threshold only make sense for absolute emissions and
     # energy intensity: transport-based intensities need not share a unit
@@ -141,14 +141,14 @@ def _calculate_compliance_profile(
         return
 
     compliance = _normalize_by_measure(regulation, total_emissions, total_measure)
-    profile.set_shared_compliance(idx, compliance)
+    profile.shared_compliance[idx] = compliance
 
     # the fleet-level effective target of a flexible regulation: the measure-weighted
     # mean of the per-vessel thresholds, equal to the uniform value when the
     # thresholds are assigned via a wildcard
     if regulation.scheme == RegulationSchemeID.FLEXIBLE:
         threshold = _normalize_by_measure(regulation, total_allowance, total_measure)
-        profile.set_shared_threshold(idx, threshold)
+        profile.shared_threshold[idx] = threshold
 
 
 def _calculate_adjusted_threshold_profile(
@@ -169,11 +169,11 @@ def _calculate_adjusted_threshold_profile(
 
         threshold = expectation.get_adjusted_vessel_threshold(vessel_name, idx)
         if not np.isnan(threshold):
-            profile.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
+            profile.adjusted_vessel_threshold[vessel_name][idx] = threshold
 
     shared_threshold = expectation.get_adjusted_shared_threshold(idx)
     if not np.isnan(shared_threshold):
-        profile.set_adjusted_shared_threshold(idx, shared_threshold)
+        profile.adjusted_shared_threshold[idx] = shared_threshold
 
 
 def _normalize_by_measure(

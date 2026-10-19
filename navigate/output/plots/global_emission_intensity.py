@@ -25,7 +25,7 @@ def plot_global_emission_intensity(results: SimulationResults, directory: Path) 
 
     fig, ax = single_panel()
 
-    intensity = results.profile.get_intensity_total_equivalent_wtw()
+    intensity = results.profile.intensity_total_equivalent_wtw
 
     ax.plot(dateline, intensity, color="k")
 

@@ -18,12 +18,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   the deck, or to the path given with `-o`/`--results`: every profile result
   of the global profile and of each fleet, vessel, port, plant, producer,
   regulation and levy, one row per series and date, with the unit of each
-  result in the file metadata. [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
+  result and the fuel and emission constants in the file metadata. [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
   opens it to plot the results in the browser; the built-in plots are kept
   for now. The layout is described on the new reference-manual page "Results
   file".
-- Fleet report property `CumulativeFuelConversions`: vessels fuel converted
-  per vessel to vessel, summed over the time steps before each date.
+- Vessel report property `InFleet`: whether the vessel is part of its fleet.
+- Report commands take a fourth argument, `CUMULATIVE`, which reports a
+  property accumulated over the time steps up to and including each date under
+  its name prefixed with `Cumulative`: `add_fleet_property("*", FuelConversions, NONE, CUMULATIVE)`.
 - The console prints the number of logged warnings at the end of a run,
   pointing at the `.log` file.
 - Vessel report properties `SpeedEnergyIntensitySaving`,
@@ -93,9 +95,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   is the share of the sea miles sailed between the two ports, no longer of the
   sailing time. Results are unchanged where all legs sail the same conditions.
 - Technology `Capex`/`Opex` enters the vessel cost metrics, so newbuild choice
-  shifts. `TechnologyExpenses` and `CumulativeTechnologyExpenses` replace the
-  never-populated `TechnologyNewbuildExpenses` and
-  `TechnologyRetrofitExpenses`.
+  shifts. `TechnologyExpenses` replaces the never-populated
+  `TechnologyNewbuildExpenses` and `TechnologyRetrofitExpenses`.
 - Shore power is counted in `TotalConsumedEnergy`, `TotalFuelExpenses` and
   the `TotalEquivalentWtw` emissions, and so in the expense and Wtw plots.
 - Fuel-conversion expenses are levelized exactly at the destination vessel's
@@ -179,6 +180,23 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   remains, as the fleet-level effective target of a `FLEXIBLE` regulation.
 - The `CumulativeIntensityEquivalent*` and
   `CumulativeIntensityTotalEquivalent*` report properties.
+- Report properties that are a reduction, accumulation or unit conversion of
+  another one; they are no longer in the results file either:
+  - every `Cumulative*` property: add the property with `CUMULATIVE`, e.g.
+    `add_property(FuelExpenses, NONE, CUMULATIVE)`; its value at a date now
+    includes the time step ending at that date;
+  - `TotalEquivalentWtt`, `TotalEquivalentTtw`, `TotalLevyExpenses`,
+    `TotalEnergyPort`, `TotalEquivalentBunkerWtt` and plant
+    `TotalEquivalent*Wtt`: add the property without `Total` with `BOTH`;
+  - the per-key `IntensityEquivalentWtt`, `IntensityEquivalentTtw` and
+    `IntensityEquivalentWtw`; the `IntensityTotalEquivalent*` totals remain;
+  - port `BunkerIntensityPrice`, `BunkerIntensityWtt`,
+    `BunkerIntensityEquivalentWtt` and `BunkerIntensityTotalEquivalentWtt`,
+    and plant `*IntensityCost` and `IntensityEquivalent*Wtt`: report the
+    per-ton property (`BunkerPrice`, `BunkerWtt`, `EquivalentBunkerWtt`,
+    `InvestmentCost`, `EquivalentInvestmentWtt`, ...) and divide by the
+    fuel's heating value, which the results file metadata lists with the
+    fuel each plant produces.
 - Unused profile report properties:
   - volume-denominated output, FuelType mass aggregation, fuel-quantity
     cumulatives and non-GWP-equivalent emission variants;

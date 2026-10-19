@@ -273,9 +273,9 @@ def test_a_general_node_takes_no_command(tmp_path, read_deck, type_):
             # an optional argument counts towards the most a command takes
             Report("r"),
             "add_property",
-            ["a", "b", "c"],
-            "Report(\"r\"): Command 'add_property' takes up to 2 inputs, 'attribute' "
-            "and 'reduce', but 3 were given",
+            ["a", "b", "c", "d"],
+            "Report(\"r\"): Command 'add_property' takes up to 3 inputs, 'attribute', "
+            "'reduce', and 'accumulate', but 4 were given",
         ),
     ],
     ids=[

@@ -25,7 +25,7 @@ change could silently break the decision it pins.
   transforms.
 - `parser/` — DSL input becomes the right node state, or the right error.
 - `docs/` — the reference manual matches the parser registries and the
-  profile getters, both ways.
+  profile results, both ways.
 
 **`end_to_end/`**
 

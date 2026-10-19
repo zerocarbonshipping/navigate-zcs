@@ -5,47 +5,44 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
-from navigate.core.profiles._fuel_type_lookup import _FuelTypeLookup
+from navigate.core.profiles._base_profile import _BaseProfile, accumulate, result
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.process import Process
     from navigate.util.types_ import FloatArray
 
 
-class _FuelProducerProfile(_FuelBaseProfile, _FuelTypeLookup):
+@dataclass(eq=False, repr=False)
+class _FuelProducerProfile(_BaseProfile):
     """Fuel produced, feedstock consumed and the availability limit on it."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    # the mass is written, the energy computed from it
+    production_mass: dict[str, FloatArray] = field(init=False)
+    production_energy: dict[str, FloatArray] = result("GJ/year")
+    production_type_energy: dict[FuelTypeID, FloatArray] = result("GJ/year")
 
-        self._production_mass: dict[str, FloatArray] = {}
-
-        self._feed_mass: dict[str, FloatArray] = {}
-        self._feed_constraint: dict[str, FloatArray] = {}
+    feed_mass: dict[str, FloatArray] = result("t/year")
+    feed_constraint: dict[str, FloatArray] = result("t/year")
 
     def _initialize_fuel_producer(
         self,
         feedstocks: dict[str, Feedstock],
-        fuels: dict[str, Fuel],
         processes: dict[str, Process],
     ) -> None:
-        self._production_mass = self._default_dict(fuels)
+        self.production_mass = self._default_dict(self.context.fuels)
 
         feed = {**feedstocks, **processes}
-        self._feed_mass = self._default_dict(feed)
-        self._feed_constraint = self._default_dict(feed, default=np.inf)
+        self.feed_mass = self._default_dict(feed)
+        self.feed_constraint = self._default_dict(feed, default=np.inf)
 
-    def add_fuel_producer_profile(
-        self, profile: _FuelProducerProfile, idx: int | slice = np.s_[:]
-    ) -> None:
+    def add_fuel_producer_profile(self, profile: _FuelProducerProfile) -> None:
         """
         Add another fuel producer profile's values into this one.
 
@@ -53,43 +50,7 @@ class _FuelProducerProfile(_FuelBaseProfile, _FuelTypeLookup):
         ----------
         profile
             Producer profile from another node.
-        idx
-            Time-step index or slice.
         """
-        for fuel_name in self._production_mass:
-            self._production_mass[fuel_name][idx] += profile._production_mass[
-                fuel_name
-            ][idx]
-
-        for feed_name in self._feed_mass:
-            self._feed_mass[feed_name][idx] += profile._feed_mass[feed_name][idx]
-
-        for feed_name in self._feed_constraint:
-            self._feed_constraint[feed_name][idx] += profile._feed_constraint[
-                feed_name
-            ][idx]
-
-    def add_production_mass(
-        self, fuel_name: str, mass: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._production_mass[fuel_name][idx] += mass
-
-    def add_feed_mass(
-        self, feed_name: str, mass: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._feed_mass[feed_name][idx] += mass
-
-    def set_feed_constraint(self, idx: int, feed_name: str, constraint: float) -> None:
-        self._feed_constraint[feed_name][idx] = constraint
-
-    def get_production_energy(self) -> dict[str, FloatArray]:
-        return self._fuel_mass_to_energy(self._production_mass)
-
-    def get_production_type_energy(self) -> dict[FuelTypeID, FloatArray]:
-        return self._fuel_type_mass_to_energy(self._production_mass)
-
-    def get_feed_mass(self) -> dict[str, FloatArray]:
-        return dict(self._feed_mass)
-
-    def get_feed_constraint(self) -> dict[str, FloatArray]:
-        return dict(self._feed_constraint)
+        accumulate(self.production_mass, profile.production_mass)
+        accumulate(self.feed_mass, profile.feed_mass)
+        accumulate(self.feed_constraint, profile.feed_constraint)

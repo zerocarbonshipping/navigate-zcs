@@ -39,7 +39,7 @@ def plot_fleet_trade(results: SimulationResults, directory: Path) -> None:
     fleet_color = rgb(60.0, 94.0, 134.0)
     assumed_color = rgb(194.0, 128.0, 128.0)
 
-    fleet_trades = [fleet.profile.get_trade() for fleet in fleets.values()]
+    fleet_trades = [fleet.profile.trade for fleet in fleets.values()]
     assumed_trades = [fleet.trade for fleet in fleets.values()]
 
     divisor, unit = get_best_unit_cargo_miles(

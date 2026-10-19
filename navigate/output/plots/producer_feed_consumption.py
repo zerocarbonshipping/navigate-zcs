@@ -46,8 +46,8 @@ def plot_producer_feed_consumption(results: SimulationResults, directory: Path) 
     for producer_name, producer in producers.items():
         constrained_feeds: dict[str, tuple[FloatArray, FloatArray]] = {}
         profile = producer.profile
-        feed_mass = profile.get_feed_mass()
-        feed_constraint = profile.get_feed_constraint()
+        feed_mass = profile.feed_mass
+        feed_constraint = profile.feed_constraint
 
         for feed_name in feeds:
             consumed = feed_mass[feed_name]

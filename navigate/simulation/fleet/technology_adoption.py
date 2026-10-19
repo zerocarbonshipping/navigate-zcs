@@ -708,9 +708,9 @@ def _transfer_retrofit_uptake(
         for i, technology in enumerate(sorted_technologies):
             count = retrofit_counts.get((v, i), 0.0)
             share = float(divide_nonzero(count, multipliers_total))
-            fleet.profile.set_retrofit_technology_uptake(
-                idx, vessel.name, technology.name, share
-            )
+            fleet.profile.retrofit_technology_uptake[vessel.name, technology.name][
+                idx
+            ] = share
 
 
 def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
@@ -740,4 +740,4 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
         average = float(divide_nonzero(total, weight))
 
         vessel.expectation.set_technology_charter_rate(idx, average)
-        vessel.profile.set_technology_cost(idx, average)
+        vessel.profile.technology_cost[idx] = average

@@ -633,8 +633,8 @@ def _apply_from_side(
             if proposal.increment_idx == 0 and increments_from[0].baseline is not None:
                 increments_from[0].baseline -= candidate.count
 
-            fleet.profile.add_fuel_conversions(
-                proposal.name_from, name_to, candidate.count, idx
+            fleet.profile.fuel_conversions[proposal.name_from, name_to][idx] += (
+                candidate.count
             )
 
             _book_conversion_expenses(expenses_ahead, years_ahead, candidate)

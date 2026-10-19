@@ -5,12 +5,12 @@
 The report-property appendix documents exactly the properties a report can carry.
 
 docs/reference_manual/report.md is hand-written with no autodoc, so a table row
-and a profile getter can drift apart in either direction without anything else
+and a profile result can drift apart in either direction without anything else
 failing: a stale row sends a deck writer after a property the parser rejects, and
-a getter no row names is a result nobody can find.
+a result no row names is one nobody can find.
 
 Both directions are checked here. Forward: every documented token passes the
-parser's check for every command the table is listed under. Reverse: every getter
+parser's check for every command the table is listed under. Reverse: every result
 reachable from a token is documented under every command whose profile class
 exposes it.
 """
@@ -20,12 +20,8 @@ from __future__ import annotations
 import pytest
 
 from helpers.reference_manual import REPORT_PAGE, report_property_tables
-from helpers.report_properties import (
-    PLUMBING_GETTERS,
-    PROFILE_CLASSES,
-    getter_for,
-    token_for,
-)
+from helpers.report_properties import PROFILE_CLASSES, result_for, token_for
+from navigate.core.profiles import result_names
 from navigate.parser._report_properties import check_report_property
 
 TABLES = report_property_tables()
@@ -60,17 +56,12 @@ def _resolvable_properties():
     found = []
 
     for command, profile_class in PROFILE_CLASSES.items():
-        getters = sorted(name for name in dir(profile_class) if name.startswith("get_"))
+        for result in sorted(result_names(profile_class)):
+            token = token_for(result)
 
-        for getter in getters:
-            if getter in PLUMBING_GETTERS:
-                continue
-
-            token = token_for(getter)
-
-            # a getter whose token reads back as another getter is reachable from
+            # a result whose token reads back as another result is reachable from
             # no deck, so no row can be demanded for it
-            if getter_for(token) != getter:
+            if result_for(token) != result:
                 continue
 
             found.append(pytest.param(command, token, id=f"{command}:{token}"))

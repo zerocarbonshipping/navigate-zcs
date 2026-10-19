@@ -40,7 +40,7 @@ def calculate_producer_profile(
     _transfer_production_and_feed_mass(producer, years, today, idx)
     _transfer_plant_tied_capital(producer, years, today, idx)
 
-    producer.profile.set_maximum_development(idx, producer.maximum_development.get())
+    producer.profile.maximum_development[idx] = producer.maximum_development.get()
 
 
 def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
@@ -56,7 +56,7 @@ def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
     """
     for feed_name, constraint in producer.feed_constraints.items():
         if constraint is not None:
-            producer.profile.set_feed_constraint(idx, feed_name, constraint.get())
+            producer.profile.feed_constraint[feed_name][idx] = constraint.get()
 
 
 def _transfer_production_and_feed_mass(
@@ -93,12 +93,12 @@ def _transfer_production_and_feed_mass(
         production_unit = expectation.get_production(origins)
         production = np.sum(production_unit * multipliers)
 
-        producer.profile.add_production_mass(fuel_name, production, idx)
+        producer.profile.production_mass[fuel_name][idx] += production
 
         conversions = expectation.get_feed_masses(origins)
         for feed_name, conversion in conversions.items():
             feed_mass = np.sum(production_unit * conversion * multipliers)
-            producer.profile.add_feed_mass(feed_name, feed_mass, idx)
+            producer.profile.feed_mass[feed_name][idx] += feed_mass
 
 
 def _transfer_plant_tied_capital(
@@ -129,7 +129,7 @@ def _transfer_plant_tied_capital(
             tied_capital_flow = plant.expectation.get_tied_capital(origin)
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 
-            producer.profile.add_plant_tied_capital(tied_capital * inc.multiplier, idx)
+            producer.profile.plant_tied_capital[idx] += tied_capital * inc.multiplier
 
 
 def calculate_port_profile(port: Port, idx: int) -> None:
@@ -146,8 +146,8 @@ def calculate_port_profile(port: Port, idx: int) -> None:
     profile = port.profile
 
     for key, value in port.bunkering_allowed.items():
-        profile.set_bunkering_allowed(idx, key, value)
+        profile.bunkering_allowed[key][idx] = value
 
     for key, value in port.bunkering_limit.items():
         if value is not None:
-            profile.set_bunkering_limit_mass(idx, key, value.get())
+            profile.bunkering_limit_mass[key][idx] = value.get()

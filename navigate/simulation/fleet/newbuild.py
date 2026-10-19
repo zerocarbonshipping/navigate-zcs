@@ -123,7 +123,7 @@ def calculate_orderbook_newbuilds(
         log_orderbook_deferral(fleet, delivery, attempted, reason="newbuild limit")
 
     for v, vessel in enumerate(fleet.vessels):
-        fleet.profile.add_newbuilds(vessel.name, delivery[v], idx)
+        fleet.profile.newbuilds[vessel.name][idx] += delivery[v]
 
     cap_count_remaining = np.maximum(cap_count - delivery, 0.0)
 
@@ -281,7 +281,7 @@ def calculate_modelled_newbuilds(
 
     for i, v in enumerate(index):
         increments[v] = inertia_increments[i] + modelled_increments[i]
-        fleet.profile.add_newbuilds(fleet.vessels[v].name, increments[v], idx)
+        fleet.profile.newbuilds[fleet.vessels[v].name][idx] += increments[v]
 
     return increments, np.dot(
         np.add(inertia_increments, modelled_increments), cargo_miles

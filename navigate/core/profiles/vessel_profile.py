@@ -5,66 +5,65 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
-from navigate.core.initial_values import EMPTY_BOOL, EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.profiles._base_profile import result
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
-from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Sequence
 
-    from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.util.types_ import BoolArray, FloatArray
 
 
+@dataclass(eq=False, repr=False)
 class VesselProfile(_FuelConsumerProfile):
     """Energy, emissions, speeds, expenses and charter rates of one vessel type."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    lifetime: FloatArray = result("years")
+    lead_time: FloatArray = result("years")
 
-        self._lifetime: FloatArray = EMPTY_FLOAT
-        self._lead_time: FloatArray = EMPTY_FLOAT
+    cargo_miles: FloatArray = result("cargo-miles/year")
 
-        self._cargo_miles: FloatArray = EMPTY_FLOAT
+    # speeds
+    reference_speed: FloatArray = result("knots")
+    minimum_speed: FloatArray = result("knots")
+    maximum_speed: FloatArray = result("knots")
+    actual_speed: FloatArray = result("knots")
+    optimal_speed: FloatArray = result("knots")
+    lowest_speed: FloatArray = result("knots")
+    highest_speed: FloatArray = result("knots")
 
-        # speeds
-        self._reference_speed: FloatArray = EMPTY_NAN
-        self._minimum_speed: FloatArray = EMPTY_NAN
-        self._maximum_speed: FloatArray = EMPTY_NAN
-        self._actual_speed: FloatArray = EMPTY_NAN
-        self._optimal_speed: FloatArray = EMPTY_NAN
-        self._lowest_speed: FloatArray = EMPTY_NAN
-        self._highest_speed: FloatArray = EMPTY_NAN
+    # investment signals: energy-weighted average of the smoothed
+    # energy-conservation duals
+    investment_signal_technology: FloatArray = result("USD/GJ")
+    investment_signal_speed: FloatArray = result("USD/GJ")
 
-        # investment signals (energy-weighted average of the smoothed
-        # energy-conservation duals, USD/GJ)
-        self._investment_signal_technology: FloatArray = EMPTY_NAN
-        self._investment_signal_speed: FloatArray = EMPTY_NAN
+    technology_cost: FloatArray = result("USD/year")
 
-        self._technology_cost: FloatArray = EMPTY_FLOAT
+    # freight and charter rates
+    asset_charter_rate: FloatArray = result("USD/year")
+    cargo_charter_rate: FloatArray = result("USD/year")
+    investment_freight_rate: FloatArray = result("USD/cargo-mile")
+    instantaneous_freight_rate: FloatArray = result("USD/cargo-mile")
 
-        # freight and charter rates
-        self._asset_charter_rate: FloatArray = EMPTY_NAN
-        self._cargo_charter_rate: FloatArray = EMPTY_NAN
-        self._investment_freight_rate: FloatArray = EMPTY_NAN
-        self._instantaneous_freight_rate: FloatArray = EMPTY_NAN
+    # savings against the year-0 raw energy
+    speed_energy_saving: FloatArray = result("-")
+    operational_energy_saving: FloatArray = result("-")
+    technology_energy_saving: FloatArray = result("-")
+    energy_saving: FloatArray = result("-")
 
-        # fleet membership and cost state
-        self._in_fleet: BoolArray = EMPTY_BOOL
-        self._cost_is_calculated: BoolArray = EMPTY_BOOL
+    # fleet membership and cost state
+    in_fleet: BoolArray = result("-")
+    cost_is_calculated: BoolArray = field(init=False)
 
     def initialize(
         self,
-        timeline: FloatArray,
-        emissions: dict[str, Emission],
-        fuels: dict[str, Fuel],
-        emissions_lifetime: float,
+        context: ProfileContext,
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
@@ -73,229 +72,41 @@ class VesselProfile(_FuelConsumerProfile):
 
         Parameters
         ----------
-        timeline
-            Simulation timeline, in years.
-        emissions
-            All emissions in the simulation.
-        fuels
-            All fuels in the simulation.
-        emissions_lifetime
-            Lifetime the global warming potentials are read at, in years.
+        context
+            Timeline, fuels and emissions of the run.
         regulation_names
             Names of all regulations in the simulation.
         levy_names
             Names of all levies in the simulation.
         """
-        self._initialize_base(timeline)
-        self._initialize_fuel_base(fuels)
-        self._initialize_fuel_type(fuels)
-        self._initialize_fuel_emission(emissions, emissions_lifetime)
-        self._initialize_fuel_consumer(fuels, emissions, regulation_names, levy_names)
+        self._initialize_base(context)
+        self._initialize_fuel_consumer(regulation_names, levy_names)
 
-        self._lifetime = self._default_array()
-        self._lead_time = self._default_array()
+        self.lifetime = self._default_array()
+        self.lead_time = self._default_array()
 
-        self._cargo_miles = self._default_array()
+        self.cargo_miles = self._default_array()
 
         # speeds
-        self._reference_speed = self._default_array(default=np.nan)
-        self._minimum_speed = self._default_array(default=np.nan)
-        self._maximum_speed = self._default_array(default=np.nan)
-        self._actual_speed = self._default_array(default=np.nan)
-        self._optimal_speed = self._default_array(default=np.nan)
-        self._lowest_speed = self._default_array(default=np.nan)
-        self._highest_speed = self._default_array(default=np.nan)
+        self.reference_speed = self._default_array(default=np.nan)
+        self.minimum_speed = self._default_array(default=np.nan)
+        self.maximum_speed = self._default_array(default=np.nan)
+        self.actual_speed = self._default_array(default=np.nan)
+        self.optimal_speed = self._default_array(default=np.nan)
+        self.lowest_speed = self._default_array(default=np.nan)
+        self.highest_speed = self._default_array(default=np.nan)
 
         # investment signals
-        self._investment_signal_technology = self._default_array(default=np.nan)
-        self._investment_signal_speed = self._default_array(default=np.nan)
+        self.investment_signal_technology = self._default_array(default=np.nan)
+        self.investment_signal_speed = self._default_array(default=np.nan)
 
-        self._technology_cost = self._default_array()
+        self.technology_cost = self._default_array()
 
-        self._in_fleet = self._default_bool_array(default=False)
-        self._cost_is_calculated = self._default_bool_array(default=False)
+        self.in_fleet = self._default_bool_array(default=False)
+        self.cost_is_calculated = self._default_bool_array(default=False)
 
         # investment metrics
-        self._asset_charter_rate = self._default_array(np.nan)
-        self._cargo_charter_rate = self._default_array(np.nan)
-        self._investment_freight_rate = self._default_array(np.nan)
-        self._instantaneous_freight_rate = self._default_array(np.nan)
-
-    def set_lifetime(self, idx: int, lifetime: float) -> None:
-        self._lifetime[idx] = lifetime
-
-    def set_lead_time(self, idx: int, lead_time: float) -> None:
-        self._lead_time[idx] = lead_time
-
-    def set_cargo_miles(self, idx: int, cargo_miles: float) -> None:
-        self._cargo_miles[idx] = cargo_miles
-
-    def set_reference_speed(self, idx: int, reference_speed: float) -> None:
-        self._reference_speed[idx] = reference_speed
-
-    def set_minimum_speed(self, idx: int, minimum_speed: float) -> None:
-        self._minimum_speed[idx] = minimum_speed
-
-    def set_maximum_speed(self, idx: int, maximum_speed: float) -> None:
-        self._maximum_speed[idx] = maximum_speed
-
-    def set_actual_speed(self, idx: int, actual_speed: float) -> None:
-        self._actual_speed[idx] = actual_speed
-
-    def set_optimal_speed(self, idx: int, optimal_speed: float) -> None:
-        self._optimal_speed[idx] = optimal_speed
-
-    def set_lowest_speed(self, idx: int, lowest_speed: float) -> None:
-        self._lowest_speed[idx] = lowest_speed
-
-    def set_highest_speed(self, idx: int, highest_speed: float) -> None:
-        self._highest_speed[idx] = highest_speed
-
-    def set_investment_signal_technology(
-        self, idx: int, investment_signal: float
-    ) -> None:
-        self._investment_signal_technology[idx] = investment_signal
-
-    def set_investment_signal_speed(self, idx: int, investment_signal: float) -> None:
-        self._investment_signal_speed[idx] = investment_signal
-
-    def set_raw_energy_sea(
-        self, idx: int, energy: Mapping[EnergyDemandID, float]
-    ) -> None:
-        for energy_id in EnergyDemandID:
-            self._raw_energy_sea[energy_id][idx] = energy[energy_id]
-
-    def set_raw_energy_port(
-        self, idx: int, energy: Mapping[EnergyDemandID, float]
-    ) -> None:
-        for energy_id in PORT_ENERGY_DEMANDS:
-            self._raw_energy_port[energy_id][idx] = energy[energy_id]
-
-    def set_operational_energy_sea(
-        self, idx: int, energy: Mapping[EnergyDemandID, float]
-    ) -> None:
-        for energy_id in EnergyDemandID:
-            self._operational_energy_sea[energy_id][idx] = energy[energy_id]
-
-    def set_operational_energy_port(
-        self, idx: int, energy: Mapping[EnergyDemandID, float]
-    ) -> None:
-        for energy_id in PORT_ENERGY_DEMANDS:
-            self._operational_energy_port[energy_id][idx] = energy[energy_id]
-
-    def set_energy_sea(self, idx: int, energy: Mapping[EnergyDemandID, float]) -> None:
-        for energy_id in EnergyDemandID:
-            self._energy_sea[energy_id][idx] = energy[energy_id]
-
-    def set_energy_port(self, idx: int, energy: Mapping[EnergyDemandID, float]) -> None:
-        for energy_id in PORT_ENERGY_DEMANDS:
-            self._energy_port[energy_id][idx] = energy[energy_id]
-
-    def set_technology_cost(self, idx: int, cost: float) -> None:
-        self._technology_cost[idx] = cost
-
-    def set_in_fleet(self, idx: int | slice, in_fleet: bool | BoolArray) -> None:
-        self._in_fleet[idx] = in_fleet
-
-    def set_cost_is_calculated(self, idx: int, cost_is_calculated: bool) -> None:
-        self._cost_is_calculated[idx] = cost_is_calculated
-
-    def set_asset_charter_rate(self, idx: int, asset_charter_rate: float) -> None:
-        self._asset_charter_rate[idx] = asset_charter_rate
-
-    def set_cargo_charter_rate(self, idx: int, cargo_charter_rate: float) -> None:
-        self._cargo_charter_rate[idx] = cargo_charter_rate
-
-    def set_investment_freight_rate(
-        self, idx: int, investment_freight_rate: float
-    ) -> None:
-        self._investment_freight_rate[idx] = investment_freight_rate
-
-    def set_instantaneous_freight_rate(
-        self, idx: int, instantaneous_freight_rate: float
-    ) -> None:
-        self._instantaneous_freight_rate[idx] = instantaneous_freight_rate
-
-    def get_lifetime(self) -> FloatArray:
-        return self._lifetime
-
-    def get_lead_time(self) -> FloatArray:
-        return self._lead_time
-
-    def get_cargo_miles(self) -> FloatArray:
-        return self._cargo_miles
-
-    def get_reference_speed(self) -> FloatArray:
-        return self._reference_speed
-
-    def get_minimum_speed(self) -> FloatArray:
-        return self._minimum_speed
-
-    def get_maximum_speed(self) -> FloatArray:
-        return self._maximum_speed
-
-    def get_actual_speed(self) -> FloatArray:
-        return self._actual_speed
-
-    def get_optimal_speed(self) -> FloatArray:
-        return self._optimal_speed
-
-    def get_lowest_speed(self) -> FloatArray:
-        return self._lowest_speed
-
-    def get_highest_speed(self) -> FloatArray:
-        return self._highest_speed
-
-    def get_investment_signal_technology(self) -> FloatArray:
-        return self._investment_signal_technology
-
-    def get_investment_signal_speed(self) -> FloatArray:
-        return self._investment_signal_speed
-
-    def get_speed_energy_saving(self) -> FloatArray:
-        return 1.0 - divide_nonzero(
-            self.get_raw_energy(), self.get_raw_energy()[0], default=1.0
-        )
-
-    def get_operational_energy_saving(self) -> FloatArray:
-        return 1.0 - divide_nonzero(
-            self.get_operational_energy(), self.get_raw_energy()[0], default=1.0
-        )
-
-    def get_technology_energy_saving(self) -> FloatArray:
-        return self.get_technology_energy_intensity_saving()
-
-    def get_energy_saving(self) -> FloatArray:
-        return 1.0 - divide_nonzero(
-            self.get_energy(), self.get_raw_energy()[0], default=1.0
-        )
-
-    def get_baseline_energy(self) -> FloatArray:
-        # counterfactual raw energy: year-0 raw intensity times actual transport work
-        growth = divide_nonzero(self._cargo_miles, self._cargo_miles[0], default=1.0)
-        initial_energy: float = self.get_raw_energy()[0]
-        return initial_energy * growth
-
-    def is_active(self) -> BoolArray:
-        return self._in_fleet
-
-    def is_in_fleet(self) -> BoolArray:
-        return self._in_fleet
-
-    def cost_is_calculated(self) -> BoolArray:
-        return self._cost_is_calculated
-
-    def get_technology_cost(self) -> FloatArray:
-        return self._technology_cost
-
-    def get_asset_charter_rate(self) -> FloatArray:
-        return self._asset_charter_rate
-
-    def get_cargo_charter_rate(self) -> FloatArray:
-        return self._cargo_charter_rate
-
-    def get_investment_freight_rate(self) -> FloatArray:
-        return self._investment_freight_rate
-
-    def get_instantaneous_freight_rate(self) -> FloatArray:
-        return self._instantaneous_freight_rate
+        self.asset_charter_rate = self._default_array(np.nan)
+        self.cargo_charter_rate = self._default_array(np.nan)
+        self.investment_freight_rate = self._default_array(np.nan)
+        self.instantaneous_freight_rate = self._default_array(np.nan)

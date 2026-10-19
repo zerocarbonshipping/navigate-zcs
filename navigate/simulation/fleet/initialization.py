@@ -353,4 +353,4 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     trade_growth = fleet.trade_growth.get(timeline)
     fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
 
-    fleet.profile.set_trade(idx, fleet.trade[idx])
+    fleet.profile.trade[idx] = fleet.trade[idx]

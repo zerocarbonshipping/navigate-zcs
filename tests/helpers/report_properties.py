@@ -2,34 +2,23 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Shared state for the tests that check report properties against profile getters.
+Shared state for the tests that check report properties against profile results.
 
 Used by the report-property checks over the reference manual in tests/unit/docs.
 """
 
 from __future__ import annotations
 
-from navigate.core.profiles._base_profile import _BaseProfile
 from navigate.parser._commands import _REPORT_COMMANDS
 from navigate.parser._report_properties import PROFILE_CLASSES
-from navigate.util import attribute_to_setter
+from navigate.util import attribute_to_instance_name
 
 assert set(PROFILE_CLASSES) == set(_REPORT_COMMANDS)
 
-# _BaseProfile declares no public getter of its own, so every getter a profile
-# carries names a result a report property can extract
-PLUMBING_GETTERS = {name for name in vars(_BaseProfile) if name.startswith("get_")}
 
-assert not PLUMBING_GETTERS, (
-    "_BaseProfile declared a public getter: add it here only if it describes the"
-    " timeline a profile is sized to, and otherwise expect a report property to"
-    " name it"
-)
-
-
-def getter_for(token: str) -> str:
+def result_for(token: str) -> str:
     """
-    Name the profile getter a report-property token resolves to.
+    Name the profile result a report-property token resolves to.
 
     Parameters
     ----------
@@ -39,27 +28,27 @@ def getter_for(token: str) -> str:
     Returns
     -------
     str :
-        The getter name, e.g. ``get_total_equivalent_wtt``.
+        The result name, e.g. ``total_equivalent_wtt``.
     """
-    return attribute_to_setter(token, method="get")
+    return attribute_to_instance_name(token)
 
 
-def token_for(getter: str) -> str:
+def token_for(result: str) -> str:
     """
-    Spell the report-property token a profile getter would be reached by.
+    Spell the report-property token a profile result would be reached by.
 
-    ``attribute_to_setter`` is lossy - it drops every character outside an
+    ``attribute_to_instance_name`` is lossy - it drops every character outside an
     ``[A-Z][a-z]*`` run - so this is a candidate token, not an inverse: a caller
-    must check that ``getter_for`` maps it back to the getter it started from.
+    must check that ``result_for`` maps it back to the result it started from.
 
     Parameters
     ----------
-    getter : str
-        A getter name on a profile class, e.g. ``get_total_equivalent_wtt``.
+    result : str
+        A result name of a profile class, e.g. ``total_equivalent_wtt``.
 
     Returns
     -------
     str :
         The candidate token, e.g. ``TotalEquivalentWtt``.
     """
-    return "".join(part.capitalize() for part in getter.removeprefix("get_").split("_"))
+    return "".join(part.capitalize() for part in result.split("_"))

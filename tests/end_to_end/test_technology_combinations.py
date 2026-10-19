@@ -95,7 +95,7 @@ def _vessels(results):
 
 
 def _newbuild_uptake(results, vessel):
-    uptake = results.nodes.fleets[FLEET].profile.get_newbuild_technology_uptake()
+    uptake = results.nodes.fleets[FLEET].profile.newbuild_technology_uptake
     return uptake[(vessel, TECHNOLOGY)][1:]
 
 
@@ -106,8 +106,8 @@ def test_a_package_compounds_the_savings_of_its_technologies(
     results = run_combination(_package_layer(technologies))
 
     for vessel in _vessels(results):
-        energy = vessel.profile.get_energy_sea()
-        operational = vessel.profile.get_operational_energy_sea()
+        energy = vessel.profile.energy_sea
+        operational = vessel.profile.operational_energy_sea
 
         kept = energy[PROPULSION][0] / operational[PROPULSION][0]
         assert 1.0 - kept == pytest.approx(saving, rel=SAVING_RTOL), vessel.name
@@ -122,12 +122,12 @@ def test_an_operational_saving_scales_only_its_own_demand(run_combination):
     for vessel in _vessels(results):
         profile = vessel.profile
         raw = {
-            "sea": profile.get_raw_energy_sea(),
-            "port": profile.get_raw_energy_port(),
+            "sea": profile.raw_energy_sea,
+            "port": profile.raw_energy_port,
         }
         operational = {
-            "sea": profile.get_operational_energy_sea(),
-            "port": profile.get_operational_energy_port(),
+            "sea": profile.operational_energy_sea,
+            "port": profile.operational_energy_port,
         }
 
         for name, where, demand in OPERATIONAL_DEMANDS:
@@ -146,8 +146,8 @@ def test_a_technology_saves_on_what_the_operational_saving_leaves(run_combinatio
     results = run_combination(_operational_layer(), _package_layer(("b",)))
 
     for vessel in _vessels(results):
-        energy = vessel.profile.get_energy_sea()[PROPULSION][0]
-        raw = vessel.profile.get_raw_energy_sea()[PROPULSION][0]
+        energy = vessel.profile.energy_sea[PROPULSION][0]
+        raw = vessel.profile.raw_energy_sea[PROPULSION][0]
 
         assert energy / raw == pytest.approx(
             PROPULSION_KEPT_UNDER_B, rel=SAVING_RTOL

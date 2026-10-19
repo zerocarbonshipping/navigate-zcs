@@ -37,8 +37,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.region import Region
     from navigate.core.nodes.source import Source
     from navigate.core.nodes.transport import Transport
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
-    from navigate.util import FloatArray
 
 
 class Plant(Node):
@@ -265,17 +265,8 @@ class Plant(Node):
 
         self.expectation.initialize(length, emissions, feedstocks, ports, processes)
 
-    def initialize_profile(
-        self,
-        timeline: FloatArray,
-        emissions: dict[str, Emission],
-        fuels: dict[str, Fuel],
-        emissions_lifetime: float,
-    ) -> None:
-
-        self.profile.initialize(
-            timeline, emissions, fuels, self.fuel.name, emissions_lifetime
-        )
+    def initialize_profile(self, context: ProfileContext) -> None:
+        self.profile.initialize(context)
 
     def set_producer_assignment(self, producer_name: str) -> None:
         """Record the producer building this plant, raising if another already does."""

@@ -11,5 +11,5 @@
 Report "output" {
 	Directory = "./plots"
 	
-	add_port_property("*", BunkerIntensityPrice)
+	add_port_property("*", BunkerPrice)
 }
