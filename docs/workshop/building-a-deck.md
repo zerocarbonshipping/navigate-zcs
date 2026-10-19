@@ -12,6 +12,29 @@ shares: how Navigate works, where the deck goes, where its numbers may come from
 and what to report. Read all of it before writing any file. Where the prompt and
 this page disagree, the prompt wins.
 
+## First: find Navigate and check that it runs
+
+This page needs an assistant that can read files and run commands on the person's
+machine. If you can only chat, say so at once: the person needs a coding
+assistant that works in a folder (see Session 5), or must paste files and run
+commands for you.
+
+- Navigate is the repository https://github.com/zerocarbonshipping/navigate-zcs,
+  usually a folder named `navigate-zcs` holding `README.md`, `navigate/` and
+  `assumptions/`. Every path on this page, and in the prompts, is relative to that
+  folder: the repository root.
+- If you were not opened in it, look for it on the machine, or ask the person
+  where it is. If it is not there, say so and propose cloning it (or downloading
+  the zip from GitHub), and wait for the go-ahead. Work from its root from then
+  on.
+- Check that Navigate is installed, from the root: `python -m pip show
+  navigate-zcs` and `python -m navigate --help`. If either fails, the steps are in
+  `README.md`, section "Installation" (Python 3.12 in its own environment, then
+  `python -m pip install .` from the root), with a slower walk-through in
+  `docs/tutorials/getting_started.md`. Show the person the commands and wait for
+  the go-ahead before installing, upgrading or creating anything. Do not build a
+  deck until both checks pass.
+
 ## How Navigate works
 
 - A deck is one `.nav` file plus the `.inc` files it includes. The syntax is
@@ -97,7 +120,9 @@ a comment where it appears, and listed in the `.nav` header.
   abstract ports (`port_global`, `port_europe`) that exist for regulatory scope,
   not places on a map. A deck on named ports builds a ROUND_TRIP route between
   them, taking speeds and time in port from the profile's own values, as
-  example_4's `route.inc` does (its comments show the arithmetic), with a
+  example_4's `route.inc` does (its comments show the arithmetic). The profile
+  lists a spread of speeds: take the most common one in its ConditionDistribution,
+  laden and in ballast, and say so in a comment, with a
   realistic sea distance marked INVENTED.
 - A deck on named ports also rebuilds the other parts example_4 has, with its own
   values: the ports, the bunker logistics (how fuel travels from the plants to each

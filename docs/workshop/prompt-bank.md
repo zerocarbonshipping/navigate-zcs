@@ -78,10 +78,12 @@ USD/t (e-diesel). Treat that as a property of the placeholders, not of the Rhine
 
 ````text
 You are helping me build a simulation study for Navigate, the shipping
-decarbonisation model in this repository. Write the files yourself; do not only
+decarbonisation model. Write the files yourself; do not only
 describe them.
 
-Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
 says how Navigate works, how to run a deck and read its results, and the rules
 every deck follows. This prompt gives the case.
 
@@ -191,10 +193,12 @@ half the energy by 2050. Treat that as a property of the placeholders.
 
 ````text
 You are helping me build a simulation study for Navigate, the shipping
-decarbonisation model in this repository. Write the files yourself; do not only
+decarbonisation model. Write the files yourself; do not only
 describe them.
 
-Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
 says how Navigate works, how to run a deck and read its results, and the rules
 every deck follows. This prompt gives the case.
 
@@ -283,10 +287,12 @@ the ship's finance. Treat that as a property of the placeholders.
 
 ````text
 You are helping me build a simulation study for Navigate, the shipping
-decarbonisation model in this repository. Write the files yourself; do not only
+decarbonisation model. Write the files yourself; do not only
 describe them.
 
-Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
 says how Navigate works, how to run a deck and read its results, and the rules
 every deck follows. This prompt gives the case.
 
