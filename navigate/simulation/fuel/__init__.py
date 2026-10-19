@@ -24,6 +24,7 @@ from navigate.simulation.fuel.pipeline import (
 from navigate.simulation.fuel.port_supply import calculate_fuel_import_to_ports
 from navigate.simulation.fuel.production import calculate_plant_production_expectations
 from navigate.simulation.fuel.profile import (
+    calculate_plant_profile,
     calculate_port_profile,
     calculate_producer_profile,
 )

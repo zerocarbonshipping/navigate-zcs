@@ -67,6 +67,7 @@ from navigate.simulation.fuel import (
     calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
+    calculate_plant_profile,
     calculate_port_expectations,
     calculate_port_profile,
     calculate_producer_evolution_expectation,
@@ -745,6 +746,9 @@ class Simulation:
     def _calculate_profile(self) -> None:
         for fleet in self.nodes.fleets.values():
             calculate_fleet_profile(fleet, self.timeline, self._idx)
+
+        for plant in self.nodes.plants.values():
+            calculate_plant_profile(plant, self._idx)
 
         for port in self.nodes.ports.values():
             calculate_port_profile(port, self._idx)
