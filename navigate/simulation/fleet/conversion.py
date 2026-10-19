@@ -28,7 +28,7 @@ from navigate.simulation.cohort import find_insertion_index
 from navigate.simulation.economics.decision import calculate_asset_shares
 from navigate.simulation.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.simulation.economics.metric import calculate_net_present_value
-from navigate.simulation.fleet.composition import get_multiplier, get_multipliers
+from navigate.simulation.fleet.composition import get_multipliers
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -43,20 +43,109 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class _ConversionCandidate:
+class _ConversionTarget:
     """
-    One destination vessel type evaluated for conversion out of an increment.
+    Per-destination-vessel-type invariants of one conversion lane in a propose pass.
 
     Parameters
     ----------
+    name
+        Name of the destination vessel type.
+    fuel_type
+        Primary fuel type of the destination vessel type.
+    lifetime
+        Lifetime of the destination vessel type, in years.
+    energy_per_vessel
+        Energy demand of one destination vessel, in GJ/year.
+    fuel_cost_flow
+        Expected yearly fuel cost flow of one destination vessel, in USD/year.
+    discount_rate
+        Discount rate of the destination vessel type, its cost of capital.
+    cost
+        Lump-sum cost of converting one vessel along the lane, in USD.
+    """
+
+    name: str
+    fuel_type: FuelTypeID
+    lifetime: float
+    energy_per_vessel: float
+    fuel_cost_flow: FloatArray
+    discount_rate: float
+    cost: float
+
+
+@dataclass
+class _ConversionSource:
+    """
+    Per-source-vessel-type invariants of one propose pass.
+
+    Parameters
+    ----------
+    name
+        Name of the source vessel type.
+    fuel_type
+        Primary fuel type of the source vessel type.
+    lifetime
+        Lifetime of the source vessel type, in years.
+    energy_per_vessel
+        Energy demand of one source vessel, in GJ/year.
+    fuel_cost_flow
+        Expected yearly fuel cost flow of one source vessel, in USD/year.
+    capex_npv
+        Summed ship CAPEX NPV, in USD; it non-dimensionalizes the conversion NPV in
+        the DCM.
+    targets
+        Destinations of the open conversion lanes, keyed by vessel-type name.
+    """
+
+    name: str
+    fuel_type: FuelTypeID
+    lifetime: float
+    energy_per_vessel: float
+    fuel_cost_flow: FloatArray
+    capex_npv: float
+    targets: dict[str, _ConversionTarget]
+
+
+@dataclass
+class _ConversionCohort:
+    """
+    One cohort eligible for conversion in a propose pass.
+
+    Parameters
+    ----------
+    source
+        Invariants of the cohort's vessel type.
+    increment_idx
+        Index of the cohort in its vessel type's increment list.
+    increment
+        The cohort's increment.
+    mean_age
+        Mean age of the cohort, in years.
+    remaining_lifetime
+        Remaining lifetime of the vessel type at the cohort's mean age, in years.
+    """
+
+    source: _ConversionSource
+    increment_idx: int
+    increment: VesselIncrement
+    mean_age: float
+    remaining_lifetime: float
+
+
+@dataclass
+class _ConversionCandidate:
+    """
+    One destination vessel type evaluated for conversion out of a cohort.
+
+    Parameters
+    ----------
+    target
+        Invariants of the destination vessel type.
     metric
         Net present value of converting one vessel, in USD.
     limit
         Supply-capped share limit passed to the DCM.
-    fuel_type
-        Primary fuel type of the destination vessel type.
-    energy_per_vessel
-        Energy demand of one vessel of the destination type, in GJ/year.
     charge
         Levelized conversion cost per converted vessel, in USD/year.
     window
@@ -66,10 +155,9 @@ class _ConversionCandidate:
         reconciliation.
     """
 
+    target: _ConversionTarget
     metric: float
     limit: float
-    fuel_type: FuelTypeID
-    energy_per_vessel: float
     charge: float
     window: float
     count: float = field(init=False)
@@ -101,65 +189,6 @@ class _ConversionProposal:
     candidates: dict[str, _ConversionCandidate]
 
 
-@dataclass
-class _ConversionSource:
-    """
-    Per-source-vessel-type invariants of one propose pass.
-
-    Parameters
-    ----------
-    name
-        Name of the source vessel type.
-    fuel_type
-        Primary fuel type of the source vessel type.
-    lifetime
-        Lifetime of the source vessel type, in years.
-    energy_per_vessel
-        Energy demand of one source vessel, in GJ/year.
-    fuel_cost_flow
-        Expected yearly fuel cost flow of one source vessel, in USD/year.
-    capex_npv
-        Summed ship CAPEX NPV, in USD; it non-dimensionalizes the conversion NPV in
-        the DCM.
-    conversion_costs
-        Cost of converting one vessel, keyed by destination vessel-type name.
-    """
-
-    name: str
-    fuel_type: FuelTypeID
-    lifetime: float
-    energy_per_vessel: float
-    fuel_cost_flow: FloatArray
-    capex_npv: float
-    conversion_costs: dict[str, ForecastInput]
-
-
-@dataclass
-class _ConversionCohort:
-    """
-    One increment eligible for conversion in a propose pass.
-
-    Parameters
-    ----------
-    source
-        Invariants of the increment's vessel type.
-    increment_idx
-        Index of the increment in its vessel type's increment list.
-    increment
-        The eligible increment.
-    mean_age
-        Mean age of the increment, in years.
-    remaining_lifetime
-        Remaining lifetime of the vessel type at the increment's mean age, in years.
-    """
-
-    source: _ConversionSource
-    increment_idx: int
-    increment: VesselIncrement
-    mean_age: float
-    remaining_lifetime: float
-
-
 def perform_fuel_conversions(
     fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> None:
@@ -185,9 +214,6 @@ def perform_fuel_conversions(
         return
 
     proposals = _propose_fuel_conversions(fleet, time_step, idx)
-    if not proposals:
-        return
-
     _reconcile_fuel_conversion_caps(fleet, proposals, time_step)
     _apply_fuel_conversions(fleet, proposals, timeline, idx)
 
@@ -196,11 +222,11 @@ def _propose_fuel_conversions(
     fleet: Fleet, time_step: float, idx: int
 ) -> list[_ConversionProposal]:
     """
-    Walk the (from-type, eligible-increment, to-type) nest to produce conversion counts.
+    Walk the (from-type, eligible-cohort, to-type) nest to produce conversion counts.
 
     Changes no fleet state. A working copy of the fuel-type supply excess is debited
     as proposals are gathered, so the DCM's supply cap on each target fuel holds across
-    increments. The per-pair flow caps are applied later, by
+    cohorts. The per-pair flow caps are applied later, by
     ``_reconcile_fuel_conversion_caps``.
 
     The supply excess is debited with the uncapped DCM share, is not refunded when the
@@ -225,11 +251,9 @@ def _propose_fuel_conversions(
     Returns
     -------
     list[_ConversionProposal]
-        One proposal per (from-type, increment) pair with a viable business case, in
+        One proposal per (from-type, cohort) pair with a viable business case, in
         walk order.
     """
-    vessels = {vessel.name: vessel for vessel in fleet.vessels}
-
     # the supply beyond what the fleet can already burn, from the previous step's
     # totals (the profile phase writes this step's after this runs); the proposals
     # debit this working copy so the DCM supply cap stays realistic
@@ -242,7 +266,7 @@ def _propose_fuel_conversions(
     proposals = []
 
     for cohort in _eligible_cohorts(fleet, time_step, idx):
-        candidates = _evaluate_candidates(fleet, vessels, cohort, supply_excess, idx)
+        candidates = _evaluate_candidates(cohort, supply_excess)
         if not candidates:
             continue
 
@@ -272,7 +296,7 @@ def _reconcile_fuel_conversion_caps(
     ``pair_cap[from, to] = l * time_step / YEAR * existing_total``, where
     ``existing_total`` is the number of vessels in the fleet before newbuilds. The cap
     acts on the pair's summed conversion count; a pair above its cap has every
-    increment scaled to fit.
+    cohort scaled to fit.
 
     Parameters
     ----------
@@ -285,23 +309,17 @@ def _reconcile_fuel_conversion_caps(
     """
     # counted before the newbuilds, which are inserted later in the same time-step
     existing_total = sum(get_multipliers(fleet))
-    if existing_total <= 0.0:
-        return
+    dt_years = time_step / YEAR
 
     pair_proposed: dict[tuple[str, str], float] = {}
     for proposal, name_to, candidate in _proposed_conversions(proposals):
         pair = (proposal.name_from, name_to)
         pair_proposed[pair] = pair_proposed.get(pair, 0.0) + candidate.count
 
-    cap_scale = time_step / YEAR * existing_total
-
     pair_scale = {}
     for pair, proposed in pair_proposed.items():
-        if proposed <= 0.0:
-            continue
-
         limit = fleet.fuel_conversion_limit[pair].get()
-        pair_cap = limit * cap_scale
+        pair_cap = limit * dt_years * existing_total
         if proposed > pair_cap:
             pair_scale[pair] = pair_cap / proposed
 
@@ -332,10 +350,11 @@ def _apply_fuel_conversions(
     idx
         Current time-step index, where the profile is written and the expenses start.
     """
-    indices = {vessel.name: i for i, vessel in enumerate(fleet.vessels)}
+    names = [vessel.name for vessel in fleet.vessels]
+    increments = dict(zip(names, fleet.increments, strict=True))
 
-    _apply_from_side(fleet, proposals, indices, timeline, idx)
-    _apply_to_side(fleet, proposals, indices)
+    _apply_from_side(fleet, proposals, increments, timeline, idx)
+    _apply_to_side(proposals, increments)
 
 
 def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -> bool:
@@ -369,11 +388,11 @@ def _eligible_cohorts(
     fleet: Fleet, time_step: float, idx: int
 ) -> Iterator[_ConversionCohort]:
     """
-    Yield the increments eligible for conversion, in walk order.
+    Yield the cohorts eligible for conversion, in walk order.
 
-    An increment is eligible when it is at a retrofit cycle, has reached the minimum
-    conversion age, has lifetime left at its mean age and holds vessels, and when a
-    conversion lane starts at its vessel type.
+    A cohort is eligible when it is at a retrofit cycle, has reached the minimum
+    conversion age, has lifetime left at its mean age and holds vessels, and when an
+    open conversion lane starts at its vessel type.
 
     Parameters
     ----------
@@ -387,18 +406,20 @@ def _eligible_cohorts(
     Yields
     ------
     _ConversionCohort
-        Each eligible increment, vessel type by vessel type, youngest first.
+        Each eligible cohort, vessel type by vessel type, youngest first.
     """
     retrofit_frequency = fleet.retrofit_frequency.get()
     minimum_age = fleet.fuel_conversion_minimum_age.get()
     dt_years = time_step / YEAR
 
+    vessels = {vessel.name: vessel for vessel in fleet.vessels}
+
     for vessel_from, increments in zip(fleet.vessels, fleet.increments, strict=True):
-        source = _extract_conversion_source(fleet, vessel_from, idx)
+        source = _extract_conversion_source(fleet, vessels, vessel_from, idx)
         if source is None:
             continue
 
-        # increments are walked youngest to oldest (index 0 is the oldest cohort); when
+        # cohorts are walked youngest to oldest (index 0 is the oldest cohort); when
         # target-fuel supply binds, younger cohorts with longer remaining lifetimes
         # claim the working supply excess first
         for increment_idx, increment in reversed(list(enumerate(increments))):
@@ -422,15 +443,20 @@ def _eligible_cohorts(
 
 
 def _extract_conversion_source(
-    fleet: Fleet, vessel_from: Vessel, idx: int
+    fleet: Fleet, vessels: dict[str, Vessel], vessel_from: Vessel, idx: int
 ) -> _ConversionSource | None:
     """
     Bundle the per-source-vessel-type invariants of a propose pass.
 
+    A lane is open when its conversion cost is set and its destination is allowed in
+    the fleet and available for conversion.
+
     Parameters
     ----------
     fleet
-        Fleet holding the conversion costs.
+        Fleet holding the conversion costs and settings.
+    vessels
+        Vessel types by name.
     vessel_from
         Source vessel type.
     idx
@@ -439,14 +465,20 @@ def _extract_conversion_source(
     Returns
     -------
     _ConversionSource | None
-        The source bundle, or None when no conversion lane starts at the vessel type.
+        The source bundle, or None when no open conversion lane starts at the vessel
+        type.
     """
-    conversion_costs: dict[str, ForecastInput] = {}
+    targets = {}
     for (name_from, name_to), cost in fleet.fuel_conversion_cost.items():
-        if name_from == vessel_from.name and cost is not None:
-            conversion_costs[name_to] = cost
+        if name_from != vessel_from.name or cost is None:
+            continue
 
-    if not conversion_costs:
+        if not (fleet.allow_vessel[name_to] and fleet.conversion_available[name_to]):
+            continue
+
+        targets[name_to] = _extract_conversion_target(vessels[name_to], cost, idx)
+
+    if not targets:
         return None
 
     return _ConversionSource(
@@ -456,32 +488,57 @@ def _extract_conversion_source(
         float(vessel_from.expectation.get_total_energy(idx)),
         vessel_from.expectation.get_fuel_cost_flow(),
         vessel_from.expectation.get_capex_npv(idx),
-        conversion_costs,
+        targets,
+    )
+
+
+def _extract_conversion_target(
+    vessel_to: Vessel, conversion_cost: ForecastInput, idx: int
+) -> _ConversionTarget:
+    """
+    Bundle the invariants of one conversion lane's destination for a propose pass.
+
+    Parameters
+    ----------
+    vessel_to
+        Destination vessel type.
+    conversion_cost
+        Cost of converting one vessel along the lane.
+    idx
+        Current time-step index of the expectation lookups.
+
+    Returns
+    -------
+    _ConversionTarget
+        The destination bundle.
+    """
+    # a numpy scalar keeps the supply cap's division numpy division: a zero energy
+    # gives an unbounded vessel count, not a ZeroDivisionError
+    energy_per_vessel = np.float64(vessel_to.expectation.get_total_energy(idx))
+
+    return _ConversionTarget(
+        vessel_to.name,
+        vessel_to.primary_fuel_type,
+        vessel_to.lifetime.get(),
+        energy_per_vessel,
+        vessel_to.expectation.get_fuel_cost_flow(),
+        vessel_to.cost_of_capital.get(),
+        conversion_cost.get(),
     )
 
 
 def _evaluate_candidates(
-    fleet: Fleet,
-    vessels: dict[str, Vessel],
-    cohort: _ConversionCohort,
-    supply_excess: dict[FuelTypeID, float],
-    idx: int,
+    cohort: _ConversionCohort, supply_excess: dict[FuelTypeID, float]
 ) -> dict[str, _ConversionCandidate]:
     """
-    Evaluate every destination type open to one eligible increment.
+    Evaluate every destination of the open lanes for one eligible cohort.
 
     Parameters
     ----------
-    fleet
-        Fleet holding the conversion settings.
-    vessels
-        Vessel types by name.
     cohort
-        The eligible increment.
+        The eligible cohort.
     supply_excess
         Working supply excess per fuel type, in GJ/year; read only.
-    idx
-        Current time-step index.
 
     Returns
     -------
@@ -491,14 +548,10 @@ def _evaluate_candidates(
     """
     candidates = {}
 
-    for name_to, conversion_cost in cohort.source.conversion_costs.items():
-        if not (fleet.allow_vessel[name_to] and fleet.conversion_available[name_to]):
-            continue
+    for name_to, target in cohort.source.targets.items():
+        supply = supply_excess[target.fuel_type]
 
-        vessel_to = vessels[name_to]
-        supply = supply_excess[vessel_to.primary_fuel_type]
-
-        candidate = _evaluate_candidate(vessel_to, conversion_cost, cohort, supply, idx)
+        candidate = _evaluate_candidate(target, cohort, supply)
         if candidate is not None:
             candidates[name_to] = candidate
 
@@ -506,27 +559,19 @@ def _evaluate_candidates(
 
 
 def _evaluate_candidate(
-    vessel_to: Vessel,
-    conversion_cost: ForecastInput,
-    cohort: _ConversionCohort,
-    supply: float,
-    idx: int,
+    target: _ConversionTarget, cohort: _ConversionCohort, supply: float
 ) -> _ConversionCandidate | None:
     """
-    Evaluate the business case of converting increment vessels to one destination type.
+    Evaluate the business case of converting a cohort's vessels to one destination.
 
     Parameters
     ----------
-    vessel_to
-        Destination vessel type.
-    conversion_cost
-        Lump-sum cost of converting one vessel to the destination type, in USD.
+    target
+        Invariants of the destination vessel type.
     cohort
-        The eligible increment.
+        The eligible cohort.
     supply
         Working supply excess of the destination type's fuel, in GJ/year.
-    idx
-        Current time-step index.
 
     Returns
     -------
@@ -534,63 +579,50 @@ def _evaluate_candidate(
         The evaluated candidate, its ``count`` still unset, or None when the
         destination type has no remaining lifetime or no fuel supply excess.
     """
-    remaining_lifetime_to = round(vessel_to.lifetime.get() - cohort.mean_age, ROUND_OFF)
-    if remaining_lifetime_to <= 0.0:
+    remaining_from = cohort.remaining_lifetime
+    remaining_to = round(target.lifetime - cohort.mean_age, ROUND_OFF)
+    if remaining_to <= 0.0:
         return None
 
     if supply <= 0.0:
         return None
 
-    # a numpy scalar keeps numpy division: a zero energy gives an unbounded
-    # vessel count, not a ZeroDivisionError
-    energy_per_vessel = np.float64(vessel_to.expectation.get_total_energy(idx))
-    maximum_vessels = supply / energy_per_vessel
+    maximum_vessels = supply / target.energy_per_vessel
     limit = min(maximum_vessels / cohort.increment.multiplier, 1.0)
-
-    cost = conversion_cost.get()
-    discount_rate = vessel_to.cost_of_capital.get()
-    fuel_cost_flow_to = vessel_to.expectation.get_fuel_cost_flow()
 
     # fuel savings count over the window both the current and the converted
     # vessel type still serve; the conversion cost is a lump sum up front
-    common_window = min(cohort.remaining_lifetime, remaining_lifetime_to)
+    common_window = min(remaining_from, remaining_to)
     fuel_cost_from = trim_flow_to_lifetime(cohort.source.fuel_cost_flow, common_window)
-    fuel_cost_to = trim_flow_to_lifetime(fuel_cost_flow_to, common_window)
+    fuel_cost_to = trim_flow_to_lifetime(target.fuel_cost_flow, common_window)
     cash_flow = fuel_cost_from - fuel_cost_to
-    cash_flow[0] -= cost
-    metric = calculate_net_present_value(cash_flow, discount_rate)
+    cash_flow[0] -= target.cost
+    metric = calculate_net_present_value(cash_flow, target.discount_rate)
 
     # for expense reporting the cost is levelized exactly: a constant yearly
     # charge whose NPV over the destination type's remaining lifetime equals
     # the conversion cost
-    unit_flow = expand_to_flow(remaining_lifetime_to, 1.0)
-    annuity_factor = calculate_net_present_value(unit_flow, discount_rate)
-    charge = cost / annuity_factor
+    unit_flow = expand_to_flow(remaining_to, 1.0)
+    annuity_factor = calculate_net_present_value(unit_flow, target.discount_rate)
+    charge = target.cost / annuity_factor
 
-    return _ConversionCandidate(
-        metric,
-        limit,
-        vessel_to.primary_fuel_type,
-        energy_per_vessel,
-        charge,
-        remaining_lifetime_to,
-    )
+    return _ConversionCandidate(target, metric, limit, charge, remaining_to)
 
 
 def _choose_conversions(
     fleet: Fleet, cohort: _ConversionCohort, candidates: dict[str, _ConversionCandidate]
 ) -> None:
     """
-    Run the DCM over one increment's candidates and set their conversion counts.
+    Run the DCM over one cohort's candidates and set their conversion counts.
 
     Parameters
     ----------
     fleet
         Fleet holding the conversion sensitivity.
     cohort
-        The eligible increment.
+        The eligible cohort.
     candidates
-        Evaluated candidates of the increment; their counts are set in place.
+        Evaluated candidates of the cohort; their counts are set in place.
     """
     # the BAU sentinel (metric=0., limit=1.) sits at index -1 of the DCM input and is
     # dropped on return
@@ -618,10 +650,10 @@ def _debit_supply_excess(
     candidates: dict[str, _ConversionCandidate],
 ) -> None:
     """
-    Debit the working supply excess with one increment's proposed conversions.
+    Debit the working supply excess with one cohort's proposed conversions.
 
     A converting vessel takes its energy demand from the source fuel type to the
-    destination's, so later increments and source types see the supply it claims.
+    destination's, so later cohorts and source types see the supply it claims.
 
     Parameters
     ----------
@@ -630,17 +662,17 @@ def _debit_supply_excess(
     source
         Invariants of the source vessel type.
     candidates
-        Candidates of the increment, with their proposed counts.
+        Candidates of the cohort, with their proposed counts.
     """
     for candidate in candidates.values():
         if not candidate.count:
             continue
 
         energy_from = candidate.count * source.energy_per_vessel
-        energy_to = candidate.count * candidate.energy_per_vessel
+        energy_to = candidate.count * candidate.target.energy_per_vessel
 
         supply_excess[source.fuel_type] += energy_from
-        supply_excess[candidate.fuel_type] -= energy_to
+        supply_excess[candidate.target.fuel_type] -= energy_to
 
 
 def _proposed_conversions(
@@ -668,7 +700,7 @@ def _proposed_conversions(
 def _apply_from_side(
     fleet: Fleet,
     proposals: list[_ConversionProposal],
-    indices: dict[str, int],
+    increments: dict[str, list[VesselIncrement]],
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -681,8 +713,8 @@ def _apply_from_side(
         Fleet whose vessels convert.
     proposals
         Reconciled proposals.
-    indices
-        Vessel-type index by name.
+    increments
+        Increment list of each vessel type, keyed by name.
     timeline
         Simulation timeline, in days.
     idx
@@ -693,8 +725,7 @@ def _apply_from_side(
     expenses_ahead = fleet.fuel_conversion_expenses[idx:]
 
     for proposal, name_to, candidate in _proposed_conversions(proposals):
-        v_from = indices[proposal.name_from]
-        increment_from = fleet.increments[v_from][proposal.increment_idx]
+        increment_from = increments[proposal.name_from][proposal.increment_idx]
         count = candidate.count
 
         increment_from.multiplier -= count
@@ -711,7 +742,7 @@ def _apply_from_side(
 
 
 def _apply_to_side(
-    fleet: Fleet, proposals: list[_ConversionProposal], indices: dict[str, int]
+    proposals: list[_ConversionProposal], increments: dict[str, list[VesselIncrement]]
 ) -> None:
     """
     Insert converted vessels on the destination side.
@@ -721,34 +752,26 @@ def _apply_to_side(
 
     Parameters
     ----------
-    fleet
-        Fleet whose vessels convert.
     proposals
         Reconciled proposals.
-    indices
-        Vessel-type index by name.
+    increments
+        Increment list of each vessel type, keyed by name; updated in place.
     """
     for proposal, name_to, candidate in _proposed_conversions(proposals):
-        v_from = indices[proposal.name_from]
-
         # resolve the source increment per insert: earlier inserts may have shifted
         # its list
-        increment_from = fleet.increments[v_from][proposal.increment_idx]
-        _insert_converted_increment(
-            fleet.increments[indices[name_to]],
-            increment_from,
-            candidate.count,
-            proposal.age,
-            proposal.age_span,
-        )
+        increment_from = increments[proposal.name_from][proposal.increment_idx]
+        increments_to = increments[name_to]
+        count = candidate.count
+
+        _insert_converted_increment(increments_to, increment_from, proposal, count)
 
 
 def _insert_converted_increment(
     increments_to: list[VesselIncrement],
     increment_from: VesselIncrement,
+    proposal: _ConversionProposal,
     count: float,
-    age: float,
-    age_span: float,
 ) -> None:
     """
     Insert a converted increment into the destination's age-sorted increment list.
@@ -760,14 +783,13 @@ def _insert_converted_increment(
     increment_from
         Source increment providing the technology package and charter rate carried
         along.
+    proposal
+        Proposal the vessels convert under; the converted increment takes its age and
+        age span.
     count
         Number of vessels converted.
-    age
-        Age of the converted increment, in years.
-    age_span
-        Age-bin width of the converted increment, in years.
     """
-    idx_to = find_insertion_index(increments_to, age)
+    idx_to = find_insertion_index(increments_to, proposal.age)
 
     # the carried technology charter rate rides along unchanged; the amortization window
     # and discount rate stay those of the source vessel type, a simplification of the
@@ -777,8 +799,8 @@ def _insert_converted_increment(
         idx_to,
         VesselIncrement(
             count,
-            age,
-            age_span,
+            proposal.age,
+            proposal.age_span,
             package_uptake=increment_from.package_uptake.copy(),
             technology_charter_rate=increment_from.technology_charter_rate,
         ),
@@ -923,8 +945,7 @@ def _vessels_in_service(fleet: Fleet) -> Iterator[tuple[Vessel, float]]:
     tuple[Vessel, float]
         The vessel type and its number of vessels.
     """
-    for v, vessel in enumerate(fleet.vessels):
-        multiplier = get_multiplier(fleet, v)
+    for vessel, multiplier in zip(fleet.vessels, get_multipliers(fleet), strict=True):
         if multiplier == 0.0:
             continue
 
