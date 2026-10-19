@@ -114,7 +114,8 @@ class PlantExpectation(_Expectation):
         self._production[idx:] = production
 
     def add_feed_mass(self, idx: int, feed_name: str, feed_mass: FloatLike) -> None:
-        self._feed_mass[feed_name][idx:] += feed_mass
+        # additive: a feed can occur several times in the process tree of idx
+        self._feed_mass[feed_name][idx] += feed_mass
 
     def set_production_wtt(
         self, idx: int, emission_name: str, production_wtt: float
