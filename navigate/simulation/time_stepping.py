@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from navigate.core import (
     SimulationResults,
-    get_fuels_per_fuel_type,
+    define_vessel_fuel_maps,
     update_imposed_levies,
 )
 from navigate.core.enum_ import BunkerScopeID
@@ -27,25 +27,30 @@ from navigate.simulation.fleet import (
     approximate_missing_technology,
     assign_vessels_to_fleets,
     calculate_cargo_charter_properties,
-    calculate_evolution_expectation,
+    calculate_fleet_evolution_expectation,
     calculate_fleet_expectations,
     calculate_fleet_fuel_demand,
     calculate_fleet_profile,
+    calculate_fuel_type_balance,
     calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
     calculate_vessel_charter_properties,
     calculate_vessel_profile,
+    check_fuel_options,
+    close_trade_gap,
     determine_fuel_type,
-    determine_usable_fuel_types,
-    determine_usable_fuels,
     initialize_existing_fleet,
-    perform_fleet_evolution,
+    perform_fuel_conversions,
+    perform_primary_scrapping,
     perform_speed_management,
     perform_technology_installation,
     post_process_fleet_profile,
     post_process_investment_metric,
     record_investment_signals,
+    transfer_technology_charter_rate,
     update_operations,
+    update_residual_energy_demand,
+    update_vessel_ages,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
 )
@@ -55,20 +60,29 @@ from navigate.simulation.fuel import (
     calculate_expected_fuel_demand,
     calculate_expected_fuel_supply,
     calculate_export_expectations,
+    calculate_feed_availability,
     calculate_fuel_import_to_ports,
     calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
     calculate_port_expectations,
     calculate_port_profile,
+    calculate_producer_evolution_expectation,
     calculate_producer_profile,
     initialize_existing_producer,
-    perform_planning,
-    perform_progression,
+    perform_decommissioning,
+    perform_pipeline_delivery,
+    perform_pipeline_planning,
+    update_plant_ages,
 )
 from navigate.simulation.policy import (
+    calculate_adjusted_regulation_thresholds,
+    calculate_flexibility_markets,
+    calculate_individual_remedial_expenses,
     calculate_policy_emission_coefficients,
     calculate_policy_expectations,
+    calculate_regulation_bunkering_inputs,
+    calculate_regulation_compliance,
     calculate_regulation_measures,
     calculate_regulation_profile,
     update_regulation_flexibility_beliefs,
@@ -135,13 +149,14 @@ class Simulation:
         self._computational_time: float
 
     def initialize(self) -> None:
-        """Set up the expectations, profiles and bunker models the time steps use."""
+        """Set up the node maps, expectations, profiles and bunker models."""
         self._computational_time = timeit.default_timer()
 
         logger.info(
             "Initialize model before start of simulation", extra={"heading": True}
         )
 
+        self._define_node_maps()
         self._initialize_expectations()
         self._initialize_profiles()
         self._initialize_bunker_models()
@@ -211,11 +226,11 @@ class Simulation:
                 timeit.default_timer() - start_time_overhead, self._idx
             )
 
-        # nothing the policy coefficients read (plant production and delivery WTT,
-        # port WTT overwrites, bunkering flags and shore-power emission factors,
-        # the vessels' usable fuels, converters and effective LHVs, the levies'
-        # levels and the vessels each policy polices) changes later in the step,
-        # so one pass serves both bunkering runs
+        # nothing the policy emission coefficients, vessel thresholds and levy costs
+        # read (plant production and delivery WTT, port WTT overwrites, bunkering
+        # flags and shore-power emission factors, the vessels' effective LHVs, the
+        # levies' levels and the vessels each policy polices) changes later in the
+        # step, so one pass serves both bunkering runs
         self._calculate_policy_emission_coefficients()
 
         # technology costs are excluded here: they enter the cargo charter
@@ -225,7 +240,7 @@ class Simulation:
         if self._idx > 0:
             # ages advance before any calculation that depends on the existing
             # fleet or production capacity
-            self._update_increment_ages()
+            self._update_ages()
 
             # the fleet evolution expectations are updated before the expected
             # bunkering so that vessels allowed in the current time-step have a
@@ -236,10 +251,13 @@ class Simulation:
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
 
             # the times in port, electrical demands, shore-power capacities and cargo
-            # miles are rewritten during the step, so the shore-power limits and the
-            # regulation measures are recalculated before each bunkering run
+            # miles are rewritten during the step, and the threshold adjustment of
+            # each bunkering LP rewrites the regulation inputs of its own time step,
+            # so the shore-power limits, the regulation measures and the regulation
+            # bunkering inputs are recalculated before each bunkering run
             calculate_shore_power_limits(self.nodes.fleets, self._idx)
             self._calculate_regulation_measures()
+            self._calculate_regulation_bunkering_inputs()
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
@@ -270,12 +288,20 @@ class Simulation:
 
         calculate_shore_power_limits(self.nodes.fleets, self._idx)
         self._calculate_regulation_measures()
+        self._calculate_regulation_bunkering_inputs()
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
         self._verify_power_capacity(self._bunker_existing)
         self._perform_existing_bunkering()
+        self._calculate_regulation_compliance(self._bunker_existing)
+        self._calculate_individual_remedial_expenses(self._bunker_existing)
+        self._calculate_flexibility_markets(self._bunker_existing)
 
+        # the fuel-type balance weighs this step's existing bunkering; the profile
+        # below transfers the capacity just calculated, and the next step's fuel
+        # conversion reads both totals
+        self._calculate_fuel_type_balance()
         self._calculate_profile()
         self.profile.set_total_time(
             self._idx, timeit.default_timer() - self._computational_time
@@ -315,9 +341,7 @@ class Simulation:
             self._idx,
         )
 
-        calculate_fleet_expectations(
-            self.nodes.vessels, self.nodes.fuels, self.nodes.emissions
-        )
+        calculate_fleet_expectations(self.nodes.vessels, self.nodes.emissions)
 
         calculate_port_expectations(self.nodes.ports, self.timeline, self._idx)
         calculate_export_expectations(self.nodes.producers, self.timeline, self._idx)
@@ -402,6 +426,15 @@ class Simulation:
 
         self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
 
+    def _calculate_regulation_bunkering_inputs(self) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_regulation_bunkering_inputs(
+            self.nodes.regulations, self.nodes.vessels, self._idx
+        )
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
     def _calculate_potential_fuel_type_demand(self) -> None:
         start_time = timeit.default_timer()
 
@@ -427,15 +460,13 @@ class Simulation:
 
     def _perform_producer_evolution(self) -> None:
         """
-        Progress each producer in time and assign fair shares of the supply gap.
+        Progress each producer in time and plan its pipeline from its share of the gap.
 
-        The preparation per producer consists of:
-        - updating increment ages,
-        - delivering from the pipeline,
-        - calculating feedstock gap.
-
-        Then the fuel/supply demand gap is calculated and producers are assigned a
-        fair-share of the gap and their pipeline is updated.
+        Each producer first decommissions its retired plants, takes delivery from its
+        pipeline, and updates its feed gap and development potential. The fuel
+        supply/demand gap is then shared out among the producers, and each plans new
+        plants into its pipeline, updates its feed gap again and recalculates its
+        evolution expectation.
         """
         start_time = timeit.default_timer()
 
@@ -446,7 +477,9 @@ class Simulation:
         }
 
         for producer in self.nodes.producers.values():
-            perform_progression(producer, self.timeline, self._idx)
+            perform_decommissioning(producer)
+            perform_pipeline_delivery(producer)
+            calculate_feed_availability(producer, self.timeline, self._idx)
             calculate_development_potential(producer, self._time_step, self._idx)
 
         demand = calculate_expected_fuel_demand(self.nodes.fleets, self._idx)
@@ -457,20 +490,27 @@ class Simulation:
         )
 
         for producer in self.nodes.producers.values():
-            perform_planning(producer, self.timeline, self._time_step, self._idx)
+            perform_pipeline_planning(
+                producer, self.timeline, self._time_step, self._idx
+            )
+
+            # the feed gap is updated again before the evolution expectation, to
+            # account for the plants just added to the pipeline
+            calculate_feed_availability(producer, self.timeline, self._idx)
+            calculate_producer_evolution_expectation(producer, self.timeline, self._idx)
 
         self.profile.add_producer_evolution_time(
             timeit.default_timer() - start_time, self._idx
         )
 
-    def _update_increment_ages(self) -> None:
+    def _update_ages(self) -> None:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            fleet.update_increment_ages(self._time_step)
+            update_vessel_ages(fleet, self._time_step)
 
         for producer in self.nodes.producers.values():
-            producer.update_increment_ages(self._time_step)
+            update_plant_ages(producer, self._time_step)
 
         self.profile.add_fleet_state_time(
             timeit.default_timer() - start_time, self._idx
@@ -480,7 +520,7 @@ class Simulation:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            calculate_evolution_expectation(fleet, self.timeline, self._idx)
+            calculate_fleet_evolution_expectation(fleet, self.timeline, self._idx)
 
         self.profile.add_fleet_state_time(
             timeit.default_timer() - start_time, self._idx
@@ -493,22 +533,19 @@ class Simulation:
         for regulation in self.nodes.regulations.values():
             regulation.expectation.reset_expected_bunkering()
 
+        bunker = self._bunker_expected
+
         for i in range(self._idx, self.timeline.size):
             time_step_i = self.timeline[i] - self.timeline[i - 1]
 
-            self._bunker_expected.build(self._idx, i, self.timeline[i], time_step_i)
-            self._bunker_expected.solve()
-            self._bunker_expected.transfer()
+            self._perform_bunkering(bunker, i, self.timeline[i], time_step_i)
 
-            self.profile.add_expected_build_time(
-                self._bunker_expected.build_time, self._idx
-            )
-            self.profile.add_expected_solve_time(
-                self._bunker_expected.solve_time, self._idx
-            )
-            self.profile.add_expected_transfer_time(
-                self._bunker_expected.transfer_time, self._idx
-            )
+            self.profile.add_expected_build_time(bunker.build_time, self._idx)
+            self.profile.add_expected_solve_time(bunker.solve_time, self._idx)
+            self.profile.add_expected_transfer_time(bunker.transfer_time, self._idx)
+
+            self._calculate_individual_remedial_expenses(bunker)
+            self._calculate_flexibility_markets(bunker)
 
     def _calculate_fleet_fuel_demand(self) -> None:
         start_time = timeit.default_timer()
@@ -568,29 +605,109 @@ class Simulation:
         self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
 
     def _perform_fleet_evolution(self) -> None:
+        """
+        Evolve each fleet by one time-step and recalculate its evolution expectation.
+
+        Each fleet scraps its oldest vessels, converts vessels to other fuels and
+        closes the gap between its trade and the capacity left. The residual energy
+        demand and technology uptake of the resulting fleet are then updated.
+        """
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            perform_fleet_evolution(fleet, self.timeline, self._time_step, self._idx)
+            perform_primary_scrapping(fleet, self._time_step, self._idx)
+            perform_fuel_conversions(fleet, self.timeline, self._time_step, self._idx)
+            close_trade_gap(fleet, self._time_step, self._idx)
+
+            # the residual energy demand reads the updated fleet composition
+            update_residual_energy_demand(fleet, self._idx)
+
+            # refresh the fleet-average carried technology charge after evolution, so
+            # it reflects this timestep's scrapping, conversions and newbuilds (the
+            # pre-evolution transfer already served the cargo charter)
+            transfer_technology_charter_rate(fleet, self._idx)
+
+            calculate_fleet_evolution_expectation(fleet, self.timeline, self._idx)
 
         self.profile.add_fleet_evolution_time(
             timeit.default_timer() - start_time, self._idx
         )
 
     def _perform_existing_bunkering(self) -> None:
-        self._bunker_existing.build(self._idx, self._idx, self._time, self._time_step)
-        self._bunker_existing.solve()
-        self._bunker_existing.transfer()
+        bunker = self._bunker_existing
 
-        self.profile.set_existing_build_time(
-            self._idx, self._bunker_existing.build_time
+        self._perform_bunkering(bunker, self._idx, self._time, self._time_step)
+
+        self.profile.set_existing_build_time(self._idx, bunker.build_time)
+        self.profile.set_existing_solve_time(self._idx, bunker.solve_time)
+        self.profile.set_existing_transfer_time(self._idx, bunker.transfer_time)
+
+    def _perform_bunkering(
+        self, bunker: BunkerAlgorithm, idx: int, time: float, time_step: float
+    ) -> None:
+        """
+        Build, solve and transfer the bunkering LP of one evaluated time step.
+
+        The LP is solved again where the threshold adjustment rewrote its regulation
+        inputs after the first solve.
+        """
+        bunker.build(self._idx, idx, time, time_step)
+        bunker.solve()
+        bunker.transfer_regulation_solution()
+
+        if self._calculate_adjusted_regulation_thresholds(bunker):
+            bunker.update_regulation_constraints()
+            bunker.solve()
+
+        bunker.transfer()
+
+    def _calculate_adjusted_regulation_thresholds(
+        self, bunker: BunkerAlgorithm
+    ) -> bool:
+        start_time = timeit.default_timer()
+
+        needs_resolve = calculate_adjusted_regulation_thresholds(
+            self.nodes.regulations, self.nodes.vessels, bunker.multipliers, bunker.idx
         )
-        self.profile.set_existing_solve_time(
-            self._idx, self._bunker_existing.solve_time
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+        return needs_resolve
+
+    def _calculate_regulation_compliance(self, bunker: BunkerAlgorithm) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_regulation_compliance(
+            self.nodes.regulations, bunker.multipliers, bunker.idx
         )
-        self.profile.set_existing_transfer_time(
-            self._idx, self._bunker_existing.transfer_time
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+    def _calculate_individual_remedial_expenses(self, bunker: BunkerAlgorithm) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_individual_remedial_expenses(
+            self.nodes.regulations,
+            self.nodes.vessels,
+            bunker.multipliers,
+            bunker.scope,
+            bunker.idx,
         )
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
+
+    def _calculate_flexibility_markets(self, bunker: BunkerAlgorithm) -> None:
+        start_time = timeit.default_timer()
+
+        calculate_flexibility_markets(
+            self.nodes.regulations,
+            self.nodes.vessels,
+            bunker.multipliers,
+            bunker.scope,
+            bunker.idx,
+        )
+
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
 
     def _missing_technology_approximation(self) -> None:
         """
@@ -605,6 +722,10 @@ class Simulation:
         self.profile.add_fleet_state_time(
             timeit.default_timer() - start_time, self._idx
         )
+
+    def _define_node_maps(self) -> None:
+        """Write the node maps derived from DSL-defined attributes."""
+        define_vessel_fuel_maps(self.nodes.vessels, self.nodes.fuels)
 
     def _initialize_bunker_models(self) -> None:
         # the solver backend is chosen before any model is created
@@ -733,12 +854,9 @@ class Simulation:
             )
 
     def _initialize_existing_fleet(self) -> None:
-        fuel_by_fuel_type = get_fuels_per_fuel_type(self.nodes.fuels)
-
         for vessel in self.nodes.vessels.values():
             determine_fuel_type(vessel)
-            determine_usable_fuel_types(vessel)
-            determine_usable_fuels(vessel, fuel_by_fuel_type)
+            check_fuel_options(vessel)
 
         assign_vessels_to_fleets(self.nodes.fleets.values())
 
@@ -749,11 +867,21 @@ class Simulation:
         for producer in self.nodes.producers.values():
             initialize_existing_producer(producer, self.timeline)
 
+    def _calculate_fuel_type_balance(self) -> None:
+        start_time = timeit.default_timer()
+
+        for fleet in self.nodes.fleets.values():
+            calculate_fuel_type_balance(fleet, self.nodes.fuels, self._idx)
+
+        self.profile.add_fleet_state_time(
+            timeit.default_timer() - start_time, self._idx
+        )
+
     def _calculate_profile(self) -> None:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            calculate_fleet_profile(fleet, self.nodes.fuels, self.timeline, self._idx)
+            calculate_fleet_profile(fleet, self.timeline, self._idx)
 
         for port in self.nodes.ports.values():
             calculate_port_profile(port, self._idx)

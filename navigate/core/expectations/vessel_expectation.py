@@ -12,7 +12,7 @@ import numpy as np
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.util import divide_nonzero, slice_dict_list, slice_list
+from navigate.util import slice_dict_list, slice_list
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
@@ -111,7 +110,11 @@ class VesselExpectation(_Expectation):
         # bunker results (expected bunkering)
         self._total_energy: FloatArray = EMPTY_FLOAT
         self._fuel_expenses: FloatArray = EMPTY_FLOAT
-        self._policy_expenses: FloatArray = EMPTY_FLOAT
+
+        # policy expenses (expected bunkering): the remedial expenses of each expected
+        # LP, and the net flexibility expenses valued at the smoothed flexibility cost
+        self._remedial_expenses: FloatArray = EMPTY_FLOAT
+        self._flexibility_expenses: FloatArray = EMPTY_FLOAT
 
         # shore power
         self._shore_power_capacity: FloatArray = EMPTY_FLOAT
@@ -132,8 +135,9 @@ class VesselExpectation(_Expectation):
         self,
         length: int,
         route: Route,
-        power_system: PowerSystem,
         fuels: dict[str, Fuel],
+        usable_fuels: dict[str, Fuel],
+        fuels_per_converter: dict[str, dict[str, Fuel]],
         emissions: dict[str, Emission],
     ) -> None:
         self._initialize_expectation(length)
@@ -221,28 +225,25 @@ class VesselExpectation(_Expectation):
         # emission too; all values are NaN until the first step sets them
         lhv_keys: list[tuple[str, str]] = []
         ttw_keys: list[tuple[str, str, str]] = []
-        for converter in power_system.get_converters():
-            fuel_types = converter.get_fuel_types()
-
-            for fuel_name, fuel in fuels.items():
-                if fuel.fuel_type not in fuel_types:
-                    continue
-
-                lhv_keys.append((converter.name, fuel_name))
+        for converter_name, burned in fuels_per_converter.items():
+            for fuel_name in burned:
+                lhv_keys.append((converter_name, fuel_name))
                 for emission_name in emissions:
-                    ttw_keys.append((converter.name, fuel_name, emission_name))
+                    ttw_keys.append((converter_name, fuel_name, emission_name))
 
         self._effective_lhv = self._default_dict_float(lhv_keys, default=np.nan)
         self._ttw_consumption = self._default_dict_float(ttw_keys, default=np.nan)
         self._ttw_slip = self._default_dict_float(ttw_keys, default=np.nan)
 
-        # the means are keyed by every fuel, burned on board or not
-        self._mean_effective_lhv = self._default_dict_float(fuels, default=np.nan)
+        # the means are keyed by every usable fuel, burned on board or only stored
+        self._mean_effective_lhv = self._default_dict_float(
+            usable_fuels, default=np.nan
+        )
         self._mean_ttw_consumption = self._default_tuple_dict_float(
-            fuels, emissions, default=np.nan
+            usable_fuels, emissions, default=np.nan
         )
         self._mean_ttw_slip = self._default_tuple_dict_float(
-            fuels, emissions, default=np.nan
+            usable_fuels, emissions, default=np.nan
         )
 
         # bunkered masses for the inertia floors, the expected ones also for the
@@ -273,7 +274,10 @@ class VesselExpectation(_Expectation):
         # expected bunker results (from BunkerAlgorithm)
         self._total_energy = self._default_array()
         self._fuel_expenses = self._default_array()
-        self._policy_expenses = self._default_array()
+
+        # expected policy expenses (from the policy domain)
+        self._remedial_expenses = self._default_array()
+        self._flexibility_expenses = self._default_array()
 
         # costs
         self._fuel_cost_flow = self._default_array()
@@ -289,7 +293,8 @@ class VesselExpectation(_Expectation):
     def reset_expected_bunkering(self) -> None:
         self._total_energy = self._default_array()
         self._fuel_expenses = self._default_array()
-        self._policy_expenses = self._default_array()
+        self._remedial_expenses = self._default_array()
+        self._flexibility_expenses = self._default_array()
 
         self._reset_dict_array(self._bunker_mass_expected)
 
@@ -512,11 +517,11 @@ class VesselExpectation(_Expectation):
     def add_fuel_expenses(self, idx: int, expenses: float) -> None:
         self._fuel_expenses[idx] += expenses
 
-    def add_policy_expenses(self, idx: int, expenses: float) -> None:
-        self._policy_expenses[idx] += expenses
+    def add_remedial_expenses(self, idx: int, expenses: float) -> None:
+        self._remedial_expenses[idx] += expenses
 
-    def add_policy_expenses_path(self, idx: int, expenses: FloatLike) -> None:
-        self._policy_expenses[idx:] += expenses
+    def add_flexibility_expenses_path(self, idx: int, expenses: FloatLike) -> None:
+        self._flexibility_expenses[idx:] += expenses
 
     def set_shore_power_capacity(self, idx: int, value: float) -> None:
         self._shore_power_capacity[idx:] = value
@@ -618,47 +623,6 @@ class VesselExpectation(_Expectation):
     ) -> dict[EnergyDemandID, list[FloatLike]]:
         return slice_dict_list(self._energy_port, idx)
 
-    def get_total_demand(self, idx: Index = np.s_[:]) -> FloatLike:
-        energies = [
-            energy[idx]
-            for area in (self._energy_sea_leg, self._energy_port)
-            for step in area.values()
-            for energy in step
-        ]
-
-        # a route always has at least one leg and one port and the energy dicts are
-        # keyed by a fixed enum, so the list is never empty
-        total: FloatLike = np.add.reduce(energies)
-        return total
-
-    def get_energy_saving_sea_condition(
-        self, idx: int
-    ) -> dict[EnergyDemandID, list[float]]:
-        return {
-            energy_id: [
-                1.0 - float(divide_nonzero(energy[idx], raw_energy[idx], default=1.0))
-                for (energy, raw_energy) in zip(
-                    self._energy_sea_condition[energy_id],
-                    self._raw_energy_sea_condition[energy_id],
-                    strict=True,
-                )
-            ]
-            for energy_id in self._energy_sea_condition
-        }
-
-    def get_energy_saving_port(self, idx: int) -> dict[EnergyDemandID, list[float]]:
-        return {
-            energy_id: [
-                1.0 - float(divide_nonzero(energy[idx], raw_energy[idx], default=1.0))
-                for (energy, raw_energy) in zip(
-                    self._energy_port[energy_id],
-                    self._raw_energy_port[energy_id],
-                    strict=True,
-                )
-            ]
-            for energy_id in self._energy_port
-        }
-
     def get_energy_conservation_pi_sea(self) -> dict[EnergyDemandID, list[FloatArray]]:
         return self._energy_conservation_pi_sea
 
@@ -740,8 +704,14 @@ class VesselExpectation(_Expectation):
     def get_total_energy(self, idx: Index = np.s_[:]) -> FloatLike:
         return self._total_energy[idx]
 
-    def get_total_fuel_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
-        return self._fuel_expenses[idx] + self._policy_expenses[idx]
+    def get_fuel_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
+        return self._fuel_expenses[idx]
+
+    def get_remedial_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
+        return self._remedial_expenses[idx]
+
+    def get_flexibility_expenses(self, idx: Index = np.s_[:]) -> FloatLike:
+        return self._flexibility_expenses[idx]
 
     def get_fuel_cost_flow(self) -> FloatArray:
         return self._fuel_cost_flow

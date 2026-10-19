@@ -21,17 +21,20 @@ if TYPE_CHECKING:
 
 
 class RegulationExpectation(_PolicyExpectation):
-    """Coefficients, thresholds, costs, capacities, jurisdiction fractions, measures."""
+    """Coefficients, thresholds, costs, fractions, measures, allowances, LP results."""
 
     def __init__(self) -> None:
         super().__init__()
 
-        # keyed by (vessel_name, converter_name, fuel_name), in ton emission/ton fuel
+        # keyed by (vessel_name, converter_name, fuel_name), in ton emission/ton fuel;
+        # once threshold adjustment has run, a bunkering LP's own step holds the
+        # adjusted spend coefficients
         self._emission_coefficient: dict[tuple[str, str, str], FloatArray] = {}
         self._spend_coefficient: dict[tuple[str, str, str], FloatArray] = {}
 
         # in ton emission/GJ, the emission coefficient keyed by port_name and the
-        # spend coefficient by (vessel_name, port_name)
+        # spend coefficient by (vessel_name, port_name), adjusted at a bunkering LP's
+        # own step as the fuel spend coefficients are
         self._shore_power_emission_coefficient: dict[str, FloatArray] = {}
         self._shore_power_spend_coefficient: dict[tuple[str, str], FloatArray] = {}
 
@@ -48,6 +51,29 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_threshold: dict[str, FloatArray] = {}
         self._vessel_capacity: dict[str, FloatArray] = {}
         self._vessel_measure: dict[str, FloatArray] = {}
+
+        # threshold times measure, in tons emission; zero under INTENSITY, whose
+        # threshold enters the spend coefficients instead; once threshold adjustment
+        # has run, a bunkering LP's own step holds the adjusted allowances
+        self._vessel_allowance: dict[str, FloatArray] = {}
+
+        # the results of the bunkering LP of each time step: per policed vessel the
+        # regulated emissions, in tons, the energy, in GJ, and under INDIVIDUAL the
+        # remedial units; under FLEXIBLE the pooled remedial units and the shadow
+        # price of the pooled threshold
+        self._vessel_emissions: dict[str, FloatArray] = {}
+        self._vessel_energy: dict[str, FloatArray] = {}
+        self._vessel_remedial_units: dict[str, FloatArray] = {}
+        self._pooled_remedial_units: FloatArray = EMPTY_FLOAT
+        self._pooled_shadow_price: FloatArray = EMPTY_FLOAT
+
+        # the thresholds adjusted to the compliance achievable, written by the
+        # threshold adjustment after the first solve of each bunkering LP; a compliant
+        # vessel of an adjustable regulation holds its original threshold. NaN where
+        # the regulation allows no adjustment, and in the shared slot under INDIVIDUAL
+        # or of a compliant FLEXIBLE regulation
+        self._adjusted_vessel_threshold: dict[str, FloatArray] = {}
+        self._adjusted_shared_threshold: FloatArray = EMPTY_NAN
 
     def initialize(
         self,
@@ -82,6 +108,18 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_threshold = self._default_dict_array(vessels)
         self._vessel_capacity = self._default_dict_array(vessels)
         self._vessel_measure = self._default_dict_array(vessels)
+        self._vessel_allowance = self._default_dict_array(vessels)
+
+        self._vessel_emissions = self._default_dict_array(vessels)
+        self._vessel_energy = self._default_dict_array(vessels)
+        self._vessel_remedial_units = self._default_dict_array(vessels)
+        self._pooled_remedial_units = self._default_array()
+        self._pooled_shadow_price = self._default_array()
+
+        self._adjusted_vessel_threshold = self._default_dict_array(
+            vessels, default=np.nan
+        )
+        self._adjusted_shared_threshold = self._default_array(default=np.nan)
 
     def reset_expected_bunkering(self) -> None:
         self._flexibility_cost[:] = 0.0
@@ -96,10 +134,10 @@ class RegulationExpectation(_PolicyExpectation):
         self._emission_coefficient[key][idx:] = coefficient
 
     def set_spend_coefficient(
-        self, idx: int, key: tuple[str, str, str], coefficient: FloatLike
+        self, idx: int | slice, key: tuple[str, str, str], coefficient: FloatLike
     ) -> None:
         self._spend_coefficient.setdefault(key, self._default_array())
-        self._spend_coefficient[key][idx:] = coefficient
+        self._spend_coefficient[key][idx] = coefficient
 
     def set_shore_power_emission_coefficient(
         self, idx: int, port_name: str, coefficient: FloatLike
@@ -107,9 +145,9 @@ class RegulationExpectation(_PolicyExpectation):
         self._shore_power_emission_coefficient[port_name][idx:] = coefficient
 
     def set_shore_power_spend_coefficient(
-        self, idx: int, key: tuple[str, str], coefficient: FloatLike
+        self, idx: int | slice, key: tuple[str, str], coefficient: FloatLike
     ) -> None:
-        self._shore_power_spend_coefficient[key][idx:] = coefficient
+        self._shore_power_spend_coefficient[key][idx] = coefficient
 
     def set_flexibility_cost(self, idx: int, cost: float) -> None:
         self._flexibility_cost[idx] = cost
@@ -144,6 +182,38 @@ class RegulationExpectation(_PolicyExpectation):
         self, idx: int, vessel_name: str, measure: FloatLike
     ) -> None:
         self._vessel_measure[vessel_name][idx:] = measure
+
+    def set_vessel_allowance(
+        self, idx: int | slice, vessel_name: str, allowance: FloatLike
+    ) -> None:
+        self._vessel_allowance[vessel_name][idx] = allowance
+
+    def set_vessel_emissions(
+        self, idx: int, vessel_name: str, emissions: float
+    ) -> None:
+        self._vessel_emissions[vessel_name][idx] = emissions
+
+    def set_vessel_energy(self, idx: int, vessel_name: str, energy: float) -> None:
+        self._vessel_energy[vessel_name][idx] = energy
+
+    def set_vessel_remedial_units(
+        self, idx: int, vessel_name: str, units: float
+    ) -> None:
+        self._vessel_remedial_units[vessel_name][idx] = units
+
+    def set_pooled_remedial_units(self, idx: int, units: float) -> None:
+        self._pooled_remedial_units[idx] = units
+
+    def set_pooled_shadow_price(self, idx: int, price: float) -> None:
+        self._pooled_shadow_price[idx] = price
+
+    def set_adjusted_vessel_threshold(
+        self, idx: int, vessel_name: str, threshold: float
+    ) -> None:
+        self._adjusted_vessel_threshold[vessel_name][idx] = threshold
+
+    def set_adjusted_shared_threshold(self, idx: int, threshold: float) -> None:
+        self._adjusted_shared_threshold[idx] = threshold
 
     @overload
     def get_emission_coefficient(
@@ -221,6 +291,43 @@ class RegulationExpectation(_PolicyExpectation):
     def get_vessel_capacity(self, vessel_name: str, idx: slice) -> FloatArray:
         return self._vessel_capacity[vessel_name][idx]
 
-    def get_vessel_measure(self, vessel_name: str, idx: int) -> float:
-        measure: float = self._vessel_measure[vessel_name][idx]
-        return measure
+    @overload
+    def get_vessel_measure(self, vessel_name: str, idx: int) -> float: ...
+
+    @overload
+    def get_vessel_measure(self, vessel_name: str, idx: slice) -> FloatArray: ...
+
+    def get_vessel_measure(self, vessel_name: str, idx: int | slice) -> FloatLike:
+        return self._vessel_measure[vessel_name][idx]
+
+    def get_vessel_allowance(self, vessel_name: str, idx: int) -> float:
+        allowance: float = self._vessel_allowance[vessel_name][idx]
+        return allowance
+
+    def get_vessel_emissions(self, vessel_name: str, idx: int) -> float:
+        emissions: float = self._vessel_emissions[vessel_name][idx]
+        return emissions
+
+    def get_vessel_energy(self, vessel_name: str, idx: int) -> float:
+        energy: float = self._vessel_energy[vessel_name][idx]
+        return energy
+
+    def get_vessel_remedial_units(self, vessel_name: str, idx: int) -> float:
+        units: float = self._vessel_remedial_units[vessel_name][idx]
+        return units
+
+    def get_pooled_remedial_units(self, idx: int) -> float:
+        units: float = self._pooled_remedial_units[idx]
+        return units
+
+    def get_pooled_shadow_price(self, idx: int) -> float:
+        price: float = self._pooled_shadow_price[idx]
+        return price
+
+    def get_adjusted_vessel_threshold(self, vessel_name: str, idx: int) -> float:
+        threshold: float = self._adjusted_vessel_threshold[vessel_name][idx]
+        return threshold
+
+    def get_adjusted_shared_threshold(self, idx: int) -> float:
+        threshold: float = self._adjusted_shared_threshold[idx]
+        return threshold

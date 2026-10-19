@@ -37,9 +37,8 @@ class ProducerExpectation(_Expectation):
 
         self._fair_share_demand: dict[str, FloatArray] = {}
 
-        self._existing_production: dict[str, FloatArray] = {}
-        self._pipeline_production: dict[str, FloatArray] = {}
-        self._newbuild_production: dict[str, FloatArray] = {}
+        self._guaranteed_production: dict[str, FloatArray] = {}
+        self._expected_production: dict[str, FloatArray] = {}
 
     def initialize(
         self,
@@ -66,9 +65,8 @@ class ProducerExpectation(_Expectation):
 
         self._fair_share_demand = self._default_dict_array(fuels)
 
-        self._existing_production = self._default_dict_array(plant_names)
-        self._pipeline_production = self._default_dict_array(plant_names)
-        self._newbuild_production = self._default_dict_array(plant_names)
+        self._guaranteed_production = self._default_dict_array(plant_names)
+        self._expected_production = self._default_dict_array(plant_names)
 
     def reset_additive_properties(self) -> None:
 
@@ -104,20 +102,15 @@ class ProducerExpectation(_Expectation):
     ) -> None:
         self._fair_share_demand[fuel_name][idx:] = fair_share_demand
 
-    def set_existing_production(
+    def set_guaranteed_production(
         self, idx: int, plant_name: str, production: FloatLike
     ) -> None:
-        self._existing_production[plant_name][idx:] = production
+        self._guaranteed_production[plant_name][idx:] = production
 
-    def set_pipeline_production(
+    def set_expected_production(
         self, idx: int, plant_name: str, production: FloatLike
     ) -> None:
-        self._pipeline_production[plant_name][idx:] = production
-
-    def set_newbuild_production(
-        self, idx: int, plant_name: str, production: FloatLike
-    ) -> None:
-        self._newbuild_production[plant_name][idx:] = production
+        self._expected_production[plant_name][idx:] = production
 
     def get_export_distribution(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
         return slice_dict(self._export_distribution, idx)
@@ -143,16 +136,9 @@ class ProducerExpectation(_Expectation):
     def get_guaranteed_production(
         self, plant_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
-        return (
-            self._existing_production[plant_name][idx]
-            + self._pipeline_production[plant_name][idx]
-        )
+        return self._guaranteed_production[plant_name][idx]
 
     def get_expected_production(
         self, plant_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
-        return (
-            self._existing_production[plant_name][idx]
-            + self._pipeline_production[plant_name][idx]
-            + self._newbuild_production[plant_name][idx]
-        )
+        return self._expected_production[plant_name][idx]

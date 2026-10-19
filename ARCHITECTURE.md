@@ -17,12 +17,18 @@ step, and `driver/` runs it from a read deck to its output.
   orchestrates the domains in a fixed phase order.
   - `simulation/fleet/` — the shipowner domain: operation and decisions.
   - `simulation/fuel/` — the fuel-supply domain: production and planning.
-    The two mirror each other: `initialization.py`, `evolution.py`,
-    `planning.py` and `aggregation.py` play the same role in each.
+    Both keep `initialization.py` (simulation start), `expectation.py`
+    (what the domain publishes to later phases and other domains) and
+    `profile.py` (per-step output); every other file is named for a
+    domain concept.
   - `simulation/economics/` — valuation and choice used by both domains.
+  - `simulation/cohort.py` — vintage-stock accounting over the asset
+    cohorts of both domains.
   - `simulation/bunker/` — the per-time-step bunkering LP.
   - `simulation/policy/` — policy expectations, emission coefficients, levy
-    costs and beliefs.
+    costs, the regulation inputs of the bunkering LP and their threshold
+    adjustment, regulation compliance and remedial expenses, and the
+    flexibility market and its beliefs.
 - `core/` — the model definition only: the DSL value types and their
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
   nodes (`general_nodes/`), the node maps, `expectations/`, `profiles/`, the
@@ -42,16 +48,13 @@ in `core/expectations/x_expectation.py` and its output in
 `core/profiles/x_profile.py`; the domain's calculations live in
 `simulation/<domain>/`. The fleet domain owns `Fleet` and `Vessel`, fuel
 owns `Producer`, `Plant` and `Port`, and policy owns `Regulation` and
-`Levy`. `simulation/economics/` owns no nodes, and `simulation/bunker/`'s
-settings are the general node `core/general_nodes/bunker_options.py`.
+`Levy`. `simulation/economics/` and `simulation/cohort.py` own no nodes, and
+`simulation/bunker/`'s settings are the general node
+`core/general_nodes/bunker_options.py`.
 
 Node classes hold state, and the calculators among them (`Curve`,
 `Forecast` and the like) their value semantics; model work lives in
-`simulation/`. The known exceptions, a list that must not grow, are
-`_AssetManager`'s `update_increment_ages`, `_age_increments`,
-`define_initial_age` and `define_initial_multipliers`, with the hooks
-`Fleet` and `Producer` implement for them, and
-`Producer.define_initial_decided`.
+`simulation/`.
 
 ## Layering
 
@@ -60,9 +63,11 @@ util, __init__, simulation         → (nothing)
 exceptions                         → util
 core                               → foundation
 simulation.economics               → core, foundation
+simulation.cohort                  → core, foundation
+simulation.fleet, simulation.fuel  → simulation.economics, simulation.cohort,
+                                     core, foundation
+simulation.bunker,
 simulation.policy                  → core, foundation
-simulation.fleet, simulation.fuel  → simulation.economics, core, foundation
-simulation.bunker                  → simulation.policy, core, foundation
 parser, output                     → core, foundation
 app                                → driver, foundation
 simulation.time_stepping           → domains, core, foundation
@@ -76,9 +81,13 @@ dotted path; `__init__` is `navigate/__init__.py` and `simulation` is
 `simulation/__init__.py` alone. A file belongs to the longest unit that
 contains it; a unit imports itself and its row, nothing else from
 `navigate`. The foundation is `util/` and `exceptions.py`; the domains are
-the five `simulation.<domain>` units. Every file must fall in a unit, so a
-new top-level module or package needs a row here. No row may link `simulation.fleet` and `simulation.fuel`,
-`parser` and `output`, or either of those two and a simulation unit.
+the five packages under `simulation/`. Every file must fall in a unit, so a
+new top-level module or package, or a new module or package directly under
+`simulation/`, needs a row here. No row may link two of `simulation.bunker`,
+`simulation.fleet`, `simulation.fuel` and `simulation.policy`, nor link
+`simulation.economics` or `simulation.cohort` to `simulation.bunker` or
+`simulation.policy`, nor link `parser` and `output`, nor link either of them
+to a simulation unit.
 
 Inside `core/`, runtime imports run one way: `nodes/` imports
 `expectations/`, `profiles/` and the flat modules directly in `core/`;
@@ -96,9 +105,14 @@ re-export there would load far more than an import needs.
 
 - Cross-module dynamic results flow through the node's `expectation`: the
   computing module writes (`set_*`, `add_*`), the others read (`get_*`). A
-  relation between nodes that events can change is not such a result: it is
-  a node attribute holding node references, rewritten once per time step by
-  `core/node_maps.py`.
+  relation between nodes is not such a result: it is a node map, a node
+  attribute derived from other nodes' attributes, written by
+  `core/node_maps.py` once at initialization where those are DSL-defined,
+  and once per time step where events can change them.
+- An expectation getter returns what its writer stored. A quantity derived
+  from stored values is computed in the `simulation/` package of the domain
+  that reads it; where the parts of a sum are never read on their own, the
+  writer stores the sum instead.
 - `profile` is output for reports and plots, never a decision's input.
   Deriving one profile value from another is fine in post-processing and
   `Simulation._calculate_profile`, which feed no decision.

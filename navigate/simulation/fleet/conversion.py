@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Fuel conversion of existing vessels from one vessel type to another.
+Fuel conversion of existing vessels, and the fuel-type balance it weighs.
 
 The evaluation runs in three phases per fleet and time-step:
 
@@ -24,13 +24,17 @@ import numpy as np
 
 from navigate.core.enum_ import FuelTypeID, UtilityID
 from navigate.core.increment import VesselIncrement
+from navigate.simulation.cohort import find_insertion_index
 from navigate.simulation.economics.decision import calculate_asset_shares
 from navigate.simulation.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.simulation.economics.metric import calculate_net_present_value
+from navigate.simulation.fleet.composition import get_multiplier, get_multipliers
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.port import Port
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray
@@ -123,7 +127,7 @@ class _ConversionSource:
 
 
 def perform_fuel_conversions(
-    fleet: Fleet, idx: int, timeline: FloatArray, time_step: float
+    fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> None:
     """
     Convert existing vessels to another vessel type where the business case holds.
@@ -136,18 +140,18 @@ def perform_fuel_conversions(
     ----------
     fleet
         Fleet whose vessels may convert.
-    idx
-        Current time-step index.
     timeline
         Simulation timeline, days.
     time_step
         Current time-step size, days.
+    idx
+        Current time-step index.
     """
     if not fleet.can_fuel_convert():
         return
 
     # counted before the newbuilds, which are inserted later in the same time-step
-    existing_total = sum(fleet.get_multipliers())
+    existing_total = sum(get_multipliers(fleet))
 
     proposals = propose_fuel_conversions(fleet, idx, time_step)
     if not proposals:
@@ -722,11 +726,7 @@ def _insert_converted_increment(
     dt
         Age-bin width of the converted increment, years.
     """
-    if increments_to:
-        ages_to = np.array([increment.age for increment in increments_to])
-        idx_to = int(np.searchsorted(-ages_to, -age, side="right"))
-    else:
-        idx_to = 0
+    idx_to = find_insertion_index(increments_to, age)
 
     # the carried technology charter rate rides along unchanged; the amortization window
     # and discount rate stay those of the source vessel type, a simplification of the
@@ -750,3 +750,134 @@ def _insert_converted_increment(
             increments_to[1].baseline = None
         else:
             increments_to[0].baseline = count
+
+
+def calculate_fuel_type_balance(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
+    """
+    Calculate the fleet's fuel-type capacity and supply, held on its expectation.
+
+    The next step's fuel conversion weighs each fuel type's supply against its
+    capacity.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    fuels
+        All fuels in the simulation.
+    idx
+        Current time-step index.
+    """
+    # the reset must come after fleet evolution, which reads the previous step's
+    # totals
+    fleet.expectation.reset_fuel_type_totals()
+
+    _calculate_fuel_type_capacity(fleet)
+    _calculate_fuel_type_supply(fleet, fuels, idx)
+
+
+def _calculate_fuel_type_capacity(fleet: Fleet) -> None:
+    """
+    Add the fleet's fuel-type capacity to the fleet expectation.
+
+    The capacity is the energy the fleet's converters spent in the latest
+    bunkering solution, counted towards each main fuel type less a dual-fuel
+    converter's minimum pilot share, and towards each pilot fuel type at that
+    minimum share.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    """
+    for v, vessel in enumerate(fleet.vessels):
+        multiplier = get_multiplier(fleet, v)
+
+        if multiplier == 0.0:
+            continue
+
+        for converter in vessel.power_system.get_converters():
+            converter_energy = vessel.expectation.get_spend_energy(converter.name)
+            fleet_energy = converter_energy * multiplier
+
+            # pilot fuel counts at its minimum share only: the figure tracks main
+            # fuel, and counting all the energy a converter could burn as pilot
+            # fuel would inflate the pilot fuel type, usually OIL
+            if converter.is_dual_fuel():
+                pilot_fuel_share = converter.minimum_pilot_fuel.get()
+            else:
+                pilot_fuel_share = 0.0
+
+            main_capacity = (1.0 - pilot_fuel_share) * fleet_energy
+            pilot_capacity = pilot_fuel_share * fleet_energy
+
+            for fuel_type in converter.main_fuel_types:
+                fleet.expectation.add_fuel_type_capacity(fuel_type, main_capacity)
+
+            for fuel_type in converter.pilot_fuel_types:
+                fleet.expectation.add_fuel_type_capacity(fuel_type, pilot_capacity)
+
+
+def _calculate_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
+    """
+    Add the fleet's fuel-type supply to the fleet expectation.
+
+    Each vessel's supply is its allocation of the port supplies in the latest
+    existing bunkering; an infinite port supply counts in full.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    fuels
+        All fuels in the simulation.
+    idx
+        Current time-step index.
+    """
+    for v, vessel in enumerate(fleet.vessels):
+        multiplier = get_multiplier(fleet, v)
+
+        if multiplier == 0.0:
+            continue
+
+        # the allocation is per port, so a port the route calls more than once
+        # counts once
+        for port in dict.fromkeys(vessel.route.ports):
+            for fuel_name, fuel in fuels.items():
+                if not port.is_bunkering_allowed(fuel_name):
+                    continue
+
+                supply_mass = _get_supply_mass(vessel, port, fuel_name, idx)
+                supply = supply_mass * fuel.lower_heating_value.get() * multiplier
+                fleet.expectation.add_fuel_type_supply(fuel.fuel_type, supply)
+
+
+def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> float:
+    """
+    Return the mass of a port's fuel supply that counts for one vessel.
+
+    A finite supply counts as the existing bunkering's allocation to the vessel. The
+    bunkering allocates no infinite supply, which counts in full instead: a fuel
+    type no active vessel can use yet still has supply to convert to.
+
+    Parameters
+    ----------
+    vessel
+        Vessel holding the allocation.
+    port
+        Port supplying the fuel.
+    fuel_name
+        Name of the fuel.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    float
+        Fuel mass counting for one vessel, in tons.
+    """
+    supply = float(port.expectation.get_bunker_supply(fuel_name, idx))
+    if not np.isfinite(supply):
+        return supply
+
+    return vessel.expectation.get_allocation_fuel_existing(port.name, fuel_name)

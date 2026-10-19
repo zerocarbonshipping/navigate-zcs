@@ -35,6 +35,7 @@ if TYPE_CHECKING:
 
     import numpy as np
 
+    from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.power_system import PowerSystem
@@ -88,9 +89,13 @@ class Vessel(Node):
 
         # convenience variables
         self.primary_fuel_type: FuelTypeID
-        self.usable_fuel_types: list[FuelTypeID] = []
-        self.usable_fuels: dict[str, Fuel] = {}
         self.fleet_assignment: str
+
+        # node maps
+        self.usable_fuel_types: list[FuelTypeID]
+        self.usable_fuels: dict[str, Fuel]
+        self.fuels_per_converter: dict[str, dict[str, Fuel]]
+        self.converters_per_fuel: dict[str, dict[str, Converter]]
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion_load(self, propulsion_load: SurfaceArgument) -> None:
@@ -190,7 +195,12 @@ class Vessel(Node):
         self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
     ) -> None:
         self.expectation.initialize(
-            length, self.route, self.power_system, fuels, emissions
+            length,
+            self.route,
+            fuels,
+            self.usable_fuels,
+            self.fuels_per_converter,
+            emissions,
         )
 
     def initialize_profile(

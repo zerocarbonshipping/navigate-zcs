@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -184,23 +184,26 @@ def _calculate_import_from_producers(
 
             expectation = plant.expectation
             production = producer.expectation.get_expected_production(plant_name, idx_)
+            production_cost = expectation.get_expected_production_cost(idx_)
+
+            production_wtt: dict[str, FloatLike] = {}
+            for e in emissions:
+                production_wtt[e] = expectation.get_expected_production_wtt(e, idx_)
 
             for p, export in export_distribution.items():
                 if not ports[p].is_bunkering_allowed(f):
                     continue
 
                 normalized_export = export / export_normalization[f]
+                delivery_cost = expectation.get_levelized_delivery_cost(p, idx_)
 
                 supply = production * normalized_export
                 supplies[p][f] += supply
-                prices[p][f] += supply * expectation.get_expected_delivered_cost(
-                    p, idx_
-                )
+                prices[p][f] += supply * (production_cost + delivery_cost)
 
                 for e in emissions:
-                    wtts[p][(f, e)] += supply * expectation.get_expected_delivered_wtt(
-                        p, e, idx_
-                    )
+                    delivery_wtt = expectation.get_delivery_wtt(p, e, idx_)
+                    wtts[p][(f, e)] += supply * (production_wtt[e] + delivery_wtt)
 
     # the supply-weighted average price and WTT are transferred before the supply
     # is adjusted to the local bunkering limits

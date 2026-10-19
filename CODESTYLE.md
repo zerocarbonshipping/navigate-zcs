@@ -104,9 +104,10 @@ arbiter.
 
 - A numeric value computed during the time loop and read by another module
   lives on `node.expectation` or `node.profile`, not on a plain node
-  attribute. A relation between nodes that events can change is the
-  exception: a plain node attribute holding node references, rewritten once
-  per time step by `navigate/core/node_maps.py`.
+  attribute. A relation between nodes is the exception: a plain node
+  attribute derived from other nodes' attributes, written by
+  `navigate/core/node_maps.py` once at initialization where those are
+  DSL-defined, and once per time step where events can change them.
 - The expectation classes (`navigate/core/expectations/`) and profile classes
   (`navigate/core/profiles/`) are accessed through getters, adders and
   setters, which keep dynamic state and output apart from user input and

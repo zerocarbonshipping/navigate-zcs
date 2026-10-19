@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Newbuild planning: orderbook deliveries, inertia and modelled newbuilds."""
+"""Vessels added to the fleet: orderbook deliveries, inertia and modelled newbuilds."""
 
 from __future__ import annotations
 
@@ -14,10 +14,9 @@ from navigate.core.enum_ import UtilityID
 from navigate.core.increment import VesselIncrement
 from navigate.core.wrap import to_numpy
 from navigate.simulation.economics.decision import calculate_two_axis_uptake
-from navigate.simulation.fleet.technology_adoption import (
-    calculate_package_charter_rates,
-)
-from navigate.util import TOLERANCE, YEAR
+from navigate.simulation.fleet.composition import extract_cargo_miles
+from navigate.simulation.fleet.package import calculate_package_charter_rates
+from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -57,7 +56,7 @@ def calculate_orderbook_newbuilds(
     FloatArray
         Newbuild budget left after the delivery, number of vessels.
     """
-    nv = len(fleet.assets)
+    nv = len(fleet.vessels)
     delivery = np.zeros((nv,))
 
     if not fleet.orderbooks:
@@ -66,11 +65,11 @@ def calculate_orderbook_newbuilds(
     allowed = np.array(
         [
             (fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name])
-            for vessel in fleet.assets
+            for vessel in fleet.vessels
         ]
     )
 
-    cargo_miles = extract_cargo_miles(fleet.assets, idx=idx)
+    cargo_miles = extract_cargo_miles(fleet.vessels, idx=idx)
 
     # the orders postponed earlier are delivered first
     postponed_before = fleet.orders_postponed.copy()
@@ -123,7 +122,7 @@ def calculate_orderbook_newbuilds(
         delivery -= excess_count
         log_orderbook_deferral(fleet, delivery, attempted, reason="newbuild limit")
 
-    for v, vessel in enumerate(fleet.assets):
+    for v, vessel in enumerate(fleet.vessels):
         fleet.profile.add_newbuilds(vessel.name, delivery[v], idx)
 
     cap_count_remaining = np.maximum(cap_count - delivery, 0.0)
@@ -248,7 +247,7 @@ def calculate_modelled_newbuilds(
     allowed_indices, allowed_vessels = zip(
         *(
             (i, vessel)
-            for i, vessel in enumerate(fleet.assets)
+            for i, vessel in enumerate(fleet.vessels)
             if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]
         ),
         strict=True,
@@ -278,11 +277,11 @@ def calculate_modelled_newbuilds(
         modelled_uptakes, cargo_miles, trade_gap
     )
 
-    increments = np.zeros(len(fleet.assets))
+    increments = np.zeros(len(fleet.vessels))
 
     for i, v in enumerate(index):
         increments[v] = inertia_increments[i] + modelled_increments[i]
-        fleet.profile.add_newbuilds(fleet.assets[v].name, increments[v], idx)
+        fleet.profile.add_newbuilds(fleet.vessels[v].name, increments[v], idx)
 
     return increments, np.dot(
         np.add(inertia_increments, modelled_increments), cargo_miles
@@ -346,7 +345,7 @@ def add_newbuilds(fleet: Fleet, increments: FloatArray, time_step: float) -> Non
             # the technology bundle chosen at build is charged as a constant
             # yearly rate levelized over the full vessel lifetime
             package_rates = calculate_package_charter_rates(
-                fleet.technology_packages, fleet.package_cost_flows, fleet.assets[v]
+                fleet.technology_packages, fleet.package_cost_flows, fleet.vessels[v]
             )
             charter_rate = float(
                 np.dot(fleet.newbuild_package_uptake[v], package_rates)
@@ -367,42 +366,32 @@ def add_newbuilds(fleet: Fleet, increments: FloatArray, time_step: float) -> Non
                 fleet.increments[v][0].baseline = increment
 
 
-def extract_cargo_miles(vessels: list[Vessel], idx: int) -> FloatArray:
+def update_current_uptake(fleet: Fleet, increments: FloatArray, idx: int) -> None:
     """
-    Extract each vessel's cargo-miles at a single time-step index.
+    Update the fleet's uptake shares from this time-step's newbuilds.
+
+    Each vessel type's share is the trade its newbuilds carry. The next time-step's
+    inertia decays the current shares and carries them into its newbuilds, and the
+    evolution expectation reads the memory-weighted history of the normalized shares.
+    Without newbuilds, the current shares carry over as inertia left them.
 
     Parameters
     ----------
-    vessels
-        Vessels to extract cargo-miles for.
+    fleet
+        Fleet whose uptake shares are updated.
+    increments
+        Newbuilds per vessel type this time-step, number of vessels.
     idx
-        Time-step index.
-
-    Returns
-    -------
-    FloatArray
-        Cargo-miles of one vessel of each type, cargo-miles/year.
+        Current time-step index.
     """
-    return np.array([vessel.expectation.get_cargo_miles(idx) for vessel in vessels])
+    if np.sum(increments) > 0.0:
+        cargo_miles = extract_cargo_miles(fleet.vessels, idx)
+        fleet.current_uptake = (increments * cargo_miles) / np.dot(
+            increments, cargo_miles
+        )
 
-
-def extract_cargo_miles_timeline(vessels: list[Vessel], idx: slice) -> list[FloatArray]:
-    """
-    Extract each vessel's cargo-miles across a slice of the timeline.
-
-    Parameters
-    ----------
-    vessels
-        Vessels to extract cargo-miles for.
-    idx
-        Timeline slice.
-
-    Returns
-    -------
-    list[FloatArray]
-        Cargo-miles of one vessel of each type over the slice, cargo-miles/year.
-    """
-    return [np.asarray(vessel.expectation.get_cargo_miles(idx)) for vessel in vessels]
+    current_uptake = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))
+    fleet.expectation.set_uptakes(idx, current_uptake)
 
 
 def _calculate_increments(

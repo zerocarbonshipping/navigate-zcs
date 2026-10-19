@@ -78,8 +78,7 @@ def calculate_regulation_measures(
     """
     Calculate the measure of every policed vessel under each active regulation.
 
-    A vessel's threshold, multiplied by its measure, gives the right-hand side of its
-    threshold constraint in the bunkering LP.
+    Multiplied by the vessel's threshold, the measure gives the vessel's allowance.
 
     Parameters
     ----------

@@ -115,23 +115,6 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> bool:
     return False
 
 
-def perform_flexibility_unit_cost_evaluation(alg: BunkerAlgorithm) -> None:
-    """
-    Evaluate the flexibility unit cost as each regulation's threshold shadow price.
-
-    The unit cost is the cost of carbon, whether that is defined by the price
-    ceiling (remedial unit cost) or the cheapest compliant fuel available at
-    scale.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    """
-    for r, constraint in alg.regulation_threshold_flexibility.items():
-        alg.flexible_unit_cost[r] = -constraint.Pi
-
-
 def initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     """
     Initialize the fair-share allocations and convergence state of a solve.

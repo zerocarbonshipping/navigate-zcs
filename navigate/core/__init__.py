@@ -23,13 +23,18 @@ from navigate.core.assign import (
     assign_reference,
     assign_reference_list,
     assign_value,
+    check_curves_are_finite,
     command_assignment_to_boolean_dict,
     expand_id_wildcard,
     write_matching_key_pairs,
     write_matching_keys,
 )
 from navigate.core.expression import Expression
-from navigate.core.node_maps import get_fuels_per_fuel_type, update_imposed_levies
+from navigate.core.node_maps import (
+    define_vessel_fuel_maps,
+    get_fuels_per_fuel_type,
+    update_imposed_levies,
+)
 from navigate.core.scalar import Scalar
 from navigate.core.simulation_results import SimulationResults
 from navigate.core.wrap import as_list, as_scalar

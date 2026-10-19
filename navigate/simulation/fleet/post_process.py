@@ -59,7 +59,7 @@ def _transfer_in_fleet_flags(fleet: Fleet) -> None:
     """
     existing_vessels = fleet.profile.get_existing_vessels()
 
-    for vessel in fleet.assets:
+    for vessel in fleet.vessels:
         vessel.profile.set_in_fleet(np.s_[:], existing_vessels[vessel.name] > 0.0)
 
 
@@ -74,7 +74,7 @@ def _transfer_fuel_consumer_profiles(fleet: Fleet) -> None:
     """
     existing_vessels = fleet.profile.get_existing_vessels()
 
-    for vessel in fleet.assets:
+    for vessel in fleet.vessels:
         fleet.profile.add_fuel_consumer_profile(
             vessel.profile, existing_vessels[vessel.name]
         )
@@ -105,7 +105,7 @@ def _transfer_power_totals(fleet: Fleet) -> None:
     newbuilds = fleet.profile.get_newbuilds()
     scrap = fleet.profile.get_scrap()
 
-    for vessel in fleet.assets:
+    for vessel in fleet.vessels:
         vessel_name = vessel.name
         power = get_total_power_capacity(vessel)
 
@@ -129,7 +129,7 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
-    vessel_map = {vessel.name: vessel for vessel in fleet.assets}
+    vessel_map = {vessel.name: vessel for vessel in fleet.vessels}
     fuel_conversions = fleet.profile.get_fuel_conversions()
 
     for (v_from, v_to), multipliers in fuel_conversions.items():
@@ -194,7 +194,7 @@ def aggregate_speed_profile(fleet: Fleet) -> None:
 
     multipliers = profile.get_existing_vessels()
 
-    for vessel in fleet.assets:
+    for vessel in fleet.vessels:
         vessel_profile = vessel.profile
         multiplier = multipliers[vessel.name]
 
@@ -260,10 +260,10 @@ def transfer_transport_work(fleet: Fleet) -> None:
     """
     existing_vessels = fleet.profile.get_existing_vessels()
     multipliers = np.ascontiguousarray(
-        np.array([existing_vessels[vessel.name] for vessel in fleet.assets]).T
+        np.array([existing_vessels[vessel.name] for vessel in fleet.vessels]).T
     )
     vessel_cargo_miles = np.ascontiguousarray(
-        np.array([vessel.expectation.get_cargo_miles() for vessel in fleet.assets]).T
+        np.array([vessel.expectation.get_cargo_miles() for vessel in fleet.vessels]).T
     )
 
     # one dot product per step fixes the order in which the vessel axis is reduced,
