@@ -59,7 +59,7 @@
     <script src="../_static/version-banner.js?v=bdf8961d"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="References &amp; further reading" href="references.html" />
+    <link rel="next" title="Building a deck with an AI assistant" href="building-a-deck.html" />
     <link rel="prev" title="Session 4: Run our reference scenarios" href="04-run-our-reference-scenarios.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
@@ -384,6 +384,8 @@
 <li class="toctree-l1"><a class="reference internal" href="03-run-a-global-case.html">Session 3: Run a global case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04-run-our-reference-scenarios.html">Session 4: Run our reference scenarios</a></li>
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 5: Build your own case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-a-deck.html">Building a deck with an AI assistant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prompt-bank.html">Prompt bank</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -451,9 +453,8 @@
 <p>Some of the decks in this repository and part of this workshop were written with the help of an AI coding assistant. You can do the same: describe the case you want and let the assistant write a first-shot deck.</p>
 <p>This session is about prompting and create your personalized Navigate simulation from scratch. The new simulation will be saved under <code class="docutils literal notranslate"><span class="pre">simulations/user/</span></code>.</p>
 <blockquote>
-<div><p><strong>Read this before you use any of it</strong></p>
-<p><strong>A prompt gets you a structure, not an answer.</strong> What comes back will run, and
-running is the easy part. Whether it means anything is on you. Each prompt below
+<div><p><strong>Disclaimer</strong></p>
+<p><strong>A prompt gets you a structure, not an answer.</strong> Each prompt below
 was tested by handing it to an AI assistant with no other instructions and
 running the deck it produced: all four ran without errors on the first attempt.
 But “it runs” is a statement about the syntax, not about the shipping.</p>
@@ -483,9 +484,9 @@ for default fuel prices (<code class="docutils literal notranslate"><span class=
 My case: [YOUR CASE, IN A FEW SENTENCES: which ships and how many (a market segment with many owners, so think in hundreds of ships rather than one company's fleet), the trade or the region, the years, which fuels can compete, which regulation applies, and the question you want answered.]
 
 1. Check that Navigate is installed (README.md) and tell me what is missing. Don't install anything yourself.
-2. Read docs/reference_manual/, the example decks in simulations/examples/ and the data library in assumptions/.
+2. Read docs/workshop/building-a-deck.md first, then docs/reference_manual/, the example decks in simulations/examples/ and the data library in assumptions/.
 3. Use the library's values wherever it has them, and ask me, a few questions at a time, about the rest. Keep the deck small.
-4. Write the full prompt you would want to be given, taking the prompts of docs/workshop/05-build-your-own-case.ipynb and the full prompt at the end of docs/workshop/01-run-a-simple-case.ipynb as models. Mark every number not from the library INVENTED, and have the deck built in a new folder, simulations/user/my_simulation/ (my_simulation_2, _3, ... if taken), without changing any existing file. Show it to me and wait for my OK.
+4. Write the full prompt you would want to be given, taking the prompts of docs/workshop/05-build-your-own-case.ipynb, the entry closest to my case in docs/workshop/prompt-bank.md and the full prompt at the end of docs/workshop/01-run-a-simple-case.ipynb as models; like the Session 5 prompts, it must tell the assistant to read building-a-deck.md first. Mark every number not from the library INVENTED, and have the deck built in a new folder, simulations/user/my_simulation/ (my_simulation_2, _3, ... if taken), without changing any existing file. Show it to me and wait for my OK.
 </pre></div>
 </div>
 <p>For example, to get a case close to the first full prompt below, write as your case: <em>“200 Suezmax crude tankers (about 127,000 DWT), owned by many companies, sail from Ras Tanura, Saudi Arabia, to Ningbo, China, laden out and in ballast home, from 2026 to 2050. They start on fuel oil and can switch to LNG, e-ammonia or e-methanol made in the Middle East. No regulation applies: I want to see what the model does when nothing pushes it.”</em> Your answers to its questions decide the numbers, and so the results.</p>
@@ -494,11 +495,14 @@ My case: [YOUR CASE, IN A FEW SENTENCES: which ships and how many (a market segm
 <h2>Four example full prompts<a class="headerlink" href="#four-example-full-prompts" title="Link to this heading">#</a></h2>
 <p>We propose here four example full prompts that lead to a working Navigate deck.
 You can use them as reference when building your own case. Like pointing your AI assistant to one of them: “Take the prompt <em>one trade, two ports</em> as example and modify this, this and that…”</p>
-<p>Each prompt starts with the same short <strong>HOW NAVIGATE WORKS</strong> block. It gives the
+<p>Each prompt starts by sending the assistant to the same page,
+<a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/building-a-deck.md">Building a deck with an AI assistant</a>. It gives the
 assistant what it cannot guess: where the syntax and the data library live, how to
-run a deck, and where the results come out as numbers. Keep it when you write your
+run a deck, and where the results come out as numbers. Keep that line when you write your
 own prompt. It is what lets any assistant (Claude, Copilot, ChatGPT, …) work
-from this repository.</p>
+from this repository, as long as it can read the repository’s files. The page also
+asks the assistant to end its report with what the page should have told it, so
+that it improves as more people build decks.</p>
 <hr class="docutils" />
 <section id="one-trade-two-ports">
 <h3>1. One trade, two ports<a class="headerlink" href="#one-trade-two-ports" title="Link to this heading">#</a></h3>
@@ -509,41 +513,12 @@ from this repository.</p>
 decarbonisation model in this repository. Write the files yourself; do not only
 describe them.
 
-HOW NAVIGATE WORKS (read this before writing anything)
-- A deck is one .nav file plus the .inc files it includes. The syntax is explained
-  in docs/reference_manual/overview.md, and every node type (Fleet, Vessel, Route,
-  Port, Fuel, Plant, Producer, Regulation, ...) has its own page in
-  docs/reference_manual/.
-- assumptions/ is the data library. `Load DefaultVoyage` reads the module file
-  assumptions/modules/installation/default_voyage.inc. `Import Fleet "tanker_127k_dwt"`
-  reads one node from assumptions/defaults/installation/Fleet/tanker_127k_dwt.inc.
-- simulations/examples/example_1 to example_4 are complete decks that run.
-- Run a deck from the repository root, in the Python environment where Navigate
-  was installed from this repository, with:
-      python -m navigate &lt;path to the .nav file&gt; -d ./assumptions
-  (`python -m navigate` run from the repository root always uses this
-  repository's code; the shorter `navigate` command may point to another copy.)
-  Do not install or upgrade any package without asking me first.
-- A run writes a .log file next to the .nav. The end of the .log has a "Log
-  summary" table with the number of warnings and errors. Some warnings come
-  with the library and are expected on any deck built from it (for example "No
-  technology cost of capital supplied", "Does not have convex load functions",
-  or a feedstock being over-used by a library producer): report them, but do
-  not try to fix them. Add `Load DefaultPlot`
-  to the .nav DEFINE block to also get the charts in plots/ and plots_analysis/.
-  If you cannot run terminal commands, give me the exact command, wait for me to
-  paste back the end of the output, and fix whatever it reports.
-- To get results as numbers, add `Load DefaultReport` to the .nav DEFINE block.
-  The run then also writes plots/&lt;deck name&gt;_report_default.xlsx. Its "Global"
-  sheet has one row per year, one ConsumedEnergy column per fuel (GJ per year;
-  the fuel name is in the third header row) and the fleet's emissions
-  (TotalEquivalentWTW, t CO2e per year).
+Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
 
 THE DECK
-Build it in a new folder, simulations/user/gulf_asia_tanker/, with the .nav file
-gulf_asia_tanker.nav and its .inc files in includes/. If that folder already exists,
-use gulf_asia_tanker_2 (then _3, ...) instead, and tell me which. Write nothing outside
-that folder: do not change, move or delete any file already in the repository.
+A new folder, simulations/user/gulf_asia_tanker/.
 
 THE CASE
 - Fleet: Suezmax-class crude tankers, ~127,000 DWT, on a single trade
@@ -562,44 +537,20 @@ The fleet starts on fuel oil. The model decides whether to retrofit to dual-fuel
 replace at end of life, or keep burning oil.
 
 HOW TO BUILD IT
-- Build your own Fleet node from the library's Vessel files with Copy Vessel, as
-  simulations/examples/example_4/includes/fleet.inc does. Import Fleet would bring
-  the world fleet, with a world-sized fleet and orderbook.
-- The library's operational profile is a world-average pattern between two
-  abstract ports (port_global, port_europe). Do not use those ports: build a
-  ROUND_TRIP route between the two named ports, taking speeds and time in port
-  from the profile's own values, as example_4's route.inc does (its comments show
-  the arithmetic). Use a realistic sea distance and mark it INVENTED.
-- Rebuild the other parts example_4 has, with this case's own values: the ports,
-  the bunker logistics (how fuel travels from the plants to each port) and the
-  regions (where the fuels are made).
-- Give the fuel producers a share of the library's global feedstock ceilings,
-  marked INVENTED, as example_4's producer.inc does.
+- A trade of its own between two named ports: build the Fleet node with Copy
+  Vessel, the ROUND_TRIP route, the ports, the bunker logistics, the regions and
+  the producers as building-a-deck.md describes, with this case's own values.
 - Energy-efficiency technologies are optional here: leave them out.
 
 NUMBERS
-Every number must come from assumptions/ and be referenced by name
-(Forecast("..."), Curve("..."), Variable("...")), never copied in as a literal.
-Where the library itself stores a plain number (the fuel-conversion costs in a
-Fleet file, the time at sea in a Route file), copy it with a comment naming the
-file it came from.
 The library already covers this vessel class - use its own values:
     assumptions/defaults/installation/Fleet/tanker_127k_dwt.inc
     assumptions/defaults/installation/Route/operational_profile_tanker_127k_dwt.inc
 Take structure from simulations/examples/example_4/ and none of its numbers.
-Anything the library genuinely lacks - port-to-port distance or the bunker
-transport cost, for instance - mark INVENTED in a comment where it appears and
-list them in the .nav header. BunkerLogistics takes its distances and transport
-cost as plain numbers, not as Variables.
-
-DECK RULES
-The .nav DEFINE and EVENTS blocks accept only Include and Load. Every node
-declaration, Import and Copy goes in an .inc file that they include.
 
 BEFORE YOU TELL ME IT WORKS
-Run it (or have me run it) as above. Report the exit code and the warning count
-from the Log summary. Tell me the fuel mix in the first year and the last, from
-the report, and say plainly whether anything actually switched.
+Tell me the fuel mix in the first year and the last, from the report, and say
+plainly whether anything actually switched.
 </pre></div>
 </div>
 </section>
@@ -613,43 +564,12 @@ the report, and say plainly whether anything actually switched.
 decarbonisation model in this repository. Write the files yourself; do not only
 describe them.
 
-HOW NAVIGATE WORKS (read this before writing anything)
-- A deck is one .nav file plus the .inc files it includes. The syntax is explained
-  in docs/reference_manual/overview.md, and every node type (Fleet, Vessel, Route,
-  Port, Fuel, Plant, Producer, Regulation, ...) has its own page in
-  docs/reference_manual/.
-- assumptions/ is the data library. `Load DefaultVoyage` reads the module file
-  assumptions/modules/installation/default_voyage.inc. `Import Fleet "tanker_127k_dwt"`
-  reads one node from assumptions/defaults/installation/Fleet/tanker_127k_dwt.inc.
-- simulations/examples/example_1 to example_4 are complete decks that run.
-- Run a deck from the repository root, in the Python environment where Navigate
-  was installed from this repository, with:
-      python -m navigate &lt;path to the .nav file&gt; -d ./assumptions
-  (`python -m navigate` run from the repository root always uses this
-  repository's code; the shorter `navigate` command may point to another copy.)
-  Do not install or upgrade any package without asking me first.
-- A run writes a .log file next to the .nav. The end of the .log has a "Log
-  summary" table with the number of warnings and errors. Some warnings come
-  with the library and are expected on any deck built from it (for example "No
-  technology cost of capital supplied", "Does not have convex load functions",
-  or a feedstock being over-used by a library producer): report them, but do
-  not try to fix them. Add `Load DefaultPlot`
-  to the .nav DEFINE block to also get the charts in plots/ and plots_analysis/.
-  If you cannot run terminal commands, give me the exact command, wait for me to
-  paste back the end of the output, and fix whatever it reports.
-- To get results as numbers, add `Load DefaultReport` to the .nav DEFINE block.
-  The run then also writes plots/&lt;deck name&gt;_report_default.xlsx, with totals for
-  both fleets together. For results per fleet, add your own Report node as well,
-  with the add_fleet_property / add_vessel_property syntax of
-  simulations/examples/example_4/includes/report.inc (copy the syntax, not its
-  list): per fleet FuelTypeEnergy, TotalEquivalentWTW, FuelExpenses,
-  RegulationExpenses, and per vessel InvestmentFreightRate.
+Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
 
 THE DECK
-Build it in a new folder, simulations/user/[YOUR FOLDER NAME]/, with the .nav file
-[YOUR FOLDER NAME].nav and its .inc files in includes/. If that folder already exists,
-use [YOUR FOLDER NAME]_2 (then _3, ...) instead, and tell me which. Write nothing outside
-that folder: do not change, move or delete any file already in the repository.
+A new folder, simulations/user/[YOUR FOLDER NAME]/.
 
 THE CASE
 Two fleets in the same market, so I can see how much the owners' choices matter
@@ -671,35 +591,24 @@ same regulation - the only difference is what they fit. Fleet A fits nothing at
 all: leave out the Fleet file's set_initial_technology_share lines for it and set
 AllowTechnologyApproximation = FALSE, as example_3's regular fleet does.
 
-As in example_4, build the Fleet nodes from the library's Vessel files with Copy
-Vessel, and build a ROUND_TRIP route between the two named ports from the class's
-operational profile (not its abstract port_global / port_europe ports; example_4's
-route.inc comments show the arithmetic), with a realistic sea distance marked
-INVENTED. Rebuild the ports, bunker logistics, regions and producers the same way,
-and use `Load DefaultCalibration` for the decision settings. If you rename the
-copied vessels, check that the Fleet file's set_fuel_conversion_cost wildcards
-still match the new names, and restate those lines if they do not.
+As in example_4, build the Fleet nodes with Copy Vessel, and a ROUND_TRIP route
+between the two named ports with its ports, bunker logistics, regions and
+producers, as building-a-deck.md describes. Use `Load DefaultCalibration` for the
+decision settings.
 
 NUMBERS
-Every number must come from assumptions/ and be referenced by name
-(Forecast("..."), Curve("..."), Variable("...")), never copied in as a literal.
-Where the library itself stores a plain number (the fuel-conversion costs in a
-Fleet file, the time at sea in a Route file), copy it with a comment naming the
-file it came from.
 Use the library's own Fleet file for the class, including its technology list and
 retrofit costs. Take structure from example_3 and example_4 and none of their
 numbers.
-Mark anything INVENTED in a comment and list it in the .nav header.
 
-DECK RULES
-The .nav DEFINE and EVENTS blocks accept only Include and Load. Every node
-declaration, Import and Copy goes in an .inc file that they include.
+RESULTS PER FLEET
+DefaultReport gives totals for both fleets together. Add your own Report node as
+building-a-deck.md describes, with per fleet FuelTypeEnergy, TotalEquivalentWTW,
+FuelExpenses, RegulationExpenses, and per vessel InvestmentFreightRate.
 
 BEFORE YOU TELL ME IT WORKS
-Run it (or have me run it) as above. Report the exit code and the warning count
-from the Log summary. Then tell me what separates the two fleets by 2050 - fuel
-mix, emissions and the freight rate - and how much fuel and compliance cost the
-efficient fleet saved. This version of Navigate does not report what the
+Tell me what separates the two fleets by 2050 - fuel mix, emissions and the
+freight rate - and how much fuel and compliance cost the efficient fleet saved. This version of Navigate does not report what the
 measures themselves cost, so say that rather than concluding they paid for
 themselves.
 </pre></div>
@@ -715,46 +624,18 @@ themselves.
 decarbonisation model in this repository. Write the files yourself; do not only
 describe them.
 
-HOW NAVIGATE WORKS (read this before writing anything)
-- A deck is one .nav file plus the .inc files it includes. The syntax is explained
-  in docs/reference_manual/overview.md, and every node type (Fleet, Vessel, Route,
-  Port, Fuel, Plant, Producer, Regulation, ...) has its own page in
-  docs/reference_manual/.
-- assumptions/ is the data library. `Load DefaultVoyage` reads the module file
-  assumptions/modules/installation/default_voyage.inc. `Import Fleet "tanker_127k_dwt"`
-  reads one node from assumptions/defaults/installation/Fleet/tanker_127k_dwt.inc.
-- simulations/scenarios/basecase_mid_regulation/ is the full reference scenario
-  this case cuts down; its .nav is almost entirely Load statements.
-- Run a deck from the repository root, in the Python environment where Navigate
-  was installed from this repository, with:
-      python -m navigate &lt;path to the .nav file&gt; -d ./assumptions
-  (`python -m navigate` run from the repository root always uses this
-  repository's code; the shorter `navigate` command may point to another copy.)
-  Do not install or upgrade any package without asking me first.
-- A run writes a .log file next to the .nav. The end of the .log has a "Log
-  summary" table with the number of warnings and errors. Some warnings come
-  with the library and are expected on any deck built from it (for example "No
-  technology cost of capital supplied", "Does not have convex load functions",
-  or a feedstock being over-used by a library producer): report them, but do
-  not try to fix them. Add `Load DefaultPlot`
-  to the .nav DEFINE block to also get the charts in plots/ and plots_analysis/.
-  If you cannot run terminal commands, give me the exact command, wait for me to
-  paste back the end of the output, and fix whatever it reports.
-- To get results as numbers, add `Load DefaultReport` to the .nav DEFINE block.
-  The run then also writes plots/&lt;deck name&gt;_report_default.xlsx. Its "Global"
-  sheet has one row per year, one ConsumedEnergy column per fuel (GJ per year;
-  the fuel name is in the third header row) and the fleet's emissions
-  (TotalEquivalentWTW, t CO2e per year).
+Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
 
 THE DECK
-Build it in a new folder, simulations/user/[YOUR FOLDER NAME]/, with the .nav file
-[YOUR FOLDER NAME].nav and its .inc files in includes/. If that folder already exists,
-use [YOUR FOLDER NAME]_2 (then _3, ...) instead, and tell me which. Write nothing outside
-that folder: do not change, move or delete any file already in the repository.
+A new folder, simulations/user/[YOUR FOLDER NAME]/.
 
 THE CASE
 A cut-down version of the Center's reference scenarios. No route, no map, no real
 ports - I want the global picture, not a trade.
+simulations/scenarios/basecase_mid_regulation/ is the full reference scenario
+this case cuts down.
 
 - Fleets: [TWO OR THREE CLASSES, e.g. tanker_127k_dwt and bulk_carrier_80k_dwt],
   imported whole from the library (Import Fleet "..."), so each brings its own
@@ -765,10 +646,7 @@ ports - I want the global picture, not a trade.
   DefaultFeedstock, DefaultFuel, DefaultProducer, DefaultPlant, DefaultRegion,
   DefaultSource, DefaultTransport
 - Regulation: EU ETS and FuelEU at their library settings (DefaultRegulation)
-- Also load what every library deck needs, as the reference scenario's .nav does:
-  DefaultModelDefinition, DefaultBunkerLogistics (without it the first year's
-  bunkering has no feasible solution) and DefaultCalibration in DEFINE, and
-  DefaultTimeStepYearly in EVENTS
+- Also load what every library deck needs, as building-a-deck.md lists it.
 
 NUMBERS
 Everything comes from the library by construction here, because the deck is
@@ -776,18 +654,12 @@ almost entirely Load statements. If you find yourself writing a number, stop and
 tell me why the library has none.
 
 DECK RULES
-- The .nav DEFINE and EVENTS blocks accept only Include and Load. Import Fleet
-  statements go in an .inc file that DEFINE includes.
-- Do NOT load DefaultConverterAvailable. It phases alternative vessel types in
-  over time using wildcards like Fleet "tug*" that only resolve against the full
-  twenty-three-fleet set, so it fails to parse on a cut-down deck. Say in the
-  .nav header that every vessel type is therefore orderable from year one rather
-  than phased in.
+This deck has fewer than the library's twenty-three fleets: follow what
+building-a-deck.md says about DefaultConverterAvailable.
 
 BEFORE YOU TELL ME IT WORKS
-Run it (or have me run it) as above - expect five to ten minutes, not seconds. Report
-the exit code and the warning count from the Log summary, and tell me the fuel
-mix at both ends of the horizon, from the report.
+Expect a run of five to ten minutes, not seconds. Tell me the fuel mix at both
+ends of the horizon, from the report.
 </pre></div>
 </div>
 </section>
@@ -802,31 +674,17 @@ mix at both ends of the horizon, from the report.
 decarbonisation model in this repository. Write the files yourself; do not only
 describe them.
 
-HOW NAVIGATE WORKS (read this before writing anything)
-- A deck is one .nav file plus the .inc files it includes. The syntax is explained
-  in docs/reference_manual/overview.md, and every node type (Fleet, Regulation,
-  Forecast, ...) has its own page in docs/reference_manual/.
-- assumptions/ is the data library. `Load DefaultFleet` reads the module file
-  assumptions/modules/installation/default_fleet.inc, and so on for every Load.
+Before writing anything, read docs/workshop/building-a-deck.md and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+ABOUT THESE DECKS
 - simulations/scenarios/ holds the Center's reference scenarios. The ones in
   simulations/scenarios/workshop_whatif/ are the same scenarios on a coarse
   time grid (2026, 2027, 2030, then every four years to 2050), so that one run
   takes a few minutes instead of about twenty-five.
-- Run a deck from the repository root, in the Python environment where Navigate
-  was installed from this repository, with:
-      python -m navigate &lt;path to the .nav file&gt; -d ./assumptions
-  (`python -m navigate` run from the repository root always uses this
-  repository's code; the shorter `navigate` command may point to another copy.)
-  Do not install or upgrade any package without asking me first.
-- A run writes a .log file next to the .nav. The end of the .log has a "Log
-  summary" table with the number of warnings and errors: report them.
-  If you cannot run terminal commands, give me the exact commands, wait for me
-  to paste back the end of the output, and fix whatever it reports.
-- The reference decks load DefaultReport, so a run also writes
-  plots/&lt;deck name&gt;_report_default.xlsx next to the .nav. Its "Global" sheet has
-  one row per time step, one ConsumedEnergy column per fuel (GJ per year; the
-  fuel name is in the third header row) and the emissions of the whole fleet
-  (TotalEquivalentWTW, t CO2e per year).
+- The reference decks load DefaultReport already, so every run writes the
+  report. Its "Global" sheet has one row per time step.
 
 THE STUDY
 The mid-regulation reference scenario includes a global fuel standard ("gfs"):
@@ -846,10 +704,8 @@ for a five-year delay), and leave the 2050 rows where they are. Mark each moved
 row with a comment giving its reference date. Nothing else changes.
 
 THE DECKS
-Work in a new folder, simulations/user/my_global_study/. If that folder already
-exists, use my_global_study_2 (then _3, ...) instead, and tell me which. Write
-nothing outside that folder: do not change, move or delete any file already in
-the repository - in particular not the reference scenario or its includes.
+Work in a new folder, simulations/user/my_global_study/. Do not change the
+reference scenario or its includes.
 - reference.nav: a copy of
   simulations/scenarios/workshop_whatif/workshop_basecase_mid_regulation.nav,
   with its two Include paths rewritten so they still point at the original
@@ -861,8 +717,8 @@ Both decks must differ in that one include line only.
 
 BEFORE YOU TELL ME IT WORKS
 Run both decks (a few minutes each; run them one after the other, or in the
-background, and wait for both). Report the exit code and the warning and error
-counts of each. Then, from each report, give me side by side:
+background, and wait for both), and report on each as building-a-deck.md says.
+Then, from each report, give me side by side:
 - the fleet's well-to-wake emissions at every time step (Mt CO2e per year);
 - the emissions summed over 2026-2050, weighting each step by the years it
   stands for (say how you weighted them), and the difference: the extra Mt CO2e
@@ -968,11 +824,11 @@ from the top.</p>
       </div>
     </a>
     <a class="right-next"
-       href="references.html"
+       href="building-a-deck.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">References &amp; further reading</p>
+        <p class="prev-next-title">Building a deck with an AI assistant</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

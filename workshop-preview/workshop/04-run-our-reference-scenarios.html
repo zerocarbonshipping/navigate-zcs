@@ -384,6 +384,8 @@
 <li class="toctree-l1"><a class="reference internal" href="03-run-a-global-case.html">Session 3: Run a global case</a></li>
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 4: Run our reference scenarios</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05-build-your-own-case.html">Session 5: Build your own case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-a-deck.html">Building a deck with an AI assistant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prompt-bank.html">Prompt bank</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -600,20 +602,20 @@ Since this step takes a while, run it at the beginning of the workshop and come 
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>started basecase_no_regulation (pid 33024) -&gt; simulations/scenarios/basecase_no_regulation/basecase_no_regulation_console.log
-started basecase_mid_regulation (pid 37676) -&gt; simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_console.log
-started basecase_strong_regulation (pid 15204) -&gt; simulations/scenarios/basecase_strong_regulation/basecase_strong_regulation_console.log
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>started basecase_no_regulation (pid 23140) -&gt; simulations/scenarios/basecase_no_regulation/basecase_no_regulation_console.log
+started basecase_mid_regulation (pid 32204) -&gt; simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_console.log
+started basecase_strong_regulation (pid 27672) -&gt; simulations/scenarios/basecase_strong_regulation/basecase_strong_regulation_console.log
 
 waiting for all three to finish ...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_no_regulation       ok                     1320 s elapsed
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_no_regulation       ok                     1351 s elapsed
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_mid_regulation      ok                     2395 s elapsed
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_mid_regulation      ok                     2873 s elapsed
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_strong_regulation   ok                     2449 s elapsed
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_strong_regulation   ok                     2987 s elapsed
 </pre></div>
 </div>
 </div>
@@ -624,8 +626,9 @@ waiting for all three to finish ...
 <p>We read <code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code>’s output here; the comparison at the end of
 this session puts all three scenarios together.</p>
 <p>The scenario decks load <code class="docutils literal notranslate"><span class="pre">DefaultPlot</span></code>, so the exact set of plots produced
-depends on that default module — rather than assume its contents, we display
-whatever image files land in the scenario’s <code class="docutils literal notranslate"><span class="pre">plots/</span></code> folder. Every plot label
+depends on that default module — rather than assume its contents, we draw again
+whatever charts the deck sends to the scenario’s <code class="docutils literal notranslate"><span class="pre">plots/</span></code> folder, from the run’s
+<code class="docutils literal notranslate"><span class="pre">plot_data.pkl</span></code>, in the workshop’s colours. Every plot label
 you might see is documented, grouped by category, in the reference manual’s
 <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/reference_manual/plot.html">Plot Node Labels</a>
 appendix — e.g. <code class="docutils literal notranslate"><span class="pre">global_fuel_consumed</span></code> for the fuel mix, <code class="docutils literal notranslate"><span class="pre">global_emission_absolute</span></code>
@@ -638,19 +641,23 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 </summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Show the output plots</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="c1"># Navigate writes these charts into plots/ in the library's own colours. They are</span>
+<span class="c1"># drawn again here from the run's solved model, with Navigate's own plotting code</span>
+<span class="c1"># and the workshop palette, so they read like every other figure in the workshop.</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">Markdown</span><span class="p">,</span> <span class="n">display</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">_style</span><span class="w"> </span><span class="kn">import</span> <span class="n">navigate_charts</span>
 
-<span class="n">plots_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"simulations/scenarios/</span><span class="si">{</span><span class="n">scenario</span><span class="si">}</span><span class="s2">/plots"</span>
-<span class="n">plot_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">plots_dir</span><span class="si">}</span><span class="s2">/*.png"</span><span class="p">))</span>
+<span class="n">run_folder</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"simulations/scenarios/</span><span class="si">{</span><span class="n">scenario</span><span class="si">}</span><span class="s2">"</span>
 
-<span class="k">if</span> <span class="ow">not</span> <span class="n">plot_files</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No .png plots found in </span><span class="si">{</span><span class="n">plots_dir</span><span class="si">}</span><span class="s2"> -- check what Navigate actually wrote there:"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="sa">f</span><span class="s2">"simulations/scenarios/</span><span class="si">{</span><span class="n">scenario</span><span class="si">}</span><span class="s2">"</span><span class="p">):</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">run_folder</span><span class="si">}</span><span class="s2">/plot_data.pkl"</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No plot_data.pkl in </span><span class="si">{</span><span class="n">run_folder</span><span class="si">}</span><span class="s2"> -- check what Navigate actually wrote there:"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">run_folder</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">fn</span><span class="p">))</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plot_files</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">navigate_charts</span><span class="p">(</span><span class="n">run_folder</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()):</span>
         <span class="n">title</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">p</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
         <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">"### </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
         <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">p</span><span class="p">))</span>
@@ -659,30 +666,33 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 </div>
 </details>
 <div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Finished plots, elapsed time: 0m and 44s.
+</pre></div>
+</div>
 <p class="rubric" id="engine-fuel-consumed">Engine fuel consumed</p>
-<img alt="../_images/798dbcb15e8f2675e0c3fe475f50deb134bc56fe47af5cdec556be98ff693ede.png" src="../_images/798dbcb15e8f2675e0c3fe475f50deb134bc56fe47af5cdec556be98ff693ede.png" />
+<img alt="../_images/81f171f62ff4cf99783f73eb16f411ee5f2408aafb6f19ed0d37d3cbe138e333.png" src="../_images/81f171f62ff4cf99783f73eb16f411ee5f2408aafb6f19ed0d37d3cbe138e333.png" />
 <p class="rubric" id="fuel-type-supply-demand">Fuel type supply demand</p>
-<img alt="../_images/a7fcdc7404c4d0cf3ca1ad99122519cf159f8bab00c8e806065e742606603058.png" src="../_images/a7fcdc7404c4d0cf3ca1ad99122519cf159f8bab00c8e806065e742606603058.png" />
+<img alt="../_images/08df9c1374ed340ea2436ca253f9d4ab62a341603fa06021e57dc2adeb95fad6.png" src="../_images/08df9c1374ed340ea2436ca253f9d4ab62a341603fa06021e57dc2adeb95fad6.png" />
 <p class="rubric" id="global-emission-absolute">Global emission absolute</p>
-<img alt="../_images/3c41b6f7e3496b2248865ebcb685bb24ce290abb8b4a159ec8babcf3ef628f6f.png" src="../_images/3c41b6f7e3496b2248865ebcb685bb24ce290abb8b4a159ec8babcf3ef628f6f.png" />
+<img alt="../_images/5f78d02e496595a455cf06a58c83f01501b42518a0efb9014e879a04f3523d96.png" src="../_images/5f78d02e496595a455cf06a58c83f01501b42518a0efb9014e879a04f3523d96.png" />
 <p class="rubric" id="global-energy-saving">Global energy saving</p>
-<img alt="../_images/fc7f692fbbfad4ab574fc608cee3e34e141d70c2242a7e6d8e64f63d0a6469f9.png" src="../_images/fc7f692fbbfad4ab574fc608cee3e34e141d70c2242a7e6d8e64f63d0a6469f9.png" />
+<img alt="../_images/d0bb94d1eff31aff5c7c09e0fc3bc400df1c34b0942665e88cdcf37163fb8fa2.png" src="../_images/d0bb94d1eff31aff5c7c09e0fc3bc400df1c34b0942665e88cdcf37163fb8fa2.png" />
 <p class="rubric" id="global-fuel-consumed">Global fuel consumed</p>
-<img alt="../_images/493750caad7cdf3450e7e95e6ce294dab46298dccc806f53fad00a0f1eacf980.png" src="../_images/493750caad7cdf3450e7e95e6ce294dab46298dccc806f53fad00a0f1eacf980.png" />
+<img alt="../_images/6b04b4b6e0e8ce4b26cb77bd7c3123549df94731879a28300f7ef2a2af5a3f18.png" src="../_images/6b04b4b6e0e8ce4b26cb77bd7c3123549df94731879a28300f7ef2a2af5a3f18.png" />
 <p class="rubric" id="global-installed-power">Global installed power</p>
-<img alt="../_images/69fd4f74bcd8439296d6ce5a01b5844b4d57364ad03b0aada5d9ed2deab591f9.png" src="../_images/69fd4f74bcd8439296d6ce5a01b5844b4d57364ad03b0aada5d9ed2deab591f9.png" />
+<img alt="../_images/5cc6c6213f4d9d78a325f004a9af530a6953bb00b07e71c3b4ea6948f258f967.png" src="../_images/5cc6c6213f4d9d78a325f004a9af530a6953bb00b07e71c3b4ea6948f258f967.png" />
 <p class="rubric" id="producer-development">Producer development</p>
-<img alt="../_images/3568709e0b1df3132424e2ec2a23a5e49714d96149d031c49ebc08a6f2f9574c.png" src="../_images/3568709e0b1df3132424e2ec2a23a5e49714d96149d031c49ebc08a6f2f9574c.png" />
+<img alt="../_images/a3b1e3bee6cbcfd983c2a307036a5c93f25d34ad90681c931634a139eb02367e.png" src="../_images/a3b1e3bee6cbcfd983c2a307036a5c93f25d34ad90681c931634a139eb02367e.png" />
 <p class="rubric" id="regulation-compliance-eu-ets">Regulation compliance eu ets</p>
-<img alt="../_images/170114d0e8658eab842a1278a1022cbdb5e37a861bd0b490b08052492a62112e.png" src="../_images/170114d0e8658eab842a1278a1022cbdb5e37a861bd0b490b08052492a62112e.png" />
+<img alt="../_images/c93235c17ab5284c52c7a41013fb4697de6334a09538e2a310d7e1006f96f5d5.png" src="../_images/c93235c17ab5284c52c7a41013fb4697de6334a09538e2a310d7e1006f96f5d5.png" />
 <p class="rubric" id="regulation-compliance-fuel-eu">Regulation compliance fuel eu</p>
-<img alt="../_images/979c9212223b2bfccbd300e38eed8607357f801ab68b157ee740cbc6ca6d5856.png" src="../_images/979c9212223b2bfccbd300e38eed8607357f801ab68b157ee740cbc6ca6d5856.png" />
+<img alt="../_images/cac14cc55f3a2d7dca3d6b7e1850ea3a37961c3bf4883b5e414e325260f56f8d.png" src="../_images/cac14cc55f3a2d7dca3d6b7e1850ea3a37961c3bf4883b5e414e325260f56f8d.png" />
 <p class="rubric" id="regulation-compliance-gfs">Regulation compliance gfs</p>
-<img alt="../_images/714116b98dc3b67836285dd08d680f6367c7c7ebcbd14918a207da669f7076ef.png" src="../_images/714116b98dc3b67836285dd08d680f6367c7c7ebcbd14918a207da669f7076ef.png" />
+<img alt="../_images/79a58705f8445eff440a1790c5804c2d444eb8799862402842ac7f700dd58b0f.png" src="../_images/79a58705f8445eff440a1790c5804c2d444eb8799862402842ac7f700dd58b0f.png" />
 <p class="rubric" id="regulation-flexibility-cost-fuel-eu">Regulation flexibility cost fuel eu</p>
-<img alt="../_images/9350073843004df76860b678d6571e418c5cb46613580d5dea0d263865153362.png" src="../_images/9350073843004df76860b678d6571e418c5cb46613580d5dea0d263865153362.png" />
+<img alt="../_images/901e9c842dca1c9bf4abe4df3f1c2e30e3cd18042e389004c9e12b097d23b47c.png" src="../_images/901e9c842dca1c9bf4abe4df3f1c2e30e3cd18042e389004c9e12b097d23b47c.png" />
 <p class="rubric" id="regulation-flexibility-cost-gfs">Regulation flexibility cost gfs</p>
-<img alt="../_images/54aee41dfa866e202a632b2190b824e596c288bdc7c1554315da118c83859188.png" src="../_images/54aee41dfa866e202a632b2190b824e596c288bdc7c1554315da118c83859188.png" />
+<img alt="../_images/32611339feabc55629de6bb4a31b95e760a085f9be70b1504d888f270baf0afe.png" src="../_images/32611339feabc55629de6bb4a31b95e760a085f9be70b1504d888f270baf0afe.png" />
 </div>
 </div>
 </section>
@@ -718,9 +728,7 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Exported Excel files found:
  - simulations/scenarios/basecase_mid_regulation\basecase_mid_regulation_assumptions.xlsx
  - simulations/scenarios/basecase_mid_regulation\plots\basecase_mid_regulation_report_default.xlsx
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sheets in simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_assumptions.xlsx : ['Assumptions', 'Curves &amp; Forecasts', 'Surfaces &amp; Timetables']
+Sheets in simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_assumptions.xlsx : ['Assumptions', 'Curves &amp; Forecasts', 'Surfaces &amp; Timetables']
 </pre></div>
 </div>
 <div class="output text_html"><div>
@@ -992,12 +1000,12 @@ attributable to regulatory stringency alone.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/b46af9885b49920a95c204e72870049717e941cfa2eda435fdcb1930ae967731.png" src="../_images/b46af9885b49920a95c204e72870049717e941cfa2eda435fdcb1930ae967731.png" />
+<img alt="../_images/59843fb0851d48c44475a77f0a800d64d474eace25ee3ef5830ea29b39ed73f4.png" src="../_images/59843fb0851d48c44475a77f0a800d64d474eace25ee3ef5830ea29b39ed73f4.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  scenario         WTW 2026   WTW 2050   cumulative  alt fuel 2050      freight 2050
                       Mt/yr      Mt/yr           Mt              %  USD/k cargo-mile
   no                  1,197      1,744       37,571            0.0              10.7
-  mid                 1,189        676       24,580           55.0              14.6
-  strong              1,189        509       22,434           65.6              18.1
+  mid                 1,189        676       24,580           55.1              14.6
+  strong              1,189        509       22,433           65.6              18.1
 </pre></div>
 </div>
 </div>
