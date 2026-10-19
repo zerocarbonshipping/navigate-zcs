@@ -30,7 +30,7 @@ def plot_port_bunker_price(results: SimulationResults, directory: Path) -> None:
     ports = results.nodes.ports
 
     for port_name, port in ports.items():
-        bunker_price = port.profile.get_bunker_price()
+        bunker_price = port.profile.bunker_price
         fuel_costs = {
             fuel.name: bunker_price[fuel.name] / fuel.lower_heating_value.get()
             for fuel in fuels.values()

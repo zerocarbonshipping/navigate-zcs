@@ -5,31 +5,26 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import numpy as np
-
-from navigate.core.initial_values import EMPTY_FLOAT
+from navigate.core.profiles._base_profile import accumulate, result
 from navigate.core.profiles._fuel_producer_profile import _FuelProducerProfile
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
+@dataclass(eq=False, repr=False)
 class _PlantAggregateProfile(_FuelProducerProfile):
     """Tied-up capital of the plants in a producer's profile or the global profile."""
 
-    def __init__(self) -> None:
-        super().__init__()
-
-        self._plant_tied_capital: FloatArray = EMPTY_FLOAT
+    plant_tied_capital: FloatArray = result("USD")
 
     def _initialize_plant_aggregate(self) -> None:
-        self._plant_tied_capital = self._default_array()
+        self.plant_tied_capital = self._default_array()
 
-    def add_plant_aggregate_profile(
-        self, profile: _PlantAggregateProfile, idx: int | slice = np.s_[:]
-    ) -> None:
+    def add_plant_aggregate_profile(self, profile: _PlantAggregateProfile) -> None:
         """
         Add another plant aggregate profile's values into this one.
 
@@ -37,15 +32,5 @@ class _PlantAggregateProfile(_FuelProducerProfile):
         ----------
         profile
             Plant aggregate profile from another node.
-        idx
-            Time-step index or slice.
         """
-        self._plant_tied_capital[idx] += profile._plant_tied_capital[idx]
-
-    def add_plant_tied_capital(
-        self, tied_capital: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._plant_tied_capital[idx] += tied_capital
-
-    def get_plant_tied_capital(self) -> FloatArray:
-        return self._plant_tied_capital
+        accumulate(self.plant_tied_capital, profile.plant_tied_capital)

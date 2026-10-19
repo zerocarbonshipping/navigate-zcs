@@ -4,7 +4,7 @@
 """
 The property tokens each Report command accepts, checked as the command runs.
 
-A command's token must name a getter on the profile class of the nodes the
+A command's token must name a result of the profile class of the nodes the
 command reports on; navigate.parser._commands checks each Report command
 against it.
 """
@@ -23,8 +23,9 @@ from navigate.core.profiles import (
     ProducerProfile,
     RegulationProfile,
     VesselProfile,
+    result_names,
 )
-from navigate.util import attribute_to_setter
+from navigate.util import attribute_to_instance_name
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -81,9 +82,9 @@ def check_report_property(command: str, token: str) -> None:
     Raises
     ------
     ValueError
-        If the command's profile class has no getter for the token.
+        If the command's profile class has no result the token names.
     """
-    if not hasattr(PROFILE_CLASSES[command], attribute_to_setter(token, method="get")):
+    if attribute_to_instance_name(token) not in result_names(PROFILE_CLASSES[command]):
         raise ValueError(
             f"does not report the property '{token}'; the properties {command}"
             " reports are listed in the 'Report Node Properties' appendix on the"

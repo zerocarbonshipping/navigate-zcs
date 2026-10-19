@@ -15,7 +15,7 @@ import timeit
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import SolverBackendID
-from navigate.output import write_report
+from navigate.output import write_report, write_results
 from navigate.parser import Parser
 from navigate.simulation.time_stepping import Simulation
 from navigate.util import YEAR, timedelta_to_days
@@ -43,9 +43,10 @@ def run_deck(
     data_dir: Path | None = None,
     solver: str | None = None,
     plots: bool,
+    results_file: Path | None = None,
 ) -> SimulationResults:
     """
-    Run a simulation deck and write the reports and, on request, the plots it defines.
+    Run a deck; write its reports, its results file and, on request, its plots.
 
     Parameters
     ----------
@@ -58,6 +59,9 @@ def run_deck(
         deck's BunkerOptions setting, or None to keep the deck's setting.
     plots
         Whether to render the plots the deck's Plot nodes request.
+    results_file
+        Parquet file the full results are written to; '<deck>.parquet' next to the
+        deck by default.
 
     Returns
     -------
@@ -91,6 +95,10 @@ def run_deck(
 
     for report in results.nodes.reports.values():
         write_report(report, results, deck_directory, deck_path.stem)
+
+    write_results(
+        results, results_file or deck_path.with_suffix(".parquet"), deck_path.stem
+    )
 
     elapsed = _format_duration(timeit.default_timer() - start_time)
 

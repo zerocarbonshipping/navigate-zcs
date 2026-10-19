@@ -27,7 +27,7 @@ def plot_global_emission_absolute(results: SimulationResults, directory: Path) -
 
     fig, ax = single_panel()
 
-    wtw = results.profile.get_total_equivalent_wtw()
+    wtw = results.profile.total_equivalent_wtw
 
     divisor, unit = get_best_unit_mass(wtw.max())
     wtw /= divisor

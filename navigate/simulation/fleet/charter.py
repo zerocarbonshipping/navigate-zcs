@@ -159,7 +159,7 @@ def _calculate_vessel_unit_properties(
     vessel.expectation.set_asset_charter_rate(idx, asset_charter_rate)
     vessel.expectation.set_tied_capital(idx, tied_capital)
 
-    vessel.profile.set_asset_charter_rate(idx, asset_charter_rate)
+    vessel.profile.asset_charter_rate[idx] = asset_charter_rate
 
 
 def _calculate_cargo_unit_properties(
@@ -217,8 +217,8 @@ def _calculate_cargo_unit_properties(
     vessel.expectation.set_fuel_cost_flow(cost_flow)
     vessel.expectation.set_freight_rate(idx, freight_rate)
 
-    vessel.profile.set_cargo_charter_rate(idx, cargo_charter_rate)
-    vessel.profile.set_investment_freight_rate(idx, freight_rate)
+    vessel.profile.cargo_charter_rate[idx] = cargo_charter_rate
+    vessel.profile.investment_freight_rate[idx] = freight_rate
 
 
 def _initialize_vessel_component(

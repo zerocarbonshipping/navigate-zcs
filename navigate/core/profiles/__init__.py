@@ -5,11 +5,17 @@
 
 from __future__ import annotations
 
+from navigate.core.profiles._base_profile import (
+    per_step_results,
+    result_names,
+    result_units,
+)
 from navigate.core.profiles.fleet_profile import FleetProfile
 from navigate.core.profiles.global_profile import GlobalProfile
 from navigate.core.profiles.levy_profile import LevyProfile
 from navigate.core.profiles.plant_profile import PlantProfile
 from navigate.core.profiles.port_profile import PortProfile
 from navigate.core.profiles.producer_profile import ProducerProfile
+from navigate.core.profiles.profile_context import ProfileContext
 from navigate.core.profiles.regulation_profile import RegulationProfile
 from navigate.core.profiles.vessel_profile import VesselProfile

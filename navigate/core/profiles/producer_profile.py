@@ -5,37 +5,35 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.profiles._base_profile import result
 from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
 
 if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.process import Process
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.util.types_ import FloatArray
 
 
+@dataclass(eq=False, repr=False)
 class ProducerProfile(_PlantAggregateProfile):
     """Production, feedstock use and plant development of one fuel producer."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    # plants added to the development pipeline
+    maximum_development: FloatArray = result("plants/year")
+    development: FloatArray = result("plants/year", per_step=True)
 
-        # plants added to the development pipeline, plants/year
-        self._maximum_development: FloatArray = EMPTY_NAN
-        self._development: FloatArray = EMPTY_FLOAT
-
-        self._fair_share_fuel_fraction: dict[str, FloatArray] = {}
+    fair_share_fuel_fraction: dict[str, FloatArray] = result("-")
 
     def initialize(
         self,
-        timeline: FloatArray,
+        context: ProfileContext,
         feedstocks: dict[str, Feedstock],
-        fuels: dict[str, Fuel],
         processes: dict[str, Process],
     ) -> None:
         """
@@ -43,48 +41,18 @@ class ProducerProfile(_PlantAggregateProfile):
 
         Parameters
         ----------
-        timeline
-            Simulation timeline, in years.
+        context
+            Timeline, fuels and emissions of the run.
         feedstocks
             All feedstocks in the simulation.
-        fuels
-            All fuels in the simulation.
         processes
             All processes in the simulation.
         """
-        self._initialize_base(timeline)
-        self._initialize_fuel_base(fuels)
-        self._initialize_fuel_type(fuels)
-        self._initialize_fuel_producer(feedstocks, fuels, processes)
+        self._initialize_base(context)
+        self._initialize_fuel_producer(feedstocks, processes)
         self._initialize_plant_aggregate()
 
-        self._maximum_development = self._default_array(default=np.nan)
-        self._development = self._default_array()
+        self.maximum_development = self._default_array(default=np.nan)
+        self.development = self._default_array()
 
-        self._fair_share_fuel_fraction = self._default_dict(fuels)
-
-    def set_maximum_development(self, idx: int, development_constraint: float) -> None:
-        self._maximum_development[idx] = development_constraint
-
-    def set_development(self, idx: int, development: float) -> None:
-        self._development[idx] = development
-
-    def set_fair_share_fuel_fraction(
-        self, idx: int, fuel_name: str, fair_share: float
-    ) -> None:
-        self._fair_share_fuel_fraction[fuel_name][idx] = fair_share
-
-    def get_maximum_development(self) -> FloatArray:
-        return self._maximum_development
-
-    def get_development(self) -> FloatArray:
-        return self._development
-
-    def get_cumulative_maximum_development(self) -> FloatArray:
-        return self._to_cumulative(self._maximum_development)
-
-    def get_cumulative_development(self) -> FloatArray:
-        return self._to_cumulative(self._development)
-
-    def get_fair_share_fuel_fraction(self) -> dict[str, FloatArray]:
-        return dict(self._fair_share_fuel_fraction)
+        self.fair_share_fuel_fraction = self._default_dict(context.fuels)

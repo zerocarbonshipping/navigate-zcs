@@ -45,8 +45,8 @@ def plot_global_feedstock_consumption(
     fig, axes = subplot_grid(len(feedstocks))
     colors = generate_color_dict(feedstocks, FEEDSTOCK_COLOR)
 
-    feed_mass = profile.get_feed_mass()
-    feed_constraint = profile.get_feed_constraint()
+    feed_mass = profile.feed_mass
+    feed_constraint = profile.feed_constraint
 
     for ax, feedstock_name in zip(axes, feedstocks, strict=False):
         consumed = feed_mass[feedstock_name]

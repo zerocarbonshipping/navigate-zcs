@@ -44,6 +44,15 @@ def _build_parser() -> argparse.ArgumentParser:
         " Excel based output reports will still be generated.",
     )
     parser.add_argument(
+        "-o",
+        "--results",
+        type=Path,
+        metavar="FILE",
+        default=None,
+        help="Parquet file the full results of the run are written to, to be opened"
+        " with Lantern. Default: '<deck>.parquet' next to the deck.",
+    )
+    parser.add_argument(
         "-l",
         "--log-level",
         default="INFO",
@@ -153,7 +162,11 @@ def _validate_file(parser: argparse.ArgumentParser, path: Path) -> None:
 def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
     print_preamble()
     run = functools.partial(
-        run_deck, args.filename, data_dir=args.data_dir, solver=args.solver
+        run_deck,
+        args.filename,
+        data_dir=args.data_dir,
+        solver=args.solver,
+        results_file=args.results,
     )
 
     if args.profile:

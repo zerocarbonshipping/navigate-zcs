@@ -38,7 +38,7 @@ def plot_fleet_investment_signal_technology_per_vessel(
     _plot_investment_signal_per_vessel(
         results,
         directory,
-        lambda profile: profile.get_investment_signal_technology(),
+        lambda profile: profile.investment_signal_technology,
         "fleet_investment_signal_technology_per_vessel.png",
     )
 
@@ -50,7 +50,7 @@ def plot_fleet_investment_signal_speed_per_vessel(
     _plot_investment_signal_per_vessel(
         results,
         directory,
-        lambda profile: profile.get_investment_signal_speed(),
+        lambda profile: profile.investment_signal_speed,
         "fleet_investment_signal_speed_per_vessel.png",
     )
 

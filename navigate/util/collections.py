@@ -180,6 +180,25 @@ def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
     return summed
 
 
+def sum_values[K](dict_: Mapping[K, FloatArray], shape: tuple[int, ...]) -> FloatArray:
+    """
+    Sum a dict's arrays element-wise; an empty dict sums to zeros.
+
+    Parameters
+    ----------
+    dict_
+        Arrays to sum, all of the given shape.
+    shape
+        Shape of the arrays.
+
+    Returns
+    -------
+    FloatArray
+        Sum of the arrays.
+    """
+    return sum(dict_.values(), start=np.zeros(shape))
+
+
 def sum_per_key[K](
     dict_: Mapping[K, FloatArray | Sequence[FloatArray]],
 ) -> dict[K, float]:

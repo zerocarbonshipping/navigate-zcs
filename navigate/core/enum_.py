@@ -131,6 +131,13 @@ class ReportReduceID(Enum):
     BOTH = auto()  # reduce over both tuple elements
 
 
+class ReportAccumulationID(Enum):
+    """Whether a report property is reported per date or accumulated over time."""
+
+    NONE = auto()  # the value at each date
+    CUMULATIVE = auto()  # the total over the time steps up to each date
+
+
 class FileFormatID(Enum):
     """The file format a report is exported in."""
 

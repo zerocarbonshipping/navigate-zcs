@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.util import attribute_to_setter
+from navigate.core.enum_ import ReportAccumulationID
+from navigate.util import attribute_to_instance_name
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import ReportReduceID
@@ -26,12 +27,22 @@ class NodeReport:
 
     def __init__(self) -> None:
         self.attributes: list[str] = []
-        self.getters: list[str] = []
+        self.results: list[str] = []
         self.reductions: list[ReportReduceID] = []
+        self.accumulations: list[ReportAccumulationID] = []
 
-    def add_property(self, attribute: str, reduction: ReportReduceID) -> None:
+    def add_property(
+        self,
+        attribute: str,
+        reduction: ReportReduceID,
+        accumulation: ReportAccumulationID,
+    ) -> None:
         """
         Record a report property, ignoring one already recorded for this node.
+
+        A cumulative property is recorded under its attribute token prefixed with
+        ``Cumulative``, so a node can report a property both per date and
+        accumulated.
 
         Parameters
         ----------
@@ -39,8 +50,15 @@ class NodeReport:
             Deck-facing attribute token naming the property to report.
         reduction
             Reduction to apply to the tuple keys of the property.
+        accumulation
+            Whether the property is reported per date or accumulated over time.
         """
-        if attribute not in self.attributes:
-            self.attributes.append(attribute)
-            self.getters.append(attribute_to_setter(attribute, method="get"))
+        label = attribute
+        if accumulation is ReportAccumulationID.CUMULATIVE:
+            label = f"Cumulative{attribute}"
+
+        if label not in self.attributes:
+            self.attributes.append(label)
+            self.results.append(attribute_to_instance_name(attribute))
             self.reductions.append(reduction)
+            self.accumulations.append(accumulation)

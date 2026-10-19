@@ -80,7 +80,7 @@ def merge_fleet_evolution(
     return _merge_by_fuel_type(
         dateline,
         fleet,
-        fleet.profile.get_existing_vessels(),
+        fleet.profile.existing_vessels,
         threshold=1.0,
         normalize=False,
     )
@@ -93,7 +93,7 @@ def merge_fleet_scrap(
     return _merge_by_fuel_type(
         dateline,
         fleet,
-        {name: -scrapped for name, scrapped in fleet.profile.get_scrap().items()},
+        {name: -scrapped for name, scrapped in fleet.profile.scrap.items()},
         threshold=TOLERANCE,
         normalize=True,
     )
@@ -106,7 +106,7 @@ def merge_fleet_newbuilds(
     return _merge_by_fuel_type(
         dateline,
         fleet,
-        fleet.profile.get_newbuilds(),
+        fleet.profile.newbuilds,
         threshold=TOLERANCE,
         normalize=True,
     )

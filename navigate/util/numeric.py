@@ -52,6 +52,23 @@ def divide_nonzero(
     return quotients
 
 
+def step_lengths(timeline: FloatArray) -> FloatArray:
+    """
+    Length of the time step ending at each date, the first a year long as in the run.
+
+    Parameters
+    ----------
+    timeline
+        Dates of the simulation, years.
+
+    Returns
+    -------
+    FloatArray
+        Years each step spans, one per date.
+    """
+    return np.insert(np.diff(timeline), 0, 1.0)
+
+
 def is_strictly_increasing(values: FloatArray) -> bool:
     """
     Test whether values are strictly increasing.

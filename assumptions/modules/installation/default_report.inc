@@ -19,8 +19,8 @@ Report "report_default" {
 	# add_levy_property("*", Collected)
 
 	# global
-	add_property(TotalEquivalentWtt)
-	add_property(TotalEquivalentTtw)
+	add_property(EquivalentWtt, BOTH)
+	add_property(EquivalentTtw, BOTH)
 	add_property(TotalEquivalentWtw)
 	add_property(IntensityTotalEquivalentWtt)
 	add_property(IntensityTotalEquivalentTtw)
@@ -30,7 +30,7 @@ Report "report_default" {
 	add_property(NewbuildPower)
 	add_property(FuelConvertedPower, SECOND)
 	add_property(TotalFuelExpenses)
-	add_property(TotalLevyExpenses)
+	add_property(LevyExpenses, BOTH)
 	add_property(RegulationExpenses)
 	add_property(TotalFuelRelatedExpenses)
 	add_property(VesselExpenses)

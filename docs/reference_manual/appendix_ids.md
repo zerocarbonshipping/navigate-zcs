@@ -114,6 +114,15 @@ These IDs describe the way that a regulation will regulate emissions.
 | INDIVIDUAL | Every vessel must be compliant with the regulation and trading emission certificates from overcompliance is not possible. |
 | FLEXIBLE | Vessels may trade emission certificates between them by certain vessels being overcompliant with the regulation. |
 
+## ReportAccumulationID
+
+ReportAccumulationID selects whether a report property is reported per date or accumulated over time.
+
+| ID | Description |
+| --- | --- |
+| NONE | The property's value at each date |
+| CUMULATIVE | The property accumulated over the time steps up to and including each date, reported under its name prefixed with `Cumulative` |
+
 ## ReportReduceID
 
 ReportReduceID is used for reducing tuples in the reports for easier data manipulation.

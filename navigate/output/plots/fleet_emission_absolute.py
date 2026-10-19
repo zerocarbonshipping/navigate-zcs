@@ -31,7 +31,7 @@ def plot_fleet_emission_absolute(results: SimulationResults, directory: Path) ->
     fig, axes = subplot_grid(len(fleets))
 
     for ax, fleet in zip(axes, fleets.values(), strict=False):
-        wtw = fleet.profile.get_total_equivalent_wtw()
+        wtw = fleet.profile.total_equivalent_wtw
 
         divisor, unit = get_best_unit_mass(wtw.max())
         wtw /= divisor

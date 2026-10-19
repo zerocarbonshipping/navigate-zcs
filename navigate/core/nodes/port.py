@@ -21,11 +21,10 @@ from navigate.core.node_type import FORECAST, PORT, VARIABLE
 from navigate.core.profiles import PortProfile
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
 
 
@@ -190,15 +189,8 @@ class Port(Node):
 
         self.expectation.initialize(length, fuels, emissions)
 
-    def initialize_profile(
-        self,
-        timeline: np.ndarray,
-        emissions: dict[str, Emission],
-        fuels: dict[str, Fuel],
-        lifetime: float,
-    ) -> None:
-
-        self.profile.initialize(timeline, emissions, fuels, lifetime)
+    def initialize_profile(self, context: ProfileContext) -> None:
+        self.profile.initialize(context)
 
     def is_bunkering_allowed(self, fuel_name: str) -> bool:
         """

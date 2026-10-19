@@ -326,12 +326,12 @@ def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> N
     sailed = result.trip.sailed
 
     profile = vessel.profile
-    profile.set_minimum_speed(idx, np.min(result.speed_min[sailed]))
-    profile.set_maximum_speed(idx, np.max(result.speed_max[sailed]))
-    profile.set_actual_speed(idx, np.average(speeds_actual, weights=distribution))
-    profile.set_optimal_speed(idx, np.average(speeds_optimal, weights=distribution))
-    profile.set_lowest_speed(idx, np.min(speeds_actual[sailed]))
-    profile.set_highest_speed(idx, np.max(speeds_actual[sailed]))
+    profile.minimum_speed[idx] = np.min(result.speed_min[sailed])
+    profile.maximum_speed[idx] = np.max(result.speed_max[sailed])
+    profile.actual_speed[idx] = np.average(speeds_actual, weights=distribution)
+    profile.optimal_speed[idx] = np.average(speeds_optimal, weights=distribution)
+    profile.lowest_speed[idx] = np.min(speeds_actual[sailed])
+    profile.highest_speed[idx] = np.max(speeds_actual[sailed])
 
     # minimize_scalar works best on a unimodal objective, which convex load
     # functions make likely

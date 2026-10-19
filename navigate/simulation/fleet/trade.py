@@ -101,4 +101,4 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
 
     update_current_uptake(fleet, increments, idx)
 
-    fleet.profile.set_trade(idx, trade - trade_gap)
+    fleet.profile.trade[idx] = trade - trade_gap

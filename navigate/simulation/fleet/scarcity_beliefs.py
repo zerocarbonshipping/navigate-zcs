@@ -108,8 +108,8 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
             )
 
             profile = vessel.profile
-            profile.set_investment_signal_technology(idx, signal_technology)
-            profile.set_investment_signal_speed(idx, signal_speed)
+            profile.investment_signal_technology[idx] = signal_technology
+            profile.investment_signal_speed[idx] = signal_speed
 
 
 def _energy_weighted_signal(

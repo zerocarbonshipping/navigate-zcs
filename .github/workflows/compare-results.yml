@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+name: Compare results
+
+# A pull request labelled maintenance promises to leave simulation results
+# alone. This runs a fixed set of decks with the pull request's install and with
+# its base's, and fails on any difference beyond runner noise
+# (tests/compare_results.py). Kept apart from ci.yml so that adding a label does
+# not re-run the other checks.
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, labeled ]
+
+concurrency:
+  group: compare-results-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    name: Compare results
+    if: contains(github.event.pull_request.labels.*.name, 'maintenance')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the pull request
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: head
+
+      - name: Check out its base
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      # one venv per side, so neither imports the other's package
+      - name: Install both sides
+        run: |
+          python -m venv base-env
+          base-env/bin/pip install -q ./base
+          python -m venv head-env
+          head-env/bin/pip install -q ./head
+
+      # both sides run the pull request's decks and script, each against its
+      # own package and assumptions
+      - name: Snapshot the base
+        run: >
+          base-env/bin/python head/tests/compare_results.py snapshot
+          --assumptions base/assumptions --out snapshots/base
+
+      - name: Snapshot the pull request
+        run: >
+          head-env/bin/python head/tests/compare_results.py snapshot
+          --assumptions head/assumptions --out snapshots/head
+
+      - name: Compare
+        run: head-env/bin/python head/tests/compare_results.py diff snapshots/base snapshots/head
+
+      - name: Upload the snapshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: compare-results-snapshots
+          path: snapshots/

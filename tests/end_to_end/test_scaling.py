@@ -38,21 +38,21 @@ def _scaled_fleet(run_combination, factor):
 
 
 @pytest.mark.parametrize(
-    "getter",
+    "result",
     [
-        "get_consumed_energy",
-        "get_equivalent_wtw",
-        "get_newbuilds",
-        "get_existing_vessels",
-        "get_fuel_expenses",
+        "consumed_energy",
+        "equivalent_wtw",
+        "newbuilds",
+        "existing_vessels",
+        "fuel_expenses",
     ],
 )
-def test_twice_the_fleet_doubles_its_extensive_results(run_combination, getter):
-    base = getattr(_scaled_fleet(run_combination, 1).profile, getter)()
-    scaled = getattr(_scaled_fleet(run_combination, FACTOR).profile, getter)()
+def test_twice_the_fleet_doubles_its_extensive_results(run_combination, result):
+    base = getattr(_scaled_fleet(run_combination, 1).profile, result)
+    scaled = getattr(_scaled_fleet(run_combination, FACTOR).profile, result)
 
     assert scaled.keys() == base.keys()
-    assert any(np.any(array > 0.0) for array in base.values()), f"{getter} is zero"
+    assert any(np.any(array > 0.0) for array in base.values()), f"{result} is zero"
     for key, array in base.items():
         np.testing.assert_allclose(
             scaled[key], FACTOR * array, rtol=SCALING_RTOL, err_msg=str(key)
@@ -65,7 +65,7 @@ def test_twice_the_levy_level_doubles_the_first_collection(run_combination):
             ("levy.inc", {"scheme": "PENALTY", "scope": "WTW", "lower_threshold": 85}),
             ("levy_level.inc", {"level": level}),
         )
-        return results.nodes.levies[LEVY].profile.get_collected()[0]
+        return results.nodes.levies[LEVY].profile.collected[0]
 
     base = collected(BASE_LEVEL)
 

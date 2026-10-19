@@ -61,7 +61,7 @@ def plot_fleet_conversions_cumulative(
     fleets = results.nodes.fleets
 
     fuel_conversions = {
-        fleet_name: fleet.profile.get_fuel_conversions()
+        fleet_name: fleet.profile.fuel_conversions
         for fleet_name, fleet in fleets.items()
         if fleet.can_fuel_convert()
     }

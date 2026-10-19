@@ -25,8 +25,8 @@ from navigate.core.profiles import RegulationProfile
 if TYPE_CHECKING:
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
-    from navigate.util import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +172,6 @@ class Regulation(_Policy):
         self.expectation.initialize(length, emission_names, routes, vessels)
 
     def initialize_profile(
-        self, timeline: FloatArray, vessels: dict[str, Vessel]
+        self, context: ProfileContext, vessels: dict[str, Vessel]
     ) -> None:
-        self.profile.initialize(timeline, vessels)
+        self.profile.initialize(context, vessels)

@@ -18,9 +18,10 @@ step, and `driver/` runs it from a read deck to its output.
   - `simulation/fleet/` — the shipowner domain: operation and decisions.
   - `simulation/fuel/` — the fuel-supply domain: production and planning.
     Both keep `initialization.py` (simulation start), `expectation.py`
-    (what the domain publishes to later phases and other domains) and
-    `profile.py` (per-step output); every other file is named for a
-    domain concept.
+    (what the domain publishes to later phases and other domains),
+    `profile.py` (per-step output) and `results.py` (the results computed
+    from that output after the run); every other file is named for a domain
+    concept.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/cohort.py` — vintage-stock accounting over the asset
     cohorts of both domains.
@@ -115,7 +116,8 @@ re-export there would load far more than an import needs.
   writer stores the sum instead.
 - `profile` is output for reports and plots, never a decision's input.
   Deriving one profile value from another is fine in post-processing and
-  `Simulation._calculate_profile`, which feed no decision.
+  `Simulation._calculate_profile`, which feed no decision; a result computed
+  from others is written by the domain's `results` module after the run.
 - Direct attribute access (`node.some_input.get()`) is reserved for
   DSL-defined inputs and those node maps.
 - `simulation/` handles no files, console output or arguments; its one file

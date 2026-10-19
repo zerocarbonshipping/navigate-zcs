@@ -15,7 +15,7 @@ from navigate.output.plots._figure import (
 )
 from navigate.output.plots._labels import FLEET_LABEL, extract_label
 from navigate.output.plots._layout import trim_axes
-from navigate.util import divide_nonzero
+from navigate.util import divide_nonzero, sum_values
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -32,8 +32,8 @@ def plot_fleet_shore_power_share(results: SimulationResults, directory: Path) ->
 
     for ax, fleet in zip(axes, fleets.values(), strict=False):
         fleet_profile = fleet.profile
-        shore_power = fleet_profile.get_shore_power_energy()
-        port_energy = fleet_profile.get_total_energy_port()
+        shore_power = fleet_profile.shore_power_energy
+        port_energy = sum_values(fleet_profile.energy_port, dateline.shape)
 
         shore_power_share = divide_nonzero(shore_power, port_energy) * 100.0
 

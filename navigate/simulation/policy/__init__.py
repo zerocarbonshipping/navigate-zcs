@@ -22,6 +22,7 @@ from navigate.simulation.policy.jurisdiction import calculate_regulation_measure
 from navigate.simulation.policy.remediation import (
     calculate_individual_remedial_expenses,
 )
+from navigate.simulation.policy.results import complete_regulation_profile
 from navigate.simulation.policy.threshold_adjustment import (
     calculate_adjusted_regulation_thresholds,
 )

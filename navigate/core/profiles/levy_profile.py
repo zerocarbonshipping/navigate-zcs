@@ -5,35 +5,32 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import numpy as np
-
-from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.core.profiles._base_profile import _BaseProfile
+from navigate.core.profiles._base_profile import _BaseProfile, result
 
 if TYPE_CHECKING:
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.util.types_ import FloatArray
 
 
+@dataclass(eq=False, repr=False)
 class LevyProfile(_BaseProfile):
     """Revenue one levy collected over the timeline."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    # negative where the levy pays out a subsidy
+    collected: FloatArray = result("USD/year")
 
-        self._collected: FloatArray = EMPTY_FLOAT
+    def initialize(self, context: ProfileContext) -> None:
+        """
+        Initialize the levy profile's storage arrays.
 
-    def initialize(self, timeline: FloatArray) -> None:
-        self._initialize_base(timeline)
+        Parameters
+        ----------
+        context
+            Timeline, fuels and emissions of the run.
+        """
+        self._initialize_base(context)
 
-        self._collected = self._default_array()
-
-    def add_collected(self, collected: float, idx: int | slice = np.s_[:]) -> None:
-        self._collected[idx] += collected
-
-    def set_collected(self, idx: int, collected: float) -> None:
-        self._collected[idx] = collected
-
-    def get_collected(self) -> FloatArray:
-        return self._collected
+        self.collected = self._default_array()

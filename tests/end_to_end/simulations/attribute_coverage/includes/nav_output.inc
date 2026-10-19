@@ -14,7 +14,8 @@
 #   Plot:   add_plot
 #
 # IDs covered:
-#   Report: FileFormat XLSX and CSV; every ReportReduceID
+#   Report: FileFormat XLSX and CSV; every ReportReduceID and
+#           ReportAccumulationID
 
 Report "report" {
 	Directory = "./output/"
@@ -34,11 +35,14 @@ Report "report" {
 	add_vessel_property("vessel_oil", Saving)
 }
 
-# CSV export; each ReportReduceID on a property keyed by a tuple
+# CSV export; each ReportReduceID on a property keyed by a tuple, and each
+# ReportAccumulationID on a rate and on a count per time step
 Report "report_csv" {
 	Directory = "./output/csv/"
 	FileFormat = CSV
-	add_property(ConsumedEnergy, NONE)
+	add_property(ConsumedEnergy, NONE, NONE)
+	add_property(TotalFuelExpenses, NONE, CUMULATIVE)
+	add_fleet_property("fleet_a", Newbuilds, NONE, CUMULATIVE)
 	add_fleet_property("fleet_a", EquivalentWtt, FIRST)
 	add_fleet_property("fleet_a", EquivalentTtw, SECOND)
 	add_fleet_property("fleet_a", TechnologyUptake, BOTH)
