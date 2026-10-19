@@ -168,7 +168,7 @@ class Simulation:
         self.timings = Timings(self.profile.computational_time)
         self._initialize_bunker_models()
 
-    def step(self, date: np.datetime64) -> None:
+    def step(self, date: np.datetime64, inputs_changed: bool) -> None:
         """
         Perform the time step of the next date in the dateline.
 
@@ -176,10 +176,12 @@ class Simulation:
         ----------
         date
             The date stepped to, its events already applied.
+        inputs_changed
+            Whether the date's events changed the deck's inputs.
         """
         with self.timings.step(self._idx, TimingID.OTHER):
             self._progress_date_time(date)
-            self._perform_time_step()
+            self._perform_time_step(inputs_changed)
 
         self._idx += 1
 
@@ -211,7 +213,7 @@ class Simulation:
         if self._idx == 0:
             self._time_step = YEAR
 
-    def _perform_time_step(self) -> None:
+    def _perform_time_step(self, inputs_changed: bool) -> None:
         self._check_dynamic_consistency()
         self._update_node_maps()
 
@@ -222,8 +224,12 @@ class Simulation:
         self._calculate_expectations()
 
         self._update_vessel_operations()
-        self._calculate_fuel_production_properties()
-        self._calculate_fuel_logistics_properties()
+
+        # only events change the deck's inputs, so the derived expectations are
+        # recalculated at the first step and when a date's events change the inputs,
+        # and otherwise hold the values written then
+        if self._idx == 0 or inputs_changed:
+            self._recalculate_derived_expectations()
 
         if self._idx == 0:
             self._initialize_existing_fleet()
@@ -352,6 +358,18 @@ class Simulation:
 
             for vessel in fleet.vessels:
                 update_operations(vessel, allow_speed_management, self._idx)
+
+    def _recalculate_derived_expectations(self) -> None:
+        """
+        Recalculate the expectations derived from the deck's inputs alone.
+
+        They are written from this step to the end of the horizon. A calculation
+        belongs here only if it reads no simulation state and evaluates every
+        calculator at an explicit time.
+        """
+        # the logistics read the lead times and lifetimes the production writes
+        self._calculate_fuel_production_properties()
+        self._calculate_fuel_logistics_properties()
 
     @timed(TimingID.PLANT_PRODUCTION)
     def _calculate_fuel_production_properties(self) -> None:

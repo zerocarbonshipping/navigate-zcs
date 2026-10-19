@@ -288,7 +288,7 @@ class Parser:
 
         self._end_reading_section(section)
 
-    def read_events(self, date: np.datetime64) -> None:
+    def read_events(self, date: np.datetime64) -> bool:
         """
         Apply the events queued at a date and refresh the dependent nodes.
 
@@ -297,11 +297,20 @@ class Parser:
         date
             A date from ``dates``; a date with no queued events only refreshes
             the dependencies.
+
+        Returns
+        -------
+        bool
+            Whether the events applied at least one statement.
         """
-        for event in self._event_queue.get(date, []):
+        events = self._event_queue.get(date, [])
+
+        for event in events:
             self._read_event(event)
 
         self._update_dependencies()
+
+        return any(event.statements for event in events)
 
     # error formatting -----------------------------------------------------------------
 
