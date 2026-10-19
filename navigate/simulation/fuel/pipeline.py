@@ -182,7 +182,7 @@ def perform_pipeline_planning(
         pinc.insert(i, PlantIncrement(increments[p], new_age, dt, decided=0.0))
 
     total_increments = np.sum(increments)
-    producer.profile.set_development(idx, total_increments)
+    producer.profile.development[idx] = total_increments
 
     producer.current_uptake = divide_nonzero(
         increments, total_increments, default=1.0 / increments.size

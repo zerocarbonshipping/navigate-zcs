@@ -51,8 +51,8 @@ arbiter.
   docstring. A group comment heading a run of attributes is allowed. An enum
   member carries exactly one trailing comment, stating what it stands for.
 - Read and write attributes directly. Do not add a method that only returns
-  or assigns an attribute, except the DSL setters, the expectation and profile
-  accessors, and `.get`.
+  or assigns an attribute, except the DSL setters, the expectation accessors,
+  and `.get`.
 - A dictionary an expectation or profile class holds as state gets its full
   key set at initialization and never allocates a key on first write, so a
   missing key fails loudly instead of growing the dictionary. A dictionary
@@ -108,12 +108,18 @@ arbiter.
   attribute derived from other nodes' attributes, written by
   `navigate/core/node_maps.py` once at initialization where those are
   DSL-defined, and once per time step where events can change them.
-- The expectation classes (`navigate/core/expectations/`) and profile classes
-  (`navigate/core/profiles/`) are accessed through getters, adders and
-  setters, which keep dynamic state and output apart from user input and
-  temporary results.
-- A profile getter takes no parameters and returns the whole timeline array
-  or the whole dictionary; the caller indexes the result.
+- The expectation classes (`navigate/core/expectations/`) are accessed
+  through getters, adders and setters, which keep dynamic state apart from
+  user input and temporary results.
+- The profile classes (`navigate/core/profiles/`) are dataclasses written and
+  read as plain fields; the run-wide timeline, fuel and emission constants,
+  and the conversions by them, are their shared `ProfileContext`. A time step
+  writes what it computed where it computed it, in the quantity it has (a
+  mass, a ton of each emission, a price per ton). Every other result is
+  computed from those once they are final, by the `results` module of
+  the domain, which converts and combines them; read before then, it raises
+  `AttributeError`. A field declared with `result(unit)` is a result; these
+  declarations are the only record of the results and their units.
 - An expectation getter reads either one key or the whole storage, never one
   or the other depending on its arguments. Its key parameter has no default,
   as a `None` default would spell that switch. The whole-storage read is a
@@ -152,9 +158,9 @@ its section layout; the rules below cover the content.
   constructor arguments. A class only the framework constructs stays at one
   line; this covers every node except the calculators, as a node's inputs are
   DSL attributes documented in the reference manual.
-- A node's lifecycle hook overrides and the methods of expectation and profile
-  classes need no docstring (ruff `D102` is waived for `nodes/`,
-  `general_nodes/`, `expectations/` and `profiles/` under `navigate/core/`).
+- A node's lifecycle hook overrides and the methods of expectation classes
+  need no docstring (ruff `D102` is waived for `nodes/`, `general_nodes/` and
+  `expectations/` under `navigate/core/`).
 
 ## Comments
 
@@ -216,8 +222,8 @@ its section layout; the rules below cover the content.
   check the types already rule out).
 - In `navigate/`, confine dynamic attribute access (`hasattr`, `getattr`,
   `setattr`) to the boundary modules: `navigate/parser/` (DSL dispatch),
-  `navigate/output/` (report getters) and `navigate/app/` (the `extra` keys of
-  a log record).
+  `navigate/output/` (profile results by name) and `navigate/app/` (the
+  `extra` keys of a log record).
 
 ## Logging
 

@@ -19,6 +19,7 @@ from navigate.util.collections import (
     sum_by_second_key,
     sum_dict_results,
     sum_per_key,
+    sum_values,
     unique_list,
 )
 from navigate.util.dates import (
@@ -49,6 +50,7 @@ from navigate.util.numeric import (
     interpolate_yearly_flow,
     is_non_strictly_increasing,
     is_strictly_increasing,
+    step_lengths,
     update_belief_path,
 )
 from navigate.util.types_ import (

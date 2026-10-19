@@ -103,7 +103,7 @@ def check_invariants(results: SimulationResults) -> None:
     total_vessels = sum(len(f.vessels) for f in fleets.values())
     assert total_vessels > 0, "No vessels in any fleet"
 
-    for fuel_name, energy in results.profile.get_consumed_energy().items():
+    for fuel_name, energy in results.profile.consumed_energy.items():
         assert not np.any(np.isnan(energy)), f"NaN consumed energy for '{fuel_name}'"
         assert not np.any(np.isinf(energy)), (
             f"Infinite consumed energy for '{fuel_name}'"
@@ -117,8 +117,8 @@ def check_invariants(results: SimulationResults) -> None:
     step_years[1:] = np.diff(timeline) / YEAR
 
     for producer_name, producer in results.nodes.producers.items():
-        development = producer.profile.get_development()
-        maximum = producer.profile.get_maximum_development()
+        development = producer.profile.development
+        maximum = producer.profile.maximum_development
         assert not np.any(np.isnan(development)), (
             f"NaN development for '{producer_name}'"
         )

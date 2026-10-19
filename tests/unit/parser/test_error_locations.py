@@ -229,13 +229,11 @@ class TestReportProperty:
         return 'Report "r" {\n' + "".join(f"    {c}\n" for c in commands) + "}\n"
 
     # input:    | Report "r" { add_fleet_property("f", CargoMiles) }
-    # expected: -> the fleet report "f" uses the getter "get_cargo_miles"
-    def test_a_reported_property_resolves_to_its_getter(self, read_deck):
+    # expected: -> the fleet report "f" reads the result "cargo_miles"
+    def test_a_reported_property_resolves_to_its_result(self, read_deck):
         parser = read_deck(self._report('add_fleet_property("f", CargoMiles)'))
 
-        assert parser.nodes.reports["r"].fleet_reports["f"].getters == [
-            "get_cargo_miles"
-        ]
+        assert parser.nodes.reports["r"].fleet_reports["f"].results == ["cargo_miles"]
 
     # input:    | Report "r" { add_fleet_property("*", CargoMils) }
     # expected: -> CommandError at the command's define.inc line, naming

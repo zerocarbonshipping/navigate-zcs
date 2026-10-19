@@ -37,6 +37,11 @@ from navigate.simulation.fleet.profile import (
     calculate_fleet_profile,
     calculate_vessel_profile,
 )
+from navigate.simulation.fleet.results import (
+    complete_fleet_profile,
+    complete_global_fleet_results,
+    complete_vessel_profile,
+)
 from navigate.simulation.fleet.scarcity_beliefs import (
     record_investment_signals,
     update_vessel_scarcity_beliefs,

@@ -18,15 +18,18 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, NamedTuple
 
+import numpy as np
 import openpyxl as xl
 
-from navigate.core.enum_ import FileFormatID, ReportReduceID
+from navigate.core.enum_ import FileFormatID, ReportAccumulationID, ReportReduceID
 from navigate.core.node_report import GLOBAL_PROFILE_KEY
+from navigate.core.profiles import per_step_results
 from navigate.util import (
     dates_to_days,
     is_single_dict,
     is_tuple_dict,
     matching_keys,
+    step_lengths,
     sum_by_first_key,
     sum_by_second_key,
     sum_dict_results,
@@ -46,16 +49,19 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# what a profile getter, or a reduction of its result, yields: an array, or a
-# dict of arrays keyed by profile keys or pairs of them
+# what a profile result, or a reduction of it, is: an array, or a dict of arrays
+# keyed by profile keys or pairs of them
 type _ReportKeyPart = str | Enum
 type _ReportKey = _ReportKeyPart | tuple[_ReportKeyPart, _ReportKeyPart]
 type ReportArray = FloatArray | BoolArray
 type _ReportDict = dict[_ReportKey, FloatArray] | dict[_ReportKey, BoolArray]
 type _ReportValue = ReportArray | _ReportDict
 
-# the attributes, profile getters and reductions requested of one node
-type _NodeRequests = tuple[list[str], list[str], list[ReportReduceID]]
+# the attributes, profile result names, reductions and accumulations requested of
+# one node
+type _NodeRequests = tuple[
+    list[str], list[str], list[ReportReduceID], list[ReportAccumulationID]
+]
 
 ROW_NODE = 1
 ROW_ATTR = 2
@@ -420,16 +426,9 @@ def export_properties_xlsx(
 
     export = _prepare_export(profiles, requests, report_name, ws.title)
 
-    for node_name, (attributes, getters, reductions) in export.items():
+    for node_name, requested in export.items():
         properties = dict(
-            _extract_properties(
-                node_name,
-                profiles[node_name],
-                attributes,
-                getters,
-                reductions,
-                report_name,
-            )
+            _extract_properties(node_name, profiles[node_name], requested, report_name)
         )
 
         col = _export_node(ws, node_name, properties, col)
@@ -463,14 +462,9 @@ def export_properties_csv(
 
     sheet = CsvSheet()
 
-    for node_name, (attributes, getters, reductions) in export.items():
+    for node_name, requested in export.items():
         for attribute, property_ in _extract_properties(
-            node_name,
-            profiles[node_name],
-            attributes,
-            getters,
-            reductions,
-            report_name,
+            node_name, profiles[node_name], requested, report_name
         ):
             _flatten_to_csv(sheet, node_name, attribute, property_)
 
@@ -481,13 +475,11 @@ def export_properties_csv(
 def _extract_properties(
     node_name: str,
     profile: _BaseProfile,
-    attributes: list[str],
-    getters: list[str],
-    reductions: list[ReportReduceID],
+    requested: _NodeRequests,
     report_name: str,
 ) -> Iterator[tuple[str, _ReportValue]]:
     """
-    Yield (attribute, property) pairs from the node profile, with reductions applied.
+    Yield (attribute, property) pairs from the node profile, reduced and accumulated.
 
     Parameters
     ----------
@@ -495,29 +487,31 @@ def _extract_properties(
         Name of the node, used in log messages.
     profile
         Profile of the node to read properties from.
-    attributes
-        Requested attribute names.
-    getters
-        Profile getter name per attribute.
-    reductions
-        Reduction to apply per attribute.
+    requested
+        The attribute names, their profile result names, and the reduction and
+        accumulation to apply to each.
     report_name
         Name of the Report node, used in log messages.
 
     Yields
     ------
     tuple[str, _ReportValue]
-        Each attribute whose getter succeeded, with its reduced result.
+        Each attribute whose result could be read, with its reduced result.
     """
-    for attribute, getter, reduce in zip(attributes, getters, reductions, strict=True):
+    per_step = per_step_results(type(profile))
+
+    for attribute, result, reduce, accumulate in zip(*requested, strict=True):
         try:
-            # the parser checked every getter against the profile class of its
-            # command when it read the deck, and every profile getter returns
-            # a report value
-            property_: _ReportValue = getattr(profile, getter)()
+            # the parser checked every result name against the profile class of
+            # its command when it read the deck, and every profile result is a
+            # report value
+            property_: _ReportValue = getattr(profile, result)
 
             if isinstance(property_, dict):
                 property_ = _reduce_dict(property_, reduce)
+
+            if accumulate is ReportAccumulationID.CUMULATIVE:
+                property_ = _accumulate(property_, profile, result in per_step)
 
             yield attribute, property_
 
@@ -579,6 +573,20 @@ def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportVa
     return property_
 
 
+def _accumulate(
+    property_: _ReportValue, profile: _BaseProfile, per_step: bool
+) -> _ReportValue:
+    """Sum a reduced result over the time steps up to and including each date."""
+    # a rate covers the step ending at its date, the first a year long as in the
+    # run; a count per time step is already one step's worth
+    weight = 1.0 if per_step else step_lengths(profile.context.timeline)
+
+    if isinstance(property_, dict):
+        return {key: np.cumsum(values * weight) for key, values in property_.items()}
+
+    return np.cumsum(property_ * weight)
+
+
 def _get_alternative_path(base_path: Path, counter: int) -> Path:
     """
     Generate filename with counter suffix.
@@ -622,11 +630,12 @@ def _prepare_export(
 
         for node_name in node_names:
             if node_name not in export:
-                export[node_name] = ([], [], [])
+                export[node_name] = ([], [], [], [])
 
             export[node_name][0].extend(report.attributes)
-            export[node_name][1].extend(report.getters)
+            export[node_name][1].extend(report.results)
             export[node_name][2].extend(report.reductions)
+            export[node_name][3].extend(report.accumulations)
 
     return export
 

@@ -18,6 +18,7 @@ from navigate.core.profiles import LevyProfile
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import DateArray, FloatArray
 
@@ -75,8 +76,8 @@ class Levy(_Policy):
     def initialize_expectation(self, length: int) -> None:
         self.expectation.initialize(length, [e.name for e in self.emissions])
 
-    def initialize_profile(self, timeline: FloatArray) -> None:
-        self.profile.initialize(timeline)
+    def initialize_profile(self, context: ProfileContext) -> None:
+        self.profile.initialize(context)
 
     def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
         super().check_dynamic_consistency(times, dates)

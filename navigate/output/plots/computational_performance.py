@@ -42,27 +42,27 @@ def _plot_computational_performance(
     # per-step times grouped by run phase; each group is one hue in the colors
     values = [
         # bunkering LP, expected fleet
-        profile.get_expected_build_time(),
-        profile.get_expected_solve_time(),
-        profile.get_expected_transfer_time(),
+        profile.expected_build_time,
+        profile.expected_solve_time,
+        profile.expected_transfer_time,
         # bunkering LP, existing fleet
-        profile.get_existing_build_time(),
-        profile.get_existing_solve_time(),
-        profile.get_existing_transfer_time(),
+        profile.existing_build_time,
+        profile.existing_solve_time,
+        profile.existing_transfer_time,
         # fleet decisions
-        profile.get_speed_time(),
-        profile.get_retrofit_time(),
-        profile.get_fleet_evolution_time(),
-        profile.get_producer_evolution_time(),
+        profile.speed_time,
+        profile.retrofit_time,
+        profile.fleet_evolution_time,
+        profile.producer_evolution_time,
         # setup and bookkeeping
-        profile.get_temporal_time(),
-        profile.get_fleet_state_time(),
-        profile.get_overhead_time(),
+        profile.temporal_time,
+        profile.fleet_state_time,
+        profile.overhead_time,
         # domain calculations
-        profile.get_vessel_time(),
-        profile.get_fuel_supply_time(),
-        profile.get_policy_time(),
-        profile.get_profile_agg_time(),
+        profile.vessel_time,
+        profile.fuel_supply_time,
+        profile.policy_time,
+        profile.profile_agg_time,
     ]
 
     labels = [
@@ -110,7 +110,7 @@ def _plot_computational_performance(
 
     stack = plot_stack_with_lines(ax, dateline, values, labels, colors)
 
-    total_cumulative = profile.get_total_time()
+    total_cumulative = profile.total_time
     if cumulative:
         ax.plot(dateline, total_cumulative, label="Total", color="k", ls="--", lw=2.0)
         ax.set_ylabel("Cumulative computational time [s]")

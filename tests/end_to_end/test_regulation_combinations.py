@@ -62,19 +62,17 @@ def test_an_unmet_threshold_charges_every_emission(
     run_combination, measure, scheme, scope
 ):
     profile = _profile(run_combination, measure, scheme, scope, "FALSE")
-    units = profile.get_remedial_units()
+    units = profile.remedial_units
 
     assert np.all(units > 0.0), "a zero threshold must leave a gap at every step"
     np.testing.assert_allclose(
-        profile.get_remedial_expenses(), REMEDIAL_COST * units, rtol=SUMMATION_RTOL
+        profile.remedial_expenses, REMEDIAL_COST * units, rtol=SUMMATION_RTOL
     )
 
     # the gap to a zero threshold is the whole emission, whichever measure states
     # the threshold and whether the scheme pools it
     reference = _profile(run_combination, "ABSOLUTE", "INDIVIDUAL", scope, "FALSE")
-    np.testing.assert_allclose(
-        units, reference.get_remedial_units(), rtol=SUMMATION_RTOL
-    )
+    np.testing.assert_allclose(units, reference.remedial_units, rtol=SUMMATION_RTOL)
 
 
 @pytest.mark.parametrize(
@@ -85,7 +83,7 @@ def test_an_unmet_threshold_lowers_emissions(run_combination, measure, scheme, s
     unregulated = run_combination()
 
     def wtw(results):
-        return results.profile.get_total_equivalent_wtw().sum()
+        return results.profile.total_equivalent_wtw.sum()
 
     assert wtw(regulated) < wtw(unregulated)
 
@@ -98,10 +96,10 @@ def test_threshold_adjustment_raises_the_threshold_to_compliance(
 ):
     profile = _profile(run_combination, measure, scheme, scope, "TRUE")
 
-    assert np.all(profile.get_remedial_units() == 0.0)
+    assert np.all(profile.remedial_units == 0.0)
 
     if scheme == "INDIVIDUAL":
-        for vessel, threshold in profile.get_adjusted_vessel_threshold().items():
+        for vessel, threshold in profile.adjusted_vessel_threshold.items():
             assert np.all(threshold > 0.0), f"{vessel} threshold was not adjusted"
     else:
-        assert np.all(profile.get_adjusted_shared_threshold() > 0.0)
+        assert np.all(profile.adjusted_shared_threshold > 0.0)

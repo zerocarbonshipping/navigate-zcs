@@ -746,18 +746,18 @@ Report "report" {
 	Directory = "./plots/"
 
 	# port
-	add_port_property("*", BunkerIntensityPrice)    	        # USD/GJ
-	add_port_property("*", BunkerIntensityTotalEquivalentWtt)	# kg/GJ
+	add_port_property("*", BunkerPrice)    	        # USD/t
+	add_port_property("*", EquivalentBunkerWtt, SECOND)	# ton/ton
 		
 	# fleet
-	add_fleet_property("*", TotalEquivalentWtt)		# ton/year
-	add_fleet_property("*", TotalEquivalentTtw)		# ton/year
+	add_fleet_property("*", EquivalentWtt, BOTH)		# ton/year
+	add_fleet_property("*", EquivalentTtw, BOTH)		# ton/year
 	add_fleet_property("*", TotalEquivalentWtw)		# ton/year
 	add_fleet_property("*", TotalConsumedEnergy)    # GJ/year
 
 	# global
-	add_property(TotalEquivalentWtt)				# ton/year
-	add_property(TotalEquivalentTtw)				# ton/year
+	add_property(EquivalentWtt, BOTH)				# ton/year
+	add_property(EquivalentTtw, BOTH)				# ton/year
 	add_property(TotalEquivalentWtw)				# ton/year
 	add_property(TotalConsumedEnergy)				# GJ/year
 	add_property(ConsumedEnergy)					# GJ/year
@@ -1436,18 +1436,18 @@ Report "report" {
 	
 		
 	# port
-	add_port_property("*", BunkerIntensityPrice)				# USD/GJ
-	add_port_property("*", BunkerIntensityTotalEquivalentWtt)	# kg / GJ
+	add_port_property("*", BunkerPrice)				# USD/t
+	add_port_property("*", EquivalentBunkerWtt, SECOND)	# ton/ton
 		
 	# fleet
-	add_fleet_property("*", TotalEquivalentWtt)		# ton/year
-	add_fleet_property("*", TotalEquivalentTtw)		# ton/year
+	add_fleet_property("*", EquivalentWtt, BOTH)		# ton/year
+	add_fleet_property("*", EquivalentTtw, BOTH)		# ton/year
 	add_fleet_property("*", TotalEquivalentWtw)		# ton/year
 	add_fleet_property("*", TotalConsumedEnergy)	# GJ/year
 
 	# global
-	add_property(TotalEquivalentWtt)				# ton/year
-	add_property(TotalEquivalentTtw)				# ton/year
+	add_property(EquivalentWtt, BOTH)				# ton/year
+	add_property(EquivalentTtw, BOTH)				# ton/year
 	add_property(TotalEquivalentWtw)				# ton/year
 	add_property(TotalConsumedEnergy)				# GJ/year
 	add_property(ConsumedEnergy)					# GJ/year

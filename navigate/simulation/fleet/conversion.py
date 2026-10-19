@@ -732,7 +732,7 @@ def _apply_from_side(
         if increment_from.baseline is not None:
             increment_from.baseline -= count
 
-        fleet.profile.add_fuel_conversions(proposal.name_from, name_to, count, idx)
+        fleet.profile.fuel_conversions[proposal.name_from, name_to][idx] += count
 
         # the levelized charge is booked over the service window; the coverage
         # prorates the final partial year so the booked amounts match the

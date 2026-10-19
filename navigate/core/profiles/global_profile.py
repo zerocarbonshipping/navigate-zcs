@@ -5,11 +5,10 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import numpy as np
-
-from navigate.core.initial_values import EMPTY_FLOAT
+from navigate.core.profiles._base_profile import result
 from navigate.core.profiles._fuel_infrastructure_profile import (
     _FuelInfrastructureProfile,
 )
@@ -19,192 +18,85 @@ from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregatePro
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.process import Process
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.util.types_ import FloatArray
 
 
+@dataclass(eq=False, repr=False)
 class GlobalProfile(
     _VesselAggregateProfile, _PlantAggregateProfile, _FuelInfrastructureProfile
 ):
     """Totals over every vessel, plant and port, plus the timings of the run."""
 
-    def __init__(self) -> None:
-        super().__init__()
-
-        # computational time in seconds; every entry below the total is part of it
-        self._total_time: FloatArray = EMPTY_FLOAT
-        self._expected_build_time: FloatArray = EMPTY_FLOAT
-        self._expected_solve_time: FloatArray = EMPTY_FLOAT
-        self._expected_transfer_time: FloatArray = EMPTY_FLOAT
-        self._speed_time: FloatArray = EMPTY_FLOAT
-        self._retrofit_time: FloatArray = EMPTY_FLOAT
-        self._fleet_evolution_time: FloatArray = EMPTY_FLOAT
-        self._producer_evolution_time: FloatArray = EMPTY_FLOAT
-        self._existing_build_time: FloatArray = EMPTY_FLOAT
-        self._existing_solve_time: FloatArray = EMPTY_FLOAT
-        self._existing_transfer_time: FloatArray = EMPTY_FLOAT
-        self._temporal_time: FloatArray = EMPTY_FLOAT
-        self._vessel_time: FloatArray = EMPTY_FLOAT
-        self._fuel_supply_time: FloatArray = EMPTY_FLOAT
-        self._policy_time: FloatArray = EMPTY_FLOAT
-        self._fleet_state_time: FloatArray = EMPTY_FLOAT
-        self._profile_agg_time: FloatArray = EMPTY_FLOAT
-        self._overhead_time: FloatArray = EMPTY_FLOAT
+    # computational time in seconds; every entry below the total is part of it
+    total_time: FloatArray = result("s")
+    expected_build_time: FloatArray = result("s")
+    expected_solve_time: FloatArray = result("s")
+    expected_transfer_time: FloatArray = result("s")
+    speed_time: FloatArray = result("s")
+    retrofit_time: FloatArray = result("s")
+    fleet_evolution_time: FloatArray = result("s")
+    producer_evolution_time: FloatArray = result("s")
+    existing_build_time: FloatArray = result("s")
+    existing_solve_time: FloatArray = result("s")
+    existing_transfer_time: FloatArray = result("s")
+    temporal_time: FloatArray = result("s")
+    vessel_time: FloatArray = result("s")
+    fuel_supply_time: FloatArray = result("s")
+    policy_time: FloatArray = result("s")
+    fleet_state_time: FloatArray = result("s")
+    profile_agg_time: FloatArray = result("s")
+    overhead_time: FloatArray = result("s")
 
     def initialize(
         self,
-        timeline: FloatArray,
-        emissions: dict[str, Emission],
+        context: ProfileContext,
         feedstocks: dict[str, Feedstock],
-        fuels: dict[str, Fuel],
         processes: dict[str, Process],
-        emissions_lifetime: float,
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
-        self._initialize_base(timeline)
-        self._initialize_fuel_base(fuels)
-        self._initialize_fuel_type(fuels)
-        self._initialize_fuel_emission(emissions, emissions_lifetime)
-        self._initialize_fuel_consumer(fuels, emissions, regulation_names, levy_names)
-        self._initialize_fuel_producer(feedstocks, fuels, processes)
-        self._initialize_fuel_infrastructure(fuels)
+        """
+        Initialize the global profile's storage arrays and lookups.
+
+        Parameters
+        ----------
+        context
+            Timeline, fuels and emissions of the run.
+        feedstocks
+            All feedstocks in the simulation.
+        processes
+            All processes in the simulation.
+        regulation_names
+            Names of all regulations in the simulation.
+        levy_names
+            Names of all levies in the simulation.
+        """
+        self._initialize_base(context)
+        self._initialize_fuel_consumer(regulation_names, levy_names)
+        self._initialize_fuel_producer(feedstocks, processes)
+        self._initialize_fuel_infrastructure()
         self._initialize_vessel_aggregate()
         self._initialize_plant_aggregate()
 
         # computational time
-        self._total_time = self._default_array()
-        self._expected_build_time = self._default_array()
-        self._expected_solve_time = self._default_array()
-        self._expected_transfer_time = self._default_array()
-        self._speed_time = self._default_array()
-        self._retrofit_time = self._default_array()
-        self._fleet_evolution_time = self._default_array()
-        self._producer_evolution_time = self._default_array()
-        self._existing_build_time = self._default_array()
-        self._existing_solve_time = self._default_array()
-        self._existing_transfer_time = self._default_array()
-        self._temporal_time = self._default_array()
-        self._vessel_time = self._default_array()
-        self._fuel_supply_time = self._default_array()
-        self._policy_time = self._default_array()
-        self._fleet_state_time = self._default_array()
-        self._profile_agg_time = self._default_array()
-        self._overhead_time = self._default_array()
-
-    def set_total_time(self, idx: int, time: float) -> None:
-        self._total_time[idx] = time
-
-    def add_expected_build_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._expected_build_time[idx] += time
-
-    def add_expected_solve_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._expected_solve_time[idx] += time
-
-    def add_expected_transfer_time(
-        self, time: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._expected_transfer_time[idx] += time
-
-    def set_speed_time(self, idx: int, time: float) -> None:
-        self._speed_time[idx] = time
-
-    def set_retrofit_time(self, idx: int, time: float) -> None:
-        self._retrofit_time[idx] = time
-
-    def add_fleet_evolution_time(
-        self, time: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._fleet_evolution_time[idx] += time
-
-    def add_producer_evolution_time(
-        self, time: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._producer_evolution_time[idx] += time
-
-    def set_existing_build_time(self, idx: int, time: float) -> None:
-        self._existing_build_time[idx] = time
-
-    def set_existing_solve_time(self, idx: int, time: float) -> None:
-        self._existing_solve_time[idx] = time
-
-    def set_existing_transfer_time(self, idx: int, time: float) -> None:
-        self._existing_transfer_time[idx] = time
-
-    def add_temporal_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._temporal_time[idx] += time
-
-    def add_vessel_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._vessel_time[idx] += time
-
-    def add_fuel_supply_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._fuel_supply_time[idx] += time
-
-    def add_policy_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._policy_time[idx] += time
-
-    def add_fleet_state_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._fleet_state_time[idx] += time
-
-    def add_profile_agg_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._profile_agg_time[idx] += time
-
-    def add_overhead_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
-        self._overhead_time[idx] += time
-
-    def get_total_time(self) -> FloatArray:
-        return self._total_time
-
-    def get_expected_build_time(self) -> FloatArray:
-        return self._expected_build_time
-
-    def get_expected_solve_time(self) -> FloatArray:
-        return self._expected_solve_time
-
-    def get_expected_transfer_time(self) -> FloatArray:
-        return self._expected_transfer_time
-
-    def get_speed_time(self) -> FloatArray:
-        return self._speed_time
-
-    def get_retrofit_time(self) -> FloatArray:
-        return self._retrofit_time
-
-    def get_fleet_evolution_time(self) -> FloatArray:
-        return self._fleet_evolution_time
-
-    def get_producer_evolution_time(self) -> FloatArray:
-        return self._producer_evolution_time
-
-    def get_existing_build_time(self) -> FloatArray:
-        return self._existing_build_time
-
-    def get_existing_solve_time(self) -> FloatArray:
-        return self._existing_solve_time
-
-    def get_existing_transfer_time(self) -> FloatArray:
-        return self._existing_transfer_time
-
-    def get_temporal_time(self) -> FloatArray:
-        return self._temporal_time
-
-    def get_vessel_time(self) -> FloatArray:
-        return self._vessel_time
-
-    def get_fuel_supply_time(self) -> FloatArray:
-        return self._fuel_supply_time
-
-    def get_policy_time(self) -> FloatArray:
-        return self._policy_time
-
-    def get_fleet_state_time(self) -> FloatArray:
-        return self._fleet_state_time
-
-    def get_profile_agg_time(self) -> FloatArray:
-        return self._profile_agg_time
-
-    def get_overhead_time(self) -> FloatArray:
-        return self._overhead_time
+        self.total_time = self._default_array()
+        self.expected_build_time = self._default_array()
+        self.expected_solve_time = self._default_array()
+        self.expected_transfer_time = self._default_array()
+        self.speed_time = self._default_array()
+        self.retrofit_time = self._default_array()
+        self.fleet_evolution_time = self._default_array()
+        self.producer_evolution_time = self._default_array()
+        self.existing_build_time = self._default_array()
+        self.existing_solve_time = self._default_array()
+        self.existing_transfer_time = self._default_array()
+        self.temporal_time = self._default_array()
+        self.vessel_time = self._default_array()
+        self.fuel_supply_time = self._default_array()
+        self.policy_time = self._default_array()
+        self.fleet_state_time = self._default_array()
+        self.profile_agg_time = self._default_array()
+        self.overhead_time = self._default_array()

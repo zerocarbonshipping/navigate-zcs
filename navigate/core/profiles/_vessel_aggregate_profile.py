@@ -5,66 +5,65 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.initial_values import EMPTY_FLOAT
+from navigate.core.profiles._base_profile import accumulate, result
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
-from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray
 
 
+@dataclass(eq=False, repr=False)
 class _VesselAggregateProfile(_FuelConsumerProfile):
     """Installed power, fleet turnover and expenses summed over a set of vessels."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    # power
+    installed_power: dict[FuelTypeID, FloatArray] = result("MW")
+    newbuild_power: dict[FuelTypeID, FloatArray] = result("MW/year", per_step=True)
+    scrapped_power: dict[FuelTypeID, FloatArray] = result("MW/year", per_step=True)
+    fuel_converted_power: dict[tuple[FuelTypeID, FuelTypeID], FloatArray] = result(
+        "MW/year", per_step=True
+    )
 
-        self._baseline_energy: FloatArray = EMPTY_FLOAT
+    # expenses
+    vessel_expenses: FloatArray = result("USD/year")
+    technology_expenses: FloatArray = result("USD/year")
+    fuel_conversion_expenses: FloatArray = result("USD/year")
+    vessel_related_expenses: FloatArray = result("USD/year")
+    expenses: FloatArray = result("USD/year")
+    vessel_tied_capital: FloatArray = result("USD")
 
-        # power
-        self._installed_power: dict[FuelTypeID, FloatArray] = {}
-        self._newbuild_power: dict[FuelTypeID, FloatArray] = {}
-        self._scrapped_power: dict[FuelTypeID, FloatArray] = {}
-        self._fuel_converted_power: dict[tuple[FuelTypeID, FuelTypeID], FloatArray] = {}
+    # power-weighted average age, kept as numerator and denominator so that it
+    # aggregates
+    weighted_age_numerator: dict[FuelTypeID, FloatArray] = field(init=False)
+    weighted_age_denominator: dict[FuelTypeID, FloatArray] = field(init=False)
+    weighted_average_age: dict[FuelTypeID, FloatArray] = result("years")
 
-        # expenses
-        self._vessel_expenses: FloatArray = EMPTY_FLOAT
-        self._technology_expenses: FloatArray = EMPTY_FLOAT
-        self._fuel_conversion_expenses: FloatArray = EMPTY_FLOAT
-        self._vessel_tied_capital: FloatArray = EMPTY_FLOAT
-
-        # weighted average age (numerator and denominator for correct aggregation)
-        self._weighted_age_numerator: dict[FuelTypeID, FloatArray] = {}
-        self._weighted_age_denominator: dict[FuelTypeID, FloatArray] = {}
-
-        self._fuel_type_capacity: dict[FuelTypeID, FloatArray] = {}
+    fuel_type_capacity: dict[FuelTypeID, FloatArray] = result("GJ/year")
 
     def _initialize_vessel_aggregate(self) -> None:
-        self._baseline_energy = self._default_array()
+        # the global profile sums its fleets' baselines; a fleet computes its own
+        self.baseline_energy = self._default_array()
 
-        self._installed_power = self._default_dict(FuelTypeID)
-        self._newbuild_power = self._default_dict(FuelTypeID)
-        self._scrapped_power = self._default_dict(FuelTypeID)
-        self._fuel_converted_power = self._default_tuple_dict(FuelTypeID, FuelTypeID)
+        self.installed_power = self._default_dict(FuelTypeID)
+        self.newbuild_power = self._default_dict(FuelTypeID)
+        self.scrapped_power = self._default_dict(FuelTypeID)
+        self.fuel_converted_power = self._default_tuple_dict(FuelTypeID, FuelTypeID)
 
-        self._vessel_expenses = self._default_array()
-        self._technology_expenses = self._default_array()
-        self._fuel_conversion_expenses = self._default_array()
-        self._vessel_tied_capital = self._default_array()
+        self.vessel_expenses = self._default_array()
+        self.technology_expenses = self._default_array()
+        self.fuel_conversion_expenses = self._default_array()
+        self.vessel_tied_capital = self._default_array()
 
-        self._weighted_age_numerator = self._default_dict(FuelTypeID)
-        self._weighted_age_denominator = self._default_dict(FuelTypeID)
+        self.weighted_age_numerator = self._default_dict(FuelTypeID)
+        self.weighted_age_denominator = self._default_dict(FuelTypeID)
 
-        self._fuel_type_capacity = self._default_dict(FuelTypeID)
+        self.fuel_type_capacity = self._default_dict(FuelTypeID)
 
-    def add_vessel_aggregate_profile(
-        self, profile: _VesselAggregateProfile, idx: int | slice = np.s_[:]
-    ) -> None:
+    def add_vessel_aggregate_profile(self, profile: _VesselAggregateProfile) -> None:
         """
         Add another vessel aggregate profile's values into this one.
 
@@ -72,197 +71,16 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         ----------
         profile
             Vessel aggregate profile from another node.
-        idx
-            Time-step index or slice.
         """
-        self._baseline_energy[idx] += profile._baseline_energy[idx]
-
-        for fuel_type in self._installed_power:
-            self._installed_power[fuel_type][idx] += profile._installed_power[
-                fuel_type
-            ][idx]
-
-        for fuel_type in self._newbuild_power:
-            self._newbuild_power[fuel_type][idx] += profile._newbuild_power[fuel_type][
-                idx
-            ]
-
-        for fuel_type in self._scrapped_power:
-            self._scrapped_power[fuel_type][idx] += profile._scrapped_power[fuel_type][
-                idx
-            ]
-
-        for fuel_type_conversion in self._fuel_converted_power:
-            self._fuel_converted_power[fuel_type_conversion][idx] += (
-                profile._fuel_converted_power[fuel_type_conversion][idx]
-            )
-
-        self._vessel_expenses[idx] += profile._vessel_expenses[idx]
-        self._technology_expenses[idx] += profile._technology_expenses[idx]
-        self._fuel_conversion_expenses[idx] += profile._fuel_conversion_expenses[idx]
-        self._vessel_tied_capital[idx] += profile._vessel_tied_capital[idx]
-
-        for fuel_type in self._weighted_age_numerator:
-            self._weighted_age_numerator[fuel_type][idx] += (
-                profile._weighted_age_numerator[fuel_type][idx]
-            )
-
-        for fuel_type in self._weighted_age_denominator:
-            self._weighted_age_denominator[fuel_type][idx] += (
-                profile._weighted_age_denominator[fuel_type][idx]
-            )
-
-        for fuel_type in self._fuel_type_capacity:
-            self._fuel_type_capacity[fuel_type][idx] += profile._fuel_type_capacity[
-                fuel_type
-            ][idx]
-
-    def add_installed_power(
-        self,
-        fuel_type: FuelTypeID,
-        power: FloatLike,
-        idx: int | slice = np.s_[:],
-    ) -> None:
-        self._installed_power[fuel_type][idx] += power
-
-    def add_newbuild_power(
-        self,
-        fuel_type: FuelTypeID,
-        power: FloatLike,
-        idx: int | slice = np.s_[:],
-    ) -> None:
-        self._newbuild_power[fuel_type][idx] += power
-
-    def add_scrapped_power(
-        self,
-        fuel_type: FuelTypeID,
-        power: FloatLike,
-        idx: int | slice = np.s_[:],
-    ) -> None:
-        self._scrapped_power[fuel_type][idx] += power
-
-    def add_fuel_converted_power(
-        self,
-        fuel_type_from: FuelTypeID,
-        fuel_type_to: FuelTypeID,
-        power: FloatLike,
-        idx: int | slice = np.s_[:],
-    ) -> None:
-        self._fuel_converted_power[(fuel_type_from, fuel_type_to)][idx] += power
-
-    def add_vessel_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
-        self._vessel_expenses[idx] += expenses
-
-    def add_technology_expenses(
-        self, expenses: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._technology_expenses[idx] += expenses
-
-    def add_vessel_tied_capital(
-        self, tied_capital: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._vessel_tied_capital[idx] += tied_capital
-
-    def add_fuel_conversion_expenses(
-        self, expenses: FloatLike, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._fuel_conversion_expenses[idx] += expenses
-
-    def add_weighted_age(
-        self,
-        fuel_type: FuelTypeID,
-        numerator: float,
-        denominator: float,
-        idx: int | slice = np.s_[:],
-    ) -> None:
-        self._weighted_age_numerator[fuel_type][idx] += numerator
-        self._weighted_age_denominator[fuel_type][idx] += denominator
-
-    def add_fuel_type_capacity(
-        self, fuel_type: FuelTypeID, capacity: float, idx: int | slice = np.s_[:]
-    ) -> None:
-        self._fuel_type_capacity[fuel_type][idx] += capacity
-
-    def set_baseline_energy(self, idx: int | slice, energy: FloatLike) -> None:
-        self._baseline_energy[idx] = energy
-
-    def get_baseline_energy(self) -> FloatArray:
-        return self._baseline_energy
-
-    def get_weighted_average_age(self) -> dict[FuelTypeID, FloatArray]:
-        return {
-            fuel_type: divide_nonzero(
-                self._weighted_age_numerator[fuel_type],
-                self._weighted_age_denominator[fuel_type],
-            )
-            for fuel_type in self._weighted_age_numerator
-        }
-
-    def get_installed_power(self) -> dict[FuelTypeID, FloatArray]:
-        return dict(self._installed_power)
-
-    def get_newbuild_power(self) -> dict[FuelTypeID, FloatArray]:
-        return dict(self._newbuild_power)
-
-    def get_scrapped_power(self) -> dict[FuelTypeID, FloatArray]:
-        return dict(self._scrapped_power)
-
-    def get_fuel_converted_power(
-        self,
-    ) -> dict[tuple[FuelTypeID, FuelTypeID], FloatArray]:
-        return dict(self._fuel_converted_power)
-
-    def get_cumulative_newbuild_power(self) -> dict[FuelTypeID, FloatArray]:
-        return self._to_cumulative_dict(self._newbuild_power)
-
-    def get_cumulative_scrapped_power(self) -> dict[FuelTypeID, FloatArray]:
-        return self._to_cumulative_dict(self._scrapped_power)
-
-    def get_cumulative_fuel_converted_power(
-        self,
-    ) -> dict[tuple[FuelTypeID, FuelTypeID], FloatArray]:
-        return self._to_cumulative_dict(self._fuel_converted_power)
-
-    def get_vessel_expenses(self) -> FloatArray:
-        return self._vessel_expenses
-
-    def get_technology_expenses(self) -> FloatArray:
-        return self._technology_expenses
-
-    def get_fuel_conversion_expenses(self) -> FloatArray:
-        return self._fuel_conversion_expenses
-
-    def get_vessel_related_expenses(self) -> FloatArray:
-        return (
-            self._vessel_expenses
-            + self._technology_expenses
-            + self._fuel_conversion_expenses
-        )
-
-    def get_expenses(self) -> FloatArray:
-        return (
-            self.get_total_fuel_related_expenses()
-            + self.get_regulation_expenses()
-            + self.get_vessel_related_expenses()
-        )
-
-    def get_cumulative_vessel_expenses(self) -> FloatArray:
-        return self._to_cumulative(self._vessel_expenses)
-
-    def get_cumulative_technology_expenses(self) -> FloatArray:
-        return self._to_cumulative(self._technology_expenses)
-
-    def get_cumulative_fuel_conversion_expenses(self) -> FloatArray:
-        return self._to_cumulative(self._fuel_conversion_expenses)
-
-    def get_cumulative_vessel_related_expenses(self) -> FloatArray:
-        return self._to_cumulative(self.get_vessel_related_expenses())
-
-    def get_cumulative_expenses(self) -> FloatArray:
-        return self._to_cumulative(self.get_expenses())
-
-    def get_vessel_tied_capital(self) -> FloatArray:
-        return self._vessel_tied_capital
-
-    def get_fuel_type_capacity(self) -> dict[FuelTypeID, FloatArray]:
-        return dict(self._fuel_type_capacity)
+        accumulate(self.baseline_energy, profile.baseline_energy)
+        accumulate(self.installed_power, profile.installed_power)
+        accumulate(self.newbuild_power, profile.newbuild_power)
+        accumulate(self.scrapped_power, profile.scrapped_power)
+        accumulate(self.fuel_converted_power, profile.fuel_converted_power)
+        accumulate(self.vessel_expenses, profile.vessel_expenses)
+        accumulate(self.technology_expenses, profile.technology_expenses)
+        accumulate(self.fuel_conversion_expenses, profile.fuel_conversion_expenses)
+        accumulate(self.vessel_tied_capital, profile.vessel_tied_capital)
+        accumulate(self.weighted_age_numerator, profile.weighted_age_numerator)
+        accumulate(self.weighted_age_denominator, profile.weighted_age_denominator)
+        accumulate(self.fuel_type_capacity, profile.fuel_type_capacity)

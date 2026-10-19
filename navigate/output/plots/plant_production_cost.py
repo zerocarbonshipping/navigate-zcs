@@ -54,8 +54,8 @@ def plot_plant_production_cost(results: SimulationResults, directory: Path) -> N
             lhv = fuel.lower_heating_value.get()
 
             profile = plant.profile
-            investment = profile.get_investment_cost() / lhv
-            instantaneous = profile.get_instantaneous_cost() / lhv
+            investment = profile.investment_cost / lhv
+            instantaneous = profile.instantaneous_cost / lhv
 
             min_cost = min(min_cost, np.amin(investment), np.amin(instantaneous))
 

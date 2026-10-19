@@ -41,8 +41,8 @@ def plot_fuel_supply_demand(results: SimulationResults, directory: Path) -> None
 
     colors = generate_color_dict(fuels, FUEL_COLOR)
 
-    consumed_energy = profile.get_consumed_energy()
-    production_energy = profile.get_production_energy()
+    consumed_energy = profile.consumed_energy
+    production_energy = profile.production_energy
 
     for ax, (fuel_name, fuel) in zip(axes, fuels.items(), strict=False):
         consumed = consumed_energy[fuel_name]

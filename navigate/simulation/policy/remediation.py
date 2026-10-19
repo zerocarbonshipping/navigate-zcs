@@ -77,10 +77,10 @@ def _calculate_regulation_remedial_expenses(
             total_remedial_units = remedial_units * multiplier
             total_remedial_expenses = total_remedial_units * remedial_cost
 
-            regulation.profile.add_remedial_units(total_remedial_units, idx)
-            regulation.profile.add_remedial_expenses(total_remedial_expenses, idx)
-            vessel.profile.add_remedial_units(regulation.name, remedial_units, idx)
-            vessel.profile.add_remedial_expenses(remedial_expenses, idx)
+            regulation.profile.remedial_units[idx] += total_remedial_units
+            regulation.profile.remedial_expenses[idx] += total_remedial_expenses
+            vessel.profile.remedial_units[regulation.name][idx] += remedial_units
+            vessel.profile.remedial_expenses[idx] += remedial_expenses
 
         else:
             vessel.expectation.add_remedial_expenses(idx, remedial_expenses)

@@ -7,6 +7,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
+from navigate.output.plots._aggregate import to_cumulative
 from navigate.output.plots._colors import CENTER_COLORS_GREEN
 from navigate.output.plots._figure import (
     format_axes,
@@ -36,11 +39,15 @@ def _plot_producer_development(
         profile = producer.profile
 
         if cumulative:
-            development = profile.get_cumulative_development()
-            development_constraint = profile.get_cumulative_maximum_development()
+            # development counts the plants added in each step, the constraint is
+            # a rate per year
+            development = np.cumsum(profile.development)
+            development_constraint = to_cumulative(
+                dateline, profile.maximum_development
+            )
         else:
-            development = profile.get_development()
-            development_constraint = profile.get_maximum_development()
+            development = profile.development
+            development_constraint = profile.maximum_development
 
         ax.plot(
             dateline, development, label="Planned", color=CENTER_COLORS_GREEN[3], lw=2.0

@@ -60,7 +60,7 @@ def test_a_stronger_inter_fuel_sensitivity_favours_the_cheaper_fuel(
 ):
     def methane_share(sensitivity):
         layer = ("inter_fuel_sensitivity.inc", {"sensitivity": sensitivity})
-        newbuilds = _fleet(run_combination(layer)).profile.get_newbuilds()
+        newbuilds = _fleet(run_combination(layer)).profile.newbuilds
         total = newbuilds[METHANE_VESSEL] + newbuilds[OIL_VESSEL]
         built = total > 0.0
         assert np.count_nonzero(built) >= 2, "the fleet must build"
@@ -77,8 +77,8 @@ def test_a_stronger_technology_sensitivity_raises_the_uptake(run_combination):
                 ("technology_sensitivity.inc", {"sensitivity": sensitivity}),
             )
         )
-        uptake = fleet.profile.get_newbuild_technology_uptake()
-        newbuilds = fleet.profile.get_newbuilds()
+        uptake = fleet.profile.newbuild_technology_uptake
+        newbuilds = fleet.profile.newbuilds
         shares = []
         for vessel in (OIL_VESSEL, METHANE_VESSEL):
             built = newbuilds[vessel] > 0.0
@@ -99,7 +99,7 @@ def test_a_stronger_conversion_sensitivity_converts_more_vessels(run_combination
                 ("fuel_conversion_sensitivity.inc", {"sensitivity": sensitivity}),
             )
         )
-        converted = fleet.profile.get_fuel_conversions()[(OIL_VESSEL, METHANE_VESSEL)]
+        converted = fleet.profile.fuel_conversions[(OIL_VESSEL, METHANE_VESSEL)]
         return converted[1:]
 
     series = [conversions(s) for s in FUEL_CONVERSION]

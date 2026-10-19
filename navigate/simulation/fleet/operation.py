@@ -186,14 +186,19 @@ def transfer_operations(
     expectation.set_raw_energy_sea_condition(idx, operations.energy_sea)
     expectation.set_raw_energy_port(idx, operations.energy_port)
 
-    profile.set_cargo_miles(idx, operations.cargo_miles)
-    profile.set_raw_energy_sea(idx, sum_per_key(operations.energy_sea))
-    profile.set_raw_energy_port(idx, sum_per_key(operations.energy_port))
+    profile.cargo_miles[idx] = operations.cargo_miles
+    energy_sea = sum_per_key(operations.energy_sea)
+    for demand_type, values in profile.raw_energy_sea.items():
+        values[idx] = energy_sea[demand_type]
+
+    energy_port = sum_per_key(operations.energy_port)
+    for demand_type, values in profile.raw_energy_port.items():
+        values[idx] = energy_port[demand_type]
 
     # the reference speed is weighted by the operated sea time, as speed management
     # may have moved the operated speeds away from the reference speeds
     speed_reference = np.average(trip.speeds, weights=operations.distribution)
-    profile.set_reference_speed(idx, speed_reference)
+    profile.reference_speed[idx] = speed_reference
 
 
 def transfer_operational_savings(fleet: Fleet) -> None:

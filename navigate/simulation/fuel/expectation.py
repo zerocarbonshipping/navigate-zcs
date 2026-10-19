@@ -336,10 +336,10 @@ def calculate_producer_evolution_expectation(
     supply = expected[:, 0]
     for p, plant in enumerate(producer.plants):
         if supply[p] > TOLERANCE:
-            plant.profile.set_instantaneous_cost(idx, cost_avg[p, 0])
+            plant.profile.instantaneous_cost[idx] = cost_avg[p, 0]
 
             for e in plant.expectation.get_emissions():
-                plant.profile.set_instantaneous_wtt(idx, e, wtt_avg[e][p, 0])
+                plant.profile.instantaneous_wtt[e][idx] = wtt_avg[e][p, 0]
 
 
 def _calculate_increments_production(

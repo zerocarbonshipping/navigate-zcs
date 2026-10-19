@@ -47,6 +47,16 @@ the report is written; a key that matches no node is skipped with a warning.
 A property added more than once for the same key is reported once, with the
 reduction of the first command.
 
+A property keyed by fuel, emission or another key is totalled over its keys with
+a reduction: `add_fleet_property("*", EquivalentWtt, BOTH)` reports the fleet's
+total well-to-tank emissions. A property accumulated with `CUMULATIVE` is
+reported under its name prefixed with `Cumulative`, beside the property itself if
+that is added too: `add_property(FuelExpenses, NONE, CUMULATIVE)` reports
+`CumulativeFuelExpenses`, the fuel expenses per fuel up to each date. The value
+at a date covers every time step up to and including the one ending at it: a rate
+is multiplied by the length of its time step, the first one year long, and a count
+per time step, such as `Newbuilds`, is summed.
+
 ### add\_property
 
 This command adds a specified global property to the report. This command is only allowed in the `DEFINE` section.
@@ -55,6 +65,7 @@ The parameters are:
 
 * **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Accumulate**: Whether the property is reported per date or accumulated over time; see [ReportAccumulationID](appendix_ids.md#reportaccumulationid). Default: None (per date).
 
 ### add\_fleet\_property
 
@@ -65,6 +76,7 @@ The parameters are:
 * **Key**: String (Fleet name; supports wildcards)
 * **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Accumulate**: Whether the property is reported per date or accumulated over time; see [ReportAccumulationID](appendix_ids.md#reportaccumulationid). Default: None (per date).
 
 ### add\_vessel\_property
 
@@ -75,6 +87,7 @@ The parameters are:
 * **Key**: String (Vessel name; supports wildcards)
 * **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Accumulate**: Whether the property is reported per date or accumulated over time; see [ReportAccumulationID](appendix_ids.md#reportaccumulationid). Default: None (per date).
 
 ### add\_plant\_property
 
@@ -85,6 +98,7 @@ The parameters are:
 * **Key**: String (Plant name; supports wildcards)
 * **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Accumulate**: Whether the property is reported per date or accumulated over time; see [ReportAccumulationID](appendix_ids.md#reportaccumulationid). Default: None (per date).
 
 ### add\_port\_property
 
@@ -95,6 +109,7 @@ The parameters are:
 * **Key**: String (Port name; supports wildcards)
 * **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Accumulate**: Whether the property is reported per date or accumulated over time; see [ReportAccumulationID](appendix_ids.md#reportaccumulationid). Default: None (per date).
 
 ### add\_regulation\_property
 
@@ -105,6 +120,7 @@ The parameters are:
 * **Key**: String (Regulation name; supports wildcards)
 * **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Accumulate**: Whether the property is reported per date or accumulated over time; see [ReportAccumulationID](appendix_ids.md#reportaccumulationid). Default: None (per date).
 
 ### add\_levy\_property
 
@@ -115,6 +131,7 @@ The parameters are:
 * **Key**: String (Levy name; supports wildcards)
 * **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Accumulate**: Whether the property is reported per date or accumulated over time; see [ReportAccumulationID](appendix_ids.md#reportaccumulationid). Default: None (per date).
 
 ### add\_producer\_property
 
@@ -125,6 +142,7 @@ The parameters are:
 * **Key**: String (Producer name; supports wildcards)
 * **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Accumulate**: Whether the property is reported per date or accumulated over time; see [ReportAccumulationID](appendix_ids.md#reportaccumulationid). Default: None (per date).
 
 ## Appendix - Report Node Properties
 
@@ -145,7 +163,6 @@ The properties are applicable for the following commands:
 | EnergySea                             | GJ/year                     | The energy demand at sea after operational measures and technologies, one column per energy demand type. |
 | EnergyPort                            | GJ/year                     | The energy demand in port after operational measures and technologies, one column per energy demand type in port (electrical and heat). |
 | Energy                                | GJ/year                     | The total energy demand at sea and in port after operational measures and technologies.      |
-| TotalEnergyPort                       | GJ/year                     | The total energy demand in port across demand types.                                         |
 | Saving                                | GJ/GJ                       | Relative reduction of the energy demand from operational measures and technologies, one column per energy demand type. |
 | BaselineEnergy                        | GJ/year                     | The year-0 raw energy intensity applied to the transport work actually performed.            |
 | ConsumedEnergy                        | GJ/year                     | Fuel consumed in energy for all fuels.                                                       |
@@ -155,23 +172,12 @@ The properties are applicable for the following commands:
 | ConverterEnergy                       | GJ/year                     | Fuel consumed in energy by the converters, one column per vessel fuel type and fuel.         |
 | PilotFuelShare                        | Ton/ton                     | The fraction of total fuel spent which is pilot fuel for each vessel fuel type.              |
 | EquivalentWtt                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-tank emissions per fuel and emission.                                        |
-| TotalEquivalentWtt                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-tank emissions.                                                        |
 | EquivalentTtw                         | Ton CO<sub>2</sub>-eq./year | Emitted Tank-to-wake emissions per fuel and emission.                                        |
-| TotalEquivalentTtw                    | Ton CO<sub>2</sub>-eq./year | Total emitted tank-to-wake emissions.                                                        |
 | EquivalentWtw                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-wake emissions per fuel and emission.                                        |
 | TotalEquivalentWtw                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-wake emissions across all fuels plus shore power.                      |
 | ShorePowerEmission                    | Ton/year                    | Shore power emission per emission (well-to-wake lump, no WTT/TTW split).                     |
-| CumulativeEquivalentWtt               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-tank emissions per fuel and emission.                             |
-| CumulativeTotalEquivalentWtt          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-tank emissions.                                             |
-| CumulativeEquivalentTtw               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted tank-to-wake emissions per fuel and emission.                             |
-| CumulativeTotalEquivalentTtw          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted tank-to-wake emissions.                                             |
-| CumulativeEquivalentWtw               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-wake emissions per fuel and emission.                             |
-| CumulativeTotalEquivalentWtw          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-wake emissions, including shore power.                      |
-| IntensityEquivalentWtt                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-tank emissions per fuel and emission, per total consumed energy (including shore power). |
 | IntensityTotalEquivalentWtt           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-tank emissions per total consumed energy (including shore power).      |
-| IntensityEquivalentTtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted tank-to-wake emissions per fuel and emission, per total consumed energy (including shore power). |
 | IntensityTotalEquivalentTtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per total consumed energy (including shore power).      |
-| IntensityEquivalentWtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per fuel and emission, per total consumed energy (including shore power). |
 | IntensityTotalEquivalentWtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions across all fuels plus shore power, per total consumed energy (including shore power). |
 | LevyUnits                             | Ton                         | Emission units charged by a levy, one column per levy.                                       |
 | RemedialUnits                         | Ton                         | Remedial compliance units required, one column per regulation.                               |
@@ -184,18 +190,7 @@ The properties are applicable for the following commands:
 | RegulationExpenses                    | USD/year                    | Remedial and flexibility expenses subtracted by surplus revenue from regulations.            |
 | TotalFuelExpenses                     | USD/year                    | Total fuel expenses across all fuels plus shore power.                                       |
 | ShorePowerExpenses                    | USD/year                    | Shore power purchase cost.                                                                   |
-| TotalLevyExpenses                     | USD/year                    | Total levy expenses across all fuels.                                                        |
 | TotalFuelRelatedExpenses              | USD/year                    | Total fuel related expenses (fuel expenses including shore power, plus levy expenses).       |
-| CumulativeFuelExpenses                | USD                         | Cumulative fuel expenses per fuel.                                                           |
-| CumulativeLevyExpenses                | USD                         | Cumulative levy expenses per fuel.                                                           |
-| CumulativeFuelRelatedExpenses         | USD                         | Cumulative fuel related expenses (fuel and levy) per fuel                                    |
-| CumulativeRemedialExpenses            | USD                         | Cumulative remedial expenses due to non-compliance with regulations.                         |
-| CumulativeFlexibilityExpenses         | USD                         | Cumulative flexibility expenses due to non-compliance with regulations.                      |
-| CumulativeSurplusRevenue              | USD                         | Cumulative surplus revenue due to over-compliance with regulations.                          |
-| CumulativeRegulationExpenses          | USD                         | Cumulative remedial and flexibility expenses subtracted by surplus revenue from regulations. |
-| CumulativeTotalFuelExpenses           | USD                         | Cumulative fuel expenses across all fuels plus shore power.                                  |
-| CumulativeTotalLevyExpenses           | USD                         | Cumulative levy expenses across all fuels.                                                   |
-| CumulativeTotalFuelRelatedExpenses    | USD                         | Cumulative fuel related expenses (fuel and levy) across all fuels plus shore power.          |
 
 The properties are applicable for the following commands:
 
@@ -239,20 +234,12 @@ The properties are applicable for the following commands:
 | NewbuildPower                         | MW/year  | Installed power for newbuilds per fuel type.                           |
 | ScrappedPower                         | MW/year  | Installed power scrapped per fuel type.                                |
 | FuelConvertedPower                    | MW/year  | Installed power fuel converted per fuel type to fuel type.             |
-| CumulativeNewbuildPower               | MW       | Cumulative installed power for newbuilds per fuel type.                |
-| CumulativeScrappedPower               | MW      | Cumulative installed power scrapped per fuel type.                     |
-| CumulativeFuelConvertedPower          | MW       | Cumulative installed power fuel converted per fuel type to fuel type.  |
 | WeightedAverageAge                    | Year     | Power-weighted average age of the vessels in the fleet per fuel type.  |
 | VesselExpenses                        | USD/year | Running expenses of acquisition of all vessels.                        |
 | TechnologyExpenses                    | USD/year | Running levelized expenses of all installed technologies.              |
 | FuelConversionExpenses                | USD/year | Running expenses of all fuel conversions.                              |
 | VesselRelatedExpenses                 | USD/year | Running expenses of all vessels.                                       |
 | Expenses                              | USD/year | Running expenses including fuel of all vessels.                        |
-| CumulativeVesselExpenses              | USD      | Cumulative running expenses of acquisition of all vessels.             |
-| CumulativeTechnologyExpenses          | USD      | Cumulative running levelized expenses of all installed technologies.   |
-| CumulativeFuelConversionExpenses      | USD      | Cumulative running expenses of fuel conversions for all newbuilds.     |
-| CumulativeVesselRelatedExpenses       | USD      | Cumulative running expenses of all vessels.                            |
-| CumulativeExpenses                    | USD      | Cumulative running expenses including fuel of all vessels.             |
 | VesselTiedCapital                     | USD      | Capital tied up in vessels (following a linear depreciation schedule). |
 | FuelTypeCapacity                      | GJ/year  | Fuel the fleet could burn per fuel type, at minimum pilot fuel share.  |
 
@@ -315,8 +302,6 @@ The properties are applicable for the following commands:
 |---------------------------------|------------------|----------------------------------------------------------------------------------|
 | MaximumDevelopment              | # of plants/year | Number of plants that can be added to the pipeline across all plants.            |
 | Development                     | # of plants/year | Number of plants added to the pipeline across all plants.                        |
-| CumulativeMaximumDevelopment    | # of plants      | Cumulative number of plants that can be added to the pipeline across all plants. |
-| CumulativeDevelopment           | # of plants      | Cumulative number of plants added to the pipeline across all plants.             |
 | FairShareFuelFraction           | Fraction         | Fraction of fuel demand allocated to the producer to supply.                     |
 
 The properties are applicable for the following commands:
@@ -350,6 +335,7 @@ The properties are applicable for the following commands:
 | InstantaneousFreightRate | USD/cargo-nautical mile  | Long-run freight rate at the actual conditions of the vessel, includes fuel and technology expenses. |
 | InvestmentSignalTechnology | USD/GJ                    | Energy-weighted average of the smoothed energy conservation duals over the technology horizon. |
 | InvestmentSignalSpeed   | USD/GJ                    | Energy-weighted average of the smoothed energy conservation duals over the speed horizon. |
+| InFleet                 | -                         | Whether the vessel is part of its fleet: 1 if so, 0 if not.               |
 
 
 The properties are applicable for the following commands:
@@ -359,17 +345,9 @@ The properties are applicable for the following commands:
 | **Property name**                        | **Unit**                    | **Description**                                                                 |
 |------------------------------------------|-----------------------------|---------------------------------------------------------------------------------|
 | InvestmentCost                           | USD/ton                     | Levelized production cost at time of investment.                                |
-| InvestmentIntensityCost                  | USD/GJ                      | Levelized production cost at time of investment per energy in fuel.             |
 | InstantaneousCost                        | USD/ton                     | Supply-weighted average cost over all plants.                                   |
-| InstantaneousIntensityCost               | USD/GJ                      | Supply-weighted average cost over all plants per energy in fuel.                |
 | EquivalentInvestmentWtt                  | Ton CO<sub>2</sub>-eq./ton  | Well-to-tank emissions at time of investment per ton of fuel per emission.      |
-| TotalEquivalentInvestmentWtt             | Ton CO<sub>2</sub>-eq./ton  | Total well-to-tank emissions at time of investment per ton of fuel.             |
-| IntensityEquivalentInvestmentWtt         | Kg CO<sub>2</sub>-eq./GJ    | Well-to-tank emissions at time of investment per energy in fuel per emission.   |
-| IntensityTotalEquivalentInvestmentWtt    | Kg CO<sub>2</sub>-eq./GJ    | Total well-to-tank emissions at time of investment per energy in fuel.          |
 | EquivalentInstantaneousWtt               | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average well-to-tank emissions per ton of fuel per emission.    |
-| TotalEquivalentInstantaneousWtt          | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average total well-to-tank emissions per ton of fuel.           |
-| IntensityEquivalentInstantaneousWtt      | Kg CO<sub>2</sub>-eq./GJ    | Supply-weighted average well-to-tank emissions per energy in fuel per emission. |
-| IntensityTotalEquivalentInstantaneousWtt | Kg CO<sub>2</sub>-eq./GJ    | Supply-weighted average total well-to-tank emissions per energy in fuel.        |
 
 The properties are applicable for the following commands:
 
@@ -379,13 +357,8 @@ The properties are applicable for the following commands:
 |-----------------------------------|----------------------------|---------------------------------------------------------------------------------|
 | BunkeringAllowed                  | Boolean                    | Whether bunkering is allowed at the port, per fuel.                             |
 | BunkerPrice                       | USD/ton                    | Bunker price per ton of fuel.                                                   |
-| BunkerIntensityPrice              | USD/GJ                     | Bunker price per energy in fuel.                                                |
 | BunkerWtt                         | Ton/ton                    | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
 | EquivalentBunkerWtt               | Ton CO<sub>2</sub>-eq./ton | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
-| TotalEquivalentBunkerWtt          | Ton CO<sub>2</sub>-eq./ton | Well-to-tank emissions of bunker fuel per ton of fuel per fuel.                 |
-| BunkerIntensityWtt                | Kg/GJ                      | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
-| BunkerIntensityEquivalentWtt      | Kg CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
-| BunkerIntensityTotalEquivalentWtt | Kg CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions of bunker fuel per energy in per fuel.                   |
 
 The properties are applicable for the following commands:
 

@@ -13,7 +13,7 @@ from navigate.output.plots._figure import (
     save_figure,
     single_panel,
 )
-from navigate.util import divide_nonzero
+from navigate.util import divide_nonzero, sum_values
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -28,8 +28,8 @@ def plot_global_shore_power_share(results: SimulationResults, directory: Path) -
     fig, ax = single_panel()
 
     profile = results.profile
-    shore_power = profile.get_shore_power_energy()
-    port_energy = profile.get_total_energy_port()
+    shore_power = profile.shore_power_energy
+    port_energy = sum_values(profile.energy_port, dateline.shape)
 
     shore_power_share = divide_nonzero(shore_power, port_energy) * 100.0
 

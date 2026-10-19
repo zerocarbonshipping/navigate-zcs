@@ -172,13 +172,13 @@ def _calculate_flexibility_market(
     total_surplus_revenue = total_surplus_units * flexibility_cost
 
     if scope == BunkerScopeID.EXISTING:
-        profile.add_remedial_units(total_remedial_units, idx)
-        profile.add_remedial_expenses(total_remedial_expenses, idx)
-        profile.set_flexibility_cost(idx, flexibility_cost)
-        profile.set_flexibility_units(idx, total_flexibility_units)
-        profile.set_flexibility_expenses(idx, total_flexibility_expenses)
-        profile.set_surplus_units(idx, total_surplus_units)
-        profile.set_surplus_revenue(idx, total_surplus_revenue)
+        profile.remedial_units[idx] += total_remedial_units
+        profile.remedial_expenses[idx] += total_remedial_expenses
+        profile.flexibility_cost[idx] = flexibility_cost
+        profile.flexibility_units[idx] = total_flexibility_units
+        profile.flexibility_expenses[idx] = total_flexibility_expenses
+        profile.surplus_units[idx] = total_surplus_units
+        profile.surplus_revenue[idx] = total_surplus_revenue
 
     else:
         expectation.set_flexibility_cost(idx, flexibility_cost)
@@ -197,10 +197,10 @@ def _calculate_flexibility_market(
             flexibility_expenses = flexibility_units * flexibility_cost
             surplus_revenue = surplus * flexibility_cost
 
-            vessel.profile.add_remedial_units(regulation.name, remedial_units, idx)
-            vessel.profile.add_remedial_expenses(remedial_expenses, idx)
-            vessel.profile.add_flexibility_expenses(flexibility_expenses, idx)
-            vessel.profile.add_surplus_revenue(surplus_revenue, idx)
+            vessel.profile.remedial_units[regulation.name][idx] += remedial_units
+            vessel.profile.remedial_expenses[idx] += remedial_expenses
+            vessel.profile.flexibility_expenses[idx] += flexibility_expenses
+            vessel.profile.surplus_revenue[idx] += surplus_revenue
 
         else:
             vessel.expectation.add_remedial_expenses(idx, remedial_expenses)

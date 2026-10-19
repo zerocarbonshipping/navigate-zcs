@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.core.types_ import (
         CurveTableArgument,
         CurveTableInput,
@@ -337,13 +338,11 @@ class Producer(Node):
 
     def initialize_profile(
         self,
-        timeline: FloatArray,
+        context: ProfileContext,
         feedstocks: dict[str, Feedstock],
-        fuels: dict[str, Fuel],
         processes: dict[str, Process],
     ) -> None:
-
-        self.profile.initialize(timeline, feedstocks, fuels, processes)
+        self.profile.initialize(context, feedstocks, processes)
 
     def can_produce(self, fuel_name: str) -> bool:
         return fuel_name in self.fuels

@@ -138,8 +138,13 @@ def _apply_operational_savings(
     expectation.set_operational_energy_sea_leg(idx, op_sea_leg)
     expectation.set_operational_energy_port(idx, op_port)
 
-    vessel.profile.set_operational_energy_sea(idx, sum_per_key(op_sea))
-    vessel.profile.set_operational_energy_port(idx, sum_per_key(op_port))
+    energy_sea = sum_per_key(op_sea)
+    for demand_type, values in vessel.profile.operational_energy_sea.items():
+        values[idx] = energy_sea[demand_type]
+
+    energy_port = sum_per_key(op_port)
+    for demand_type, values in vessel.profile.operational_energy_port.items():
+        values[idx] = energy_port[demand_type]
 
     return op_sea, op_port
 
@@ -259,8 +264,13 @@ def _transfer_residual_energy(
     vessel.expectation.set_energy_sea_leg(idx, avg_residual_sea_leg)
     vessel.expectation.set_energy_port(idx, avg_residual_port)
 
-    vessel.profile.set_energy_sea(idx, sum_per_key(avg_residual_sea))
-    vessel.profile.set_energy_port(idx, sum_per_key(avg_residual_port))
+    energy_sea = sum_per_key(avg_residual_sea)
+    for demand_type, values in vessel.profile.energy_sea.items():
+        values[idx] = energy_sea[demand_type]
+
+    energy_port = sum_per_key(avg_residual_port)
+    for demand_type, values in vessel.profile.energy_port.items():
+        values[idx] = energy_port[demand_type]
 
 
 def approximate_missing_technology(fleets: dict[str, Fleet], idx: int) -> None:
@@ -431,9 +441,10 @@ def _apply_approximated_saving(
     vessel.expectation.set_energy_sea_leg(idx, net_sea_leg)
     vessel.expectation.set_energy_port(idx, net_port)
 
-    vessel.profile.set_energy_sea(
-        idx, {k: float(np.sum(np.asarray(net_sea[k]))) for k in net_sea}
-    )
-    vessel.profile.set_energy_port(
-        idx, {k: float(np.sum(np.asarray(net_port[k]))) for k in net_port}
-    )
+    energy_sea = {k: float(np.sum(np.asarray(net_sea[k]))) for k in net_sea}
+    for demand_type, values in vessel.profile.energy_sea.items():
+        values[idx] = energy_sea[demand_type]
+
+    energy_port = {k: float(np.sum(np.asarray(net_port[k]))) for k in net_port}
+    for demand_type, values in vessel.profile.energy_port.items():
+        values[idx] = energy_port[demand_type]

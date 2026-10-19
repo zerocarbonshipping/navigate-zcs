@@ -35,7 +35,7 @@ def plot_global_installed_power(results: SimulationResults, directory: Path) -> 
 
     fig, ax = single_panel()
 
-    installed_power = results.profile.get_installed_power()
+    installed_power = results.profile.installed_power
     engine_power = {
         fuel_type: installed_power[fuel_type] for fuel_type in FUEL_TYPE_ORDER
     }

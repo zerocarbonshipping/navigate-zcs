@@ -33,14 +33,13 @@ from navigate.core.profiles import VesselProfile
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    import numpy as np
-
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.tank import Tank
+    from navigate.core.profiles.profile_context import ProfileContext
     from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
@@ -205,14 +204,9 @@ class Vessel(Node):
 
     def initialize_profile(
         self,
-        timeline: np.ndarray,
-        emissions: dict[str, Emission],
-        fuels: dict[str, Fuel],
-        emissions_lifetime: float,
+        context: ProfileContext,
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
 
-        self.profile.initialize(
-            timeline, emissions, fuels, emissions_lifetime, regulation_names, levy_names
-        )
+        self.profile.initialize(context, regulation_names, levy_names)

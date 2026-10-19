@@ -95,10 +95,12 @@ dmypy.json
 /simulations/examples/**/*.pkl
 /simulations/examples/**/*.csv
 /simulations/examples/**/*.xlsx
+/simulations/examples/**/*.parquet
 
 /simulations/scenarios/**/*.png
 /simulations/scenarios/**/*.pkl
 /simulations/scenarios/**/*.xlsx
+/simulations/scenarios/**/*.parquet
 /simulations/scenarios/debug_plots/
 
 /simulations/debug/*
@@ -109,5 +111,6 @@ dmypy.json
 /tests/**/*.png
 /tests/**/*.pkl
 /tests/**/*.xlsx
+/tests/**/*.parquet
 /tests/**/output/
 !/tests/unit/output/

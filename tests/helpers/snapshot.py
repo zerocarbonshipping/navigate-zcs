@@ -4,24 +4,27 @@
 """
 Flatten a run's results into named arrays, and compare two such snapshots.
 
-A snapshot holds what every public profile getter returns: the global profile's
-and each node profile's, one array per getter, or per key for a getter that
-returns a mapping. It is what the determinism test compares between two runs
-and what tests/compare_results.py compares between two checkouts, so no deck
-needs a report to be compared. It reads the results by duck typing alone,
-without importing Navigate, so the comparison script also runs against an
-older checkout whose internals have moved.
+A snapshot holds every profile result: the global profile's and each node
+profile's, one array per result, or per key for a result that is a mapping. It
+is what the determinism test compares between two runs and what
+tests/compare_results.py compares between two checkouts, so no deck needs a
+report to be compared. It reads the results as the
+profile fields navigate.core.profiles.result_names names where the installed
+Navigate has it, and through the profile getters of an older checkout
+otherwise, under the same names.
 """
 
 from __future__ import annotations
 
 import enum
 import inspect
-from typing import TYPE_CHECKING
+from functools import partial
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from navigate.core import SimulationResults
@@ -50,7 +53,7 @@ _SEPARATOR = "/"
 
 
 def _label(key: object) -> str:
-    """Spell one key of a getter's mapping as part of a snapshot name."""
+    """Spell one key of a result's mapping as part of a snapshot name."""
     if isinstance(key, tuple):
         return "|".join(_label(part) for part in key)
     if isinstance(key, enum.Enum):
@@ -70,11 +73,29 @@ def _getters(profile: object) -> list[str]:
     return names
 
 
+def _readers(profile: Any) -> dict[str, Callable[[], object]]:
+    """Map each result name of the profile to a reader of the result."""
+    try:
+        from navigate.core.profiles import result_names
+    except ImportError:
+        # an older checkout reads every result through a getter
+        return {
+            getter.removeprefix("get_"): getattr(profile, getter)
+            for getter in _getters(profile)
+        }
+
+    return {
+        name: partial(getattr, profile, name)
+        for name in sorted(result_names(type(profile)))
+        if not name.endswith(_TIMING_SUFFIX)
+    }
+
+
 def _add_profile(snap: Snapshot, prefix: str, profile: object) -> None:
-    """Add every getter result of one profile under `prefix`."""
-    for getter in _getters(profile):
-        value = getattr(profile, getter)()
-        name = f"{prefix}{_SEPARATOR}{getter}"
+    """Add every result of one profile under `prefix`."""
+    for result, read in _readers(profile).items():
+        value = read()
+        name = f"{prefix}{_SEPARATOR}{result}"
         if isinstance(value, dict):
             for key, array in value.items():
                 snap[f"{name}{_SEPARATOR}{_label(key)}"] = np.asarray(array)
@@ -84,7 +105,7 @@ def _add_profile(snap: Snapshot, prefix: str, profile: object) -> None:
 
 def snapshot(results: SimulationResults) -> Snapshot:
     """
-    Collect every profile getter's result of a finished run.
+    Collect every profile result of a finished run.
 
     Parameters
     ----------
@@ -94,7 +115,7 @@ def snapshot(results: SimulationResults) -> Snapshot:
     Returns
     -------
     Snapshot :
-        One array per name ``<group>/<node>/<getter>[/<key>]``; the global
+        One array per name ``<group>/<node>/<result>[/<key>]``; the global
         profile's names start with ``global``.
     """
     snap: Snapshot = {}

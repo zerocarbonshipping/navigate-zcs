@@ -62,7 +62,8 @@ every change. The detail lives in the files it points to.
 - `syntax/` — editor syntax highlighting for the DSL, including a committed
   VS Code `.vsix`.
 
-A run writes its output next to its deck: `plots*/`, `*.xlsx` and `*.log`.
+A run writes its output next to its deck: `plots*/`, `*.xlsx`, `*.parquet`
+and `*.log`.
 All of it is gitignored. Two runs of one deck at the same time overwrite
 each other's files, and the test suites run decks too.
 
@@ -122,7 +123,7 @@ each other's files, and the test suites run decks too.
   registries against the setters and `test_node_pages.py` the manual pages
   against the registries, both in both directions; the report-property
   appendix of `docs/reference_manual/report.md` is checked against the
-  profile getters the same way by `test_report_property_docs.py`. The
+  profile results the same way by `test_report_property_docs.py`. The
   coverage deck is checked against the registries by
   `tests/end_to_end/test_attribute_coverage.py`.
 - A change that moves simulation results explains the difference in the

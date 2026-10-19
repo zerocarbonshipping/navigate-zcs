@@ -36,7 +36,7 @@ def _select_fuel_types(
     """
     Fuel types with a declared Fuel, in FUEL_TYPE_ORDER.
 
-    get_fuel_type_energy() is built from bunkered fuel mass, which is keyed only
+    fuel_type_energy is built from bunkered fuel mass, which is keyed only
     by declared Fuel names, so it is exactly zero for a type no Fuel declares.
     """
     return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type_to_fuels[fuel_type]]
@@ -47,7 +47,7 @@ def plot_global_fuel_type_consumed(results: SimulationResults, directory: Path) 
     dateline = results.dateline
     fuels = results.nodes.fuels
 
-    fuel_type_consumed = results.profile.get_fuel_type_energy()
+    fuel_type_consumed = results.profile.fuel_type_energy
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
     fuel_type_consumed = {
         fuel_type: fuel_type_consumed[fuel_type]
@@ -59,7 +59,7 @@ def plot_global_fuel_type_consumed(results: SimulationResults, directory: Path) 
 
     fig, ax = single_panel()
 
-    shore_power = results.profile.get_shore_power_energy()
+    shore_power = results.profile.shore_power_energy
 
     divisor, unit = get_best_unit_energy(
         np.amax(sum(list(fuel_type_consumed.values())) + shore_power), unit_order=9

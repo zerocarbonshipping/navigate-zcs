@@ -42,4 +42,4 @@ def transfer_spend_port(alg: BunkerAlgorithm) -> None:
             ttw_slip = expectation.get_ttw_slip(c, f, e)
 
             ttw_emissions = (ttw_consumption + ttw_slip) * spend_port.X
-            vessel.profile.add_ttw(f, e, ttw_emissions, idx=alg.idx)
+            vessel.profile.ttw[f, e][alg.idx] += ttw_emissions

@@ -27,6 +27,12 @@ from navigate.simulation.fuel.profile import (
     calculate_port_profile,
     calculate_producer_profile,
 )
+from navigate.simulation.fuel.results import (
+    complete_global_fuel_results,
+    complete_plant_profile,
+    complete_port_profile,
+    complete_producer_profile,
+)
 from navigate.simulation.fuel.supply_demand import (
     calculate_constrained_fair_share_fuel_demand,
     calculate_development_potential,
