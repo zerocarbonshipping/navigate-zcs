@@ -41,7 +41,8 @@ this page disagree, the prompt wins.
   the library and are expected on any deck built from it (for example "No
   technology cost of capital supplied", "Does not have convex load functions", or
   a feedstock being over-used by a library producer): report them, but do not try
-  to fix them. The same feedstock warning on a producer you wrote yourself means
+  to fix them. The count includes repeats: check the list of unique warnings under
+  it for any other kind. The same feedstock warning on a producer you wrote yourself means
   its feedstock ceiling binds: report that as a result.
 - Add `Load DefaultPlot` to the `.nav` DEFINE block to also get the charts in
   `plots/` and `plots_analysis/`. Two decks in the same folder write their charts
@@ -50,8 +51,11 @@ this page disagree, the prompt wins.
 - To get results as numbers, add `Load DefaultReport` to the `.nav` DEFINE block.
   The run then also writes `plots/<deck name>_report_default.xlsx`. Its "Global"
   sheet has one row per time step, one ConsumedEnergy column per fuel (GJ per
-  year; the fuel name is in the third header row) and the emissions of all fleets
-  together (TotalEquivalentWTW, t CO2e per year). For results per fleet or per
+  year) and the emissions of all fleets together (TotalEquivalentWTW, t CO2e per
+  year). It has three header rows (node, property, fuel) and an empty fourth row
+  before the first year: read it with `pandas.read_excel(..., header=None)` and
+  take the property and fuel names from rows 1 and 2, or the totals silently come
+  out as zero. For results per fleet or per
   vessel, add your own Report node as well, with the `add_fleet_property` /
   `add_vessel_property` syntax of `simulations/examples/example_4/includes/report.inc`
   (copy the syntax, not its list).
@@ -109,6 +113,11 @@ a comment where it appears, and listed in the `.nav` header.
   by world shipping's, about 13,000 PJ in 2026 in the reference scenario. A
   larger share hands a small fleet the world's biomass, and the answer follows the
   feedstock rather than the question. Never raise it to make a fuel appear.
+- A plant you Import or Copy brings no Region, Source or CostOfCapital: the
+  library sets those in `assumptions/modules/installation/default_plant.inc` by
+  wildcards on its own plant names. Set all three on every plant yourself, as that
+  file does for the kind and region; a plant without a cost of capital is silently
+  financed at 0 %.
 - A ROUND_TRIP route has no time-at-sea setting: the year is sailing plus the
   port stays, so the share of the year at sea follows from the distances, speeds
   and port durations. Route distances, like BunkerLogistics, take plain numbers
