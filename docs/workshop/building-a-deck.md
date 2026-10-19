@@ -41,7 +41,8 @@ this page disagree, the prompt wins.
   the library and are expected on any deck built from it (for example "No
   technology cost of capital supplied", "Does not have convex load functions", or
   a feedstock being over-used by a library producer): report them, but do not try
-  to fix them.
+  to fix them. The same feedstock warning on a producer you wrote yourself means
+  its feedstock ceiling binds: report that as a result.
 - Add `Load DefaultPlot` to the `.nav` DEFINE block to also get the charts in
   `plots/` and `plots_analysis/`. Two decks in the same folder write their charts
   under the same file names, so the last run overwrites the other's; only the
@@ -102,8 +103,12 @@ a comment where it appears, and listed in the `.nav` header.
   `assumptions/modules/installation/default_region.inc`, so restate the lines your
   plants use. BunkerLogistics takes its
   distances and transport cost as plain numbers, not as Variables. Give the fuel
-  producers a share of the library's global feedstock ceilings, marked INVENTED,
-  as example_4's `producer.inc` does.
+  producers a share of the library's feedstock ceilings, marked INVENTED, as
+  example_4's `producer.inc` does. The library's ceilings are what all shipping
+  may use, so size the share to the fleet: roughly its first-year energy divided
+  by world shipping's, about 13,000 PJ in 2026 in the reference scenario. A
+  larger share hands a small fleet the world's biomass, and the answer follows the
+  feedstock rather than the question. Never raise it to make a fuel appear.
 - A ROUND_TRIP route has no time-at-sea setting: the year is sailing plus the
   port stays, so the share of the year at sea follows from the distances, speeds
   and port durations. Route distances, like BunkerLogistics, take plain numbers
@@ -117,12 +122,19 @@ a comment where it appears, and listed in the `.nav` header.
   The simplest Regulation is a copy of the library's `eu_ets` with its
   Jurisdiction and RemedialCost changed. A Levy's Level is a Forecast, not a
   Curve, and what it cost shows in TotalLevyExpenses, not RegulationExpenses.
+  RegulationExpenses is the total over all regulations; for each one, report
+  `add_regulation_property` RemedialExpenses, FlexibilityExpenses and
+  SurplusRevenue (net = remedial + flexibility - surplus), from a Report node in
+  the policy's own `.inc`, so the deck without the policy stays unchanged.
 - A copied or imported library node brings every reference it makes: copying
   `eu_ets` needs all the fuels it names to exist. Import the missing ones rather
   than deleting lines from the copy.
 - With AllowSpeedManagement on, the ships may sail faster than the route's
   speeds, not only slower. Check ActualSpeed before reading energy use or ship
   counts.
+- A deck that changes a vessel's CostOfCapital should set the Fleet's
+  TechnologyCostOfCapital explicitly: without it, efficiency technology is
+  financed at each vessel's own rate and inherits the change.
 - Node names are unique across node types: a Regulation cannot share its name
   with the Forecast that sets its price.
 - If you rename copied vessels, check that the Fleet file's
@@ -153,13 +165,15 @@ Three things that are easy to misread:
   when no alternative fuel is on offer. A growing number of these ships is not a
   fuel switch: judge it from the energy consumed by fuel (ConsumedEnergy), not
   from the ship count. FuelTypeEnergy cannot tell fuel oil, FAME and e-diesel
-  apart: all three are of fuel type OIL.
+  apart: all three are of fuel type OIL. A vessel property such as ConsumedEnergy
+  in your own Report is per ship: multiply by ExistingVessels before comparing it
+  with the Global sheet.
 - A bunker price of 0 for a fuel at a port means there is no supply of it, not
   that it is free. To say how far such a fuel is from competing, add
   `add_plant_property("*", InvestmentIntensityCost)` to your Report: it gives
   each plant's levelized cost per GJ every year, even when none is built.
-- The investment freight rate has no value in the first time step; quote the
-  second if the first is asked for. Whether any plant was built does not appear
+- The investment freight rate and ActualSpeed have no value in the first time
+  step; quote the second if the first is asked for. Whether any plant was built does not appear
   in DefaultReport: look at `plots/producer_development.png`.
 
 ## Improving this page
