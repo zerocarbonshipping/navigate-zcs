@@ -1,0 +1,52 @@
+<!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+
+Basemap geometry derived from Natural Earth 1:110m Admin 0 countries,
+which is in the public domain (naturalearthdata.com).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 500" width="100%" style="max-width:940px;height:auto;font-family:system-ui,-apple-system,'Segoe UI',sans-serif" role="img" aria-label="Map of an inland trade on the Rhine in Germany from Duisburg upstream to Mannheim: two bunker ports, ships on the river, and European fuel production delivering FAME, e-diesel and e-methanol to both ports">
+<defs><marker id="rharw" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b55f2e"/></marker><marker id="rhsup" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#8c8c8c"/></marker></defs>
+<rect width="940" height="500" fill="#eaf6fb"/>
+<path d="M329.9 323.1L353.4 343.6L425.1 358.0L400.0 411.5L393.6 467.1L380.0 480.5L357.3 473.3L358.9 493.1L353.2 500.0L0.0 500.0L0.0 317.8L88.5 271.3L103.4 207.3L147.0 191.5L154.2 219.0L177.3 220.3L200.5 251.6L235.2 288.5L260.8 282.4L304.4 318.0L315.5 324.8L329.9 323.1ZM940.0 0.0L940.0 285.9L937.8 282.1L900.7 277.4L896.0 253.0L861.9 244.2L854.4 264.4L827.4 248.2L830.5 226.7L793.2 219.9L769.6 194.8L749.2 144.9L753.1 118.0L740.8 76.2L722.7 48.3L736.6 27.5L728.5 0.0ZM867.4 427.9L863.6 459.8L835.6 459.9L845.2 476.9L837.6 500.0L496.9 500.0L501.5 488.5L499.6 474.6L514.6 470.3L539.8 492.0L546.9 471.4L590.8 474.7L626.4 460.7L650.3 463.1L665.8 479.1L670.5 465.8L663.4 414.9L681.3 405.0L698.9 369.0L735.9 394.1L763.9 362.2L781.4 356.3L820.1 380.2L843.5 376.1L866.4 390.9L862.4 400.8L867.4 427.9ZM940.0 500.0L837.6 500.0L845.2 476.9L835.6 459.9L863.6 459.8L867.4 427.9L892.7 447.9L911.1 456.4L940.0 449.7ZM728.5 0.0L736.6 27.5L722.7 48.3L740.8 76.2L753.1 118.0L749.2 144.9L769.6 194.8L747.4 202.9L734.3 194.0L721.8 208.8L686.0 224.0L667.5 243.4L631.4 260.4L640.1 283.7L645.3 316.6L670.8 335.4L698.9 369.0L681.3 405.0L663.4 414.9L670.5 465.8L665.8 479.1L650.3 463.1L626.4 460.7L590.8 474.7L546.9 471.4L539.8 492.0L514.6 470.3L499.6 474.6L446.2 450.7L436.0 467.7L393.6 467.1L400.0 411.5L425.1 358.0L353.4 343.6L329.9 323.1L332.7 288.9L322.7 271.2L328.4 218.5L320.0 136.6L350.0 136.6L362.6 107.2L375.0 35.6L365.7 9.2L371.1 0.0L423.2 0.0L426.3 5.6L431.2 0.0ZM499.6 474.6L501.5 488.5L496.9 500.0L353.2 500.0L358.9 493.1L357.3 473.3L380.0 480.5L393.6 467.1L436.0 467.7L446.2 450.7L499.6 474.6ZM322.7 271.2L332.7 288.9L329.9 323.1L315.5 324.8L304.4 318.0L309.8 274.2L322.7 271.2ZM328.4 218.5L322.7 271.2L309.8 274.2L304.4 318.0L260.8 282.4L235.2 288.5L200.5 251.6L177.3 220.3L154.2 219.0L147.0 191.5L186.9 176.1L223.4 182.2L269.5 166.0L301.0 200.2L328.4 218.5ZM365.7 9.2L375.0 35.6L362.6 107.2L350.0 136.6L320.0 136.6L328.4 218.5L301.0 200.2L269.5 166.0L223.4 182.2L186.9 176.1L212.6 154.6L256.2 39.7L324.3 7.0L365.7 9.2ZM0.0 0.0L23.6 0.0L31.0 21.5L45.2 52.3L105.5 67.2L99.5 117.2L74.1 140.1L94.0 180.5L49.2 221.4L0.0 220.9ZM940.0 449.7L911.1 456.4L892.7 447.9L867.4 427.9L862.4 400.8L866.4 390.9L873.5 373.7L895.5 375.0L912.5 366.9L913.9 359.6L923.4 355.9L926.7 338.2L938.1 334.8L940.0 331.3ZM769.6 194.8L793.2 219.9L830.5 226.7L827.4 248.2L854.4 264.4L861.9 244.2L896.0 253.0L900.7 277.4L937.8 282.1L940.0 285.9L940.0 331.3L938.1 334.8L926.7 338.2L923.4 355.9L913.9 359.6L912.5 366.9L895.5 375.0L873.5 373.7L866.4 390.9L843.5 376.1L820.1 380.2L781.4 356.3L763.9 362.2L735.9 394.1L698.9 369.0L670.8 335.4L645.3 316.6L640.1 283.7L631.4 260.4L667.5 243.4L686.0 224.0L721.8 208.8L734.3 194.0L747.4 202.9L769.6 194.8Z" fill="#dcdcdc" stroke="#ffffff" stroke-width="1.0" stroke-linejoin="round" fill-rule="evenodd"/>
+<path d="M728.5 0.0L736.6 27.5L722.7 48.3L740.8 76.2L753.1 118.0L749.2 144.9L769.6 194.8L747.4 202.9L734.3 194.0L721.8 208.8L686.0 224.0L667.5 243.4L631.4 260.4L640.1 283.7L645.3 316.6L670.8 335.4L698.9 369.0L681.3 405.0L663.4 414.9L670.5 465.8L665.8 479.1L650.3 463.1L626.4 460.7L590.8 474.7L546.9 471.4L539.8 492.0L514.6 470.3L499.6 474.6L446.2 450.7L436.0 467.7L393.6 467.1L400.0 411.5L425.1 358.0L353.4 343.6L329.9 323.1L332.7 288.9L322.7 271.2L328.4 218.5L320.0 136.6L350.0 136.6L362.6 107.2L375.0 35.6L365.7 9.2L371.1 0.0L423.2 0.0L426.3 5.6L431.2 0.0Z" fill="#cfcfcf" stroke="#ffffff" stroke-width="1.0" stroke-linejoin="round" fill-rule="evenodd"/>
+<path d="M489.9 467.2L451.6 460.9L430.2 468.8L399.8 471.9L397.8 441.4L410.2 392.2L425.2 371.1L435.1 357.0L442.6 334.4L443.6 321.1L438.6 310.2L440.1 293.0L433.6 281.3L415.2 283.6L406.3 270.3L400.3 253.1L385.3 238.3L375.4 224.2L368.4 207.8L358.9 185.2L358.5 169.5L351.5 151.6L333.1 137.5L313.1 136.7L280.8 139.1L240.9 132.8L221.0 126.6" fill="none" stroke="#97c8e4" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M358.5 169.5L358.9 185.2L368.4 207.8L375.4 224.2L385.3 238.3L400.3 253.1L406.3 270.3L415.2 283.6L433.6 281.3L440.1 293.0L440.1 294.0L439.5 312.0" fill="none" stroke="#b55f2e" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#rharw)"/>
+<path d="M191.1 281.3L250.9 210.9L310.6 179.7L348.7 171.6" fill="none" stroke="#8c8c8c" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#rhsup)"/>
+<path d="M191.1 281.3L270.8 273.4L365.4 296.9L400.3 329.7L433.8 323.0" fill="none" stroke="#8c8c8c" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#rhsup)"/>
+<g transform="translate(371.9 216.0) rotate(67.0) translate(-9.6 -8.4) scale(1.2)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#323232" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/></g>
+<g transform="translate(410.7 277.0) rotate(56.0) translate(-9.6 -8.4) scale(1.2)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#323232" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/></g>
+<g transform="translate(170.8 274.8) scale(0.92)"><path d="M2 13H14V6H11V1H9V6H6V3H4V6H2Z" fill="#9f5959" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(183.8 274.8) scale(0.92)"><path d="M2 13H14V6H11V1H9V6H6V3H4V6H2Z" fill="#296565" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g transform="translate(196.8 274.8) scale(0.92)"><path d="M2 13H14V6H11V1H9V6H6V3H4V6H2Z" fill="#457b7b" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<circle cx="358.5" cy="169.5" r="5.2" fill="#3d5f87" stroke="#ffffff" stroke-width="1.6"/>
+<circle cx="443.6" cy="321.1" r="5.2" fill="#3d5f87" stroke="#ffffff" stroke-width="1.6"/>
+<text x="147.1" y="307.3" font-size="11.5" fill="#323232" text-anchor="start" font-weight="600">European fuel production</text>
+<text x="147.1" y="318.8" font-size="9.5" fill="#585858" text-anchor="start">Europe region · 400 nm to each port</text>
+<text x="371.5" y="172.5" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">Duisburg</text>
+<text x="371.5" y="184.5" font-size="9.5" fill="#585858" text-anchor="start">bunker port</text>
+<text x="456.6" y="324.1" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">Mannheim</text>
+<text x="456.6" y="336.1" font-size="9.5" fill="#585858" text-anchor="start">bunker port</text>
+<text x="549.7" y="101.6" font-size="13" fill="#a5a5a5" text-anchor="middle" font-weight="600">GERMANY</text>
+<text x="420.2" y="242.2" font-size="11.5" fill="#b55f2e" text-anchor="start" font-weight="600">about 190 nm each way</text>
+<text x="420.2" y="254.7" font-size="10" fill="#b55f2e" text-anchor="start">laden upstream, ballast down</text>
+<text x="599.5" y="276.1" font-size="11.5" fill="#585858" text-anchor="start">No EU ETS or FuelEU on inland waterways</text>
+<text x="599.5" y="288.6" font-size="10" fill="#585858" text-anchor="start">the second deck adds a national CO2 price</text>
+<text x="930.0" y="492.0" font-size="8.5" fill="#a5a5a5" text-anchor="end">Basemap: Natural Earth 1:110m (public domain)</text>
+<rect x="720.0" y="312.0" width="206" height="151" rx="5" fill="#ffffff" fill-opacity="0.90" stroke="#bebebe" stroke-width="0.8"/>
+<circle cx="737.0" cy="328.0" r="5.2" fill="#3d5f87"/>
+<text x="752.0" y="331.0" font-size="10" fill="#323232" text-anchor="start">bunker port</text>
+<text x="730.0" y="349.0" font-size="9.5" fill="#585858" text-anchor="start">fuel plant, by fuel made:</text>
+<g transform="translate(730.2 357.1) scale(0.85)"><path d="M2 13H14V6H11V1H9V6H6V3H4V6H2Z" fill="#9f5959" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<text x="752.0" y="366.0" font-size="10" fill="#323232" text-anchor="start">FAME</text>
+<g transform="translate(730.2 374.1) scale(0.85)"><path d="M2 13H14V6H11V1H9V6H6V3H4V6H2Z" fill="#296565" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<text x="752.0" y="383.0" font-size="10" fill="#323232" text-anchor="start">e-diesel</text>
+<g transform="translate(730.2 391.1) scale(0.85)"><path d="M2 13H14V6H11V1H9V6H6V3H4V6H2Z" fill="#457b7b" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<text x="752.0" y="400.0" font-size="10" fill="#323232" text-anchor="start">e-methanol</text>
+<line x1="731.0" y1="416.0" x2="744.0" y2="416.0" stroke="#b55f2e" stroke-width="2.8"/>
+<text x="752.0" y="419.0" font-size="10" fill="#323232" text-anchor="start">the voyage</text>
+<line x1="731.0" y1="431.0" x2="744.0" y2="431.0" stroke="#97c8e4" stroke-width="3.2"/>
+<text x="752.0" y="434.0" font-size="10" fill="#323232" text-anchor="start">the Rhine</text>
+<line x1="731.0" y1="446.0" x2="744.0" y2="446.0" stroke="#8c8c8c" stroke-width="1.6" stroke-dasharray="7 5"/>
+<text x="752.0" y="449.0" font-size="10" fill="#323232" text-anchor="start">fuel delivery</text>
+</svg>

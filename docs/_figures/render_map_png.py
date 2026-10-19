@@ -38,6 +38,7 @@ MAPS = {
     "reference_scenario": "reference_scenario_map",
     "gulf_asia_tanker": "gulf_asia_tanker_map",
     "two_fleets": "two_fleets_schematic",
+    "rhine_inland": "rhine_inland_map",
 }
 
 CHROME_CANDIDATES = [
