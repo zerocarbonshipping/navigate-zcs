@@ -182,3 +182,20 @@ These IDs describe the type of dependency the electricity source has to the regi
 | --- | --- |
 | STANDALONE | The electricity source for the production of fuels are standalone and not connected to the electricity grid in the region. |
 | CONNECTED | The fuel production is connected to the region’s electricity grid. And the average emissions associated with electricity consumption in the defined region. |
+
+## TimingID
+
+This ID describes the phase of a time step that its computational time is booked to in the `ComputationalTime` report property.
+
+| ID | Description |
+| --- | --- |
+| LP\_BUILD | Building and updating the bunkering LPs, including the constraint updates between the fair-share iterations. |
+| LP\_SOLVE | Solving the bunkering LPs. |
+| LP\_TRANSFER | Transferring the solutions of the bunkering LPs to the vessels, fleets, ports and regulations. |
+| FLEET\_EVOLUTION | Scrapping, fuel conversions and newbuilds of the fleets. |
+| SPEED\_MANAGEMENT | Speed management of the fleets. |
+| TECHNOLOGY\_INSTALLATION | Technology installation on the newbuilds and existing vessels of the fleets. |
+| PLANT\_PRODUCTION | The production properties of the plants. |
+| PRODUCER\_EVOLUTION | Decommissioning, pipeline delivery and pipeline planning of the producers. |
+| POLICY | The emission coefficients, measures, threshold adjustment, compliance, remedial expenses and flexibility markets of the regulations and levies. |
+| OTHER | Everything else in the time step. |

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.output.plots._aggregate import to_cumulative
+from navigate.core.enum_ import TimingID
 from navigate.output.plots._colors import (
     CENTER_COLORS_BLUE,
     CENTER_COLORS_GREEN,
@@ -35,100 +35,54 @@ def _plot_computational_performance(
     results: SimulationResults, directory: Path, cumulative: bool
 ) -> None:
     dateline = results.dateline
-    profile = results.profile
+    seconds = results.profile.computational_time
 
     fig, ax = single_panel()
 
-    # per-step times grouped by run phase; each group is one hue in the colors
-    values = [
-        # bunkering LP, expected fleet
-        profile.expected_build_time,
-        profile.expected_solve_time,
-        profile.expected_transfer_time,
-        # bunkering LP, existing fleet
-        profile.existing_build_time,
-        profile.existing_solve_time,
-        profile.existing_transfer_time,
-        # fleet decisions
-        profile.speed_time,
-        profile.retrofit_time,
-        profile.fleet_evolution_time,
-        profile.producer_evolution_time,
-        # setup and bookkeeping
-        profile.temporal_time,
-        profile.fleet_state_time,
-        profile.overhead_time,
-        # domain calculations
-        profile.vessel_time,
-        profile.fuel_supply_time,
-        profile.policy_time,
-        profile.profile_agg_time,
-    ]
+    labels = {
+        TimingID.LP_BUILD: "LP build",
+        TimingID.LP_SOLVE: "LP solve",
+        TimingID.LP_TRANSFER: "LP transfer",
+        TimingID.FLEET_EVOLUTION: "Fleet evolution",
+        TimingID.SPEED_MANAGEMENT: "Speed management",
+        TimingID.TECHNOLOGY_INSTALLATION: "Technology installation",
+        TimingID.PLANT_PRODUCTION: "Plant production",
+        TimingID.PRODUCER_EVOLUTION: "Producer evolution",
+        TimingID.POLICY: "Policy",
+        TimingID.OTHER: "Other",
+    }
 
-    labels = [
-        "Expected (build)",
-        "Expected (solve)",
-        "Expected (transfer)",
-        "Existing (build)",
-        "Existing (solve)",
-        "Existing (transfer)",
-        "Speed",
-        "Retrofit",
-        "Fleet evolution",
-        "Producer evolution",
-        "Temporal / expectations",
-        "Fleet state",
-        "Overhead",
-        "Vessel operations",
-        "Fuel supply chain",
-        "Policy / regulation",
-        "Profile aggregation",
-    ]
+    # one hue per domain: the bunkering LP, the fleet, fuel supply, policy and the rest
+    colors = {
+        TimingID.LP_BUILD: CENTER_COLORS_BLUE[2],
+        TimingID.LP_SOLVE: CENTER_COLORS_BLUE[4],
+        TimingID.LP_TRANSFER: CENTER_COLORS_BLUE[6],
+        TimingID.FLEET_EVOLUTION: CENTER_COLORS_YELLOW[2],
+        TimingID.SPEED_MANAGEMENT: CENTER_COLORS_YELLOW[4],
+        TimingID.TECHNOLOGY_INSTALLATION: CENTER_COLORS_YELLOW[6],
+        TimingID.PLANT_PRODUCTION: CENTER_COLORS_GREEN[3],
+        TimingID.PRODUCER_EVOLUTION: CENTER_COLORS_GREEN[5],
+        TimingID.POLICY: CENTER_COLORS_RED[4],
+        TimingID.OTHER: CENTER_COLORS_GREY[3],
+    }
 
-    colors = [
-        CENTER_COLORS_BLUE[2],
-        CENTER_COLORS_BLUE[4],
-        CENTER_COLORS_BLUE[6],
-        CENTER_COLORS_GREEN[2],
-        CENTER_COLORS_GREEN[4],
-        CENTER_COLORS_GREEN[6],
-        CENTER_COLORS_YELLOW[2],
-        CENTER_COLORS_YELLOW[4],
-        CENTER_COLORS_YELLOW[6],
-        CENTER_COLORS_YELLOW[5],
-        CENTER_COLORS_GREY[1],
-        CENTER_COLORS_GREY[3],
-        CENTER_COLORS_GREY[5],
-        CENTER_COLORS_RED[1],
-        CENTER_COLORS_RED[3],
-        CENTER_COLORS_RED[5],
-        CENTER_COLORS_RED[6],
-    ]
+    values = [seconds[phase] for phase in TimingID]
 
     if cumulative:
-        values = [to_cumulative(dateline, value) for value in values]
-
-    stack = plot_stack_with_lines(ax, dateline, values, labels, colors)
-
-    total_cumulative = profile.total_time
-    if cumulative:
-        ax.plot(dateline, total_cumulative, label="Total", color="k", ls="--", lw=2.0)
+        values = [np.cumsum(value) for value in values]
         ax.set_ylabel("Cumulative computational time [s]")
         suffix = "_cumulative"
     else:
-        total_per_step = np.diff(total_cumulative, prepend=0.0)
-        ax.plot(
-            dateline,
-            total_per_step,
-            label="Total (per step)",
-            color="k",
-            ls="--",
-            lw=2.0,
-        )
         ax.set_ylabel("Computational time per step [s]")
         suffix = ""
 
-    legend = ax.legend(stack[::-1], labels[::-1], ncol=2, **LEGEND_OPTIONS)
+    phase_labels = [labels[phase] for phase in TimingID]
+    phase_colors = [colors[phase] for phase in TimingID]
+
+    stack = plot_stack_with_lines(ax, dateline, values, phase_labels, phase_colors)
+    ax.plot(dateline, np.sum(values, axis=0), color="k", ls="--", lw=2.0)
+
+    legend = ax.legend(stack[::-1], phase_labels[::-1], ncol=2, **LEGEND_OPTIONS)
     format_axes(ax, 1, dateline, legend)
 
     save_figure(fig, directory, f"computational_performance{suffix}.png")
