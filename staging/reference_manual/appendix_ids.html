@@ -874,6 +874,50 @@ SPDX-License-Identifier: CC-BY-4.0
 </table>
 </div>
 </section>
+<section id="timingid">
+<h2>TimingID<a class="headerlink" href="#timingid" title="Link to this heading">#</a></h2>
+<p>This ID describes the phase of a time step that its computational time is booked to in the <code class="docutils literal notranslate"><span class="pre">ComputationalTime</span></code> report property.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LP_BUILD</p></td>
+<td><p>Building and updating the bunkering LPs, including the constraint updates between the fair-share iterations.</p></td>
+</tr>
+<tr class="row-odd"><td><p>LP_SOLVE</p></td>
+<td><p>Solving the bunkering LPs.</p></td>
+</tr>
+<tr class="row-even"><td><p>LP_TRANSFER</p></td>
+<td><p>Transferring the solutions of the bunkering LPs to the vessels, fleets, ports and regulations.</p></td>
+</tr>
+<tr class="row-odd"><td><p>FLEET_EVOLUTION</p></td>
+<td><p>Scrapping, fuel conversions and newbuilds of the fleets.</p></td>
+</tr>
+<tr class="row-even"><td><p>SPEED_MANAGEMENT</p></td>
+<td><p>Speed management of the fleets.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TECHNOLOGY_INSTALLATION</p></td>
+<td><p>Technology installation on the newbuilds and existing vessels of the fleets.</p></td>
+</tr>
+<tr class="row-even"><td><p>PLANT_PRODUCTION</p></td>
+<td><p>The production properties of the plants.</p></td>
+</tr>
+<tr class="row-odd"><td><p>PRODUCER_EVOLUTION</p></td>
+<td><p>Decommissioning, pipeline delivery and pipeline planning of the producers.</p></td>
+</tr>
+<tr class="row-even"><td><p>POLICY</p></td>
+<td><p>The emission coefficients of the regulations and levies, and the measures, bunkering inputs, threshold adjustment, compliance, individual remedial expenses and flexibility markets of the regulations.</p></td>
+</tr>
+<tr class="row-odd"><td><p>OTHER</p></td>
+<td><p>Everything else in the time step.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 </section>
 
 
@@ -931,6 +975,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solvermethodid">SolverMethodID</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#speedalignmentid">SpeedAlignmentID</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sourcedependencyid">SourceDependencyID</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timingid">TimingID</a></li>
 </ul>
   </nav></div>
 

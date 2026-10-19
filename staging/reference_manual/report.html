@@ -919,77 +919,9 @@ per time step, such as <code class="docutils literal notranslate"><span class="p
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>TotalTime</p></td>
-<td><p>Second</p></td>
-<td><p>Total simulation time.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ExpectedBuildTime</p></td>
-<td><p>Second</p></td>
-<td><p>The LP build time for the expected future bunker decisions.</p></td>
-</tr>
-<tr class="row-even"><td><p>ExpectedSolveTime</p></td>
-<td><p>Second</p></td>
-<td><p>The LP solve time for the expected future bunker decisions.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ExpectedTransferTime</p></td>
-<td><p>Second</p></td>
-<td><p>The transfer time for the results of the expected future bunker decisions.</p></td>
-</tr>
-<tr class="row-even"><td><p>SpeedTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent running the speed management algorithm.</p></td>
-</tr>
-<tr class="row-odd"><td><p>RetrofitTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent running the technology retrofit algorithm</p></td>
-</tr>
-<tr class="row-even"><td><p>FleetEvolutionTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent calculating the evolution of the fleet nodes.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ProducerEvolutionTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent calculating the evolution of the producer nodes.</p></td>
-</tr>
-<tr class="row-even"><td><p>ExistingBuildTime</p></td>
-<td><p>Second</p></td>
-<td><p>The LP build time for the existing bunker decision.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ExistingSolveTime</p></td>
-<td><p>Second</p></td>
-<td><p>The LP solve time for the existing bunker decision.</p></td>
-</tr>
-<tr class="row-even"><td><p>ExistingTransferTime</p></td>
-<td><p>Second</p></td>
-<td><p>The transfer time for the results of the existing bunker decision.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TemporalTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent assigning the temporal calculators and precalculating expectations.</p></td>
-</tr>
-<tr class="row-even"><td><p>VesselTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent on the operational profiles and charter properties of the vessels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>FuelSupplyTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent on the production, logistics and port import properties of the fuels.</p></td>
-</tr>
-<tr class="row-even"><td><p>PolicyTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent on the policy emission coefficients and the fair share fuel supply.</p></td>
-</tr>
-<tr class="row-odd"><td><p>FleetStateTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent updating increment ages, fleet evolution expectations, fuel demands and fuel-type balances, and the missing technology approximation.</p></td>
-</tr>
-<tr class="row-even"><td><p>ProfileAggTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent aggregating the profiles of the fleet, port, producer, regulation and vessel nodes.</p></td>
-</tr>
-<tr class="row-odd"><td><p>OverheadTime</p></td>
-<td><p>Second</p></td>
-<td><p>The time spent initializing the existing fleet and production, and updating the investment signal beliefs.</p></td>
+<tr class="row-even"><td><p>ComputationalTime</p></td>
+<td><p>Second/year</p></td>
+<td><p>The computational time of the time step, without initialization and reading events, one column per phase of the step (<a class="reference internal" href="appendix_ids.html#timingid"><span class="std std-ref">TimingID</span></a>).</p></td>
 </tr>
 </tbody>
 </table>

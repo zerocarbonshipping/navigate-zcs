@@ -249,24 +249,7 @@ The properties are applicable for the following commands:
 
 | **Property name**    | **Unit** | **Description**                                                                  |
 |----------------------| --- |---------------------------------------------------------------------------------------|
-| TotalTime            | Second | Total simulation time.                                                             |
-| ExpectedBuildTime    | Second | The LP build time for the expected future bunker decisions.                        |
-| ExpectedSolveTime    | Second | The LP solve time for the expected future bunker decisions.                        |
-| ExpectedTransferTime | Second | The transfer time for the results of the expected future bunker decisions.         |
-| SpeedTime            | Second | The time spent running the speed management algorithm.                             |
-| RetrofitTime         | Second | The time spent running the technology retrofit algorithm                           |
-| FleetEvolutionTime   | Second | The time spent calculating the evolution of the fleet nodes.                       |
-| ProducerEvolutionTime | Second | The time spent calculating the evolution of the producer nodes.                    |
-| ExistingBuildTime    | Second | The LP build time for the existing bunker decision.                                |
-| ExistingSolveTime    | Second | The LP solve time for the existing bunker decision.                                |
-| ExistingTransferTime | Second | The transfer time for the results of the existing bunker decision.                 |
-| TemporalTime         | Second | The time spent assigning the temporal calculators and precalculating expectations. |
-| VesselTime           | Second | The time spent on the operational profiles and charter properties of the vessels.  |
-| FuelSupplyTime       | Second | The time spent on the production, logistics and port import properties of the fuels. |
-| PolicyTime           | Second | The time spent on the policy emission coefficients and the fair share fuel supply. |
-| FleetStateTime       | Second | The time spent updating increment ages, fleet evolution expectations, fuel demands and fuel-type balances, and the missing technology approximation. |
-| ProfileAggTime       | Second | The time spent aggregating the profiles of the fleet, port, producer, regulation and vessel nodes. |
-| OverheadTime         | Second | The time spent initializing the existing fleet and production, and updating the investment signal beliefs. |
+| ComputationalTime    | Second/year | The computational time of the time step, without initialization and reading events, one column per phase of the step ([TimingID](appendix_ids.md#timingid)). |
 
 The properties are applicable for the following commands:
 
