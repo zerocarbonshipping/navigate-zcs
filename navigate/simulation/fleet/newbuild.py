@@ -44,7 +44,7 @@ def calculate_orderbook_newbuilds(
     trade_gap
         Trade gap of the fleet, in cargo-miles/year.
     cap_count
-        Newbuild budget of each vessel type for this time-step.
+        Newbuild budget of each vessel type for this time-step, in vessels.
     idx
         Current time-step index.
 
@@ -55,7 +55,7 @@ def calculate_orderbook_newbuilds(
     float
         Delivered capacity, in cargo-miles/year.
     FloatArray
-        Newbuild budget left after the delivery.
+        Newbuild budget left after the delivery, in vessels.
     """
     if not fleet.orderbooks:
         return np.zeros(len(fleet.vessels)), 0.0, cap_count
@@ -106,7 +106,7 @@ def calculate_modelled_newbuilds(
     trade_gap
         Trade gap left by scrapping and trade growth or decline, in cargo-miles/year.
     cap_count
-        Newbuild budget of each vessel type left after the orderbook.
+        Newbuild budget of each vessel type left after the orderbook, in vessels.
     idx
         Current time-step index.
 
@@ -212,7 +212,7 @@ def update_current_uptake(fleet: Fleet, increments: FloatArray, idx: int) -> Non
     if np.sum(increments) > 0.0:
         cargo_miles = extract_cargo_miles(fleet.vessels, idx)
         trade = increments * cargo_miles
-        fleet.current_uptake = trade / np.sum(trade)
+        fleet.current_uptake = trade / np.dot(increments, cargo_miles)
 
     shares = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))
     fleet.expectation.set_uptakes(idx, shares)
@@ -304,14 +304,14 @@ def _calculate_inertia_increments(
     trade_gap
         Trade gap left by scrapping and trade growth or decline, in cargo-miles/year.
     cap_count
-        Newbuild budget of each vessel type for this time-step.
+        Newbuild budget of each vessel type for this time-step, in vessels.
 
     Returns
     -------
     FloatArray
         Inertia newbuilds per vessel type.
     FloatArray
-        Newbuild budget left after them.
+        Newbuild budget left after them, in vessels.
     """
     increments = _calculate_increments(uptakes, cargo_miles, trade_gap)
 
