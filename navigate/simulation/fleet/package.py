@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+import itertools
+import math
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -53,21 +55,18 @@ def build_technology_packages(
         Map from a package index to the index, in ``technologies``, of the technology
         that package adds.
     """
-    sorted_pairs = sorted(enumerate(technologies), key=lambda p: p[1].capex.get())
-    sorted_techs = [t for _, t in sorted_pairs]
-    packages = [
-        TechnologyPackage(sorted_techs[:i]) for i in range(len(sorted_techs) + 1)
-    ]
-    package_to_technology_map = {
-        i: sorted_pairs[i - 1][0] for i in range(1, len(sorted_pairs) + 1)
-    }
+    order = sorted(range(len(technologies)), key=lambda t: technologies[t].capex.get())
+    ordered = [technologies[t] for t in order]
+
+    packages = [TechnologyPackage(ordered[:i]) for i in range(len(ordered) + 1)]
+    package_to_technology_map = dict(enumerate(order, start=1))
 
     return packages, package_to_technology_map
 
 
-def _refresh_combined_effects(package: TechnologyPackage) -> None:
+def _calculate_combined_effects(package: TechnologyPackage) -> None:
     """
-    Refresh a package's combined savings, powers and transfer curves.
+    Calculate a package's combined savings, powers, transfer curves and shore power.
 
     The residual-energy calculation reads these instead of recombining the
     technologies on every call.
@@ -75,53 +74,48 @@ def _refresh_combined_effects(package: TechnologyPackage) -> None:
     Parameters
     ----------
     package
-        Technology package whose combined effects are refreshed in place.
+        Technology package whose combined effects are calculated in place.
     """
     technologies = package.technologies
+    energy_savings = [technology.energy_saving for technology in technologies]
+    external_powers = [technology.external_power for technology in technologies]
+    capacities = [technology.shore_power_capacity.get() for technology in technologies]
 
-    arr_sp = np.array([t.shore_power_capacity.get() for t in technologies])
-    package.shore_power_capacity = float(np.sum(arr_sp))
-
-    compound_savings: dict[EnergyDemandID, float] = {}
-    compound_powers: dict[EnergyDemandID, float] = {}
-
-    # savings compound: each technology saves its fraction of what the others leave
-    for energy_id in EnergyDemandID:
-        arr = np.array([t.energy_saving[energy_id].get() for t in technologies])
-        compound_savings[energy_id] = 1.0 - float(np.prod(1.0 - arr))
+    savings = {}
+    powers = {}
 
     for energy_id in EnergyDemandID:
-        arr = np.array([t.external_power[energy_id].get() for t in technologies])
-        compound_powers[energy_id] = float(np.sum(arr))
+        # savings compound: each technology saves its fraction of what the others leave
+        retained = [1.0 - saving[energy_id].get() for saving in energy_savings]
+        savings[energy_id] = 1.0 - math.prod(retained)
 
-    package.compound_savings = compound_savings
-    package.compound_powers = compound_powers
+        powers[energy_id] = sum(power[energy_id].get() for power in external_powers)
 
-    transfer_curves: dict[tuple[EnergyDemandID, EnergyDemandID], list[CurveInput]] = {}
+    transfer_curves = {}
 
-    for source in EnergyDemandID:
-        for destination in EnergyDemandID:
-            curves: list[CurveInput] = []
+    for pair in itertools.product(EnergyDemandID, EnergyDemandID):
+        curves = [technology.power_transfer[pair] for technology in technologies]
+        transferring = [curve for curve in curves if _transfers_power(curve)]
 
-            for tech in technologies:
-                obj = tech.power_transfer[(source, destination)]
+        if transferring:
+            transfer_curves[pair] = transferring
 
-                if isinstance(obj, Scalar) and obj.get() == 0.0:
-                    continue
-
-                curves.append(obj)
-
-            if curves:
-                transfer_curves[(source, destination)] = curves
-
+    package.compound_savings = savings
+    package.compound_powers = powers
     package.transfer_curves = transfer_curves
+    package.shore_power_capacity = sum(capacities)
 
 
-def preprocess_packages(
+def _transfers_power(curve: CurveInput) -> bool:
+    """Return whether a power-transfer curve transfers any power."""
+    return not (isinstance(curve, Scalar) and curve.get() == 0.0)
+
+
+def update_packages(
     packages: list[TechnologyPackage], cost_flows: PackageCostFlows, time: float
 ) -> None:
     """
-    Refresh every package's combined effects and move its cost flows to a new time.
+    Update every package's combined effects and move the cost flows to a new time.
 
     Parameters
     ----------
@@ -135,9 +129,8 @@ def preprocess_packages(
     cost_flows.time = time
     cost_flows.by_horizon.clear()
 
-    for pkg in packages:
-        if not pkg.is_empty:
-            _refresh_combined_effects(pkg)
+    for package in packages:
+        _calculate_combined_effects(package)
 
 
 def get_package_cost_flows(
@@ -150,7 +143,7 @@ def get_package_cost_flows(
     years the installation serves, the last partial year prorated. A replacement whose
     lifetime outlasts the horizon is charged for the share of it the horizon holds.
     The flows are built on the first request for a horizon and kept until
-    ``preprocess_packages`` moves the time on.
+    ``update_packages`` moves the time on.
 
     Parameters
     ----------
@@ -180,7 +173,7 @@ def _build_package_cost_flows(
     packages: list[TechnologyPackage], horizon: float, time: float
 ) -> list[FloatArray]:
     """Build each package's cost flow over a horizon from its technologies."""
-    # packages are nested, package i holding the first i technologies of the last
+    # packages nest: package i holds the first i technologies of the full package
     cumulative = np.zeros(get_flow_size(lead_time=0.0, lifetime=horizon), dtype=float)
     flows = [cumulative]
 
@@ -192,8 +185,21 @@ def _build_package_cost_flows(
     return [trim_flow_to_lifetime(flow, horizon) for flow in flows]
 
 
-def npv_for_newbuilds(
-    packages_saving: list[FloatArray],
+def _build_technology_component(
+    technology: Technology, horizon: float, time: float
+) -> Component:
+    """Build a technology's CAPEX and OPEX cost component over a horizon."""
+    component = Component(0.0, horizon, time)
+    component.initialize_machinery_component(technology)
+
+    add_capex_flow(component, technology.capex.get)
+    add_fixed_opex(component, technology.opex.get)
+
+    return component
+
+
+def calculate_newbuild_npv(
+    package_savings: list[FloatArray],
     cost_flows: list[FloatArray],
     discount_rate: float,
 ) -> FloatArray:
@@ -202,7 +208,7 @@ def npv_for_newbuilds(
 
     Parameters
     ----------
-    packages_saving
+    package_savings
         Yearly saving flow of each package over the vessel lifetime, USD/year.
     cost_flows
         Cost flow of each package over the vessel lifetime, USD/year.
@@ -214,18 +220,17 @@ def npv_for_newbuilds(
     FloatArray
         NPV of each package, USD; zero for the empty package.
     """
-    n_pkgs = len(packages_saving)
-    npv = np.zeros(n_pkgs, dtype=float)
+    npv = np.zeros(len(package_savings))
 
-    for pkg_idx in range(1, n_pkgs):
-        cash_flow = packages_saving[pkg_idx] - cost_flows[pkg_idx]
-        npv[pkg_idx] = calculate_net_present_value(cash_flow, discount_rate)
+    for package_idx in range(1, len(npv)):
+        cash_flow = package_savings[package_idx] - cost_flows[package_idx]
+        npv[package_idx] = calculate_net_present_value(cash_flow, discount_rate)
 
     return npv
 
 
-def npv_for_retrofit_steps(
-    pkg_idx: int,
+def calculate_retrofit_npv(
+    package_idx: int,
     package_savings: list[FloatArray],
     cost_flows: list[FloatArray],
     remaining: float,
@@ -234,13 +239,13 @@ def npv_for_retrofit_steps(
     """
     Calculate the NPV of retrofitting from a package to each larger package.
 
-    Entry ``step`` is the NPV of the jump from ``pkg_idx`` to ``pkg_idx + step``: the
-    saving flow of package ``pkg_idx``, trimmed to the remaining lifetime, less the
-    jump's incremental cost flow over the same years.
+    Entry ``step`` is the NPV of the jump from ``package_idx`` to
+    ``package_idx + step``: the saving flow of package ``package_idx``, trimmed to the
+    remaining lifetime, less the jump's incremental cost flow over the same years.
 
     Parameters
     ----------
-    pkg_idx
+    package_idx
         Package the vessels currently sit at.
     package_savings
         Yearly saving flow of each package, USD/year.
@@ -256,22 +261,20 @@ def npv_for_retrofit_steps(
     FloatArray
         NPV of each retrofit step, USD; zero for the stay option.
     """
-    n_pkgs = len(package_savings)
-    savings_flow = trim_flow_to_lifetime(package_savings[pkg_idx], remaining)
-    max_steps = n_pkgs - pkg_idx
-    npv = np.full(max_steps, -np.inf, dtype=float)
-    npv[0] = 0.0
+    savings_flow = trim_flow_to_lifetime(package_savings[package_idx], remaining)
+    n_steps = len(package_savings) - package_idx
+    npv = np.zeros(n_steps)
 
-    for step in range(1, max_steps):
-        inc_cost_flow = cost_flows[pkg_idx + step] - cost_flows[pkg_idx]
-        cash_flow = savings_flow - inc_cost_flow
+    for step in range(1, n_steps):
+        step_cost = cost_flows[package_idx + step] - cost_flows[package_idx]
+        cash_flow = savings_flow - step_cost
         npv[step] = calculate_net_present_value(cash_flow, discount_rate)
 
     return npv
 
 
-def annual_costs_for_retrofit_steps(
-    pkg_idx: int,
+def calculate_retrofit_charter_rates(
+    package_idx: int,
     cost_flows: list[FloatArray],
     remaining: float,
     discount_rate: float,
@@ -279,14 +282,14 @@ def annual_costs_for_retrofit_steps(
     """
     Levelize the cost of each retrofit step over the remaining lifetime.
 
-    Mirrors the incremental cost flows of ``npv_for_retrofit_steps``: entry ``step`` is
-    the constant yearly charge that recovers the cost of jumping from ``pkg_idx`` to
-    ``pkg_idx + step`` over the ``remaining`` years the vessel still serves.
+    Mirrors the incremental cost flows of ``calculate_retrofit_npv``: entry ``step`` is
+    the constant yearly charge that recovers the cost of jumping from ``package_idx``
+    to ``package_idx + step`` over the ``remaining`` years the vessel still serves.
 
     Parameters
     ----------
-    pkg_idx
-        Package level the vessels currently sit at.
+    package_idx
+        Package the vessels currently sit at.
     cost_flows
         Cost flow of each package over the remaining lifetime, USD/year.
     remaining
@@ -297,16 +300,17 @@ def annual_costs_for_retrofit_steps(
     Returns
     -------
     FloatArray
-        Constant yearly charge per retrofit step (0 for the stay option), USD/year.
+        Constant yearly charge of each retrofit step, USD/year; zero for the stay
+        option.
     """
-    max_steps = len(cost_flows) - pkg_idx
-    annual = np.zeros(max_steps, dtype=float)
+    n_steps = len(cost_flows) - package_idx
+    rates = np.zeros(n_steps)
 
-    for step in range(1, max_steps):
-        inc_cost_flow = cost_flows[pkg_idx + step] - cost_flows[pkg_idx]
-        annual[step] = _levelize_package_cost(inc_cost_flow, remaining, discount_rate)
+    for step in range(1, n_steps):
+        step_cost = cost_flows[package_idx + step] - cost_flows[package_idx]
+        rates[step] = _levelize_package_cost(step_cost, remaining, discount_rate)
 
-    return annual
+    return rates
 
 
 def calculate_package_charter_rates(
@@ -334,32 +338,30 @@ def calculate_package_charter_rates(
     """
     lifetime = vessel.lifetime.get()
     discount_rate = vessel.cost_of_capital.get()
+    flows = get_package_cost_flows(packages, cost_flows, lifetime)
 
-    return np.array(
-        [
-            _levelize_package_cost(cost_flow, lifetime, discount_rate)
-            for cost_flow in get_package_cost_flows(packages, cost_flows, lifetime)
-        ]
-    )
+    rates = [_levelize_package_cost(flow, lifetime, discount_rate) for flow in flows]
+
+    return np.array(rates)
 
 
 def _levelize_package_cost(
-    cost_flow: FloatArray, window: float, discount_rate: float
+    cost_flow: FloatArray, horizon: float, discount_rate: float
 ) -> float:
     """
-    Levelize a technology cost flow into a USD/year charge over a service window.
+    Levelize a technology cost flow into a USD/year charge over a horizon.
 
-    The cost flow spans the window with its last partial year prorated, as
+    The cost flow spans the horizon with its last partial year prorated, as
     ``get_package_cost_flows`` builds it. It is divided by the NPV of the operating-year
-    flow over the same window, so that discounting the constant charge over the window
-    at `discount_rate` reproduces the NPV of the cost flow exactly.
+    flow over the same horizon, so that discounting the constant charge over the horizon
+    at ``discount_rate`` reproduces the NPV of the cost flow exactly.
 
     Parameters
     ----------
     cost_flow
-        Yearly technology cost flow (CAPEX, OPEX, and replacements) over the window,
+        Yearly technology cost flow (CAPEX, OPEX, and replacements) over the horizon,
         from the install time.
-    window
+    horizon
         Time the installation serves, years: the vessel lifetime for a newbuild install,
         the remaining vessel lifetime for a retrofit.
     discount_rate
@@ -370,23 +372,8 @@ def _levelize_package_cost(
     float
         Constant yearly charge in USD/year.
     """
-    if window <= 0.0:
-        return 0.0
-
     # the leveling flow prorates the final partial year as the cost flow does, so
-    # the charge is recovered over exactly `window` years
-    level_flow = expand_to_flow(window, 1.0)
+    # the charge is recovered over exactly the horizon
+    level_flow = expand_to_flow(horizon, 1.0)
 
     return calculate_levelized_cost(cost_flow, level_flow, discount_rate)
-
-
-def _build_technology_component(
-    technology: Technology, horizon: float, time_initial: float
-) -> Component:
-    component = Component(0.0, horizon, time_initial)
-    component.initialize_machinery_component(technology)
-
-    add_capex_flow(component, technology.capex.get)
-    add_fixed_opex(component, technology.opex.get)
-
-    return component

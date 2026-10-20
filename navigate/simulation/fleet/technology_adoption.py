@@ -40,11 +40,11 @@ from navigate.simulation.fleet.marginal_saving import (
     calculate_marginal_technology_saving,
 )
 from navigate.simulation.fleet.package import (
-    annual_costs_for_retrofit_steps,
+    calculate_newbuild_npv,
+    calculate_retrofit_charter_rates,
+    calculate_retrofit_npv,
     get_package_cost_flows,
-    npv_for_newbuilds,
-    npv_for_retrofit_steps,
-    preprocess_packages,
+    update_packages,
 )
 from navigate.simulation.fleet.trip import bind_conditions_to_legs
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero
@@ -229,9 +229,7 @@ def perform_technology_installation(
     if not fleet.technologies or technology_sensitivity is None:
         return
 
-    preprocess_packages(
-        fleet.technology_packages, fleet.package_cost_flows, timeline[idx]
-    )
+    update_packages(fleet.technology_packages, fleet.package_cost_flows, timeline[idx])
 
     # the fleet count before newbuilds is the denominator of both the retrofit and the
     # newbuild technology caps
@@ -376,7 +374,7 @@ def _propose_newbuild_uptake(
         fleet.package_cost_flows,
         basis.vessel.lifetime.get(),
     )
-    npv = npv_for_newbuilds(basis.packages_saving, cost_flows, basis.discount_rate)
+    npv = calculate_newbuild_npv(basis.packages_saving, cost_flows, basis.discount_rate)
     choices, msg = calculate_asset_shares(
         npv,
         UtilityID.SIGNED_REFERENCE,
@@ -446,7 +444,7 @@ def _propose_retrofits(
             cost_flows = get_package_cost_flows(
                 fleet.technology_packages, fleet.package_cost_flows, remaining
             )
-            npv = npv_for_retrofit_steps(
+            npv = calculate_retrofit_npv(
                 package_idx,
                 basis.packages_saving,
                 cost_flows,
@@ -459,7 +457,7 @@ def _propose_retrofits(
                 sensitivity,
                 reference=basis.capex_npv,
             )
-            annual_costs = annual_costs_for_retrofit_steps(
+            annual_costs = calculate_retrofit_charter_rates(
                 package_idx,
                 cost_flows,
                 remaining,

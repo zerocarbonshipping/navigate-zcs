@@ -17,7 +17,7 @@ from navigate.simulation.fleet.expectation import calculate_fleet_evolution_expe
 from navigate.simulation.fleet.package import (
     build_technology_packages,
     calculate_package_charter_rates,
-    preprocess_packages,
+    update_packages,
 )
 from navigate.simulation.fleet.technology_adoption import (
     transfer_technology_charter_rate,
@@ -85,9 +85,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet.technology_packages, fleet.package_to_technology_map = (
         build_technology_packages(fleet.technologies)
     )
-    preprocess_packages(
-        fleet.technology_packages, fleet.package_cost_flows, timeline[idx]
-    )
+    update_packages(fleet.technology_packages, fleet.package_cost_flows, timeline[idx])
 
     # the initial split of the existing fleet need not match the current newbuild
     # trend, but it is the best available proxy for it
