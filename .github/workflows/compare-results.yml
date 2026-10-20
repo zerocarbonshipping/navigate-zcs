@@ -59,11 +59,12 @@ jobs:
           python -m venv head-env
           head-env/bin/pip install -q ./head
 
-      # both sides run the merged decks and script, each against its own
-      # package and assumptions
+      # each side runs its own script and decks against its own package and
+      # assumptions, so a change that migrates the decks to new DSL still
+      # compares
       - name: Snapshot the base
         run: >
-          base-env/bin/python head/tests/compare_results.py snapshot
+          base-env/bin/python base/tests/compare_results.py snapshot
           --assumptions base/assumptions --out snapshots/base
 
       - name: Snapshot the merged pull request
