@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.port import Port
+    from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatLike
@@ -26,10 +27,10 @@ def calculate_potential_fuel_type_demand(fleets: dict[str, Fleet], idx: int) -> 
     Calculate every vessel's potential fuel-type demand at the ports of its route.
 
     The demand at a port is the most of each fuel type the vessel could burn at and
-    around it, from each stop there and half of each leg per end there, by which the
-    bunkering shares the port's fuel supply among the vessels calling there. It
-    covers the remaining timeline: the existing bunkering reads the current
-    time-step, the expected bunkering all of it.
+    around it. Each stop there counts wholly, and each leg half for each of its ends
+    there. The bunkering shares the port's fuel supply among the vessels calling
+    there by this demand. The demand covers the remaining timeline: the existing
+    bunkering reads the current time-step, the expected bunkering all of it.
 
     Parameters
     ----------
@@ -75,11 +76,12 @@ def _calculate_vessel_demand(
         Potential demand per (port name, fuel type), in GJ/year.
     """
     route = vessel.route
+    power_system = vessel.power_system
     demand: dict[tuple[str, FuelTypeID], FloatLike] = {}
 
     for port in dict.fromkeys(route.ports):
-        energy = _calculate_energy_at_port(route, port, energy_sea_leg, energy_port)
-        fuel_type_demand = _calculate_fuel_type_demand(vessel, energy)
+        energies = _calculate_energy_at_port(route, port, energy_sea_leg, energy_port)
+        fuel_type_demand = _calculate_fuel_type_demand(power_system, energies)
 
         for fuel_type, value in fuel_type_demand.items():
             demand[(port.name, fuel_type)] = value
@@ -96,8 +98,8 @@ def _calculate_energy_at_port(
     """
     Calculate the energy a vessel spends at and around a port of its route.
 
-    A stop at the port counts wholly, and a leg counts half for each of its ends at
-    the port.
+    A stop weighs 1 at the port and 0 elsewhere. A leg weighs the mean of its two
+    stops' weights, so it counts half for each of its ends at the port.
 
     Parameters
     ----------
@@ -115,40 +117,35 @@ def _calculate_energy_at_port(
     dict[EnergyDemandID, FloatLike]
         Energy at the port per energy demand type, in GJ/year.
     """
-    ports = route.ports
+    stops = route.ports
     legs = route.get_legs()
-    leg_weights = [_calculate_leg_weight(ports[i], ports[e], port) for i, e in legs]
 
-    energy: dict[EnergyDemandID, FloatLike] = dict.fromkeys(EnergyDemandID, 0.0)
+    stop_weights = [float(stop == port) for stop in stops]
+    leg_weights = [(stop_weights[i] + stop_weights[j]) / 2.0 for i, j in legs]
+
+    energies: dict[EnergyDemandID, FloatLike] = dict.fromkeys(EnergyDemandID, 0.0)
 
     for energy_id, energy_stops in energy_port.items():
-        for stop_port, energy_stop in zip(ports, energy_stops, strict=True):
-            if stop_port == port:
-                energy[energy_id] += energy_stop
+        for weight, energy_stop in zip(stop_weights, energy_stops, strict=True):
+            energies[energy_id] += weight * energy_stop
 
     for energy_id, energy_legs in energy_sea_leg.items():
         for weight, energy_leg in zip(leg_weights, energy_legs, strict=True):
-            energy[energy_id] += weight * energy_leg
+            energies[energy_id] += weight * energy_leg
 
-    return energy
-
-
-def _calculate_leg_weight(origin: Port, destination: Port, port: Port) -> float:
-    """Calculate the weight of a leg at a port, half for each of its ends there."""
-    ends_at_port = (origin == port) + (destination == port)
-    return 0.5 * ends_at_port
+    return energies
 
 
 def _calculate_fuel_type_demand(
-    vessel: Vessel, energies: Mapping[EnergyDemandID, FloatLike]
+    power_system: PowerSystem, energies: Mapping[EnergyDemandID, FloatLike]
 ) -> dict[FuelTypeID, FloatLike]:
     """
     Calculate the most of each fuel type the converters can burn for the given energy.
 
     Parameters
     ----------
-    vessel
-        Vessel whose converters burn the fuel.
+    power_system
+        Power system whose converters burn the fuel.
     energies
         Energy per energy demand type, in GJ/year.
 
@@ -157,26 +154,22 @@ def _calculate_fuel_type_demand(
     dict[FuelTypeID, FloatLike]
         Potential demand per fuel type, in GJ/year.
     """
-    fuel_type_demand: dict[FuelTypeID, FloatLike] = dict.fromkeys(FuelTypeID, 0.0)
+    demand: dict[FuelTypeID, FloatLike] = dict.fromkeys(FuelTypeID, 0.0)
 
-    for energy_id in EnergyDemandID:
-        converter = vessel.power_system.get_converter_by_energy_type(energy_id)
-        energy = energies[energy_id]
+    for energy_id, energy in energies.items():
+        converter = power_system.get_converter_by_energy_type(energy_id)
 
-        # a dual-fuel converter burns all but its minimum pilot fuel share as main
-        # fuel at most, and up to all of its energy as pilot fuel; a mono-fuel
-        # converter burns main fuel only
+        # a dual-fuel converter burns all but its minimum pilot share as main fuel at
+        # most, and any converter up to all of its energy as pilot fuel
         if converter.is_dual_fuel():
-            maximum_main_fuel = 1.0 - converter.minimum_pilot_fuel.get()
-            maximum_pilot_fuel = 1.0
+            main_share = 1.0 - converter.minimum_pilot_fuel.get()
         else:
-            maximum_main_fuel = 1.0
-            maximum_pilot_fuel = 0.0
+            main_share = 1.0
 
-        for main_fuel_type in converter.main_fuel_types:
-            fuel_type_demand[main_fuel_type] += energy * maximum_main_fuel
+        for fuel_type in converter.main_fuel_types:
+            demand[fuel_type] += main_share * energy
 
-        for pilot_fuel_type in converter.pilot_fuel_types:
-            fuel_type_demand[pilot_fuel_type] += energy * maximum_pilot_fuel
+        for fuel_type in converter.pilot_fuel_types:
+            demand[fuel_type] += energy
 
-    return fuel_type_demand
+    return demand
