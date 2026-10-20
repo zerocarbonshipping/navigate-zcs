@@ -85,7 +85,7 @@ You will now learn what a node is. In this example, the node is a fuel node and 
 
 ![Node-Definition](../_static/node.png)
 
-In the instructions, everything within the brackets {} are assignments on the Fuel node `low_sulfur_fuel_oil`. Everything left of an equal sign is an attribute to the specific node. Everything on the right side of an equal sign is the value assigned to the attribute – values can be an ID, a separate node, or a number dependent on the specific attribute being assigned to. If the value of an attribute is another node then that node needs to be defined separately. We e.g., assign a node of the type Variable to the Fuel attribute `LowerHeatingValue`. In the defaults made by Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, and found in `Navigate/assumptions/defaults/installation/*` variables such as the Lower heating value of fuel oil are defined. For simplicity these are not imported in this tutorial modeling, where you will be defining such values yourself. The node `ModelDefinition` you previously defined belongs to a group of unique nodes called General Nodes. Assignment of attributes to these works similar to other nodes but the difference is that general nodes do not have names. This is because only one can be defined per simulation.
+In the instructions, everything within the brackets {} are assignments on the Fuel node `low_sulfur_fuel_oil`. Everything left of an equal sign is an attribute to the specific node. Everything on the right side of an equal sign is the value assigned to the attribute – values can be an ID, a separate node, or a number dependent on the specific attribute being assigned to. If the value of an attribute is another node then that node needs to be defined separately. We e.g., assign a node of the type Variable to the Fuel attribute `LowerHeatingValue`. In the defaults made by Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, and found in `Navigate/assumptions/defaults/*` variables such as the Lower heating value of fuel oil are defined. For simplicity these are not imported in this tutorial modeling, where you will be defining such values yourself. The node `ModelDefinition` you previously defined belongs to a group of unique nodes called General Nodes. Assignment of attributes to these works similar to other nodes but the difference is that general nodes do not have names. This is because only one can be defined per simulation.
 
 **Time to define your first node**
 
@@ -440,13 +440,7 @@ Date "01-01-2049"
 Date "01-01-2050"
 ```
 
-4. Mark the end of the timeline with `End`.
-
-```python
-End
-```
-
-5. Let’s run Navigate and see if it works and we get an output.
+4. Let’s run Navigate and see if it works and we get an output.
 
 Navigate should have run error-free now, with PowerShell showing a message like the one in the right column – well done, you’ve defined all the components necessary to run a simulation!
 
@@ -675,10 +669,6 @@ Date "01-01-2047"
 Date "01-01-2048"
 Date "01-01-2049"
 Date "01-01-2050"
-
-# Define the End of the timeline.
-
-End
 
 # END OF events.inc FILE
 ```

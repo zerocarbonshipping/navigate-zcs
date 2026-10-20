@@ -438,7 +438,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>In Tutorial 1, you learned about the foundations of how to run a model with the most necessary parameters in Navigate. However, the basic scenario of only one vessel and only one fuel is not very useful for predicting the future of shipping and simplifies what Navigate can do. In this tutorial, you will simulate a slightly more complex scenario, with two different vessel segments, four different fuels, manipulations of trade growth, etc. At the end of this tutorial, you will have learned how to set up a more complex environment with more variables. You will also be able to interpret more complex projections and put them in context.</p>
 <p><strong>Setting the scene:</strong></p>
 <p>In this scenario, we look at a case where we have 2 fleets. One fleet consists of 2 container ships, and the other fleet consists of 2 bulk carriers. One of the container ships is a mono-fuel fuel oil vessel, the other one is a dual-fuel methane. One of the bulk carriers is a dual-fuel methanol, the other one a dual-fuel ammonia.
-Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under <code class="docutils literal notranslate"><span class="pre">Navigate/assumptions/defaults/installation/*</span></code>.</p>
+Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under <code class="docutils literal notranslate"><span class="pre">Navigate/assumptions/defaults/*</span></code>.</p>
 <p><strong>How does it work?</strong></p>
 <p>In the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code> from the download at the top of this page, we have prepared a <code class="docutils literal notranslate"><span class="pre">define.inc</span></code>, an <code class="docutils literal notranslate"><span class="pre">events.inc</span></code> and a <code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> file for you. The files will include prompts that tell you what to do, just like in Tutorial 1. All of the files for Tutorial 2 build on what you have already created in Tutorial 1. This means, that all nodes from the files from Tutorial 1 are already included in the files you will be working with for Tutorial 2. Edits made to accommodate the new vessel and fuel assumptions in this tutorial are specified in this guide.
 In the last section, you will produce plots and manipulate some variables. You will explore the projections on the global emissions, global fuel cost etc., for the two different fleets, taking into account emissions that are associated with the sourcing and production of the fuels, as well as the emissions from burning the fuel. We will also explore the effect of trade growth over time.</p>
@@ -1206,9 +1206,8 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <h2>The <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> input file<a class="headerlink" href="#the-events-input-file" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
 <li><p>Open the ‘includes’ folder in the <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>-folder and open the ‘events.inc’ file.</p></li>
-<li><p>Define <code class="docutils literal notranslate"><span class="pre">Start</span></code>. You will define the <code class="docutils literal notranslate"><span class="pre">End</span></code> later.</p></li>
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">Start</span></code>.</p></li>
 <li><p>Because we want Navigate to run simulations until 2050, you need to define intermediate time steps until 2050. In Navigate we have decided on annual time steps, but one could also decide on 5-year time steps, for example. <strong>Define annual time steps with a reference Date.</strong></p></li>
-<li><p>Mark the end of the timeline with <code class="docutils literal notranslate"><span class="pre">End</span></code>.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span>
 <span class="n">Date</span> <span class="s2">"01-01-2025"</span>
@@ -1237,7 +1236,6 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="n">Date</span> <span class="s2">"01-01-2048"</span>
 <span class="n">Date</span> <span class="s2">"01-01-2049"</span>
 <span class="n">Date</span> <span class="s2">"01-01-2050"</span>
-<span class="n">End</span>
 </pre></div>
 </div>
 </section>
@@ -1770,10 +1768,6 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="n">Date</span> <span class="s2">"01-01-2048"</span>
 <span class="n">Date</span> <span class="s2">"01-01-2049"</span>
 <span class="n">Date</span> <span class="s2">"01-01-2050"</span>
-
-<span class="c1"># Define the End of the timeline.</span>
-
-<span class="n">End</span>
 
 <span class="c1"># END OF events.inc FILE</span>
 </pre></div>

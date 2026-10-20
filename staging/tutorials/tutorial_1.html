@@ -497,7 +497,7 @@ Later, you will define intermediate annual time steps until 2050.</p></li>
 <h3>Definition of a Node<a class="headerlink" href="#definition-of-a-node" title="Link to this heading">#</a></h3>
 <p>You will now learn what a node is. In this example, the node is a fuel node and is called <code class="docutils literal notranslate"><span class="pre">&quot;low_sulfur_fuel_oil&quot;</span></code>. A node consists of attributes to which you can assign values or other relevant assumptions for an overview of a node’s components.</p>
 <p><img alt="Node-Definition" src="../_images/node.png" /></p>
-<p>In the instructions, everything within the brackets {} are assignments on the Fuel node <code class="docutils literal notranslate"><span class="pre">low_sulfur_fuel_oil</span></code>. Everything left of an equal sign is an attribute to the specific node. Everything on the right side of an equal sign is the value assigned to the attribute – values can be an ID, a separate node, or a number dependent on the specific attribute being assigned to. If the value of an attribute is another node then that node needs to be defined separately. We e.g., assign a node of the type Variable to the Fuel attribute <code class="docutils literal notranslate"><span class="pre">LowerHeatingValue</span></code>. In the defaults made by Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, and found in <code class="docutils literal notranslate"><span class="pre">Navigate/assumptions/defaults/installation/*</span></code> variables such as the Lower heating value of fuel oil are defined. For simplicity these are not imported in this tutorial modeling, where you will be defining such values yourself. The node <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code> you previously defined belongs to a group of unique nodes called General Nodes. Assignment of attributes to these works similar to other nodes but the difference is that general nodes do not have names. This is because only one can be defined per simulation.</p>
+<p>In the instructions, everything within the brackets {} are assignments on the Fuel node <code class="docutils literal notranslate"><span class="pre">low_sulfur_fuel_oil</span></code>. Everything left of an equal sign is an attribute to the specific node. Everything on the right side of an equal sign is the value assigned to the attribute – values can be an ID, a separate node, or a number dependent on the specific attribute being assigned to. If the value of an attribute is another node then that node needs to be defined separately. We e.g., assign a node of the type Variable to the Fuel attribute <code class="docutils literal notranslate"><span class="pre">LowerHeatingValue</span></code>. In the defaults made by Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, and found in <code class="docutils literal notranslate"><span class="pre">Navigate/assumptions/defaults/*</span></code> variables such as the Lower heating value of fuel oil are defined. For simplicity these are not imported in this tutorial modeling, where you will be defining such values yourself. The node <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code> you previously defined belongs to a group of unique nodes called General Nodes. Assignment of attributes to these works similar to other nodes but the difference is that general nodes do not have names. This is because only one can be defined per simulation.</p>
 <p><strong>Time to define your first node</strong></p>
 <ol class="arabic simple">
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;fleet&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
@@ -840,12 +840,6 @@ Define annual time-steps with a reference Date.</p></li>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li><p>Mark the end of the timeline with <code class="docutils literal notranslate"><span class="pre">End</span></code>.</p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">End</span>
-</pre></div>
-</div>
-<ol class="arabic simple" start="5">
 <li><p>Let’s run Navigate and see if it works and we get an output.</p></li>
 </ol>
 <p>Navigate should have run error-free now, with PowerShell showing a message like the one in the right column – well done, you’ve defined all the components necessary to run a simulation!</p>
@@ -1073,10 +1067,6 @@ Define annual time-steps with a reference Date.</p></li>
 <span class="n">Date</span> <span class="s2">"01-01-2048"</span>
 <span class="n">Date</span> <span class="s2">"01-01-2049"</span>
 <span class="n">Date</span> <span class="s2">"01-01-2050"</span>
-
-<span class="c1"># Define the End of the timeline.</span>
-
-<span class="n">End</span>
 
 <span class="c1"># END OF events.inc FILE</span>
 </pre></div>

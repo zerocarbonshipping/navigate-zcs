@@ -1556,10 +1556,6 @@ Date "01-01-2048"
 Date "01-01-2049"
 Date "01-01-2050"
 
-# Define the End of the timeline.
-
-End
-
 ### END OF time_steps_yearly.inc FILE
 ```
 :::
