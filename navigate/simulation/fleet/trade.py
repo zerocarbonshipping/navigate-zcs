@@ -90,7 +90,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     # reconcile newbuild package shares against per-technology flow caps now that
     # vessel-type counts are known
     reconcile_newbuild_technology_caps(fleet, increments, time_step, multipliers_total)
-    add_newbuilds(fleet, increments, time_step)
+    add_newbuilds(fleet, increments, time_step, idx)
 
     if trade > 0 and (trade_gap / trade) > 1e-3:
         logger.warning(

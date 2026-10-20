@@ -221,6 +221,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The report property `FuelTypeDemand` is now `FuelTypeCapacity`, and the
   `fuel_type_supply_demand` plot labels that line "Fleet capacity" instead of
   "Demand" (#522).
+- The log line for inertia newbuilds held back by the newbuild limit reads
+  `<fleet>: Deferred inertia newbuilds due to newbuild limit (N% delivered).`
+  like the orderbook deferral lines, instead of `Inertia not fully applied
+  due to newbuild limit`.
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`

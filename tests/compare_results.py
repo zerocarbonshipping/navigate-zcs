@@ -10,10 +10,11 @@ to rounding. `snapshot` runs the decks with the Navigate that the running
 interpreter imports, and writes one snapshot per deck (helpers/snapshot.py);
 `diff` compares two such directories and fails on any difference beyond
 rounding. CI runs `snapshot` once with the pull request merged into its base
-and once with that base, both from the merged copy of this script and its
-decks. Each deck is copied into a temporary directory before it runs, so the
-checkout receives no output, and each run uses HiGHS, so that a Gurobi licence
-on one side cannot move the results.
+and once with that base, each from its own copy of this script and its decks,
+so a change that migrates the decks to new DSL still compares. Each deck is
+copied into a temporary directory before it runs, so the checkout receives no
+output, and each run uses HiGHS, so that a Gurobi licence on one side cannot
+move the results.
 
     python tests/compare_results.py snapshot --assumptions ./assumptions --out base/
     python tests/compare_results.py diff base/ head/
