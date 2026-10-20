@@ -3,7 +3,8 @@
 
 # EU ETS - absolute price on CO2-equivalent burned on board, no free allowance.
 #
-# The coverage fractions are applied PER LEG, not to the round trip. Both legs
+# The coverage fractions are applied PER LEG (one sailing
+# from one port to the next), not to the round trip. Both legs
 # here are inter-jurisdiction, so both count at 50%. Port stays are classified
 # by their own port, so Rotterdam counts in full and San Antonio not at all.
 

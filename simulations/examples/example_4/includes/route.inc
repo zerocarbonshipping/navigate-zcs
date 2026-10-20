@@ -3,7 +3,8 @@
 
 # ROUTE - San Antonio to Rotterdam and back via the Panama Canal.
 # ROUND_TRIP visits the ports in the order listed; each entry in
-# Distances/Speeds/CapacityUtilizations is the leg leaving the port at that index.
+# Distances/Speeds/CapacityUtilizations is the leg (the sailing
+# to the next port) leaving the port at that index.
 
 Vessel "ship_*" {
     Route = Route("copper_route")
