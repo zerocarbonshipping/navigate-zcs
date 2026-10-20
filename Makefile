@@ -65,14 +65,16 @@ test-examples:  ## Run simulations/examples
 	$(RUN) navigate simulations/examples/example_2/example_2.nav -d ./assumptions -s
 	$(RUN) navigate simulations/examples/example_3/example_3.nav -d ./assumptions -s
 
-# The base ref is checked out into a worktree and installed into its own venv,
-# so neither side imports the other's source; the decks and the comparison come
-# from this checkout (tests/compare_results.py). CI runs the same comparison on
-# pull requests labelled maintenance (.github/workflows/compare-results.yml).
-BASE ?= dev
+# The base ref, by default the newest dev after a fetch, is checked out into a
+# worktree and installed into its own venv, so neither side imports the other's
+# source; the decks and the comparison come from this checkout
+# (tests/compare_results.py). CI runs the same comparison on pull requests
+# labelled maintenance (.github/workflows/compare-results.yml).
+BASE ?= origin/dev
 COMPARE_DIR := $(CURDIR)/.compare
 
-compare-results:  ## Compare deck results with another ref: make compare-results BASE=<ref> (default dev)
+compare-results:  ## Compare deck results with another ref: make compare-results BASE=<ref> (default origin/dev)
+	git fetch -q origin
 	rm -rf $(COMPARE_DIR) && git worktree prune
 	git worktree add --detach $(COMPARE_DIR)/base $(BASE)
 	$(RUN) python -m venv $(COMPARE_DIR)/env

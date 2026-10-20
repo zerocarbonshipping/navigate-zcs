@@ -4,10 +4,12 @@
 name: Compare results
 
 # A pull request labelled maintenance promises to leave simulation results
-# alone. This runs a fixed set of decks with the pull request's install and with
-# its base's, and fails on any difference beyond runner noise
-# (tests/compare_results.py). Kept apart from ci.yml so that adding a label does
-# not re-run the other checks.
+# alone. This runs a fixed set of decks with the pull request merged into the
+# current tip of its base and with that tip, and fails on any difference beyond
+# rounding (tests/compare_results.py). Comparing the merge rather than the pull
+# request's head keeps commits the base gained since the branch point out of the
+# difference. Kept apart from ci.yml so that adding a label does not re-run the
+# other checks.
 on:
   pull_request:
     types: [ opened, synchronize, reopened, labeled ]
@@ -24,17 +26,16 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Check out the pull request
+      # the pull_request event's ref is the pull request merged into its base
+      - name: Check out the merged pull request
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           path: head
+          fetch-depth: 2
 
+      # the merge commit's first parent is the base tip it was merged into
       - name: Check out its base
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          path: base
+        run: git -C head worktree add --detach ../base HEAD^1
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -49,14 +50,14 @@ jobs:
           python -m venv head-env
           head-env/bin/pip install -q ./head
 
-      # both sides run the pull request's decks and script, each against its
-      # own package and assumptions
+      # both sides run the merged decks and script, each against its own
+      # package and assumptions
       - name: Snapshot the base
         run: >
           base-env/bin/python head/tests/compare_results.py snapshot
           --assumptions base/assumptions --out snapshots/base
 
-      - name: Snapshot the pull request
+      - name: Snapshot the merged pull request
         run: >
           head-env/bin/python head/tests/compare_results.py snapshot
           --assumptions head/assumptions --out snapshots/head

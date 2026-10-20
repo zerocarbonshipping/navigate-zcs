@@ -85,8 +85,9 @@ change needs a test and which suite it belongs in. Changes that alter
 simulation results should explain the difference in the pull request
 description. A pull request that should not alter them carries the
 `maintenance` label; CI then runs a fixed set of decks on the pull request
-and on its base and fails on any difference. Run the same comparison locally
-with `make compare-results BASE=dev`.
+merged into its base and on that base, and fails on any difference beyond
+rounding. Run the same comparison locally against the newest `dev` with
+`make compare-results`.
 
 ## Questions
 
