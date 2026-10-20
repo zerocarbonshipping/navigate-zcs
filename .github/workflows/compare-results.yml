@@ -8,8 +8,10 @@ name: Compare results
 # current tip of its base and with that tip, and fails on any difference beyond
 # rounding (tests/compare_results.py). Comparing the merge rather than the pull
 # request's head keeps commits the base gained since the branch point out of the
-# difference. Kept apart from ci.yml so that adding a label does not re-run the
-# other checks.
+# difference. The job merges at run time rather than using the event's merge
+# commit, which GitHub does not rebuild when the base moves, so label events
+# and re-runs compare against the newest base. Kept apart from ci.yml so that
+# adding a label does not re-run the other checks.
 on:
   pull_request:
     types: [ opened, synchronize, reopened, labeled ]
@@ -26,16 +28,23 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      # the pull_request event's ref is the pull request merged into its base
-      - name: Check out the merged pull request
+      # by branch name, so the tip is the one at run time
+      - name: Check out the base
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.base.ref }}
           path: head
-          fetch-depth: 2
+          fetch-depth: 0
 
-      # the merge commit's first parent is the base tip it was merged into
-      - name: Check out its base
-        run: git -C head worktree add --detach ../base HEAD^1
+      # pull/N/head lives in the base repository, so forks fetch the same way
+      - name: Merge the pull request into it
+        working-directory: head
+        run: |
+          git worktree add --detach ../base HEAD
+          git fetch -q origin pull/${{ github.event.pull_request.number }}/head
+          git -c user.name=compare-results -c user.email=compare-results@localhost \
+            merge -q --no-edit FETCH_HEAD \
+            || { echo "::error::the pull request conflicts with its base; merge or rebase it first"; exit 1; }
 
       - name: Set up Python
         uses: actions/setup-python@v6
