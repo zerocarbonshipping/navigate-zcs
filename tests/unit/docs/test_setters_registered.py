@@ -16,12 +16,12 @@ from __future__ import annotations
 
 import pytest
 
-from navigate.parser._attributes import (
+from helpers.deck_surface import (
     GENERAL_NODE_ATTRIBUTE_SECTIONS,
     NODE_ATTRIBUTE_SECTIONS,
+    NODE_COMMAND_SECTIONS,
 )
-from navigate.parser._commands import NODE_COMMAND_SECTIONS
-from navigate.parser._keywords import GENERAL_NODE_CLASS, NODE_CLASS
+from navigate.core.node_registry import GENERAL_NODE_CLASS, NODE_CLASS
 from navigate.util import attribute_to_setter
 
 CLASSES = NODE_CLASS | GENERAL_NODE_CLASS
@@ -67,9 +67,9 @@ def test_every_dsl_method_is_registered(node_type):
     unregistered = dsl_methods - set(_registered_methods(node_type)) - INTERNAL_SETTERS
 
     assert not unregistered, (
-        f"{cls.__name__} methods no deck can reach: {sorted(unregistered)}; register"
-        " them in navigate/parser/_attributes.py or _commands.py and document them,"
-        " or list them in INTERNAL_SETTERS if the simulation calls them"
+        f"{cls.__name__} methods no deck can reach: {sorted(unregistered)}; mark"
+        " them with deck_attribute or deck_command and document them, or list"
+        " them in INTERNAL_SETTERS if the simulation calls them"
     )
 
 

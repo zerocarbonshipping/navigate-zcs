@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, overload
 
+from navigate.core import deck_attribute
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
 from navigate.core.nodes._table1d import _Table1D, check_table1d_input
@@ -26,13 +27,16 @@ class Curve(Node, _Table1D):
         Node name.
     """
 
+    type = CURVE
+
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name, CURVE)
+        Node.__init__(self, name)
         _Table1D.__init__(self)
 
         # used for temporary storage of the table during deck parsing
         self._temporary_table: tuple[FloatArray, FloatArray] | None = None
 
+    @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x- and y-values the curve interpolates in."""
         x, y = build_table_1d(table)

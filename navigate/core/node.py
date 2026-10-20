@@ -5,17 +5,29 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, final
+from typing import TYPE_CHECKING, ClassVar, final
+
+from navigate.core.dsl import collect_deck_entries
 
 if TYPE_CHECKING:
+    from navigate.core.dsl import DeckEntry
     from navigate.util import DateArray, FloatArray
 
 
 class Node:
     """Base class of the DSL nodes: a name and a type tag."""
 
-    def __init__(self, name: str, type_: str) -> None:
-        self.type: str = type_
+    # the node type keyword; each concrete node class sets its own
+    type: ClassVar[str]
+    # the deck attributes and commands the class's marked methods declare
+    deck_attributes: ClassVar[dict[str, DeckEntry]] = {}
+    deck_commands: ClassVar[dict[str, DeckEntry]] = {}
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        cls.deck_attributes, cls.deck_commands = collect_deck_entries(cls)
+
+    def __init__(self, name: str) -> None:
         self.name: str = name
 
     def __repr__(self) -> str:
@@ -23,24 +35,22 @@ class Node:
 
     @final
     def initialize(self) -> None:
-        """Bring the node to a usable state, from the deck as first read."""
-        self.check_requirements()
+        """Fill the defaults of the node, from the deck as first read."""
         self.apply_defaults()
         self.reinitialize()
 
     @final
     def reinitialize(self) -> None:
-        """Re-run everything a re-read of the deck can invalidate."""
+        """Re-fill what a re-read of the deck can invalidate."""
         self.apply_command_defaults()
-        self.check_consistency()
 
     def check_requirements(self) -> None:
         """
         Raise where an attribute the node cannot run without is unassigned.
 
-        Holds what the parser's required-attribute check cannot see, such as a
-        list left empty or an attribute required only under a condition on
-        others. Runs once, after the DEFINE block has been read.
+        Holds what the required-attribute mark cannot say: an empty list, or an
+        attribute required only under another. Run by the validate sweep of
+        `core/lifecycle.py` after the defaults, after DEFINE and after every event.
         """
 
     def apply_defaults(self) -> None:
@@ -67,8 +77,8 @@ class Node:
         """
         Raise where attributes contradict each other, warn where one is unused.
 
-        Runs after the DEFINE block and again after every event read, because
-        most attributes are SECTION_BOTH.
+        Run by the validate sweep of `core/lifecycle.py` after the defaults,
+        after DEFINE and after every event, as most attributes are SECTION_BOTH.
         """
 
     def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
@@ -79,7 +89,7 @@ class Node:
         that agree now but cross later go unchecked; this hook sees the
         remaining timeline instead. Runs once per time step, before the
         expectations are calculated, called by the simulation rather than the
-        parser: it is not part of `initialize`/`reinitialize`.
+        parser: it is not part of the lifecycle sweeps.
 
         Parameters
         ----------

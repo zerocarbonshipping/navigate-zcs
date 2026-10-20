@@ -9,11 +9,10 @@ Used by the report-property checks over the reference manual in tests/unit/docs.
 
 from __future__ import annotations
 
-from navigate.parser._commands import _REPORT_COMMANDS
-from navigate.parser._report_properties import PROFILE_CLASSES
+from navigate.core.nodes.report import PROFILE_CLASSES, Report
 from navigate.util import attribute_to_instance_name
 
-assert set(PROFILE_CLASSES) == set(_REPORT_COMMANDS)
+assert set(PROFILE_CLASSES) == set(Report.deck_commands)
 
 
 def result_for(token: str) -> str:

@@ -20,6 +20,7 @@ from navigate.core import (
 )
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.core.profiles import GlobalProfile, ProfileContext
+from navigate.exceptions import DeckError
 from navigate.simulation.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.simulation.bunker.solver import set_solver_preference
 from navigate.simulation.fleet import (
@@ -108,6 +109,26 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def check_runnable(nodes: Nodes) -> None:
+    """
+    Raise where a read deck defines no Fleet or no Fuel to simulate.
+
+    Parameters
+    ----------
+    nodes
+        The node registry of the read deck.
+    """
+    # a Fleet requires Vessels, a Vessel a Route, a Route Ports; emissions may be absent
+    missing = [
+        label
+        for registry, label in ((nodes.fleets, "Fleets"), (nodes.fuels, "Fuels"))
+        if not registry
+    ]
+    if missing:
+        listed = "".join(f"\t- No {label} are defined.\n" for label in missing)
+        raise DeckError(f"Unable to run a simulation:\n{listed}")
+
+
 class Simulation:
     """
     Step the nodes of a read deck through its dates, from initial conditions to results.
@@ -131,6 +152,8 @@ class Simulation:
         dateline: DateArray,
         output_directory: Path,
     ) -> None:
+        check_runnable(nodes)
+
         self.nodes: Nodes = nodes
         self.general_nodes: GeneralNodes = general_nodes
         self._output_directory: Path = output_directory

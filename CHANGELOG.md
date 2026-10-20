@@ -13,12 +13,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Breaking
+- Every row of a `Table` ends with a `;`, and the cells of a row are separated
+  by commas as in a list: `"01-01-2024", 1.0;`. A row without the `;` runs
+  into the next, a syntax error at the next row's first cell. The committed
+  assumptions, examples and tutorials are converted.
+- The default library has no `user` and `installation` branches: default
+  nodes sit at `<data_dir>/defaults/<NodeType>/` and modules at
+  `<data_dir>/modules/`. Move an assumptions folder of the old layout up one
+  level. A user file overlaying a default is replaced by an `Import` and the
+  reassignments in the deck, or by an own assumptions folder passed with `-d`.
+
 ### Added
 - Results file: every run writes all its results to `<deck>.parquet` next to
   the deck, or to the path given with `-o`/`--results`: every profile result
   of the global profile and of each fleet, vessel, port, plant, producer,
-  regulation and levy, one row per series and date, with the unit of each
-  result and the fuel and emission constants in the file metadata. [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
+  regulation and levy, one row per series and date, the values as 32-bit
+  floats, with the unit of each result and the fuel and emission constants in
+  the file metadata. [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
   opens it to plot the results in the browser; the built-in plots are kept
   for now. The layout is described on the new reference-manual page "Results
   file".
@@ -41,6 +53,46 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   requested; they used to produce no column.
 
 ### Changed
+- The deck is read in three phases - collect every file into declarations and
+  events, resolve which declarations the simulation holds, build the nodes -
+  instead of acting on each statement as it is read. Nothing moves in the
+  committed decks' results, but a deck author sees:
+  - `End` is accepted and ignored, dates in an `EVENTS` file need no order,
+    and a node block under `EVENTS` must follow a `Start` or `Date` (one
+    before any date is a deck error at its line).
+  - a node declared but not used is removed before any value is assigned, so
+    its values are not checked; a reference it makes is looked up in the
+    default library like any other, but one found nowhere is not an error;
+    the warning listing such nodes reads "declared but not used"; an
+    `EVENTS` block targeting only unused nodes is dropped with a warning, and
+    one naming a node the deck never declared is a deck error at its line
+    when the deck is read.
+  - a wildcard node reference such as `Fuels = Fuel("*")` expands over every
+    node of the type in the simulation, those pulled from the default library
+    included; wildcards match as `fnmatch` does, so `?` matches any one
+    character and `[abc]` a character of a set.
+  - a reference under `EVENTS` to a node the deck does not declare pulls it
+    from the default library when the deck is read and works, instead of
+    failing at the first time step; `Copy` and `Import` under `EVENTS`, a
+    `Date` inside a library file, a new node name or a wildcard matching
+    nothing under `EVENTS`, and a `DEFINE`-only attribute or command used
+    under `EVENTS` are all deck errors when the deck is read.
+  - a command argument that names a node found nowhere is a deck error even
+    when a later command rewrites the entry; an assignment overwritten later
+    in `DEFINE` still pulls nothing.
+  - a calculator a `DEFINE`-only command holds stays fixed against `EVENTS`
+    even when a later `DEFINE` command rewrites the same entry.
+  - a `Copy` of a calculator takes the bounds of its own holders only, not
+    those of the source's holders.
+  - a node referencing itself, directly, through a wildcard or inside an
+    expression, is a deck error at the line of the reference.
+  - the four deck error classes are one, `DeckError`; syntax errors quote
+    the line with a caret and name what was expected; a wrong number of
+    command arguments is reported as Python states it, at the deck line;
+    `'Fuel' is not an allowed keyword in section EVENTS` becomes the
+    attribute's own "does not allow setting ... in 'EVENTS'" message.
+  - statements no longer need a line each; `yyyy-mm-dd` dates are accepted
+    wherever a date is, quoted or bare; `%name%` is no longer a token.
 - `MinimumOfftakeDuration` (Producer) accepts any duration above 0 instead of
   at least 1; a duration under one year counts as one year.
 - A calculator (`Variable`, `Forecast`, `Curve`, `Timetable`, `Surface`)
@@ -173,6 +225,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   "Demand" (#522).
 
 ### Removed
+- Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`
+  or `MainFuelTypes = *`: name each member. An unquoted `*` is a syntax error.
+- Wildcard `Import`, such as `Import Converter "electrical_*"`: import each
+  node by name.
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
   and `set_fuel_distance` on `Plant`, priced at the region's
   `set_transport_cost`/`set_transport_wtt`. The examples lose their flat
@@ -257,7 +313,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     `OverheadTime`, …) and missing rows are added;
   - a Surface or Timetable header row is the y-axis and its first column the
     x-axis, not the other way round;
-  - an enum wildcard in a command expands over every member of the enum;
   - the `InitialSplit` rescale is proportional, not by equal fractions, and
     is logged above a 1% deviation;
   - the `BunkerOptions` defaults, `Threads` type and exclusive minimums;
@@ -300,12 +355,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     exits 1;
   - a node declared, imported or copied under a name already in use;
   - a reference whose type is not a node type, such as `Foo("x")`;
-  - a missing user or installation folder under `defaults/` or `modules/` is
-    treated as empty;
-  - an installation default that imports or copies its own node;
+  - default files that import or copy each other in a cycle;
   - a wildcard that matches nothing, or stands where one node is expected;
-  - a wildcard `Import` colliding with a used name, at the deck's `Import`
-    line;
   - a default file that does not yield the requested node;
   - a node found in neither the deck nor the defaults, which opened with a
     bare colon;
@@ -356,9 +407,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   wildcards, so `a.b` no longer matches `aXb`.
 - An `INF` entry in `InitialSplit`, or entries whose sum overflows, stop the
   deck at its line instead of yielding NaN.
-- `set_operational_saving_port` takes only `ELECTRICAL` and `HEAT`: its
-  wildcard no longer reaches `PROPULSION` and fails, and an explicit
-  `PROPULSION` is a deck error instead of a silently unread entry.
+- `set_operational_saving_port` takes only `ELECTRICAL` and `HEAT`: an
+  explicit `PROPULSION` is a deck error instead of a silently unread entry.
 - `set_operational_saving_port` names the demands it accepts when it rejects
   a key: `only allows assignment of ELECTRICAL, HEAT, but got X`.
 - `set_initial_technology_share` values built from expressions are honored
@@ -382,8 +432,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The expected fuel-delivery cost from plant to port is levelized against the
   plant's production over its operating years, as the production cost is.
   Results change for decks assigning `FuelTransport`.
-- A user default file that pulls another default node before importing its
-  own name still overlays the installation node of that name.
 - An integer attribute accepts a value just off a whole number from either
   side: `2.999999` is 3, where it was rejected.
 - An `InitialAgeDistribution` curve starting at a negative age contributes

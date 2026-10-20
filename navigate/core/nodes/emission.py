@@ -7,7 +7,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import Scalar, as_scalar, assign_id, assign_value
+from navigate.core import (
+    SECTION_DEFINE,
+    Scalar,
+    as_scalar,
+    assign_id,
+    assign_value,
+    deck_attribute,
+)
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, EMISSION, VARIABLE
@@ -19,14 +26,17 @@ if TYPE_CHECKING:
 class Emission(Node):
     """An emitted species and the global warming potential it is weighted by."""
 
+    type = EMISSION
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, EMISSION)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.global_warming_potential: CurveInput = Scalar(0.0)
         self.fuel_type: FuelTypeID | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE)
     def set_global_warming_potential(
         self, global_warming_potential: CurveArgument
     ) -> None:
@@ -35,6 +45,7 @@ class Emission(Node):
             as_scalar(global_warming_potential), type_=(CURVE, VARIABLE), lower=0.0
         )
 
+    @deck_attribute(SECTION_DEFINE)
     def set_fuel_type(self, fuel_type: str) -> None:
         """Set the fuel type whose slip produces the emission."""
         self.fuel_type = assign_id(fuel_type, FuelTypeID)

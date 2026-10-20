@@ -10,6 +10,7 @@ of a finished run. The Plot node is not assigned on any other node.
 
 from __future__ import annotations
 
+from navigate.core import SECTION_DEFINE, deck_attribute, deck_command
 from navigate.core.node import Node
 from navigate.core.node_type import PLOT
 
@@ -17,19 +18,23 @@ from navigate.core.node_type import PLOT
 class Plot(Node):
     """Hold the plot selection and output directory of a run."""
 
+    type = PLOT
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, PLOT)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.directory: str | None = None
         self.selected_plots: set[str] = set()
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE)
     def set_directory(self, directory: str) -> None:
         """Set the plot output directory."""
         self.directory = directory
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command(SECTION_DEFINE)
     def add_plot(self, label: str) -> None:
         """Select a plot to render, by its label."""
         self.selected_plots.add(label)

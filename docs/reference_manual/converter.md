@@ -158,7 +158,7 @@ This command sets the emissions in the converter as a fraction of the amount of 
 
 The value is per ton of fuel fed into the converter, so it already accounts for any slip set with `set_slip_fraction`. The fuel type must be one of the Converter's MainFuelTypes or PilotFuelTypes.
 
-* **Primary key type**: [FuelTypeID](appendix_ids.md#fueltypeid) (supports wildcards)
+* **Primary key type**: [FuelTypeID](appendix_ids.md#fueltypeid)
 * **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Variable`
 * **Example values**:
@@ -172,7 +172,7 @@ The value is per ton of fuel fed into the converter, so it already accounts for 
 
 This command sets the fraction of fuel mass that escapes unburned (slip) when using a specific fuel type, e.g., methane slip. Hence, the command must specify a) the fuel type, b) the fraction of fuel mass escaping unburned. The fuel type must be one of the Converter's MainFuelTypes or PilotFuelTypes.
 
-* **Primary key type**: [FuelTypeID](appendix_ids.md#fueltypeid) (supports wildcards)
+* **Primary key type**: [FuelTypeID](appendix_ids.md#fueltypeid)
 * **Data type**: `Float`, `Variable`
 * **Example values**:
   + `METHANE, 0.03`

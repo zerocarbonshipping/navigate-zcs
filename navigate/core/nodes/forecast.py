@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
+from navigate.core import deck_attribute
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST
 from navigate.core.nodes._table1d import _Table1D, check_table1d_input
@@ -29,8 +30,10 @@ class Forecast(Node, _Table1D):
         Node name.
     """
 
+    type = FORECAST
+
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name, FORECAST)
+        Node.__init__(self, name)
         _Table1D.__init__(self)
 
         # temporarily stored variables at current time-step; nan
@@ -40,6 +43,7 @@ class Forecast(Node, _Table1D):
         # used for temporary storage of tables during deck parsing
         self._temporary_table: tuple[FloatArray | DateArray, FloatArray] | None = None
 
+    @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x- and y-values the forecast interpolates in."""
         x, y = build_table_1d_dated(table)

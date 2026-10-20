@@ -21,8 +21,8 @@ import pytest
 
 from helpers.reference_manual import REPORT_PAGE, report_property_tables
 from helpers.report_properties import PROFILE_CLASSES, result_for, token_for
+from navigate.core.nodes.report import check_report_property
 from navigate.core.profiles import result_names
-from navigate.parser._report_properties import check_report_property
 
 TABLES = report_property_tables()
 

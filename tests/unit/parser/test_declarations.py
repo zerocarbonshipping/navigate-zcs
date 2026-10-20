@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-How a node or general-node declaration maps onto the parser's registry.
+How a node or general-node declaration maps onto the nodes the parser builds.
 
-A first declaration creates the node and registers it before its body is read;
-a later declaration of the same name re-opens it; a wildcard name targets every
-declared match. Names are unique across node types, general nodes carry no
-name and no commands, and no node is created outside DEFINE.
+A first declaration creates the node; a later declaration of the same name
+adds to it; a wildcard name targets every match declared before it. Names are
+unique across node types, general nodes carry no name and no commands, and no
+node is created outside DEFINE.
 """
 
 from __future__ import annotations
@@ -15,17 +15,36 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from helpers.parser_decks import emission_holding, variable
-from navigate.core.enum_ import SectionID
+from helpers.parser_decks import emission_holding, line_of, variable
 from navigate.core.general_nodes.bunker_options import BunkerOptions
-from navigate.core.node_type import PROCESS
 from navigate.core.nodes.variable import Variable
-from navigate.exceptions import CommandError, DeckFormatError, DeckKeywordError
-from navigate.parser._lark_parser import Assignment, NodeDeclaration
-from navigate.parser._node_reference import NodeReference
-from navigate.parser.parser import Parser
+from navigate.exceptions import DeckError
 
 NAMED_GENERAL_NODE = 'ModelDefinition "x" {\n}\n'
+
+# the shortest chain from a root to a Process: Producer -> Plant -> Process
+PRODUCER_CHAIN = """
+Fuel "f" {
+    FuelType = OIL
+    LowerHeatingValue = 40
+    MassDensity = 900
+}
+Source "src" { Dependency = STANDALONE }
+Region "rgn" { }
+Plant "pl" {
+    Fuel = Fuel("f")
+    Process = Process("p")
+    Region = Region("rgn")
+    Source = Source("src")
+    Capacity = 100
+}
+Producer "pr" {
+    Plants = [Plant("pl")]
+    FuelDemandSensitivity = 1
+    FuelCostSensitivity = 1
+    MaximumDevelopment = 1
+}
+"""
 
 
 # input:    | Variable "v" { Value = 1.5 }
@@ -56,18 +75,67 @@ def test_a_second_declaration_reopens_the_same_node(read_deck):
 
 
 # input:    | Process "p" { Feeds = [Process("p")] }
-# expected: -> the process feeds on itself: process.feeds == [process]
-def test_a_body_reference_to_its_own_node_binds_to_it():
-    # a Process may feed on itself; the reference must bind to the node being
-    # declared, not to a second one no declaration fills
-    parser = Parser()
-    parser._current_section = SectionID.DEFINE
-    body = [Assignment("Feeds", [NodeReference(PROCESS, "p")])]
+# expected: -> DeckError "Error in deck file, line 1, include file '.../define.inc',
+#              line N: Process("p") references itself in 'Feeds'."
+@pytest.mark.parametrize(
+    ("define", "events", "file", "deck_line", "needle", "message"),
+    [
+        (
+            PRODUCER_CHAIN + 'Process "p" {\n    Feeds = [Process("p")]\n}\n',
+            None,
+            "define.inc",
+            1,
+            "Feeds",
+            "Process(\"p\") references itself in 'Feeds'.",
+        ),
+        (
+            PRODUCER_CHAIN + 'Process "p" {\n    Feeds = [Process("*")]\n}\n',
+            None,
+            "define.inc",
+            1,
+            "Feeds",
+            "Process(\"p\") references itself in 'Feeds' through the wildcard "
+            'Process("*").',
+        ),
+        (
+            PRODUCER_CHAIN
+            + 'Process "p" {\n}\nProcess "*" {\n    Feeds = [Process("p")]\n}\n',
+            None,
+            "define.inc",
+            1,
+            "Feeds",
+            "Process(\"p\") references itself in 'Feeds'.",
+        ),
+        (
+            emission_holding('Variable("v")') + variable(Value='<Variable("v") + 1>'),
+            None,
+            "define.inc",
+            1,
+            "Value",
+            "Variable(\"v\") references itself in 'Value'.",
+        ),
+        (
+            emission_holding('Variable("v")') + variable(Value=1.0),
+            'Start\nVariable "v" {\n    Value = <Variable("v") + 1>\n}\n',
+            "events.inc",
+            2,
+            "Value",
+            "Variable(\"v\") references itself in 'Value'.",
+        ),
+    ],
+    ids=["list", "wildcard_reference", "wildcard_declaration", "expression", "events"],
+)
+def test_a_node_referencing_itself_is_rejected(
+    tmp_path, read_deck, define, events, file, deck_line, needle, message
+):
+    with pytest.raises(DeckError) as raised:
+        read_deck(define, events=events)
 
-    parser._process_node_declaration(NodeDeclaration(PROCESS, "p", body))
-
-    process = parser.nodes.processes["p"]
-    assert process.feeds == [process]
+    line = line_of(tmp_path / file, needle)
+    assert str(raised.value) == (
+        f"Error in deck file, line {deck_line}, include file '{tmp_path / file}', "
+        f"line {line}: {message}"
+    )
 
 
 # input:    | Variable "a1" { Value = 1.0 }  (also "a2" = 2.0, "b" = 3.0)
@@ -91,11 +159,11 @@ def test_a_wildcard_name_targets_every_declared_match(read_deck):
 
 
 # input:    | Variable "z*" { Value = 1.0 }   (no Variable name starts with z)
-# expected: -> DeckKeywordError "No node of type 'Variable' matches the
-#              wildcard expression 'z*'."
+# expected: -> DeckError "No node of type 'Variable' matches the wildcard
+#              expression 'z*'."
 def test_a_wildcard_name_without_a_match_is_rejected(read_deck):
     with pytest.raises(
-        DeckKeywordError,
+        DeckError,
         match=(
             r"define\.inc', line 5: No node of type 'Variable' matches the "
             r"wildcard expression 'z\*'\.$"
@@ -106,11 +174,11 @@ def test_a_wildcard_name_without_a_match_is_rejected(read_deck):
 
 # input:    | Variable "x" { Value = 1.0 }
 #           | Curve "x" { }
-# expected: -> DeckKeywordError "Unable to add Curve("x"), the name is already
-#              in use by a different node."
+# expected: -> DeckError "Unable to add Curve("x"), the name is already in use
+#              by a different node."
 def test_a_name_in_use_by_another_node_type_is_rejected(read_deck):
     with pytest.raises(
-        DeckKeywordError,
+        DeckError,
         match=(
             r"define\.inc', line 8: Unable to add Curve\(\"x\"\), the name is "
             r"already in use by a different node\.$"
@@ -120,14 +188,14 @@ def test_a_name_in_use_by_another_node_type_is_rejected(read_deck):
 
 
 # input:    | ModelDefinition "x" { }   (in DEFINE or in EVENTS)
-# expected: -> DeckKeywordError "'ModelDefinition' is a general node and is
-#              declared without a name."
+# expected: -> DeckError "'ModelDefinition' is a general node and is declared
+#              without a name."
 @pytest.mark.parametrize(
     ("define", "events", "location"),
     [
         (
             "",
-            'Start\nDate "01-01-2027"\n' + NAMED_GENERAL_NODE + "End\n",
+            'Start\nDate "01-01-2027"\n' + NAMED_GENERAL_NODE,
             r"line 2, include file '.*events\.inc', line 3",
         ),
         (NAMED_GENERAL_NODE, None, r"line 1, include file '.*define\.inc', line 5"),
@@ -136,7 +204,7 @@ def test_a_name_in_use_by_another_node_type_is_rejected(read_deck):
 )
 def test_a_named_general_node_is_rejected(read_deck, define, events, location):
     with pytest.raises(
-        DeckKeywordError,
+        DeckError,
         match=(
             rf"^Error in deck file, {location}: "
             r"'ModelDefinition' is a general node and is declared without a name\.$"
@@ -146,10 +214,10 @@ def test_a_named_general_node_is_rejected(read_deck, define, events, location):
 
 
 # input:    | BunkerOptions { set_threads(2) }
-# expected: -> CommandError "'BunkerOptions' does not support commands."
+# expected: -> DeckError "'BunkerOptions' does not support commands."
 def test_a_command_on_a_general_node_is_rejected(read_deck):
     with pytest.raises(
-        CommandError,
+        DeckError,
         match=r"define\.inc', line 6: 'BunkerOptions' does not support commands\.$",
     ):
         read_deck("BunkerOptions {\n    set_threads(2)\n}\n")
@@ -180,11 +248,11 @@ def test_an_undeclared_bunker_options_falls_back_to_the_defaults(read_deck):
 
 
 # input:    | DEFINE { Include "define.inc" }   (define.inc is empty)
-# expected: -> DeckFormatError "Error in simulation: 'ModelDefinition' must be
+# expected: -> DeckError "Error in simulation: 'ModelDefinition' must be
 #              defined."
 def test_a_deck_without_a_model_definition_is_rejected(read_deck):
     with pytest.raises(
-        DeckFormatError,
+        DeckError,
         match=r"^Error in simulation: 'ModelDefinition' must be defined\.$",
     ):
         read_deck(define_base="")
@@ -192,14 +260,15 @@ def test_a_deck_without_a_model_definition_is_rejected(read_deck):
 
 # input:    | EVENTS: Start
 #           | Variable "new" { Value = 2.0 }
-#           | End
-# expected: -> DeckKeywordError "Unable to define new nodes outside DEFINE."
+# expected: -> DeckError "...events.inc', line 2: Variable("new") is not
+#              defined; the EVENTS section cannot define new nodes." when the
+#              deck is read
 def test_a_new_node_in_events_is_rejected(read_deck):
-    # the declaration is queued and only read when its date comes up
-    parser = read_deck(events="Start\n" + variable("new", Value=2.0) + "End\n")
-
     with pytest.raises(
-        DeckKeywordError,
-        match=(r"events\.inc', line 2: Unable to define new nodes outside DEFINE\.$"),
+        DeckError,
+        match=(
+            r"events\.inc', line 2: Variable\(\"new\"\) is not defined; the EVENTS "
+            r"section cannot define new nodes\.$"
+        ),
     ):
-        parser.read_events(parser.dates[0])
+        read_deck(events="Start\n" + variable("new", Value=2.0))

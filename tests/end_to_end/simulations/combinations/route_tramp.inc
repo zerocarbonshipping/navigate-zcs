@@ -5,9 +5,9 @@
 # the port calls, the voyage distribution and a speed distribution per leg.
 Curve "combination_route_speeds" {
 	Table = [
-		12.0  0.2                       # knots, share of the leg's time at sea
-		16.0  0.6
-		20.0  0.2
+		12.0,  0.2;                       # knots, share of the leg's time at sea
+		16.0,  0.6;
+		20.0,  0.2;
 	]
 }
 

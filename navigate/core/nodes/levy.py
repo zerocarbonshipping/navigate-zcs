@@ -9,7 +9,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core import Scalar, as_scalar, assign_id, assign_value
+from navigate.core import (
+    SECTION_DEFINE,
+    Scalar,
+    as_scalar,
+    assign_id,
+    assign_value,
+    deck_attribute,
+)
 from navigate.core.enum_ import LevySchemeID
 from navigate.core.expectations import LevyExpectation
 from navigate.core.node_type import FORECAST, LEVY, VARIABLE
@@ -26,8 +33,10 @@ if TYPE_CHECKING:
 class Levy(_Policy):
     """A levy penalizing or subsidizing fuels by emission factor against thresholds."""
 
+    type = LEVY
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, LEVY)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.level: ForecastInput = Scalar(0.0)
@@ -39,22 +48,26 @@ class Levy(_Policy):
         self.profile: LevyProfile = LevyProfile()
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_scheme(self, scheme: str) -> None:
         """Set the scheme of the levy."""
         self.scheme = assign_id(scheme, LevySchemeID)
 
+    @deck_attribute()
     def set_level(self, level: ForecastArgument) -> None:
         """Set the levy level paid or received, depending on scheme."""
         self.level = assign_value(
             as_scalar(level), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
+    @deck_attribute()
     def set_lower_threshold(self, lower_threshold: ForecastArgument) -> None:
         """Set the lower emission factor threshold of the levy."""
         self.lower_threshold = assign_value(
             as_scalar(lower_threshold), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
+    @deck_attribute()
     def set_upper_threshold(self, upper_threshold: ForecastArgument) -> None:
         """Set the upper emission factor threshold of the levy."""
         self.upper_threshold = assign_value(

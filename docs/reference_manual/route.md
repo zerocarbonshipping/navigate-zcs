@@ -40,17 +40,17 @@ TRAMP example, with a distribution of speeds and ballast and laden sailing:
 ```python
 Curve "bulk_speeds" {
     Table = [
-        10.5  0.3
-        11.5  0.4
-        12.5  0.3
+        10.5,  0.3;
+        11.5,  0.4;
+        12.5,  0.3;
     ]
 }
 
 Curve "bulk_utilizations" {
     Table = [
-        10.5  0.6
-        11.5  0.5
-        12.5  0.4
+        10.5,  0.6;
+        11.5,  0.5;
+        12.5,  0.4;
     ]
 }
 

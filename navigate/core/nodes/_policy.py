@@ -8,12 +8,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core import (
+    SECTION_DEFINE,
     as_scalar,
     assign_boolean,
     assign_id,
     assign_reference_list,
     assign_value,
     command_assignment_to_boolean_dict,
+    deck_attribute,
+    deck_command,
     write_matching_key_pairs,
     write_matching_keys,
 )
@@ -41,8 +44,8 @@ if TYPE_CHECKING:
 class _Policy(Node):
     """The scope, jurisdiction and emission factors common to every policy node."""
 
-    def __init__(self, name: str, type_: str) -> None:
-        super().__init__(name, type_)
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         # active
@@ -71,32 +74,39 @@ class _Policy(Node):
         self.in_jurisdiction_vessel: dict[str, bool] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute()
     def set_active(self, active: str) -> None:
         """Set the flag for whether the policy is active."""
         self.active = assign_boolean(active)
 
+    @deck_attribute(SECTION_DEFINE)
     def set_jurisdiction(self, ports: Port | list[Port]) -> None:
         """Set the ports under the jurisdiction of the policy."""
         self.jurisdiction = assign_reference_list(ports, PORT)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_emissions(self, emissions: Emission | list[Emission]) -> None:
         """Set the emissions targeted by the policy."""
         self.emissions = assign_reference_list(
             emissions, EMISSION, min_length=1, unique=True
         )
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_fuels(self, fuels: Fuel | list[Fuel]) -> None:
         """Set the fuels targeted by the policy."""
         self.fuels = assign_reference_list(fuels, FUEL, min_length=1, unique=True)
 
+    @deck_attribute(SECTION_DEFINE)
     def set_scope(self, scope: str) -> None:
         """Set the scope of emissions targeted by the policy."""
         self.scope = assign_id(scope, PolicyScopeID)
 
+    @deck_attribute()
     def set_include_slip(self, include_slip: str) -> None:
         """Set whether emissions slip is included in the policy's emissions."""
         self.include_slip = assign_boolean(include_slip)
 
+    @deck_attribute(SECTION_DEFINE)
     def set_emissions_lifetime(self, emissions_lifetime: ScalarArgument) -> None:
         """Set the emissions lifetime used in the GWP calculation of emissions."""
         self.emissions_lifetime = assign_value(
@@ -104,12 +114,14 @@ class _Policy(Node):
         )
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command()
     def set_include_vessel(self, vessel_name: str, include_vessel: str) -> None:
         """Set whether a vessel is impacted by the policy."""
         command_assignment_to_boolean_dict(
             vessel_name, include_vessel, self.include_vessel, allow_empty=True
         )
 
+    @deck_command()
     def set_global_warming_potential(
         self, emission_name: str, global_warming_potential: CurveArgument
     ) -> None:
@@ -120,6 +132,7 @@ class _Policy(Node):
             self.global_warming_potential,
         )
 
+    @deck_command()
     def set_fuel_wtt(
         self, fuel_name: str, emission_name: str, emission_factor: ForecastArgument
     ) -> None:
@@ -130,6 +143,7 @@ class _Policy(Node):
             self.fuel_wtt,
         )
 
+    @deck_command()
     def set_fuel_ttw(
         self, fuel_name: str, emission_name: str, emission_factor: ForecastArgument
     ) -> None:

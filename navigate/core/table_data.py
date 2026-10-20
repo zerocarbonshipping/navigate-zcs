@@ -10,8 +10,6 @@ x-array for a numeric table, and the consumer dispatches on the dtype.
 
 from __future__ import annotations
 
-import datetime
-import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -20,89 +18,14 @@ import numpy as np
 if TYPE_CHECKING:
     from navigate.util.types_ import DateArray, FloatArray
 
+type Cell = float | np.datetime64
+
 
 @dataclass
 class TableData:
-    """
-    Fully-parsed table: rows of typed cells.
+    """A table as the deck writes it: rows of numbers and dates."""
 
-    String cells are date literals (converted later via ``string_to_date``).
-    Numeric cells are already ``float``.
-    """
-
-    rows: list[list[float | str]] = field(default_factory=list)  # the table, row by row
-
-
-# the x-column rejection names the formats 'string_to_date' accepts
-_DATE_FORMAT_ERROR = (
-    "Error in table row, 'x' must be a number or a date in format "
-    "dd-mm-yyyy, dd/mm/yyyy or yyyy-mm-dd."
-)
-
-
-def string_to_date(string: str, msg: str) -> np.datetime64:
-    """
-    Convert a date string to ``np.datetime64``.
-
-    Supported formats: ``dd-mm-yyyy``, ``dd/mm/yyyy``, ``yyyy-mm-dd`` (ISO 8601).
-
-    Parameters
-    ----------
-    string
-        Date string (may contain surrounding whitespace/quotes).
-    msg
-        Error message for raised ``ValueError``.
-
-    Returns
-    -------
-    np.datetime64
-        The parsed date, at day resolution.
-    """
-    string = string.strip(' \n\t"')
-    for date_format in ("%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%d"):
-        try:
-            parsed_date = datetime.datetime.strptime(string, date_format)
-            return np.datetime64(parsed_date.date(), "D")
-        except ValueError:
-            continue
-    raise ValueError(msg)
-
-
-def parse_table_cells(table_block: str) -> list[list[float | str]]:
-    """
-    Parse a raw ``TABLE_BLOCK`` token into typed row-lists.
-
-    Parameters
-    ----------
-    table_block
-        The token as the grammar read it, brackets and comments included.
-
-    Returns
-    -------
-    list[list[float | str]]
-        One list per row, of ``float`` and ``str`` cells (quoted date and
-        header strings, quotes stripped).
-    """
-    inner = re.sub(r"^Table\s*=?\s*\[\s*", "", table_block)
-    inner = re.sub(r"\s*]\s*$", "", inner)
-
-    rows: list[list[float | str]] = []
-    for raw_line in inner.split("\n"):
-        line = re.sub(r"#.*$", "", raw_line).strip()
-        if not line:
-            continue
-
-        cells: list[float | str] = []
-        for token in re.findall(r'"[^"]*"|[^\s]+', line):
-            if token.startswith('"'):
-                cells.append(token[1:-1])
-            else:
-                try:
-                    cells.append(float(token))
-                except ValueError:
-                    cells.append(token)
-        rows.append(cells)
-    return rows
+    rows: list[list[Cell]] = field(default_factory=list)
 
 
 def build_table_1d(table: TableData) -> tuple[FloatArray, FloatArray]:
@@ -112,7 +35,7 @@ def build_table_1d(table: TableData) -> tuple[FloatArray, FloatArray]:
     Parameters
     ----------
     table
-        Pre-parsed table with typed cells.
+        The table as the deck wrote it.
 
     Returns
     -------
@@ -133,7 +56,7 @@ def build_table_1d_dated(table: TableData) -> tuple[FloatArray | DateArray, Floa
     Parameters
     ----------
     table
-        Pre-parsed table with typed cells.
+        The table as the deck wrote it.
 
     Returns
     -------
@@ -154,7 +77,7 @@ def build_table_2d(table: TableData) -> tuple[FloatArray, FloatArray, FloatArray
     Parameters
     ----------
     table
-        Pre-parsed table with typed cells.
+        The table as the deck wrote it.
 
     Returns
     -------
@@ -183,7 +106,7 @@ def build_table_2d_dated(
     Parameters
     ----------
     table
-        Pre-parsed table with typed cells.
+        The table as the deck wrote it.
 
     Returns
     -------
@@ -205,28 +128,12 @@ def build_table_2d_dated(
 
 def _table_1d_columns(
     table: TableData, allow_date: bool
-) -> tuple[list[float | np.datetime64], list[float]]:
-    """
-    Read the x- and y-column of a 1D table.
-
-    Parameters
-    ----------
-    table
-        Pre-parsed table with typed cells.
-    allow_date
-        Whether a date literal is accepted in the x-column.
-
-    Returns
-    -------
-    list[float | np.datetime64]
-        The x-column.
-    list[float]
-        The y-column.
-    """
+) -> tuple[list[Cell], list[float]]:
+    """Read the x- and y-column of a 1D table."""
     x_error = "Error in table row, 'x' must be a number."
     y_error = "Error in table row, 'y' must be a number."
 
-    x: list[float | np.datetime64] = []
+    x: list[Cell] = []
     y: list[float] = []
 
     for row in table.rows:
@@ -243,33 +150,15 @@ def _table_1d_columns(
 
 def _table_2d_columns(
     table: TableData, allow_date: bool
-) -> tuple[list[float | np.datetime64], list[float], list[list[float]]]:
-    """
-    Read the x-, y- and z-column of a 2D table.
-
-    Parameters
-    ----------
-    table
-        Pre-parsed table with typed cells.
-    allow_date
-        Whether a date literal is accepted in the x-column.
-
-    Returns
-    -------
-    list[float | np.datetime64]
-        The x-column.
-    list[float]
-        The y-column, read from the header row.
-    list[list[float]]
-        The value cells, one row per x.
-    """
+) -> tuple[list[Cell], list[float], list[list[float]]]:
+    """Read the x-, y- and z-column of a 2D table."""
     if not table.rows:
         return [], [], []
 
     header, *data = table.rows
     y = _read_numbers(header, "Header row must contain only numbers, got '{cell}'.")
 
-    x: list[float | np.datetime64] = []
+    x: list[Cell] = []
     z: list[list[float]] = []
 
     for row in data:
@@ -284,76 +173,24 @@ def _table_2d_columns(
     return x, y, z
 
 
-def _table_2d_row(
-    row: list[float | str], allow_date: bool
-) -> tuple[float | np.datetime64, list[float]]:
-    """
-    Read one data row of a 2D table, the first cell of which carries x.
-
-    Parameters
-    ----------
-    row
-        One data row, its x-cell first.
-    allow_date
-        Whether a date literal is accepted in the x-cell.
-
-    Returns
-    -------
-    float | np.datetime64
-        The x-value of the row.
-    list[float]
-        The value cells of the row.
-    """
+def _table_2d_row(row: list[Cell], allow_date: bool) -> tuple[Cell, list[float]]:
+    """Read one data row of a 2D table, the first cell of which carries x."""
     error = "Error in table row, input must be numbers."
     x_cell, *value_cells = row
 
     return _read_x(x_cell, allow_date, error), _read_numbers(value_cells, error)
 
 
-def _read_x(cell: float | str, allow_date: bool, error: str) -> float | np.datetime64:
-    """
-    Read an x-cell, a number or, where allowed, a date literal.
-
-    Parameters
-    ----------
-    cell
-        The x-cell.
-    allow_date
-        Whether a date literal is accepted.
-    error
-        Message raised for a string cell where no date is accepted.
-
-    Returns
-    -------
-    float | np.datetime64
-        The x-value.
-    """
-    if isinstance(cell, float):
+def _read_x(cell: Cell, allow_date: bool, error: str) -> Cell:
+    """Read an x-cell, a number or, where allowed, a date."""
+    if isinstance(cell, float) or allow_date:
         return cell
-
-    if allow_date:
-        return string_to_date(cell, msg=_DATE_FORMAT_ERROR)
 
     raise ValueError(error)
 
 
-def _read_numbers(cells: list[float | str], error: str) -> list[float]:
-    """
-    Read cells that must all be numbers.
-
-    Parameters
-    ----------
-    cells
-        The cells to read.
-    error
-        Message raised for a non-numeric cell; a ``{cell}`` placeholder in it
-        is filled with the offending cell.
-
-    Returns
-    -------
-    list[float]
-        The cell values.
-    """
+def _read_numbers(cells: list[Cell], error: str) -> list[float]:
+    """Read cells that must all be numbers."""
     values = []
 
     for cell in cells:
@@ -365,20 +202,8 @@ def _read_numbers(cells: list[float | str], error: str) -> list[float]:
     return values
 
 
-def _x_array(x: list[float | np.datetime64]) -> FloatArray | DateArray:
-    """
-    Turn the x-column into an array of the dtype its cells carry.
-
-    Parameters
-    ----------
-    x
-        The x-column cells, all numbers or all dates.
-
-    Returns
-    -------
-    FloatArray | DateArray
-        The x-column, float or date; float for an empty column.
-    """
+def _x_array(x: list[Cell]) -> FloatArray | DateArray:
+    """Turn the x-column into an array of the dtype its cells carry."""
     is_date = [isinstance(value, np.datetime64) for value in x]
 
     if not any(is_date):

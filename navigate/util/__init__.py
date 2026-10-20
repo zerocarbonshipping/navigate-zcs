@@ -40,7 +40,7 @@ from navigate.util.naming import (
     matching_keys,
     name_contains_wildcards,
     retrieve_keys,
-    wildcard_to_regex,
+    setter_to_attribute,
 )
 from navigate.util.numeric import (
     ROUND_OFF,

@@ -17,6 +17,15 @@ class NavigateError(Exception):
     """
 
 
+class DeckError(NavigateError):
+    """
+    Raised for a mistake in the input deck the parser reads.
+
+    The message names the deck line and the include file and line the mistake
+    was written at, where the parser knows them.
+    """
+
+
 class DeckInsufficientError(NavigateError):
     """Raised if the deck contains insufficient information to run a simulation."""
 
@@ -35,22 +44,6 @@ class UnassignedAttributeError(DeckInsufficientError):
 
     def __init__(self, owner: str, attribute_name: str) -> None:
         super().__init__(f"{owner}: Attribute '{attribute_name}' is unassigned.")
-
-
-class DeckFormatError(NavigateError):
-    """Raised if there is a formatting error in the input deck read by the Parser."""
-
-
-class DeckKeywordError(NavigateError):
-    """Raised if there is a keyword error in the input deck read by the Parser."""
-
-
-class AttributeAssignmentError(NavigateError):
-    """Raised if there is an assignment error in the input deck read by the Parser."""
-
-
-class CommandError(NavigateError):
-    """Raised if there is a command error in the input deck read by the Parser."""
 
 
 class InfeasibleLPError(NavigateError):

@@ -74,7 +74,6 @@ def run_deck(
 
     parser = Parser()
     parser.read_deck(deck_path, data_dir=data_dir)
-    parser.includes_necessary_information()
 
     if solver is not None:
         parser.general_nodes.bunker_options.solver = SOLVER_BACKENDS[solver]

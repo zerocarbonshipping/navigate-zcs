@@ -25,10 +25,10 @@ from navigate.core.assign import (
     assign_value,
     check_curves_are_finite,
     command_assignment_to_boolean_dict,
-    expand_id_wildcard,
     write_matching_key_pairs,
     write_matching_keys,
 )
+from navigate.core.dsl import SECTION_DEFINE, deck_attribute, deck_command
 from navigate.core.expression import Expression
 from navigate.core.node_maps import (
     define_vessel_fuel_maps,

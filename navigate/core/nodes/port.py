@@ -12,6 +12,8 @@ from navigate.core import (
     as_scalar,
     assign_value,
     command_assignment_to_boolean_dict,
+    deck_attribute,
+    deck_command,
     write_matching_key_pairs,
     write_matching_keys,
 )
@@ -31,8 +33,10 @@ if TYPE_CHECKING:
 class Port(Node):
     """A port: the fuels bunkered there, their limits and costs, and shore power."""
 
+    type = PORT
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, PORT)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         # bunkering
@@ -60,10 +64,12 @@ class Port(Node):
         self.imposed_levies: list[Levy]
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command()
     def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:
         """Set whether a fuel may be bunkered in the port."""
         command_assignment_to_boolean_dict(fuel_name, value, self.bunkering_allowed)
 
+    @deck_command()
     def set_bunkering_limit(self, fuel_name: str, value: ForecastArgument) -> None:
         """Set the limit on the amount of a fuel bunkered in the port."""
         write_matching_keys(
@@ -77,6 +83,7 @@ class Port(Node):
             self.bunkering_limit,
         )
 
+    @deck_command()
     def set_bunkering_inertia(self, fuel_name: str, value: ForecastArgument) -> None:
         """Set the bunkering inertia of a fuel in the port."""
         write_matching_keys(
@@ -87,6 +94,7 @@ class Port(Node):
             self.bunkering_inertia,
         )
 
+    @deck_command()
     def set_handling_cost(self, fuel_name: str, value: ForecastArgument) -> None:
         """Set the storage and bunkering service cost of a fuel in the port."""
         write_matching_keys(
@@ -95,6 +103,7 @@ class Port(Node):
             self.handling_cost,
         )
 
+    @deck_command()
     def set_bunker_price_overwrite(
         self, fuel_name: str, value: ForecastArgument
     ) -> None:
@@ -105,6 +114,7 @@ class Port(Node):
             self.bunker_price_overwrite,
         )
 
+    @deck_command()
     def set_bunker_wtt_overwrite(
         self, fuel_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
@@ -115,18 +125,21 @@ class Port(Node):
             self.bunker_wtt_overwrite,
         )
 
+    @deck_attribute()
     def set_shore_power_cost(self, value: ForecastArgument) -> None:
         """Set the shore power electricity tariff of the port."""
         self.shore_power_cost = assign_value(
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
+    @deck_attribute()
     def set_shore_power_connection_share(self, value: ForecastArgument) -> None:
         """Set the fraction of port time with a shore power connection."""
         self.shore_power_connection_share = assign_value(
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
+    @deck_command()
     def set_shore_power_emission_factor(
         self, emission_name: str, value: ForecastArgument
     ) -> None:

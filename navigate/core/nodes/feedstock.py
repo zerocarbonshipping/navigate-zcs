@@ -12,5 +12,7 @@ from navigate.core.node_type import FEEDSTOCK
 class Feedstock(Node):
     """A feedstock that processes consume and regions and plants price and transport."""
 
+    type = FEEDSTOCK
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, FEEDSTOCK)
+        super().__init__(name)

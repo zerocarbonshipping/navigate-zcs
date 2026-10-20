@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Which declared nodes take part in the run, and what the prune does to the rest.
+Which declared nodes take part in the run, and what becomes of the rest.
 
 A node is reachable when a chain of references connects it to a root type.
-`find_unreachable` is checked on synthetic registries; the parser's prune is
-checked on decks: it removes the unreachable nodes with one warning, drops the
-EVENTS statements and scrubs the jurisdictions that name them, and leaves
+`prune` is checked on synthetic declarations; the parser is checked on
+decks: it keeps only the reachable nodes, warns once about the others, drops
+the EVENTS blocks and the jurisdiction references that name them, and leaves
 their required attributes unchecked.
 """
 
@@ -21,200 +21,185 @@ import pytest
 
 import navigate.core.nodes
 from helpers.parser_decks import FLEET, FUEL
-from navigate.core import Expression
-from navigate.core.general_nodes.bunker_options import BunkerOptions
-from navigate.core.general_nodes.model_definition import ModelDefinition
-from navigate.core.node_registry import GeneralNodes, Nodes
-from navigate.core.node_type import CURVE, LEVY, PORT, VESSEL
-from navigate.core.nodes.converter import Converter
-from navigate.core.nodes.curve import Curve
-from navigate.core.nodes.fleet import Fleet
-from navigate.core.nodes.levy import Levy
-from navigate.core.nodes.plant import Plant
-from navigate.core.nodes.port import Port
-from navigate.core.nodes.power_system import PowerSystem
-from navigate.core.nodes.process import Process
-from navigate.core.nodes.producer import Producer
-from navigate.core.nodes.route import Route
-from navigate.core.nodes.tank import Tank
-from navigate.core.nodes.vessel import Vessel
-from navigate.exceptions import CommandError
-from navigate.parser._attributes import NODE_ATTRIBUTE_SECTIONS
-from navigate.parser._commands import CommandReference
-from navigate.parser._event import Event
-from navigate.parser._keywords import (
-    NODE_GROUP,
-    SECTION_DEFINE,
-    define_new_node,
-    node_group,
+from navigate.core.dsl import SECTION_DEFINE
+from navigate.core.node_registry import NODE_CLASS
+from navigate.core.node_type import CURVE, PORT, VARIABLE, VESSEL
+from navigate.core.node_type import FLEET as FLEET_TYPE
+from navigate.exceptions import DeckError
+from navigate.parser._collect import (
+    Collector,
+    Declaration,
+    EventBlock,
+    Origin,
 )
-from navigate.parser._lark_parser import Assignment, NodeDeclaration, SourceLocation
-from navigate.parser._node_reference import NodeReference
-from navigate.parser._reachability import ACTIVATION_EDGES, ROOT_TYPES, find_unreachable
-from navigate.util import attribute_to_instance_name, attribute_to_setter
+from navigate.parser._lark_parser import (
+    Assignment,
+    Command,
+    NodeReference,
+    SourceLocation,
+)
+from navigate.parser._library import Library
+from navigate.parser._prune import NON_ACTIVATING, ROOT_TYPES, prune
+from navigate.parser._resolve import resolve
+from navigate.util import attribute_to_setter
 
-NON_ROOT_TYPES = sorted(set(NODE_GROUP) - set(ROOT_TYPES))
+NON_ROOT_TYPES = sorted(set(NODE_CLASS) - set(ROOT_TYPES))
 
 
-def _general_nodes():
-    return GeneralNodes(
-        bunker_options=BunkerOptions(), model_definition=ModelDefinition()
-    )
+def _reference(node_type, *names):
+    """Return a reference value: one node, or a list of them."""
+    references = [NodeReference(node_type, name) for name in names]
+    return references[0] if len(names) == 1 else references
 
 
-def _events(node_type, name, attribute, value):
-    """Return one queued event re-assigning an attribute of a node."""
-    event = Event(source=SourceLocation())
-    event.add_statement(
-        NodeDeclaration(node_type, name, [Assignment(attribute, value)])
-    )
-    return [event]
+def _reachable(declarations, events=()):
+    """Prune synthetic declarations; return the kept (type, name) keys."""
+    collector = Collector(Library(None))
+    for node_type, name, body in declarations:
+        collector.declarations[(node_type, name)] = Declaration(
+            node_type, name, list(body), Origin.DECK, SourceLocation()
+        )
+    collector.events.extend(events)
+
+    return prune(collector, resolve(collector)).kept
 
 
 def _fleet_chain():
-    """Registry with a wired Fleet -> Vessel -> machinery and route chain."""
-    nodes = Nodes()
-    nodes.fleets["fleet"] = fleet = Fleet("fleet")
-    nodes.vessels["vessel"] = vessel = Vessel("vessel")
-    nodes.power_systems["ps"] = power_system = PowerSystem("ps")
-    nodes.converters["conv"] = converter = Converter("conv")
-    nodes.tanks["tank"] = tank = Tank("tank")
-    nodes.routes["route"] = route = Route("route")
-    nodes.ports["port"] = port = Port("port")
+    """Return the declarations of a Fleet -> Vessel -> machinery and route chain."""
+    return [
+        (FLEET_TYPE, "fleet", [Assignment("Vessels", _reference(VESSEL, "vessel"))]),
+        (
+            VESSEL,
+            "vessel",
+            [
+                Assignment("PowerSystem", _reference("PowerSystem", "ps")),
+                Assignment("Tanks", _reference("Tank", "tank")),
+                Assignment("Route", _reference("Route", "route")),
+            ],
+        ),
+        (
+            "PowerSystem",
+            "ps",
+            [Assignment("Propulsion", _reference("Converter", "conv"))],
+        ),
+        ("Converter", "conv", []),
+        ("Tank", "tank", []),
+        ("Route", "route", [Assignment("Ports", _reference(PORT, "port"))]),
+        (PORT, "port", []),
+    ]
 
-    fleet.vessels = [vessel]
-    vessel.power_system = power_system
-    vessel.tanks = [tank]
-    vessel.route = route
-    power_system.propulsion = converter
-    route.ports = [port]
 
-    return nodes
+FLEET_CHAIN_KEYS = [(node_type, name) for node_type, name, _ in _fleet_chain()]
 
 
-class TestFindUnreachable:
-    # input:    | a registry holding one root node, e.g. Fleet "x", and nothing else
-    # expected: -> nothing is unreachable
+class TestPrune:
+    # input:    | one declared root node, e.g. Fleet "x", and nothing else
+    # expected: -> the node is reachable
     @pytest.mark.parametrize("node_type", ROOT_TYPES)
     def test_a_lone_root_node_is_reachable(self, node_type):
-        nodes = Nodes()
-        node_group(nodes, node_type)["x"] = define_new_node(node_type, "x")
+        assert _reachable([(node_type, "x", [])]) == [(node_type, "x")]
 
-        assert find_unreachable(nodes, _general_nodes(), [], {}) == []
-
-    # input:    | a registry holding one non-root node, e.g. Vessel "x", and
-    #           | nothing else
-    # expected: -> exactly that node is unreachable
+    # input:    | one declared non-root node, e.g. Vessel "x", and nothing else
+    # expected: -> nothing is reachable
     @pytest.mark.parametrize("node_type", NON_ROOT_TYPES)
     def test_a_lone_non_root_node_is_unreachable(self, node_type):
-        nodes = Nodes()
-        node_group(nodes, node_type)["x"] = define_new_node(node_type, "x")
-
-        assert find_unreachable(nodes, _general_nodes(), [], {}) == [(node_type, "x")]
+        assert _reachable([(node_type, "x", [])]) == []
 
     # input:    | fleet holds vessel, vessel sails route, route visits port
     #           | orphan_vessel sails orphan_route, which visits port and orphan_port
     # expected: -> orphan_port, orphan_route and orphan_vessel are unreachable;
     #              the shared port is kept
     def test_an_orphan_chain_is_unreachable_and_a_shared_node_is_kept(self):
-        nodes = _fleet_chain()
-        nodes.vessels["orphan_vessel"] = orphan_vessel = Vessel("orphan_vessel")
-        nodes.routes["orphan_route"] = orphan_route = Route("orphan_route")
-        nodes.ports["orphan_port"] = orphan_port = Port("orphan_port")
-        orphan_vessel.route = orphan_route
-        orphan_route.ports = [nodes.ports["port"], orphan_port]
-
-        assert find_unreachable(nodes, _general_nodes(), [], {}) == [
-            ("Port", "orphan_port"),
-            ("Route", "orphan_route"),
-            ("Vessel", "orphan_vessel"),
+        declarations = [
+            *_fleet_chain(),
+            (
+                VESSEL,
+                "orphan_vessel",
+                [Assignment("Route", _reference("Route", "orphan_route"))],
+            ),
+            (
+                "Route",
+                "orphan_route",
+                [Assignment("Ports", _reference(PORT, "port", "orphan_port"))],
+            ),
+            (PORT, "orphan_port", []),
         ]
+
+        assert _reachable(declarations) == FLEET_CHAIN_KEYS
 
     # input:    | producer owns plant, plant runs process a; a and b feed each other
     #           | c and d feed each other, and nothing reaches them
     # expected: -> processes c and d are unreachable, and the walk ends
     def test_reference_cycles_terminate(self):
-        nodes = Nodes()
-        nodes.producers["producer"] = producer = Producer("producer")
-        nodes.plants["plant"] = plant = Plant("plant")
-        processes = {name: Process(name) for name in "abcd"}
-        nodes.processes.update(processes)
-        producer.plants = [plant]
-        plant.process = processes["a"]
-        processes["a"].feeds = [processes["b"]]
-        processes["b"].feeds = [processes["a"]]
-        processes["c"].feeds = [processes["d"]]
-        processes["d"].feeds = [processes["c"]]
-
-        assert find_unreachable(nodes, _general_nodes(), [], {}) == [
-            ("Process", "c"),
-            ("Process", "d"),
+        declarations = [
+            (
+                "Producer",
+                "producer",
+                [Assignment("Plants", _reference("Plant", "plant"))],
+            ),
+            ("Plant", "plant", [Assignment("Process", _reference("Process", "a"))]),
+            ("Process", "a", [Assignment("Feeds", _reference("Process", "b"))]),
+            ("Process", "b", [Assignment("Feeds", _reference("Process", "a"))]),
+            ("Process", "c", [Assignment("Feeds", _reference("Process", "d"))]),
+            ("Process", "d", [Assignment("Feeds", _reference("Process", "c"))]),
         ]
 
-    # input:    | EVENTS: Vessel "ghost" { PropulsionLoad = Curve("curve") }
+        assert _reachable(declarations) == [
+            ("Producer", "producer"),
+            ("Plant", "plant"),
+            ("Process", "a"),
+            ("Process", "b"),
+        ]
+
+    # input:    | EVENTS: Vessel "ghost" { Capex = Variable("var") }
     #           | ghost is in no fleet
-    # expected: -> curve and ghost are unreachable; aimed at the fleet's vessel
-    #              instead, nothing is unreachable
+    # expected: -> var and ghost are unreachable; aimed at the fleet's vessel
+    #              instead, var is reachable
     @pytest.mark.parametrize(
         ("target", "expected"),
-        [("vessel", []), ("ghost", [("Curve", "curve"), ("Vessel", "ghost")])],
+        [("vessel", [(VARIABLE, "var")]), ("ghost", [])],
         ids=["reachable_target", "unreachable_target"],
     )
     def test_an_events_reference_counts_only_from_a_reachable_target(
         self, target, expected
     ):
-        nodes = _fleet_chain()
-        nodes.curves["curve"] = Curve("curve")
-        nodes.vessels["ghost"] = Vessel("ghost")
-        if target == "vessel":
-            del nodes.vessels["ghost"]
-        events = _events(
-            VESSEL, target, "PropulsionLoad", NodeReference(CURVE, "curve")
+        declarations = [*_fleet_chain(), (VARIABLE, "var", []), (VESSEL, "ghost", [])]
+        event = EventBlock(
+            None,
+            VESSEL,
+            target,
+            [Assignment("Capex", _reference(VARIABLE, "var"))],
+            SourceLocation(),
         )
 
-        assert find_unreachable(nodes, _general_nodes(), events, {}) == expected
+        assert _reachable(declarations, [event]) == [*FLEET_CHAIN_KEYS, *expected]
 
     # input:    | Fleet "fleet" { set_initial_technology_share("*", Curve("tc")) }
-    #           | the command is queued and has not run yet
-    # expected: -> nothing is unreachable, so Curve "tc" is kept
-    def test_a_queued_command_input_keeps_its_reference(self):
-        nodes = _fleet_chain()
-        nodes.curves["tc"] = Curve("tc")
-        command_queue = {
-            nodes.fleets["fleet"]: [
-                CommandReference(
-                    "set_initial_technology_share",
-                    ["*", NodeReference(CURVE, "tc")],
-                    SourceLocation(),
-                )
-            ]
-        }
+    # expected: -> Curve "tc" is reachable through the command argument
+    def test_a_command_argument_keeps_its_reference(self):
+        declarations = _fleet_chain()
+        declarations[0][2].append(
+            Command("set_initial_technology_share", ["*", _reference(CURVE, "tc")])
+        )
+        declarations.append((CURVE, "tc", []))
 
-        assert find_unreachable(nodes, _general_nodes(), [], command_queue) == []
+        assert _reachable(declarations) == [*FLEET_CHAIN_KEYS, (CURVE, "tc")]
 
     # input:    | Levy "levy" { Jurisdiction = [Port("port"), Port("other")] }
-    #           | only port is on a route; also tried via an expression and via EVENTS
-    # expected: -> Port "other" is unreachable
-    @pytest.mark.parametrize(
-        "reference_kind", ["jurisdiction", "expression", "events_jurisdiction"]
-    )
-    def test_only_a_route_activates_a_port(self, reference_kind):
-        nodes = _fleet_chain()
-        nodes.levies["levy"] = levy = Levy("levy")
-        nodes.ports["other"] = other = Port("other")
-        events = []
-        if reference_kind == "jurisdiction":
-            levy.jurisdiction = [nodes.ports["port"], other]
-        elif reference_kind == "expression":
-            nodes.vessels["vessel"].propulsion_load = Expression('0.5 * Port("other")')
-        else:
-            events = _events(
-                LEVY, "levy", "Jurisdiction", [NodeReference(PORT, "other")]
-            )
-
-        assert find_unreachable(nodes, _general_nodes(), events, {}) == [
-            ("Port", "other")
+    #           | only port is on a route
+    # expected: -> Port "other" is unreachable: only a Route activates a Port
+    def test_only_a_route_activates_a_port(self):
+        declarations = [
+            *_fleet_chain(),
+            (
+                "Levy",
+                "levy",
+                [Assignment("Jurisdiction", _reference(PORT, "port", "other"))],
+            ),
+            (PORT, "other", []),
         ]
+
+        assert _reachable(declarations) == [*FLEET_CHAIN_KEYS, ("Levy", "levy")]
 
 
 GHOST_VESSEL = """
@@ -249,20 +234,24 @@ def read_fleet_deck(read_deck):
     return read
 
 
-class TestPrune:
+class TestUnused:
     # input:    | Vessel "ghost" { PowerSystem = PowerSystem("ps") ... }
     #           | ghost is in no fleet and has no Route
-    # expected: -> one "Removed ..." warning naming Vessel("ghost"), only vessel
-    #              is left, and no missing-Route error
-    def test_an_unreachable_node_is_removed_with_one_warning(
+    # expected: -> one "declared but not used" warning naming Vessel("ghost"),
+    #              only vessel is built, and no missing-Route error
+    def test_an_unreachable_node_is_left_out_with_one_warning(
         self, read_fleet_deck, caplog
     ):
-        # the ghost has no Route, so a successful read also pins that a pruned
+        # the ghost has no Route, so a successful read also pins that an unused
         # node's required attributes are never checked
         with caplog.at_level(logging.WARNING):
             parser = read_fleet_deck(GHOST_VESSEL)
 
-        warnings = [record for record in caplog.records if "Removed" in record.message]
+        warnings = [
+            record
+            for record in caplog.records
+            if "declared but not used" in record.message
+        ]
         assert len(warnings) == 1
         assert 'Vessel("ghost")' in warnings[0].message
         assert set(parser.nodes.vessels) == {"vessel"}
@@ -270,7 +259,7 @@ class TestPrune:
     # input:    | Vessel "ghost" { ... }   in no fleet
     #           | Levy "levy" { ... set_include_vessel("*", TRUE) }
     # expected: -> the levy's include_vessel keys are only vessel, no ghost
-    def test_dependency_dicts_hold_no_pruned_node(self, read_fleet_deck):
+    def test_dependency_dicts_hold_no_unused_node(self, read_fleet_deck):
         parser = read_fleet_deck(
             GHOST_VESSEL + _levy(extra='set_include_vessel("*", TRUE)')
         )
@@ -278,53 +267,44 @@ class TestPrune:
         assert set(parser.nodes.levies["levy"].include_vessel) == {"vessel"}
 
     # input:    | Start
-    #           | Vessel "ghost" { PropulsionLoad = 12 }   ghost is pruned
+    #           | Vessel "ghost" { PropulsionLoad = 12 }   ghost is unused
     #           | Vessel "*" { PropulsionLoad = 11 }
-    #           | End
-    # expected: -> only the "*" statement stays queued, and the warning says
-    #              1 queued EVENTS statement(s) targeting only removed nodes
+    # expected: -> only the "*" block is kept, and the warning says
+    #              Dropped 1 EVENTS statement(s) targeting only unused node(s)
     @pytest.mark.parametrize("dated", [True, False], ids=["dated", "start"])
-    def test_an_events_statement_on_a_pruned_node_is_dropped(
+    def test_an_events_block_on_an_unused_node_is_dropped(
         self, read_fleet_deck, caplog, dated
     ):
-        # the Start statements are held apart until the start date is known,
-        # which is after the prune
         timing = 'Date "01-01-2027"\n' if dated else ""
         events = (
             f"Start\n{timing}"
-            'Vessel "ghost" { PropulsionLoad = 12 }\n'
-            'Vessel "*" { PropulsionLoad = 11 }\n'
-            "End\n"
+            'Vessel "ghost" { Capex = 12 }\n'
+            'Vessel "*" { Capex = 11 }\n'
         )
 
         with caplog.at_level(logging.WARNING):
             parser = read_fleet_deck(GHOST_VESSEL, events=events)
 
         targets = [
-            statement.name
-            for events in parser._event_queue.values()
-            for event in events
-            for statement in event.statements
+            block.pattern for blocks in parser._events.values() for block, _ in blocks
         ]
         assert targets == ["*"]
         assert (
-            "1 queued EVENTS statement(s) targeting only removed nodes" in caplog.text
+            "Dropped 1 EVENTS statement(s) targeting only unused node(s)" in caplog.text
         )
 
-    # input:    | Vessel "ghost" { ... }   pruned
+    # input:    | Vessel "ghost" { ... }   unused
     #           | Levy "levy" { ... set_include_vessel("ghost", TRUE) }
-    # expected: -> CommandError "'set_include_vessel' attempts to reference
-    #              non-existing name(s) 'ghost'. Note: 'ghost' removed because
-    #              unreachable from any top-level node."
-    def test_a_command_naming_a_pruned_node_hints_at_the_prune(self, read_fleet_deck):
+    # expected: -> DeckError "'set_include_vessel' attempts to reference
+    #              non-existing name(s) 'ghost'."
+    def test_a_command_naming_an_unused_node_is_rejected(self, read_fleet_deck):
         define = GHOST_VESSEL + _levy(extra='set_include_vessel("ghost", TRUE)')
 
         with pytest.raises(
-            CommandError,
+            DeckError,
             match=(
                 r"'set_include_vessel' attempts to reference non-existing name\(s\) "
-                r"'ghost'\. Note: 'ghost' removed because unreachable from any "
-                r"top-level node\.$"
+                r"'ghost'\.$"
             ),
         ):
             read_fleet_deck(define)
@@ -332,9 +312,9 @@ class TestPrune:
     # input:    | Levy "levy" { Jurisdiction = [Port("port"), Port("other")] }
     #           | Levy "levy_two" { same Jurisdiction }
     #           | Port "other" { }   on no route
-    # expected: -> only port is left, both jurisdictions hold only port, and each
+    # expected: -> only port is built, both jurisdictions hold only port, and each
     #              levy warns 'Levy("...") Jurisdiction: Port("other")'
-    def test_an_unrouted_jurisdiction_port_is_scrubbed_from_every_policy(
+    def test_an_unrouted_jurisdiction_port_is_dropped_from_every_policy(
         self, read_fleet_deck, caplog
     ):
         jurisdiction = '[Port("port"), Port("other")]'
@@ -354,40 +334,27 @@ class TestPrune:
             assert f'Levy("{name}") Jurisdiction: Port("other")' in caplog.text
 
 
-class TestActivationEdges:
-    # input:    | every entry of ACTIVATION_EDGES, e.g. Route.ports activating a Port
-    # expected: -> the attribute is a list on the node, and its DSL name (Ports)
-    #              is DEFINE-only in NODE_ATTRIBUTE_SECTIONS
-    def test_each_edge_is_a_define_only_list_attribute(self):
-        # the reachability pass relies on no activation edge being assignable
-        # inside a queued EVENTS body
-        for target_type, edges in ACTIVATION_EDGES.items():
-            assert target_type in NODE_GROUP
+class TestNonActivating:
+    # input:    | every entry of NON_ACTIVATING, e.g. a Levy's Jurisdiction
+    # expected: -> the attribute is DEFINE-only and holds a list of nodes
+    def test_each_entry_is_a_define_only_list_attribute(self):
+        # the prune walks EVENTS bodies as activating, which holds because
+        # no non-activating attribute can be assigned there
+        for owner_type, attribute in NON_ACTIVATING:
+            entry = NODE_CLASS[owner_type].deck_attributes[attribute]
+            assert entry.sections == SECTION_DEFINE
 
-            for owner_type, attribute_name in edges:
-                dsl_names = [
-                    key
-                    for key in NODE_ATTRIBUTE_SECTIONS[owner_type]
-                    if attribute_to_instance_name(key) == attribute_name
-                ]
-                assert len(dsl_names) == 1
-
-                # the attribute is unset until its setter runs
-                owner = define_new_node(owner_type, "pin")
-                setter = getattr(owner, attribute_to_setter(dsl_names[0]))
-                setter([define_new_node(target_type, "target")])
-                assert isinstance(getattr(owner, attribute_name), list)
-
-                assert (
-                    NODE_ATTRIBUTE_SECTIONS[owner_type][dsl_names[0]] == SECTION_DEFINE
-                )
+            owner = NODE_CLASS[owner_type]("pin")
+            setter = getattr(owner, attribute_to_setter(attribute))
+            setter([NODE_CLASS[PORT]("target")])
+            assert isinstance(getattr(owner, attribute.lower()), list)
 
     # input:    | every assign_reference call with PORT in navigate/core/nodes and
     #           | navigate/core/general_nodes
     # expected: -> the sites found are exactly Route ports and policy jurisdiction
     def test_every_port_reference_site_is_classified(self):
-        # a new Port-typed reference site must be declared an activation edge or
-        # added to the classified set, so no reference kind activates a port
+        # a new Port-typed reference site must be an activating Route edge or
+        # a NON_ACTIVATING entry, so no reference kind activates a port
         # unclassified
         classified = {("route.py", "ports"), ("_policy.py", "jurisdiction")}
         site = re.compile(

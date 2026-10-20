@@ -112,29 +112,15 @@ Simulations in Navigate are predicting certain outcomes over time based on a set
 
 When the user wants Navigate to run simulations until 2050 (or another time in the future), intermediate time steps until 2050 must be defined separately that the model runs through. Annual time steps are used in the production version of Navigate, but the user could also decide on defining monthly, quarterly, or 5-year time steps, for example.
 
-For convenience Navigate allows the use of the keyword
-`Start`
+A time step is written as a date:
 
-Which refers to the `StartDate` defined in the `ModelDefinition`. The end of the timeline is marked with an `End`.
+`Date "dd-mm-yyyy"`, `Date "dd/mm/yyyy"` or `Date "yyyy-mm-dd"`.
 
-`End` does not refer to a specific date but instead terminates the timeline thus allowing for entries of dates prior to the last encountered date. A time-step different from the start date follows this format:
+For convenience the keyword `Start` stands for the `StartDate` defined in the `ModelDefinition`. Every `Start` and `Date` read in the `EVENTS` section becomes a time step of the simulation; the start date is always one, whether or not a file names it.
 
-`Date "dd-mm-yyyy"` or `Date "dd/mm/yyyy"`.
+Changes to nodes apply at the last date read before them in the file, so a node block must follow a `Start` or a `Date`. There is no order to keep: the dates of all `EVENTS` files are collected and sorted, and a file may name its dates in any order. Where two files change the same attribute at the same date, the file included later wins, and a block under `Start` runs before a block dated on the start date. A date earlier than the start date is an error.
 
-Changes to nodes will occur at the last encountered date.
-
-Each `.inc` file must include (in this order):
-
-* Definition of a point in time when the assumptions in the `.inc` file **start** to apply
-* Node definitions that represent the assumptions being made
-* Definition of a point in time when the assumptions in the `.inc` file **end** to apply
-
-There are two ways of defining a start point. The user can
-
-1. Write `Start` at the beginning of the file. This is a reference to the start date defined in the model definition. An example of this is included below.
-2. Specify a date in the format `Date "dd-mm-yyyy"`. This is often used when the assumptions defined in the file are only valid from a certain point in time onwards, e.g., when a new policy is introduced from the 1st January 2030 only.
-
-The timeline must be defined in chronological order. While it is technically possible to use the same timeline across multiple `.inc` files by not ending the file with an `End` keyword it is good practice to always terminate the `.inc` files with an `End` and restart the timeline in the subsequent `.inc` file so that they are all self-contained and not dependent on being included in a specific order.
+A file typically opens with `Start`, or with the `Date` from which its assumptions apply, e.g. a policy introduced on the 1st January 2030, followed by the dates and node blocks. The `End` keyword of earlier versions is still accepted but has no effect.
 
 Below is an example of an `.inc` file included in the `EVENTS` section that complements the definition of the start date "01-01-2024" in the `ModelDefinition` introduced previously.
 
@@ -174,10 +160,6 @@ Date "01-01-2047"
 Date "01-01-2048"
 Date "01-01-2049"
 Date "01-01-2050"
-
-End
-
-# end the timeline to allow a new timeline in a different .inc file
 ```
 
 This example defines that the simulation should take yearly time-steps from "01-01-2024" (`Start`) and until "01-01-2050". At the date "01-01-2030" the plant capacity of a node that was already defined in the `DEFINE` section is reassigned.

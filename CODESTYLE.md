@@ -90,10 +90,10 @@ arbiter.
   `float` where the storage kind has `Scalar`, as the setter wraps it through
   `as_scalar`. `NumberInput` serves as both. An optional attribute still unset
   after construction is `<alias> | None`; never fold `None` into an alias.
-- An attribute every deck must assign is listed in `NODE_REQUIRED_ATTRIBUTES`
-  or `GENERAL_NODE_REQUIRED_ATTRIBUTES` (`navigate/parser/_attributes.py`) and
-  declared in `__init__` by annotation alone (`self.start_date:
-  np.datetime64`), with no value and no `None`. The parser guarantees it is
+- An attribute every deck must assign is marked `required=True` on its
+  setter's `deck_attribute` decorator and declared in `__init__` by
+  annotation alone (`self.start_date: np.datetime64`), with no value and no
+  `None`. The parser guarantees it is
   set before any node reads it, so neither `check_requirements` nor any reader
   tests it again. An internal attribute that a fixed initialization step sets
   before any reader runs is declared the same way (`self.primary_fuel_type:

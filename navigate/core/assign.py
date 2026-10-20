@@ -467,12 +467,6 @@ def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
     try:
         return id_enum[assignment]
     except KeyError:
-        if name_contains_wildcards(assignment):
-            raise ValueError(
-                f"does not accept ID '{assignment}' — wildcards are not supported "
-                "for this command"
-            ) from None
-
         raise ValueError(f"does not accept ID '{assignment}'") from None
 
 
@@ -505,37 +499,6 @@ def assign_member[E: Enum](assignment: str, members: tuple[E, ...]) -> E:
     raise ValueError(_only_allows(_member_names(members), assignment))
 
 
-def expand_id_wildcard[E: Enum](
-    pattern: str, domain: type[E] | tuple[E, ...]
-) -> list[E]:
-    """
-    Expand a wildcard pattern against the member names of a domain.
-
-    Parameters
-    ----------
-    pattern
-        Glob-style pattern (e.g. ``"M*"``), matched against each member's ``.name``.
-    domain
-        Enum class, or tuple of its members, the pattern may match.
-
-    Returns
-    -------
-    list[Enum]
-        Matching enum members.
-    """
-    members = tuple(domain)
-    by_name = {member.name: member for member in members}
-
-    try:
-        names = retrieve_keys(pattern, list(by_name))
-    except KeyError:
-        raise ValueError(
-            f"wildcard '{pattern}' did not match any of {_member_names(members)}"
-        ) from None
-
-    return [by_name[name] for name in names]
-
-
 def assign_id_list[E: Enum](
     assignment: str | list[str],
     id_enum: type[E],
@@ -548,8 +511,7 @@ def assign_id_list[E: Enum](
 
     Only applicable to attributes requiring a list of values. A deck may give a
     single ID where the attribute takes a list, so a bare ID is accepted and
-    wrapped in a list. Supports wildcard patterns which are expanded before the
-    length and uniqueness checks.
+    wrapped in a list.
 
     Parameters
     ----------
@@ -558,28 +520,23 @@ def assign_id_list[E: Enum](
     id_enum
         Enum class the assigned name is looked up in.
     min_length
-        Fewest members the list may contain once wildcards are expanded.
+        Fewest members the list may contain.
     unique
-        Whether no member may be named twice once wildcards are expanded.
+        Whether no member may be named twice.
 
     Returns
     -------
     list[Enum]
-        The members the assigned IDs name, with wildcards expanded.
+        The members the assigned IDs name.
     """
-    expanded = []
-    for value in as_list(assignment):
-        if isinstance(value, str) and name_contains_wildcards(value):
-            expanded.extend(expand_id_wildcard(value, id_enum))
-        else:
-            expanded.append(assign_id(value, id_enum))
+    members = [assign_id(value, id_enum) for value in as_list(assignment)]
 
-    _check_list_length(expanded, min_length)
+    _check_list_length(members, min_length)
 
     if unique:
-        _check_list_is_unique(expanded)
+        _check_list_is_unique(members)
 
-    return expanded
+    return members
 
 
 def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
@@ -660,6 +617,11 @@ def check_curves_are_finite(
             raise ValueError(f"{node}: {attribute} ({entry}) must hold finite values.")
 
 
+def _missing_names(names: str) -> ValueError:
+    """Build the error for a command naming keys its dictionary does not hold."""
+    return ValueError(f"attempts to reference non-existing name(s) '{names}'")
+
+
 def write_matching_keys[K: str | Enum, V](
     key: K | str,
     value: V,
@@ -677,7 +639,10 @@ def write_matching_keys[K: str | Enum, V](
     assignment_dict
         The dictionary being assigned to.
     """
-    keys = retrieve_keys(key, assignment_dict)
+    try:
+        keys = retrieve_keys(key, assignment_dict)
+    except KeyError:
+        raise _missing_names(key_name(key)) from None
 
     # every matched key holds the same object: a Scalar answers a getter and
     # carries no per-key state, and a node or an expression was always shared
@@ -703,13 +668,16 @@ def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
         The dictionary being assigned to.
     """
     if not assignment_dict:
-        raise KeyError(", ".join(key_name(key_part) for key_part in key))
+        raise _missing_names(", ".join(key_name(key_part) for key_part in key))
 
     columns = zip(*assignment_dict, strict=True)
-    keys = [
-        retrieve_keys(key_part, unique_list(existing_keys))
-        for key_part, existing_keys in zip(key, columns, strict=True)
-    ]
+    try:
+        keys = [
+            retrieve_keys(key_part, unique_list(existing_keys))
+            for key_part, existing_keys in zip(key, columns, strict=True)
+        ]
+    except KeyError as e:
+        raise _missing_names(e.args[0]) from None
 
     # every matched key holds the same object: a Scalar answers a getter and
     # carries no per-key state, and a node or an expression was always shared
@@ -749,7 +717,7 @@ def command_assignment_to_boolean_dict[K: str | Enum](
             # deck defines, so a pattern that matches nothing is not an error
             return
 
-        raise KeyError(key) from None
+        raise _missing_names(key_name(key)) from None
 
     for name in names:
         assignment_dict[name] = value

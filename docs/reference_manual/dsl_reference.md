@@ -31,7 +31,7 @@ NodeType "node_name" {
 }
 ```
 
-The first time the node syntax is encountered in an `.inc` file is when it is defined. It is possible to access the node again using the same syntax to change the attributes of the node. This can be done both during the `DEFINE` section and the `EVENTS` section. However, certain attributes do not allow change during the `EVENTS` section and will throw an error if attempted. A calculator node, such as a `Variable` or a `Forecast`, assigned to such an attribute, or to a command that does not allow change during the `EVENTS` section, is fixed with it, whether assigned directly or through an expression: none of its own attributes can be changed during the `EVENTS` section either, and the deck is rejected when it is read if one is. A calculator held only by attributes that allow change in `EVENTS` can still be changed there. Notice that redefinition of attributes occurs in the order they are read. Meaning if an attribute is redefined further down in an `.inc` file or in a later `.inc` file it is the last read instance that will be the final value.
+The first time the node syntax is encountered in an `.inc` file is when it is defined. It is possible to access the node again using the same syntax to change the attributes of the node. This can be done both during the `DEFINE` section and the `EVENTS` section. However, certain attributes do not allow change during the `EVENTS` section and will throw an error if attempted. A calculator node, such as a `Variable` or a `Forecast`, assigned to such an attribute, or to a command that does not allow change during the `EVENTS` section, is fixed with it, whether assigned directly, in a list or through an expression: none of its own attributes can be changed during the `EVENTS` section either, and the deck is rejected when it is read if one is. This holds even when a later `DEFINE` command rewrites the same entry with another value. A calculator held only by attributes that allow change in `EVENTS` can still be changed there. Notice that redefinition of attributes occurs in the order they are read. Meaning if an attribute is redefined further down in an `.inc` file or in a later `.inc` file it is the last read instance that will be the final value; a reference the earlier assignment made is then never looked up.
 
 ## Defining a general node
 
@@ -133,6 +133,8 @@ A specific category of nodes allows assignment of tables to the node. The list o
 - `Surface`
 - `Timetable`
 
+A table is written as rows of cells between `Table = [` and `]`. The cells of a row are separated by commas, and every row ends with a `;`. A cell is a number, `INF` or `-INF`, or a date, written `"dd-mm-yyyy"`, `"dd/mm/yyyy"` or `yyyy-mm-dd`. Comment lines are allowed inside the table. A row that misses its `;` runs into the next, which is a syntax error at the next row's first cell.
+
 Dependent on the node, the table is defined in different ways:
 
 ### Curve
@@ -143,9 +145,9 @@ The syntax for defining a table on a curve is as follows:
 Curve "node_name" {
     Table = [
         # x y
-        0.0 1.0
-        0.5 2.0
-        1.0 4.0
+        0.0, 1.0;
+        0.5, 2.0;
+        1.0, 4.0;
     ]
 }
 ```
@@ -158,9 +160,9 @@ The syntax for defining a table on a forecast is as follows:
 Forecast "node_name" {
     Table = [
         # x y
-        "01-01-2024" 1.0
-        "01-01-2030" 2.0
-        "01-01-2050" 4.0
+        "01-01-2024", 1.0;
+        "01-01-2030", 2.0;
+        "01-01-2050", 4.0;
     ]
 }
 ```
@@ -176,10 +178,10 @@ Surface "node_name" {
     Table = [
         # y-axis (header row)
         # x-axis (first cell of every subsequent row)
-        0 1 2
-        0 0 1 2
-        10 3 4 12
-        20 20 21 22
+        0, 1, 2;
+        0, 0, 1, 2;
+        10, 3, 4, 12;
+        20, 20, 21, 22;
     ]
 }
 ```
@@ -195,10 +197,10 @@ Timetable "node_name" {
     Table = [
         # y-axis (header row)
         # x-axis (first cell of every subsequent row)
-        0 1 2
-        "01-01-2024" 0 1 2
-        "01-01-2030" 3 4 12
-        "01-01-2050" 20 21 22
+        0, 1, 2;
+        "01-01-2024", 0, 1, 2;
+        "01-01-2030", 3, 4, 12;
+        "01-01-2050", 20, 21, 22;
     ]
 }
 ```
@@ -236,42 +238,42 @@ An expression is accepted only where the value is used as a number: an attribute
 Jurisdiction = <Port("name")>    # rejected; write Jurisdiction = Port("name")
 ```
 
-Expressions are restricted arithmetic, not general Python. The only accepted syntax is: numeric literals (including scientific notation such as `1e6`), the operators `+`, `-`, `*`, `/`, and `**`, unary minus, parentheses for grouping, and node references of the form `Type("name")` with a single string argument. Anything else — names, comparisons, other function calls, and so on — is rejected with an error when the deck is loaded. In particular, expressions cannot execute code or access the file system.
+Expressions are restricted arithmetic, not general Python. The only accepted syntax is: numeric literals (including scientific notation such as `1e6`) and `INF`, the operators `+`, `-`, `*`, `/`, and `**`, unary plus and minus, parentheses for grouping, and node references of the form `Type("name")` with a single string argument. Anything else — names, comparisons, other function calls, and so on — is a syntax error at its line when the deck is loaded. In particular, expressions cannot execute code or access the file system.
 
 
 ## Unreachable nodes
 
 A defined node only participates in the simulation when a chain of node references connects it to a top-level node: `Fleet`, `Producer`, `Levy`, `Regulation`, `Emission`, `Fuel`, `Report`, or `Plot`. For example, a `Converter` participates when a `PowerSystem` referencing it is assigned to a `Vessel` that is itself assigned to a `Fleet`.
 
-After the `DEFINE` section is processed, Navigate removes every node without such a chain and logs one warning listing them. Removed nodes produce no results, and `EVENTS` re-assignments targeting only removed nodes are dropped. A node referenced only from an `EVENTS` re-assignment is kept, provided the re-assignment's target is itself reachable. A node used only as the source of a `Copy` is removed silently — its copies carry its role.
+Once the deck is read, Navigate keeps the nodes with such a chain and no others, and logs one warning listing the nodes it declared but did not use. An unused node produces no results and its attribute values are not checked. A reference it makes is looked up in the default library like any other reference, but one found nowhere is not an error. `EVENTS` blocks targeting only unused nodes are dropped with a warning; a block naming a node the deck never declared is an error. A node referenced only from an `EVENTS` block is kept, provided the block's target is itself part of the simulation. A node used only as the source of a `Copy` is not reported — its copies carry its role.
 
-Only node references count towards reachability. Plain name strings do not — neither in commands (e.g. `set_export_distribution("port_name", ...)`) nor in `Report` property requests. A command naming a removed node raises an error; a `Report` property request matching no node logs a warning at export and is skipped.
+Only node references count. Plain name strings do not — neither in commands (e.g. `set_export_distribution("port_name", ...)`) nor in `Report` property requests. A command naming an unused node raises an error; a `Report` property request matching no node logs a warning at export and is skipped.
 
-A `Port` is reachable only through a `Route`'s `Ports` attribute, since only routed ports can be bunkered in. A `Levy`/`Regulation` `Jurisdiction` selects among routed ports and does not keep a port alive: a port on no route is removed even when a jurisdiction lists it, and removed ports are dropped from the surviving policies' `Jurisdiction` lists with a warning. A `Jurisdiction` emptied this way fails with the unassigned-attribute error.
+A `Port` is part of the simulation only through a `Route`'s `Ports` attribute, since only routed ports can be bunkered in. A `Levy`/`Regulation` `Jurisdiction` selects among routed ports and does not keep a port alive: a port on no route is left out even when a jurisdiction names it, and is dropped from the `Jurisdiction` list with a warning, while `Jurisdiction = Port("*")` selects the routed ports. A port named in a `Jurisdiction` must still exist in the deck or the default library. A `Jurisdiction` emptied this way fails with the unassigned-attribute error.
 
 ## Default nodes
 
 Navigate comes with a substantial library of default nodes which may be included in the simulation model.
 
-If a node is assigned to another node’s attribute, then the assigned node must be defined somewhere else in the simulation files. If the assigned node is not assigned elsewhere, Navigate will search for the node in the default library. The default library is split into two branches, a "user" branch and an "installation" branch. The user branch allows others to define their own default nodes without mixing them with the default nodes provided by the Navigate installation which are found in the installation branch. Navigate will first search in the user branch for defaults before going to the installation branch and ultimately throw an error if no match is found. Within a user default file, an `Import` of that file's own node name resolves to the installation branch, so a user file can overlay the installation node with the attributes it reassigns instead of replacing it.
+If a node is assigned to another node’s attribute, then the assigned node must be defined somewhere else in the simulation files. A node must not reference itself, directly, through a wildcard or inside an expression; Navigate rejects the deck at the line of such a reference. If the assigned node is not assigned elsewhere, Navigate will search for the node in the default library and throw an error if no match is found.
 
 The default node folder can be found in:
 
-`<data_dir>/defaults/{user,installation}/<NodeType>/`
+`<data_dir>/defaults/<NodeType>/`
 
 where `<data_dir>` is the assumptions directory given with `-d`/`--data-dir` on the command line, or with the `ASSUMPTIONS_DATA_DIR` environment variable, and `<NodeType>` is the node's type, e.g. `Fuel` or `Route`.
 
-Technically speaking default node files can contain more than one node, however, it is best practice to separate into individual files.
+Technically speaking default node files can contain more than one node, however, it is best practice to separate into individual files. Default files may import or copy other default nodes, but not in a cycle: a default file that pulls, directly or through other default files, the node it is read for is rejected.
+
+To change a default for one simulation, import it in the deck and reassign the attributes to change, as described in "Importing a node". To change defaults for every simulation, keep your own copy of the assumptions directory and pass it with `-d`.
 
 ## Default modules
 
 Similar to default nodes, it is possible to define default modules. A module is the same as a normal `.inc` file included in the `.nav` file but is a convenient way of storing these if it is an `.inc` file that is used often across multiple simulation decks.
 
-Like the default nodes, the default modules have a user and an installation branch.
-
 The default module folder can be found in:
 
-`<data_dir>/modules/{user,installation}/`
+`<data_dir>/modules/`
 
 where `<data_dir>` is the same assumptions directory as for default nodes.
 
@@ -292,7 +294,7 @@ It is possible to copy a node either from a node already defined in the simulati
 Copy NodeType "node_copy_from" "node_copy_to"
 ```
 
-After copying any reassignment of attributes done to `"node_copy_from"` will not be reflected in `"node_copy_to"` as they are now two separate nodes.
+The copy takes the definition of `"node_copy_from"` as it stands at the `Copy`, so a later reassignment of `"node_copy_from"` is not reflected in `"node_copy_to"`: they are two separate nodes.
 Only the copied node itself is duplicated: the nodes it references are shared, so a reassignment to one of those is seen by both.
 
 If the node being copied from does not already exist in the simulation then it is removed after the import and only the node of the name "node_copy_to" remains.
@@ -304,24 +306,21 @@ A general node, such as `ModelDefinition` or `BunkerOptions`, cannot be copied: 
 
 ## Wildcards
 
-Navigate accepts glob-style wildcards in node names and identifiers, letting a single pattern stand in for many concrete values. Two wildcard characters are supported:
+Navigate accepts glob-style wildcards in node names and in the string keys of commands, letting a single pattern stand in for many concrete values, matched as Python's `fnmatch` does:
 
 * `*` matches zero or more characters.
 * `?` matches exactly one character.
+* `[abc]` matches one character of the set, `[!abc]` one character outside it.
 
-A pattern may be the bare wildcard `"*"` (matches every value) or a partial pattern that combines wildcards with literal characters, e.g. `"bio_*"`, `"port_?"`, or `"*_2030"`. Wildcards are written inside the quoted node name; for enum identifiers in commands they are written inline without quotes (e.g. `M*`).
+A pattern may be the bare wildcard `"*"` (matches every value) or a partial pattern that combines wildcards with literal characters, e.g. `"bio_*"`, `"port_?"`, or `"*_2030"`. Wildcards are written inside the quotes.
 
-Wildcards are resolved at the point of use, against what the construct they are written in matches. A wildcard node reference is expanded against the registered nodes of that type before the value reaches the attribute, so the attribute is given the matched nodes themselves and treats them exactly as it would the same nodes written out by name. The remaining constructs are resolved against the enum members registered as a command argument's domain, the existing keys of a target dictionary, or the file names in the default-node folders. The expanded pattern must match at least one value; otherwise an error is raised.
+Wildcards are resolved at the point of use, against what the construct they are written in matches. A wildcard node reference is expanded against every node of that type in the simulation, those pulled from the default library included, once the whole deck is read and before the value reaches the attribute, so the attribute is given the matched nodes themselves and treats them exactly as it would the same nodes written out by name. A wildcard node name on a declaration, `Vessel "bulk_*" { ... }`, matches the nodes declared before it in the deck. A wildcard in a command's string key is resolved against the existing keys of the dictionary the command writes. The expanded pattern must match at least one value; otherwise an error is raised.
 
 The following constructs accept wildcards:
 
-* **List attribute assignments.** A wildcard node reference expands to every registered node of that type whose name matches the pattern. It may be written inside the list or as the whole value of the attribute: `Fuels = [Fuel("bio_*")]` and `Fuels = Fuel("bio_*")` are equivalent. For example, `Ports = [Port("*")]` on a Route assigns every Port in the simulation, and `Fuels = Fuel("bio_*")` on a Regulation assigns every Fuel whose name begins with `bio_`. A wildcard is only valid where a list of nodes is accepted: an attribute holding a single node, such as `Route` on a Vessel, rejects it, as does a command argument — the wildcards a command accepts are the string-key and enum-argument forms below.
+* **List attribute assignments.** A wildcard node reference expands to every registered node of that type whose name matches the pattern. It may be written inside the list or as the whole value of the attribute: `Fuels = [Fuel("bio_*")]` and `Fuels = Fuel("bio_*")` are equivalent. For example, `Ports = [Port("*")]` on a Route assigns every Port in the simulation, and `Fuels = Fuel("bio_*")` on a Regulation assigns every Fuel whose name begins with `bio_`. A wildcard is only valid where a list of nodes is accepted: an attribute holding a single node, such as `Route` on a Vessel, rejects it, as does a command argument — the wildcards a command accepts are the string-key form below.
 
 * **Commands with string arguments.** Wildcards in a command's string key(s) expand against the existing entries of the dictionary the command writes to. For example, `set_initial_technology_share("*", "hull_painting", Curve("..."))` applies the assignment to every existing vessel key, and `set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 13.4e6)` matches every from/to vessel pair whose names contain the substrings.
-
-* **Commands with enum arguments.** Wildcards in an enum-typed argument (written inline, without quotes) expand against the members registered as that argument's domain, which is the whole enum class unless the attribute written to holds a fixed subset of it. For example, `set_slip_fraction(M*, 0.03)` applies the assignment to both the `METHANE` and `METHANOL` members of `FuelTypeID`, while `set_operational_saving_port(*, 0.1)` applies it to `ELECTRICAL` and `HEAT` only, the energy demands a vessel has in port. Where the domain is a subset, an argument written literally is checked against those same members, so `set_operational_saving_port(PROPULSION, 0.1)` is rejected as `only allows assignment of ELECTRICAL, HEAT, but got PROPULSION`, naming what the wildcard spelling names. Where the domain is the whole enum class, a literal is checked against the class and an unaccepted token is rejected as `does not accept ID 'X'`. Where the accepted members depend on the node — `set_slip_fraction` and `set_consumption_ttw` take the fuel types the Converter declares — a literal is checked against those fuel types, so `set_slip_fraction(METHANE, 0.03)` on a Converter declaring `OIL` and `AMMONIA` is rejected as `only allows assignment of OIL, AMMONIA, but got METHANE`; the expansion still runs over the whole class, so a pattern reaching a fuel type that Converter does not declare is rejected the same way.
-
-* **Import statements.** Wildcards in an `Import` directive match the file names of `.inc` files in the user and installation default folders. For example, `Import Converter "electrical_ice_methane_*"` imports every default Converter whose file name begins with `electrical_ice_methane_`.
 
 ## Reading the node description
 

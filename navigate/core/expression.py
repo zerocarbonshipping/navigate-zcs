@@ -4,19 +4,16 @@
 """
 Define restricted arithmetic expressions for deck attributes and commands.
 
-They are written using the deck's ``<...>`` syntax. Expression bodies are parsed
-with the standard library ``ast`` module into a small internal tree that only
-supports numeric literals, the operators ``+ - * / **``, and node-reference calls
-such as ``Forecast("name")`` - they are never passed to ``eval()`` and cannot execute
-arbitrary code. The text is parsed when the ``Expression`` is constructed, raising
-``ValueError`` or ``NotImplementedError`` for text that does not parse.
+They are written using the deck's ``<...>`` syntax, which the parser's grammar
+reads straight into a tree of the evaluator nodes defined here: numeric
+literals, the operators ``+ - * / **``, unary signs and node references. The
+parser hands an ``Expression`` that tree with the nodes its references name,
+so nothing here parses text and nothing is ever passed to ``eval()``.
 """
 
 from __future__ import annotations
 
-import ast
 import operator
-import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, overload
 
@@ -24,10 +21,12 @@ import numpy as np
 
 from navigate.core.bounds import Bounds
 from navigate.core.node_type import is_calculator
+from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator, Mapping
 
+    from navigate.core.general_nodes._general_node import _GeneralNode
     from navigate.core.node import Node
     from navigate.core.node_type import AcceptedNodeTypes
     from navigate.core.types_ import Calculator
@@ -35,9 +34,6 @@ if TYPE_CHECKING:
 
 type _UnaryOperator = Callable[[FloatLike], FloatLike]
 type _BinaryOperator = Callable[[FloatLike, FloatLike], FloatLike]
-
-_REFERENCE_NAME = re.compile(r"([A-Z][a-z]+)+")
-_CAPITALIZED_NAME = re.compile(r"[A-Z][A-Za-z]*")
 
 
 def _positive(value: FloatLike) -> FloatLike:
@@ -48,197 +44,135 @@ def _negative(value: FloatLike) -> FloatLike:
     return -value
 
 
-_BINARY_OPERATORS: dict[type[ast.operator], _BinaryOperator] = {
-    ast.Add: operator.add,
-    ast.Sub: operator.sub,
-    ast.Mult: operator.mul,
-    ast.Div: operator.truediv,
-    ast.Pow: operator.pow,
+# the operators an expression may use, by the symbol the deck writes them with
+BINARY_OPERATORS: dict[str, _BinaryOperator] = {
+    "+": operator.add,
+    "-": operator.sub,
+    "*": operator.mul,
+    "/": operator.truediv,
+    "**": operator.pow,
 }
 
-_UNARY_OPERATORS: dict[type[ast.unaryop], _UnaryOperator] = {
-    ast.UAdd: _positive,
-    ast.USub: _negative,
+UNARY_OPERATORS: dict[str, _UnaryOperator] = {
+    "+": _positive,
+    "-": _negative,
 }
 
 
-type _References = list[Calculator]
+# a node named in a deck: its type and name
+type NodeKey = tuple[str, str]
+
+# the calculators an expression's references evaluate through, by node key
+type _Bound = Mapping[NodeKey, Calculator]
 
 
-class _Evaluable(Protocol):
-    """Node of the evaluator tree an expression body compiles to."""
+class Evaluable(Protocol):
+    """Node of the evaluator tree an expression is built from."""
 
     def evaluate(
-        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
-    ) -> FloatLike: ...
+        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
+    ) -> FloatLike:
+        """Evaluate the node, reading references through the node getters."""
+        ...
 
 
 @dataclass(frozen=True, slots=True)
-class _Constant:
+class Constant:
     """Numeric literal."""
 
     value: float
 
     def evaluate(
-        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
+        """Return the literal."""
         return self.value
 
 
 @dataclass(frozen=True, slots=True)
-class _Reference:
-    """Reference to a node, evaluated through the node's getter."""
+class NodeReference:
+    """
+    A node named in a deck, ``Type("name")``; the name may be a glob.
 
-    index: int
+    As a value it names the node an attribute or argument takes; as a leaf of
+    an expression tree it evaluates through the named node's getter.
+    """
+
+    type: str
+    name: str
+
+    @property
+    def key(self) -> NodeKey:
+        """The (type, name) pair the node is filed under."""
+        return (self.type, self.name)
+
+    @property
+    def is_wildcard(self) -> bool:
+        """Whether the name is a glob over the names of the type."""
+        return name_contains_wildcards(self.name)
+
+    def __repr__(self) -> str:
+        return f'{self.type}("{self.name}")'
 
     def evaluate(
-        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
-        return node_references[self.index].get(x, y)
+        """Evaluate the referenced node at the inputs."""
+        return bound[self.key].get(x, y)
 
 
 @dataclass(frozen=True, slots=True)
-class _UnaryOperation:
-    """Operator applied to a single operand."""
+class UnaryOperation:
+    """Sign applied to a single operand."""
 
-    operator: _UnaryOperator
-    operand: _Evaluable
+    symbol: str
+    operand: Evaluable
 
     def evaluate(
-        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
-        return self.operator(self.operand.evaluate(node_references, x, y))
+        """Apply the sign to the evaluated operand."""
+        return UNARY_OPERATORS[self.symbol](self.operand.evaluate(bound, x, y))
 
 
 @dataclass(frozen=True, slots=True)
-class _BinaryOperation:
+class BinaryOperation:
     """Operator applied to two operands."""
 
-    operator: _BinaryOperator
-    left: _Evaluable
-    right: _Evaluable
+    symbol: str
+    left: Evaluable
+    right: Evaluable
 
     def evaluate(
-        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
-        return self.operator(
-            self.left.evaluate(node_references, x, y),
-            self.right.evaluate(node_references, x, y),
+        """Apply the operator to the evaluated operands."""
+        return BINARY_OPERATORS[self.symbol](
+            self.left.evaluate(bound, x, y), self.right.evaluate(bound, x, y)
         )
 
 
-class _Builder:
+def node_references(tree: Evaluable) -> Iterator[NodeReference]:
     """
-    Compile an expression body into an evaluator tree and its reference strings.
+    Yield every node reference in an expression tree, left to right.
 
     Parameters
     ----------
-    text
-        Expression body, as written in the deck.
+    tree
+        The root of the tree.
+
+    Yields
+    ------
+    NodeReference
+        Each reference, in the order written.
     """
-
-    def __init__(self, text: str) -> None:
-        self._text: str = text
-        self.reference_strings: list[str] = []
-
-    def build(self) -> tuple[_Evaluable, list[str]]:
-        """
-        Build the evaluator tree.
-
-        Returns
-        -------
-        tuple[_Evaluable, list[str]]
-            The tree and the canonical reference strings it indexes into.
-        """
-        try:
-            tree = ast.parse(self._text, mode="eval")
-        except SyntaxError as error:
-            raise self._error(f"{error.msg}.") from None
-
-        return self._build(tree.body), self.reference_strings
-
-    def _build(self, node_ast: ast.expr) -> _Evaluable:
-        if isinstance(node_ast, ast.Constant):
-            return self._build_constant(node_ast)
-
-        if isinstance(node_ast, ast.BinOp):
-            return self._build_binary_operation(node_ast)
-
-        if isinstance(node_ast, ast.UnaryOp):
-            return self._build_unary_operation(node_ast)
-
-        if isinstance(node_ast, ast.Call):
-            return self._build_reference(node_ast)
-
-        if isinstance(node_ast, ast.Name) and _CAPITALIZED_NAME.fullmatch(node_ast.id):
-            raise NotImplementedError(
-                f"Expression '{self._text}' is currently unable to support"
-                " references to attributes."
-            )
-
-        raise self._error(f"unsupported syntax '{ast.unparse(node_ast)}'.")
-
-    def _build_constant(self, node_ast: ast.Constant) -> _Constant:
-        value = node_ast.value
-
-        # bools are ints to Python, but a deck writing 'True' does not mean a number
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            raise self._error(f"only numeric literals are allowed, got {value!r}.")
-
-        # literals are evaluated as floats so that '**' overflows
-        # instead of building arbitrarily large integers
-        return _Constant(float(value))
-
-    def _build_binary_operation(self, node_ast: ast.BinOp) -> _BinaryOperation:
-        operator_ = _BINARY_OPERATORS.get(type(node_ast.op))
-
-        if operator_ is None:
-            raise self._error(f"unsupported operator '{type(node_ast.op).__name__}'.")
-
-        return _BinaryOperation(
-            operator_, self._build(node_ast.left), self._build(node_ast.right)
-        )
-
-    def _build_unary_operation(self, node_ast: ast.UnaryOp) -> _UnaryOperation:
-        operator_ = _UNARY_OPERATORS.get(type(node_ast.op))
-
-        if operator_ is None:
-            raise self._error(
-                f"unsupported unary operator '{type(node_ast.op).__name__}'."
-            )
-
-        return _UnaryOperation(operator_, self._build(node_ast.operand))
-
-    def _build_reference(self, node_ast: ast.Call) -> _Reference:
-        if not isinstance(node_ast.func, ast.Name) or not _REFERENCE_NAME.fullmatch(
-            node_ast.func.id
-        ):
-            raise self._error(
-                f"'{ast.unparse(node_ast)}' is not a valid node reference."
-            )
-
-        if node_ast.keywords or len(node_ast.args) != 1:
-            raise self._error(
-                f"'{ast.unparse(node_ast)}' must take exactly one positional argument."
-            )
-
-        argument = node_ast.args[0]
-
-        if not isinstance(argument, ast.Constant) or type(argument.value) is not str:
-            raise self._error(
-                f"'{ast.unparse(node_ast)}' argument must be a string literal."
-            )
-
-        if '"' in argument.value:
-            raise self._error("node reference name must not contain a quote.")
-
-        # canonical spelling, whatever quoting and spacing the deck used
-        self.reference_strings.append(f'{node_ast.func.id}("{argument.value}")')
-
-        return _Reference(len(self.reference_strings) - 1)
-
-    def _error(self, detail: str) -> ValueError:
-        return ValueError(f"Error in expression <{self._text}>: {detail}")
+    if isinstance(tree, NodeReference):
+        yield tree
+    elif isinstance(tree, UnaryOperation):
+        yield from node_references(tree.operand)
+    elif isinstance(tree, BinaryOperation):
+        yield from node_references(tree.left)
+        yield from node_references(tree.right)
 
 
 class Expression:
@@ -249,65 +183,32 @@ class Expression:
     ----------
     text
         Expression body, as written in the deck between its ``<`` and ``>``.
+    tree
+        The evaluator tree the parser built from the text.
+    nodes
+        The node each ``NodeReference`` leaf of the tree names, by its key.
+    holder
+        The node or general node the expression is assigned to, named in errors.
     """
 
-    def __init__(self, text: str) -> None:
+    def __init__(
+        self,
+        text: str,
+        tree: Evaluable,
+        nodes: Mapping[NodeKey, Node],
+        holder: Node | _GeneralNode,
+    ) -> None:
         self.text: str = text
-        self.node_references: _References = []
-        self.reference_location: str = ""
+        self.node_references: dict[NodeKey, Calculator] = {}
         self.internal_bounds: Bounds = Bounds()
 
-        self._tree: _Evaluable
-        self.reference_strings: list[str]
-        self._node: Node | None = None
+        self._tree: Evaluable = tree
+        self._nodes: Mapping[NodeKey, Node] = nodes
+        self._holder: Node | _GeneralNode = holder
         self._allowed_types: tuple[str, ...] | None = None
-
-        self._tree, self.reference_strings = _Builder(text).build()
 
     def __repr__(self) -> str:
         return self.text
-
-    def resolve(self, node: Node, read_reference: Callable[[str, str], Node]) -> None:
-        """
-        Resolve the expression's references and check their types.
-
-        An expression already resolved is left as it is: the first node the
-        reference walk visits binds it.
-
-        Parameters
-        ----------
-        node
-            Node the expression is assigned to.
-        read_reference
-            Returns the node a canonical reference string names, given the
-            string and the deck location the expression is read from.
-        """
-        if self._node is not None:
-            return
-
-        self._node = node
-        references = [
-            read_reference(reference_string, self.reference_location)
-            for reference_string in self.reference_strings
-        ]
-        # the type check reads the reference strings, so it runs first and a
-        # reference the attribute does not accept keeps its own message
-        self.check_consistency()
-        self.node_references = [
-            self._as_calculator(reference) for reference in references
-        ]
-
-    def _as_calculator(self, reference: Node) -> Calculator:
-        # only a setter accepting a calculator type takes an expression with
-        # references (assign_value), so check_consistency has already refused
-        # any other node
-        if not is_calculator(reference):
-            raise ValueError(
-                f"{self._node}: Expression <{self.text}> references {reference},"
-                " which is not a Curve, Forecast, Surface, Timetable or Variable."
-            )
-
-        return reference
 
     @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
@@ -348,7 +249,9 @@ class Expression:
 
         # inclusive bounds only clamp, so the check is skipped where both are
         if bounds.exclusive:
-            bounds.check_exclusive(evaluated, f"{self._node}: Expression <{self.text}>")
+            bounds.check_exclusive(
+                evaluated, f"{self._holder}: Expression <{self.text}>"
+            )
 
         # numpy's stubs type np.clip over a float or an array as an array,
         # though a float comes back as an np.float64, a float
@@ -405,22 +308,42 @@ class Expression:
         self.internal_bounds = Bounds(lower, upper, inclusive_lower, inclusive_upper)
 
     def check_consistency(self) -> None:
-        """Check that the attribute accepts the node types the expression references."""
-        if not self.reference_strings:
+        """
+        Check the referenced nodes against the types the attribute accepts.
+
+        Runs once the setter holding the expression has declared the types it
+        accepts; it binds the references the evaluator reads.
+        """
+        references = list(node_references(self._tree))
+        if not references:
             return
 
         if self._allowed_types is None:
             raise ValueError(
-                f"{self._node}: Expression <{self.text}> does not allow node"
+                f"{self._holder}: Expression <{self.text}> does not allow node"
                 " references."
             )
 
-        # the type word of a reference string is the referenced node's own type
-        for reference_string in self.reference_strings:
-            type_ = reference_string.split("(")[0]
-
-            if type_ not in self._allowed_types:
+        for reference in references:
+            if reference.type not in self._allowed_types:
                 raise ValueError(
-                    f"{self._node}: Expression <{self.text}> references unacceptable"
-                    f" type {type_}."
+                    f"{self._holder}: Expression <{self.text}> references"
+                    f" unacceptable type {reference.type}."
                 )
+
+        self.node_references = {
+            reference.key: self._as_calculator(self._nodes[reference.key])
+            for reference in references
+        }
+
+    def _as_calculator(self, reference: Node) -> Calculator:
+        # only a setter accepting a calculator type takes an expression with
+        # references (assign_value), so the type check has already refused any
+        # other node
+        if not is_calculator(reference):
+            raise ValueError(
+                f"{self._holder}: Expression <{self.text}> references {reference},"
+                " which is not a Curve, Forecast, Surface, Timetable or Variable."
+            )
+
+        return reference
