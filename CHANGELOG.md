@@ -233,7 +233,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   transport costs.
 - The `PowerSystem` node: write its converters on the `Vessel` as three
   distinct `PropulsionConverter`, `ElectricalConverter` and `HeatConverter`,
-  and add its `Capex` and `Opex` to the vessel's `Capex` and `Opex`.
+  and add its `Capex` and `Opex` to the vessel's `Capex` and `Opex`. Its
+  `Lifetime` and `Replacement` have no counterpart: that cost now lasts the
+  vessel's lifetime.
 - The `-e`/`--export-assumptions` CLI flag.
 - The `-r`/`--replot` CLI flag and the `plot_data.pkl` file every run wrote;
   rerun the deck to regenerate the plots.

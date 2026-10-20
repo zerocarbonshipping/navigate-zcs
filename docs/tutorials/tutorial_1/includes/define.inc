@@ -24,7 +24,7 @@
 
 # Define and assign attributes of the node "vessel_ice_oil" 
 # Above, edit the vessel node so that each attribute and its value is written within the curly
-# brackets of the "vessel_ice_oil" node (i.e. PropulsionConverter, Route etc.). 
+# brackets of the "vessel_ice_oil" node (i.e. PropulsionConverter, Route etc.).
 
 
 

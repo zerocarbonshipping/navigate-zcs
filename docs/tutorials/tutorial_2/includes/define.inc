@@ -66,7 +66,7 @@ Converter "heat_boiler_oil" {
 # This definition has the same structure as the definition of the fuel oil vessel, but has
 # different assigned values.
 #
-# Define Vessel "container_ice_methane", Converter "propulsion_ice_methane", 
+# Define Vessel "container_ice_methane", Converter "propulsion_ice_methane",
 # Converter "electrical_ice_methane", Converter "heat_boiler_methane".
 #
 # Paste the nodes from section Bi) below.
@@ -76,7 +76,7 @@ Converter "heat_boiler_oil" {
 
 # Biii) DEFINITION OF METHANOL VESSEL
 #
-# Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol_bulk", 
+# Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol_bulk",
 # Converter "electrical_ice_methanol_bulk", Converter "heat_boiler_methanol_bulk".
 #
 # Paste the nodes from section Bi) below.
@@ -86,7 +86,7 @@ Converter "heat_boiler_oil" {
 
 # Biv) DEFINITION OF AMMONIA VESSEL
 #
-# Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia_bulk", 
+# Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia_bulk",
 # Converter "electrical_ice_ammonia_bulk", Converter "heat_boiler_ammonia_bulk".
 #
 # Paste the nodes from section Bi) below.
