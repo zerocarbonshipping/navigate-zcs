@@ -6,12 +6,11 @@
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import FuelTypeID
-from navigate.util import unique_list
-
 if TYPE_CHECKING:
+    from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.vessel import Vessel
 
 logger = logging.getLogger(__name__)
@@ -38,67 +37,30 @@ def determine_fuel_type(vessel: Vessel) -> None:
         vessel.primary_fuel_type = vessel.fuel_type
         return
 
-    power_system = vessel.power_system
-    fuel_type_power: dict[FuelTypeID, float] = {}
+    fuel_type_power: defaultdict[FuelTypeID, float] = defaultdict(float)
 
-    for converter in power_system.get_converters():
-        main_fuel_types = converter.main_fuel_types
+    for converter in vessel.power_system.get_converters():
         power_capacity = converter.power_capacity.get()
 
-        for fuel_type in main_fuel_types:
-            if fuel_type in fuel_type_power:
-                fuel_type_power[fuel_type] += power_capacity
+        for fuel_type in converter.main_fuel_types:
+            fuel_type_power[fuel_type] += power_capacity
 
-            else:
-                fuel_type_power[fuel_type] = power_capacity
+    max_power = max(fuel_type_power.values())
+    fuel_types = [key for key, value in fuel_type_power.items() if value == max_power]
 
-    # invert the mapping to the fuel types of each power capacity
-    power_capacities = unique_list(fuel_type_power.values())
-    power_fuel_type = {}
+    if len(fuel_types) == 1:
+        vessel.primary_fuel_type = fuel_types[0]
+        return
 
-    for power in power_capacities:
-        power_fuel_type[power] = [
-            key for key, value in fuel_type_power.items() if value == power
-        ]
+    vessel.primary_fuel_type = _largest_tank_fuel_type(vessel, fuel_types)
 
-    max_power = max(power_capacities)
-
-    if len(power_fuel_type[max_power]) > 1:
-        # a tie in power capacity is broken by the tank size
-        tanks = vessel.tanks
-        fuel_type_size = {
-            fuel_type: tank.size.get()
-            for tank in tanks
-            for fuel_type in tank.get_fuel_types()
-        }
-
-        usable_fuel_types = [
-            fuel_type
-            for fuel_type in power_fuel_type[max_power]
-            if fuel_type in fuel_type_size
-        ]
-        fuel_type = usable_fuel_types[0]
-
-        for type_ in usable_fuel_types:
-            if type_ not in fuel_type_size:
-                continue
-
-            # a tie in tank size keeps the first fuel type
-            if fuel_type_size[type_] > fuel_type_size[fuel_type]:
-                fuel_type = type_
-
-        logger.info(
-            "%s: Has a power system with multiple main fuel types (%s) of equal power. "
-            "%s was chosen as the primary.",
-            vessel,
-            ", ".join([FuelTypeID(f).name for f in power_fuel_type[max_power]]),
-            FuelTypeID(fuel_type).name,
-        )
-
-    else:
-        fuel_type = power_fuel_type[max_power][0]
-
-    vessel.primary_fuel_type = fuel_type
+    logger.info(
+        "%s: Has a power system with multiple main fuel types (%s) of equal power. "
+        "%s was chosen as the primary.",
+        vessel,
+        _fuel_type_names(fuel_types),
+        vessel.primary_fuel_type.name,
+    )
 
 
 def check_fuel_options(vessel: Vessel) -> None:
@@ -115,40 +77,54 @@ def check_fuel_options(vessel: Vessel) -> None:
     vessel
         Vessel whose fuel storage is checked.
     """
-    tank_fuel_types = [
-        fuel_type for tank in vessel.tanks for fuel_type in tank.get_fuel_types()
-    ]
+    tank_fuel_types: set[FuelTypeID] = set()
+
+    for tank in vessel.tanks:
+        tank_fuel_types.update(tank.get_fuel_types())
 
     for converter in vessel.power_system.get_converters():
-        main_fuel_types = converter.main_fuel_types
-        pilot_fuel_types = converter.pilot_fuel_types
-
         if converter.is_dual_fuel():
-            if converter.minimum_pilot_fuel.get() > 0.0 and not any(
-                fuel_type in tank_fuel_types for fuel_type in pilot_fuel_types
-            ):
+            needs_pilot = converter.minimum_pilot_fuel.get() > 0.0
+
+            if needs_pilot and tank_fuel_types.isdisjoint(converter.pilot_fuel_types):
+                names = _fuel_type_names(converter.pilot_fuel_types)
                 raise ValueError(
-                    "{}: Missing a tank which can store fuel of"
-                    " type(s) {} required as pilot fuel for {}.".format(
-                        vessel,
-                        ", ".join(FuelTypeID(f).name for f in pilot_fuel_types),
-                        converter,
-                    )
+                    f"{vessel}: Missing a tank which can store fuel of type(s) "
+                    f"{names} required as pilot fuel for {converter}."
                 )
 
-        else:
-            if not any(fuel_type in tank_fuel_types for fuel_type in main_fuel_types):
-                raise ValueError(
-                    "{}: Missing a tank which can store fuel of type(s) {} for"
-                    " {}.".format(
-                        vessel,
-                        ", ".join(FuelTypeID(f).name for f in main_fuel_types),
-                        converter,
-                    )
-                )
+        elif tank_fuel_types.isdisjoint(converter.main_fuel_types):
+            names = _fuel_type_names(converter.main_fuel_types)
+            raise ValueError(
+                f"{vessel}: Missing a tank which can store fuel of type(s) "
+                f"{names} for {converter}."
+            )
 
     if not vessel.usable_fuels:
         raise ValueError(
             f"{vessel}: No overlap between the fuel types of the PowerSystem,"
             " Tanks and Fuels."
         )
+
+
+def _largest_tank_fuel_type(vessel: Vessel, fuel_types: list[FuelTypeID]) -> FuelTypeID:
+    """
+    Pick the fuel type stored in the largest tank, among those a tank stores.
+
+    A tie in tank size keeps the first fuel type.
+    """
+    tank_sizes: dict[FuelTypeID, float] = {}
+
+    for tank in vessel.tanks:
+        size = tank.size.get()
+
+        for fuel_type in tank.get_fuel_types():
+            tank_sizes[fuel_type] = size
+
+    stored = [fuel_type for fuel_type in fuel_types if fuel_type in tank_sizes]
+    return max(stored, key=lambda fuel_type: tank_sizes[fuel_type])
+
+
+def _fuel_type_names(fuel_types: list[FuelTypeID]) -> str:
+    """Join the names of fuel types for a message."""
+    return ", ".join(fuel_type.name for fuel_type in fuel_types)
