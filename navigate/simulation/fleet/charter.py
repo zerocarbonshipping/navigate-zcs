@@ -48,18 +48,16 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     component = _build_asset_component(vessel, timeline[idx])
     discount_rate = vessel.cost_of_capital.get(component.time_initial)
 
-    cost_flow = component.get_cost_flow()
     capex_flow = component.capex_flow
+    cost_flow = component.get_cost_flow()
     operating_flow = component.constant_overlap
-
-    asset_charter_npv = calculate_net_present_value(cost_flow, discount_rate)
 
     # reference for non-dimensionalizing technology and conversion investment NPVs
     capex_npv = calculate_net_present_value(capex_flow, discount_rate)
 
-    # present value of one USD/year over the operating years, lead time excluded
+    # the asset cost levelized over the operating years, lead time excluded
+    asset_charter_npv = calculate_net_present_value(cost_flow, discount_rate)
     annuity_factor = calculate_net_present_value(operating_flow, discount_rate)
-
     asset_charter_rate = asset_charter_npv / annuity_factor
 
     # the tied-up capital starts once the asset is in operation, as the lead time
