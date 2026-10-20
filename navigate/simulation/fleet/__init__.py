@@ -6,8 +6,8 @@
 from __future__ import annotations
 
 from navigate.simulation.fleet.charter import (
-    calculate_cargo_charter_properties,
-    calculate_vessel_charter_properties,
+    calculate_asset_charter,
+    calculate_cargo_charter,
 )
 from navigate.simulation.fleet.conversion import (
     calculate_fuel_type_balance,
