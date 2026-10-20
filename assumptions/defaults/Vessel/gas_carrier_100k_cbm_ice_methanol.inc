@@ -9,14 +9,16 @@ Vessel "gas_carrier_100k_cbm_ice_methanol" {
 	HeatLoadAtSea = Variable("gas_carrier_100k_cbm_heat_load_sea")
 	HeatLoadInPort = Variable("gas_carrier_100k_cbm_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_methanol_gas_carrier_100k_cbm")
+	PropulsionConverter = Converter("propulsion_ice_methanol_gas_carrier_100k_cbm")
+	ElectricalConverter = Converter("electrical_ice_methanol_gas_carrier_100k_cbm")
+	HeatConverter = Converter("heat_boiler_oil_gas_carrier_100k_cbm")
 	Tanks = [Tank("main_methanol_gas_carrier_100k_cbm"), Tank("pilot_oil_gas_carrier_100k_cbm")]
 	
 	Route = Route("operational_profile_gas_carrier_100k_cbm")
 	NominalCapacity = Variable("gas_carrier_100k_cbm_nominal_capacity")
 	Lifetime = Variable("gas_carrier_100k_cbm_lifetime")
 	
-	Capex = Forecast("gas_carrier_100k_cbm_capex")
-	Opex = Forecast("gas_carrier_100k_cbm_opex")
+	Capex = <Forecast("gas_carrier_100k_cbm_capex") + Forecast("gas_carrier_100k_cbm_supply_system_methanol_capex")>
+	Opex = <Forecast("gas_carrier_100k_cbm_opex") + Forecast("gas_carrier_100k_cbm_supply_system_methanol_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

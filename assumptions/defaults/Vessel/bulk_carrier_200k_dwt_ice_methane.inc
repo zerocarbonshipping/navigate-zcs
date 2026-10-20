@@ -9,14 +9,16 @@ Vessel "bulk_carrier_200k_dwt_ice_methane" {
 	HeatLoadAtSea = Variable("bulk_carrier_200k_dwt_heat_load_sea")
 	HeatLoadInPort = Variable("bulk_carrier_200k_dwt_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_methane_bulk_carrier_200k_dwt")
+	PropulsionConverter = Converter("propulsion_ice_methane_bulk_carrier_200k_dwt")
+	ElectricalConverter = Converter("electrical_ice_methane_bulk_carrier_200k_dwt")
+	HeatConverter = Converter("heat_boiler_oil_bulk_carrier_200k_dwt")
 	Tanks = [Tank("main_methane_bulk_carrier_200k_dwt"), Tank("pilot_oil_bulk_carrier_200k_dwt")]
 	
 	Route = Route("operational_profile_bulk_carrier_200k_dwt")
 	NominalCapacity = Variable("bulk_carrier_200k_dwt_nominal_capacity")
 	Lifetime = Variable("bulk_carrier_200k_dwt_lifetime")
 	
-	Capex = Forecast("bulk_carrier_200k_dwt_capex")
-	Opex = Forecast("bulk_carrier_200k_dwt_opex")
+	Capex = <Forecast("bulk_carrier_200k_dwt_capex") + Forecast("bulk_carrier_200k_dwt_supply_system_methane_capex")>
+	Opex = <Forecast("bulk_carrier_200k_dwt_opex") + Forecast("bulk_carrier_200k_dwt_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

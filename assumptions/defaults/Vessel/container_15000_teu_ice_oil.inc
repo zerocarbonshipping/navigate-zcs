@@ -9,14 +9,16 @@ Vessel "container_15000_teu_ice_oil" {
 	HeatLoadAtSea = Variable("container_15000_teu_heat_load_sea")
 	HeatLoadInPort = Variable("container_15000_teu_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_oil_container_15000_teu")
+	PropulsionConverter = Converter("propulsion_ice_oil_container_15000_teu")
+	ElectricalConverter = Converter("electrical_ice_oil_container_15000_teu")
+	HeatConverter = Converter("heat_boiler_oil_container_15000_teu")
 	Tanks = [Tank("main_oil_container_15000_teu")]
 	
 	Route = Route("operational_profile_container_15000_teu")
 	NominalCapacity = Variable("container_15000_teu_nominal_capacity")
 	Lifetime = Variable("container_15000_teu_lifetime")
 	
-	Capex = Forecast("container_15000_teu_capex")
-	Opex = Forecast("container_15000_teu_opex")
+	Capex = <Forecast("container_15000_teu_capex") + Forecast("container_15000_teu_supply_system_oil_capex")>
+	Opex = <Forecast("container_15000_teu_opex") + Forecast("container_15000_teu_supply_system_oil_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

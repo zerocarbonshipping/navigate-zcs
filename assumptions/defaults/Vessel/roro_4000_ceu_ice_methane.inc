@@ -9,14 +9,16 @@ Vessel "roro_4000_ceu_ice_methane" {
 	HeatLoadAtSea = Variable("roro_4000_ceu_heat_load_sea")
 	HeatLoadInPort = Variable("roro_4000_ceu_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_methane_roro_4000_ceu")
+	PropulsionConverter = Converter("propulsion_ice_methane_roro_4000_ceu")
+	ElectricalConverter = Converter("electrical_ice_methane_roro_4000_ceu")
+	HeatConverter = Converter("heat_boiler_oil_roro_4000_ceu")
 	Tanks = [Tank("main_methane_roro_4000_ceu"), Tank("pilot_oil_roro_4000_ceu")]
 	
 	Route = Route("operational_profile_roro_4000_ceu")
 	NominalCapacity = Variable("roro_4000_ceu_nominal_capacity")
 	Lifetime = Variable("roro_4000_ceu_lifetime")
 	
-	Capex = Forecast("roro_4000_ceu_capex")
-	Opex = Forecast("roro_4000_ceu_opex")
+	Capex = <Forecast("roro_4000_ceu_capex") + Forecast("roro_4000_ceu_supply_system_methane_capex")>
+	Opex = <Forecast("roro_4000_ceu_opex") + Forecast("roro_4000_ceu_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }
