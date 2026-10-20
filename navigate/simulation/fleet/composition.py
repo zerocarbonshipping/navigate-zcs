@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
+    from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
@@ -111,7 +112,7 @@ def extract_cargo_miles_timeline(vessels: list[Vessel], idx: slice) -> list[Floa
     return [np.asarray(vessel.expectation.get_cargo_miles(idx)) for vessel in vessels]
 
 
-def clean_up_multipliers(fleet: Fleet) -> None:
+def consolidate_increments(fleet: Fleet) -> None:
     """
     Merge increments of equal age and age span, and drop those below 1e-3 vessels.
 
@@ -120,48 +121,50 @@ def clean_up_multipliers(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet whose increments are cleaned up.
+        Fleet whose increments are consolidated.
     """
-    for v in range(len(fleet.vessels)):
-        incs = fleet.increments[v]
-        n = len(incs)
-        available = [True] * n
+    for v, increments in enumerate(fleet.increments):
+        cohorts: dict[tuple[float, float], list[VesselIncrement]] = {}
 
-        for i in range(n):
-            if not available[i]:
-                continue
+        for increment in increments:
+            key = (increment.age, increment.age_span)
+            cohorts.setdefault(key, []).append(increment)
 
-            age_i = incs[i].age
-            dt_i = incs[i].age_span
+        consolidated: list[VesselIncrement] = []
 
-            matching = [
-                j
-                for j in range(n)
-                if j != i
-                and available[j]
-                and incs[j].age == age_i
-                and incs[j].age_span == dt_i
-            ]
+        for cohort in cohorts.values():
+            if sum(inc.multiplier for inc in cohort) >= 1e-3:
+                consolidated.append(_merge(cohort))
 
-            if matching:
-                merge_indices = [*matching, i]
-                package_uptake = np.zeros_like(fleet.newbuild_package_uptake[v])
-                charter_rate = 0.0
+        fleet.increments[v] = consolidated
 
-                for j in merge_indices:
-                    package_uptake += incs[j].multiplier * incs[j].package_uptake
-                    charter_rate += incs[j].multiplier * incs[j].technology_charter_rate
 
-                incs[i].multiplier += sum(incs[j].multiplier for j in matching)
-                incs[i].package_uptake = package_uptake / incs[i].multiplier
-                incs[i].technology_charter_rate = charter_rate / incs[i].multiplier
+def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
+    """
+    Fold a cohort into its first increment, weighting by multiplier.
 
-                # a zeroed increment is dropped by the filter below
-                for j in matching:
-                    incs[j].multiplier = 0.0
-                    available[j] = False
+    Parameters
+    ----------
+    cohort
+        Increments of one vessel type with equal age and age span, in fleet order.
 
-    for v in range(len(fleet.vessels)):
-        fleet.increments[v] = [
-            inc for inc in fleet.increments[v] if inc.multiplier >= 1e-3
-        ]
+    Returns
+    -------
+    VesselIncrement
+        The first increment, holding the cohort's total multiplier and its
+        multiplier-weighted package uptake and technology charter rate.
+    """
+    survivor = cohort[0]
+
+    if len(cohort) == 1:
+        return survivor
+
+    weights = [inc.multiplier for inc in cohort]
+    uptakes = [inc.package_uptake for inc in cohort]
+    charter_rates = [inc.technology_charter_rate for inc in cohort]
+
+    survivor.multiplier = sum(weights)
+    survivor.package_uptake = np.average(uptakes, axis=0, weights=weights)
+    survivor.technology_charter_rate = float(np.average(charter_rates, weights=weights))
+
+    return survivor
