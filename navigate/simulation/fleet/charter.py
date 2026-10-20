@@ -53,9 +53,10 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     operating_flow = component.constant_overlap
 
     asset_charter_npv = calculate_net_present_value(cost_flow, discount_rate)
-    # reference value used to non-dimensionalize technology and conversion
-    # investment NPVs
+
+    # reference for non-dimensionalizing technology and conversion investment NPVs
     capex_npv = calculate_net_present_value(capex_flow, discount_rate)
+
     # present value of one USD/year over the operating years, lead time excluded
     annuity_factor = calculate_net_present_value(operating_flow, discount_rate)
 
@@ -109,6 +110,7 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
 
     fuel_npv = calculate_net_present_value(fuel_cost_flow, discount_rate)
     cargo_npv = calculate_net_present_value(cargo_flow, discount_rate)
+
     # present value of one USD/year over the operating years, lead time excluded
     annuity_factor = calculate_net_present_value(operating_flow, discount_rate)
 
