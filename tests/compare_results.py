@@ -5,13 +5,13 @@
 Compare the results of a fixed set of decks between two installs of Navigate.
 
 A change meant to leave simulation results alone (a pull request labelled
-`maintenance`) must leave every profile result of these decks where it was.
-`snapshot` runs the decks with the Navigate that the running interpreter
-imports, and writes one snapshot per deck (helpers/snapshot.py); `diff`
-compares two such directories and fails on any difference beyond the runner
-noise. CI runs `snapshot` once with the pull request's install and once with
-its base's, both from the pull request's copy of this script and its decks.
-Each deck is copied into a temporary directory before it runs, so the
+`maintenance`) must leave every profile result of these decks where it was, up
+to rounding. `snapshot` runs the decks with the Navigate that the running
+interpreter imports, and writes one snapshot per deck (helpers/snapshot.py);
+`diff` compares two such directories and fails on any difference beyond
+rounding. CI runs `snapshot` once with the pull request merged into its base
+and once with that base, both from the merged copy of this script and its
+decks. Each deck is copied into a temporary directory before it runs, so the
 checkout receives no output, and each run uses HiGHS, so that a Gurobi licence
 on one side cannot move the results.
 
@@ -162,8 +162,8 @@ def main() -> int:
     compare = commands.add_parser("diff", help="compare two snapshot directories")
     compare.add_argument("base", type=Path)
     compare.add_argument("head", type=Path)
-    compare.add_argument("--rtol", type=float, default=snapshots.RUNNER_NOISE_RTOL)
-    compare.add_argument("--atol", type=float, default=snapshots.RUNNER_NOISE_ATOL)
+    compare.add_argument("--rtol", type=float, default=snapshots.ROUNDING_RTOL)
+    compare.add_argument("--atol", type=float, default=snapshots.ROUNDING_ATOL)
 
     args = parser.parse_args()
     if args.command == "snapshot":
