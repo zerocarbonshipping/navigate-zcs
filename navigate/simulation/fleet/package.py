@@ -89,7 +89,8 @@ def _calculate_combined_effects(package: TechnologyPackage) -> None:
         retained = [1.0 - saving[energy_id].get() for saving in energy_savings]
         savings[energy_id] = 1.0 - math.prod(retained)
 
-        powers[energy_id] = sum(power[energy_id].get() for power in external_powers)
+        added = [power[energy_id].get() for power in external_powers]
+        powers[energy_id] = math.fsum(added)
 
     transfer_curves = {}
 
@@ -103,7 +104,7 @@ def _calculate_combined_effects(package: TechnologyPackage) -> None:
     package.compound_savings = savings
     package.compound_powers = powers
     package.transfer_curves = transfer_curves
-    package.shore_power_capacity = sum(capacities)
+    package.shore_power_capacity = math.fsum(capacities)
 
 
 def _transfers_power(curve: CurveInput) -> bool:
@@ -112,7 +113,7 @@ def _transfers_power(curve: CurveInput) -> bool:
 
 
 def update_packages(
-    packages: list[TechnologyPackage], cost_flows: PackageCostFlows, time: float
+    packages: list[TechnologyPackage], package_cost_flows: PackageCostFlows, time: float
 ) -> None:
     """
     Update every package's combined effects and move the cost flows to a new time.
@@ -121,35 +122,37 @@ def update_packages(
     ----------
     packages
         All technology packages, from empty to full, ordered by increasing size.
-    cost_flows
+    package_cost_flows
         Package cost flows; the flows of the previous decision time are dropped.
     time
         Investment decision time, days.
     """
-    cost_flows.time = time
-    cost_flows.by_horizon.clear()
+    package_cost_flows.time = time
+    package_cost_flows.by_horizon.clear()
 
     for package in packages:
         _calculate_combined_effects(package)
 
 
 def get_package_cost_flows(
-    packages: list[TechnologyPackage], cost_flows: PackageCostFlows, horizon: float
+    packages: list[TechnologyPackage],
+    package_cost_flows: PackageCostFlows,
+    horizon: float,
 ) -> list[FloatArray]:
     """
     Return each package's cumulative CAPEX and OPEX cost flow over a horizon.
 
-    The flows start at the decision time of ``cost_flows`` and span the ``horizon``
-    years the installation serves, the last partial year prorated. A replacement whose
-    lifetime outlasts the horizon is charged for the share of it the horizon holds.
-    The flows are built on the first request for a horizon and kept until
+    The flows start at the decision time of ``package_cost_flows`` and span the
+    ``horizon`` years the installation serves, the last partial year prorated. A
+    replacement whose lifetime outlasts the horizon is charged for the share of it the
+    horizon holds. The flows are built on the first request for a horizon and kept until
     ``update_packages`` moves the time on.
 
     Parameters
     ----------
     packages
         All technology packages, from empty to full, ordered by increasing size.
-    cost_flows
+    package_cost_flows
         Package cost flows of the current decision time.
     horizon
         Time the installation serves, years.
@@ -160,11 +163,11 @@ def get_package_cost_flows(
         Cost flow of each package, USD/year; zero for the empty package.
     """
     key = round(horizon, ROUND_OFF)
-    flows = cost_flows.by_horizon.get(key)
+    flows = package_cost_flows.by_horizon.get(key)
 
     if flows is None:
-        flows = _build_package_cost_flows(packages, key, cost_flows.time)
-        cost_flows.by_horizon[key] = flows
+        flows = _build_package_cost_flows(packages, key, package_cost_flows.time)
+        package_cost_flows.by_horizon[key] = flows
 
     return flows
 
@@ -174,7 +177,7 @@ def _build_package_cost_flows(
 ) -> list[FloatArray]:
     """Build each package's cost flow over a horizon from its technologies."""
     # packages nest: package i holds the first i technologies of the full package
-    cumulative = np.zeros(get_flow_size(lead_time=0.0, lifetime=horizon), dtype=float)
+    cumulative = np.zeros(get_flow_size(lead_time=0.0, lifetime=horizon))
     flows = [cumulative]
 
     for technology in packages[-1].technologies:
@@ -314,7 +317,9 @@ def calculate_retrofit_charter_rates(
 
 
 def calculate_package_charter_rates(
-    packages: list[TechnologyPackage], cost_flows: PackageCostFlows, vessel: Vessel
+    packages: list[TechnologyPackage],
+    package_cost_flows: PackageCostFlows,
+    vessel: Vessel,
 ) -> FloatArray:
     """
     Levelize each package's cost, installed at build, over the vessel lifetime.
@@ -326,7 +331,7 @@ def calculate_package_charter_rates(
     ----------
     packages
         All technology packages, from empty to full.
-    cost_flows
+    package_cost_flows
         Package cost flows of the current decision time.
     vessel
         Vessel whose lifetime and cost of capital govern the levelization.
@@ -338,7 +343,7 @@ def calculate_package_charter_rates(
     """
     lifetime = vessel.lifetime.get()
     discount_rate = vessel.cost_of_capital.get()
-    flows = get_package_cost_flows(packages, cost_flows, lifetime)
+    flows = get_package_cost_flows(packages, package_cost_flows, lifetime)
 
     rates = [_levelize_package_cost(flow, lifetime, discount_rate) for flow in flows]
 
