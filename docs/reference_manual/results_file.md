@@ -46,10 +46,11 @@ property `TotalEquivalentWtw` is the attribute `total_equivalent_wtw`.
 
 Values are per year where the unit says so. The results that count what
 happened in a time step, `newbuilds`, `scrap`, `fuel_conversions`,
-`newbuild_power`, `scrapped_power`, `fuel_converted_power` and `development`,
-are divided by the length of the step in years of 365.25 days, the first step
-counting as one year. The report gives them per step instead: with yearly time
-steps the two differ only by the length of the calendar year.
+`newbuild_power`, `scrapped_power`, `fuel_converted_power`, `development` and
+`computational_time`, are divided by the length of the step in years of 365.25
+days, the first step counting as one year. The report gives them per step
+instead: with yearly time steps the two differ only by the length of the
+calendar year.
 
 ## Metadata
 

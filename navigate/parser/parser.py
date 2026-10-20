@@ -70,7 +70,7 @@ class Parser:
         self.nodes = self._builder.build_nodes()
         self._events = _events_by_date(pruning.events, start_date)
 
-    def read_events(self, date: np.datetime64) -> None:
+    def read_events(self, date: np.datetime64) -> bool:
         """
         Apply the events queued at a date and refresh the dependent nodes.
 
@@ -79,8 +79,16 @@ class Parser:
         date
             A date from ``dates``; a date with no queued events only refreshes
             the dependencies.
+
+        Returns
+        -------
+        bool
+            Whether the events applied at least one statement.
         """
-        self._builder.apply_events(self._events.get(date, []))
+        events = self._events.get(date, [])
+        self._builder.apply_events(events)
+
+        return any(block.body for block, _ in events)
 
 
 def _time_steps(

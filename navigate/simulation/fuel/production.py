@@ -35,7 +35,7 @@ def calculate_plant_production_expectations(
     plant: Plant, emissions: dict[str, Emission], timeline: FloatArray, idx: int
 ) -> None:
     """
-    Calculate the levelized cost, WTT emissions and feed use of a plant's production.
+    Calculate the levelized cost, WTT emissions and feed use of a plant from a step on.
 
     The levelized cost covers the CAPEX and the fixed and variable OPEX of building
     and running the plant over its lifetime. A process living shorter than the plant,
@@ -80,13 +80,6 @@ def calculate_plant_production_expectations(
 
         _add_process_tree(component, plant, process, 1.0, t)
         _calculate_unit_properties(component, plant, t)
-
-    cost = float(expectation.get_levelized_production_cost(idx))
-    plant.profile.investment_cost[idx] = cost
-
-    for emission in emissions:
-        wtt = float(expectation.get_production_wtt(emission, idx))
-        plant.profile.investment_wtt[emission][idx] = wtt
 
 
 def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) -> None:
@@ -447,7 +440,9 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     expectation.set_levelized_production_cost(idx, levelized_cost)
 
     commence_idx = component.get_commence_index()
-    expectation.set_tied_capital(idx, component.tied_capital_flow[commence_idx:])
+    # a copy, since the component is reused and refilled for the next step
+    tied_capital = component.tied_capital_flow[commence_idx:].copy()
+    expectation.set_tied_capital(idx, tied_capital)
 
     # TODO: recertify the plant every year instead of at its first operating year,
     # which requires reworking the Producer node. Unlike the cost, which converts to a

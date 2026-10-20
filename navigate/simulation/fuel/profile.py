@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-step producer and port output transfers."""
+"""Per-step plant, producer and port output transfers."""
 
 from __future__ import annotations
 
@@ -13,9 +13,32 @@ from navigate.simulation.cohort import find_origin_index, find_origin_indexes
 from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.producer import Producer
     from navigate.util.types_ import FloatArray
+
+
+def calculate_plant_profile(plant: Plant, idx: int) -> None:
+    """
+    Write the cost and WTT per ton of the plant invested in at the step to its profile.
+
+    Parameters
+    ----------
+    plant
+        The plant instance.
+    idx
+        Current time-step index.
+    """
+    expectation = plant.expectation
+    profile = plant.profile
+
+    cost = expectation.get_levelized_production_cost(idx)
+    profile.investment_cost[idx] = cost
+
+    for emission in expectation.get_emissions():
+        wtt = expectation.get_production_wtt(emission, idx)
+        profile.investment_wtt[emission][idx] = wtt
 
 
 def calculate_producer_profile(

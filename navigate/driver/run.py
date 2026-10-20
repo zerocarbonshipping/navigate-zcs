@@ -86,9 +86,9 @@ def run_deck(
 
     for idx, date in enumerate(parser.dates):
         _log_time_step(idx, date, parser.dates[0], start_time)
-        parser.read_events(date)
+        inputs_changed = parser.read_events(date)
         print(f"Date: {date}")
-        simulation.step(date)
+        simulation.step(date, inputs_changed)
 
     results = simulation.finish()
 

@@ -125,6 +125,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - On `add_property` and `add_fleet_property`, the `*EnergySaving` properties
   are now `*EnergyIntensitySaving` (they stay on `add_vessel_property`), and
   `SpeedEnergyIntensitySaving` is new.
+- The 18 timing report properties (`TotalTime`, `ExpectedBuildTime`, ...) are
+  now `ComputationalTime`, one column per phase in `TimingID`:
+  - with `BOTH`, it gives each time step's own time, without initialization or
+    reading events, where `TotalTime` was the running time since initialization;
+  - the computational-performance plots group the time into these phases.
 - Three wildcard uses are rejected at their line: a glob as a command
   argument, a glob on a single-valued attribute (`Route = Route("r_*")`), and
   a node listed beside a glob that also matches it.
@@ -282,6 +287,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- The producer's expected feed consumption, and hence its feed-constrained
+  build-out, was overstated further into the horizon; each year now counts
+  only the feed of a plant invested in that year (#587).
 - A fleet whose vessels differ in `Lifetime` no longer stops with a
   `ValueError` once it has `Technologies`. Technology costs are amortized over
   each vessel's own lifetime, or the years left for a retrofit, so a
@@ -289,6 +297,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `set_power_transfer` (Technology) accepts a transfer above 1 MW; the value
   is a power in MW and was capped at 1.
 - `--solver auto` no longer fails with a traceback (#402).
+- The `computational_performance_cumulative` plot no longer weights each time
+  step's computational time by the step's length in years.
 - Reference-manual corrections:
   - default nodes and modules live under `<data_dir>/defaults/` and
     `<data_dir>/modules/`, and a separate reference to a Copy source pulls
@@ -525,6 +535,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `NominalCapacity` (Vessel), `RetrofitFrequency` (Fleet), `TimeAtSea` (Route)
   and `set_process_lifetime` (Region) must now be above 0; a 0 used to crash or
   hang the run or give invalid results.
+- `PlantTiedCapital` no longer repeats the capital tied up by the plants
+  invested in the last time step for every investment time; each time step
+  now reports its own plant capital (#588).
 
 ## [1.0.0] - 2026-07-16
 

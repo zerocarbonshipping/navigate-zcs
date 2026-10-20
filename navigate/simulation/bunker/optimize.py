@@ -5,17 +5,18 @@
 
 from __future__ import annotations
 
-import timeit
 from typing import TYPE_CHECKING
 
 import navigate.simulation.bunker.solver as gp
-from navigate.core.enum_ import BunkerScopeID
+from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.exceptions import InfeasibleLPError
+from navigate.util import timed
 
 if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
+@timed(TimingID.LP_SOLVE)
 def optimize(alg: BunkerAlgorithm) -> None:
     """
     Optimize the built model and check the feasibility of the solution.
@@ -25,13 +26,8 @@ def optimize(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-    start = timeit.default_timer()
-
     alg.model.optimize()
     check_solution(alg)
-
-    end = timeit.default_timer()
-    alg.solve_time += end - start
 
 
 def check_solution(alg: BunkerAlgorithm) -> None:

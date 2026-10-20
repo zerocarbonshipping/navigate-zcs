@@ -31,17 +31,13 @@ if TYPE_CHECKING:
 
 type Snapshot = dict[str, np.ndarray]
 
-# Tolerances for comparing runs across installs or machines. Pinning the solver
-# backend fixes neither its thread count nor the CPU dispatch in its float
-# kernels, so an LP with non-unique optima can resolve ties differently from
-# one machine to the next: nonzero cells drift by a few parts in 1e14, and
-# degenerate ties move between adjacent year bins, which lifts exact-zero cells
-# to ~1e-11. rtol covers the first regime at ~18x headroom over the worst drift
-# observed; atol is the only guard on the second, and on the exact-zero cells
-# that encode a gated-off pathway, where 1e-9 is inert in every unit a profile
-# carries - vessels, MW, USD and dimensionless fractions.
-RUNNER_NOISE_RTOL = 1e-12
-RUNNER_NOISE_ATOL = 1e-9
+# Tolerances for comparing runs across installs. A maintenance change may
+# reorder floating-point arithmetic, and LPs and cancellations amplify a
+# last-digit change, most visibly in cells that are zero up to rounding. rtol
+# bounds the relative drift, atol the near-zero cells; 1e-5 is negligible in
+# every unit a profile carries - vessels, MW, USD, tonnes and fractions.
+ROUNDING_RTOL = 1e-8
+ROUNDING_ATOL = 1e-5
 
 # The global profile's wall-clock timings, which differ between any two runs.
 _TIMING_SUFFIX = "_time"

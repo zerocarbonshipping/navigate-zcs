@@ -176,3 +176,18 @@ class UtilityID(Enum):
     LOWER_LOG_RATIO = auto()  # lower-is-better, log-ratio to the minimum
     HIGHER_LOG_RATIO = auto()  # higher-is-better, log-ratio to the maximum
     SIGNED_REFERENCE = auto()  # signed metric scaled by a reference value
+
+
+class TimingID(Enum):
+    """The phase of a time step its computational time is booked to."""
+
+    LP_BUILD = auto()  # building and updating the bunkering LPs
+    LP_SOLVE = auto()  # solving the bunkering LPs
+    LP_TRANSFER = auto()  # transferring the LP solutions to the nodes
+    FLEET_EVOLUTION = auto()  # scrapping, fuel conversions and newbuilds
+    SPEED_MANAGEMENT = auto()  # speed management of the fleets
+    TECHNOLOGY_INSTALLATION = auto()  # technology installation on the fleets
+    PLANT_PRODUCTION = auto()  # production properties of the plants
+    PRODUCER_EVOLUTION = auto()  # decommissioning, delivery and planning of plants
+    POLICY = auto()  # emission coefficients, regulation measures and compliance
+    OTHER = auto()  # everything in a time step no other phase claims

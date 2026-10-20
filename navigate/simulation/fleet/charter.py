@@ -19,8 +19,6 @@ from navigate.simulation.economics.flows import (
 from navigate.simulation.economics.metric import calculate_net_present_value
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.tank import Tank
@@ -28,16 +26,15 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
-def calculate_vessel_charter_properties(
-    vessel: Vessel, timeline: FloatArray, idx: int
-) -> None:
+def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> None:
     """
     Calculate the asset charter metrics of a vessel ordered at this time-step.
 
-    The cost flow holds the CAPEX and fixed OPEX of the hull, power system,
-    converters and tanks. Technology costs are left out: they enter the cargo
-    charter metrics as the fleet-average carried technology charge, and the
-    post-processed instantaneous freight rate reuses the asset charter NPV.
+    The asset charter rate, in USD/year, is what a ship operator would pay a ship
+    owner: the asset cost levelized over the vessel's operating years. Technology
+    costs are left out: they enter the cargo charter metrics as the fleet-average
+    carried technology charge, and the post-processed instantaneous freight rate
+    reuses the asset charter NPV.
 
     Parameters
     ----------
@@ -48,26 +45,45 @@ def calculate_vessel_charter_properties(
     idx
         Current time-step index.
     """
-    time = timeline[idx]
-    component = _initialize_vessel_component(
-        vessel=vessel, machinery=None, time_initial=time
-    )
+    component = _build_asset_component(vessel, timeline[idx])
+    discount_rate = vessel.cost_of_capital.get(component.time_initial)
 
-    _calculate_base_cost(vessel, component)
-    _calculate_power_system_cost(vessel, component)
-    _calculate_converter_cost(vessel, component)
-    _calculate_tank_cost(vessel, component)
-    _calculate_vessel_unit_properties(vessel, component, idx)
+    capex_flow = component.capex_flow
+    cost_flow = component.get_cost_flow()
+    operating_flow = component.constant_overlap
+
+    # reference for non-dimensionalizing technology and conversion investment NPVs
+    capex_npv = calculate_net_present_value(capex_flow, discount_rate)
+
+    # the asset cost levelized over the operating years, lead time excluded
+    asset_charter_npv = calculate_net_present_value(cost_flow, discount_rate)
+    annuity_factor = calculate_net_present_value(operating_flow, discount_rate)
+    asset_charter_rate = asset_charter_npv / annuity_factor
+
+    # the tied-up capital starts once the asset is in operation, as the lead time
+    # is not modelled outside the financial calculations
+    commence_idx = component.get_commence_index()
+    tied_capital = component.tied_capital_flow[commence_idx:]
+
+    expectation = vessel.expectation
+    expectation.set_asset_charter_npv(idx, asset_charter_npv)
+    expectation.set_capex_npv(idx, capex_npv)
+    expectation.set_asset_charter_rate(idx, asset_charter_rate)
+    expectation.set_tied_capital(idx, tied_capital)
+
+    vessel.profile.asset_charter_rate[idx] = asset_charter_rate
 
 
-def calculate_cargo_charter_properties(
-    vessel: Vessel, timeline: FloatArray, idx: int
-) -> None:
+def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> None:
     """
     Calculate the cargo charter rate and investment freight rate of a vessel.
 
-    The fuel expenses, bunker and policy costs, enter as variable OPEX on top of
-    the asset charter NPV already calculated for this time-step.
+    The total cost NPV adds the fuel cost NPV, which covers the bunker and policy
+    expenses, and the carried technology charge to the asset charter NPV already
+    calculated for this time-step. The cargo charter rate, in USD/year, is what a
+    cargo owner would pay a ship operator: the total cost levelized over the
+    operating years. The freight rate, in USD/cargo-mile, levelizes it over the
+    cargo-miles delivered.
 
     Parameters
     ----------
@@ -78,13 +94,36 @@ def calculate_cargo_charter_properties(
     idx
         Current time-step index.
     """
-    time = timeline[idx]
-    component = _initialize_vessel_component(
-        vessel=vessel, machinery=None, time_initial=time
-    )
+    component = _build_fuel_component(vessel, timeline, idx)
+    discount_rate = vessel.cost_of_capital.get(component.time_initial)
 
-    _calculate_fuel_cost(vessel, component, timeline, idx)
-    _calculate_cargo_unit_properties(vessel, component, timeline, idx)
+    expectation = vessel.expectation
+    asset_charter_npv = expectation.get_asset_charter_npv(idx)
+    technology_rate = expectation.get_technology_charter_rate(idx)
+    cargo_miles = np.asarray(expectation.get_cargo_miles())
+
+    fuel_cost_flow = component.get_cost_flow()
+    operating_flow = component.constant_overlap
+    cargo_flow = build_cargo_flow(component, cargo_miles, timeline)
+
+    fuel_npv = calculate_net_present_value(fuel_cost_flow, discount_rate)
+    cargo_npv = calculate_net_present_value(cargo_flow, discount_rate)
+
+    # present value of one USD/year over the operating years, lead time excluded
+    annuity_factor = calculate_net_present_value(operating_flow, discount_rate)
+
+    # the fleet-average carried technology charge is locked at this step like fixed
+    # OPEX; the fleet average matches the fuel expenses, which reflect fleet-average
+    # technology uptake
+    cost_npv = asset_charter_npv + fuel_npv + technology_rate * annuity_factor
+    cargo_charter_rate = cost_npv / annuity_factor
+    freight_rate = cost_npv / cargo_npv
+
+    expectation.set_fuel_cost_flow(fuel_cost_flow)
+    expectation.set_freight_rate(idx, freight_rate)
+
+    vessel.profile.cargo_charter_rate[idx] = cargo_charter_rate
+    vessel.profile.investment_freight_rate[idx] = freight_rate
 
 
 def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: Index) -> FloatLike:
@@ -111,121 +150,48 @@ def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: Index) -> FloatLike:
     remedial = expectation.get_remedial_expenses(idx)
     flexibility = expectation.get_flexibility_expenses(idx)
 
-    policy_expenses = remedial + flexibility
-    return fuel + policy_expenses
+    return fuel + remedial + flexibility
 
 
-def _calculate_vessel_unit_properties(
-    vessel: Vessel, component: Component, idx: int
-) -> None:
+def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
     """
-    Store the asset charter NPV, CAPEX NPV, asset charter rate and tied capital.
+    Build the component holding a vessel's asset cost flow.
 
-    The asset charter rate, USD/year, is what a ship operator would pay a ship
-    owner: the asset cost levelized over the vessel's operating years.
+    The cost flow holds the CAPEX and fixed OPEX of the hull, power system,
+    converters and tanks.
 
     Parameters
     ----------
     vessel
-        Vessel whose asset charter metrics are stored.
-    component
-        Root component holding the vessel's asset cost flows.
-    idx
-        Current time-step index.
+        Vessel whose asset cost flow is built.
+    time_initial
+        Time at which the vessel is ordered, days.
+
+    Returns
+    -------
+    Component
+        Component holding the asset cost flow.
     """
-    time_initial = component.time_initial
-    discount_rate = vessel.cost_of_capital.get(time_initial)
+    component = _initialize_vessel_component(vessel, time_initial)
+    power_system = vessel.power_system
 
-    cost_flow_asset = component.get_cost_flow()
-    asset_charter_npv = calculate_net_present_value(cost_flow_asset, discount_rate)
+    add_capex_flow(component=component, capex=vessel.capex.get)
+    add_fixed_opex(component=component, value=vessel.opex.get)
 
-    # levelize over the years the vessel actually operates (construction
-    # lead time excluded), consistent with the cost and cargo-mile flows
-    age_npv = calculate_net_present_value(component.constant_overlap, discount_rate)
-    asset_charter_rate = asset_charter_npv / age_npv
+    _add_machinery_cost(vessel, component, power_system, 1.0)
 
-    # summed CAPEX (hull, power system, converters, tanks) discounted to a single
-    # reference value used to non-dimensionalize technology and conversion investment
-    # NPVs
-    capex_npv = calculate_net_present_value(component.capex_flow, discount_rate)
+    for converter in power_system.get_converters():
+        capacity = converter.power_capacity.get()
+        _add_machinery_cost(vessel, component, converter, capacity)
 
-    # the tied-up capital starts once the asset is in operation, as the lead time
-    # is not modelled outside the financial calculations
-    commence_idx = component.get_commence_index()
-    tied_capital = component.tied_capital_flow[commence_idx:]
+    for tank in vessel.tanks:
+        size = tank.size.get()
+        _add_machinery_cost(vessel, component, tank, size)
 
-    vessel.expectation.set_asset_charter_npv(idx, asset_charter_npv)
-    vessel.expectation.set_capex_npv(idx, capex_npv)
-    vessel.expectation.set_asset_charter_rate(idx, asset_charter_rate)
-    vessel.expectation.set_tied_capital(idx, tied_capital)
-
-    vessel.profile.asset_charter_rate[idx] = asset_charter_rate
+    return component
 
 
-def _calculate_cargo_unit_properties(
-    vessel: Vessel, component: Component, timeline: FloatArray, idx: int
-) -> None:
-    """
-    Store the cargo charter rate and investment freight rate of a vessel.
-
-    The total cost NPV adds the fuel cost NPV and the carried technology charge
-    to the asset charter NPV. The cargo charter rate, USD/year, is what a cargo
-    owner would pay a ship operator: the total cost levelized over the operating
-    years. The freight rate, USD/cargo-mile, levelizes it over the cargo-miles
-    delivered.
-
-    Parameters
-    ----------
-    vessel
-        Vessel whose cargo charter metrics are stored.
-    component
-        Root component holding the vessel's fuel cost flows for this time-step.
-    timeline
-        Simulation timeline, days.
-    idx
-        Current time-step index.
-    """
-    time_initial = component.time_initial
-    discount_rate = vessel.cost_of_capital.get(time_initial)
-
-    asset_charter_npv = vessel.expectation.get_asset_charter_npv(idx)
-
-    cost_flow = component.get_cost_flow()
-    fuel_npv = calculate_net_present_value(cost_flow, discount_rate)
-
-    # levelize over the years the vessel actually operates (construction
-    # lead time excluded), consistent with the asset charter rate
-    age_npv = calculate_net_present_value(component.constant_overlap, discount_rate)
-
-    # add the fleet-average carried technology charge as a constant yearly
-    # cost over the operating years (locked at the current time-step, like
-    # fixed OPEX); the fleet average matches the fuel expenses, which
-    # reflect fleet-average technology uptake
-    technology_rate = vessel.expectation.get_technology_charter_rate(idx)
-    cost_npv = asset_charter_npv + fuel_npv + technology_rate * age_npv
-    cargo_charter_rate = cost_npv / age_npv
-
-    cargo_miles = np.asarray(vessel.expectation.get_cargo_miles())
-
-    cargo_flow = build_cargo_flow(
-        component=component, cargo=cargo_miles, timeline=timeline
-    )
-
-    cargo_npv = calculate_net_present_value(cargo_flow, discount_rate)
-    freight_rate = cost_npv / cargo_npv
-
-    vessel.expectation.set_fuel_cost_flow(cost_flow)
-    vessel.expectation.set_freight_rate(idx, freight_rate)
-
-    vessel.profile.cargo_charter_rate[idx] = cargo_charter_rate
-    vessel.profile.investment_freight_rate[idx] = freight_rate
-
-
-def _initialize_vessel_component(
-    vessel: Vessel,
-    machinery: Converter | PowerSystem | Tank | None,
-    time_initial: float,
-) -> Component:
+def _initialize_vessel_component(vessel: Vessel, time_initial: float) -> Component:
     """
     Create the cost-flow component spanning a vessel's lead time and lifetime.
 
@@ -233,9 +199,6 @@ def _initialize_vessel_component(
     ----------
     vessel
         Vessel whose lead time and lifetime set the flow horizon.
-    machinery
-        Machinery whose lifetime and replacement govern the component, or None for
-        the vessel itself.
     time_initial
         Time at which the vessel is ordered, days.
 
@@ -246,61 +209,35 @@ def _initialize_vessel_component(
     """
     lead_time = vessel.lead_time.get()
     lifetime = vessel.lifetime.get()
-    component = Component(lead_time, lifetime, time_initial)
 
-    if machinery is not None:
-        component.initialize_machinery_component(machinery)
-
-    return component
+    return Component(lead_time, lifetime, time_initial)
 
 
-def _calculate_base_cost(vessel: Vessel, component: Component) -> None:
+def _add_machinery_cost(
+    vessel: Vessel,
+    component: Component,
+    machinery: Converter | PowerSystem | Tank,
+    scale: float,
+) -> None:
     """
-    Add the hull CAPEX and fixed OPEX to the component.
+    Add a machinery item's CAPEX and fixed OPEX, scaled by its capacity.
+
+    A subcomponent carries the machinery's own lifetime and replacements.
 
     Parameters
     ----------
     vessel
-        Vessel providing the CAPEX and OPEX.
+        Vessel owning the machinery.
     component
         Root component accumulating the vessel's cost flows.
+    machinery
+        Power system, converter or tank whose costs are added.
+    scale
+        Capacity the costs are scaled by: one for the power system, the power
+        capacity of a converter, the size of a tank.
     """
-    add_capex_flow(component=component, capex=vessel.capex.get)
-    add_fixed_opex(component=component, value=vessel.opex.get)
-
-
-def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
-    """
-    Add the power-system CAPEX and fixed OPEX to the component.
-
-    A subcomponent carries the power system's own lifetime and replacements.
-
-    Parameters
-    ----------
-    vessel
-        Vessel owning the power system.
-    component
-        Root component accumulating the vessel's cost flows.
-    """
-    power_system = vessel.power_system
-    subcomponent = _initialize_vessel_component(
-        vessel=vessel, machinery=power_system, time_initial=component.time_initial
-    )
-
-    add_capex_flow(component=subcomponent, capex=power_system.capex.get)
-    add_fixed_opex(component=subcomponent, value=power_system.opex.get)
-    component.add_component(subcomponent)
-
-
-def _scaled_cost_callables(
-    machinery: Converter | Tank, scale: float
-) -> tuple[Callable[[float], float], Callable[[float], float]]:
-    """
-    Return (capex, opex) callables for the machinery, scaled by its capacity.
-
-    Binding machinery and scale as function parameters keeps each callable tied
-    to its own machinery when created inside a loop.
-    """
+    subcomponent = _initialize_vessel_component(vessel, component.time_initial)
+    subcomponent.initialize_machinery_component(machinery)
 
     def capex(time: float) -> float:
         return machinery.capex.get(time) * scale
@@ -308,87 +245,45 @@ def _scaled_cost_callables(
     def opex(time: float) -> float:
         return machinery.opex.get(time) * scale
 
-    return capex, opex
+    add_capex_flow(component=subcomponent, capex=capex)
+    add_fixed_opex(component=subcomponent, value=opex)
+    component.add_component(subcomponent)
 
 
-def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
+def _build_fuel_component(vessel: Vessel, timeline: FloatArray, idx: int) -> Component:
     """
-    Add each converter's CAPEX and fixed OPEX, scaled by its power capacity.
+    Build the component holding a vessel's expected fuel cost flow.
 
-    A subcomponent per converter carries its own lifetime and replacements.
-
-    Parameters
-    ----------
-    vessel
-        Vessel owning the converters.
-    component
-        Root component accumulating the vessel's cost flows.
-    """
-    for converter in vessel.power_system.get_converters():
-        subcomponent = _initialize_vessel_component(
-            vessel=vessel, machinery=converter, time_initial=component.time_initial
-        )
-
-        capex, opex = _scaled_cost_callables(converter, converter.power_capacity.get())
-
-        add_capex_flow(component=subcomponent, capex=capex)
-        add_fixed_opex(component=subcomponent, value=opex)
-        component.add_component(subcomponent)
-
-
-def _calculate_tank_cost(vessel: Vessel, component: Component) -> None:
-    """
-    Add each tank's CAPEX and fixed OPEX, scaled by its size.
-
-    A subcomponent per tank carries its own lifetime and replacements.
-
-    Parameters
-    ----------
-    vessel
-        Vessel owning the tanks.
-    component
-        Root component accumulating the vessel's cost flows.
-    """
-    for tank in vessel.tanks:
-        subcomponent = _initialize_vessel_component(
-            vessel=vessel, machinery=tank, time_initial=component.time_initial
-        )
-
-        capex, opex = _scaled_cost_callables(tank, tank.size.get())
-
-        add_capex_flow(component=subcomponent, capex=capex)
-        add_fixed_opex(component=subcomponent, value=opex)
-        component.add_component(subcomponent)
-
-
-def _calculate_fuel_cost(
-    vessel: Vessel, component: Component, timeline: FloatArray, idx: int
-) -> None:
-    """
-    Add the expected fuel expenses to the component as variable OPEX.
-
-    The expenses over the remaining timeline are interpolated onto the
-    component's year grid; the unit metric makes the variable OPEX equal that
+    The fuel and policy expenses over the remaining timeline are interpolated onto
+    the component's year grid; the unit metric makes the variable OPEX equal that
     series.
 
     Parameters
     ----------
     vessel
-        Vessel providing the expected fuel expenses.
-    component
-        Root component accumulating the fuel cost flows for this time-step.
+        Vessel providing the expected fuel and policy expenses.
     timeline
         Simulation timeline, days.
     idx
         Current time-step index.
+
+    Returns
+    -------
+    Component
+        Component holding the fuel cost flow.
     """
-    _idx = np.s_[idx:]
-    expenses = calculate_fuel_and_policy_expenses(vessel, _idx)
+    component = _initialize_vessel_component(vessel, timeline[idx])
+
+    remaining = np.s_[idx:]
+    expenses = calculate_fuel_and_policy_expenses(vessel, remaining)
+    times = timeline[remaining]
 
     def metric(time: float) -> float:
         return 1.0
 
     def cost(time: FloatArray) -> FloatArray:
-        return np.interp(time, timeline[idx:], expenses)
+        return np.interp(time, times, expenses)
 
     add_variable_opex(component=component, metric=metric, cost=cost)
+
+    return component

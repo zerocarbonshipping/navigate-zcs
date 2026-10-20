@@ -46,9 +46,10 @@ def calculate_fleet_expectations(
     """
     for vessel in vessels.values():
         for fuel in vessel.usable_fuels.values():
-            weights = _converter_weights(vessel, fuel)
+            converters = vessel.converters_per_fuel[fuel.name]
+            weights = _converter_weights(converters)
 
-            for converter, _ in weights:
+            for converter in converters.values():
                 _calculate_effective_lhv(vessel, converter, fuel)
                 _calculate_ttw(vessel, converter, fuel, emissions)
 
@@ -90,40 +91,35 @@ def _calculate_ttw(
         expectation.set_ttw_slip(*key, ttw_slip)
 
 
-def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, float]]:
+def _converter_weights(converters: dict[str, Converter]) -> dict[str, float]:
     """
-    Weigh the vessel's converters that can burn a fuel by power over efficiency.
+    Weigh the converters that can burn a fuel by power over efficiency.
 
     The weight is the fuel power a converter draws at full load, and so estimates its
-    share of the vessel's burn of the fuel. Converters that cannot burn the fuel are
-    left out, so they carry no weight in a mean over the weights. A converter with zero
-    efficiency delivers no energy and so burns no fuel; it weighs zero.
+    share of the vessel's burn of the fuel. A converter with zero efficiency delivers
+    no energy and so burns no fuel; it weighs zero.
 
     Parameters
     ----------
-    vessel
-        Vessel whose converters are weighed.
-    fuel
-        Fuel being burned.
+    converters
+        Converters able to burn the fuel, by name.
 
     Returns
     -------
-    list[tuple[Converter, float]]
-        Each converter able to burn the fuel with its weight, in MW.
+    dict[str, float]
+        Weight of each converter by name, in MW.
     """
-    weights: list[tuple[Converter, float]] = []
-    for converter in vessel.converters_per_fuel[fuel.name].values():
+    weights: dict[str, float] = {}
+    for name, converter in converters.items():
         power = converter.power_capacity.get()
         efficiency = converter.efficiency.get()
-        weight = power / efficiency if efficiency > 0.0 else 0.0
-
-        weights.append((converter, weight))
+        weights[name] = power / efficiency if efficiency > 0.0 else 0.0
 
     return weights
 
 
 def _calculate_mean_effective_lhv(
-    vessel: Vessel, weights: list[tuple[Converter, float]], fuel: Fuel
+    vessel: Vessel, weights: dict[str, float], fuel: Fuel
 ) -> None:
     """
     Set the vessel's mean effective LHV of the fuel, in GJ/ton fuel-in.
@@ -132,13 +128,12 @@ def _calculate_mean_effective_lhv(
     off, so it takes the fuel's LHV.
     """
     expectation = vessel.expectation
+    weight_total = sum(weights.values())
     lhv_sum = 0.0
-    weight_total = 0.0
 
-    for converter, weight in weights:
-        effective_lhv = expectation.get_effective_lhv(converter.name, fuel.name)
+    for converter_name, weight in weights.items():
+        effective_lhv = expectation.get_effective_lhv(converter_name, fuel.name)
         lhv_sum += weight * effective_lhv
-        weight_total += weight
 
     lhv = fuel.lower_heating_value.get()
     mean_lhv = lhv_sum / weight_total if weight_total > 0.0 else lhv
@@ -148,7 +143,7 @@ def _calculate_mean_effective_lhv(
 
 def _calculate_mean_ttw(
     vessel: Vessel,
-    weights: list[tuple[Converter, float]],
+    weights: dict[str, float],
     fuel: Fuel,
     emissions: dict[str, Emission],
 ) -> None:
@@ -159,20 +154,19 @@ def _calculate_mean_ttw(
     from it.
     """
     expectation = vessel.expectation
+    weight_total = sum(weights.values())
 
     for emission_name in emissions:
         key = (fuel.name, emission_name)
         consumption_sum = 0.0
         slip_sum = 0.0
-        weight_total = 0.0
 
-        for converter, weight in weights:
-            consumption = expectation.get_ttw_consumption(converter.name, *key)
-            slip = expectation.get_ttw_slip(converter.name, *key)
+        for converter_name, weight in weights.items():
+            consumption = expectation.get_ttw_consumption(converter_name, *key)
+            slip = expectation.get_ttw_slip(converter_name, *key)
 
             consumption_sum += weight * consumption
             slip_sum += weight * slip
-            weight_total += weight
 
         mean_consumption = consumption_sum / weight_total if weight_total > 0.0 else 0.0
         mean_slip = slip_sum / weight_total if weight_total > 0.0 else 0.0
@@ -199,92 +193,118 @@ def calculate_fleet_evolution_expectation(
     idx
         Current time-step index, where the expectation starts.
     """
-    idx_ = np.s_[idx:]
-    times = timeline[idx_] / YEAR
-    future = times - times[0]
+    horizon = np.s_[idx:]
+    years = timeline[horizon] / YEAR
+    years_ahead = years - years[0]
 
-    nv = len(fleet.vessels)
-    existing = np.zeros((nv, times.size))
-
-    for v, (vessel, incs) in enumerate(
-        zip(fleet.vessels, fleet.increments, strict=True)
-    ):
-        if not incs:
-            continue
-
-        multipliers = np.array([inc.multiplier for inc in incs])
-        ages = np.array([inc.age for inc in incs])
-
-        lifetime = vessel.lifetime.get()
-
-        # each increment reaches its lifetime after lifetime - age years, oldest
-        # first, so the cumulative sum is the expected scrapping to date
-        cum_increments = np.cumsum(multipliers)
-        cum_increments = np.interp(future, (lifetime - ages), cum_increments, left=0.0)
-
-        existing[v, :] = get_multiplier(fleet, v)
-        existing[v, :] -= cum_increments
+    existing = _existing_multipliers(fleet, years_ahead)
 
     # the multipliers become cargo-miles to take the speed expectations into account
-    cargo_miles = extract_cargo_miles_timeline(fleet.vessels, idx_)
-    existing_trade = np.zeros_like(existing)
-    for v in range(nv):
-        existing_trade[v, :] = existing[v, :] * cargo_miles[v]
-
-    gap = fleet.trade[idx_] - np.sum(existing_trade, axis=0)
+    cargo_miles = np.array(extract_cargo_miles_timeline(fleet.vessels, horizon))
+    existing_trade = existing * cargo_miles
+    gap = fleet.trade[horizon] - np.sum(existing_trade, axis=0)
 
     # a gap turned negative by falling trade is truncated to zero, which leaves more
     # vessels than trade; where secondary scrapping is allowed this overestimates the
     # fleet
     gap = np.where(gap > 0.0, gap, 0.0)
 
-    # the gap is filled on the expectation that the recent uptake continues, weighted
-    # by memory, with the current uptake renormalized in case inertia has reduced it;
-    # the weights ignore the time-step size, so they misweigh a timeline of varying
-    # step sizes
-    index = np.arange(idx + 1)
-    weights = fleet.memory.get() ** (idx - index)
-
-    uptakes = fleet.expectation.get_uptakes(idx)
-    for i in range(idx + 1):
-        if np.all(uptakes[:, i] == 0.0):
-            weights[i] = 0.0
-
-    if np.any(weights) > 0.0:
-        weighted_uptakes = np.sum(uptakes * weights[np.newaxis, :], axis=1)
-        weighted_uptakes /= np.sum(weights)
-    else:
-        weighted_uptakes = divide_nonzero(
-            fleet.current_uptake, np.sum(fleet.current_uptake), default=1.0 / nv
-        )
-
-    newbuild_trade = np.outer(weighted_uptakes, gap)
-    newbuild = np.zeros_like(newbuild_trade)
-    for v in range(nv):
-        newbuild[v, :] = newbuild_trade[v, :] / cargo_miles[v]
+    split = _newbuild_split(fleet, idx)
+    newbuild_trade = np.outer(split, gap)
+    newbuild = newbuild_trade / cargo_miles
 
     # the expected bunkering needs a multiplier above zero for every allowed vessel
     # type in every nested time-step to return a result per vessel; a small jump
     # start guarantees it while barely moving the fair shares of fuel
     # TODO: make assignable?
-    jump_start_rel = 1e-3
-    total_multipliers = np.sum(existing + newbuild, axis=0)
-    jump_start = jump_start_rel * total_multipliers
+    jump_start = 1e-3 * np.sum(existing + newbuild, axis=0)
     for v, vessel in enumerate(fleet.vessels):
         if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]:
-            non_existent = np.where(existing[v, :] + newbuild[v, :] == 0.0)
-            newbuild[v, non_existent] = jump_start[non_existent]
+            absent = existing[v] + newbuild[v] == 0.0
+            newbuild[v, absent] = jump_start[absent]
 
     # the expected newbuilds need no scrapping of their own beyond the vessel
     # lifetime: the vessels replacing them are expected to follow the same
     # distribution
     expected = existing + newbuild
-    expectation = fleet.expectation
 
+    expectation = fleet.expectation
     for v, vessel in enumerate(fleet.vessels):
         name = vessel.name
-        expectation.set_multiplier(idx, name, BunkerScopeID.EXISTING, existing[v, :])
-        expectation.set_multiplier(idx, name, BunkerScopeID.EXPECTED, expected[v, :])
+        expectation.set_multiplier(idx, name, BunkerScopeID.EXISTING, existing[v])
+        expectation.set_multiplier(idx, name, BunkerScopeID.EXPECTED, expected[v])
+
+
+def _existing_multipliers(fleet: Fleet, years_ahead: FloatArray) -> FloatArray:
+    """
+    Return the multipliers of the existing vessels, declining by expected scrapping.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose existing vessels are scrapped.
+    years_ahead
+        Years from the current time-step to each time-step of the horizon.
+
+    Returns
+    -------
+    FloatArray
+        Multipliers of each vessel type (rows) over the horizon (columns).
+    """
+    existing = np.zeros((len(fleet.vessels), years_ahead.size))
+
+    for v, vessel in enumerate(fleet.vessels):
+        increments = fleet.increments[v]
+        if not increments:
+            continue
+
+        multipliers = np.array([increment.multiplier for increment in increments])
+        ages = np.array([increment.age for increment in increments])
+        lifetime = vessel.lifetime.get()
+
+        # each increment reaches its lifetime after lifetime - age years, oldest
+        # first, so the cumulative sum is the expected scrapping to date
+        cumulative = np.cumsum(multipliers)
+        scrapped = np.interp(years_ahead, lifetime - ages, cumulative, left=0.0)
+        existing[v] = get_multiplier(fleet, v) - scrapped
+
+    return existing
+
+
+def _newbuild_split(fleet: Fleet, idx: int) -> FloatArray:
+    """
+    Return the share of the newbuilds each vessel type is expected to take.
+
+    The recent uptake is expected to continue, weighted by memory over the time-steps
+    that recorded any. Where no such time-step carries any weight, the current uptake
+    is renormalized, in case inertia has reduced it. The weights ignore the time-step
+    size, so they misweigh a timeline of varying step sizes.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose newbuilds are split.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    FloatArray
+        Share of the newbuilds of each vessel type.
+    """
+    uptakes = fleet.expectation.get_uptakes(idx)
+    recorded = np.any(uptakes != 0.0, axis=0)
+
+    steps_back = idx - np.arange(idx + 1)
+    decay = fleet.memory.get() ** steps_back
+    weights: FloatArray = np.where(recorded, decay, 0.0)
+
+    if np.any(weights):
+        return np.sum(uptakes * weights, axis=1) / np.sum(weights)
+
+    current = fleet.current_uptake
+    default = 1.0 / len(fleet.vessels)
+    return divide_nonzero(current, np.sum(current), default=default)
 
 
 def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
@@ -296,7 +316,7 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel demand is calculated.
     fuels
         All fuels in the simulation.
     idx

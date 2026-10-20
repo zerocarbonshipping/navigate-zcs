@@ -4,10 +4,14 @@
 name: Compare results
 
 # A pull request labelled maintenance promises to leave simulation results
-# alone. This runs a fixed set of decks with the pull request's install and with
-# its base's, and fails on any difference beyond runner noise
-# (tests/compare_results.py). Kept apart from ci.yml so that adding a label does
-# not re-run the other checks.
+# alone. This runs a fixed set of decks with the pull request merged into the
+# current tip of its base and with that tip, and fails on any difference beyond
+# rounding (tests/compare_results.py). Comparing the merge rather than the pull
+# request's head keeps commits the base gained since the branch point out of the
+# difference. The job merges at run time rather than using the event's merge
+# commit, which GitHub does not rebuild when the base moves, so label events
+# and re-runs compare against the newest base. Kept apart from ci.yml so that
+# adding a label does not re-run the other checks.
 on:
   pull_request:
     types: [ opened, synchronize, reopened, labeled ]
@@ -24,17 +28,23 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Check out the pull request
+      # by branch name, so the tip is the one at run time
+      - name: Check out the base
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.base.ref }}
           path: head
+          fetch-depth: 0
 
-      - name: Check out its base
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          path: base
+      # pull/N/head lives in the base repository, so forks fetch the same way
+      - name: Merge the pull request into it
+        working-directory: head
+        run: |
+          git worktree add --detach ../base HEAD
+          git fetch -q origin pull/${{ github.event.pull_request.number }}/head
+          git -c user.name=compare-results -c user.email=compare-results@localhost \
+            merge -q --no-edit FETCH_HEAD \
+            || { echo "::error::the pull request conflicts with its base; merge or rebase it first"; exit 1; }
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -49,14 +59,14 @@ jobs:
           python -m venv head-env
           head-env/bin/pip install -q ./head
 
-      # both sides run the pull request's decks and script, each against its
-      # own package and assumptions
+      # both sides run the merged decks and script, each against its own
+      # package and assumptions
       - name: Snapshot the base
         run: >
           base-env/bin/python head/tests/compare_results.py snapshot
           --assumptions base/assumptions --out snapshots/base
 
-      - name: Snapshot the pull request
+      - name: Snapshot the merged pull request
         run: >
           head-env/bin/python head/tests/compare_results.py snapshot
           --assumptions head/assumptions --out snapshots/head
