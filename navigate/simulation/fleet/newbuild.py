@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import TYPE_CHECKING
 
@@ -21,7 +22,7 @@ from navigate.util import TOLERANCE, YEAR, divide_nonzero
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import BoolArray, FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -41,133 +42,247 @@ def calculate_orderbook_newbuilds(
     fleet
         Fleet whose orderbook is delivered.
     trade_gap
-        Trade gap of the fleet, cargo-miles/year.
+        Trade gap of the fleet, in cargo-miles/year.
     cap_count
-        Newbuild budget of each vessel type for this time-step, number of vessels.
+        Newbuild budget of each vessel type for this time-step.
     idx
         Current time-step index.
 
     Returns
     -------
     FloatArray
-        Delivered vessels per type, number of vessels.
+        Delivered vessels per type.
     float
-        Delivered capacity, cargo-miles/year.
+        Delivered capacity, in cargo-miles/year.
     FloatArray
-        Newbuild budget left after the delivery, number of vessels.
+        Newbuild budget left after the delivery.
     """
-    nv = len(fleet.vessels)
-    delivery = np.zeros((nv,))
-
     if not fleet.orderbooks:
-        return delivery, 0.0, cap_count
+        return np.zeros(len(fleet.vessels)), 0.0, cap_count
 
-    allowed = np.array(
-        [
-            (fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name])
-            for vessel in fleet.vessels
-        ]
-    )
-
+    allowed = _is_newbuild_allowed(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx=idx)
 
     # the orders postponed earlier are delivered first
-    postponed_before = fleet.orders_postponed.copy()
-    postponed_trade = np.dot(fleet.orders_postponed[allowed], cargo_miles[allowed])
+    postponed = np.where(allowed, fleet.orders_postponed, 0.0)
+    delivery, _ = _calculate_delivery(fleet, postponed, cargo_miles, trade_gap)
+    fleet.orders_postponed -= delivery
+    fleet.orders_delivered += delivery
+    trade_gap -= np.dot(delivery, cargo_miles)
 
-    if postponed_trade > 0.0:
-        # a trade gap smaller than the postponed trade delivers only part of it
-        scaling = min(trade_gap / postponed_trade, 1.0)
-        delivery[allowed] += scaling * fleet.orders_postponed[allowed]
-        trade_gap -= scaling * postponed_trade
+    # new orders the trade gap leaves undelivered are postponed to the next time-step
+    cumulative = to_numpy(fleet.orderbooks)
+    new_orders = cumulative - fleet.orders_delivered - fleet.orders_postponed
+    due = np.where(allowed, new_orders, 0.0)
+    new_delivery, share = _calculate_delivery(fleet, due, cargo_miles, trade_gap)
+    fleet.orders_postponed += (1.0 - share) * new_orders
+    fleet.orders_delivered += new_delivery
+    delivery += new_delivery
 
-        fleet.orders_postponed[allowed] -= delivery[allowed]
-        fleet.orders_delivered[allowed] += delivery[allowed]
+    # deliveries beyond the newbuild budget are postponed as well
+    over = delivery > cap_count + TOLERANCE
+    excess = np.where(over, delivery - cap_count, 0.0)
+    capped = delivery - excess
+    fleet.orders_delivered -= excess
+    fleet.orders_postponed += excess
 
-        if scaling < 1.0:
-            attempted = np.where(allowed, postponed_before, 0.0)
-            delivered = np.where(allowed, scaling * postponed_before, 0.0)
-            log_orderbook_deferral(
-                fleet, delivered, attempted, reason="insufficient trade gap"
-            )
+    attempted = float(np.sum(delivery))
+    delivered = float(np.sum(capped))
+    _log_deferral(fleet, "orderbook deliveries", "newbuild limit", delivered, attempted)
 
-    cumulative_orders = to_numpy(fleet.orderbooks)
-    incremental_orders = (
-        cumulative_orders - fleet.orders_delivered - fleet.orders_postponed
-    )
-    ordered_trade = np.dot(incremental_orders[allowed], cargo_miles[allowed])
-
-    if ordered_trade > 0.0:
-        # a trade gap smaller than the ordered trade delivers only part of it, and
-        # the rest is postponed to the next time-step
-        scaling = min(trade_gap / ordered_trade, 1.0)
-        orders = scaling * incremental_orders
-        fleet.orders_delivered[allowed] += orders[allowed]
-        delivery[allowed] += orders[allowed]
-        fleet.orders_postponed += (1.0 - scaling) * incremental_orders
-
-        if scaling < 1.0:
-            attempted = np.where(allowed, incremental_orders, 0.0)
-            delivered = np.where(allowed, scaling * incremental_orders, 0.0)
-            log_orderbook_deferral(
-                fleet, delivered, attempted, reason="insufficient trade gap"
-            )
-
-    over_limit = delivery > cap_count + TOLERANCE
-    if np.any(over_limit):
-        attempted = delivery.copy()
-        excess_count = np.where(over_limit, delivery - cap_count, 0.0)
-        fleet.orders_delivered -= excess_count
-        fleet.orders_postponed += excess_count
-        delivery -= excess_count
-        log_orderbook_deferral(fleet, delivery, attempted, reason="newbuild limit")
-
-    for v, vessel in enumerate(fleet.vessels):
-        fleet.profile.newbuilds[vessel.name][idx] += delivery[v]
-
-    cap_count_remaining = np.maximum(cap_count - delivery, 0.0)
-
-    return delivery, np.dot(delivery, cargo_miles), cap_count_remaining
+    return capped, np.dot(capped, cargo_miles), np.maximum(cap_count - capped, 0.0)
 
 
-def log_orderbook_deferral(
-    fleet: Fleet,
-    delivered_counts: FloatArray,
-    attempted_counts: FloatArray,
-    reason: str,
-) -> None:
+def calculate_modelled_newbuilds(
+    fleet: Fleet, trade_gap: float, cap_count: FloatArray, idx: int
+) -> tuple[FloatArray, float]:
     """
-    Log one INFO line for the fleet if any orderbook delivery was deferred.
+    Calculate the newbuilds per vessel type that fill a trade gap.
 
     Parameters
     ----------
     fleet
-        Fleet whose deliveries were deferred; it prefixes the log line.
-    delivered_counts
-        Orders delivered this time-step per vessel type, number of vessels.
-    attempted_counts
-        Orders due this time-step per vessel type, delivered or deferred, number of
-        vessels.
-    reason
-        Which deferral path triggered the log.
+        Fleet whose newbuilds are calculated.
+    trade_gap
+        Trade gap left by scrapping and trade growth or decline, in cargo-miles/year.
+    cap_count
+        Newbuild budget of each vessel type left after the orderbook.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    FloatArray
+        Newbuilds per vessel type.
+    float
+        Delivered capacity, in cargo-miles/year.
     """
-    attempted_total = float(np.sum(attempted_counts))
-    delivered_total = float(np.sum(delivered_counts))
+    allowed = _is_newbuild_allowed(fleet)
+    vessels = list(itertools.compress(fleet.vessels, allowed))
+    cargo_miles = extract_cargo_miles(vessels, idx)
 
-    if attempted_total - delivered_total <= TOLERANCE:
-        return
-
-    pct = 100.0 * delivered_total / attempted_total if attempted_total > 0.0 else 0.0
-
-    logger.info(
-        "%s: Deferred orderbook deliveries due to %s (%.0f%% delivered).",
-        fleet,
-        reason,
-        pct,
+    current_uptake = fleet.current_uptake[allowed]
+    inertia, cap_count_left = _calculate_inertia_increments(
+        fleet, current_uptake, cargo_miles, trade_gap, cap_count[allowed]
     )
+    trade_gap -= np.dot(inertia, cargo_miles)
+
+    # the DCM bounds shares of the trade gap, so the remaining count budget becomes
+    # each vessel type's share of the gap, clamped to [0, 1]
+    if trade_gap > TOLERANCE:
+        cap_share = np.minimum(cap_count_left * cargo_miles / trade_gap, 1.0)
+    else:
+        cap_share = np.ones_like(cap_count_left)
+
+    uptakes = _calculate_modelled_uptake(fleet, vessels, idx, cap_share)
+    modelled = _calculate_increments(uptakes, cargo_miles, trade_gap)
+
+    newbuilds = inertia + modelled
+    increments = np.zeros(len(fleet.vessels))
+    increments[allowed] = newbuilds
+
+    return increments, np.dot(newbuilds, cargo_miles)
 
 
-def calculate_inertia_increments(
+def add_newbuilds(
+    fleet: Fleet, increments: FloatArray, time_step: float, idx: int
+) -> None:
+    """
+    Append each vessel type's newbuilds to its increments, at age zero.
+
+    Parameters
+    ----------
+    fleet
+        Fleet receiving the newbuilds.
+    increments
+        Newbuilds per vessel type.
+    time_step
+        Current time-step size, in days.
+    idx
+        Current time-step index.
+    """
+    packages = fleet.technology_packages
+    cost_flows = fleet.package_cost_flows
+
+    for v, count in enumerate(increments):
+        vessel = fleet.vessels[v]
+        fleet.profile.newbuilds[vessel.name][idx] += count
+
+        if count <= 0.0:
+            continue
+
+        cohorts = fleet.increments[v]
+        package_uptake = fleet.newbuild_package_uptake[v]
+
+        # the technology bundle chosen at build is charged as a constant yearly rate
+        # levelized over the full vessel lifetime
+        package_rates = calculate_package_charter_rates(packages, cost_flows, vessel)
+        charter_rate = float(np.dot(package_uptake, package_rates))
+
+        baseline = None if cohorts else count
+        increment = VesselIncrement(
+            multiplier=count,
+            age=0.0,
+            age_span=time_step / YEAR,
+            package_uptake=package_uptake.copy(),
+            baseline=baseline,
+            technology_charter_rate=charter_rate,
+        )
+        cohorts.append(increment)
+
+
+def update_current_uptake(fleet: Fleet, increments: FloatArray, idx: int) -> None:
+    """
+    Update the fleet's uptake shares from this time-step's newbuilds.
+
+    Each vessel type's share is the trade its newbuilds carry. The next time-step's
+    inertia decays the current shares and carries them into its newbuilds, and the
+    evolution expectation reads the memory-weighted history of the normalized shares.
+    Without newbuilds, the current shares carry over as inertia left them.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose uptake shares are updated.
+    increments
+        Newbuilds per vessel type this time-step.
+    idx
+        Current time-step index.
+    """
+    if np.sum(increments) > 0.0:
+        cargo_miles = extract_cargo_miles(fleet.vessels, idx)
+        trade = increments * cargo_miles
+        fleet.current_uptake = trade / np.sum(trade)
+
+    shares = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))
+    fleet.expectation.set_uptakes(idx, shares)
+
+
+def _is_newbuild_allowed(fleet: Fleet) -> BoolArray:
+    """
+    Mark the vessel types the fleet allows and that are available as newbuilds.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose vessel types are marked.
+
+    Returns
+    -------
+    BoolArray
+        Whether each vessel type can be added as a newbuild.
+    """
+    allowed = np.zeros(len(fleet.vessels), dtype=bool)
+
+    for v, vessel in enumerate(fleet.vessels):
+        name = vessel.name
+        allowed[v] = fleet.allow_vessel[name] and fleet.newbuild_available[name]
+
+    return allowed
+
+
+def _calculate_delivery(
+    fleet: Fleet, orders: FloatArray, cargo_miles: FloatArray, trade_gap: float
+) -> tuple[FloatArray, float]:
+    """
+    Calculate the orders delivered as far as the trade gap takes the trade they carry.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose orders are delivered; it prefixes the log line.
+    orders
+        Orders due per vessel type.
+    cargo_miles
+        Cargo-miles of one vessel of each type, in cargo-miles/year.
+    trade_gap
+        Trade gap of the fleet, in cargo-miles/year.
+
+    Returns
+    -------
+    FloatArray
+        Delivered vessels per type.
+    float
+        Share of the orders delivered; 1.0 when they carry no trade, as none is
+        deferred then.
+    """
+    trade = np.dot(orders, cargo_miles)
+
+    if trade <= 0.0:
+        return np.zeros_like(orders), 1.0
+
+    share = min(trade_gap / trade, 1.0)
+    delivery = share * orders
+
+    attempted = float(np.sum(orders))
+    delivered = float(np.sum(delivery))
+    reason = "insufficient trade gap"
+    _log_deferral(fleet, "orderbook deliveries", reason, delivered, attempted)
+
+    return delivery, share
+
+
+def _calculate_inertia_increments(
     fleet: Fleet,
     uptakes: FloatArray,
     cargo_miles: FloatArray,
@@ -185,110 +300,34 @@ def calculate_inertia_increments(
         Current uptake share of each vessel type, already decayed by the inertia,
         fraction.
     cargo_miles
-        Cargo-miles of one vessel of each type, cargo-miles/year.
+        Cargo-miles of one vessel of each type, in cargo-miles/year.
     trade_gap
-        Trade gap left by scrapping and trade growth or decline, cargo-miles/year.
+        Trade gap left by scrapping and trade growth or decline, in cargo-miles/year.
     cap_count
-        Newbuild budget of each vessel type for this time-step, number of vessels.
+        Newbuild budget of each vessel type for this time-step.
 
     Returns
     -------
     FloatArray
-        Inertia newbuilds per vessel type, number of vessels.
+        Inertia newbuilds per vessel type.
     FloatArray
-        Newbuild budget left after them, number of vessels.
+        Newbuild budget left after them.
     """
     increments = _calculate_increments(uptakes, cargo_miles, trade_gap)
 
-    # apply the per-vessel newbuild-limit cap on inertia (no redistribution: unused
-    # capacity rolls into the residual trade gap and is filled by the modelled DCM)
-    cap_count = cap_count.astype(np.float64).copy()
+    # the newbuild budget caps inertia without redistribution: the trade it leaves
+    # goes to the modelled newbuilds
     over = increments > cap_count + TOLERANCE
-    if np.any(over):
-        attempted = float(np.sum(increments))
-        increments[over] = cap_count[over]
-        delivered = float(np.sum(increments))
-        pct = 100.0 * delivered / attempted if attempted > 0.0 else 0.0
+    capped = np.where(over, cap_count, increments)
 
-        logger.info(
-            "%s: Inertia not fully applied due to newbuild limit (%.0f%% delivered).",
-            fleet,
-            pct,
-        )
+    attempted = float(np.sum(increments))
+    delivered = float(np.sum(capped))
+    _log_deferral(fleet, "inertia newbuilds", "newbuild limit", delivered, attempted)
 
-    return increments, np.maximum(cap_count - increments, 0.0)
+    return capped, np.maximum(cap_count - capped, 0.0)
 
 
-def calculate_modelled_newbuilds(
-    fleet: Fleet, trade_gap: float, cap_count: FloatArray, idx: int
-) -> tuple[FloatArray, float]:
-    """
-    Calculate the newbuilds per vessel type that fill a trade gap.
-
-    Parameters
-    ----------
-    fleet
-        Fleet whose newbuilds are calculated.
-    trade_gap
-        Trade gap left by scrapping and trade growth or decline, cargo-miles/year.
-    cap_count
-        Newbuild budget of each vessel type left after the orderbook, number of
-        vessels.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    FloatArray
-        Newbuilds per vessel type, number of vessels.
-    float
-        Delivered capacity, cargo-miles/year.
-    """
-    allowed_indices, allowed_vessels = zip(
-        *(
-            (i, vessel)
-            for i, vessel in enumerate(fleet.vessels)
-            if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]
-        ),
-        strict=True,
-    )
-
-    index = np.array(allowed_indices)
-    vessels = list(allowed_vessels)
-    cargo_miles = extract_cargo_miles(vessels, idx)
-
-    inertia_increments, cap_count_subset = calculate_inertia_increments(
-        fleet, fleet.current_uptake[index], cargo_miles, trade_gap, cap_count[index]
-    )
-
-    trade_gap -= np.dot(inertia_increments, cargo_miles)
-
-    # the DCM bounds shares of the trade gap, so the remaining count budget becomes
-    # each vessel type's share of the gap, clamped to [0, 1]
-    if trade_gap > TOLERANCE:
-        cap_share = np.minimum(cap_count_subset * cargo_miles / trade_gap, 1.0)
-    else:
-        cap_share = np.ones_like(cap_count_subset)
-
-    modelled_uptakes = calculate_modelled_uptake(
-        fleet, vessels, idx, cap_share=cap_share
-    )
-    modelled_increments = _calculate_increments(
-        modelled_uptakes, cargo_miles, trade_gap
-    )
-
-    increments = np.zeros(len(fleet.vessels))
-
-    for i, v in enumerate(index):
-        increments[v] = inertia_increments[i] + modelled_increments[i]
-        fleet.profile.newbuilds[fleet.vessels[v].name][idx] += increments[v]
-
-    return increments, np.dot(
-        np.add(inertia_increments, modelled_increments), cargo_miles
-    )
-
-
-def calculate_modelled_uptake(
+def _calculate_modelled_uptake(
     fleet: Fleet, vessels: list[Vessel], idx: int, cap_share: FloatArray
 ) -> FloatArray:
     """
@@ -327,73 +366,6 @@ def calculate_modelled_uptake(
     )
 
 
-def add_newbuilds(fleet: Fleet, increments: FloatArray, time_step: float) -> None:
-    """
-    Append each vessel type's newbuilds to its increments, at age zero.
-
-    Parameters
-    ----------
-    fleet
-        Fleet receiving the newbuilds.
-    increments
-        Newbuilds per vessel type, number of vessels.
-    time_step
-        Current time-step size, days.
-    """
-    for v, increment in enumerate(increments):
-        if increment > 0.0:
-            # the technology bundle chosen at build is charged as a constant
-            # yearly rate levelized over the full vessel lifetime
-            package_rates = calculate_package_charter_rates(
-                fleet.technology_packages, fleet.package_cost_flows, fleet.vessels[v]
-            )
-            charter_rate = float(
-                np.dot(fleet.newbuild_package_uptake[v], package_rates)
-            )
-
-            was_empty = not fleet.increments[v]
-            fleet.increments[v].append(
-                VesselIncrement(
-                    increment,
-                    0.0,
-                    time_step / YEAR,
-                    package_uptake=fleet.newbuild_package_uptake[v].copy(),
-                    technology_charter_rate=charter_rate,
-                )
-            )
-
-            if was_empty:
-                fleet.increments[v][0].baseline = increment
-
-
-def update_current_uptake(fleet: Fleet, increments: FloatArray, idx: int) -> None:
-    """
-    Update the fleet's uptake shares from this time-step's newbuilds.
-
-    Each vessel type's share is the trade its newbuilds carry. The next time-step's
-    inertia decays the current shares and carries them into its newbuilds, and the
-    evolution expectation reads the memory-weighted history of the normalized shares.
-    Without newbuilds, the current shares carry over as inertia left them.
-
-    Parameters
-    ----------
-    fleet
-        Fleet whose uptake shares are updated.
-    increments
-        Newbuilds per vessel type this time-step, number of vessels.
-    idx
-        Current time-step index.
-    """
-    if np.sum(increments) > 0.0:
-        cargo_miles = extract_cargo_miles(fleet.vessels, idx)
-        fleet.current_uptake = (increments * cargo_miles) / np.dot(
-            increments, cargo_miles
-        )
-
-    current_uptake = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))
-    fleet.expectation.set_uptakes(idx, current_uptake)
-
-
 def _calculate_increments(
     uptakes: FloatArray, cargo_miles: FloatArray, trade_gap: float
 ) -> FloatArray:
@@ -405,13 +377,46 @@ def _calculate_increments(
     uptakes
         Uptake share of each vessel type, fraction.
     cargo_miles
-        Cargo-miles of one vessel of each type, cargo-miles/year.
+        Cargo-miles of one vessel of each type, in cargo-miles/year.
     trade_gap
-        Trade gap of the fleet, cargo-miles/year.
+        Trade gap of the fleet, in cargo-miles/year.
 
     Returns
     -------
     FloatArray
-        Vessels per type, number of vessels.
+        Vessels per type.
     """
     return uptakes * trade_gap / cargo_miles
+
+
+def _log_deferral(
+    fleet: Fleet, source: str, reason: str, delivered: float, attempted: float
+) -> None:
+    """
+    Log one INFO line for the fleet if newbuilds from a source were deferred.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose newbuilds were deferred; it prefixes the log line.
+    source
+        Newbuilds deferred, such as the orderbook deliveries.
+    reason
+        What deferred them.
+    delivered
+        Newbuilds delivered this time-step.
+    attempted
+        Newbuilds due this time-step, delivered or deferred.
+    """
+    if attempted - delivered <= TOLERANCE:
+        return
+
+    percent = 100.0 * delivered / attempted if attempted > 0.0 else 0.0
+
+    logger.info(
+        "%s: Deferred %s due to %s (%.0f%% delivered).",
+        fleet,
+        source,
+        reason,
+        percent,
+    )
