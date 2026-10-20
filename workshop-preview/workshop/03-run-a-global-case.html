@@ -384,8 +384,6 @@
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 3: Run a global case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04-run-our-reference-scenarios.html">Session 4: Run our reference scenarios</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05-build-your-own-case.html">Session 5: Build your own case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="building-a-deck.html">Building a deck with an AI assistant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prompt-bank.html">Prompt bank</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -1295,13 +1293,13 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <span class="sd">    it is called, so the cell that sets them only has to call this.</span>
 <span class="sd">    """</span>
     <span class="n">LEVERS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="n">OIL_PRICE</span><span class="p">,</span> <span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">),</span>
-              <span class="p">(</span><span class="s2">"GAS_PRICE"</span><span class="p">,</span> <span class="n">GAS_PRICE</span><span class="p">,</span> <span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">),</span>
-              <span class="p">(</span><span class="s2">"CARBON_PRICE"</span><span class="p">,</span> <span class="n">CARBON_PRICE</span><span class="p">,</span> <span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">),</span>
-              <span class="p">(</span><span class="s2">"GHG_PENALTY"</span><span class="p">,</span> <span class="n">GHG_PENALTY</span><span class="p">,</span> <span class="s2">"gfs_remedial_unit"</span><span class="p">),</span>
-              <span class="p">(</span><span class="s2">"GHG_TARGET"</span><span class="p">,</span> <span class="n">GHG_TARGET</span><span class="p">,</span> <span class="s2">"gfs_target_reduction"</span><span class="p">),</span>
-              <span class="p">(</span><span class="s2">"GREEN_POWER"</span><span class="p">,</span> <span class="n">GREEN_POWER</span><span class="p">,</span> <span class="n">POWER</span><span class="p">),</span>
-              <span class="p">(</span><span class="s2">"BIO_SUPPLY"</span><span class="p">,</span> <span class="n">BIO_SUPPLY</span><span class="p">,</span> <span class="n">BIO</span><span class="p">),</span>
-              <span class="p">(</span><span class="s2">"PLANT_BUILD"</span><span class="p">,</span> <span class="n">PLANT_BUILD</span><span class="p">,</span> <span class="s2">"epc_global_capacity_mid"</span><span class="p">),</span>
+              <span class="p">(</span><span class="s2">"LNG_PRICE"</span><span class="p">,</span> <span class="n">LNG_PRICE</span><span class="p">,</span> <span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">),</span>
+              <span class="p">(</span><span class="s2">"EU_ETS_PRICE"</span><span class="p">,</span> <span class="n">EU_ETS_PRICE</span><span class="p">,</span> <span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">),</span>
+              <span class="p">(</span><span class="s2">"GLOBAL_STANDARD_PENALTY"</span><span class="p">,</span> <span class="n">GLOBAL_STANDARD_PENALTY</span><span class="p">,</span> <span class="s2">"gfs_remedial_unit"</span><span class="p">),</span>
+              <span class="p">(</span><span class="s2">"GLOBAL_STANDARD_TARGET"</span><span class="p">,</span> <span class="n">GLOBAL_STANDARD_TARGET</span><span class="p">,</span> <span class="s2">"gfs_target_reduction"</span><span class="p">),</span>
+              <span class="p">(</span><span class="s2">"EFUEL_ELECTRICITY_PRICE"</span><span class="p">,</span> <span class="n">EFUEL_ELECTRICITY_PRICE</span><span class="p">,</span> <span class="n">POWER</span><span class="p">),</span>
+              <span class="p">(</span><span class="s2">"BIOMASS_SHARE_FOR_SHIPPING"</span><span class="p">,</span> <span class="n">BIOMASS_SHARE_FOR_SHIPPING</span><span class="p">,</span> <span class="n">BIO</span><span class="p">),</span>
+              <span class="p">(</span><span class="s2">"PLANT_BUILD_LIMIT"</span><span class="p">,</span> <span class="n">PLANT_BUILD_LIMIT</span><span class="p">,</span> <span class="s2">"epc_global_capacity_mid"</span><span class="p">),</span>
               <span class="p">(</span><span class="s2">"TRADE_GROWTH"</span><span class="p">,</span> <span class="n">TRADE_GROWTH</span><span class="p">,</span> <span class="n">GROWTH</span><span class="p">)]</span>
 
     <span class="c1"># Trade is compounded as log(1 + growth), so a year shrinking by 100 % or more has</span>
@@ -1369,23 +1367,23 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <span class="n">LEVER_SPEC</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="s2">"fossil bunker fuel"</span><span class="p">,</span>
      <span class="p">[</span><span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"GAS_PRICE"</span><span class="p">,</span> <span class="s2">"fossil LNG"</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"LNG_PRICE"</span><span class="p">,</span> <span class="s2">"fossil LNG"</span><span class="p">,</span>
      <span class="p">[</span><span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"CARBON_PRICE"</span><span class="p">,</span> <span class="s2">"EU ETS allowance"</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"EU_ETS_PRICE"</span><span class="p">,</span> <span class="s2">"EU ETS allowance"</span><span class="p">,</span>
      <span class="p">[</span><span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"GHG_PENALTY"</span><span class="p">,</span> <span class="s2">"a ton of excess emission"</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"GLOBAL_STANDARD_PENALTY"</span><span class="p">,</span> <span class="s2">"a ton of excess emission"</span><span class="p">,</span>
      <span class="p">[</span><span class="s2">"gfs_remedial_unit"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"GHG_TARGET"</span><span class="p">,</span> <span class="s2">"the GHG-intensity limit"</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"GLOBAL_STANDARD_TARGET"</span><span class="p">,</span> <span class="s2">"the GHG-intensity limit"</span><span class="p">,</span>
      <span class="p">[</span><span class="s2">"gfs_target_reduction"</span><span class="p">],</span> <span class="s2">"gCO2eq/MJ"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.1f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"GREEN_POWER"</span><span class="p">,</span> <span class="s2">"electricity at the e-fuel plants"</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"EFUEL_ELECTRICITY_PRICE"</span><span class="p">,</span> <span class="s2">"electricity at the e-fuel plants"</span><span class="p">,</span>
      <span class="n">POWER</span><span class="p">,</span> <span class="s2">"USD/MWh"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"BIO_SUPPLY"</span><span class="p">,</span> <span class="s2">"shipping's share of the biomass"</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"BIOMASS_SHARE_FOR_SHIPPING"</span><span class="p">,</span> <span class="s2">"shipping's share of the biomass"</span><span class="p">,</span>
      <span class="n">BIO</span><span class="p">,</span> <span class="s2">"%"</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
     <span class="c1"># The capacity forecast is GLOBAL new-plant capacity; shipping's producer</span>
     <span class="c1"># may build epc_global_share_shipping of it, so the two multiply. Scaling</span>
     <span class="c1"># the capacity scales the MaximumDevelopment of epc_global with it; the</span>
     <span class="c1"># bio and FAME producers carry their own limits and do not move.</span>
-    <span class="p">(</span><span class="s2">"PLANT_BUILD"</span><span class="p">,</span> <span class="s2">"fuel plants shipping's producer may build"</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"PLANT_BUILD_LIMIT"</span><span class="p">,</span> <span class="s2">"fuel plants shipping's producer may build"</span><span class="p">,</span>
      <span class="p">[</span><span class="s2">"epc_global_capacity_mid"</span><span class="p">,</span> <span class="s2">"epc_global_share_shipping"</span><span class="p">],</span> <span class="s2">"plants/yr"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
      <span class="s2">"</span><span class="si">{:,.1f}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"product"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"TRADE_GROWTH"</span><span class="p">,</span> <span class="s2">"cargo trade growth, by segment"</span><span class="p">,</span>
@@ -1399,7 +1397,7 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <span class="w">    </span><span class="sd">"""What one lever is worth at a given moment.</span>
 
 <span class="sd">    Most levers move several forecasts of the same kind, so the honest summary</span>
-<span class="sd">    is the RANGE across them. PLANT_BUILD is different: its two forecasts are a</span>
+<span class="sd">    is the RANGE across them. PLANT_BUILD_LIMIT is different: its two forecasts are a</span>
 <span class="sd">    capacity and the share of it shipping gets, and they MULTIPLY.</span>
 <span class="sd">    """</span>
     <span class="n">seen</span> <span class="o">=</span> <span class="p">[</span><span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">when</span><span class="p">)</span>
@@ -1444,7 +1442,7 @@ To have a faster solving time, we change the <code class="docutils literal notra
 solving the reference scenario ...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 113 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 92 s
 
 time grid: 8 steps, 2026, 2027, 2030, 2034, 2038, 2042, 2046, 2050
 
@@ -1464,17 +1462,17 @@ time grid: 8 steps, 2026, 2027, 2030, 2034, 2038, 2042, 2046, 2050
   Bio-ethanol                                           0.0
 </pre></div>
 </div>
-<img alt="../_images/ebdfbebc878e0021711654265f516885b0f26007dcdcb13421e44a15541c5f9c.png" src="../_images/ebdfbebc878e0021711654265f516885b0f26007dcdcb13421e44a15541c5f9c.png" />
+<img alt="../_images/5c9f5753e84389104ae45ff06c33238cf3a4855e9a6752b2949ab258e5890d89.png" src="../_images/5c9f5753e84389104ae45ff06c33238cf3a4855e9a6752b2949ab258e5890d89.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  the levers, and what 1.0 means for each in workshop_basecase_mid_regulation
                                                                   2026        2050
   OIL_PRICE     fossil bunker fuel                                 485         485   USD/t
-  GAS_PRICE     fossil LNG                                         436         436   USD/t
-  CARBON_PRICE  EU ETS allowance                                   126         417   USD/t
-  GHG_PENALTY   a ton of excess emission                             0         300   USD/t
-  GHG_TARGET    the GHG-intensity limit                           93.3        28.0   gCO2eq/MJ
-  GREEN_POWER   electricity at the e-fuel plants                 58-88       32-53   USD/MWh
-  BIO_SUPPLY    shipping's share of the biomass                   2-50        2-50   %
-  PLANT_BUILD   fuel plants shipping's producer may build          7.1        35.6   plants/yr
+  LNG_PRICE     fossil LNG                                         436         436   USD/t
+  EU_ETS_PRICE  EU ETS allowance                                   126         417   USD/t
+  GLOBAL_STANDARD_PENALTYa ton of excess emission                             0         300   USD/t
+  GLOBAL_STANDARD_TARGETthe GHG-intensity limit                           93.3        28.0   gCO2eq/MJ
+  EFUEL_ELECTRICITY_PRICEelectricity at the e-fuel plants                 58-88       32-53   USD/MWh
+  BIOMASS_SHARE_FOR_SHIPPINGshipping's share of the biomass                   2-50        2-50   %
+  PLANT_BUILD_LIMITfuel plants shipping's producer may build          7.1        35.6   plants/yr
   TRADE_GROWTH  cargo trade growth, by segment                 0.3-4.7     0.0-2.2   %/yr
 </pre></div>
 </div>
@@ -1507,25 +1505,26 @@ repeated in the code comments are a convenience copy of the same thing.</p>
 <span class="c1">#  reference. The right-hand column is the value being multiplied, so you can</span>
 <span class="c1">#  judge whether a factor of two is a big change or a small one.</span>
 <span class="c1">#</span>
-<span class="c1">#  As an example, BIO_SUPPLY is set to 2.0: shipping gets twice the biomass.</span>
+<span class="c1">#  As an example, BIOMASS_SHARE_FOR_SHIPPING is set to 2.0: shipping gets</span>
+<span class="c1">#  twice the biomass.</span>
 <span class="c1">#  Set it back to 1.0 to start from the reference.</span>
 <span class="c1">#</span>
-<span class="c1">#                    suggested span          what 1.0 means in the mid-regulation deck</span>
-<span class="n">OIL_PRICE</span>    <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 2.0     485 USD/t, flat to 2050</span>
-<span class="n">GAS_PRICE</span>    <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 2.0     436 USD/t, flat to 2050</span>
-<span class="n">CARBON_PRICE</span> <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 3.0     126 USD/t in 2026, 417 by 2050</span>
-<span class="n">GHG_PENALTY</span>  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.0 - 5.0     0 until 2028, then 300 USD/t of excess</span>
-<span class="n">GHG_TARGET</span>   <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 1.2     93.3 gCO2eq/MJ in 2026, 28.0 by 2050</span>
-<span class="n">GREEN_POWER</span>  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 1.4     58-88 USD/MWh in 2026, by region</span>
-<span class="n">BIO_SUPPLY</span>   <span class="o">=</span> <span class="mf">2.0</span>   <span class="c1">#  0.5 - 3.0     2-50 % of the pool, by feedstock</span>
-<span class="n">PLANT_BUILD</span>  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 3.0     7.1 plants a year in 2026, rising</span>
-<span class="n">TRADE_GROWTH</span> <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.0 - 2.0     0.3-4.7 %/yr in 2026, by segment</span>
-<span class="c1">#                                     1.0 = each segment's own growth; 0.0 = trade stays</span>
-<span class="c1">#                                     at its 2026 volume; -1.0 = it shrinks as fast as it grew</span>
+<span class="c1">#                                     suggested span  what 1.0 means in the mid-regulation deck</span>
+<span class="n">OIL_PRICE</span>                  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 2.0       485 USD/t, flat to 2050</span>
+<span class="n">LNG_PRICE</span>                  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 2.0       436 USD/t, flat to 2050</span>
+<span class="n">EU_ETS_PRICE</span>               <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 3.0       126 USD/t in 2026, 417 by 2050</span>
+<span class="n">GLOBAL_STANDARD_PENALTY</span>    <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.0 - 5.0       0 until 2028, then 300 USD/t of excess</span>
+<span class="n">GLOBAL_STANDARD_TARGET</span>     <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 1.2       93.3 gCO2eq/MJ in 2026, 28.0 by 2050</span>
+<span class="n">EFUEL_ELECTRICITY_PRICE</span>    <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 1.4       58-88 USD/MWh in 2026, by region</span>
+<span class="n">BIOMASS_SHARE_FOR_SHIPPING</span> <span class="o">=</span> <span class="mf">2.0</span>   <span class="c1">#  0.5 - 3.0       2-50 % of the pool, by feedstock</span>
+<span class="n">PLANT_BUILD_LIMIT</span>          <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 3.0       7.1 plants a year in 2026, rising</span>
+<span class="n">TRADE_GROWTH</span>               <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.0 - 2.0       0.3-4.7 %/yr in 2026, by segment</span>
+<span class="c1">#                                                     1.0 = each segment's own growth; 0.0 = trade stays</span>
+<span class="c1">#                                                     at its 2026 volume; -1.0 = it shrinks as fast as it grew</span>
 <span class="c1">#</span>
-<span class="c1">#  GHG_TARGET below 1.0 is a STRICTER limit. The spans are a sensible place to</span>
-<span class="c1">#  start, not a boundary - go outside them, but check the answer still makes</span>
-<span class="c1">#  sense when you do.</span>
+<span class="c1">#  GLOBAL_STANDARD_TARGET below 1.0 is a STRICTER limit. The spans are a</span>
+<span class="c1">#  sensible place to start, not a boundary - go outside them, but check the</span>
+<span class="c1">#  answer still makes sense when you do.</span>
 <span class="c1"># ===========================================================================</span>
 
 <span class="n">run_your_scenario</span><span class="p">()</span>
@@ -1534,22 +1533,22 @@ repeated in the code comments are a convenience copy of the same thing.</p>
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>solving your scenario:
-  BIO_SUPPLY    x 2.0
+  BIOMASS_SHARE_FOR_SHIPPING x 2.0
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 94 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 189 s
 
                                  reference       yours        change
-  well-to-wake in 2050, Mt/yr          711         614       -13.7 %
-  cumulative, Mt                    25,595      24,929        -2.6 %
-  alternative fuels in 2050, %        51.8        60.8       +9.0 pp
+  well-to-wake in 2050, Mt/yr          711         618       -13.1 %
+  cumulative, Mt                    25,595      24,939        -2.6 %
+  alternative fuels in 2050, %        51.8        60.3       +8.5 pp
 </pre></div>
 </div>
-<img alt="../_images/10f9aaeca9ffcea2b48bf47e229a76cbb0ee69896201f684d2855d086ebeaf59.png" src="../_images/10f9aaeca9ffcea2b48bf47e229a76cbb0ee69896201f684d2855d086ebeaf59.png" />
+<img alt="../_images/e7f96db8d8539340ac4528a1e4b6d72be10ca3f1885a149bcabfd9dc912b0656.png" src="../_images/e7f96db8d8539340ac4528a1e4b6d72be10ca3f1885a149bcabfd9dc912b0656.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>freight rate in 2050: reference 14.7, yours 14.5 USD per thousand cargo-miles (-1.2 %)
 what moved most, in percentage points of the fuel mix:
-  Bio-methane                    +2.8 pp
-  Fuel oil                       -2.3 pp
+  Bio-methane                    +2.7 pp
+  Fuel oil                       -2.2 pp
   LNG                            -1.2 pp
   Blue ammonia                   +0.4 pp
   FAME                           +0.2 pp
@@ -1571,16 +1570,16 @@ what moved most, in percentage points of the fuel mix:
 </section>
 <section id="regenerate-this-case-yourself">
 <h2>Regenerate this case yourself<a class="headerlink" href="#regenerate-this-case-yourself" title="Link to this heading">#</a></h2>
-<p>You can rebuild the case of this session, and run it, by handing a prompt to an AI coding assistant (Claude, Copilot, ChatGPT, …).</p>
+<p>You can rebuild the case of this session, and run it, by handing a prompt to an AI coding assistant that works on your machine: one that can read the files in your Navigate folder and run commands in a terminal, such as Claude Code, GitHub Copilot in agent mode in VS Code, or Cursor. A chat in a web browser (Claude or ChatGPT on their websites) cannot see the data library or run a deck, so these prompts will rarely work first time with it. The assistant does not have to be opened in the Navigate folder: the prompts tell it to find the folder, or to ask you where it is.</p>
 <p>This needs Navigate installed on your own machine: follow the <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation">installation steps in the README</a>, or the more detailed <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html">Getting started</a> tutorial. If it is not installed yet, either prompt will also help you install it.</p>
 <section id="a-prompt-to-write-a-well-functioning-navigate-prompt">
 <h3>A prompt to write a well-functioning Navigate prompt<a class="headerlink" href="#a-prompt-to-write-a-well-functioning-navigate-prompt" title="Link to this heading">#</a></h3>
 <p>This is an example prompt that can be used to write another, “full” prompt which, when executed by an AI coding assistant, builds a well-functioning deck reproducing the case of Session 3: the <code class="docutils literal notranslate"><span class="pre">workshop_basecase_mid_regulation</span></code> scenario. This start-up prompt checks your installation, reads the repository, asks you about the numbers and choices the library does not settle, and writes the full prompt for you to approve. It takes the full prompt below as its model, so it starts from the same numbers; any number you change in your answers changes the results.</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I want to build and run a case with Navigate, the shipping decarbonisation model in this repository. Don't build anything yet: first, help me write a good prompt for it.
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I want to build and run a case with Navigate, the shipping decarbonisation model (https://github.com/zerocarbonshipping/navigate-zcs). Don't build anything yet: first, help me write a good prompt for it.
 
 The case: the whole international shipping fleet, as the data library in assumptions/ describes it (all its fleets, regions, ports, fuels, plants and producers), from 2026 to 2050 on a coarse grid: 2026, 2027, 2030, then every four years to 2050. Regulation: the EU ETS and FuelEU Maritime, plus a moderate global fuel standard ("gfs") from 2028, a limit on the well-to-wake GHG intensity of the energy every ship uses, 93.3 gCO2eq/MJ tightening to 30 % of that by 2050 along the path the full prompt at the end of docs/workshop/03-run-a-global-case.ipynb gives, with a penalty of 300 USD per ton of excess emission. One run, no sensitivities.
 
-1. Check that Navigate is installed (README.md) and tell me what is missing. Don't install anything yourself.
+1. Find Navigate on my machine (a folder usually named navigate-zcs) and work from its root, or ask me where it is; if it is not there, tell me. Check that it is installed (README.md) and tell me what is missing. Don't install anything yourself.
 2. Read docs/workshop/building-a-deck.md first, then docs/reference_manual/, the example decks in simulations/examples/ and the data library in assumptions/, including its modules. Don't open simulations/scenarios/: this case is already built there.
 3. Use the library's values wherever it has them, and ask me, a few questions at a time, about the rest. Build the world from the library's modules rather than node by node.
 4. Write the full prompt you would want to be given, taking the full prompt at the end of docs/workshop/03-run-a-global-case.ipynb and the prompts of docs/workshop/05-build-your-own-case.ipynb as models; like them, it must tell the assistant to read building-a-deck.md first. Mark every number not from the library, this message or that full prompt INVENTED, and have the deck built in a new folder, simulations/user/my_simulation/ (my_simulation_2, _3, ... if taken), without changing any existing file. Show it to me and wait for my OK.
@@ -1589,10 +1588,11 @@ The case: the whole international shipping fleet, as the data library in assumpt
 </section>
 <section id="the-full-prompt">
 <h3>The full prompt<a class="headerlink" href="#the-full-prompt" title="Link to this heading">#</a></h3>
-<p>After running the start-up prompt, the AI assistant should have suggested a more elaborate prompt which, when executed, leads to a well-functioning Navigate simulation that matches your case description. &#64;&#64;TESTED&#64;&#64;</p>
+<p>After running the start-up prompt, the AI assistant should have suggested a more elaborate prompt which, when executed, leads to a well-functioning Navigate simulation that matches your case description. The full prompt below was tested by handing it to a Claude model with no other instructions, directly and through the start-up prompt above: both decks ran with only the library’s expected warnings, and both matched the results of this session within rounding.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>You are helping me build and run a simulation deck for Navigate, the shipping decarbonisation model in this repository. Write the files yourself; do not only describe them.
 
-Before writing anything, read docs/workshop/building-a-deck.md and follow it:
+Before writing anything, read docs/workshop/building-a-deck.md in the Navigate
+repository and follow it:
 it holds the rules every deck follows and the traps earlier builds fell into.
 Where it points to simulations/scenarios/ for structure, skip that: this case
 is built there, and this prompt says what you need. Where the two disagree,
@@ -1600,8 +1600,11 @@ this prompt wins.
 
 GETTING NAVIGATE RUNNING (do this first)
 - Navigate is the repository https://github.com/zerocarbonshipping/navigate-zcs.
-  If it is not on this machine yet, tell me, and propose cloning it (or
-  downloading the zip from GitHub). Work from the repository root from then on.
+  If you were not opened in it, look for it on this machine (a folder usually
+  named navigate-zcs, holding README.md, navigate/ and assumptions/), or ask me
+  where it is. If it is not on this machine yet, tell me, and propose cloning
+  it (or downloading the zip from GitHub). Work from the repository root from
+  then on.
 - Check whether Navigate is installed, from the repository root:
       python -m pip show navigate-zcs
       python -m navigate --help
@@ -1883,7 +1886,7 @@ from the top.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
   </p>
 </div>
       

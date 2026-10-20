@@ -386,8 +386,6 @@
 <li class="toctree-l1"><a class="reference internal" href="03-run-a-global-case.html">Session 3: Run a global case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04-run-our-reference-scenarios.html">Session 4: Run our reference scenarios</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05-build-your-own-case.html">Session 5: Build your own case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="building-a-deck.html">Building a deck with an AI assistant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prompt-bank.html">Prompt bank</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -700,14 +698,31 @@ Fleet "copper_trade" {
 <h4>What a <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> node looks like<a class="headerlink" href="#what-a-vessel-node-looks-like" title="Link to this heading">#</a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">fleet.inc</span></code> never describes the ships themselves. It reaches for them with
 <code class="docutils literal notranslate"><span class="pre">Copy</span> <span class="pre">Vessel</span></code>, which takes a vessel out of our assumptions library and gives
-the copy a local name — so <code class="docutils literal notranslate"><span class="pre">ship_oil</span></code> is a copy of
-<code class="docutils literal notranslate"><span class="pre">bulk_carrier_80k_dwt_ice_oil</span></code>.</p>
-<p>Run the next cell to check what goes into a vessel node.</p>
+the copy a local name — so <code class="docutils literal notranslate"><span class="pre">ship_lng</span></code> is a copy of
+<code class="docutils literal notranslate"><span class="pre">bulk_carrier_80k_dwt_ice_methane</span></code>.</p>
+<p>Run the next cell to check what goes into a vessel node. It shows the dual-fuel
+LNG ship, with the power system it names and the two engines in it:</p>
+<ul class="simple">
+<li><p>the vessel has two tanks: one for LNG, and one for the oil its engines need as
+pilot fuel</p></li>
+<li><p>its power system has three converters: the main engine (propulsion), the
+generators (electricity) and a boiler (heat, which burns oil)</p></li>
+<li><p>both engines are dual-fuel: they run on LNG (<code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span> <span class="pre">=</span> <span class="pre">METHANE</span></code>), but at
+least 1.5 % of their energy must come from oil (<code class="docutils literal notranslate"><span class="pre">MinimumPilotFuel</span></code>), and they
+can burn more oil whenever that is cheaper</p></li>
+<li><p>each engine lets some methane escape unburned (<code class="docutils literal notranslate"><span class="pre">set_slip_fraction</span></code>): 0.175 % in
+the main engine but 11.4 % in the generators, so the generators get less energy
+out of each ton of LNG</p></li>
+</ul>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># fleet.inc reaches these four with `Copy Vessel`. Here is one of them.</span>
-<span class="n">VESSEL_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"assumptions/defaults/installation/Vessel"</span><span class="p">)</span>
-<span class="n">show</span><span class="p">(</span><span class="n">VESSEL_DIR</span> <span class="o">/</span> <span class="s2">"bulk_carrier_80k_dwt_ice_oil.inc"</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># fleet.inc reaches four vessels with `Copy Vessel`. Here is the dual-fuel LNG one,</span>
+<span class="c1"># then the power system it names and the two dual-fuel engines in that.</span>
+<span class="n">LIBRARY</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"assumptions/defaults/installation"</span><span class="p">)</span>
+<span class="n">show</span><span class="p">(</span><span class="n">LIBRARY</span> <span class="o">/</span> <span class="s2">"Vessel"</span> <span class="o">/</span> <span class="s2">"bulk_carrier_80k_dwt_ice_methane.inc"</span><span class="p">)</span>
+<span class="n">show</span><span class="p">(</span><span class="n">LIBRARY</span> <span class="o">/</span> <span class="s2">"PowerSystem"</span> <span class="o">/</span> <span class="s2">"ice_methane_bulk_carrier_80k_dwt.inc"</span><span class="p">)</span>
+<span class="n">show</span><span class="p">(</span><span class="n">LIBRARY</span> <span class="o">/</span> <span class="s2">"Converter"</span> <span class="o">/</span> <span class="s2">"propulsion_ice_methane_bulk_carrier_80k_dwt.inc"</span><span class="p">)</span>
+<span class="n">show</span><span class="p">(</span><span class="n">LIBRARY</span> <span class="o">/</span> <span class="s2">"Converter"</span> <span class="o">/</span> <span class="s2">"electrical_ice_methane_bulk_carrier_80k_dwt.inc"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -715,7 +730,7 @@ the copy a local name — so <code class="docutils literal notranslate"><span cl
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-Vessel "bulk_carrier_80k_dwt_ice_oil" {
+Vessel "bulk_carrier_80k_dwt_ice_methane" {
 	
 	PropulsionLoad = Surface("bulk_carrier_80k_dwt_propulsion_load")
 	ElectricalLoadAtSea = Variable("bulk_carrier_80k_dwt_electrical_load_sea")
@@ -723,8 +738,8 @@ Vessel "bulk_carrier_80k_dwt_ice_oil" {
 	HeatLoadAtSea = Variable("bulk_carrier_80k_dwt_heat_load_sea")
 	HeatLoadInPort = Variable("bulk_carrier_80k_dwt_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_oil_bulk_carrier_80k_dwt")
-	Tanks = [Tank("main_oil_bulk_carrier_80k_dwt")]
+	PowerSystem = PowerSystem("ice_methane_bulk_carrier_80k_dwt")
+	Tanks = [Tank("main_methane_bulk_carrier_80k_dwt"), Tank("pilot_oil_bulk_carrier_80k_dwt")]
 	
 	Route = Route("operational_profile_bulk_carrier_80k_dwt")
 	NominalCapacity = Variable("bulk_carrier_80k_dwt_nominal_capacity")
@@ -733,6 +748,50 @@ Vessel "bulk_carrier_80k_dwt_ice_oil" {
 	CAPEX = Forecast("bulk_carrier_80k_dwt_capex")
 	OPEX = Forecast("bulk_carrier_80k_dwt_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
+}
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+PowerSystem "ice_methane_bulk_carrier_80k_dwt" {
+	Propulsion = Converter("propulsion_ice_methane_bulk_carrier_80k_dwt")
+	Electrical = Converter("electrical_ice_methane_bulk_carrier_80k_dwt")
+	Heat = Converter("heat_boiler_oil_bulk_carrier_80k_dwt")
+
+	CAPEX = Forecast("bulk_carrier_80k_dwt_supply_system_methane_capex")
+	OPEX = &lt;Forecast("bulk_carrier_80k_dwt_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")&gt;
+}
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+Converter "propulsion_ice_methane_bulk_carrier_80k_dwt" {
+	MainFuelTypes = METHANE
+	PilotFuelTypes = OIL
+	MinimumPilotFuel = Variable("propulsion_methane_minimum_pilot_fuel")
+
+	PowerCapacity = Variable("bulk_carrier_80k_dwt_propulsion_power_capacity")
+	MinimumLoad = Variable("propulsion_minimum_load_bulk_carrier")
+	Efficiency = Variable("propulsion_methane_efficiency")
+
+	CAPEX = Forecast("propulsion_methane_capex")
+	OPEX = Forecast("propulsion_methane_opex")
+	
+	set_slip_fraction(METHANE, Variable("propulsion_methane_methane_slip"))
+}
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+Converter "electrical_ice_methane_bulk_carrier_80k_dwt" {
+	MainFuelTypes = METHANE
+	PilotFuelTypes = OIL
+	MinimumPilotFuel = Variable("electrical_methane_minimum_pilot_fuel")
+
+	PowerCapacity = Variable("bulk_carrier_80k_dwt_electrical_power_capacity")
+	Efficiency = Variable("electrical_methane_efficiency")
+
+	CAPEX = Forecast("electrical_methane_capex")
+	OPEX = Forecast("electrical_methane_opex")
+	
+	set_slip_fraction(METHANE, Variable("electrical_methane_methane_slip"))
 }
 </pre></div>
 </div>
@@ -743,7 +802,7 @@ Vessel "bulk_carrier_80k_dwt_ice_oil" {
 <section id="route-definition">
 <h3>Route definition<a class="headerlink" href="#route-definition" title="Link to this heading">#</a></h3>
 <p>In this example, the ships sail between the ports of San Antonio and Rotterdam, 7,600 nm apart via the Panama Canal (the route is invented), at a service speed of 11.5 kn and spends 6.8 days on each port.</p>
-<p>The two legs (one leg is a one way ship travel) are asymmetric in this example. Outbound the ship is full of copper concentrate; homebound it sails in ballast (empty). In the model, this can be set as <code class="docutils literal notranslate"><span class="pre">CapacityUtilizations</span> <span class="pre">=</span> <span class="pre">[1.0,</span> <span class="pre">0.0]</span></code>.</p>
+<p>The two legs (a leg is one one-way sailing from one port to the next) are asymmetric in this example. Outbound the ship is full of copper concentrate; homebound it sails in ballast (empty). In the model, this can be set as <code class="docutils literal notranslate"><span class="pre">CapacityUtilizations</span> <span class="pre">=</span> <span class="pre">[1.0,</span> <span class="pre">0.0]</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">(</span><span class="n">EXAMPLE</span> <span class="o">/</span> <span class="s2">"includes/route.inc"</span><span class="p">)</span>
@@ -756,7 +815,8 @@ Vessel "bulk_carrier_80k_dwt_ice_oil" {
 
 # ROUTE - San Antonio to Rotterdam and back via the Panama Canal.
 # ROUND_TRIP visits the ports in the order listed; each entry in
-# Distances/Speeds/CapacityUtilizations is the leg leaving the port at that index.
+# Distances/Speeds/CapacityUtilizations is the leg (the sailing
+# to the next port) leaving the port at that index.
 
 Vessel "ship_*" {
     Route = Route("copper_route")
@@ -972,7 +1032,7 @@ Producer "producer_efuel" {
 
 	# Ceiling on biogenic CO2, the feedstock both its e-methanol plants draw on.
 
-	set_feed_constraint("carbon_dioxide_biogenic", &lt;Forecast("carbon_dioxide_biogenic_availability") * Forecast("carbon_dioxide_biogenic_share_shipping") * Variable("trade_share_biogenic_carbon_dioxide")&gt;)
+	set_feed_constraint("carbon_dioxide_biogenic", &lt;Forecast("carbon_dioxide_biogenic_availability_flat") * Forecast("carbon_dioxide_biogenic_share_shipping") * Variable("trade_share_biogenic_carbon_dioxide")&gt;)
 }
 
 Producer "producer_biofuel" {
@@ -994,6 +1054,17 @@ Variable "trade_share_gasifiable_biomass" {
 
 Variable "trade_share_biogenic_carbon_dioxide" {
 	Value = 0.003
+}
+
+# INVENTED: the biogenic CO2 pool held flat at the library's 2026 value
+# (carbon_dioxide_biogenic_availability on 01-01-2026, 91.55 Mt/yr); the library
+# grows it to 350 Mt/yr by 2050.
+Forecast "carbon_dioxide_biogenic_availability_flat" {
+	Table = [
+		"01-01-2026"	91.55e6
+		"01-01-2050"	91.55e6
+	]
+	Extrapolate = FLAT
 }
 </pre></div>
 </div>
@@ -1053,14 +1124,13 @@ BunkerLogistics {
 <p><em>FuelEU Maritime caps the GHG <strong>intensity</strong> of the fuel and so drives fuel switching; the EU ETS prices <strong>every tonne</strong> emitted and so drives efficiency. The Renewable Energy Directive supplies the definitions and certification both rely on.</em></p>
 <p>In Navigate a regulation is applied to a specific geography. <code class="docutils literal notranslate"><span class="pre">Jurisdiction</span></code> lists the
 ports that sit inside the regulatory scheme. In this example, FuelEU and EU ETS cover the port of Rotterdam, but not San Antonio. Three fractions decide how much of the fuel burned on a voyage is counted.</p>
-<p>The fractions are applied leg by leg. In Navigate, a <em>leg</em>
-is one port-to-port sailing between two consecutive ports on the route. This
-round trip has two, out and back. Navigate reserves the word for the ship’s own
+<p>The fractions are applied leg by leg (a <em>leg</em> is one port-to-port sailing between
+two consecutive ports on the route). This round trip has two, out and back. Navigate reserves the word for the ship’s own
 route segments, so a fuel’s journey from plant to bunker port is a <em>trip</em>, not a
-leg. Navigate classifies each leg by its two end ports, and the port stay. On this round trip that gives:</p>
+leg (a sailing of the ship itself). Navigate classifies each leg (sailing out or back) by its two end ports, and the port stay. On this round trip that gives:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>Leg or port stay</p></th>
+<tr class="row-odd"><th class="head"><p>Leg (one-way sailing) or port stay</p></th>
 <th class="head"><p>Classification</p></th>
 <th class="head"><p>Counted for regulation</p></th>
 </tr>
@@ -1110,7 +1180,8 @@ E-fuels are omitted since there are no default factors. Upstream intensity is th
 
 # EU ETS - absolute price on CO2-equivalent burned on board, no free allowance.
 #
-# The coverage fractions are applied PER LEG, not to the round trip. Both legs
+# The coverage fractions are applied PER LEG (one sailing
+# from one port to the next), not to the round trip. Both legs
 # here are inter-jurisdiction, so both count at 50%. Port stays are classified
 # by their own port, so Rotterdam counts in full and San Antonio not at all.
 
@@ -1697,17 +1768,13 @@ class. This deck fits all seven, each with its own cost and saving:</p>
 </table>
 </div>
 <p>* No lifetime is actually set, so the measure is never replaced: it stays on the ship until the ship leaves the fleet (at most 25 years, the library’s lifetime for this class).</p>
-<p>The measures are listed cheapest first, the three at 100 k in the order the deck
-lists them. This is the order Navigate fits them in, its technology <em>ladder</em>
-(Part 3, Stage 2 explains it), and every figure in this notebook uses it.</p>
+<p>The efficiency measures are fitted following an efficiency technology <em>ladder</em> meaning that the cheaper technologies are installed first.</p>
 <p>Efficiency technologies are fitted on newbuild ships or during a retrofitting cycle that occurs every 5 years.</p>
 <p>The fleet does not start empty, though. It starts with a share of each technology already fitted, set by <code class="docutils literal notranslate"><span class="pre">set_initial_technology_share</span></code> in <code class="docutils literal notranslate"><span class="pre">includes/energy_efficiencies.inc</span></code> from the world Panamax fleet’s shares in:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">assumptions</span><span class="o">/</span><span class="n">defaults</span><span class="o">/</span><span class="n">installation</span><span class="o">/</span><span class="n">Curve</span><span class="o">/</span><span class="n">uptake_</span><span class="o">&lt;</span><span class="n">measure</span><span class="o">&gt;</span><span class="n">_bulk_carrier_panamax</span><span class="o">.</span><span class="n">inc</span>
 </pre></div>
 </div>
-<p>The Flettner rotor and air lubrication have no such curve, so they start at zero.
-The other shares fall as the measures get dearer, which is what the ladder needs:
-a ship that carries a measure must also carry every cheaper one.</p>
+<p>The Flettner rotor and air lubrication have no such curve, so they start at zero.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -1947,7 +2014,7 @@ line is the deck’s value, the dashed lines less and more decisive owners.</p>
 <section id="data-about-the-fuels">
 <h3>2. Data about the fuels<a class="headerlink" href="#data-about-the-fuels" title="Link to this heading">#</a></h3>
 <p>In this example, we assume that fossil fuels (fuel oil and LNG) have a flat price until 2050.</p>
-<p>Electricity is more than half of what an e-fuel costs to make, and up to about 80 %. It is assumed that it’s cost decreases in the future.</p>
+<p>Electricity is more than 50% of what an e-fuel costs to make. It is assumed that it’s cost decreases in the future.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -2130,12 +2197,12 @@ Feedstock prices (USD/t): carbon_dioxide_biogenic 150, feedstock_biomethanol_gas
 </div>
 <section id="feedstock-availability">
 <h4>Feedstock availability<a class="headerlink" href="#feedstock-availability" title="Link to this heading">#</a></h4>
-<p>Fuels that contain carbon can be limited by how much of their carbon source exists.
+<p>The availability of fuels that contain carbon is limited by their carbon feedstock supply.
 Bio-methanol needs gasifiable biomass, and e-methanol needs biogenic CO2.</p>
 <p>Each cap is set in <code class="docutils literal notranslate"><span class="pre">includes/producer.inc</span></code>, on the producer that uses the feedstock,
 and covers all of that producer’s plants. The library gives the world’s supply and
-the share of it shipping could use; the deck keeps only a small slice of that for
-this one trade.</p>
+the share of it shipping could use; the deck keeps only a small share of that for
+this example.</p>
 <p>The cell below shows how much of each feedstock is available in this example.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -2201,18 +2268,18 @@ this one trade.</p>
     <span class="c1"># the display labels carry mathtext for the figure, so flatten it for print</span>
     <span class="n">_name</span> <span class="o">=</span> <span class="n">FEEDSTOCK_LABEL</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"feed"</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="s2">"feed"</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"$_2$"</span><span class="p">,</span> <span class="s2">"2"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"$"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">26</span><span class="si">}</span><span class="s2"> ceiling </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'cap'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">5.2f</span><span class="si">}</span><span class="s2"> Mt/yr in </span><span class="si">{</span><span class="n">_years</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, "</span>
-          <span class="sa">f</span><span class="s2">"rising to </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'cap'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">5.2f</span><span class="si">}</span><span class="s2"> by </span><span class="si">{</span><span class="n">_years</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'cap'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">5.2f</span><span class="si">}</span><span class="s2"> by </span><span class="si">{</span><span class="n">_years</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Gasification feedstock     ceiling  0.81 Mt/yr in 2026, rising to  0.95 by 2050
-  Biogenic CO2 (PS)          ceiling  0.14 Mt/yr in 2026, rising to  0.53 by 2050
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Gasification feedstock     ceiling  0.81 Mt/yr in 2026,  0.95 by 2050
+  Biogenic CO2 (PS)          ceiling  0.14 Mt/yr in 2026,  0.14 by 2050
 </pre></div>
 </div>
-<img alt="../_images/57b2a61c8cbe418fba92e72cbe70df038aee9235f328dbf43294b7a4e1039df4.png" src="../_images/57b2a61c8cbe418fba92e72cbe70df038aee9235f328dbf43294b7a4e1039df4.png" />
+<img alt="../_images/c9b74c7574323f2cf01fa5b735ea53528eb1d930d1b4b0155036fe0ae18d85cc.png" src="../_images/c9b74c7574323f2cf01fa5b735ea53528eb1d930d1b4b0155036fe0ae18d85cc.png" />
 </div>
 </div>
 </section>
@@ -2241,7 +2308,8 @@ penalty at the far one. The values are invented for this example.</p>
 
 <span class="c1"># One entry per journey the FUEL makes, plant region -&gt; bunker port</span>
 <span class="c1"># (Navigate: `set_distance`, from a Region to a Port). Navigate keeps the word</span>
-<span class="c1"># "leg" for the ship's own route segments, so these are trips, not legs.</span>
+<span class="c1"># "leg" (a ship's sailing from one port to the next) for the ship's own route</span>
+<span class="c1"># segments, so these are trips, not legs.</span>
 <span class="n">FUEL_DELIVERY_TRIPS</span> <span class="o">=</span> <span class="p">[(</span><span class="n">region</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">nm</span><span class="p">))</span> <span class="k">for</span> <span class="n">region</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">nm</span> <span class="ow">in</span>
                        <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">'set_distance\("(\w+)",\s*"(\w+)",\s*(\d+)\)'</span><span class="p">,</span> <span class="n">text</span><span class="p">)]</span>
 
@@ -2578,14 +2646,14 @@ a cap. Breaching the cap leads to a <strong>760 USD/ton penalty</strong> which i
 The solving process is the same for each year and each decision maker in the model:</p>
 <ol class="arabic simple">
 <li><p><strong>look ahead</strong>: make projections about the future</p></li>
-<li><p><strong>decide</strong>: make some fancy calculations based on your projections and take some decisions that make sense from an economic perspective (influenced by the behaviour traits of the decision maker: inertia and sensitivity)</p></li>
+<li><p><strong>decide</strong>: make some calculations based on your projections and take some decisions that make sense from an economic perspective (influenced by the behaviour traits of the decision maker: inertia and sensitivity)</p></li>
 <li><p><strong>commit</strong>: decisions have been taken and the other actors react; check how the fleet operates in “reality”, which may differ from previously formed expectations.</p></li>
 </ol>
 <p>In more detail, the model starts the year by calculating expectations and beliefs about the future from the information available — among them a look-ahead bunkering optimization, which prices the year before anything is decided. Those expectations then inform the decisions of the owners and the operators, in this order:</p>
 <ul class="simple">
 <li><p>efficiency measures (owners): implement (or not) efficiency technology, on existing ships when they reach their five-yearly retrofit cycle and on any ship ordered new</p></li>
 <li><p>operational measures (operators): change the vessels’ sailing speed (while minimizing total cost per cargo-mile)</p></li>
-<li><p>fleet management (owners): scrap, retrofit or order new ships</p></li>
+<li><p>fleet management (owners): scrap (automatic based on lifetime), retrofit or order new ships</p></li>
 <li><p>fuel bunkering (operators): which fuel to buy at which port for this year</p></li>
 </ul>
 <p>The bunkering optimisation therefore runs twice: once as a forecast that informs the four
@@ -2733,7 +2801,7 @@ decisions, and once at the end of the year to commit.</p>
                         <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">+</span> <span class="n">tons</span>
                         <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                             <span class="n">first</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">+</span> <span class="n">tons</span>
-        <span class="n">year</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"mix"</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">"supply"</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">"capped"</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span> <span class="s2">"excess_oil"</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"mix"</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">"by_port"</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">"supply"</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">"capped"</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span> <span class="s2">"inertia"</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span> <span class="s2">"excess_oil"</span><span class="p">:</span> <span class="p">{},</span>
                 <span class="s2">"usable"</span><span class="p">:</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">alg</span><span class="o">.</span><span class="n">usable_fuels</span><span class="p">[</span><span class="n">v</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">vessels</span><span class="p">}}</span>
         <span class="k">for</span> <span class="n">vessel_name</span><span class="p">,</span> <span class="n">vessel</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">vessels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">port_name</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">ports</span><span class="p">:</span>
@@ -2742,6 +2810,7 @@ decisions, and once at the end of the year to commit.</p>
                     <span class="k">if</span> <span class="n">tons</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">:</span>
                         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">vessel_name</span><span class="p">,</span> <span class="n">fuel_name</span><span class="p">)</span>
                         <span class="n">year</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">year</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">+</span> <span class="n">tons</span>
+                        <span class="n">year</span><span class="p">[</span><span class="s2">"by_port"</span><span class="p">][(</span><span class="n">vessel_name</span><span class="p">,</span> <span class="n">port_name</span><span class="p">,</span> <span class="n">fuel_name</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tons</span>
         <span class="k">for</span> <span class="n">port_name</span><span class="p">,</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">ports</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">fuel_name</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">fuels</span><span class="p">:</span>
                 <span class="n">year</span><span class="p">[</span><span class="s2">"supply"</span><span class="p">][(</span><span class="n">port_name</span><span class="p">,</span> <span class="n">fuel_name</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
@@ -2749,6 +2818,10 @@ decisions, and once at the end of the year to commit.</p>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">fair_share_fuel</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">Pi</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-6</span><span class="p">:</span>
                 <span class="n">year</span><span class="p">[</span><span class="s2">"capped"</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="c1"># the bunkering inertia: at least 70 % of last year's purchase of each fuel</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">fuel_inertia</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">Pi</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-6</span><span class="p">:</span>
+                <span class="n">year</span><span class="p">[</span><span class="s2">"inertia"</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="c1"># energy per (vessel, converter): pilot fuel, and all of it</span>
         <span class="n">pilot</span><span class="p">,</span> <span class="n">burnt</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">spend</span> <span class="ow">in</span> <span class="p">(</span><span class="n">alg</span><span class="o">.</span><span class="n">spend_sea</span><span class="p">,</span> <span class="n">alg</span><span class="o">.</span><span class="n">spend_port</span><span class="p">):</span>
@@ -2964,14 +3037,6 @@ decisions, and once at the end of the year to commit.</p>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"captured </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">snaps</span><span class="p">)</span><span class="si">}</span><span class="s2"> snapshots, </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="c1"># The two years this Part walks. 2027 is the first year that decides anything at</span>
-<span class="c1"># all - step 0 takes no decisions, since _perform_time_step gates every decision</span>
-<span class="c1"># behind `if self._idx &gt; 0` - so it shows the fleet as it starts out. 2040 is far</span>
-<span class="c1"># enough on that the conditions have changed in several ways at once.</span>
-<span class="n">FOCUS_YEARS</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2027</span><span class="p">,</span> <span class="mi">2040</span><span class="p">)</span>
-<span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_LATE</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">YEARS</span> <span class="o">==</span> <span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">FOCUS_YEARS</span><span class="p">)</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">at</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""One step of a per-vessel (or per-pair) profile series, keyed as stored."""</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">getter</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="n">step</span><span class="p">)</span>
@@ -2984,27 +3049,56 @@ decisions, and once at the end of the year to commit.</p>
 <span class="k">def</span><span class="w"> </span><span class="nf">total_at</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">at</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
-
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"walking </span><span class="si">{</span><span class="n">FOCUS_YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> (step </span><span class="si">{</span><span class="n">STEP_EARLY</span><span class="si">}</span><span class="s2">) "</span>
-      <span class="sa">f</span><span class="s2">"and </span><span class="si">{</span><span class="n">FOCUS_YEARS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> (step </span><span class="si">{</span><span class="n">STEP_LATE</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 28.4 s
-Wall time: 29.5 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 18.6 s
+Wall time: 19.6 s
 captured 25 snapshots, 2026 to 2050
-walking 2027 (step 1) and 2040 (step 14)
+</pre></div>
+</div>
+</div>
+</div>
+<section id="choose-the-years-to-walk-through">
+<h4>Choose the years to walk through<a class="headerlink" href="#choose-the-years-to-walk-through" title="Link to this heading">#</a></h4>
+<p>The next part walks one time step from the inside, then compares it with a later
+year. By default these are 2027 and 2040: 2027 is the first year in which the
+owners, operators and producers decide anything (the 2026 step only sets up the
+starting fleet), and 2040 is far enough on that conditions have changed in
+several ways.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Choose the two years to walk through</span>
+<span class="c1"># Any year from 2027 to 2049, the first before the later one. Every year was</span>
+<span class="c1"># recorded by the run above, so a change needs no new solve: just re-run the</span>
+<span class="c1"># cells below.</span>
+<span class="n">FIRST_YEAR</span> <span class="o">=</span> <span class="mi">2027</span>   <span class="c1"># @param {type:"slider", min:2027, max:2049, step:1}</span>
+<span class="n">LATER_YEAR</span> <span class="o">=</span> <span class="mi">2040</span>   <span class="c1"># @param {type:"slider", min:2028, max:2049, step:1}</span>
+
+<span class="c1"># step 0 decides nothing (every decision sits behind `if self._idx &gt; 0`), and the</span>
+<span class="c1"># last step has no year after it to look ahead to or to hand its decisions on to</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">YEARS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">FIRST_YEAR</span> <span class="o">&lt;</span> <span class="n">LATER_YEAR</span> <span class="o">&lt;=</span> <span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Pick </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> &lt;= FIRST_YEAR &lt; LATER_YEAR &lt;= </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">; "</span>
+                     <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">FIRST_YEAR</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">LATER_YEAR</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+<span class="n">FOCUS_YEARS</span> <span class="o">=</span> <span class="p">(</span><span class="n">FIRST_YEAR</span><span class="p">,</span> <span class="n">LATER_YEAR</span><span class="p">)</span>
+<span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_LATE</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">YEARS</span> <span class="o">==</span> <span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">FOCUS_YEARS</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"walking </span><span class="si">{</span><span class="n">FIRST_YEAR</span><span class="si">}</span><span class="s2"> (step </span><span class="si">{</span><span class="n">STEP_EARLY</span><span class="si">}</span><span class="s2">) and </span><span class="si">{</span><span class="n">LATER_YEAR</span><span class="si">}</span><span class="s2"> (step </span><span class="si">{</span><span class="n">STEP_LATE</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>walking 2027 (step 1) and 2040 (step 14)
 </pre></div>
 </div>
 </div>
 </div>
 </section>
+</section>
 <hr class="docutils" />
-<section id="one-time-step-from-the-inside-2027">
-<h3>One time step, from the inside: 2027<a class="headerlink" href="#one-time-step-from-the-inside-2027" title="Link to this heading">#</a></h3>
+<section id="one-time-step-from-the-inside">
+<h3>One time step, from the inside<a class="headerlink" href="#one-time-step-from-the-inside" title="Link to this heading">#</a></h3>
 <section id="stage-0-initialization">
 <h4>Stage 0 — Initialization<a class="headerlink" href="#stage-0-initialization" title="Link to this heading">#</a></h4>
 <p>A time step starts with an initialization. It inherits a fleet with an age
@@ -3017,9 +3111,9 @@ terms for this year are already fixed.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 0 figure: what 2027 inherits</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 0 figure: what the first year inherits</span>
 <span class="c1"># What the year inherits, as two pictures rather than a list. Drawn by a function</span>
-<span class="c1"># taking a step, so the 2040 section can put the same picture beside this one.</span>
+<span class="c1"># taking a step, so the later year's section can put the same picture beside this one.</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">navigate.illustrations.plots._labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FUEL_TYPE_ORDER</span>
 
@@ -3043,7 +3137,7 @@ terms for this year are already fixed.</p>
 <span class="w">    </span><span class="sd">"""Stage 0 for one year, into a pair of axes.</span>
 
 <span class="sd">    `scale_over` names the steps whose data set the axis limits. Left alone, a</span>
-<span class="sd">    year scales to itself; the 2040 comparison passes both years so the two rows</span>
+<span class="sd">    year scales to itself; the two-year comparison passes both years so the two rows</span>
 <span class="sd">    can be read against each other instead of each filling its own panel.</span>
 <span class="sd">    """</span>
     <span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span> <span class="o">=</span> <span class="n">axes</span>
@@ -3140,7 +3234,7 @@ this year's regulatory terms:
 </ul>
 <p>The operators calculate the expected optimal strategy for the fleet and evaluate: how many tons of which fuel to buy at which port, the cheapest strategy between switching fuel or paying the regulation penalty. It is solved for the whole fleet at once — in fact for every fleet in the simulation — so the ships compete for the same supply. The expenses of new build ships, retrofits, etc. are not considered at this stage yet.</p>
 <p>The cheapest bunkering strategy is solved <strong>forward</strong>: one optimisation for each remaining year out to 2050, run one after another.</p>
-<p>The step hands a cost path per option to the stages below, and that is what the investment decisions are made on. It produces a second output as well: the <strong>fuel scarcity signal</strong>. For every ship and every leg the optimisation reports the shadow price of energy (what one more unit of energy would have cost). It is the ordinary fuel price when fuel is plentiful and rises above it when the supply is tight. This number is used to act on efficiency and speed decisions for the on-going year.</p>
+<p>The step hands a cost path per option to the stages below, and that is what the investment decisions are made on. It produces a second output as well: the <strong>fuel scarcity signal</strong>. For every ship and every leg (one-way sailing between two ports) the optimisation reports the shadow price of energy (what one more unit of energy would have cost). It is the ordinary fuel price when fuel is plentiful and rises above it when the supply is tight. This number is used to act on efficiency and speed decisions for the on-going year.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -3234,6 +3328,9 @@ this year's regulatory terms:
                  <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"TJ per year (log)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">MaxNLocator</span><span class="p">(</span><span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="c1"># a late year looks only a year or two ahead, and matplotlib would then label</span>
+    <span class="c1"># the axis as an offset ("-1, 0, +2.05e3") instead of years</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">ticklabel_format</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">useOffset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="c1"># Only when two years are being compared: one log range across both, or each</span>
     <span class="c1"># panel fills its own decades and the eye reads no change at all. On its own</span>
     <span class="c1"># the panel keeps matplotlib's limits, so this Part draws exactly as before.</span>
@@ -3291,7 +3388,7 @@ this year's regulatory terms:
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/944ced7530e1e79f0bb4fb59cc66685c4457a453a3e01c7f898a08b2127a820b.png" src="../_images/944ced7530e1e79f0bb4fb59cc66685c4457a453a3e01c7f898a08b2127a820b.png" />
+<img alt="../_images/949a449acb2d1c18e0ce0498b98fd4aeb72a0b4ee8eb6958b2f765f27df68b1a.png" src="../_images/949a449acb2d1c18e0ce0498b98fd4aeb72a0b4ee8eb6958b2f765f27df68b1a.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>believed cost of missing the mark, this year:
   eu_ets      133.4 USD/ton
   fuel_eu     760.0 USD/ton
@@ -3303,14 +3400,17 @@ Nothing has been decided yet. This is only what the model believes.
 </div>
 <section id="year-by-year-what-each-configuration-expects-to-burn-and-why">
 <h5>Year by year: what each configuration expects to burn, and why<a class="headerlink" href="#year-by-year-what-each-configuration-expects-to-burn-and-why" title="Link to this heading">#</a></h5>
-<p>Each panel in the cell below splits one configuration’s expected energy by fuel, for every year of the 2027 look-ahead.
+<p>Each panel in the cell below splits one configuration’s expected energy by fuel, for every year of this year’s look-ahead.
 The strip under the bars explains why a dual-fuel ship sometimes expects to burn oil instead of alternative fuels:</p>
 <ul class="simple">
 <li><p><strong>no alternative fuel on offer</strong>: no port expects any supply of the alternative fuel the ship can burn yet, so oil is the only option</p></li>
 <li><p><strong>alternative capped by supply</strong>: alternative fuel is available but in limited quantities, and the ship buys all of its share</p></li>
-<li><p><strong>alternative on offer, oil still cheaper</strong>: the supply is there, but oil plus the expected compliance cost is cheaper</p></li>
+<li><p><strong>switching, held back by bunkering inertia</strong>: the ship would buy more of the alternative, but each year it must still buy at least 70 % of the oil it bought at that port the year before (<code class="docutils literal notranslate"><span class="pre">set_bunkering_inertia</span></code>), so oil can only fall by about 30 % a year</p></li>
+<li><p><strong>alternative at one port, only oil at the other</strong>: the alternative fuel costs more to deliver to the other port, so the ship buys oil there</p></li>
+<li><p><strong>alternative on offer, oil cheaper</strong>: the supply is there, but oil plus the expected compliance cost is cheaper</p></li>
 <li><p><strong>on its main fuel</strong>: oil is down to the minimum pilot share the engine needs</p></li>
 </ul>
+<p>The operators choose the fuel at each port, not for the whole voyage. A dual-fuel ship can therefore run partly on its alternative fuel without any supply limit: it buys the alternative where it is cheaper (here at Rotterdam, close to the European plants) and oil where the alternative still costs more (at San Antonio, an expensive 7,600 nm delivery from Europe).</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -3332,7 +3432,9 @@ The strip under the bars explains why a dual-fuel ship sometimes expects to burn
 <span class="n">REGIMES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"none"</span><span class="p">:</span>    <span class="p">(</span><span class="s2">"no alternative fuel on offer"</span><span class="p">,</span> <span class="s2">"#b95747"</span><span class="p">),</span>   <span class="c1"># Red-4</span>
     <span class="s2">"capped"</span><span class="p">:</span>  <span class="p">(</span><span class="s2">"alternative capped by supply"</span><span class="p">,</span> <span class="s2">"#e2af7c"</span><span class="p">),</span>   <span class="c1"># Orange-3</span>
-    <span class="s2">"cheaper"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"alternative on offer, oil still cheaper"</span><span class="p">,</span> <span class="s2">"#a5a5a5"</span><span class="p">),</span>   <span class="c1"># Black-3</span>
+    <span class="s2">"inertia"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"switching, held back by bunkering inertia"</span><span class="p">,</span> <span class="s2">"#716b86"</span><span class="p">),</span>   <span class="c1"># Purple-7</span>
+    <span class="s2">"split"</span><span class="p">:</span>   <span class="p">(</span><span class="s2">"alternative at one port, only oil at the other"</span><span class="p">,</span> <span class="s2">"#68a4c2"</span><span class="p">),</span>   <span class="c1"># Blue-5</span>
+    <span class="s2">"cheaper"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"alternative on offer, oil cheaper"</span><span class="p">,</span> <span class="s2">"#a5a5a5"</span><span class="p">),</span>   <span class="c1"># Black-3</span>
     <span class="s2">"main"</span><span class="p">:</span>    <span class="p">(</span><span class="s2">"on its main fuel (oil at the pilot minimum)"</span><span class="p">,</span> <span class="s2">"#6fa59b"</span><span class="p">),</span>   <span class="c1"># Green-4</span>
 <span class="p">}</span>
 
@@ -3352,6 +3454,16 @@ The strip under the bars explains why a dual-fuel ship sometimes expects to burn
         <span class="k">return</span> <span class="s2">"none"</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="n">offered</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">year</span><span class="p">[</span><span class="s2">"capped"</span><span class="p">]):</span>
         <span class="k">return</span> <span class="s2">"capped"</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">"fossil_fuel_oil"</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">year</span><span class="p">[</span><span class="s2">"inertia"</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="s2">"inertia"</span>
+    <span class="c1"># the fuel is chosen port by port: the alternative at one, only oil at another</span>
+    <span class="n">bought</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="n">tons</span> <span class="ow">in</span> <span class="n">year</span><span class="p">[</span><span class="s2">"by_port"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">tons</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">bought</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">fuels</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">alternatives</span><span class="p">)</span> <span class="k">for</span> <span class="n">fuels</span> <span class="ow">in</span> <span class="n">bought</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">fuels</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"fossil_fuel_oil"</span><span class="p">}</span> <span class="k">for</span> <span class="n">fuels</span> <span class="ow">in</span> <span class="n">bought</span><span class="o">.</span><span class="n">values</span><span class="p">())):</span>
+        <span class="k">return</span> <span class="s2">"split"</span>
     <span class="k">return</span> <span class="s2">"cheaper"</span>
 
 
@@ -3420,7 +3532,7 @@ The strip under the bars explains why a dual-fuel ship sometimes expects to burn
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/19cf22641b7c5a7553dd8b846bca79d8c4010aa0af11f2e91cc083a52154494d.png" src="../_images/19cf22641b7c5a7553dd8b846bca79d8c4010aa0af11f2e91cc083a52154494d.png" />
+<img alt="../_images/8d35b5e9174b046eafc0692aac113421582d35c1e78e6c763770f85a189ec507.png" src="../_images/8d35b5e9174b046eafc0692aac113421582d35c1e78e6c763770f85a189ec507.png" />
 </div>
 </div>
 </section>
@@ -3502,7 +3614,7 @@ The strip under the bars explains why a dual-fuel ship sometimes expects to burn
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/407373f716d559cc28bcdeb11b9c644c91b6c9b8d78fad8a8f1369955bd893e6.png" src="../_images/407373f716d559cc28bcdeb11b9c644c91b6c9b8d78fad8a8f1369955bd893e6.png" />
+<img alt="../_images/903e706beee9561edf68176f0768ea653a489effda498044138020b4cf6cc9f0.png" src="../_images/903e706beee9561edf68176f0768ea653a489effda498044138020b4cf6cc9f0.png" />
 </div>
 </div>
 </section>
@@ -3522,7 +3634,7 @@ the conversion pays, and order newbuilds on the scorecard</p></li>
 </ol>
 <p>Not every newbuild follows the scorecard, i.e. the business case. Each year, 60 % of
 them copy the previous year’s mix of ship types: this is the fleet’s <code class="docutils literal notranslate"><span class="pre">Inertia</span></code>.</p>
-<p>The starting fleet is all oil, so most of the ships ordered in the first year are oil
+<p>In the early years the ships are mostly oil, so most of the ships ordered are oil
 ships because of the inertia, even when another ship type is cheaper on paper.</p>
 <section id="the-technology-ladder">
 <h5>The technology ladder<a class="headerlink" href="#the-technology-ladder" title="Link to this heading">#</a></h5>
@@ -3709,7 +3821,8 @@ fitted can only fall going down the list.</p>
 <span class="n">axV</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">MaxNLocator</span><span class="p">(</span><span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 <span class="n">axV</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"1 · what a saved GJ is expected to be worth"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
 <span class="n">axV</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">GRID</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
-<span class="n">axV</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"lower right"</span><span class="p">)</span>
+<span class="c1"># top left is empty whatever the year: the signal starts low and rises</span>
+<span class="n">axV</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"upper left"</span><span class="p">)</span>
 
 <span class="c1"># right: what ADDING each measure is worth on its own. The model works in</span>
 <span class="c1"># cumulative packages, up the ladder, so the value of one measure is the step</span>
@@ -3865,13 +3978,12 @@ fitted can only fall going down the list.</p>
 
     <span class="n">flows_</span> <span class="o">=</span> <span class="n">flows_of</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="c1"># the value labels sit outside their bars, so the axis needs slack at both ends</span>
-    <span class="c1"># or "-4.50" lands on top of the "scrapped" tick label. Worked out before the</span>
-    <span class="c1"># bars are drawn, because the share labels are judged against it.</span>
+    <span class="c1"># or "-4.50" lands on top of the "scrapped" tick label. Set before the bars are</span>
+    <span class="c1"># drawn, because whether a share label fits is judged against it.</span>
     <span class="n">every</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">peers</span> <span class="k">for</span> <span class="n">_l</span><span class="p">,</span> <span class="n">parts</span> <span class="ow">in</span> <span class="n">flows_of</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
     <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">every</span><span class="p">)),</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">every</span><span class="p">))</span>
     <span class="n">span</span> <span class="o">=</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.</span>
     <span class="n">axF</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">lo</span> <span class="o">-</span> <span class="n">span</span> <span class="o">*</span> <span class="mf">.30</span><span class="p">,</span> <span class="n">hi</span> <span class="o">+</span> <span class="n">span</span> <span class="o">*</span> <span class="mf">.22</span><span class="p">)</span>
-    <span class="n">axis_width</span> <span class="o">=</span> <span class="n">span</span> <span class="o">*</span> <span class="mf">1.52</span>
 
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">_label</span><span class="p">,</span> <span class="n">parts</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flows_</span><span class="p">):</span>
         <span class="n">run_pos</span> <span class="o">=</span> <span class="n">run_neg</span> <span class="o">=</span> <span class="mf">0.</span>
@@ -3886,12 +3998,15 @@ fitted can only fall going down the list.</p>
             <span class="c1"># the share of THIS flow, so the reader can see that scrapping is all one</span>
             <span class="c1"># configuration while ordering is spread across every one of them</span>
             <span class="n">share</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">row_total</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
-            <span class="c1"># a slice worth 29% of its row is still unreadable if the row is 3% of</span>
-            <span class="c1"># the axis, which is what happens once both years share one scale</span>
-            <span class="k">if</span> <span class="n">share</span> <span class="o">&gt;=</span> <span class="mi">10</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="n">axis_width</span> <span class="o">&gt;=</span> <span class="mf">0.05</span><span class="p">:</span>
-                <span class="n">axF</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">share</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%"</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">value</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span>
-                             <span class="n">va</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"white"</span><span class="p">,</span>
-                             <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="c1"># a slice worth 29% of its row is still unreadable if it is narrower than</span>
+            <span class="c1"># its own label, which depends on the year and on the shared scale. The</span>
+            <span class="c1"># label remembers its slice, and drop_labels_that_do_not_fit() removes it</span>
+            <span class="c1"># once the figure's layout is final.</span>
+            <span class="k">if</span> <span class="n">share</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">axF</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">share</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%"</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">value</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span>
+                                     <span class="n">va</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"white"</span><span class="p">,</span>
+                                     <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+                <span class="n">label</span><span class="o">.</span><span class="n">fits_in</span> <span class="o">=</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="n">value</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">run_pos</span> <span class="o">+=</span> <span class="n">value</span>
             <span class="k">else</span><span class="p">:</span>
@@ -3926,19 +4041,34 @@ fitted can only fall going down the list.</p>
         <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"bottom"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">AXIS</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">drop_labels_that_do_not_fit</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Remove the share labels wider than their slice, judged on the final layout."""</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+    <span class="n">renderer</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">get_renderer</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">texts</span><span class="p">):</span>
+            <span class="n">span</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s2">"fits_in"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">span</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">transData</span><span class="o">.</span><span class="n">transform</span><span class="p">([(</span><span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">span</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">span</span><span class="p">[</span><span class="mi">2</span><span class="p">])])[:,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">get_window_extent</span><span class="p">(</span><span class="n">renderer</span><span class="p">)</span><span class="o">.</span><span class="n">width</span> <span class="o">&gt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+
+
 <span class="n">fig</span><span class="p">,</span> <span class="p">((</span><span class="n">axT</span><span class="p">,</span> <span class="n">axS</span><span class="p">),</span> <span class="p">(</span><span class="n">axC</span><span class="p">,</span> <span class="n">axF</span><span class="p">))</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">))</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">FOCUS_YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: the four decisions"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span>
              <span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
 <span class="n">draw_four_decisions</span><span class="p">(</span><span class="n">STEP_EARLY</span><span class="p">,</span> <span class="p">(</span><span class="n">axT</span><span class="p">,</span> <span class="n">axS</span><span class="p">,</span> <span class="n">axC</span><span class="p">,</span> <span class="n">axF</span><span class="p">))</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">rect</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">))</span>
+<span class="n">drop_labels_that_do_not_fit</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/53d362bdc033ac400557d380cd2f2d9e1e7fa54bf1332cc9ad43ffb8110086f9.png" src="../_images/53d362bdc033ac400557d380cd2f2d9e1e7fa54bf1332cc9ad43ffb8110086f9.png" />
-<img alt="../_images/1d3e9e332d0354804225318882eb9dde762536bb702193fee4212f2dbdd41961.png" src="../_images/1d3e9e332d0354804225318882eb9dde762536bb702193fee4212f2dbdd41961.png" />
+<img alt="../_images/a57f6622dece3c63c0fe258f7b8b447112197300a7a4b80355ff2ee667582832.png" src="../_images/a57f6622dece3c63c0fe258f7b8b447112197300a7a4b80355ff2ee667582832.png" />
+<img alt="../_images/466e2538ad156ec8d801f60eef18f5184206a5d485cada2dc6888fe27997ea9d.png" src="../_images/466e2538ad156ec8d801f60eef18f5184206a5d485cada2dc6888fe27997ea9d.png" />
 </div>
 </div>
 </section>
@@ -3948,9 +4078,9 @@ fitted can only fall going down the list.</p>
 <p>The cell below shows what the fleet looks like at the end of the year (by age) after scrapping the old ships and ordering the new ones.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: the fleet after 2027's decisions</span>
-<span class="c1"># Stage 0's own function, one step later: what 2028 inherits is what 2027 decided.</span>
-<span class="c1"># Scaled with 2027, so the change between the two figures is the decision.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: the fleet after the first year's decisions</span>
+<span class="c1"># Stage 0's own function, one step later: what the next year inherits is what this one decided.</span>
+<span class="c1"># Scaled with the first year, so the change between the two figures is the decision.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">11.5</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">),</span>
                          <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">"width_ratios"</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span>
 <span class="n">draw_inherited</span><span class="p">(</span><span class="n">STEP_EARLY</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">scale_over</span><span class="o">=</span><span class="p">(</span><span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_EARLY</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
@@ -4282,7 +4412,7 @@ with the same weights.</p></li>
 <section id="stage-4-fleet-commit-final-bunkering-algorithm">
 <h4>Stage 4 — Fleet commit: final bunkering algorithm<a class="headerlink" href="#stage-4-fleet-commit-final-bunkering-algorithm" title="Link to this heading">#</a></h4>
 <p>This step runs the “real” bunkering algorithm for this year: the same solve as in Stage 1, but on the fleet as Stage 2 left it (new ships, speeds and technologies) and on the fuel the producers actually supply this year.</p>
-<p>The result can differ slightly from the Stage 1 belief, since the fleet and the fuel supply have changed since. But this is what the ships actually burn and pay this year. The figures below show the bill and the fuel of one ship of each configuration, whether the fuel the plants made was burned, and what the transport cost is. When checking the results, remember that ordering a dual-fuel ship and burning its fuel are two different decisions: in 2027 every ship including the dual fuel vessels, still burns oil or LNG.</p>
+<p>The result can differ slightly from the Stage 1 belief, since the fleet and the fuel supply have changed since. But this is what the ships actually burn and pay this year. The figures below show the bill and the fuel of one ship of each configuration, whether the fuel the plants made was burned, and what the transport cost is. When checking the results, remember that ordering a dual-fuel ship and burning its fuel are two different decisions: in the early years every ship, including the dual-fuel vessels can still burn oil.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -4296,10 +4426,20 @@ with the same weights.</p></li>
 <span class="kn">from</span><span class="w"> </span><span class="nn">navigate.illustrations.plots._labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FUEL_ORDER</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">tons_limit</span><span class="p">(</span><span class="o">*</span><span class="n">steps</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bunkered_energy</span><span class="p">(</span><span class="n">step</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""This year's bunkering plan in TJ per ship, keyed (configuration, port, fuel).</span>
+
+<span class="sd">    The plan is kept in tons; energy needs each fuel's own heating value, or an</span>
+<span class="sd">    ammonia ship (18.8 GJ/t) looks twice the size of an oil ship (41.2 GJ/t).</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">tons</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">fuels</span><span class="p">[</span><span class="n">key</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span><span class="o">.</span><span class="n">lower_heating_value</span><span class="o">.</span><span class="n">get</span><span class="p">())</span> <span class="o">/</span> <span class="mf">1e3</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">tons</span> <span class="ow">in</span> <span class="n">snaps</span><span class="p">[</span><span class="n">step</span><span class="p">][</span><span class="s2">"bunkered"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">energy_limit</span><span class="p">(</span><span class="o">*</span><span class="n">steps</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""One x limit for the fuel panels, so the years can be compared by eye."""</span>
     <span class="k">return</span> <span class="mf">1.05</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span>
-        <span class="nb">sum</span><span class="p">(</span><span class="n">t</span> <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">_p</span><span class="p">,</span> <span class="n">_f</span><span class="p">),</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">snaps</span><span class="p">[</span><span class="n">step</span><span class="p">][</span><span class="s2">"bunkered"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">name</span><span class="p">)</span>
+        <span class="nb">sum</span><span class="p">(</span><span class="n">tj</span> <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">_p</span><span class="p">,</span> <span class="n">_f</span><span class="p">),</span> <span class="n">tj</span> <span class="ow">in</span> <span class="n">bunkered_energy</span><span class="p">(</span><span class="n">step</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">CONFIGS</span><span class="p">)</span>
 
@@ -4383,8 +4523,8 @@ with the same weights.</p></li>
     <span class="n">axA</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                <span class="n">loc</span><span class="o">=</span><span class="s2">"upper center"</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.24</span><span class="p">))</span>
 
-    <span class="c1"># in tons, on one scale for every year in scale_over</span>
-    <span class="n">mix</span> <span class="o">=</span> <span class="n">snaps</span><span class="p">[</span><span class="n">step</span><span class="p">][</span><span class="s2">"bunkered"</span><span class="p">]</span>
+    <span class="c1"># in energy, on one scale for every year in scale_over</span>
+    <span class="n">mix</span> <span class="o">=</span> <span class="n">bunkered_energy</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
     <span class="n">fuels_used</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">FUEL_ORDER</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">f</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">mix</span><span class="p">)]</span>
     <span class="n">left</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">CONFIGS</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">fuel_name</span> <span class="ow">in</span> <span class="n">fuels_used</span><span class="p">:</span>
@@ -4394,8 +4534,8 @@ with the same weights.</p></li>
                  <span class="n">label</span><span class="o">=</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">fuel_name</span><span class="p">),</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">AXIS</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
         <span class="n">left</span> <span class="o">+=</span> <span class="n">values</span>
     <span class="n">axB</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"of which fuel, per configuration"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
-    <span class="n">axB</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tons_limit</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">scale_over</span> <span class="ow">or</span> <span class="p">(</span><span class="n">step</span><span class="p">,))))</span>
-    <span class="n">axB</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"tons per ship per year"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
+    <span class="n">axB</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">energy_limit</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">scale_over</span> <span class="ow">or</span> <span class="p">(</span><span class="n">step</span><span class="p">,))))</span>
+    <span class="n">axB</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"TJ per ship per year"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
     <span class="c1"># one legend serves every year in scale_over, so it names every fuel they used</span>
     <span class="n">shown</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">FUEL_ORDER</span>
              <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">f</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">(</span><span class="n">scale_over</span> <span class="ow">or</span> <span class="p">(</span><span class="n">step</span><span class="p">,))</span>
@@ -4584,8 +4724,8 @@ with the same weights.</p></li>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/73346d1712dddca5f7c9713d84d30d0f2926fcf7fdfdc741d6e084875720735a.png" src="../_images/73346d1712dddca5f7c9713d84d30d0f2926fcf7fdfdc741d6e084875720735a.png" />
-<img alt="../_images/f862ce503041b0c320b9d9a77e3b359518232c9bfa780e53f63d98c660f7f47e.png" src="../_images/f862ce503041b0c320b9d9a77e3b359518232c9bfa780e53f63d98c660f7f47e.png" />
+<img alt="../_images/77fdef6bbc2beb6a8fbd6dacbb9735796c2a3363e6deddf36301573ebd567f4f.png" src="../_images/77fdef6bbc2beb6a8fbd6dacbb9735796c2a3363e6deddf36301573ebd567f4f.png" />
+<img alt="../_images/86afe06b59f0b638bdfaa69417c44a6e9444181ea609175d192fd46c577f60dd.png" src="../_images/86afe06b59f0b638bdfaa69417c44a6e9444181ea609175d192fd46c577f60dd.png" />
 </div>
 </div>
 <p>After the year is completed, every belief is overwritten by
@@ -4593,9 +4733,9 @@ next year’s look-ahead.</p>
 </section>
 </section>
 <hr class="docutils" />
-<section id="thirteen-years-on-the-same-step-in-2040">
-<h3>Thirteen years on: the same step in 2040<a class="headerlink" href="#thirteen-years-on-the-same-step-in-2040" title="Link to this heading">#</a></h3>
-<p>Tadaaa, we are now 13 years later (we repeated the 2027 step multiple times and we are now checking what happens at the year 2040). The logic is the same as before but the conditions have changed.</p>
+<section id="later-on-the-same-step-again">
+<h3>Later on: the same step again<a class="headerlink" href="#later-on-the-same-step-again" title="Link to this heading">#</a></h3>
+<p>Tadaaa, we are now some years later (2040 by default, the selected year can be changed at the beginning of Part 3). The logic is the same as before but the conditions have changed.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -4603,7 +4743,7 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title What changed between 2027 and 2040</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title What changed between the two years</span>
 <span class="c1"># What CHANGED between the two steps. The levers themselves are drawn further</span>
 <span class="c1"># down, one stage at a time; these are the conditions the stages answered to.</span>
 <span class="n">late</span> <span class="o">=</span> <span class="n">snaps</span><span class="p">[</span><span class="n">STEP_LATE</span><span class="p">]</span>
@@ -4644,9 +4784,9 @@ next year’s look-ahead.</p>
 </div>
 </div>
 </div>
-<section id="stage-0-initialization-2027-vs-2040">
-<h4>Stage 0 — Initialization (2027 vs 2040)<a class="headerlink" href="#stage-0-initialization-2027-vs-2040" title="Link to this heading">#</a></h4>
-<p>Each year starts from what it inherits: the fleet with its age structure, the plants already sanctioned, and this year’s terms of the two regulations. By 2040 the fleet is no longer all oil, and some plants are running.</p>
+<section id="stage-0-initialization-the-two-years">
+<h4>Stage 0 — Initialization (the two years)<a class="headerlink" href="#stage-0-initialization-the-two-years" title="Link to this heading">#</a></h4>
+<p>Each year starts from what it inherits: the fleet with its age structure, the plants already sanctioned, and this year’s terms of the two regulations.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -4654,7 +4794,7 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 0 figure, 2027 vs 2040</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 0 figure, the two years</span>
 <span class="c1"># Stage 0, both years. Same function, same scale: what the year inherits.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">11.5</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">),</span>
                          <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">"width_ratios"</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span>
@@ -4671,8 +4811,8 @@ next year’s look-ahead.</p>
 </div>
 </div>
 </section>
-<section id="stage-1-look-ahead-2027-vs-2040">
-<h4>Stage 1 — Look ahead (2027 vs 2040)<a class="headerlink" href="#stage-1-look-ahead-2027-vs-2040" title="Link to this heading">#</a></h4>
+<section id="stage-1-look-ahead-the-two-years">
+<h4>Stage 1 — Look ahead (the two years)<a class="headerlink" href="#stage-1-look-ahead-the-two-years" title="Link to this heading">#</a></h4>
 <p>The operators again calculate the cheapest bunkering strategy for every year ahead, given the expected fuel and compliance costs and the fuel the ports can supply. The figures compare what they expect to buy, and what they expect it to cost.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -4681,7 +4821,7 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 1 figures, 2027 vs 2040</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 1 figures, the two years</span>
 <span class="c1"># Stage 1, both years. The look-ahead's two outputs - what it expects to buy,</span>
 <span class="c1"># and what it expects that to cost.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mf">4.8</span><span class="p">),</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -4695,7 +4835,7 @@ next year’s look-ahead.</p>
 <span class="k">def</span><span class="w"> </span><span class="nf">side_by_side</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="o">**</span><span class="n">share</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""One column per focus year, one row per configuration, on one time axis.</span>
 
-<span class="sd">    2040 only looks as far as 2027 did minus thirteen years, so its column starts</span>
+<span class="sd">    The later year looks less far ahead (the horizon ends in 2050), so its column starts</span>
 <span class="sd">    later; the shared axis is what keeps that from reading as a change of mind.</span>
 <span class="sd">    """</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">CONFIGS</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mf">12.5</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">share</span><span class="p">)</span>
@@ -4724,14 +4864,14 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/dbd8c804f05ae571d6565e261b78a8fb2cdd3d0181903b07fa07dec4dcd07475.png" src="../_images/dbd8c804f05ae571d6565e261b78a8fb2cdd3d0181903b07fa07dec4dcd07475.png" />
-<img alt="../_images/a19b0249e39f6dfd4c7d3d7da76c415b757fc6e4996398f7634ae584288749e5.png" src="../_images/a19b0249e39f6dfd4c7d3d7da76c415b757fc6e4996398f7634ae584288749e5.png" />
-<img alt="../_images/391e5d164c422f364923046b4a50bad4c54a04cb805a566638acb32c3fb4e1fb.png" src="../_images/391e5d164c422f364923046b4a50bad4c54a04cb805a566638acb32c3fb4e1fb.png" />
+<img alt="../_images/8f54fb233b9a4fcbc6cf7dece05a919ec2bb6de619537bf425e5f4ae5a359b3c.png" src="../_images/8f54fb233b9a4fcbc6cf7dece05a919ec2bb6de619537bf425e5f4ae5a359b3c.png" />
+<img alt="../_images/1889bdae7ae8ddcef2df15aeb245fe4d1ba0c593eca5335bdc31592b62dc472f.png" src="../_images/1889bdae7ae8ddcef2df15aeb245fe4d1ba0c593eca5335bdc31592b62dc472f.png" />
+<img alt="../_images/ce56c8e37881a2ac4c1c3fd5835f6dbef38a46d67a24762e542682b54bae91fb.png" src="../_images/ce56c8e37881a2ac4c1c3fd5835f6dbef38a46d67a24762e542682b54bae91fb.png" />
 </div>
 </div>
 </section>
-<section id="stage-2-decide-2027-vs-2040">
-<h4>Stage 2 — Decide (2027 vs 2040)<a class="headerlink" href="#stage-2-decide-2027-vs-2040" title="Link to this heading">#</a></h4>
+<section id="stage-2-decide-the-two-years">
+<h4>Stage 2 — Decide (the two years)<a class="headerlink" href="#stage-2-decide-the-two-years" title="Link to this heading">#</a></h4>
 <p>The owners and operators take the same four decisions, in the same order: technology, speed, the scorecard and the fleet. Each column shows one year.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -4740,9 +4880,9 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 2 figures, 2027 vs 2040</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 2 figures, the two years</span>
 <span class="c1"># Stage 2, both years. Four panels per year will not fit across one row, so here</span>
-<span class="c1"># the YEAR IS THE COLUMN: 2027 on the left, 2040 on the right, each column in the</span>
+<span class="c1"># the YEAR IS THE COLUMN: the first year on the left, the later on the right, each column in the</span>
 <span class="c1"># same order as the 2×2 above - technology, speed, scorecard, fleet.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_LATE</span><span class="p">)):</span>
@@ -4753,24 +4893,25 @@ next year’s look-ahead.</p>
     <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="n">step</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">get_title</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
                            <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">rect</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">drop_labels_that_do_not_fit</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/bd2e316abc3e3f1349b5c73bca5c768c72d9c944181a52920e0b2392bc1a9270.png" src="../_images/bd2e316abc3e3f1349b5c73bca5c768c72d9c944181a52920e0b2392bc1a9270.png" />
+<img alt="../_images/3ac0d2876558d608d5a6c010aa78f1c94b272ce1e2795930f87c6a2a1c148b8b.png" src="../_images/3ac0d2876558d608d5a6c010aa78f1c94b272ce1e2795930f87c6a2a1c148b8b.png" />
 </div>
 </div>
 </section>
-<section id="stage-3-the-producers-decide-too-2027-vs-2040">
-<h4>Stage 3 — The producers decide too (2027 vs 2040)<a class="headerlink" href="#stage-3-the-producers-decide-too-2027-vs-2040" title="Link to this heading">#</a></h4>
+<section id="stage-3-the-producers-decide-too-the-two-years">
+<h4>Stage 3 — The producers decide too (the two years)<a class="headerlink" href="#stage-3-the-producers-decide-too-the-two-years" title="Link to this heading">#</a></h4>
 <p>The producers again build towards the expected unmet demand, as far as their build limit and feedstock allow. Each row shows one year.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 3 figures, 2027 vs 2040</span>
-<span class="c1"># Stage 3, both years, one row each. Every panel keeps its own scale: the 2040</span>
-<span class="c1"># gaps and plants are many times the 2027 ones.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 3 figures, the two years</span>
+<span class="c1"># Stage 3, both years, one row each. Every panel keeps its own scale: the later</span>
+<span class="c1"># year's gaps and plants are many times the first year's.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">PRODUCED</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">13.5</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_LATE</span><span class="p">)):</span>
     <span class="n">handles</span><span class="p">,</span> <span class="n">labels_</span> <span class="o">=</span> <span class="n">draw_supply_demand</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="n">row</span><span class="p">])</span>
@@ -4790,14 +4931,14 @@ next year’s look-ahead.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/bc6b9844b699be3597fb92834a51258f34d8c0772fb5f5899513065f43b2703f.png" src="../_images/bc6b9844b699be3597fb92834a51258f34d8c0772fb5f5899513065f43b2703f.png" />
-<img alt="../_images/545194c21b841eb2f1c917225134094a136b1cafdfac9be7178eb7c4805ff9d0.png" src="../_images/545194c21b841eb2f1c917225134094a136b1cafdfac9be7178eb7c4805ff9d0.png" />
+<img alt="../_images/d54b257025055ac99d41a32da4d71d47bfaa2710dd5156d0db0ee27b2c26ca6c.png" src="../_images/d54b257025055ac99d41a32da4d71d47bfaa2710dd5156d0db0ee27b2c26ca6c.png" />
+<img alt="../_images/89778dcc4dd0d7a38d7f6e6a66237292de9e8fecfe6bb08ec0d23f5709798443.png" src="../_images/89778dcc4dd0d7a38d7f6e6a66237292de9e8fecfe6bb08ec0d23f5709798443.png" />
 </div>
 </div>
 </section>
-<section id="stage-4-commit-the-bunkering-algorithm-that-binds-2027-vs-2040">
-<h4>Stage 4 — Commit: the bunkering algorithm that binds (2027 vs 2040)<a class="headerlink" href="#stage-4-commit-the-bunkering-algorithm-that-binds-2027-vs-2040" title="Link to this heading">#</a></h4>
-<p>The year is committed with the real bunkering algorithm, on the fleet and the fuel supply of that year. By 2040 the dual-fuel ships burn mostly their own fuel, and part of the e-ammonia made is not burned.</p>
+<section id="stage-4-commit-the-bunkering-algorithm-that-binds-the-two-years">
+<h4>Stage 4 — Commit: the bunkering algorithm that binds (the two years)<a class="headerlink" href="#stage-4-commit-the-bunkering-algorithm-that-binds-the-two-years" title="Link to this heading">#</a></h4>
+<p>The year is committed with the real bunkering algorithm, on the fleet and the fuel supply of that year. Later on, the dual-fuel ships burn more of their own fuel, and part of what the plants make can go unburned.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -4805,9 +4946,9 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 4 figures, 2027 vs 2040</span>
-<span class="c1"># Stage 4, both years, laid out as the 2027 figures above, one row per year. All</span>
-<span class="c1"># the tons panels share one scale (scale_over) and both bill panels another.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 4 figures, the two years</span>
+<span class="c1"># Stage 4, both years, laid out as the first year's figures above, one row per year. All</span>
+<span class="c1"># the energy panels share one scale (scale_over) and both bill panels another.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mf">7.6</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_LATE</span><span class="p">)):</span>
     <span class="n">plot_committed_bill</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="n">row</span><span class="p">],</span> <span class="n">scale_over</span><span class="o">=</span><span class="p">(</span><span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_LATE</span><span class="p">),</span>
@@ -4832,8 +4973,8 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/a1beb082062256acc3e6001cf6738b4211aeaceb6b61dbfca023e7771d56270a.png" src="../_images/a1beb082062256acc3e6001cf6738b4211aeaceb6b61dbfca023e7771d56270a.png" />
-<img alt="../_images/3c755c646669d112794034214ce10c2c50dbbe927e9dcc61f41b1d23c3f0b761.png" src="../_images/3c755c646669d112794034214ce10c2c50dbbe927e9dcc61f41b1d23c3f0b761.png" />
+<img alt="../_images/a0ebcc00a069f6c288fee9b6aa136dd4fb23a6f018afcf8a33305c3457e6610d.png" src="../_images/a0ebcc00a069f6c288fee9b6aa136dd4fb23a6f018afcf8a33305c3457e6610d.png" />
+<img alt="../_images/85f75872f448a3fb9e79dd95603646a0f598d706b9d6f6aac1dd81e12f405ab9.png" src="../_images/85f75872f448a3fb9e79dd95603646a0f598d706b9d6f6aac1dd81e12f405ab9.png" />
 </div>
 </div>
 </section>
@@ -4936,7 +5077,7 @@ next year’s look-ahead.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>fleet 300 -&gt; 492 hulls;  over the horizon 480 ordered, 13 converted, 288 scrapped
 </pre></div>
 </div>
-<img alt="../_images/75df00d30d582711660c8667c332844433fbf42c83769fdf19bbf53d6313cd90.png" src="../_images/75df00d30d582711660c8667c332844433fbf42c83769fdf19bbf53d6313cd90.png" />
+<img alt="../_images/cb7ec93e9a92b1d301914b3cc3b6a6830c0693041b03117ebf032eed8816b215.png" src="../_images/cb7ec93e9a92b1d301914b3cc3b6a6830c0693041b03117ebf032eed8816b215.png" />
 </div>
 </div>
 </section>
@@ -5006,7 +5147,7 @@ next year’s look-ahead.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>technology energy saving:  2026  1.3%   2038 12.9%   2050 20.5%
 </pre></div>
 </div>
-<img alt="../_images/6ebddfd5355a48d78e095f8f6ff53be63aa496be80cebcca8f95a7b9f6ada282.png" src="../_images/6ebddfd5355a48d78e095f8f6ff53be63aa496be80cebcca8f95a7b9f6ada282.png" />
+<img alt="../_images/46568cef872f0abd99401f1e167220b0f661b9c98c30c1b75b89894a34ebb714.png" src="../_images/46568cef872f0abd99401f1e167220b0f661b9c98c30c1b75b89894a34ebb714.png" />
 </div>
 </div>
 </section>
@@ -5230,21 +5371,21 @@ next year’s look-ahead.</p>
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Share of total energy over 2026-2050:
-  Fuel oil                    73.8%
+  Fuel oil                    74.0%
   LNG                         12.8%
   Bio-methanol                 5.7%
   e-ammonia                    7.2%
-  e-methanol                   0.5%
+  e-methanol                   0.3%
 </pre></div>
 </div>
-<img alt="../_images/9ea17d7ed18026824881bacf21c7ce229ea462efeb90f98c9d71b9df6d045235.png" src="../_images/9ea17d7ed18026824881bacf21c7ce229ea462efeb90f98c9d71b9df6d045235.png" />
-<img alt="../_images/0e5ac3663f1f7cb2f00dff2abfefa581c9d0e2acc23407930cba6bb63620d998.png" src="../_images/0e5ac3663f1f7cb2f00dff2abfefa581c9d0e2acc23407930cba6bb63620d998.png" />
+<img alt="../_images/31088b4789399a6c11321075993b1ce8a5102a17654307d1f9b7946e1058d6a8.png" src="../_images/31088b4789399a6c11321075993b1ce8a5102a17654307d1f9b7946e1058d6a8.png" />
+<img alt="../_images/275f0bf7a5422858b8efd613e204cef63a456a4cb7aa891f4ae1200b674beb1b.png" src="../_images/275f0bf7a5422858b8efd613e204cef63a456a4cb7aa891f4ae1200b674beb1b.png" />
 </div>
 </div>
 </section>
 <section id="what-the-feedstock-ceilings-decided">
 <h4>What the feedstock ceilings decided<a class="headerlink" href="#what-the-feedstock-ceilings-decided" title="Link to this heading">#</a></h4>
-<p>The next cell shows the two feedstock ceilings of this example against what the plants actually used: gasification biomass, which limits bio-methanol and binds from 2041, and biogenic CO2, which limits e-methanol and binds only in the last year, 2050. Once a ceiling binds, the fuel it limits cannot grow any further, and any extra demand has to go to other fuels.</p>
+<p>The next cell shows the two feedstock ceilings of this example against what the plants actually used: gasification biomass, which limits bio-methanol and binds from 2041, and biogenic CO2, which limits e-methanol and binds in the last two years, from 2049. Once a ceiling binds, the fuel it limits cannot grow any further, and any extra demand has to go to other fuels.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -5309,10 +5450,10 @@ next year’s look-ahead.</p>
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Gasification feedstock     ceiling  0.95 Mt/yr by 2050,   binds from 2041, in 10 of 25 years
-  Biogenic CO2 (PS)          ceiling  0.53 Mt/yr by 2050,   binds from 2050, in 1 of 25 years
+  Biogenic CO2 (PS)          ceiling  0.14 Mt/yr by 2050,   binds from 2049, in 2 of 25 years
 </pre></div>
 </div>
-<img alt="../_images/bd8adb489dc26130b5bc900814523623cb2a942c76c63e7ed4ee12edb4d7cd16.png" src="../_images/bd8adb489dc26130b5bc900814523623cb2a942c76c63e7ed4ee12edb4d7cd16.png" />
+<img alt="../_images/32e3b21824d293907857f4b2fc62b34327049b9a91c80a080268b40057c2a936.png" src="../_images/32e3b21824d293907857f4b2fc62b34327049b9a91c80a080268b40057c2a936.png" />
 </div>
 </div>
 </section>
@@ -5513,7 +5654,7 @@ retrofits, and a plant then takes several years to build.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/7c0852e5bb96961f97f078f9a31e43f2fa0f5bd5347b42a09c1c9e27855161ea.png" src="../_images/7c0852e5bb96961f97f078f9a31e43f2fa0f5bd5347b42a09c1c9e27855161ea.png" />
+<img alt="../_images/4e0538d804713a00bd5fa4a18e401c51cc8900eed1f45e67fdd5698fd552251a.png" src="../_images/4e0538d804713a00bd5fa4a18e401c51cc8900eed1f45e67fdd5698fd552251a.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  first capacity sanctioned: 2028
   first e-ammonia burned:  2032
   production vs delivery, largest gap over the horizon: 0.0 TJ/year
@@ -5638,10 +5779,10 @@ over time.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/6d5b574a02549eec01fbb78446161ddd4e087a8200947151a25813b6949d665f.png" src="../_images/6d5b574a02549eec01fbb78446161ddd4e087a8200947151a25813b6949d665f.png" />
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  well-to-wake 2026:    5.93 Mt/yr   2050:    3.26 Mt/yr   over the horizon     127.4 Mt
-  EU ETS   2027:     334 M USD   2050:     529 M USD   over the horizon    11,484 M USD
-  FuelEU   2027:      23 M USD   2050:     839 M USD   over the horizon     8,089 M USD
+<img alt="../_images/f3a18eafc045894f7d453bfa2cd22b7f60dae480f3e335b565142a39743fc661.png" src="../_images/f3a18eafc045894f7d453bfa2cd22b7f60dae480f3e335b565142a39743fc661.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  well-to-wake 2026:    5.93 Mt/yr   2050:    3.54 Mt/yr   over the horizon     127.8 Mt
+  EU ETS   2027:     334 M USD   2050:     575 M USD   over the horizon    11,544 M USD
+  FuelEU   2027:      23 M USD   2050:     939 M USD   over the horizon     8,217 M USD
   ship_oil        below the limit in  0 of 24 years
   ship_lng        below the limit in  8 of 24 years
   ship_methanol   below the limit in 14 of 24 years
@@ -5715,14 +5856,14 @@ discrete-choice model compares between configurations, so it is what explains <e
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>instantaneous freight rate   2026: 3.43   2050: 4.71   (+37%)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>instantaneous freight rate   2026: 3.43   2050: 4.72   (+38%)
 
 In the right-hand panel, whichever configuration sits lowest in a given
 year is the one most likely to be ordered that year. That crossover is
 the mechanism behind the fuel mix in section 2.
 </pre></div>
 </div>
-<img alt="../_images/51bdf5dd4bc0217ad564a2d8919e7d94fe9d0447d887ad7de0c45dce80ccc4c2.png" src="../_images/51bdf5dd4bc0217ad564a2d8919e7d94fe9d0447d887ad7de0c45dce80ccc4c2.png" />
+<img alt="../_images/3ccb479662d596aeaf0460c99fe56dd287b08852d988f89150eed3ea7601b81f.png" src="../_images/3ccb479662d596aeaf0460c99fe56dd287b08852d988f89150eed3ea7601b81f.png" />
 </div>
 </div>
 </section>
@@ -6140,19 +6281,19 @@ and the share of newbuilds that copy last year's mix
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>                                     reference       yours        change
-  well-to-wake in 2050, kt/yr            3,265       3,406        +4.3 %
-  cumulative, kt                       127,424     130,268        +2.2 %
-  alternative fuels in 2050, %            43.3        40.6       -2.7 pp
-  freight rate in 2050, USD/k mile        4.71        4.70        -0.3 %
+  well-to-wake in 2050, kt/yr            3,541       3,910       +10.4 %
+  cumulative, kt                       127,781     131,002        +2.5 %
+  alternative fuels in 2050, %            38.5        31.8       -6.7 pp
+  freight rate in 2050, USD/k mile        4.72        4.71        -0.1 %
 </pre></div>
 </div>
-<img alt="../_images/606eda16cee780d8fcfe003157c92544036fa3c49453088982e1e961104ff8d5.png" src="../_images/606eda16cee780d8fcfe003157c92544036fa3c49453088982e1e961104ff8d5.png" />
+<img alt="../_images/4497659658368e3d14474cc359bde10b3111fd9f83d6ef84c672a6606119a825.png" src="../_images/4497659658368e3d14474cc359bde10b3111fd9f83d6ef84c672a6606119a825.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>what moved most, in percentage points of the fuel mix:
   LNG                    +3.3 pp
   e-ammonia              -2.3 pp
-  Fuel oil               -1.4 pp
-  e-methanol             +0.3 pp
+  Fuel oil               -1.1 pp
   Bio-methanol           +0.1 pp
+  e-methanol             +0.0 pp
 </pre></div>
 </div>
 </div>
@@ -6257,8 +6398,11 @@ from the top.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#part-3-understand-the-logic-behind-the-model">Part 3: Understand the logic behind the model</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-navigate-decides">How Navigate decides</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#one-time-step-from-the-inside-2027">One time step, from the inside: 2027</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-navigate-decides">How Navigate decides</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-the-years-to-walk-through">Choose the years to walk through</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#one-time-step-from-the-inside">One time step, from the inside</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-0-initialization">Stage 0 — Initialization</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-1-look-ahead">Stage 1 — Look ahead</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#year-by-year-what-each-configuration-expects-to-burn-and-why">Year by year: what each configuration expects to burn, and why</a></li>
@@ -6280,12 +6424,12 @@ from the top.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-4-fleet-commit-final-bunkering-algorithm">Stage 4 — Fleet commit: final bunkering algorithm</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#thirteen-years-on-the-same-step-in-2040">Thirteen years on: the same step in 2040</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-0-initialization-2027-vs-2040">Stage 0 — Initialization (2027 vs 2040)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-1-look-ahead-2027-vs-2040">Stage 1 — Look ahead (2027 vs 2040)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-2-decide-2027-vs-2040">Stage 2 — Decide (2027 vs 2040)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-3-the-producers-decide-too-2027-vs-2040">Stage 3 — The producers decide too (2027 vs 2040)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-4-commit-the-bunkering-algorithm-that-binds-2027-vs-2040">Stage 4 — Commit: the bunkering algorithm that binds (2027 vs 2040)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#later-on-the-same-step-again">Later on: the same step again</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-0-initialization-the-two-years">Stage 0 — Initialization (the two years)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-1-look-ahead-the-two-years">Stage 1 — Look ahead (the two years)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-2-decide-the-two-years">Stage 2 — Decide (the two years)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-3-the-producers-decide-too-the-two-years">Stage 3 — The producers decide too (the two years)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-4-commit-the-bunkering-algorithm-that-binds-the-two-years">Stage 4 — Commit: the bunkering algorithm that binds (the two years)</a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#results-for-a-full-simulation">Results for a full simulation</a></li>
@@ -6354,7 +6498,7 @@ from the top.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
   </p>
 </div>
       
