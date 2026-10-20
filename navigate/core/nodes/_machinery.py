@@ -17,7 +17,6 @@ class _Machinery(Node):
     """
     Provide a generic node for cost parameters shared by all machinery types.
 
-    - PowerSystem
     - Converter
     - Technology
     """

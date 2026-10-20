@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
     from navigate.core.nodes.converter import Converter
-    from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.region import Region
     from navigate.core.nodes.tank import Tank
     from navigate.core.nodes.technology import Technology
@@ -88,7 +87,7 @@ class Component:
         )
 
     def initialize_machinery_component(
-        self, machinery: Converter | PowerSystem | Tank | Technology
+        self, machinery: Converter | Tank | Technology
     ) -> None:
         """Attach the replacement cycle of a machinery item that has a lifetime."""
         lifetime = machinery.lifetime

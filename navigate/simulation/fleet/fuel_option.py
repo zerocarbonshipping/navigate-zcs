@@ -21,9 +21,8 @@ def determine_fuel_type(vessel: Vessel) -> None:
     Set a vessel's primary fuel type, the one every reader takes as its fuel type.
 
     The fuel type assigned through the DSL wins. Otherwise it is the main fuel type
-    with the largest power capacity summed across all converters in the power
-    system; a tie between fuel types is broken by the size of the tanks that store
-    them.
+    with the largest power capacity summed across the vessel's converters; a tie
+    between fuel types is broken by the size of the tanks that store them.
 
     TODO: The tank size should optimally be weighted by the LHV, but it might vary
     within a given fuel type
@@ -39,7 +38,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
 
     fuel_type_power: defaultdict[FuelTypeID, float] = defaultdict(float)
 
-    for converter in vessel.power_system.get_converters():
+    for converter in vessel.get_converters():
         power_capacity = converter.power_capacity.get()
 
         for fuel_type in converter.main_fuel_types:
@@ -55,7 +54,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
     vessel.primary_fuel_type = _largest_tank_fuel_type(vessel, fuel_types)
 
     logger.info(
-        "%s: Has a power system with multiple main fuel types (%s) of equal power. "
+        "%s: Has multiple main fuel types (%s) of equal power. "
         "%s was chosen as the primary.",
         vessel,
         _fuel_type_names(fuel_types),
@@ -82,7 +81,7 @@ def check_fuel_options(vessel: Vessel) -> None:
     for tank in vessel.tanks:
         tank_fuel_types.update(tank.get_fuel_types())
 
-    for converter in vessel.power_system.get_converters():
+    for converter in vessel.get_converters():
         if converter.is_dual_fuel():
             needs_pilot = converter.minimum_pilot_fuel.get() > 0.0
 
@@ -102,7 +101,7 @@ def check_fuel_options(vessel: Vessel) -> None:
 
     if not vessel.usable_fuels:
         raise ValueError(
-            f"{vessel}: No overlap between the fuel types of the PowerSystem,"
+            f"{vessel}: No overlap between the fuel types of the converters,"
             " Tanks and Fuels."
         )
 

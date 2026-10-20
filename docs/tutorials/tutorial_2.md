@@ -86,7 +86,9 @@ This tutorial has two different types of vessels, so they are named accordingly,
 
 ```python
 Vessel "container_ice_oil" {
-   PowerSystem = PowerSystem("ice_oil")
+   PropulsionConverter = Converter("propulsion_ice_oil")
+   ElectricalConverter = Converter("electrical_ice_oil")
+   HeatConverter = Converter("heat_boiler_oil")
    Route = Route("route")		
    NominalCapacity = 8000
    Tanks = [Tank("main_oil")]						
@@ -94,9 +96,9 @@ Vessel "container_ice_oil" {
 }
 ```
 
-2. Copy the section above — but only the four nodes Vessel `"container_ice_oil"`, PowerSystem `"ice_oil"`, Converter `"propulsion_ice_oil"`, and Converter `"electrical_ice_oil"` — and paste it three times into Bii), Biii) and Biv).
+2. Copy the section above — but only the three nodes Vessel `"container_ice_oil"`, Converter `"propulsion_ice_oil"`, and Converter `"electrical_ice_oil"` — and paste it three times into Bii), Biii) and Biv).
 
-   Do **not** copy `Converter "heat_boiler_oil"`. There is a single shared heat boiler that every vessel reuses through `Heat = Converter("heat_boiler_oil")`, so it is defined once in Bi) only. Copying it as well would create duplicate node definitions and the model would fail to parse.
+   Do **not** copy `Converter "heat_boiler_oil"`. There is a single shared heat boiler that every vessel reuses through `HeatConverter = Converter("heat_boiler_oil")`, so it is defined once in Bi) only. Copying it as well would create duplicate node definitions and the model would fail to parse.
 
 
 #### Methane Vessel
@@ -106,13 +108,15 @@ You just copied all the nodes from the fuel oil vessel’s definition into this 
 1. Define Vessel `"container_ice_methane"`: 
    1. Change the name of the copied node from
     `"container_ice_oil"` to `"container_ice_methane"`.
-   2. Change the assigned value for `PowerSystem` to `PowerSystem("ice_methane")`.
+   2. Change the assigned value for `PropulsionConverter` to `Converter("propulsion_ice_methane")` and for `ElectricalConverter` to `Converter("electrical_ice_methane")`.
    3. Change the assigned value for `Tanks` to `[Tank("main_methane"), Tank("pilot_oil")]`. 
    Next to the main tank for methane, you also need to include the pilot tank for fuel oil here, as a methane vessel requires fuel oil too. You will define both tanks later on).
 
 ```python
 Vessel "container_ice_methane" {
-   PowerSystem = PowerSystem("ice_methane")
+   PropulsionConverter = Converter("propulsion_ice_methane")
+   ElectricalConverter = Converter("electrical_ice_methane")
+   HeatConverter = Converter("heat_boiler_oil")
    Route = Route("route")		
    NominalCapacity = 8000
    Tanks = [Tank("main_methane"), Tank("pilot_oil")]	
@@ -120,20 +124,7 @@ Vessel "container_ice_methane" {
 }
 ```
 
-2. Define PowerSystem `"ice_methane"`: 
-   1. Change the name of the node to `"ice_methane"`.
-   2. Change the assigned value for Propulsion to `Converter("propulsion_ice_methane")`.
-   3. Change the assigned value for Electrical to `Converter("electrical_ice_methane")`.
-
-```python
-PowerSystem "ice_methane" {
-   Propulsion = Converter("propulsion_ice_methane")
-   Electrical = Converter("electrical_ice_methane")
-   Heat = Converter("heat_boiler_oil")
-}
-```
-
-3. Define Converter `"propulsion_ice_methane"`:
+2. Define Converter `"propulsion_ice_methane"`:
    1. Change the name of the node to Converter `"propulsion_ice_methane"`. The propulsion engine is the main engine for an internal combustion engine (ice).
    2. Change the assigned value for `MainFuelTypes` to `METHANE`. `MainFuelTypes` describe the main fuel types that a specific engine can run on.
    3. Set the `PilotFuelTypes` to be `OIL`, and the `MinimumPilotFuel` to 5%. 
@@ -150,7 +141,7 @@ Converter "propulsion_ice_methane" {
 }
 ```
 
-4. Define Converter `"electrical_ice_methane"`:
+3. Define Converter `"electrical_ice_methane"`:
    1. Change the name of the node to `"electrical_ice_methane"`. The electrical engine is the auxiliary engine for an internal combustion engine (ice).
    2. Change the assigned value for `MainFuelTypes` to `METHANE`.
    3. Add the `PilotFuelTypes` to be `OIL`, and set the `MinimumPilotFuel` to 5%.
@@ -174,14 +165,16 @@ You now edit it by essentially repeating the same steps from the section above, 
 
 1. Define `Vessel` `"bulk_ice_methanol"`:
    1. Change the name from `"container_ice_oil"` to `"bulk_ice_methanol"`.
-   2. Change the assigned value for `PowerSystem` to `PowerSystem("ice_methanol")`.
+   2. Change the assigned value for `PropulsionConverter` to `Converter("propulsion_ice_methanol")` and for `ElectricalConverter` to `Converter("electrical_ice_methanol")`.
    3. Change the assigned value for Tanks to `[Tank("main_methanol"), Tank("pilot_oil")]`.
 Next to the main tank for methanol, you also need to include the pilot tank for fuel oil here, as a methanol vessel requires fuel oil to operate. 
 
 
 ```python
 Vessel "bulk_ice_methanol" {
-   PowerSystem = PowerSystem("ice_methanol")
+   PropulsionConverter = Converter("propulsion_ice_methanol")
+   ElectricalConverter = Converter("electrical_ice_methanol")
+   HeatConverter = Converter("heat_boiler_oil")
    Route = Route("route")		
    NominalCapacity = 8000
    Tanks = [Tank("main_methanol"), Tank("pilot_oil")]	
@@ -189,20 +182,7 @@ Vessel "bulk_ice_methanol" {
 }
 ```
 
-2. Define `PowerSystem` `"ice_methanol_bulk"`:
-   1. Change the name of the node to `PowerSystem` `"ice_methanol"`.
-   2. Change the assigned value for Propulsion to `Converter("propulsion_ice_methanol")`.
-   3. Change the assigned value for Electrical to `Converter("electrical_ice_methanol")`.
-
-```python
-PowerSystem "ice_methanol" {
-   Propulsion = Converter("propulsion_ice_methanol")
-   Electrical = Converter("electrical_ice_methanol")
-   Heat = Converter("heat_boiler_oil")
-}
-```
-
-3. Define the `Converter` `"propulsion_ice_methanol"`:
+2. Define the `Converter` `"propulsion_ice_methanol"`:
    1. Change the name of the node to `"propulsion_ice_methanol"`.
    2. Change the assigned value for `MainFuelTypes` to `METHANOL`.
    3. Set the `PilotFuelTypes` to be `OIL`, and the `MinimumPilotFuel` to 5%. This describes what fuel type is acting as a pilot fuel, and how much is needed.
@@ -217,7 +197,7 @@ Converter "propulsion_ice_methanol" {
 }
 ```
 
-4. Define `Converter` `"electrical_ice_methanol"`:
+3. Define `Converter` `"electrical_ice_methanol"`:
    1. Change the name of the node to `Converter` `"electrical_ice_methanol"`.
    2. Change the assigned value for `MainFuelTypes` to `METHANOL`.
    3. Set the `PilotFuelTypes` to be `OIL`, and the `MinimumPilotFuel` of 5%. 
@@ -240,14 +220,16 @@ You now edit it by essentially repeating the same steps from the previous sectio
 
 1. Define `Vessel` `"bulk_ice_ammonia"`:
    1. Change the name from `"container_ice_oil"` to `"bulk_ice_ammonia"`.
-   2. Change the assigned value for `PowerSystem` to `PowerSystem("ice_ammonia")`.
+   2. Change the assigned value for `PropulsionConverter` to `Converter("propulsion_ice_ammonia")` and for `ElectricalConverter` to `Converter("electrical_ice_ammonia")`.
    3. Change the assigned value for Tanks to `[Tank("main_ammonia"), Tank("pilot_oil")]`.
 Next to the main tank for ammonia, you also need to include the pilot tank for fuel oil here, as an ammonia vessel requires fuel oil to operate. 
 You will define both tanks later.
 
 ```python
 Vessel "bulk_ice_ammonia" {
-   PowerSystem = PowerSystem("ice_ammonia")
+   PropulsionConverter = Converter("propulsion_ice_ammonia")
+   ElectricalConverter = Converter("electrical_ice_ammonia")
+   HeatConverter = Converter("heat_boiler_oil")
    Route = Route("route")		
    NominalCapacity = 8000
    Tanks = [Tank("main_ammonia"), Tank("pilot_oil")]	
@@ -255,20 +237,7 @@ Vessel "bulk_ice_ammonia" {
 }
 ```
 
-2. Define `PowerSystem` `"ice_ammonia_bulk"`:
-   1. Change the name of the node to PowerSystem `"ice_ammonia"`.
-   2. Change the assigned value for Propulsion to `Converter("propulsion_ice_ammonia")`.
-   3. Change the assigned value for Electrical to `Converter("electrical_ice_ammonia")`.
-
-```python
-PowerSystem "ice_ammonia" {
-   Propulsion = Converter("propulsion_ice_ammonia")
-   Electrical = Converter("electrical_ice_ammonia")
-   Heat = Converter("heat_boiler_oil")
-}
-```
-
-3. Define Converter `"propulsion_ice_ammonia"`:
+2. Define Converter `"propulsion_ice_ammonia"`:
    1. Change the name of the node to Converter `"propulsion_ice_ammonia"`.
    2. Change the assigned value for `MainFuelTypes` to `AMMONIA`.
    3. Set the `PilotFuelTypes` to be `OIL`, and the `MinimumPilotFuel` to 5%. 
@@ -283,7 +252,7 @@ Converter "propulsion_ice_ammonia" {
 }
 ```
 
-4. Define Converter `"electrical_ice_ammonia"`:
+3. Define Converter `"electrical_ice_ammonia"`:
    1. Change the name of the node to Converter `"electrical_ice_ammonia"`.
    2. Change the assigned value for `MainFuelTypes` to `AMMONIA`.
    3. Set the `PilotFuelTypes` to `OIL`, and the `MinimumPilotFuel` to 5%.
@@ -826,18 +795,13 @@ Fleet "bulk_fleet" {
 # Change the the value assigned to the attribute Tanks below.
 
 Vessel "container_ice_oil" {
-	PowerSystem = PowerSystem("ice_oil")
+	PropulsionConverter = Converter("propulsion_ice_oil")
+	ElectricalConverter = Converter("electrical_ice_oil")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route")
 	NominalCapacity = 8000
 	Tanks = [Tank("main_oil")]
 	PropulsionLoad = 10
-}
-
-# Same as in tutorial 1.
-PowerSystem "ice_oil" {
-	Propulsion = Converter("propulsion_ice_oil")
-	Electrical = Converter("electrical_ice_oil")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_oil" {
@@ -863,24 +827,19 @@ Converter "heat_boiler_oil" {
 # This definition has the same structure as the definition of the fuel oil vessel, but has
 # different assigned values.
 #
-# Define Vessel "container_ice_methane", Powersystem "ice_methane", Converter "propulsion_ice_methane", 
+# Define Vessel "container_ice_methane", Converter "propulsion_ice_methane", 
 # Converter "electrical_ice_methane", Converter "heat_boiler_methane".
 #
 # Paste the nodes from section Bi) below.
 
 Vessel "container_ice_methane" {
-	PowerSystem = PowerSystem("ice_methane")
+	PropulsionConverter = Converter("propulsion_ice_methane")
+	ElectricalConverter = Converter("electrical_ice_methane")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route")
 	NominalCapacity = 8000
 	Tanks = [Tank("main_methane"), Tank("pilot_oil")]
 	PropulsionLoad = 10
-}
-
-# Same as in tutorial 1.
-PowerSystem "ice_methane" {
-	Propulsion = Converter("propulsion_ice_methane")
-	Electrical = Converter("electrical_ice_methane")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_methane" {
@@ -903,23 +862,18 @@ Converter "electrical_ice_methane" {
 
 # Biii) DEFINITION OF METHANOL VESSEL
 #
-# Define Vessel "bulk_ice_methanol", Powersystem "ice_methanol_bulk", Converter "propulsion_ice_methanol_bulk", 
+# Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol_bulk", 
 # Converter "electrical_ice_methanol_bulk", Converter "heat_boiler_methanol_bulk".
 #
 # Paste the nodes from section Bi) below.
 Vessel "bulk_ice_methanol" {
-	PowerSystem = PowerSystem("ice_methanol")
+	PropulsionConverter = Converter("propulsion_ice_methanol")
+	ElectricalConverter = Converter("electrical_ice_methanol")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route")
 	NominalCapacity = 8000
 	Tanks = [Tank("main_methanol"), Tank("pilot_oil")]
 	PropulsionLoad = 10
-}
-
-# Same as in tutorial 1.
-PowerSystem "ice_methanol" {
-	Propulsion = Converter("propulsion_ice_methanol")
-	Electrical = Converter("electrical_ice_methanol")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_methanol" {
@@ -940,23 +894,18 @@ Converter "electrical_ice_methanol" {
 
 # Biv) DEFINITION OF AMMONIA VESSEL
 #
-# Define Vessel "bulk_ice_ammonia", Powersystem "ice_ammonia_bulk", Converter "propulsion_ice_ammonia_bulk", 
+# Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia_bulk", 
 # Converter "electrical_ice_ammonia_bulk", Converter "heat_boiler_ammonia_bulk".
 #
 # Paste the nodes from section Bi) below.
 Vessel "bulk_ice_ammonia" {
-	PowerSystem = PowerSystem("ice_ammonia")
+	PropulsionConverter = Converter("propulsion_ice_ammonia")
+	ElectricalConverter = Converter("electrical_ice_ammonia")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route")
 	NominalCapacity = 8000
 	Tanks = [Tank("main_ammonia"), Tank("pilot_oil")]
 	PropulsionLoad = 10
-}
-
-# Same as in tutorial 1.
-PowerSystem "ice_ammonia" {
-	Propulsion = Converter("propulsion_ice_ammonia")
-	Electrical = Converter("electrical_ice_ammonia")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_ammonia" {

@@ -97,7 +97,7 @@ def calculate_technical_speed_limits(
         return _unbounded_speed_limits(trip)
 
     # the load is a Curve or a Surface
-    converter = vessel.power_system.propulsion
+    converter = vessel.propulsion_converter
     power_maximum = converter.power_capacity.get()
     minimum_load = converter.minimum_load
 
@@ -198,7 +198,6 @@ def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
         If any energy demand exceeds what the serving converter can deliver.
     """
     expectation = vessel.expectation
-    power_system = vessel.power_system
 
     times_sea = [float(time) for time in expectation.get_time_sea_condition(idx)]
     times_port = [float(time) for time in expectation.get_time_port(idx)]
@@ -217,7 +216,7 @@ def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
 
     for energies, times, labels, demand_types in domains:
         for demand_type in demand_types:
-            converter = power_system.get_converter_by_energy_type(demand_type)
+            converter = vessel.get_converter_by_energy_type(demand_type)
             violations += _find_capacity_violations(
                 converter,
                 demand_type,
@@ -241,17 +240,14 @@ def get_total_power_capacity(vessel: Vessel) -> float:
     Parameters
     ----------
     vessel
-        Vessel whose power-system converters are summed.
+        Vessel whose converters are summed.
 
     Returns
     -------
     float
         Total installed power across the converters, MW.
     """
-    return sum(
-        converter.power_capacity.get()
-        for converter in vessel.power_system.get_converters()
-    )
+    return sum(converter.power_capacity.get() for converter in vessel.get_converters())
 
 
 def _find_capacity_violations(

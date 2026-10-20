@@ -36,7 +36,7 @@ def calculate_residual_energy(
     Parameters
     ----------
     vessel
-        Vessel providing the operational energy demand and the power system.
+        Vessel providing the operational energy demand and the converters.
     package
         Technology package holding the precomputed savings, powers and transfer curves.
     idx
@@ -239,7 +239,7 @@ def _calculate_converter_load(
     vessel: Vessel, energy_id: EnergyDemandID, residual_power: FloatArray
 ) -> FloatArray:
     """Return the load of the converter serving a demand, fraction of capacity."""
-    converter = vessel.power_system.get_converter_by_energy_type(energy_id)
+    converter = vessel.get_converter_by_energy_type(energy_id)
     capacity = converter.power_capacity.get()
     return residual_power / capacity
 

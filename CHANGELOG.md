@@ -117,8 +117,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - port electrical demand must fit the onboard electrical converter even
     where shore power is available;
   - it holds for each sailing condition on a leg, not their mean.
-- `Propulsion`, `Electrical` and `Heat` on a `PowerSystem` must be three
-  distinct converters. One converter may still serve several power systems.
 - Fleet and global energy savings are energy-intensity savings against the
   energy the year-0 raw intensity would need for the transport work
   performed. The `fleet_energy_saving` and `global_energy_saving` plots follow.
@@ -233,6 +231,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   and `set_fuel_distance` on `Plant`, priced at the region's
   `set_transport_cost`/`set_transport_wtt`. The examples lose their flat
   transport costs.
+- The `PowerSystem` node: write its converters on the `Vessel` as three
+  distinct `PropulsionConverter`, `ElectricalConverter` and `HeatConverter`,
+  and add its `Capex` and `Opex` to the vessel's `Capex` and `Opex`.
 - The `-e`/`--export-assumptions` CLI flag.
 - The `-r`/`--replot` CLI flag and the `plot_data.pkl` file every run wrote;
   rerun the deck to regenerate the plots.
@@ -327,8 +328,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     `JumpStartFraction` 0.1, the Region WTT commands 0, and
     `EmissionsLifetime` on a policy falls back to the ModelDefinition's;
   - `Dependency` (Source), `Efficiency` (Converter), `LowerHeatingValue`,
-    `MassDensity`, `Source` (Plant), `MaximumDevelopment`, and `Electrical`
-    and `Heat` (PowerSystem) are marked as required;
+    `MassDensity`, `Source` (Plant) and `MaximumDevelopment` are marked as
+    required;
   - minimums that exclude 0 read `>0`, and missing minimums and maximums are
     added;
   - `ShorePowerCapacity` and `NominalCapacity` take no `Forecast`, Region

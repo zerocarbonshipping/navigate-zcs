@@ -72,15 +72,10 @@ def _fleet_chain():
             VESSEL,
             "vessel",
             [
-                Assignment("PowerSystem", _reference("PowerSystem", "ps")),
+                Assignment("PropulsionConverter", _reference("Converter", "conv")),
                 Assignment("Tanks", _reference("Tank", "tank")),
                 Assignment("Route", _reference("Route", "route")),
             ],
-        ),
-        (
-            "PowerSystem",
-            "ps",
-            [Assignment("Propulsion", _reference("Converter", "conv"))],
         ),
         ("Converter", "conv", []),
         ("Tank", "tank", []),
@@ -204,7 +199,7 @@ class TestPrune:
 
 GHOST_VESSEL = """
 Vessel "ghost" {
-    PowerSystem = PowerSystem("ps")
+    PropulsionConverter = Converter("propulsion")
     NominalCapacity = 5000
     Tanks = [Tank("tank")]
 }
@@ -235,7 +230,7 @@ def read_fleet_deck(read_deck):
 
 
 class TestUnused:
-    # input:    | Vessel "ghost" { PowerSystem = PowerSystem("ps") ... }
+    # input:    | Vessel "ghost" { PropulsionConverter = Converter("propulsion") ... }
     #           | ghost is in no fleet and has no Route
     # expected: -> one "declared but not used" warning naming Vessel("ghost"),
     #              only vessel is built, and no missing-Route error

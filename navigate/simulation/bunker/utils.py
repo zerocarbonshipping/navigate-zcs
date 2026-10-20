@@ -17,19 +17,19 @@ if TYPE_CHECKING:
 
 def get_converters(vessel: Vessel) -> dict[str, Converter]:
     """
-    Return the three converters of a vessel's power system, keyed by name.
+    Return the three converters of a vessel, keyed by name.
 
     Parameters
     ----------
     vessel
-        Vessel whose power system is queried.
+        Vessel whose converters are returned.
 
     Returns
     -------
     dict[str, Converter]
         The propulsion, electrical, and heat converters keyed by name.
     """
-    return {c.name: c for c in vessel.power_system.get_converters()}
+    return {converter.name: converter for converter in vessel.get_converters()}
 
 
 def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
@@ -39,15 +39,15 @@ def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
     Parameters
     ----------
     vessel
-        Vessel whose power system is queried.
+        Vessel whose port converters are returned.
 
     Returns
     -------
     dict[str, Converter]
         The electrical and heat converters keyed by name.
     """
-    power_system = vessel.power_system
-    return {c.name: c for c in (power_system.electrical, power_system.heat)}
+    converters = (vessel.electrical_converter, vessel.heat_converter)
+    return {converter.name: converter for converter in converters}
 
 
 def get_port_name_to_indices(route: Route) -> dict[str, list[int]]:

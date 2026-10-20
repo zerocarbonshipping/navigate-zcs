@@ -1,18 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# Fleet nodes: Converter, PowerSystem, Tank, Technology, Vessel, Fleet
+# Fleet nodes: Converter, Tank, Technology, Vessel, Fleet
 #
 # Attributes covered:
 #   Converter:   PowerCapacity, MinimumLoad, MainFuelTypes, PilotFuelTypes,
 #                MinimumPilotFuel, Efficiency, Capex, Opex, Lifetime, Replacement
-#   PowerSystem: Propulsion, Electrical, Heat, Capex, Opex, Lifetime, Replacement
 #   Tank:        FuelTypes, Size, Capex, Opex, Lifetime, Replacement
 #   Technology:  Capex, Opex, Lifetime, Replacement, ShorePowerCapacity
 #   Vessel:      PropulsionLoad, ElectricalLoadAtSea, ElectricalLoadInPort,
-#                HeatLoadAtSea, HeatLoadInPort, FuelType, PowerSystem, Tanks,
-#                Route, NominalCapacity, Lifetime, LeadTime,
-#                Capex, Opex, CostOfCapital
+#                HeatLoadAtSea, HeatLoadInPort, FuelType, PropulsionConverter,
+#                ElectricalConverter, HeatConverter, Tanks, Route,
+#                NominalCapacity, Lifetime, LeadTime, Capex, Opex, CostOfCapital
 #   Fleet:       Vessels, InitialVessels, TradeGrowth, InitialSplit,
 #                InitialAgeDistribution, Orderbooks, Technologies,
 #                TechnologyCostOfCapital, FixedScrapRate, AllowSecondaryScrapping,
@@ -107,36 +106,6 @@ Converter "elec_ammonia" {
 	Efficiency = 0.5
 }
 
-# --- Power Systems -----------------------------------------------------------
-
-PowerSystem "ps_oil" {
-	Propulsion = Converter("prop_oil")
-	Electrical = Converter("elec_oil")
-	Heat = Converter("heat_oil")
-	Capex = 0
-	Opex = 0
-	Lifetime = 25
-	Replacement = 1.0
-}
-
-PowerSystem "ps_methane" {
-	Propulsion = Converter("prop_methane")
-	Electrical = Converter("elec_methane")
-	Heat = Converter("heat_oil")
-}
-
-PowerSystem "ps_methanol" {
-	Propulsion = Converter("prop_methanol")
-	Electrical = Converter("elec_methanol")
-	Heat = Converter("heat_oil")
-}
-
-PowerSystem "ps_ammonia" {
-	Propulsion = Converter("prop_ammonia")
-	Electrical = Converter("elec_ammonia")
-	Heat = Converter("heat_oil")
-}
-
 # --- Tanks -------------------------------------------------------------------
 
 Tank "tank_oil" {
@@ -194,7 +163,9 @@ Technology "tech_shore" {
 # --- Vessels -----------------------------------------------------------------
 
 Vessel "vessel_oil" {
-	PowerSystem = PowerSystem("ps_oil")
+	PropulsionConverter = Converter("prop_oil")
+	ElectricalConverter = Converter("elec_oil")
+	HeatConverter = Converter("heat_oil")
 	Route = Route("route_tramp")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_oil")]
@@ -211,7 +182,9 @@ Vessel "vessel_oil" {
 }
 
 Vessel "vessel_methane" {
-	PowerSystem = PowerSystem("ps_methane")
+	PropulsionConverter = Converter("prop_methane")
+	ElectricalConverter = Converter("elec_methane")
+	HeatConverter = Converter("heat_oil")
 	Route = Route("route_liner")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_methane"), Tank("tank_pilot")]
@@ -220,7 +193,9 @@ Vessel "vessel_methane" {
 }
 
 Vessel "vessel_methanol" {
-	PowerSystem = PowerSystem("ps_methanol")
+	PropulsionConverter = Converter("prop_methanol")
+	ElectricalConverter = Converter("elec_methanol")
+	HeatConverter = Converter("heat_oil")
 	Route = Route("route_tramp")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_methanol"), Tank("tank_pilot")]
@@ -228,7 +203,9 @@ Vessel "vessel_methanol" {
 }
 
 Vessel "vessel_ammonia" {
-	PowerSystem = PowerSystem("ps_ammonia")
+	PropulsionConverter = Converter("prop_ammonia")
+	ElectricalConverter = Converter("elec_ammonia")
+	HeatConverter = Converter("heat_oil")
 	Route = Route("route_tramp")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_ammonia"), Tank("tank_pilot")]

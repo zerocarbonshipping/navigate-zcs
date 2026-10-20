@@ -8,6 +8,9 @@ SPDX-License-Identifier: CC-BY-4.0
 A `Vessel` node defines a representative vessel which makes up part of the fleet. Examples of vessels
 are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 
+A vessel meets its propulsion, electrical, and heat demand with three distinct converters, for example a
+main engine, an auxiliary engine, and a boiler.
+
 Example:
 
 ```python
@@ -19,7 +22,9 @@ Vessel "bulk_carrier_capesize_oil" {
 	HeatLoadAtSea = 0.
 	HeatLoadInPort = 0.9
 
-	PowerSystem = PowerSystem("conventional_power_system")
+	PropulsionConverter = Converter("main_engine")
+	ElectricalConverter = Converter("auxiliary_engine")
+	HeatConverter = Converter("boiler")
 	Tanks = [Tank("fuel_oil")]
 	
 	Route = Route("rotterdam_singapore")
@@ -116,21 +121,37 @@ This attribute sets the main fuel type of the vessel.
 * **Data type**: `ID`
 * **Legal values**: [FuelTypeID](appendix_ids.md#fueltypeid)
 * **Example value**: `METHANOL`
-* **Default**: Not set. The main fuel type with the largest power capacity summed over the converters in the power system is used. A tie between fuel types is broken by the size of the tanks that store them.
+* **Default**: Not set. The main fuel type with the largest power capacity summed over the vessel's converters is used. A tie between fuel types is broken by the size of the tanks that store them.
 
-### PowerSystem 
+### PropulsionConverter \*
 
-This attribute specifies the PowerSystem that is used to convert fuel to energy.
+This attribute defines the converter used to satisfy the propulsion demand. It must differ from the `ElectricalConverter` and `HeatConverter`, while the same converter may be used by other vessels.
 
-* **Data type**: `PowerSystem` node
-* **Example value**: `PowerSystem("name")`
+* **Data type**: `Converter` node
+* **Example value**: `Converter("name")`
+* **Default**: None. Must be provided by the user.
+
+### ElectricalConverter \*
+
+This attribute defines the converter used to satisfy the electrical demand. It must differ from the `PropulsionConverter` and `HeatConverter`, while the same converter may be used by other vessels.
+
+* **Data type**: `Converter` node
+* **Example value**: `Converter("name")`
+* **Default**: None. Must be provided by the user.
+
+### HeatConverter \*
+
+This attribute defines the converter used to satisfy the heat demand. It must differ from the `PropulsionConverter` and `ElectricalConverter`, while the same converter may be used by other vessels.
+
+* **Data type**: `Converter` node
+* **Example value**: `Converter("name")`
 * **Default**: None. Must be provided by the user.
 
 ### Tanks 
 
 This attribute sets the list of tanks used for onboard fuel storage. All Tanks assigned must be unique, i.e., they cannot be duplicated in the input list.
 
-The list of tanks must include, for each converter in the PowerSystem, at least one tank that stores one of the converter's MainFuelTypes; for a dual-fuel converter with a MinimumPilotFuel above 0, one of its PilotFuelTypes instead.
+The list of tanks must include, for each of the vessel's converters, at least one tank that stores one of the converter's MainFuelTypes; for a dual-fuel converter with a MinimumPilotFuel above 0, one of its PilotFuelTypes instead.
 
 * **Data type**: List of `Tank` nodes
 * **Example values**:
@@ -185,7 +206,7 @@ This attribute defines the lead time of the vessel in years. The lead time is on
 
 ### Capex
 
-This attribute sets the base CAPEX of building the vessel in USD.
+This attribute sets the base CAPEX of building the vessel, including its fuel supply system, in USD.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -197,7 +218,7 @@ This attribute sets the base CAPEX of building the vessel in USD.
 
 ### Opex
 
-This attribute defines the base OPEX of maintaining the vessel, in USD per year.
+This attribute defines the base OPEX of maintaining the vessel, including its fuel supply system, in USD per year.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:

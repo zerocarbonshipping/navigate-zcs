@@ -9,7 +9,7 @@
 # easy adjustment of uptake shares and technology combinations. 
 #
 # Efficiencies include hull, propeller, and operational measures, as well as 
-# optional alternative power systems (e.g. Flettner rotors).
+# optional wind-assisted propulsion (e.g. Flettner rotors).
 #
 # Initial shares represent the baseline assumption, while the structure allows 
 # users to explore different adoption rates and combinations in sensitivity 

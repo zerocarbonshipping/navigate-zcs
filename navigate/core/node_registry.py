@@ -21,7 +21,6 @@ from navigate.core.nodes.levy import Levy
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.plot import Plot
 from navigate.core.nodes.port import Port
-from navigate.core.nodes.power_system import PowerSystem
 from navigate.core.nodes.process import Process
 from navigate.core.nodes.producer import Producer
 from navigate.core.nodes.region import Region
@@ -71,9 +70,6 @@ class Nodes:
     plants: dict[str, Plant] = field(default_factory=dict, metadata={CLASS: Plant})
     plots: dict[str, Plot] = field(default_factory=dict, metadata={CLASS: Plot})
     ports: dict[str, Port] = field(default_factory=dict, metadata={CLASS: Port})
-    power_systems: dict[str, PowerSystem] = field(
-        default_factory=dict, metadata={CLASS: PowerSystem}
-    )
     processes: dict[str, Process] = field(
         default_factory=dict, metadata={CLASS: Process}
     )
