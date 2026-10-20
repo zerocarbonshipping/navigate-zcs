@@ -577,7 +577,7 @@ Navigate 1.0.0 is already installed.
 <p>The <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file is just a table of contents with two sections —
 <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> for the nodes the simulation is made of, and <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> for the timeline
 it steps through.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Include</span></code> adds a deck’s files, by its path. <code class="docutils literal notranslate"><span class="pre">Load</span></code> adds a ready-made module from the Center’s assumptions library, by its name.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Include</span></code> adds one of the deck’s files, by its path. <code class="docutils literal notranslate"><span class="pre">Load</span></code> adds a ready-made module from the Center’s assumptions library, by its name.</p>
 <p>Check the <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/reference_manual/index.html">Reference Manual</a> and follow the <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/tutorials/index.html">Tutorials</a> if you want more details on this.</p>
 <p>Read the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file first, to see how the deck is built for the current case.</p>
 <div class="cell docutils container">
@@ -641,7 +641,7 @@ put a price on retrofitting an existing oil ship to another configuration.</p></
 <li><p><strong>Replace</strong> — do nothing until a cohort retires, then let all four
 configurations compete as newbuilds.</p></li>
 </ul>
-<p>Run next cell to look in more details, how the “fleet” is implemented in Navigate.</p>
+<p>Run the next cell to look in more detail at how the “fleet” is implemented in Navigate.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">(</span><span class="n">EXAMPLE</span> <span class="o">/</span> <span class="s2">"includes/fleet.inc"</span><span class="p">)</span>
@@ -801,7 +801,7 @@ Converter "electrical_ice_methane_bulk_carrier_80k_dwt" {
 </section>
 <section id="route-definition">
 <h3>Route definition<a class="headerlink" href="#route-definition" title="Link to this heading">#</a></h3>
-<p>In this example, the ships sail between the ports of San Antonio and Rotterdam, 7,600 nm apart via the Panama Canal (the route is invented), at a service speed of 11.5 kn and spends 6.8 days on each port.</p>
+<p>In this example, the ships sail between the ports of San Antonio and Rotterdam, 7,600 nm apart via the Panama Canal (the route is invented), at a service speed of 11.5 kn and spend 6.8 days in each port.</p>
 <p>The two legs (a leg is one one-way sailing from one port to the next) are asymmetric in this example. Outbound the ship is full of copper concentrate; homebound it sails in ballast (empty). In the model, this can be set as <code class="docutils literal notranslate"><span class="pre">CapacityUtilizations</span> <span class="pre">=</span> <span class="pre">[1.0,</span> <span class="pre">0.0]</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -848,7 +848,7 @@ Route "copper_route" {
 </section>
 <section id="ports-definition">
 <h3>Ports definition<a class="headerlink" href="#ports-definition" title="Link to this heading">#</a></h3>
-<p>In this example, we assume that both ports sell the same five fuels: fuel oil, LNG, e-ammonia, e-methanol and bio-methanol. Fuel is shipped from the region that made it to the port that needs it, at a given transport cost, function of the distance it travelled.</p>
+<p>In this example, we assume that both ports sell the same five fuels: fuel oil, LNG, e-ammonia, e-methanol and bio-methanol. Fuel is shipped from the region that made it to the port that needs it, at a given transport cost, a function of the distance it travelled.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">(</span><span class="n">EXAMPLE</span> <span class="o">/</span> <span class="s2">"includes/ports.inc"</span><span class="p">)</span>
@@ -1008,7 +1008,7 @@ Import Source "grid"
 </div>
 <p>A <strong>producer</strong> is the agent that decides whether to build fuel plants or not and which ones.</p>
 <p>We have two producers in this model: an e-fuel producer that can build e-ammonia and e-methanol in either Patagonia or Europe, and a biofuel producer that builds bio-methanol (only in Europe).</p>
-<p>The feedstocks for bio-methanol (biomass) and e-methanol (biogenic CO2) are constrained (using an arbitrary number in this simulation) meaning that plant build is limited for these two fuels.</p>
+<p>The feedstocks for bio-methanol (biomass) and e-methanol (biogenic CO2) are constrained (using an arbitrary number in this simulation), meaning that plant build is limited for these two fuels.</p>
 <p>In the model it is also possible to constrain the number of fuel plants that can be built in a year (but it will not be binding for our example).</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -1127,7 +1127,7 @@ ports that sit inside the regulatory scheme. In this example, FuelEU and EU ETS 
 <p>The fractions are applied leg by leg (a <em>leg</em> is one port-to-port sailing between
 two consecutive ports on the route). This round trip has two, out and back. Navigate reserves the word for the ship’s own
 route segments, so a fuel’s journey from plant to bunker port is a <em>trip</em>, not a
-leg (a sailing of the ship itself). Navigate classifies each leg (sailing out or back) by its two end ports, and the port stay. On this round trip that gives:</p>
+leg (a sailing of the ship itself). Navigate classifies each leg (sailing out or back) by its two end ports, and each port stay by its port. On this round trip that gives:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Leg (one-way sailing) or port stay</p></th>
@@ -1356,7 +1356,7 @@ file: when the model needs a value it reads one out of the table. Five node type
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Node</p></th>
-<th class="head"><p>Look up table by</p></th>
+<th class="head"><p>Looked up by</p></th>
 <th class="head"><p>Example</p></th>
 </tr>
 </thead>
@@ -1387,7 +1387,7 @@ file: when the model needs a value it reads one out of the table. Five node type
 <p>The Center has collected a wide range of these numbers from partners and external
 sources, and they have been validated by experts. They can all be found in the
 <code class="docutils literal notranslate"><span class="pre">assumptions</span></code> folder.</p>
-<p>That folder holds an <code class="docutils literal notranslate"><span class="pre">installation</span></code> and a <code class="docutils literal notranslate"><span class="pre">user</span></code> copy.
+<p>That folder holds two parts, <code class="docutils literal notranslate"><span class="pre">defaults/</span></code> and <code class="docutils literal notranslate"><span class="pre">modules/</span></code>, each with an <code class="docutils literal notranslate"><span class="pre">installation</span></code> and a <code class="docutils literal notranslate"><span class="pre">user</span></code> copy.
 <code class="docutils literal notranslate"><span class="pre">defaults/</span></code> holds individual nodes, one folder per type, and is read whenever a deck names
 one: <code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">Fuel</span> <span class="pre">&quot;methanol_bio&quot;</span></code> picks up
 <code class="docutils literal notranslate"><span class="pre">defaults/installation/Fuel/methanol_bio.inc</span></code>.</p>
@@ -1554,11 +1554,11 @@ if you want more details.</p>
 <p>The most important data that will affect how the fleet ends up being designed are:</p>
 <ul class="simple">
 <li><p>the ship retrofitting costs from one fuel to another</p></li>
-<li><p>the CAPEX of new build ships and their financing conditions</p></li>
+<li><p>the CAPEX of newbuild ships and their financing conditions</p></li>
 <li><p>the efficiency technology on offer, and what it costs</p></li>
 <li><p>the sensitivity of shipowners towards different market signals</p></li>
 </ul>
-<p>Data that also influences the fleet design but is not presented in this example is the ship orderbook (the ships already ordered but not yet delivered). The composition of the initial fleet (showed later in the example) and the efficiency technology already installed also influence the final fleet design.</p>
+<p>Data that also influences the fleet design but is not presented in this example is the ship orderbook (the ships already ordered but not yet delivered). The composition of the initial fleet (shown later in the example) and the efficiency technology already installed also influence the final fleet design.</p>
 <section id="newbuild-capex-retrofitting-costs-and-financing-conditions">
 <h4>Newbuild CAPEX, retrofitting costs and financing conditions<a class="headerlink" href="#newbuild-capex-retrofitting-costs-and-financing-conditions" title="Link to this heading">#</a></h4>
 <p>Running the next cell shows some of our assumptions on ship retrofitting costs, the CAPEX of newbuild ships and the cost of capital each configuration is financed at.</p>
@@ -1703,7 +1703,7 @@ for going dual-fuel is entirely in the machinery (engines, supply system and tan
 +8.2 M for LNG, +8.7 M for ammonia</strong> over a plain oil ship. Ammonia and LNG machinery cost
 about the same, because both need containment and fuel-handling equipment that the oil ship
 does not. For LNG almost all of the premium is that equipment; ammonia adds a dearer engine on top of it.</p>
-<p>The loss of cargo is deliberately not included in the base assumptions: with an optimized ship design it can be reduced to a negligible amount.
+<p>The loss of cargo is deliberately not included in the base assumptions: with an optimised ship design it can be reduced to a negligible amount.
 (If needed, a number can however be added in the model by changing the Nominal Capacity of a specific ship.)</p>
 <p>Important note: the ammonia ship is financed at an <strong>11.05 %</strong> rate in the near future (due to a higher risk) against <strong>8.89 %</strong> for the other
 three, easing back to the same 8.89 % by 2030 (when the technology is expected to have matured).</p>
@@ -1768,7 +1768,7 @@ class. This deck fits all seven, each with its own cost and saving:</p>
 </table>
 </div>
 <p>* No lifetime is actually set, so the measure is never replaced: it stays on the ship until the ship leaves the fleet (at most 25 years, the library’s lifetime for this class).</p>
-<p>The efficiency measures are fitted following an efficiency technology <em>ladder</em> meaning that the cheaper technologies are installed first.</p>
+<p>The efficiency measures are fitted following an efficiency technology <em>ladder</em>, meaning that the cheaper technologies are installed first.</p>
 <p>Efficiency technologies are fitted on newbuild ships or during a retrofitting cycle that occurs every 5 years.</p>
 <p>The fleet does not start empty, though. It starts with a share of each technology already fitted, set by <code class="docutils literal notranslate"><span class="pre">set_initial_technology_share</span></code> in <code class="docutils literal notranslate"><span class="pre">includes/energy_efficiencies.inc</span></code> from the world Panamax fleet’s shares in:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">assumptions</span><span class="o">/</span><span class="n">defaults</span><span class="o">/</span><span class="n">installation</span><span class="o">/</span><span class="n">Curve</span><span class="o">/</span><span class="n">uptake_</span><span class="o">&lt;</span><span class="n">measure</span><span class="o">&gt;</span><span class="n">_bulk_carrier_panamax</span><span class="o">.</span><span class="n">inc</span>
@@ -1889,7 +1889,7 @@ fleet stands for many owners who face the same costs but do not all decide
 alike, so a choice comes out as shares spread across them. A value close to 1
 means they hardly care about cost and their choices stay evenly spread. A value
 far from 1 means nearly all of them pick the cheapest.</p>
-<p>For the choice of fuel type, with <span class="math notranslate nohighlight">\(c_i\)</span> the levelized transport cost
+<p>For the choice of fuel type, with <span class="math notranslate nohighlight">\(c_i\)</span> the levelised transport cost
 of fuel type <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(s_i\)</span> its share of the newbuilds and <span class="math notranslate nohighlight">\(S\)</span> the value of
 <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code>:</p>
 <div class="math notranslate nohighlight">
@@ -2014,7 +2014,7 @@ line is the deck’s value, the dashed lines less and more decisive owners.</p>
 <section id="data-about-the-fuels">
 <h3>2. Data about the fuels<a class="headerlink" href="#data-about-the-fuels" title="Link to this heading">#</a></h3>
 <p>In this example, we assume that fossil fuels (fuel oil and LNG) have a flat price until 2050.</p>
-<p>Electricity is more than 50% of what an e-fuel costs to make. It is assumed that it’s cost decreases in the future.</p>
+<p>Electricity is more than 50% of what an e-fuel costs to make. It is assumed that its cost decreases in the future.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -2028,7 +2028,7 @@ line is the deck’s value, the dashed lines less and more decisive owners.</p>
 <span class="n">panel</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="p">[(</span><span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">,</span> <span class="s2">"Fuel oil"</span><span class="p">),</span>
             <span class="p">(</span><span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">,</span> <span class="s2">"LNG"</span><span class="p">)],</span>
       <span class="s2">"What it has to beat: fossil bunker prices"</span><span class="p">,</span> <span class="s2">"USD/ton"</span><span class="p">)</span>
-<span class="n">panel</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="p">[(</span><span class="s2">"electricity_cost_americas_mid"</span><span class="p">,</span> <span class="s2">"Chile"</span><span class="p">),</span>
+<span class="n">panel</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="p">[(</span><span class="s2">"electricity_cost_americas_mid"</span><span class="p">,</span> <span class="s2">"Patagonia"</span><span class="p">),</span>
             <span class="p">(</span><span class="s2">"electricity_cost_europe_mid"</span><span class="p">,</span> <span class="s2">"Europe"</span><span class="p">)],</span>
       <span class="s2">"The main input to an e-fuel: electricity"</span><span class="p">,</span> <span class="s2">"USD/MWh"</span><span class="p">)</span>
 
@@ -2039,7 +2039,7 @@ line is the deck’s value, the dashed lines less and more decisive owners.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/fb1cb6f6702dacdc5c618a1ed4ac69be4a3019bbc9be9125ca5a38f9de951d40.png" src="../_images/fb1cb6f6702dacdc5c618a1ed4ac69be4a3019bbc9be9125ca5a38f9de951d40.png" />
+<img alt="../_images/882030d837722bab28db2eff0e00830cdfc0605eaed4b41a339944e974a1b624.png" src="../_images/882030d837722bab28db2eff0e00830cdfc0605eaed4b41a339944e974a1b624.png" />
 </div>
 </div>
 <p>The synthesis and electrolyser cost tables are currently assumed flat in time. Learning rates (costs falling as more capacity is built) may be added in a future version of Navigate.</p>
@@ -2375,8 +2375,8 @@ penalty at the far one. The values are invented for this example.</p>
 <p>The modelled regulations are driven by five factors: the <strong>allowance price</strong>,
 the <strong>intensity target</strong>, the <strong>penalty</strong> for missing that target, the <strong>scope</strong> of emissions, and <strong>how
 much of the voyage is counted</strong> at all. The first two are Forecasts and are
-plotted below; the third is a single <code class="docutils literal notranslate"><span class="pre">Variable</span></code>; the fourth was set back in
-Part 1, as <code class="docutils literal notranslate"><span class="pre">Jurisdiction</span></code> and the three coverage fractions.</p>
+plotted below; the third is a single <code class="docutils literal notranslate"><span class="pre">Variable</span></code>; the fourth is described just below;
+the fifth was set back in Part 1, as <code class="docutils literal notranslate"><span class="pre">Jurisdiction</span></code> and the three coverage fractions.</p>
 <p>The EU ETS is <code class="docutils literal notranslate"><span class="pre">Scope</span> <span class="pre">=</span> <span class="pre">TTW</span></code>, so it zero-rates the combustion carbon of every alternative
 fuel — e-ammonia, e-methanol and bio-methanol carry the same factors per ton,
 leaving only their methane and nitrous oxide to charge. FuelEU is
@@ -2433,13 +2433,13 @@ EU ETS phase-in at the 2026 start     100% of emissions priced
 </div>
 <p>The ETS price climbs steadily and the FuelEU limit hardly moves before 2035,
 then falls away in steps. So the pressure arrives early as a price and late as
-a cap. Breaching the cap leads to a <strong>760 USD/ton penalty</strong> which is the strongest single lever in the deck.</p>
+a cap. Breaching the cap leads to a <strong>760 USD/ton penalty</strong>, which is the strongest single lever in the deck.</p>
 <section id="what-each-regulation-actually-counts">
 <h4>What each regulation actually counts<a class="headerlink" href="#what-each-regulation-actually-counts" title="Link to this heading">#</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">Scope</span></code> (WTW or TTW) decides which part of the fuel chain is counted for taxation. The graph below shows what is counted for each regulation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Scope</span></code> (WTW or TTW) decides which part of the fuel chain is counted by each regulation. The graph below shows what is counted for each regulation.</p>
 <p>The two e-fuels have no WTT written in <code class="docutils literal notranslate"><span class="pre">fuel_eu.inc</span></code> on purpose: Navigate derives theirs from the production chain the deck defines since they have no regulatory default values.</p>
 <p>The same fuel can also score a different <strong>TTW</strong> for FuelEU and EU ETS because each regulation carries its own emission factors.</p>
-<p><strong>FuelEU is WTW</strong>, so it charges the full combustion carbon of the molecule at the funnel. Bio-methanol is charged 72 gCO2eq/MJ TTW (the same as e-methanol, because burning either releases the same carbon). In case of biogenic carbon use, the WTT component is credited with a negative value. That is not a modelling shortcut: the regulation derives the WTT from the lifecycle value on the fuel’s Proof of Sustainability, reduced by the combustion carbon.</p>
+<p><strong>FuelEU is WTW</strong>, so it charges the full combustion carbon of the molecule at the funnel. Bio-methanol is charged 72 gCO2eq/MJ TTW (the same as e-methanol, because burning either releases the same carbon). In the case of biogenic carbon use, the WTT component is credited with a negative value. That is not a modelling shortcut: the regulation derives the WTT from the lifecycle value on the fuel’s Proof of Sustainability, reduced by the combustion carbon.</p>
 <p><strong>The EU ETS is TTW</strong>. It zero-rates the combustion CO2 of bio- and e-fuels. So for bio-methanol the TTW is about 2 (for N2O and CH4 emissions).</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -2631,14 +2631,14 @@ a cap. Breaching the cap leads to a <strong>760 USD/ton penalty</strong> which i
 <img alt="../_images/3a169532cca7fd085d50739dcd022297773a07f56ac5fcc6fbcbd6ae9303ffcc.png" src="../_images/3a169532cca7fd085d50739dcd022297773a07f56ac5fcc6fbcbd6ae9303ffcc.png" />
 </div>
 </div>
-<p>When reading across the two panels you can see that, for bio-methanol, EU ETS gives 2 gCO2e/MJ of TTW emissions and FuelEU 16 gCO2e/MJ. The gap between those totals is bio-methanol’s own production footprint: about 14 gCO2eq/MJ of growing, gasifying and shipping the biomass. FuelEU counts it; the ETS never looks upstream, so it cannot see it. The ETS therefore scores bio-methanol some 97 % better than fuel oil where FuelEU says 82 %.</p>
+<p>When reading across the two panels you can see that, for bio-methanol, EU ETS gives 2 gCO2eq/MJ of TTW emissions and FuelEU 16 gCO2eq/MJ. The gap between those totals is bio-methanol’s own production footprint: about 14 gCO2eq/MJ of growing, gasifying and shipping the biomass. FuelEU counts it; the ETS never looks upstream, so it cannot see it. The ETS therefore scores bio-methanol some 97 % better than fuel oil where FuelEU says 82 %.</p>
 </section>
 </section>
 </section>
 <hr class="docutils" />
 <section id="part-3-understand-the-logic-behind-the-model">
 <h2>Part 3: Understand the logic behind the model<a class="headerlink" href="#part-3-understand-the-logic-behind-the-model" title="Link to this heading">#</a></h2>
-<p>The idea of Navigate is to mimic the decision behavior of shipowners, operators and fuel producers to understand how the fleet transition may evolve under a given set of conditions.</p>
+<p>The idea of Navigate is to mimic the decision behaviour of shipowners, operators and fuel producers to understand how the fleet transition may evolve under a given set of conditions.</p>
 <p>The aim of this section is to go “inside Navigate’s mind” and understand how the model solving actually works, step by step.</p>
 <section id="how-navigate-decides">
 <h3>How Navigate decides<a class="headerlink" href="#how-navigate-decides" title="Link to this heading">#</a></h3>
@@ -2649,7 +2649,7 @@ The solving process is the same for each year and each decision maker in the mod
 <li><p><strong>decide</strong>: make some calculations based on your projections and take some decisions that make sense from an economic perspective (influenced by the behaviour traits of the decision maker: inertia and sensitivity)</p></li>
 <li><p><strong>commit</strong>: decisions have been taken and the other actors react; check how the fleet operates in “reality”, which may differ from previously formed expectations.</p></li>
 </ol>
-<p>In more detail, the model starts the year by calculating expectations and beliefs about the future from the information available — among them a look-ahead bunkering optimization, which prices the year before anything is decided. Those expectations then inform the decisions of the owners and the operators, in this order:</p>
+<p>In more detail, the model starts the year by calculating expectations and beliefs about the future from the information available — among them a look-ahead bunkering optimisation, which prices the year before anything is decided. Those expectations then inform the decisions of the owners and the operators, in this order:</p>
 <ul class="simple">
 <li><p>efficiency measures (owners): implement (or not) efficiency technology, on existing ships when they reach their five-yearly retrofit cycle and on any ship ordered new</p></li>
 <li><p>operational measures (operators): change the vessels’ sailing speed (while minimizing total cost per cargo-mile)</p></li>
@@ -2658,10 +2658,10 @@ The solving process is the same for each year and each decision maker in the mod
 </ul>
 <p>The bunkering optimisation therefore runs twice: once as a forecast that informs the four
 decisions, and once at the end of the year to commit.</p>
-<p>What drives the decisions of the owners is mostly economic considerations, supplemented by some behavioral traits. When choosing the fuel type of new ships, owners lean towards the cheapest option but are not blind to the others: <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> sets how sharply a cost gap between fuel types (e.g. ammonia or LNG) turns into a change of mind, and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> does the same between ship designs that burn the same fuel type (this deck has only one design per fuel type, so that second axis does not decide anything here).</p>
+<p>What drives the decisions of the owners is mostly economic considerations, supplemented by some behavioural traits. When choosing the fuel type of new ships, owners lean towards the cheapest option but are not blind to the others: <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> sets how sharply a cost gap between fuel types (e.g. ammonia or LNG) turns into a change of mind, and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> does the same between ship designs that burn the same fuel type (this deck has only one design per fuel type, so that second axis does not decide anything here).</p>
 <p>In other words, in Navigate, there is no “absolute winner”: each option gets a <strong>share</strong>, larger when it is cheaper, and the sensitivities (~behavioral traits) in the deck set how sharply a cost gap turns into a share. With 300 ships those shares read as ships — “12 % e-ammonia” is about thirty-six hulls.</p>
 <p>The fuel producers decide last, in the same year, basing their decisions on the expected fuel demand from the shipping sector: if that demand exceeds the supply already built or ordered, each producer takes its share of the expected unmet demand and turns that into fuel plants. Here too there is no “absolute winner”, only shares.</p>
-<p>Now, run the next cell that solves the model and “extracts” some information along the solving process that we can observe and analyze.</p>
+<p>Now, run the next cell that solves the model and “extracts” some information along the solving process that we can observe and analyse.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -3054,8 +3054,8 @@ decisions, and once at the end of the year to commit.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 18.6 s
-Wall time: 19.6 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 15.3 s
+Wall time: 16.1 s
 captured 25 snapshots, 2026 to 2050
 </pre></div>
 </div>
@@ -3101,7 +3101,7 @@ several ways.</p>
 <h3>One time step, from the inside<a class="headerlink" href="#one-time-step-from-the-inside" title="Link to this heading">#</a></h3>
 <section id="stage-0-initialization">
 <h4>Stage 0 — Initialization<a class="headerlink" href="#stage-0-initialization" title="Link to this heading">#</a></h4>
-<p>A time step starts with an initialization. It inherits a fleet with an age
+<p>A time step starts with an initialisation. It inherits a fleet with an age
 structure, plants that were sanctioned years ago, and two regulations whose
 terms for this year are already fixed.</p>
 <div class="cell tag_hide-input docutils container">
@@ -3226,15 +3226,15 @@ this year's regulatory terms:
 </section>
 <section id="stage-1-look-ahead">
 <h4>Stage 1 — Look ahead<a class="headerlink" href="#stage-1-look-ahead" title="Link to this heading">#</a></h4>
-<p>In this step, the operators calculate the costs of different bunkering strategies for the different available fuels given:</p>
+<p>In this step, the operators calculate the costs of different bunkering strategies for the different available fuels, given:</p>
 <ul class="simple">
 <li><p>the expected future compliance costs (induced by regulations)</p></li>
 <li><p>the expected fuel costs</p></li>
 <li><p>how much of each fuel the ports can supply, and how much fits in the tanks</p></li>
 </ul>
-<p>The operators calculate the expected optimal strategy for the fleet and evaluate: how many tons of which fuel to buy at which port, the cheapest strategy between switching fuel or paying the regulation penalty. It is solved for the whole fleet at once — in fact for every fleet in the simulation — so the ships compete for the same supply. The expenses of new build ships, retrofits, etc. are not considered at this stage yet.</p>
+<p>The operators calculate the expected optimal strategy for the fleet and evaluate: how many tons of which fuel to buy at which port, the cheapest strategy between switching fuel and paying the regulation penalty. It is solved for the whole fleet at once — in fact for every fleet in the simulation — so the ships compete for the same supply. The expenses of newbuild ships, retrofits, etc. are not considered at this stage yet.</p>
 <p>The cheapest bunkering strategy is solved <strong>forward</strong>: one optimisation for each remaining year out to 2050, run one after another.</p>
-<p>The step hands a cost path per option to the stages below, and that is what the investment decisions are made on. It produces a second output as well: the <strong>fuel scarcity signal</strong>. For every ship and every leg (one-way sailing between two ports) the optimisation reports the shadow price of energy (what one more unit of energy would have cost). It is the ordinary fuel price when fuel is plentiful and rises above it when the supply is tight. This number is used to act on efficiency and speed decisions for the on-going year.</p>
+<p>The step hands a cost path per option to the stages below, and that is what the investment decisions are made on. It produces a second output as well: the <strong>fuel scarcity signal</strong>. For every ship and every leg (one-way sailing between two ports) the optimisation reports the shadow price of energy (what one more unit of energy would have cost). It is the ordinary fuel price when fuel is plentiful and rises above it when the supply is tight. This number is used to act on efficiency and speed decisions for the ongoing year.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -3242,7 +3242,7 @@ this year's regulatory terms:
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 1 figures: what the fleet expects to buy and to pay</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 1 figures: what the operators expect to buy and to pay</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patch</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">navigate.illustrations.plots._labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FUEL_ORDER</span>
@@ -3324,7 +3324,7 @@ this year's regulatory terms:
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">demand</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">demand</span><span class="p">[</span><span class="n">fuel</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">fuel_colour</span><span class="p">(</span><span class="n">fuel</span><span class="p">),</span>
                 <span class="n">label</span><span class="o">=</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">fuel</span><span class="p">))</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="n">step</span><span class="p">]</span><span class="si">}</span><span class="s2">: fuel the fleet thinks it will buy"</span><span class="p">,</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="n">step</span><span class="p">]</span><span class="si">}</span><span class="s2">: fuel the operators think they will buy"</span><span class="p">,</span>
                  <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"TJ per year (log)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">MaxNLocator</span><span class="p">(</span><span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
@@ -3388,7 +3388,7 @@ this year's regulatory terms:
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/949a449acb2d1c18e0ce0498b98fd4aeb72a0b4ee8eb6958b2f765f27df68b1a.png" src="../_images/949a449acb2d1c18e0ce0498b98fd4aeb72a0b4ee8eb6958b2f765f27df68b1a.png" />
+<img alt="../_images/6e3a479f6e23231e24e8f028dd503006b38dc377f7a6e5052a737d034cbc2fcf.png" src="../_images/6e3a479f6e23231e24e8f028dd503006b38dc377f7a6e5052a737d034cbc2fcf.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>believed cost of missing the mark, this year:
   eu_ets      133.4 USD/ton
   fuel_eu     760.0 USD/ton
@@ -3410,7 +3410,7 @@ The strip under the bars explains why a dual-fuel ship sometimes expects to burn
 <li><p><strong>alternative on offer, oil cheaper</strong>: the supply is there, but oil plus the expected compliance cost is cheaper</p></li>
 <li><p><strong>on its main fuel</strong>: oil is down to the minimum pilot share the engine needs</p></li>
 </ul>
-<p>The operators choose the fuel at each port, not for the whole voyage. A dual-fuel ship can therefore run partly on its alternative fuel without any supply limit: it buys the alternative where it is cheaper (here at Rotterdam, close to the European plants) and oil where the alternative still costs more (at San Antonio, an expensive 7,600 nm delivery from Europe).</p>
+<p>The operators choose the fuel at each port, not for the whole voyage. A dual-fuel ship can therefore run only partly on its alternative fuel even when no supply limit binds: it buys the alternative where it is cheaper (here at Rotterdam, close to the European plants) and oil where the alternative still costs more (at San Antonio, an expensive 7,600 nm delivery from Europe).</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -4067,7 +4067,7 @@ fitted can only fall going down the list.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/a57f6622dece3c63c0fe258f7b8b447112197300a7a4b80355ff2ee667582832.png" src="../_images/a57f6622dece3c63c0fe258f7b8b447112197300a7a4b80355ff2ee667582832.png" />
+<img alt="../_images/e1049f32a663bee752c2bad7f7269c113544f4d0b69306bf8492c5e705f7c62d.png" src="../_images/e1049f32a663bee752c2bad7f7269c113544f4d0b69306bf8492c5e705f7c62d.png" />
 <img alt="../_images/466e2538ad156ec8d801f60eef18f5184206a5d485cada2dc6888fe27997ea9d.png" src="../_images/466e2538ad156ec8d801f60eef18f5184206a5d485cada2dc6888fe27997ea9d.png" />
 </div>
 </div>
@@ -4124,7 +4124,7 @@ expected unmet demand.</p></li>
 <h5>1. Look ahead: the expected unmet demand<a class="headerlink" href="#look-ahead-the-expected-unmet-demand" title="Link to this heading">#</a></h5>
 <p>The demand is the one the fleet operators expected in Stage 1, and the supply the
 producers’ own projection from the end of the previous year. The lag is intentional:
-the producers act before the owners’ newbuilds and retrofits decisions.</p>
+the producers act on the demand expected before the owners’ newbuild and retrofit decisions.</p>
 <p>In the figure below, the solid line is the demand the producers see this year for
 the years ahead, the dashed line what their running and ordered plants will supply,
 and the shaded area between them the expected unmet demand.</p>
@@ -4139,7 +4139,7 @@ and the shaded area between them the expected unmet demand.</p>
         <span class="s2">"These snapshots predate the producer records. Re-run the run_case "</span>
         <span class="s2">"cell above, then this one."</span><span class="p">)</span>
 
-<span class="n">PLACE</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"americas"</span><span class="p">:</span> <span class="s2">"Chile"</span><span class="p">,</span> <span class="s2">"europe"</span><span class="p">:</span> <span class="s2">"Europe"</span><span class="p">}</span>
+<span class="n">PLACE</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"americas"</span><span class="p">:</span> <span class="s2">"Patagonia"</span><span class="p">,</span> <span class="s2">"europe"</span><span class="p">:</span> <span class="s2">"Europe"</span><span class="p">}</span>
 
 <span class="c1"># One panel per fuel the producers can make, in Navigate's own fuel order.</span>
 <span class="n">PRODUCED</span> <span class="o">=</span> <span class="n">fuel_sorted</span><span class="p">({</span><span class="n">base</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">plants</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">fuel</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">snap</span><span class="p">[</span><span class="s2">"producer"</span><span class="p">]})</span>
@@ -4367,7 +4367,7 @@ and the shaded area between them the expected unmet demand.</p>
 </div>
 <div class="cell_output docutils container">
 <img alt="../_images/002db904874169b119360be96e4c8fa42ff4fc080ffda9273716fefb90c85257.png" src="../_images/002db904874169b119360be96e4c8fa42ff4fc080ffda9273716fefb90c85257.png" />
-<img alt="../_images/b5975dc36c5f8605b819c6838ea21448131a6671658ad4047f185c523d94ae0f.png" src="../_images/b5975dc36c5f8605b819c6838ea21448131a6671658ad4047f185c523d94ae0f.png" />
+<img alt="../_images/eff317a01d354834daa2a6ca0837a168320baa5121814ced3da752951b7e508f.png" src="../_images/eff317a01d354834daa2a6ca0837a168320baa5121814ced3da752951b7e508f.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No producer came near its build limit, so the shares of Choose decided nothing:
   producer_efuel         0.0003 of   8.31 plants  ( 0.00% of the limit)
   producer_biofuel       0.0024 of   8.31 plants  ( 0.03% of the limit)
@@ -4412,7 +4412,7 @@ with the same weights.</p></li>
 <section id="stage-4-fleet-commit-final-bunkering-algorithm">
 <h4>Stage 4 — Fleet commit: final bunkering algorithm<a class="headerlink" href="#stage-4-fleet-commit-final-bunkering-algorithm" title="Link to this heading">#</a></h4>
 <p>This step runs the “real” bunkering algorithm for this year: the same solve as in Stage 1, but on the fleet as Stage 2 left it (new ships, speeds and technologies) and on the fuel the producers actually supply this year.</p>
-<p>The result can differ slightly from the Stage 1 belief, since the fleet and the fuel supply have changed since. But this is what the ships actually burn and pay this year. The figures below show the bill and the fuel of one ship of each configuration, whether the fuel the plants made was burned, and what the transport cost is. When checking the results, remember that ordering a dual-fuel ship and burning its fuel are two different decisions: in the early years every ship, including the dual-fuel vessels can still burn oil.</p>
+<p>The result can differ slightly from the Stage 1 belief, since the fleet and the fuel supply have changed in the meantime. But this is what the ships actually burn and pay this year. The figures below show the bill and the fuel of one ship of each configuration, whether the fuel the plants made was burned, and what the transport cost is. When checking the results, remember that ordering a dual-fuel ship and burning its fuel are two different decisions: in the early years every ship, including the dual-fuel vessels, can still burn oil.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -4725,7 +4725,7 @@ with the same weights.</p></li>
 </details>
 <div class="cell_output docutils container">
 <img alt="../_images/77fdef6bbc2beb6a8fbd6dacbb9735796c2a3363e6deddf36301573ebd567f4f.png" src="../_images/77fdef6bbc2beb6a8fbd6dacbb9735796c2a3363e6deddf36301573ebd567f4f.png" />
-<img alt="../_images/86afe06b59f0b638bdfaa69417c44a6e9444181ea609175d192fd46c577f60dd.png" src="../_images/86afe06b59f0b638bdfaa69417c44a6e9444181ea609175d192fd46c577f60dd.png" />
+<img alt="../_images/25f5285025ed4ec852b61cf4c55f8d5ce5485b49bdcb593e18af40fd4895dde6.png" src="../_images/25f5285025ed4ec852b61cf4c55f8d5ce5485b49bdcb593e18af40fd4895dde6.png" />
 </div>
 </div>
 <p>After the year is completed, every belief is overwritten by
@@ -4735,7 +4735,7 @@ next year’s look-ahead.</p>
 <hr class="docutils" />
 <section id="later-on-the-same-step-again">
 <h3>Later on: the same step again<a class="headerlink" href="#later-on-the-same-step-again" title="Link to this heading">#</a></h3>
-<p>Tadaaa, we are now some years later (2040 by default, the selected year can be changed at the beginning of Part 3). The logic is the same as before but the conditions have changed.</p>
+<p>Tadaaa, we are now some years later (2040 by default; the selected year can be changed at the beginning of Part 3). The logic is the same as before but the conditions have changed.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -4807,7 +4807,7 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/5545bb4f00632f43710022f54aa742b8616771f5fcb447f7a169eb508971e37c.png" src="../_images/5545bb4f00632f43710022f54aa742b8616771f5fcb447f7a169eb508971e37c.png" />
+<img alt="../_images/78ca9be5c560314cf481125c8421717135cf4f2669c23d09be47b3e43febd272.png" src="../_images/78ca9be5c560314cf481125c8421717135cf4f2669c23d09be47b3e43febd272.png" />
 </div>
 </div>
 </section>
@@ -4864,9 +4864,9 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/8f54fb233b9a4fcbc6cf7dece05a919ec2bb6de619537bf425e5f4ae5a359b3c.png" src="../_images/8f54fb233b9a4fcbc6cf7dece05a919ec2bb6de619537bf425e5f4ae5a359b3c.png" />
+<img alt="../_images/651e7b27ba79ee4c841880539d0605fb3a8b4d56102c08236683e972d29abdc3.png" src="../_images/651e7b27ba79ee4c841880539d0605fb3a8b4d56102c08236683e972d29abdc3.png" />
 <img alt="../_images/1889bdae7ae8ddcef2df15aeb245fe4d1ba0c593eca5335bdc31592b62dc472f.png" src="../_images/1889bdae7ae8ddcef2df15aeb245fe4d1ba0c593eca5335bdc31592b62dc472f.png" />
-<img alt="../_images/ce56c8e37881a2ac4c1c3fd5835f6dbef38a46d67a24762e542682b54bae91fb.png" src="../_images/ce56c8e37881a2ac4c1c3fd5835f6dbef38a46d67a24762e542682b54bae91fb.png" />
+<img alt="../_images/d5e2376d24613471f99c961555d3fa3b2e786f3d64ddcc5ebb2af169bb9a1e41.png" src="../_images/d5e2376d24613471f99c961555d3fa3b2e786f3d64ddcc5ebb2af169bb9a1e41.png" />
 </div>
 </div>
 </section>
@@ -4900,7 +4900,7 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/3ac0d2876558d608d5a6c010aa78f1c94b272ce1e2795930f87c6a2a1c148b8b.png" src="../_images/3ac0d2876558d608d5a6c010aa78f1c94b272ce1e2795930f87c6a2a1c148b8b.png" />
+<img alt="../_images/efe4206f5c77db0786920b7d6b5ab71c0d9c0a9a1ffcb374fa3592281d2e6524.png" src="../_images/efe4206f5c77db0786920b7d6b5ab71c0d9c0a9a1ffcb374fa3592281d2e6524.png" />
 </div>
 </div>
 </section>
@@ -4931,8 +4931,8 @@ next year’s look-ahead.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/d54b257025055ac99d41a32da4d71d47bfaa2710dd5156d0db0ee27b2c26ca6c.png" src="../_images/d54b257025055ac99d41a32da4d71d47bfaa2710dd5156d0db0ee27b2c26ca6c.png" />
-<img alt="../_images/89778dcc4dd0d7a38d7f6e6a66237292de9e8fecfe6bb08ec0d23f5709798443.png" src="../_images/89778dcc4dd0d7a38d7f6e6a66237292de9e8fecfe6bb08ec0d23f5709798443.png" />
+<img alt="../_images/32d36dfa7c877dae3a5067176fcc803837148d7b328de2f0b9b94c962437ddb3.png" src="../_images/32d36dfa7c877dae3a5067176fcc803837148d7b328de2f0b9b94c962437ddb3.png" />
+<img alt="../_images/47104daffdbee432df181524e8bdf90d6cdc4b5167f1b082f5ea9f95cd0e3777.png" src="../_images/47104daffdbee432df181524e8bdf90d6cdc4b5167f1b082f5ea9f95cd0e3777.png" />
 </div>
 </div>
 </section>
@@ -4973,8 +4973,8 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/a0ebcc00a069f6c288fee9b6aa136dd4fb23a6f018afcf8a33305c3457e6610d.png" src="../_images/a0ebcc00a069f6c288fee9b6aa136dd4fb23a6f018afcf8a33305c3457e6610d.png" />
-<img alt="../_images/85f75872f448a3fb9e79dd95603646a0f598d706b9d6f6aac1dd81e12f405ab9.png" src="../_images/85f75872f448a3fb9e79dd95603646a0f598d706b9d6f6aac1dd81e12f405ab9.png" />
+<img alt="../_images/b47700da3d6d859d9fa9b262674953b478fb0918f88b9652fb87dcbf2283a0c3.png" src="../_images/b47700da3d6d859d9fa9b262674953b478fb0918f88b9652fb87dcbf2283a0c3.png" />
+<img alt="../_images/d080c5a30d7f887bbba02d8df9af66ba03dcaf82be0da8bcd6d22012087d1532.png" src="../_images/d080c5a30d7f887bbba02d8df9af66ba03dcaf82be0da8bcd6d22012087d1532.png" />
 </div>
 </div>
 </section>
@@ -4982,14 +4982,14 @@ next year’s look-ahead.</p>
 <hr class="docutils" />
 <section id="results-for-a-full-simulation">
 <h3>Results for a full simulation<a class="headerlink" href="#results-for-a-full-simulation" title="Link to this heading">#</a></h3>
-<p>In this section, we analyze the results of the full simulation instead of looking at specific years in detail.</p>
+<p>In this section, we analyse the results of the full simulation instead of looking at specific years in detail.</p>
 </section>
 <section id="fleet-evolution">
 <h3>1. Fleet evolution<a class="headerlink" href="#fleet-evolution" title="Link to this heading">#</a></h3>
 <section id="what-the-fleet-became-and-how-it-got-there">
 <h4>What the fleet became, and how it got there<a class="headerlink" href="#what-the-fleet-became-and-how-it-got-there" title="Link to this heading">#</a></h4>
 <p>The next cell shows how the fleet evolved over time and the number of newbuild and retrofitted ships.</p>
-<p>Each ship can only retrofit every 5 years (<code class="docutils literal notranslate"><span class="pre">RetrofitFrequency</span></code>, 5 by default). Navigate groups the ships by age, and each age group decides on its own, so in a given year only four or five of the twenty-five age groups are allowed to retrofit.</p>
+<p>Each ship can only be retrofitted every 5 years (<code class="docutils literal notranslate"><span class="pre">RetrofitFrequency</span></code>, 5 by default). Navigate groups the ships by age, and each age group decides on its own, so in a given year only four or five of the twenty-five age groups are allowed to retrofit.</p>
 <p>The fleet grows from 300 hulls to roughly 490, because <code class="docutils literal notranslate"><span class="pre">TradeGrowth</span></code> is switched on in <code class="docutils literal notranslate"><span class="pre">includes/fleet.inc</span></code> — about 2.2 % a year, easing to 1.4–1.5 % from 2030.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -5036,7 +5036,7 @@ next year’s look-ahead.</p>
 <span class="n">ax1</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mf">8.75</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"upper left"</span><span class="p">)</span>
 
-<span class="c1"># Same grammar as the belief-vs-commitment figure in Stage 4: hollow for the</span>
+<span class="c1"># Hollow for the</span>
 <span class="c1"># route that reuses what is already there, solid for the one that buys new.</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">routes</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
     <span class="n">ax2</span><span class="o">.</span><span class="n">barh</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mf">.18</span><span class="p">,</span> <span class="n">routes</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">name</span><span class="p">,</span> <span class="s2">"retrofitted"</span><span class="p">],</span> <span class="n">height</span><span class="o">=</span><span class="mf">.34</span><span class="p">,</span>
@@ -5077,7 +5077,7 @@ next year’s look-ahead.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>fleet 300 -&gt; 492 hulls;  over the horizon 480 ordered, 13 converted, 288 scrapped
 </pre></div>
 </div>
-<img alt="../_images/cb7ec93e9a92b1d301914b3cc3b6a6830c0693041b03117ebf032eed8816b215.png" src="../_images/cb7ec93e9a92b1d301914b3cc3b6a6830c0693041b03117ebf032eed8816b215.png" />
+<img alt="../_images/7acba1c154d86e80a2cf4d0d6c38c16691baf49e07e2271e090c8649b0258d21.png" src="../_images/7acba1c154d86e80a2cf4d0d6c38c16691baf49e07e2271e090c8649b0258d21.png" />
 </div>
 </div>
 </section>
@@ -5147,7 +5147,7 @@ next year’s look-ahead.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>technology energy saving:  2026  1.3%   2038 12.9%   2050 20.5%
 </pre></div>
 </div>
-<img alt="../_images/46568cef872f0abd99401f1e167220b0f661b9c98c30c1b75b89894a34ebb714.png" src="../_images/46568cef872f0abd99401f1e167220b0f661b9c98c30c1b75b89894a34ebb714.png" />
+<img alt="../_images/6553edb00659a0574a6de6081285ef5602e33eb37737aa678a9bc6fc14372399.png" src="../_images/6553edb00659a0574a6de6081285ef5602e33eb37737aa678a9bc6fc14372399.png" />
 </div>
 </div>
 </section>
@@ -5218,7 +5218,7 @@ next year’s look-ahead.</p>
     <span class="k">return</span> <span class="n">parts</span>
 
 
-<span class="n">_REGION</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"americas"</span><span class="p">:</span> <span class="s2">"Chile"</span><span class="p">,</span> <span class="s2">"europe"</span><span class="p">:</span> <span class="s2">"Europe"</span><span class="p">}</span>
+<span class="n">_REGION</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"americas"</span><span class="p">:</span> <span class="s2">"Patagonia"</span><span class="p">,</span> <span class="s2">"europe"</span><span class="p">:</span> <span class="s2">"Europe"</span><span class="p">}</span>
 <span class="n">_SANCTIONED</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2026</span><span class="p">,</span> <span class="mi">2040</span><span class="p">]</span>
 <span class="n">_FUEL_ROWS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"methanol_electro"</span><span class="p">,</span> <span class="s2">"ammonia_electro"</span><span class="p">,</span> <span class="s2">"methanol_bio"</span><span class="p">]</span>
 <span class="n">_plants</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
@@ -5271,7 +5271,7 @@ next year’s look-ahead.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/485088ddf632162db6921c9e80599ce90cb496e8282cba3908e30b6f3c690b88.png" src="../_images/485088ddf632162db6921c9e80599ce90cb496e8282cba3908e30b6f3c690b88.png" />
+<img alt="../_images/d8a2e1bd2b79809044376e1dc971bad46e8afd2fd7927be0108b86817dd77978.png" src="../_images/d8a2e1bd2b79809044376e1dc971bad46e8afd2fd7927be0108b86817dd77978.png" />
 </div>
 </div>
 </section>
@@ -5378,8 +5378,8 @@ next year’s look-ahead.</p>
   e-methanol                   0.3%
 </pre></div>
 </div>
-<img alt="../_images/31088b4789399a6c11321075993b1ce8a5102a17654307d1f9b7946e1058d6a8.png" src="../_images/31088b4789399a6c11321075993b1ce8a5102a17654307d1f9b7946e1058d6a8.png" />
-<img alt="../_images/275f0bf7a5422858b8efd613e204cef63a456a4cb7aa891f4ae1200b674beb1b.png" src="../_images/275f0bf7a5422858b8efd613e204cef63a456a4cb7aa891f4ae1200b674beb1b.png" />
+<img alt="../_images/8aad0d32632750c78f033e9d9f8aff7eb5c94f67e6c31075c59a6ee82a60f882.png" src="../_images/8aad0d32632750c78f033e9d9f8aff7eb5c94f67e6c31075c59a6ee82a60f882.png" />
+<img alt="../_images/21f6d266ce4850ed4b516b095ae7ae212a5dcb62d6041fa63fe2383100004f71.png" src="../_images/21f6d266ce4850ed4b516b095ae7ae212a5dcb62d6041fa63fe2383100004f71.png" />
 </div>
 </div>
 </section>
@@ -5453,16 +5453,16 @@ next year’s look-ahead.</p>
   Biogenic CO2 (PS)          ceiling  0.14 Mt/yr by 2050,   binds from 2049, in 2 of 25 years
 </pre></div>
 </div>
-<img alt="../_images/32e3b21824d293907857f4b2fc62b34327049b9a91c80a080268b40057c2a936.png" src="../_images/32e3b21824d293907857f4b2fc62b34327049b9a91c80a080268b40057c2a936.png" />
+<img alt="../_images/feb47b1b710567b583e309f18d3d5e4318515a849dcf8e5526c7ed5c439254b8.png" src="../_images/feb47b1b710567b583e309f18d3d5e4318515a849dcf8e5526c7ed5c439254b8.png" />
 </div>
 </div>
 </section>
 <section id="what-the-producers-sanctioned-and-the-lag-before-it-arrives">
 <h4>What the producers sanctioned, and the lag before it arrives<a class="headerlink" href="#what-the-producers-sanctioned-and-the-lag-before-it-arrives" title="Link to this heading">#</a></h4>
 <p>The operators and the fuel producers never talk directly. The producers build
-plants for the fuel the fleet <strong>expects</strong> to buy, and the fleet can only buy what
+plants for the fuel the operators <strong>expect</strong> to buy, and the operators can only buy what
 the producers make. This creates a delay, on purpose: the producers use the
-fleet’s expectation from the start of the year, before that year’s new ships and
+operators’ expectation from the start of the year, before that year’s new ships and
 retrofits, and a plant then takes several years to build.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -5614,7 +5614,7 @@ retrofits, and a plant then takes several years to build.</p>
 
 <span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">YEARS</span><span class="p">,</span> <span class="n">produced</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"produced by the plants"</span><span class="p">,</span>
          <span class="n">marker</span><span class="o">=</span><span class="s2">"."</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">BLUE</span><span class="p">)</span>
-<span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">YEARS</span><span class="p">,</span> <span class="n">consumed</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"burned by the ship"</span><span class="p">,</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">YEARS</span><span class="p">,</span> <span class="n">consumed</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"burned by the ships"</span><span class="p">,</span>
          <span class="n">marker</span><span class="o">=</span><span class="s2">"."</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">GREEN</span><span class="p">)</span>
 <span class="n">ax3</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">YEARS</span><span class="p">,</span> <span class="n">consumed</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">produced</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">PALE</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                  <span class="n">label</span><span class="o">=</span><span class="s2">"made but not yet burned"</span><span class="p">)</span>
@@ -5654,7 +5654,7 @@ retrofits, and a plant then takes several years to build.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/4e0538d804713a00bd5fa4a18e401c51cc8900eed1f45e67fdd5698fd552251a.png" src="../_images/4e0538d804713a00bd5fa4a18e401c51cc8900eed1f45e67fdd5698fd552251a.png" />
+<img alt="../_images/d38fc18262af6d720a4c690d07a469690e3c70ca5bbaebcddd744ae4bb4230a2.png" src="../_images/d38fc18262af6d720a4c690d07a469690e3c70ca5bbaebcddd744ae4bb4230a2.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  first capacity sanctioned: 2028
   first e-ammonia burned:  2032
   production vs delivery, largest gap over the horizon: 0.0 TJ/year
@@ -5779,9 +5779,9 @@ over time.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/f3a18eafc045894f7d453bfa2cd22b7f60dae480f3e335b565142a39743fc661.png" src="../_images/f3a18eafc045894f7d453bfa2cd22b7f60dae480f3e335b565142a39743fc661.png" />
+<img alt="../_images/fbca3299c7e468baa78ba57bbf6ca6790cf348f441663f35d13faa77de6696f3.png" src="../_images/fbca3299c7e468baa78ba57bbf6ca6790cf348f441663f35d13faa77de6696f3.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  well-to-wake 2026:    5.93 Mt/yr   2050:    3.54 Mt/yr   over the horizon     127.8 Mt
-  EU ETS   2027:     334 M USD   2050:     575 M USD   over the horizon    11,544 M USD
+  EU ETS   2027:     334 M USD   2050:     575 M USD   over the horizon    11,543 M USD
   FuelEU   2027:      23 M USD   2050:     939 M USD   over the horizon     8,217 M USD
   ship_oil        below the limit in  0 of 24 years
   ship_lng        below the limit in  8 of 24 years
@@ -5798,7 +5798,7 @@ over time.</p>
 <ul class="simple">
 <li><p>The <strong>instantaneous freight rate</strong> on the fleet: what the trade cost in that year, given the fuel prices and compliance bills that actually materialised.</p></li>
 <li><p>The <strong>investment freight rate</strong> on each vessel configuration: the
-forward-looking, levelized cost of transport. This is the number the
+forward-looking, levelised cost of transport. This is the number the
 discrete-choice model compares between configurations, so it is what explains <em>why</em> one was picked. A configuration that is not in the fleet in a given year has no value and simply does not plot.</p></li>
 </ul>
 <p>These numbers are calculated before any redistribution mechanisms of the collected taxes.</p>
@@ -5814,7 +5814,7 @@ discrete-choice model compares between configurations, so it is what explains <e
 
 <span class="c1"># USD per THOUSAND cargo-miles, which is what Navigate's own</span>
 <span class="c1"># fleet_investment_metric plot reports (divisor = 1./1e3) and what notebook 3</span>
-<span class="c1"># uses. Per cargo-mile the numbers read 0.0046 - four leading zeros on an axis.</span>
+<span class="c1"># uses. Per cargo-mile the numbers read 0.0046 - three leading zeros on an axis.</span>
 <span class="n">inst</span> <span class="o">=</span> <span class="mf">1e3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">copper_trade</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_instantaneous_freight_rate</span><span class="p">(),</span>
                         <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">YEARS</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"o"</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">ORANGE</span><span class="p">)</span>
@@ -5863,7 +5863,7 @@ year is the one most likely to be ordered that year. That crossover is
 the mechanism behind the fuel mix in section 2.
 </pre></div>
 </div>
-<img alt="../_images/3ccb479662d596aeaf0460c99fe56dd287b08852d988f89150eed3ea7601b81f.png" src="../_images/3ccb479662d596aeaf0460c99fe56dd287b08852d988f89150eed3ea7601b81f.png" />
+<img alt="../_images/7b19707d5b4585a44543194b7257c946b21f66c78a308b25c1384a3dad97ca95.png" src="../_images/7b19707d5b4585a44543194b7257c946b21f66c78a308b25c1384a3dad97ca95.png" />
 </div>
 </div>
 </section>
@@ -5900,7 +5900,7 @@ the mechanism behind the fuel mix in section 2.
 </tr>
 <tr class="row-even"><td><p>Newbuild mix</p></td>
 <td><p>owners</p></td>
-<td><p><strong>two-axis logit</strong> on levelized cost of transport, partly repeating last year’s mix</p></td>
+<td><p><strong>two-axis logit</strong> on levelised cost of transport, partly repeating last year’s mix</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code>, <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code>, <code class="docutils literal notranslate"><span class="pre">Inertia</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Scrapping</p></td>
@@ -6281,13 +6281,13 @@ and the share of newbuilds that copy last year's mix
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>                                     reference       yours        change
-  well-to-wake in 2050, kt/yr            3,541       3,910       +10.4 %
-  cumulative, kt                       127,781     131,002        +2.5 %
+  well-to-wake in 2050, kt/yr            3,541       3,909       +10.4 %
+  cumulative, kt                       127,773     131,002        +2.5 %
   alternative fuels in 2050, %            38.5        31.8       -6.7 pp
   freight rate in 2050, USD/k mile        4.72        4.71        -0.1 %
 </pre></div>
 </div>
-<img alt="../_images/4497659658368e3d14474cc359bde10b3111fd9f83d6ef84c672a6606119a825.png" src="../_images/4497659658368e3d14474cc359bde10b3111fd9f83d6ef84c672a6606119a825.png" />
+<img alt="../_images/4be5ac5755ffc2102f78444d9e9e569a65b4f4401ed595697ac73f30557ce3b3.png" src="../_images/4be5ac5755ffc2102f78444d9e9e569a65b4f4401ed595697ac73f30557ce3b3.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>what moved most, in percentage points of the fuel mix:
   LNG                    +3.3 pp
   e-ammonia              -2.3 pp

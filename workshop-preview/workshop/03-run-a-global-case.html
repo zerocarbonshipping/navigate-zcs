@@ -454,15 +454,9 @@
 <section class="tex2jax_ignore mathjax_ignore" id="session-3-run-a-global-case">
 <h1>Session 3: Run a global case<a class="headerlink" href="#session-3-run-a-global-case" title="Link to this heading">#</a></h1>
 <p>Navigate ships a set of <strong>reference scenarios</strong> under
-<code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code> which are full decks built and maintained by the Center,
-using its own assumptions (see
-<code class="docutils literal notranslate"><span class="pre">simulations/scenarios/README.md</span></code>). This session works with three of them:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">basecase_no_regulation</span></code>, <code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code>, <code class="docutils literal notranslate"><span class="pre">basecase_strong_regulation</span></code></p></li>
-</ul>
-<p>All scenarios have the same fleet, fuel, and port assumptions, with only the regulatory
-stringency varied: no <code class="docutils literal notranslate"><span class="pre">Regulation</span></code> node at all, versus the EU ETS and FuelEU plus a
-moderate or an aggressive intensity-reduction scheme (a fleet-pooled,
+<code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code>, which are full decks built and maintained by the Center,
+using its own assumptions. This session works with one of them (with a coarser time grid), <code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code>: the EU ETS and
+FuelEU plus a moderate intensity-reduction scheme (a fleet-pooled,
 Global-Fuel-Standard-style mechanism named <code class="docutils literal notranslate"><span class="pre">&quot;gfs&quot;</span></code>) phased in from 2028.</p>
 <section id="the-case">
 <h2>The case<a class="headerlink" href="#the-case" title="Link to this heading">#</a></h2>
@@ -479,15 +473,14 @@ draw across the ocean. Instead, the routes in the model represent an averaged pr
 </section>
 <section id="what-you-ll-do">
 <h2>What you’ll do<a class="headerlink" href="#what-you-ll-do" title="Link to this heading">#</a></h2>
-<p><strong>Look at the scenarios.</strong> List the reference scenarios, see how their decks differ, and read the regulation each one carries.</p>
-<p><strong>Run the case.</strong> Solve one of them once, from 2026 to 2050, on a coarse time grid.</p>
-<p><strong>Read the results.</strong> The ships’ emissions, the fuel they consume, and what moving the cargo costs.</p>
+<p><strong>Run the case.</strong> Solve the mid-regulation scenario once, from 2026 to 2050, on a coarse time grid.</p>
+<p><strong>Read the results.</strong> The fleet emissions, the fuel mix, and the transport costs.</p>
 <p><strong>Sensitivity analysis.</strong> Change some of the input parameters and see what happens.</p>
-<p>The same scenarios, solved year by year as the Center runs them, are the subject of <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a>.</p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a> focuses on the Center’s other scenarios, run at full resolution.</p>
 </section>
 <section id="step-1-setup">
 <h2>STEP 1: Setup<a class="headerlink" href="#step-1-setup" title="Link to this heading">#</a></h2>
-<p>Run the cell below on Colab or locally to set up the Navigate model. The <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/index.md">workshop overview</a> explains both; the cell handles either case without changes.</p>
+<p>Run the cell below on Colab or locally to set up the Navigate model.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -563,339 +556,22 @@ Navigate 1.0.0 is already installed.
 </div>
 </div>
 </section>
-<section id="step-2-look-at-the-scenarios">
-<h2>STEP 2: Look at the scenarios<a class="headerlink" href="#step-2-look-at-the-scenarios" title="Link to this heading">#</a></h2>
-<section id="see-what-scenarios-are-available">
-<h3>See what scenarios are available<a class="headerlink" href="#see-what-scenarios-are-available" title="Link to this heading">#</a></h3>
-<p>Run this cell to check which of the Center’s pre-made scenarios are available in the simulation folder.</p>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title List the available scenarios</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-
-<span class="n">scenarios_dir</span> <span class="o">=</span> <span class="s2">"simulations/scenarios"</span>
-<span class="n">scenario_names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-    <span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">scenarios_dir</span><span class="p">)</span>
-    <span class="c1"># a scenario is a folder holding a deck of its own name; 0_includes is</span>
-    <span class="c1"># shared includes, not a scenario</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scenarios_dir</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2">.nav"</span><span class="p">))</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Available reference scenarios:"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scenario_names</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">" -"</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</details>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Available reference scenarios:
- - basecase_mid_regulation
- - basecase_no_regulation
- - basecase_strong_regulation
- - business_as_usual
-</pre></div>
-</div>
-</div>
-</div>
-</section>
-<section id="a-first-look-at-the-different-scenarios">
-<h3>A first look at the different scenarios<a class="headerlink" href="#a-first-look-at-the-different-scenarios" title="Link to this heading">#</a></h3>
-<p>In these decks the regulation is the only thing that differs between scenarios. Check how the decks of each scenario are built:</p>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Compare the scenario decks</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="n">deck_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"basecase_no_regulation"</span><span class="p">,</span> <span class="s2">"basecase_mid_regulation"</span><span class="p">,</span> <span class="s2">"basecase_strong_regulation"</span><span class="p">]</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">deck_body</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A scenario's .nav file, minus the licence header, comments and blank lines."""</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">"simulations/scenarios/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.nav"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)]</span>
-
-
-<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">deck_names</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.nav"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">deck_body</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"   "</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
-
-<span class="n">base</span> <span class="o">=</span> <span class="n">deck_body</span><span class="p">(</span><span class="s2">"basecase_no_regulation"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">deck_names</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> adds to basecase_no_regulation:"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">deck_body</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">line</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">base</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">"   "</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">basecase_mid_regulation vs basecase_strong_regulation differ only in:"</span><span class="p">)</span>
-<span class="n">mid_body</span> <span class="o">=</span> <span class="n">deck_body</span><span class="p">(</span><span class="s2">"basecase_mid_regulation"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">deck_body</span><span class="p">(</span><span class="s2">"basecase_strong_regulation"</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">line</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mid_body</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"   "</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</details>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>basecase_no_regulation.nav
-    DEFINE {
-    Load DefaultModelDefinition
-    Load DefaultBunkerLogistics
-    Load DefaultFleet
-    Load DefaultPort
-    Load DefaultEmission
-    Load DefaultFeedstock
-    Load DefaultFuel
-    Load DefaultProducer
-    Load DefaultPlant
-    Load DefaultRegion
-    Load DefaultSource
-    Load DefaultTransport
-    Load DefaultCalibration
-    Load DefaultReport
-    Load DefaultPlot
-    Load DebugPlot
-    }
-    EVENTS {
-    Load DefaultConverterAvailable
-    Load DefaultTimeStepYearly
-    }
-
-basecase_mid_regulation.nav
-    DEFINE {
-    Load DefaultModelDefinition
-    Load DefaultBunkerLogistics
-    Load DefaultFleet
-    Load DefaultPort
-    Load DefaultEmission
-    Load DefaultFeedstock
-    Load DefaultFuel
-    Load DefaultProducer
-    Load DefaultPlant
-    Load DefaultRegion
-    Load DefaultSource
-    Load DefaultTransport
-    Load DefaultRegulation
-    Include "../0_includes/mid_regulation.inc"
-    Load DefaultCalibration
-    Load DefaultReport
-    Load DefaultPlot
-    Load DebugPlot
-    }
-    EVENTS {
-    Load DefaultConverterAvailable
-    Load DefaultTimeStepYearly
-    }
-
-basecase_strong_regulation.nav
-    DEFINE {
-    Load DefaultModelDefinition
-    Load DefaultBunkerLogistics
-    Load DefaultFleet
-    Load DefaultPort
-    Load DefaultEmission
-    Load DefaultFeedstock
-    Load DefaultFuel
-    Load DefaultProducer
-    Load DefaultPlant
-    Load DefaultRegion
-    Load DefaultSource
-    Load DefaultTransport
-    Load DefaultRegulation
-    Include "../0_includes/strong_regulation.inc"
-    Load DefaultCalibration
-    Load DefaultReport
-    Load DefaultPlot
-    Load DebugPlot
-    }
-    EVENTS {
-    Load DefaultConverterAvailable
-    Load DefaultTimeStepYearly
-    }
-
-basecase_mid_regulation adds to basecase_no_regulation:
-    Load DefaultRegulation
-    Include "../0_includes/mid_regulation.inc"
-basecase_strong_regulation adds to basecase_no_regulation:
-    Load DefaultRegulation
-    Include "../0_includes/strong_regulation.inc"
-
-basecase_mid_regulation vs basecase_strong_regulation differ only in:
-    Include "../0_includes/strong_regulation.inc"
-</pre></div>
-</div>
-</div>
-</div>
-<p>The main difference between the scenarios is the implemented regulation, and it comes down to
-the two lines the diff above picked out. <code class="docutils literal notranslate"><span class="pre">Load</span> <span class="pre">DefaultRegulation</span></code> pulls the EU ETS and FuelEU
-Maritime regulations out of the assumptions library, and the <code class="docutils literal notranslate"><span class="pre">Include</span></code> line adds one
-scenario-specific file on top. So <code class="docutils literal notranslate"><span class="pre">basecase_no_regulation</span></code> carries no regulation at all, not the
-ETS, not FuelEU, not a global standard, while the other two carry all three and differ only in
-what that included file asks for.</p>
-<p>In these example decks that scenario-specific regulation is a <strong>Global Fuel Standard</strong> type of regulation.</p>
-<p>A Global Fuel Standard (GFS) is a worldwide limit on the greenhouse-gas intensity of the fuel a ship burns, tightening year on year, with penalties for exceeding the limit and rewards for using cleaner fuels. It is relatively similar to the EU FuelEU Maritime regulation, but applies worldwide rather than only to EU/EEA ports. It is a modelling assumption in these decks, not an adopted rule.</p>
-<p><code class="docutils literal notranslate"><span class="pre">gfs_target_reduction</span></code> is the well-to-wake GHG intensity limit every vessel is measured against, and
-<code class="docutils literal notranslate"><span class="pre">gfs_remedial_unit</span></code> is the penalty for missing it. Both are defined per scenario in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/0_includes/{mid,strong}_regulation.inc</span></code>, so we can parse both decks and compare their regulatory assumptions side by side.</p>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Read the scenario assumptions</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">navigate.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationManager</span>
-
-<span class="c1"># Same arguments the CLI would build from `-d ./assumptions`. No `-e`, because we</span>
-<span class="c1"># are not calling manager.run() at all.</span>
-<span class="n">PARSE_ARGS</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">(</span><span class="n">data_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"./assumptions"</span><span class="p">),</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">parse_scenario</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Read a scenario deck's nodes without solving it."""</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">SimulationManager</span><span class="p">()</span>
-    <span class="n">m</span><span class="o">.</span><span class="n">read_deck</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">"simulations/scenarios/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.nav"</span><span class="p">),</span> <span class="n">PARSE_ARGS</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">m</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">forecast_to_frame</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A Forecast node's resolved (date, value) table, as in notebook 2."""</span>
-    <span class="n">node</span> <span class="o">=</span> <span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"date"</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get_x_date</span><span class="p">()),</span>
-                         <span class="s2">"value"</span><span class="p">:</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">get_x</span><span class="p">()]})</span>
-
-
-<span class="n">mid</span> <span class="o">=</span> <span class="n">parse_scenario</span><span class="p">(</span><span class="s2">"basecase_mid_regulation"</span><span class="p">)</span>
-<span class="n">strong</span> <span class="o">=</span> <span class="n">parse_scenario</span><span class="p">(</span><span class="s2">"basecase_strong_regulation"</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"basecase_mid_regulation resolves </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mid</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">)</span><span class="si">}</span><span class="s2"> Forecast, "</span>
-      <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mid</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">curves</span><span class="p">)</span><span class="si">}</span><span class="s2"> Curve, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mid</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">timetables</span><span class="p">)</span><span class="si">}</span><span class="s2"> Timetable and "</span>
-      <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mid</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">surfaces</span><span class="p">)</span><span class="si">}</span><span class="s2"> Surface nodes</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="c1"># the global prices every scenario shares</span>
-<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">[(</span><span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">,</span> <span class="s2">"Fuel oil (USD/ton)"</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">,</span> <span class="s2">"LNG (USD/ton)"</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s2">"electricity_cost_europe_mid"</span><span class="p">,</span> <span class="s2">"European electricity (USD/MWh)"</span><span class="p">)]:</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">forecast_to_frame</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mid</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">label</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">'date'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">)"</span>
-          <span class="sa">f</span><span class="s2">"  -&gt;  </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">'date'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
-
-<span class="c1"># and the two regulatory assumptions that separate the scenarios</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">what the two regulation scenarios ask for, by 2050:"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">[(</span><span class="s2">"gfs_target_reduction"</span><span class="p">,</span> <span class="s2">"GHG intensity limit"</span><span class="p">,</span> <span class="s2">"gCO2eq/MJ"</span><span class="p">),</span>
-                          <span class="p">(</span><span class="s2">"gfs_remedial_unit"</span><span class="p">,</span> <span class="s2">"penalty for missing it"</span><span class="p">,</span> <span class="s2">"USD/t"</span><span class="p">)]:</span>
-    <span class="k">for</span> <span class="n">scenario_name</span><span class="p">,</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"mid"</span><span class="p">,</span> <span class="n">mid</span><span class="o">.</span><span class="n">nodes</span><span class="p">),</span> <span class="p">(</span><span class="s2">"strong"</span><span class="p">,</span> <span class="n">strong</span><span class="o">.</span><span class="n">nodes</span><span class="p">)):</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">forecast_to_frame</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">label</span><span class="si">:</span><span class="s2">24</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">scenario_name</span><span class="si">:</span><span class="s2">7</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="c1"># The .inc tables hold a fraction of the 2025 intensity, but the node also sets</span>
-<span class="c1"># Multiplier = 93.3 and `calculate()` applies it, so everything printed and plotted</span>
-<span class="c1"># here is already an absolute well-to-wake intensity in gCO2eq/MJ.</span>
-
-<span class="c1"># the same two scenario colours the comparison figure at the end of this</span>
-<span class="c1"># notebook uses, so "strong" is the same blue in both</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">forecast_to_frame</span><span class="p">(</span><span class="s2">"gfs_target_reduction"</span><span class="p">,</span> <span class="n">mid</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"value"</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"o"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"mid"</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">),</span>
-    <span class="n">color</span><span class="o">=</span><span class="n">scen_colour</span><span class="p">(</span><span class="s2">"basecase_mid_regulation"</span><span class="p">))</span>
-<span class="n">forecast_to_frame</span><span class="p">(</span><span class="s2">"gfs_target_reduction"</span><span class="p">,</span> <span class="n">strong</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"value"</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"o"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"strong"</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
-    <span class="n">color</span><span class="o">=</span><span class="n">scen_colour</span><span class="p">(</span><span class="s2">"basecase_strong_regulation"</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"gfs_target_reduction: the WTW intensity limit every vessel is held to"</span><span class="p">,</span>
-             <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"gCO2eq/MJ"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">GRID</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_axisbelow</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="n">TICK</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"top"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">):</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="n">side</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"left"</span><span class="p">,</span> <span class="s2">"bottom"</span><span class="p">):</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="n">side</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">AXIS</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</details>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>——————————————————————————————————————————————————————————————————————————————————————————————————
-            |    |    |                                  .oO
-           )_)  )_)  )_)                             __/___                  _    _
-          )___))___))___)\                     _____/______|              __|_|__|_|__
-         )____)____)_____)\\           _______/_____\_______\_____      _|____________|__
-       _____|____|____|____\\\__       \              &lt; &lt; &lt;       |    |o o o o o o o o /
-~~~~~~~\                   /~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ´´´´´´´´´´´´´´´´´´´              Navigate
-——————————————————————————————————————————————————————————————————————————————————————————————————
-        Navigate - an integrated assessment model for decarbonizing shipping
-        Developed by Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
-        Version 1.0.0 - for questions, contact navigate@zerocarbonshipping.com
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>——————————————————————————————————————————————————————————————————————————————————————————————————
-            |    |    |                                  .oO
-           )_)  )_)  )_)                             __/___                  _    _
-          )___))___))___)\                     _____/______|              __|_|__|_|__
-         )____)____)_____)\\           _______/_____\_______\_____      _|____________|__
-       _____|____|____|____\\\__       \              &lt; &lt; &lt;       |    |o o o o o o o o /
-~~~~~~~\                   /~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ´´´´´´´´´´´´´´´´´´´              Navigate
-——————————————————————————————————————————————————————————————————————————————————————————————————
-        Navigate - an integrated assessment model for decarbonizing shipping
-        Developed by Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
-        Version 1.0.0 - for questions, contact navigate@zerocarbonshipping.com
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>basecase_mid_regulation resolves 447 Forecast, 137 Curve, 30 Timetable and 8 Surface nodes
-
-  Fuel oil (USD/ton)                 485.0 (2026)  -&gt;    485.0 (2050)
-  LNG (USD/ton)                      436.0 (2026)  -&gt;    436.0 (2050)
-  European electricity (USD/MWh)      77.1 (2025)  -&gt;     52.7 (2050)
-
-what the two regulation scenarios ask for, by 2050:
-  GHG intensity limit      mid        28.0 gCO2eq/MJ
-  GHG intensity limit      strong      0.0 gCO2eq/MJ
-  penalty for missing it   mid       300.0 USD/t
-  penalty for missing it   strong    800.0 USD/t
-</pre></div>
-</div>
-<img alt="../_images/b78ea79292d6e65e40aad2eefcc45191749a535c537d018ce6ac8ae2b9bb59d7.png" src="../_images/b78ea79292d6e65e40aad2eefcc45191749a535c537d018ce6ac8ae2b9bb59d7.png" />
-</div>
-</div>
-</section>
-</section>
-<section id="step-3-run-the-case-and-see-the-results">
-<h2>STEP 3: Run the case and see the results<a class="headerlink" href="#step-3-run-the-case-and-see-the-results" title="Link to this heading">#</a></h2>
-<p>Run the two cells below to solve one reference scenario once, from 2026 to 2050. You can choose yours among the ones available in the simulation folder by updating the SCENARIO variable at the top of the first cell. The results that we are plotting for this case are:</p>
+<section id="step-2-run-the-case-and-see-the-results">
+<h2>STEP 2: Run the case and see the results<a class="headerlink" href="#step-2-run-the-case-and-see-the-results" title="Link to this heading">#</a></h2>
+<p>Run the cell below to solve the mid-regulation reference scenario once, from 2026 to 2050. The results that we are plotting for this case are:</p>
 <ul class="simple">
 <li><p>the well-to-wake emissions of all the ships over time;</p></li>
 <li><p>the energy the ships consume each year, by fuel;</p></li>
 <li><p>the <strong>instantaneous freight rate</strong>, averaged over the fleets: what the trade cost in that year, given the fuel prices and compliance bills that actually materialised.</p></li>
 </ul>
 <p>These numbers are calculated before any redistribution mechanisms of the collected taxes, which are currently not modelled in Navigate.</p>
-<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a> runs the Center’s reference scenarios exactly as they are. This one
-lets you change the assumptions behind one of them and watch the answer move.</p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a> runs the Center’s reference scenarios exactly as they are. This one lets you change the assumptions behind one of them and watch the answer move.</p>
 <blockquote>
 <div><p><strong>These numbers are for comparing, not for quoting</strong></p>
 <p>The scenarios here are solved on a <strong>coarse time grid</strong> — eight steps instead of
 twenty-five — which is what makes two solves fit inside a notebook. The next cell
 explains it. Both runs use the same grid, so the <em>comparison</em> between them is
-sound but the absolute figures are different from the Center’s base simulations.</p>
+sound, but the absolute figures are different from the Center’s base simulations.</p>
 </div></blockquote>
 <section id="why-this-runs-in-a-minute-or-two">
 <h3>Why this runs in a minute or two<a class="headerlink" href="#why-this-runs-in-a-minute-or-two" title="Link to this heading">#</a></h3>
@@ -913,7 +589,7 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <span class="n">End</span>
 </pre></div>
 </div>
-<p>The step is <strong>four years</strong> from 2030 onward (and not five), to make sure that the retrofitting mechanism (set by default to every 5 years) actually gets considered in the model.</p>
+<p>The step is <strong>four years</strong> from 2030 onward (and not five), because retrofits are considered every five years by default, and a five-year step would make every step a retrofit year.</p>
 <p>This table shows some of the differences between a 25-step (yearly) and an 8-step run of the same scenario:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -931,7 +607,7 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <td><p>55.0 %</p></td>
 <td><p>51.8 %</p></td>
 </tr>
-<tr class="row-even"><td><p>fossil fuel oil, share of energy</p></td>
+<tr class="row-even"><td><p>fossil fuel oil, share of energy over the horizon</p></td>
 <td><p>69.0 %</p></td>
 <td><p>72.8 %</p></td>
 </tr>
@@ -941,37 +617,6 @@ To have a faster solving time, we change the <code class="docutils literal notra
 </tr>
 </tbody>
 </table>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
-<span class="c1">#  WHICH SCENARIO TO START FROM.  Run this cell, then the cell below it.</span>
-<span class="c1">#</span>
-<span class="c1">#  Four reference scenarios are available in the default simulation folder.</span>
-<span class="c1">#  The main differences between scenarios are the assumptions taken for regulation.</span>
-<span class="c1">#  Each is a Center reference scenario under its own name, put on the workshop's eight-step grid so that</span>
-<span class="c1">#  it solves in a minute or two instead of about twenty:</span>
-<span class="c1">#</span>
-<span class="c1">#    workshop_basecase_no_regulation      nothing at all - fuel chosen on cost</span>
-<span class="c1">#    workshop_basecase_mid_regulation     EU ETS + FuelEU + a moderate fuel standard</span>
-<span class="c1">#    workshop_basecase_strong_regulation  EU ETS + FuelEU + a strict fuel standard</span>
-<span class="c1">#    workshop_business_as_usual           EU ETS + FuelEU, domestic fleet included</span>
-<span class="c1">#</span>
-<span class="c1">#  "Fuel standard" is a limit on the well-to-wake carbon intensity of the</span>
-<span class="c1">#  energy a ship uses, tightening year on year and applied worldwide: a ship</span>
-<span class="c1">#  above the limit pays, a ship below it earns surplus units it can sell. The</span>
-<span class="c1">#  decks call it `gfs`.</span>
-<span class="c1">#</span>
-<span class="c1">#  Not every lever exists in every deck - with no regulation there is no carbon</span>
-<span class="c1">#  price to move, and only the two middle decks carry a fuel standard. The table</span>
-<span class="c1">#  this cell prints marks what the one you picked does not have.</span>
-
-<span class="n">SCENARIO</span> <span class="o">=</span> <span class="s2">"workshop_basecase_mid_regulation"</span>
-
-<span class="c1"># ===========================================================================</span>
-</pre></div>
-</div>
-</div>
 </div>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -983,35 +628,12 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Run the case and see the results</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-
-<span class="k">def</span><span class="w"> </span><span class="nf">deck_note</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""What one deck is, read out of it rather than written down here."""</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">nav</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s2">"strong_regulation.inc"</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
-        <span class="n">rule</span> <span class="o">=</span> <span class="s2">"EU ETS + FuelEU + a strict fuel standard"</span>
-    <span class="k">elif</span> <span class="s2">"mid_regulation.inc"</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
-        <span class="n">rule</span> <span class="o">=</span> <span class="s2">"EU ETS + FuelEU + a moderate fuel standard"</span>
-    <span class="k">elif</span> <span class="s2">"DefaultRegulation"</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
-        <span class="n">rule</span> <span class="o">=</span> <span class="s2">"EU ETS + FuelEU"</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">rule</span> <span class="o">=</span> <span class="s2">"no regulation at all"</span>
-    <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"international + domestic, 2-4 min"</span>
-            <span class="k">if</span> <span class="s2">"DefaultFleetDomestic"</span> <span class="ow">in</span> <span class="n">text</span>
-            <span class="k">else</span> <span class="s2">"international only, 1-2 min"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">rule</span><span class="si">:</span><span class="s2">43</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">"</span>
-
-
-<span class="c1"># every deck on the workshop's coarse grid - all four live in one folder and</span>
-<span class="c1"># share includes/time_steps_coarse.inc</span>
-<span class="n">DECKS</span> <span class="o">=</span> <span class="p">{</span><span class="n">nav</span><span class="o">.</span><span class="n">stem</span><span class="p">:</span> <span class="n">nav</span> <span class="k">for</span> <span class="n">nav</span> <span class="ow">in</span>
-         <span class="nb">sorted</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"simulations/scenarios/workshop_whatif"</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.nav"</span><span class="p">))}</span>
-<span class="k">assert</span> <span class="n">SCENARIO</span> <span class="ow">in</span> <span class="n">DECKS</span><span class="p">,</span> <span class="p">(</span>
-    <span class="sa">f</span><span class="s2">"no deck called </span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">!r}</span><span class="s2">. Pick one of: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">DECKS</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">"decks you can start from:"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_nav</span> <span class="ow">in</span> <span class="n">DECKS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="s1">'&gt;'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">_name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SCENARIO</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">' '</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">37</span><span class="si">}{</span><span class="n">deck_note</span><span class="p">(</span><span class="n">_nav</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">()</span>
+<span class="c1"># The mid-regulation reference scenario on the workshop's coarse grid. The</span>
+<span class="c1"># levers rebuild the no-regulation scenario (all three NO_ switches) and come</span>
+<span class="c1"># close to the strong one (GLOBAL_STANDARD_PENALTY and _TARGET).</span>
+<span class="n">SCENARIO</span> <span class="o">=</span> <span class="s2">"workshop_basecase_mid_regulation"</span>
+<span class="n">NAV</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">"simulations/scenarios/workshop_whatif/</span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">}</span><span class="s2">.nav"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">NAV</span><span class="o">.</span><span class="n">is_file</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">"no deck </span><span class="si">{</span><span class="n">NAV</span><span class="si">}</span><span class="s2">"</span>
 
 
 <span class="c1"># --------------------------------------------------------------------------</span>
@@ -1028,7 +650,6 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">navigate.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationManager</span>
 
-<span class="n">NAV</span> <span class="o">=</span> <span class="n">DECKS</span><span class="p">[</span><span class="n">SCENARIO</span><span class="p">]</span>
 <span class="n">ARGS</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">(</span><span class="n">data_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"./assumptions"</span><span class="p">),</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
 <span class="c1"># Some levers move several forecasts at once: there is one electricity cost per</span>
@@ -1080,6 +701,45 @@ To have a faster solving time, we change the <code class="docutils literal notra
             <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">t</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tweak</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">without</span><span class="p">(</span><span class="n">regulation_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Take one regulation out: it covers no ship.</span>
+
+<span class="sd">    Gives the same results as the deck without that regulation. The</span>
+<span class="sd">    regulation's own Active switch would be the natural way, but on this</span>
+<span class="sd">    version of Navigate an inactive regulation stops the run.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tweak</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="n">regulation</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">regulations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">regulation_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">regulation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">regulation</span><span class="o">.</span><span class="n">include_vessel</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">vessels</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">tweak</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">eu_rules_worldwide</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Put port_global inside the EU ETS and FuelEU.</span>
+
+<span class="sd">    With both ports in the jurisdiction every voyage is an *intra* voyage, so</span>
+<span class="sd">    the whole of it is counted, as Session 1's EU_RULES_WHOLE_VOYAGE does for</span>
+<span class="sd">    its one trade.</span>
+<span class="sd">    """</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"eu_ets"</span><span class="p">,</span> <span class="s2">"fuel_eu"</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">regulations</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">regulations</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">ports</span><span class="p">[</span><span class="s2">"port_global"</span><span class="p">],</span>
+                                                      <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">ports</span><span class="p">[</span><span class="s2">"port_europe"</span><span class="p">]]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">without_new_technology</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Freeze efficiency where every fleet already is: nothing more gets fitted.</span>
+
+<span class="sd">    BOTH limits are needed - the retrofit limit alone still lets a measure</span>
+<span class="sd">    arrive on a newbuild. Measures with an initial share keep it.</span>
+<span class="sd">    """</span>
+    <span class="k">for</span> <span class="n">fleet</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">fleets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">technology</span> <span class="ow">in</span> <span class="n">fleet</span><span class="o">.</span><span class="n">technologies</span><span class="p">:</span>
+            <span class="n">fleet</span><span class="o">.</span><span class="n">set_retrofit_technology_limit</span><span class="p">(</span><span class="n">technology</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span> <span class="mf">0.</span><span class="p">)</span>
+            <span class="n">fleet</span><span class="o">.</span><span class="n">set_newbuild_technology_limit</span><span class="p">(</span><span class="n">technology</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span> <span class="mf">0.</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">run_case</span><span class="p">(</span><span class="n">tweak</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1310,6 +970,17 @@ To have a faster solving time, we change the <code class="docutils literal notra
                          <span class="s2">"100 </span><span class="si">% o</span><span class="s2">r more in a year. Pick a value closer to zero."</span><span class="p">)</span>
 
     <span class="n">CHANGED</span> <span class="o">=</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">LEVERS</span> <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">SWITCHES</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"NO_EU_ETS"</span><span class="p">,</span> <span class="n">NO_EU_ETS</span><span class="p">,</span> <span class="n">without</span><span class="p">(</span><span class="s2">"eu_ets"</span><span class="p">),</span> <span class="s2">"eu_ets"</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"NO_FUELEU"</span><span class="p">,</span> <span class="n">NO_FUELEU</span><span class="p">,</span> <span class="n">without</span><span class="p">(</span><span class="s2">"fuel_eu"</span><span class="p">),</span> <span class="s2">"fuel_eu"</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"NO_GLOBAL_STANDARD"</span><span class="p">,</span> <span class="n">NO_GLOBAL_STANDARD</span><span class="p">,</span> <span class="n">without</span><span class="p">(</span><span class="s2">"gfs"</span><span class="p">),</span> <span class="s2">"gfs"</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"EU_RULES_WORLDWIDE"</span><span class="p">,</span> <span class="n">EU_RULES_WORLDWIDE</span><span class="p">,</span> <span class="n">eu_rules_worldwide</span><span class="p">,</span> <span class="s2">"eu_ets"</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"FREEZE_EFFICIENCY"</span><span class="p">,</span> <span class="n">FREEZE_EFFICIENCY</span><span class="p">,</span> <span class="n">without_new_technology</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span>
+    <span class="n">ON</span> <span class="o">=</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">tweak</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tweak</span><span class="p">,</span> <span class="n">_r</span> <span class="ow">in</span> <span class="n">SWITCHES</span> <span class="k">if</span> <span class="n">value</span><span class="p">]</span>
+    <span class="n">_absent</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">SWITCHES</span>
+               <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">regulations</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">_absent</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_absent</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">}</span><span class="s2"> has no such regulation, "</span>
+              <span class="s2">"so this switch has no effect.</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># a lever whose forecasts this deck does not carry cannot move anything</span>
     <span class="n">_inert</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">_v</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">CHANGED</span>
@@ -1320,14 +991,17 @@ To have a faster solving time, we change the <code class="docutils literal notra
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_inert</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_verb</span><span class="si">}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">}</span><span class="s2"> "</span>
               <span class="sa">f</span><span class="s2">"and will have no effect.</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">CHANGED</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">CHANGED</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ON</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">"Every lever is still 1.0, so this would just re-solve the reference."</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">"Change one of the numbers above and run this cell again."</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">"solving your scenario:"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_value</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">13</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">_value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">yours</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">(</span><span class="n">both</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">scale</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ON</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">yours</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">(</span><span class="n">both</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">scale</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">],</span>
+                              <span class="o">*</span><span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ON</span><span class="p">]))</span>
         <span class="n">you</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">yours</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="s1">''</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'reference'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'yours'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'change'</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">_label</span><span class="p">,</span> <span class="n">_r</span><span class="p">,</span> <span class="n">_y</span><span class="p">,</span> <span class="n">_fmt</span><span class="p">,</span> <span class="n">_pp</span> <span class="ow">in</span> <span class="p">(</span>
@@ -1343,7 +1017,8 @@ To have a faster solving time, we change the <code class="docutils literal notra
 
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_cases</span><span class="p">({</span><span class="s2">"reference"</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span> <span class="s2">"your scenario"</span><span class="p">:</span> <span class="n">you</span><span class="p">})</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"  "</span> <span class="o">+</span> <span class="s2">",  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">),</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"  "</span> <span class="o">+</span> <span class="s2">",  "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">]</span>
+                                       <span class="o">+</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ON</span><span class="p">]),</span>
                      <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -1359,90 +1034,16 @@ To have a faster solving time, we change the <code class="docutils literal notra
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">_f</span><span class="p">)</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_d</span><span class="si">:</span><span class="s2">+6.1f</span><span class="si">}</span><span class="s2"> pp"</span><span class="p">)</span>
 
 
-<span class="c1"># ---------------------------------------------------------------------------</span>
-<span class="c1"># The levers, with the numbers they multiply. Read off the parsed deck rather</span>
-<span class="c1"># than typed in here, so the table follows `assumptions/` if the Center revises</span>
-<span class="c1"># it. Units are labels, not data, so those are stated.</span>
-<span class="c1"># ---------------------------------------------------------------------------</span>
-<span class="n">LEVER_SPEC</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="s2">"fossil bunker fuel"</span><span class="p">,</span>
-     <span class="p">[</span><span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"LNG_PRICE"</span><span class="p">,</span> <span class="s2">"fossil LNG"</span><span class="p">,</span>
-     <span class="p">[</span><span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"EU_ETS_PRICE"</span><span class="p">,</span> <span class="s2">"EU ETS allowance"</span><span class="p">,</span>
-     <span class="p">[</span><span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"GLOBAL_STANDARD_PENALTY"</span><span class="p">,</span> <span class="s2">"a ton of excess emission"</span><span class="p">,</span>
-     <span class="p">[</span><span class="s2">"gfs_remedial_unit"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"GLOBAL_STANDARD_TARGET"</span><span class="p">,</span> <span class="s2">"the GHG-intensity limit"</span><span class="p">,</span>
-     <span class="p">[</span><span class="s2">"gfs_target_reduction"</span><span class="p">],</span> <span class="s2">"gCO2eq/MJ"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.1f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"EFUEL_ELECTRICITY_PRICE"</span><span class="p">,</span> <span class="s2">"electricity at the e-fuel plants"</span><span class="p">,</span>
-     <span class="n">POWER</span><span class="p">,</span> <span class="s2">"USD/MWh"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"BIOMASS_SHARE_FOR_SHIPPING"</span><span class="p">,</span> <span class="s2">"shipping's share of the biomass"</span><span class="p">,</span>
-     <span class="n">BIO</span><span class="p">,</span> <span class="s2">"%"</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
-    <span class="c1"># The capacity forecast is GLOBAL new-plant capacity; shipping's producer</span>
-    <span class="c1"># may build epc_global_share_shipping of it, so the two multiply. Scaling</span>
-    <span class="c1"># the capacity scales the MaximumDevelopment of epc_global with it; the</span>
-    <span class="c1"># bio and FAME producers carry their own limits and do not move.</span>
-    <span class="p">(</span><span class="s2">"PLANT_BUILD_LIMIT"</span><span class="p">,</span> <span class="s2">"fuel plants shipping's producer may build"</span><span class="p">,</span>
-     <span class="p">[</span><span class="s2">"epc_global_capacity_mid"</span><span class="p">,</span> <span class="s2">"epc_global_share_shipping"</span><span class="p">],</span> <span class="s2">"plants/yr"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
-     <span class="s2">"</span><span class="si">{:,.1f}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"product"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"TRADE_GROWTH"</span><span class="p">,</span> <span class="s2">"cargo trade growth, by segment"</span><span class="p">,</span>
-     <span class="n">GROWTH</span><span class="p">,</span> <span class="s2">"%/yr"</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.1f}</span><span class="s2">"</span><span class="p">),</span>
-<span class="p">]</span>
-
 <span class="n">_days</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">get_timeline</span><span class="p">()</span>          <span class="c1"># days since the deck's start date</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_lever_span</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">when</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"range"</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""What one lever is worth at a given moment.</span>
-
-<span class="sd">    Most levers move several forecasts of the same kind, so the honest summary</span>
-<span class="sd">    is the RANGE across them. PLANT_BUILD_LIMIT is different: its two forecasts are a</span>
-<span class="sd">    capacity and the share of it shipping gets, and they MULTIPLY.</span>
-<span class="sd">    """</span>
-    <span class="n">seen</span> <span class="o">=</span> <span class="p">[</span><span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">when</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">seen</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">"--"</span>             <span class="c1"># not in this deck</span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"product"</span><span class="p">:</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="n">factor</span>
-        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">*=</span> <span class="n">v</span>
-        <span class="k">return</span> <span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    <span class="n">seen</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">factor</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">seen</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">1e-9</span>
-            <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  the levers, and what 1.0 means for each in </span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="s1">''</span><span class="si">:</span><span class="s2">14</span><span class="si">}{</span><span class="s1">''</span><span class="si">:</span><span class="s2">42</span><span class="si">}{</span><span class="n">YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">_spec</span> <span class="ow">in</span> <span class="n">LEVER_SPEC</span><span class="p">:</span>
-    <span class="n">_n</span><span class="p">,</span> <span class="n">_what</span><span class="p">,</span> <span class="n">_nodes</span><span class="p">,</span> <span class="n">_unit</span><span class="p">,</span> <span class="n">_f</span><span class="p">,</span> <span class="n">_fmt</span> <span class="o">=</span> <span class="n">_spec</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
-    <span class="n">_mode</span> <span class="o">=</span> <span class="n">_spec</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_spec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">6</span> <span class="k">else</span> <span class="s2">"range"</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_n</span><span class="si">:</span><span class="s2">14</span><span class="si">}{</span><span class="n">_what</span><span class="si">:</span><span class="s2">42</span><span class="si">}</span><span class="s2">"</span>
-          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_lever_span</span><span class="p">(</span><span class="n">_nodes</span><span class="p">,</span><span class="w"> </span><span class="n">_days</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">_f</span><span class="p">,</span><span class="w"> </span><span class="n">_fmt</span><span class="p">,</span><span class="w"> </span><span class="n">_mode</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2">"</span>
-          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_lever_span</span><span class="p">(</span><span class="n">_nodes</span><span class="p">,</span><span class="w"> </span><span class="n">_days</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">_f</span><span class="p">,</span><span class="w"> </span><span class="n">_fmt</span><span class="p">,</span><span class="w"> </span><span class="n">_mode</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2">   </span><span class="si">{</span><span class="n">_unit</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="n">_missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">LEVER_SPEC</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">n</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">])]</span>
-<span class="k">if</span> <span class="n">_missing</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> shown as -- : this deck does not carry that"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"  assumption, so setting those levers will do nothing."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>decks you can start from:
-  &gt; workshop_basecase_mid_regulation     EU ETS + FuelEU + a moderate fuel standard  international only, 1-2 min
-    workshop_basecase_no_regulation      no regulation at all                        international only, 1-2 min
-    workshop_basecase_strong_regulation  EU ETS + FuelEU + a strict fuel standard    international only, 1-2 min
-    workshop_business_as_usual           EU ETS + FuelEU                             international + domestic, 2-4 min
-
-solving the reference scenario ...
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>solving the reference scenario ...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 92 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 203 s
 
 time grid: 8 steps, 2026, 2027, 2030, 2034, 2038, 2042, 2046, 2050
 
@@ -1462,38 +1063,31 @@ time grid: 8 steps, 2026, 2027, 2030, 2034, 2038, 2042, 2046, 2050
   Bio-ethanol                                           0.0
 </pre></div>
 </div>
-<img alt="../_images/5c9f5753e84389104ae45ff06c33238cf3a4855e9a6752b2949ab258e5890d89.png" src="../_images/5c9f5753e84389104ae45ff06c33238cf3a4855e9a6752b2949ab258e5890d89.png" />
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  the levers, and what 1.0 means for each in workshop_basecase_mid_regulation
-                                                                  2026        2050
-  OIL_PRICE     fossil bunker fuel                                 485         485   USD/t
-  LNG_PRICE     fossil LNG                                         436         436   USD/t
-  EU_ETS_PRICE  EU ETS allowance                                   126         417   USD/t
-  GLOBAL_STANDARD_PENALTYa ton of excess emission                             0         300   USD/t
-  GLOBAL_STANDARD_TARGETthe GHG-intensity limit                           93.3        28.0   gCO2eq/MJ
-  EFUEL_ELECTRICITY_PRICEelectricity at the e-fuel plants                 58-88       32-53   USD/MWh
-  BIOMASS_SHARE_FOR_SHIPPINGshipping's share of the biomass                   2-50        2-50   %
-  PLANT_BUILD_LIMITfuel plants shipping's producer may build          7.1        35.6   plants/yr
-  TRADE_GROWTH  cargo trade growth, by segment                 0.3-4.7     0.0-2.2   %/yr
-</pre></div>
-</div>
+<img alt="../_images/ebdfbebc878e0021711654265f516885b0f26007dcdcb13421e44a15541c5f9c.png" src="../_images/ebdfbebc878e0021711654265f516885b0f26007dcdcb13421e44a15541c5f9c.png" />
 </div>
 </div>
 </section>
 </section>
 <hr class="docutils" />
-<section id="step-4-sensitivity-analysis">
-<h2>STEP 4: Sensitivity analysis<a class="headerlink" href="#step-4-sensitivity-analysis" title="Link to this heading">#</a></h2>
+<section id="step-3-sensitivity-analysis">
+<h2>STEP 3: Sensitivity analysis<a class="headerlink" href="#step-3-sensitivity-analysis" title="Link to this heading">#</a></h2>
 <p>Change some of the input values of the reference scenario to see what changes in the results.</p>
-<p>Each suggested sensitivity can be done using a multiplier for each lever: so <code class="docutils literal notranslate"><span class="pre">1.0</span></code> means that the original assumption is used.</p>
+<p>All levers that we prepared can be changed with multipliers, so <code class="docutils literal notranslate"><span class="pre">1.0</span></code> means that the original assumption is used, except five that can be used as switches:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">NO_EU_ETS</span></code></strong>, <strong><code class="docutils literal notranslate"><span class="pre">NO_FUELEU</span></code></strong> and <strong><code class="docutils literal notranslate"><span class="pre">NO_GLOBAL_STANDARD</span></code></strong> each take one
+regulation out and keep the others, to see what that one adds. The levers of
+a regulation taken out then have no effect.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">EU_RULES_WORLDWIDE</span></code></strong> applies the EU ETS and FuelEU to every voyage, not only
+to the share that touches Europe.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">FREEZE_EFFICIENCY</span></code></strong> stops anything further being fitted, on newbuilds as
+well as on retrofits.</p></li>
+</ul>
 <p>The spans indicated in the cell below are a sensible place to start looking, not a limit —
 go outside them if you want, but check the answer still makes sense when you do.</p>
 <p>Four of these levers are prices, two are regulation, two are limits on what can
 physically be supplied, and one is how much cargo there is to carry. It is worth
 noticing which group the biggest effect
 comes from.</p>
-<p>The table printed in STEP 3 is read off the parsed deck rather than typed
-in here, so if the Center revises an assumption the lever follows it. The values
-repeated in the code comments are a convenience copy of the same thing.</p>
 <p><strong>GAME</strong>: Find out which scenario (realistic?) leads to the lowest emissions and transport costs by 2050!</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -1501,8 +1095,8 @@ repeated in the code comments are a convenience copy of the same thing.</p>
 <span class="c1">#  YOUR SCENARIO.  Set a lever, then run this cell: it solves your scenario</span>
 <span class="c1">#  (a minute or two) and compares it with the reference.</span>
 <span class="c1">#</span>
-<span class="c1">#  Every number is a MULTIPLIER on what the deck already says, so 1.0 is the</span>
-<span class="c1">#  reference. The right-hand column is the value being multiplied, so you can</span>
+<span class="c1">#  Every number down to TRADE_GROWTH is a MULTIPLIER on what the deck already</span>
+<span class="c1">#  says, so 1.0 is the reference. The right-hand column is the value being multiplied, so you can</span>
 <span class="c1">#  judge whether a factor of two is a big change or a small one.</span>
 <span class="c1">#</span>
 <span class="c1">#  As an example, BIOMASS_SHARE_FOR_SHIPPING is set to 2.0: shipping gets</span>
@@ -1522,6 +1116,13 @@ repeated in the code comments are a convenience copy of the same thing.</p>
 <span class="c1">#                                                     1.0 = each segment's own growth; 0.0 = trade stays</span>
 <span class="c1">#                                                     at its 2026 volume; -1.0 = it shrinks as fast as it grew</span>
 <span class="c1">#</span>
+
+<span class="n">NO_EU_ETS</span>                  <span class="o">=</span> <span class="kc">False</span>   <span class="c1"># EU ETS taken out; FuelEU and the fuel standard stay</span>
+<span class="n">NO_FUELEU</span>                  <span class="o">=</span> <span class="kc">False</span>   <span class="c1"># FuelEU taken out; EU ETS and the fuel standard stay</span>
+<span class="n">NO_GLOBAL_STANDARD</span>         <span class="o">=</span> <span class="kc">False</span>   <span class="c1"># the global fuel standard taken out; the EU rules stay</span>
+<span class="n">EU_RULES_WORLDWIDE</span>         <span class="o">=</span> <span class="kc">False</span>   <span class="c1"># EU ETS and FuelEU apply to every voyage, not only Europe's</span>
+<span class="n">FREEZE_EFFICIENCY</span>          <span class="o">=</span> <span class="kc">False</span>   <span class="c1"># nothing further gets fitted, newbuild or retrofit</span>
+<span class="c1">#</span>
 <span class="c1">#  GLOBAL_STANDARD_TARGET below 1.0 is a STRICTER limit. The spans are a</span>
 <span class="c1">#  sensible place to start, not a boundary - go outside them, but check the</span>
 <span class="c1">#  answer still makes sense when you do.</span>
@@ -1536,19 +1137,19 @@ repeated in the code comments are a convenience copy of the same thing.</p>
   BIOMASS_SHARE_FOR_SHIPPING x 2.0
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 189 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 198 s
 
                                  reference       yours        change
-  well-to-wake in 2050, Mt/yr          711         618       -13.1 %
-  cumulative, Mt                    25,595      24,939        -2.6 %
-  alternative fuels in 2050, %        51.8        60.3       +8.5 pp
+  well-to-wake in 2050, Mt/yr          711         614       -13.7 %
+  cumulative, Mt                    25,595      24,929        -2.6 %
+  alternative fuels in 2050, %        51.8        60.8       +9.0 pp
 </pre></div>
 </div>
-<img alt="../_images/e7f96db8d8539340ac4528a1e4b6d72be10ca3f1885a149bcabfd9dc912b0656.png" src="../_images/e7f96db8d8539340ac4528a1e4b6d72be10ca3f1885a149bcabfd9dc912b0656.png" />
+<img alt="../_images/93f9e7005d84fd4e1e7d23026ee934f9e218e686ce4b404d6416b94772d11564.png" src="../_images/93f9e7005d84fd4e1e7d23026ee934f9e218e686ce4b404d6416b94772d11564.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>freight rate in 2050: reference 14.7, yours 14.5 USD per thousand cargo-miles (-1.2 %)
 what moved most, in percentage points of the fuel mix:
-  Bio-methane                    +2.7 pp
-  Fuel oil                       -2.2 pp
+  Bio-methane                    +2.8 pp
+  Fuel oil                       -2.3 pp
   LNG                            -1.2 pp
   Blue ammonia                   +0.4 pp
   FAME                           +0.2 pp
@@ -1560,12 +1161,10 @@ what moved most, in percentage points of the fuel mix:
 <section id="advanced-sensitivities">
 <h2>Advanced sensitivities<a class="headerlink" href="#advanced-sensitivities" title="Link to this heading">#</a></h2>
 <p>The levers proposed in the previous section are just a simple example of what can be changed in the model.</p>
-<p>Advanced sensitivities changing other parameters or personalized simulations can be done by:</p>
+<p>Similarly to the previous sessions, advanced sensitivities changing other parameters or personalised simulations can be done by:</p>
 <ul class="simple">
-<li><p>editing the deck in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/workshop_whatif/</span></code> itself,</p></li>
-<li><p>keeping your own variants under <code class="docutils literal notranslate"><span class="pre">simulations/user/</span></code>,</p></li>
-<li><p>building a case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-case.ipynb">Session 5</a> describes (needs a local checkout rather than Colab)</p></li>
-<li><p>you can also check out our <a class="reference external" href="https://github.com/zerocarbonshipping/horizon-zcs/tree/main">Horizon-zcs</a> tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)</p></li>
+<li><p>editing the deck of this session, <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/workshop_whatif/workshop_basecase_mid_regulation.nav</span></code>, or a copy of it under <code class="docutils literal notranslate"><span class="pre">simulations/user/</span></code> (needs a <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation">local installation</a>). Its fuel standard is set in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/0_includes/mid_regulation.inc</span></code>, its time grid in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/workshop_whatif/includes/time_steps_coarse.inc</span></code>; everything else comes from <code class="docutils literal notranslate"><span class="pre">assumptions/</span></code> through its <code class="docutils literal notranslate"><span class="pre">Load</span></code> lines,</p></li>
+<li><p>checking out our <a class="reference external" href="https://github.com/zerocarbonshipping/horizon-zcs/tree/main">Horizon-zcs</a> tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)</p></li>
 </ul>
 </section>
 <section id="regenerate-this-case-yourself">
@@ -1822,16 +1421,11 @@ from the top.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-case">The case</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-ll-do">What you’ll do</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-setup">STEP 1: Setup</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-look-at-the-scenarios">STEP 2: Look at the scenarios</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#see-what-scenarios-are-available">See what scenarios are available</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-first-look-at-the-different-scenarios">A first look at the different scenarios</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-run-the-case-and-see-the-results">STEP 3: Run the case and see the results</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-run-the-case-and-see-the-results">STEP 2: Run the case and see the results</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-this-runs-in-a-minute-or-two">Why this runs in a minute or two</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-sensitivity-analysis">STEP 4: Sensitivity analysis</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-sensitivity-analysis">STEP 3: Sensitivity analysis</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-sensitivities">Advanced sensitivities</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regenerate-this-case-yourself">Regenerate this case yourself</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-prompt-to-write-a-well-functioning-navigate-prompt">A prompt to write a well-functioning Navigate prompt</a></li>
