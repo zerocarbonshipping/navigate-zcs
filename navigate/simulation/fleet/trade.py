@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.fleet.composition import (
-    clean_up_multipliers,
+    consolidate_increments,
     get_multipliers,
     get_trade_capacity,
 )
@@ -85,7 +85,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
         secondary_scrapping = perform_secondary_scrapping(fleet, trade_gap, idx)
         trade_gap += secondary_scrapping
 
-    clean_up_multipliers(fleet)
+    consolidate_increments(fleet)
 
     # reconcile newbuild package shares against per-technology flow caps now that
     # vessel-type counts are known
