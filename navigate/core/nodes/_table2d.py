@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 from scipy.interpolate import interpn
 
-from navigate.core import assign_id, assign_value
+from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribute
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
 from navigate.core.nodes._calculator import _Calculator, evaluate_number
 from navigate.util import is_strictly_increasing
@@ -40,14 +40,17 @@ class _Table2D(_Calculator):
         self._is_convex: bool = False  # set with the table
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE)
     def set_interpolate(self, interpolate: str) -> None:
         """Set the interpolation method used within the table."""
         self._interpolate = assign_id(interpolate, Interpolate2DID)
 
+    @deck_attribute(SECTION_DEFINE)
     def set_extrapolate(self, extrapolate: str) -> None:
         """Set the extrapolation method used beyond the ends of the table."""
         self.extrapolate = assign_id(extrapolate, ExtrapolateID)
 
+    @deck_attribute(SECTION_DEFINE)
     def set_outside(self, outside: NumberInput) -> None:
         """Set the flat extrapolation value used outside the table."""
         self._outside = assign_value(outside, allow_infinite=True)

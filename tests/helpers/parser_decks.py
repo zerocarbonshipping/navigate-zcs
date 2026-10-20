@@ -92,14 +92,10 @@ def emission_holding(reference: str, name: str = "e") -> str:
 
 
 def write_library(
-    data_dir: Path,
-    node_type: str,
-    *,
-    installation: dict[str, str] | None = None,
-    user: dict[str, str] | None = None,
+    data_dir: Path, node_type: str, files: dict[str, str] | None = None
 ) -> Path:
     """
-    Write a two-branch default library holding files of one node type.
+    Write a default library holding files of one node type.
 
     Parameters
     ----------
@@ -107,19 +103,17 @@ def write_library(
         Root of the assumptions tree to write.
     node_type
         The node type folder the files go in.
-    installation, user
-        File stem to file content, for each branch.
+    files
+        File stem to file content.
 
     Returns
     -------
     The assumptions root, ready to pass as the parser's data directory.
     """
-    # mirror the shipped library: both branches carry a directory per node type
-    for branch, files in (("user", user), ("installation", installation)):
-        directory = data_dir / "defaults" / branch / node_type
-        directory.mkdir(parents=True, exist_ok=True)
-        for stem, content in (files or {}).items():
-            (directory / f"{stem}.inc").write_text(content)
+    directory = data_dir / "defaults" / node_type
+    directory.mkdir(parents=True, exist_ok=True)
+    for stem, content in (files or {}).items():
+        (directory / f"{stem}.inc").write_text(content)
     return data_dir
 
 

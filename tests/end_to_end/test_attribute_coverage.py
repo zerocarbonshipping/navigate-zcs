@@ -21,27 +21,25 @@ from pathlib import Path
 
 import pytest
 
-from helpers.simulation import check_invariants, run_simulation
-from navigate.core import enum_
-from navigate.core.enum_ import ReportAccumulationID, ReportReduceID
-from navigate.parser._attributes import (
+from helpers.deck_surface import (
     GENERAL_NODE_ATTRIBUTE_SECTIONS,
     NODE_ATTRIBUTE_SECTIONS,
-)
-from navigate.parser._commands import (
-    _REPORT_COMMANDS,
-    _WILDCARD_DOMAINS,
     NODE_COMMAND_SECTIONS,
 )
-from navigate.parser._keywords import (
-    GENERAL_NODE_CLASS,
-    NODE_CLASS,
-    SECTION_BOTH,
+from helpers.simulation import check_invariants, run_simulation
+from navigate.core import enum_
+from navigate.core.dsl import SECTION_BOTH
+from navigate.core.enum_ import (
+    PORT_ENERGY_DEMANDS,
+    EnergyDemandID,
+    FuelTypeID,
+    ReportAccumulationID,
+    ReportReduceID,
 )
+from navigate.core.node_registry import GENERAL_NODE_CLASS, NODE_CLASS
 from navigate.parser._lark_parser import (
     Assignment,
     Command,
-    EventsBlock,
     GeneralNodeDeclaration,
     IncludeDirective,
     NodeDeclaration,
@@ -53,6 +51,18 @@ from navigate.util import attribute_to_setter
 DECK_DIR = Path(__file__).resolve().parent / "simulations" / "attribute_coverage"
 
 ATTRIBUTES = NODE_ATTRIBUTE_SECTIONS | GENERAL_NODE_ATTRIBUTE_SECTIONS
+
+# the commands whose leading arguments take an ID, with the members each
+# accepts; the value argument that follows them is not listed
+ENUM_COMMAND_ARGUMENTS: dict[str, tuple[type[Enum] | tuple[Enum, ...], ...]] = {
+    "set_slip_fraction": (FuelTypeID,),
+    "set_consumption_ttw": (FuelTypeID,),
+    "set_operational_saving_sea": (EnergyDemandID,),
+    "set_operational_saving_port": (PORT_ENERGY_DEMANDS,),
+    "set_energy_saving": (EnergyDemandID,),
+    "set_external_power": (EnergyDemandID,),
+    "set_power_transfer": (EnergyDemandID, EnergyDemandID),
+}
 
 # ID values the deck cannot write: a deck holds a single BunkerOptions, so it
 # names one solver and one method, and the coverage deck keeps AUTOMATIC so it
@@ -97,10 +107,9 @@ class _DeckUse:
         self.commands: list[tuple[str, str, list[object], bool]] = []
 
         nav_file = DECK_DIR / f"{DECK_DIR.name}.nav"
-        for block in parse_deck_content(nav_file.read_text(encoding="utf-8")):
-            in_events = isinstance(block, EventsBlock)
-
-            for directive in block.directives:
+        deck = parse_deck_content(nav_file.read_text(encoding="utf-8"))
+        for directives, in_events in ((deck.define, False), (deck.events, True)):
+            for directive in directives:
                 # the deck is self-contained: a Load would hide uses from this scan
                 assert isinstance(directive, IncludeDirective), directive
                 self._scan(DECK_DIR / directive.path, in_events)
@@ -174,11 +183,11 @@ def _id_command_arguments() -> dict[tuple[str, int], set[str]]:
     """Map every (command, argument index) that takes an ID to the names it accepts."""
     domains = {
         (command, index): {member.name for member in domain}
-        for command, arguments in _WILDCARD_DOMAINS.items()
+        for command, arguments in ENUM_COMMAND_ARGUMENTS.items()
         for index, domain in enumerate(arguments)
     }
 
-    for command in _REPORT_COMMANDS:
+    for command in NODE_COMMAND_SECTIONS["Report"]:
         cls = NODE_CLASS["Report"]
         parameters = list(inspect.signature(getattr(cls, command)).parameters)
         for argument, ids in (

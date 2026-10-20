@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import (
+    SECTION_DEFINE,
     Scalar,
     as_list,
     as_scalar,
@@ -20,6 +21,8 @@ from navigate.core import (
     assign_value,
     check_curves_are_finite,
     command_assignment_to_boolean_dict,
+    deck_attribute,
+    deck_command,
     write_matching_keys,
 )
 from navigate.core.enum_ import ExtrapolateID
@@ -54,8 +57,10 @@ logger = logging.getLogger(__name__)
 class Producer(Node):
     """A fuel producer: its buildable plants, pipeline, constraints and exports."""
 
+    type = PRODUCER
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, PRODUCER)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.plants: list[Plant]
@@ -101,10 +106,12 @@ class Producer(Node):
         self.current_utilization: float = 0.0
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_plants(self, plants: Plant | list[Plant]) -> None:
         """Set the list of plant types the producer can build."""
         self.plants = assign_reference_list(plants, PLANT, min_length=1, unique=True)
 
+    @deck_attribute()
     def set_minimum_offtake_duration(
         self, minimum_offtake_duration: ForecastArgument
     ) -> None:
@@ -116,6 +123,7 @@ class Producer(Node):
             inclusive_lower=False,
         )
 
+    @deck_attribute(required=True)
     def set_fuel_demand_sensitivity(
         self, fuel_demand_sensitivity: ForecastArgument
     ) -> None:
@@ -127,6 +135,7 @@ class Producer(Node):
             inclusive_lower=False,
         )
 
+    @deck_attribute(required=True)
     def set_fuel_cost_sensitivity(
         self, fuel_cost_sensitivity: ForecastArgument
     ) -> None:
@@ -138,12 +147,14 @@ class Producer(Node):
             inclusive_lower=False,
         )
 
+    @deck_attribute()
     def set_inertia(self, inertia: ForecastArgument) -> None:
         """Set the inertia used in the uptake decision of newbuild plants."""
         self.inertia = assign_value(
             as_scalar(inertia), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
+    @deck_attribute(SECTION_DEFINE)
     def set_initial_capacity(
         self, initial_capacity: ScalarArgument | list[ScalarArgument]
     ) -> None:
@@ -153,6 +164,7 @@ class Producer(Node):
             [as_scalar(entry) for entry in entries], type_=VARIABLE, lower=0.0
         )
 
+    @deck_attribute(SECTION_DEFINE)
     def set_initial_age_distribution(
         self, initial_age_distribution: CurveTableArgument | list[CurveTableArgument]
     ) -> None:
@@ -165,18 +177,21 @@ class Producer(Node):
             allow_expression=False,
         )
 
+    @deck_attribute(required=True)
     def set_maximum_development(self, maximum_development: ForecastArgument) -> None:
         """Set the maximum number of plants that can be developed per year."""
         self.maximum_development = assign_value(
             as_scalar(maximum_development), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
+    @deck_attribute()
     def set_maximum_ramp_up(self, maximum_ramp_up: ForecastArgument) -> None:
         """Set the maximum ramp-up of the development constraint's utilization."""
         self.maximum_ramp_up = assign_value(
             as_scalar(maximum_ramp_up), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
+    @deck_attribute()
     def set_jump_start_fraction(self, jump_start_fraction: ScalarArgument) -> None:
         """Set the jump-start fraction of the supply/demand interaction."""
         self.jump_start_fraction = assign_value(
@@ -184,6 +199,7 @@ class Producer(Node):
         )
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command(SECTION_DEFINE)
     def set_existing_pipeline(
         self, plant_name: str, existing_pipeline: Forecast
     ) -> None:
@@ -200,12 +216,14 @@ class Producer(Node):
             self.existing_pipelines,
         )
 
+    @deck_command()
     def set_allow_plant(self, plant_name: str, allow_plant: str) -> None:
         """Set whether a plant may be built."""
         command_assignment_to_boolean_dict(
             plant_name, allow_plant, self.allow_plant, allow_empty=True
         )
 
+    @deck_command()
     def set_feed_constraint(
         self, feed_name: str, feed_constraint: ForecastArgument
     ) -> None:
@@ -221,6 +239,7 @@ class Producer(Node):
             self.feed_constraints,
         )
 
+    @deck_command()
     def set_export_distribution(
         self, port_name: str, export_distribution: ForecastArgument
     ) -> None:

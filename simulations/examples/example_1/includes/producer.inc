@@ -21,12 +21,12 @@ Producer "producer_methanol_bio" {
 # These numbers can be changed if a lower availability is expected.
 Forecast "feedstock_biomethanol_gasification_constraint" {
     Table = [
-		"01-01-2025"	0.03e6
-		"01-01-2030"	0.15e6
-		"01-01-2035"	0.90e6
-		"01-01-2040"	1.14e6
-		"01-01-2045"	1.26e6
-		"01-01-2050"	1.38e6
+		"01-01-2025",	0.03e6;
+		"01-01-2030",	0.15e6;
+		"01-01-2035",	0.90e6;
+		"01-01-2040",	1.14e6;
+		"01-01-2045",	1.26e6;
+		"01-01-2050",	1.38e6;
     ]
 
 	Extrapolate = LINEAR

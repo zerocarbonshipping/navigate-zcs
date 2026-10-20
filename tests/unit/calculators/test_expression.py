@@ -4,10 +4,10 @@
 """
 The restricted arithmetic behind a deck `<...>` expression.
 
-An expression is parsed with `ast` and evaluated by its own tree, never by
-`eval`: numeric literals, + - * / **, unary signs, and calculator references
-written `Type("name")`. Everything else is refused when the expression is
-built.
+An expression is parsed by the deck grammar and evaluated by its own tree,
+never by `eval`: numeric literals, + - * / **, unary signs, and calculator
+references written `Type("name")`. Everything else is a syntax error when the
+deck is read.
 """
 
 from __future__ import annotations
@@ -15,8 +15,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from navigate.core.expression import Expression
+from navigate.core.expression import Expression, node_references
 from navigate.core.nodes.variable import Variable
+from navigate.exceptions import DeckError
+from navigate.parser._lark_parser import parse_include_content
 
 
 def _variable(name: str, value: float) -> Variable:
@@ -25,17 +27,17 @@ def _variable(name: str, value: float) -> Variable:
     return variable
 
 
-def _resolved(text: str, **values: float) -> Expression:
-    """Build an expression whose Variable references read the given values."""
-    variables = {
-        f'Variable("{name}")': _variable(name, v) for name, v in values.items()
+def _expression(text: str, **values: float) -> Expression:
+    """Build an expression the way the parser does, its Variable references given."""
+    [declaration] = parse_include_content(f'Variable "v" {{\nValue = <{text}>\n}}')
+    syntax = declaration.body[0].value
+    nodes = {
+        r.key: _variable(r.name, values[r.name]) for r in node_references(syntax.root)
     }
-    expression = Expression(text)
+
+    expression = Expression(syntax.text, syntax.root, nodes, _variable("owner", 0.0))
     expression.set_allowed_types("Variable")
-    expression.resolve(
-        _variable("owner", 0.0),
-        lambda reference_string, location: variables[reference_string],
-    )
+    expression.check_consistency()
     return expression
 
 
@@ -57,7 +59,7 @@ def _resolved(text: str, **values: float) -> Expression:
     ids=["precedence", "parentheses", "power", "unary", "division", "sci_literal"],
 )
 def test_arithmetic(text, expected):
-    assert Expression(text).get() == pytest.approx(expected)
+    assert _expression(text).get() == pytest.approx(expected)
 
 
 # evaluates an expression that multiplies two Variables and subtracts 2, with
@@ -65,7 +67,7 @@ def test_arithmetic(text, expected):
 # catches: references swapped or read as 0, so 3 * 4 - 2 gives the wrong number.
 def test_references_read_their_nodes():
     # 3 * 4 - 2 = 10
-    expression = _resolved('Variable("a") * Variable("b") - 2', a=3.0, b=4.0)
+    expression = _expression('Variable("a") * Variable("b") - 2', a=3.0, b=4.0)
 
     assert expression.get() == pytest.approx(10.0)
 
@@ -75,27 +77,27 @@ def test_references_read_their_nodes():
 # catches: a constant returned as a scalar, which breaks code that indexes the
 # result per vessel or per year.
 def test_a_constant_is_broadcast_to_an_array_input():
-    np.testing.assert_array_equal(Expression("2").get(np.arange(3.0)), np.full(3, 2.0))
+    np.testing.assert_array_equal(_expression("2").get(np.arange(3.0)), np.full(3, 2.0))
 
 
 # builds expressions with code injection, attribute access, names, booleans,
 # modulo, `not` and empty text, and expects each to be refused.
-# catches: a parser change that lets `__import__('os')` or other Python through
+# catches: a grammar change that lets `__import__('os')` or other Python through
 # from a deck file.
 @pytest.mark.parametrize(
-    ("text", "exception", "match"),
+    "text",
     [
-        ("__import__('os').system('true')", ValueError, "not a valid node reference"),
-        ('Variable("x").__class__', ValueError, "unsupported syntax"),
+        "__import__('os').system('true')",
+        'Variable("x").__class__',
         # x is an argument of the getter, not a name an expression can read
-        ("x + 1", ValueError, "unsupported syntax"),
-        ("Foo + 1", NotImplementedError, "unable to support references"),
-        ("True", ValueError, "only numeric literals"),
-        ('Variable(name="x")', ValueError, "exactly one positional argument"),
-        ("Variable(1)", ValueError, "argument must be a string literal"),
-        ("5 % 2", ValueError, "unsupported operator"),
-        ("not 1", ValueError, "unsupported unary operator"),
-        ("", ValueError, "Error in expression"),
+        "x + 1",
+        "Foo + 1",
+        "True",
+        'Variable(name="x")',
+        "Variable(1)",
+        "5 % 2",
+        "not 1",
+        "",
     ],
     ids=[
         "code_injection",
@@ -110,6 +112,6 @@ def test_a_constant_is_broadcast_to_an_array_input():
         "empty",
     ],
 )
-def test_syntax_outside_the_arithmetic_is_refused(text, exception, match):
-    with pytest.raises(exception, match=match):
-        Expression(text)
+def test_syntax_outside_the_arithmetic_is_refused(text):
+    with pytest.raises(DeckError):
+        _expression(text)

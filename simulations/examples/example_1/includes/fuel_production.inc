@@ -41,8 +41,8 @@ Import Source "grid"
 # Overwritten from the default values due to our smaller scenario
 Forecast "methanol_bio_gasification_plant_capacity" {
 	Table = [
-		"01-01-2030"	100
-		"01-01-2050"	100
+		"01-01-2030",	100;
+		"01-01-2050",	100;
 	]
 	
 	Extrapolate = LINEAR

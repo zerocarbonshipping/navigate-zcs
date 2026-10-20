@@ -9,11 +9,14 @@ import logging
 from typing import TYPE_CHECKING
 
 from navigate.core import (
+    SECTION_DEFINE,
     Scalar,
     as_scalar,
     assign_boolean,
     assign_id,
     assign_value,
+    deck_attribute,
+    deck_command,
     write_matching_keys,
 )
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
@@ -34,8 +37,10 @@ logger = logging.getLogger(__name__)
 class Regulation(_Policy):
     """A regulation holding policed vessels to an emission threshold in its measure."""
 
+    type = REGULATION
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, REGULATION)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.measure: RegulationMeasureID
@@ -66,38 +71,45 @@ class Regulation(_Policy):
         self.profile: RegulationProfile = RegulationProfile()
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_scheme(self, scheme: str) -> None:
         """Set the scheme of the regulation."""
         self.scheme = assign_id(scheme, RegulationSchemeID)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_measure(self, measure: str) -> None:
         """Set the emission measure of the regulation."""
         self.measure = assign_id(measure, RegulationMeasureID)
 
+    @deck_attribute()
     def set_intra_fraction(self, intra_fraction: ForecastArgument) -> None:
         """Set the fraction of emissions counted for intra-jurisdiction travel."""
         self.intra_fraction = assign_value(
             as_scalar(intra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
+    @deck_attribute()
     def set_inter_fraction(self, inter_fraction: ForecastArgument) -> None:
         """Set the fraction of emissions counted for inter-jurisdiction travel."""
         self.inter_fraction = assign_value(
             as_scalar(inter_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
+    @deck_attribute()
     def set_extra_fraction(self, extra_fraction: ForecastArgument) -> None:
         """Set the fraction of emissions counted for extra-jurisdiction travel."""
         self.extra_fraction = assign_value(
             as_scalar(extra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
+    @deck_attribute()
     def set_remedial_cost(self, remedial_cost: ForecastArgument) -> None:
         """Set the cost of purchasing a remedial compliance unit."""
         self.remedial_cost = assign_value(
             as_scalar(remedial_cost), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
+    @deck_attribute()
     def set_flexibility_horizon(self, flexibility_horizon: ForecastArgument) -> None:
         """Set the decision horizon smoothing the flexibility-cost belief."""
         self.flexibility_horizon = assign_value(
@@ -106,6 +118,7 @@ class Regulation(_Policy):
         self._flexibility_horizon_unreported = True
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command()
     def set_vessel_threshold(
         self, vessel_name: str, threshold: ForecastArgument
     ) -> None:
@@ -116,6 +129,7 @@ class Regulation(_Policy):
             self.vessel_threshold,
         )
 
+    @deck_command()
     def set_vessel_capacity(self, vessel_name: str, capacity: ForecastArgument) -> None:
         """Set the capacity of a specific vessel for use in transport calculations."""
         write_matching_keys(
@@ -124,6 +138,7 @@ class Regulation(_Policy):
             self.vessel_capacity,
         )
 
+    @deck_attribute()
     def set_allow_threshold_adjustment(self, allow_threshold_adjustment: str) -> None:
         """Set whether the threshold is automatically adjusted on non-compliance."""
         self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)

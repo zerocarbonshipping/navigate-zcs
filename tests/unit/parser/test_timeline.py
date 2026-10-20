@@ -4,11 +4,11 @@
 """
 The EVENTS timeline: which dates exist and which statements run at each.
 
-`Start` and `Date` open an event that queues the statements after it, and
-`read_events` replays a date's events in order. The start date is
-always on the timeline, and the `Start` events run before anything dated on
-it. Dates must rise within each include file, may not precede the start date,
-and a default file may not touch the timeline.
+Every `Start` and `Date` read is a time step, and a node block applies at the
+last date read before it in its file; `read_events` replays a date's blocks in
+order. The start date is always on the timeline, and the `Start` blocks run
+before anything dated on it. Dates need no order, may not precede the start
+date, and a default file may not hold one.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 from helpers.parser_decks import FLEET, FUEL, line_of, write_library
-from navigate.exceptions import DeckFormatError
+from navigate.exceptions import DeckError
 from navigate.parser.parser import Parser
 
 
@@ -57,7 +57,8 @@ def _read_with_events(tmp_path, *events_files):
 #           | Date "01-01-2028"
 #           | Converter "propulsion" { Efficiency = 0.3 }
 #           | End
-# expected: -> 2026-01-01 reads 0.4, 2028-01-01 reads 0.3, then the timeline ends
+# expected: -> 2026-01-01 reads 0.4, 2028-01-01 reads 0.3; the End of older
+#              decks is accepted and changes nothing
 def test_each_date_replays_its_events_in_order(read_deck):
     events = (
         "Start\n"
@@ -74,29 +75,22 @@ def test_each_date_replays_its_events_in_order(read_deck):
 
 # input:    | Date "01-01-2027"
 #           | Converter "propulsion" { Efficiency = 0.3 }
-#           | End
 # expected: -> steps 2026-01-01 (still 0.5) and 2027-01-01 (0.3)
 def test_the_start_date_is_on_the_timeline_without_a_start_statement(read_deck):
-    events = 'Date "01-01-2027"\n' + _efficiency(0.3) + "End\n"
+    events = 'Date "01-01-2027"\n' + _efficiency(0.3)
 
     parser = read_deck(FLEET + FUEL, events=events)
 
     assert _run(parser) == [("2026-01-01", 0.5), ("2027-01-01", 0.3)]
 
 
-# input:    | Date "01-01-2026"   Converter "propulsion" { Efficiency = 0.3 }   End
-#           | Start               Converter "propulsion" { Efficiency = 0.4 }   End
+# input:    | Date "01-01-2026"   Converter "propulsion" { Efficiency = 0.3 }
+#           | Start               Converter "propulsion" { Efficiency = 0.4 }
 # expected: -> one step, 2026-01-01 reading 0.3: Start sets 0.4 first, then
 #              the dated event sets 0.3
 def test_start_events_run_before_events_dated_on_the_start_date(read_deck):
     # the dated event comes first in the file, but the Start one replays first
-    events = (
-        'Date "01-01-2026"\n'
-        + _efficiency(0.3)
-        + "End\nStart\n"
-        + _efficiency(0.4)
-        + "End\n"
-    )
+    events = 'Date "01-01-2026"\n' + _efficiency(0.3) + "Start\n" + _efficiency(0.4)
 
     parser = read_deck(FLEET + FUEL, events=events)
 
@@ -107,7 +101,7 @@ def test_start_events_run_before_events_dated_on_the_start_date(read_deck):
 # expected: -> dates are 2026-01-01 and 2027-01-01
 @pytest.mark.parametrize("date", ["01-01-2027", "01/01/2027", "2027-01-01"])
 def test_a_date_statement_takes_each_date_format(read_deck, date):
-    parser = read_deck(FLEET + FUEL, events=f'Date "{date}"\nEnd\n')
+    parser = read_deck(FLEET + FUEL, events=f'Date "{date}"\n')
 
     assert list(parser.dates) == [
         np.datetime64("2026-01-01"),
@@ -116,103 +110,80 @@ def test_a_date_statement_takes_each_date_format(read_deck, date):
 
 
 # input:    | events_0.inc: Date "01-01-2028"   Efficiency = 0.2
-#           | events_1.inc: Date "01-01-2027"   Efficiency = 0.3
-# expected: -> steps 2026 (0.5), 2027 (0.3), 2028 (0.2)
+#           |               Date "01-01-2027"   Efficiency = 0.3
+#           | events_1.inc: Date "01-01-2029"   Efficiency = 0.1
+# expected: -> steps 2026 (0.5), 2027 (0.3), 2028 (0.2), 2029 (0.1): the dates
+#              of every file merge into one sorted timeline, in any order
 def test_dates_of_separate_files_merge_into_one_sorted_timeline(tmp_path):
     parser = _read_with_events(
         tmp_path,
-        'Date "01-01-2028"\n' + _efficiency(0.2) + "End\n",
-        'Date "01-01-2027"\n' + _efficiency(0.3) + "End\n",
+        'Date "01-01-2028"\n'
+        + _efficiency(0.2)
+        + 'Date "01-01-2027"\n'
+        + _efficiency(0.3),
+        'Date "01-01-2029"\n' + _efficiency(0.1),
     )
 
     assert _run(parser) == [
         ("2026-01-01", 0.5),
         ("2027-01-01", 0.3),
         ("2028-01-01", 0.2),
+        ("2029-01-01", 0.1),
     ]
 
 
-# input:    | Date "01-01-2028"
-#           | Date "01-01-2027"   (or "01-01-2028" again)
-# expected: -> DeckFormatError "...events.inc', line 2: Dates must be ordered
-#              chronologically within individual include files."
-@pytest.mark.parametrize(
-    "second", ["01-01-2027", "01-01-2028"], ids=["earlier", "equal"]
-)
-def test_a_date_not_after_the_previous_one_in_a_file_is_rejected(
-    tmp_path, read_deck, second
-):
-    events = f'Date "01-01-2028"\nDate "{second}"\nEnd\n'
-
-    with pytest.raises(
-        DeckFormatError,
-        match=(
-            r"^Error in deck file, line 2, include file '.*events\.inc', line 2: "
-            r"Dates must be ordered chronologically within individual include "
-            r"files\.$"
-        ),
-    ):
-        read_deck(FLEET + FUEL, events=events)
-
-
 # input:    | StartDate = "01-01-2026"   and in EVENTS   Date "01-01-2025"
-# expected: -> DeckFormatError "Inconsistent timeline detected: ... Date
-#              '2025-01-01' is before start date '2026-01-01' ..."
-def test_a_date_before_the_start_date_is_rejected(tmp_path, read_deck):
-    events = 'Date "01-01-2025"\nEnd\n'
+# expected: -> DeckError "Inconsistent timeline detected: ... Date '2025-01-01'
+#              is before start date '2026-01-01' ..."
+def test_a_date_before_the_start_date_is_rejected(read_deck):
+    with pytest.raises(DeckError) as error:
+        read_deck(FLEET + FUEL, events='Date "01-01-2025"\n')
 
-    with pytest.raises(DeckFormatError) as error:
-        read_deck(FLEET + FUEL, events=events)
-
-    events_file = tmp_path / "events.inc"
     assert str(error.value) == (
         "Inconsistent timeline detected:\n"
-        f"\t- NAV file, line 2, include file '{events_file}', line 1: Date "
-        "'2025-01-01' is before start date '2026-01-01'\n"
+        "\t- Date '2025-01-01' is before start date '2026-01-01'\n"
         "All defined dates must be later than the start date."
     )
 
 
-# input:    | Date "01-01-2027"
-#           | Start
-# expected: -> DeckFormatError "...events.inc', line 2: Unable to start a new
-#              timeline while one is in progress."
-def test_a_start_inside_an_open_timeline_is_rejected(read_deck):
-    events = 'Date "01-01-2027"\nStart\nEnd\n'
+# input:    | Converter "propulsion" { Efficiency = 0.3 }
+#           | Date "01-01-2027"
+# expected: -> DeckError "...events.inc', line 1: A node block under EVENTS must
+#              follow a Start or Date keyword."
+def test_a_block_before_any_date_is_rejected(read_deck):
+    events = _efficiency(0.3) + 'Date "01-01-2027"\n'
 
     with pytest.raises(
-        DeckFormatError,
+        DeckError,
         match=(
-            r"events\.inc', line 2: Unable to start a new timeline while one is "
-            r"in progress\.$"
+            r"events\.inc', line 1: A node block under EVENTS must follow a Start "
+            r"or Date keyword\.$"
         ),
     ):
         read_deck(FLEET + FUEL, events=events)
 
 
 # input:    | EVENTS: Date "01-01-2027"   Efficiency = Variable("lib")
-#           | defaults/installation/Variable/lib.inc:
+#           | defaults/Variable/lib.inc:
 #           |   Date "01-01-2030"
 #           |   Variable "lib" { Value = 0.4 }
-# expected: -> DeckFormatError "Error while retrieving default, ... lib.inc',
-#              line 1: Unable to alter timeline while retrieving default nodes."
+# expected: -> DeckError "... lib.inc', line 1: 'Date' is not allowed in the
+#              DEFINE section." when the deck is read: a library file is read
+#              under DEFINE, whichever section references it
 def test_a_default_file_touching_the_timeline_is_rejected(tmp_path, read_deck):
-    # the EVENTS reference pulls the Variable when its date comes up, so the
-    # default file is read in EVENTS, where Date is a known keyword
     library = write_library(
         tmp_path / "data",
         "Variable",
-        installation={"lib": 'Date "01-01-2030"\nVariable "lib" { Value = 0.4 }\n'},
+        {"lib": 'Date "01-01-2030"\nVariable "lib" { Value = 0.4 }\n'},
     )
-    events = 'Date "01-01-2027"\n' + _efficiency('Variable("lib")') + "End\n"
-    parser = read_deck(FLEET + FUEL, events=events, data_dir=library)
+    events = 'Date "01-01-2027"\n' + _efficiency('Variable("lib")')
 
-    library_file = tmp_path / "data/defaults/installation/Variable/lib.inc"
-    with pytest.raises(DeckFormatError) as error:
-        parser.read_events(parser.dates[1])
+    library_file = tmp_path / "data/defaults/Variable/lib.inc"
+    with pytest.raises(DeckError) as error:
+        read_deck(FLEET + FUEL, events=events, data_dir=library)
 
     assert str(error.value) == (
-        f"Error while retrieving default, include file '{library_file}', line "
-        f"{line_of(library_file, 'Date')}: Unable to alter timeline while "
-        "retrieving default nodes."
+        f"Error in deck file, line 2, include file '{library_file}', line "
+        f"{line_of(library_file, 'Date')}: 'Date' is not allowed in the DEFINE "
+        "section."
     )

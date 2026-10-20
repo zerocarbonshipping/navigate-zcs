@@ -5,35 +5,35 @@
 
 Curve "uptake_exhaust_gas_boiler_ae_bulk_carrier_handy" {
 	Table = [
-		0	0.125
-		30	0.125
+		0,	0.125;
+		30,	0.125;
 	]
 }
 
 Curve "uptake_hull_painting_bulk_carrier_handy" {
 	Table = [
-		0	0.1
-		30	0.1
+		0,	0.1;
+		30,	0.1;
 	]
 }
 
 Curve "uptake_lighting_system_bulk_carrier_handy" {
 	Table = [
-		0	0.5
-		30	0.5
+		0,	0.5;
+		30,	0.5;
 	]
 }
 
 Curve "uptake_propeller_improvement_devices_bulk_carrier_handy" {
 	Table = [
-		0	0.25
-		30	0.25
+		0,	0.25;
+		30,	0.25;
 	]
 }
 
 Curve "uptake_variable_frequency_drive_bulk_carrier_handy" {
 	Table = [
-		0	0.25
-		30	0.25
+		0,	0.25;
+		30,	0.25;
 	]
 }

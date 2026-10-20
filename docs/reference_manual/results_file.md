@@ -37,7 +37,7 @@ below 1e-5 in magnitude or missing is left out.
 | `key1` | string or missing | First key of a result kept per fuel, fuel type, vessel, ... |
 | `key2` | string or missing | Second key of a result kept per pair, e.g. (fuel, emission) |
 | `date` | date | Date of the time step |
-| `value` | float or missing | Value; `true`/`false` results are 1 and 0. Missing marks a value that is not set or has no bound, such as a feed constraint without limit |
+| `value` | 32-bit float or missing | Value, to about seven significant digits; `true`/`false` results are 1 and 0. Missing marks a value that is not set or has no bound, such as a feed constraint without limit |
 
 Keys that are identifiers, such as fuel types or energy demand types, are
 written by name (`OIL`, `PROPULSION`, see [Appendix: IDs](appendix_ids.md)). The
@@ -57,7 +57,7 @@ The Parquet key-value metadata holds a JSON document under the key `navigate`:
 
 | Key | Content |
 |---|---|
-| `schema_version` | Version of this layout, currently `2`. It changes when a reader has to change. |
+| `schema_version` | Version of this layout, currently `3`. It changes when a reader has to change. |
 | `navigate_version` | Navigate version that wrote the file |
 | `deck` | Name of the deck |
 | `created` | Time the file was written, UTC, ISO 8601 |

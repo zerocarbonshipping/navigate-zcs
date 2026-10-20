@@ -27,14 +27,14 @@ Surface "speed_power_draft_surface" {
     Table = [
         # first row is y-axis
         # first column is x-axis
-           0.0 1.0  # CargoUtilization (0-1) is used as a proxy for draft
-        9  3.2 4.1
-        10 4.4 5.8
-        11 5.9 7.8
-        12 7.7 10.1
-        13 9.8 13.2
-        14 12.6 16.6
-        15 15.7 19.1
+           0.0, 1.0;  # CargoUtilization (0-1) is used as a proxy for draft
+        9,  3.2, 4.1;
+        10, 4.4, 5.8;
+        11, 5.9, 7.8;
+        12, 7.7, 10.1;
+        13, 9.8, 13.2;
+        14, 12.6, 16.6;
+        15, 15.7, 19.1;
     ]
     
     Extrapolate = FLAT

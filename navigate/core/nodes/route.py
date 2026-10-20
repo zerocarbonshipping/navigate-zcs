@@ -11,12 +11,15 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import (
+    SECTION_DEFINE,
     Expression,
     Scalar,
     as_scalar,
     assign_id,
     assign_reference_list,
     assign_value,
+    deck_attribute,
+    deck_command,
     write_matching_keys,
 )
 from navigate.core.enum_ import RouteTypeID
@@ -46,8 +49,10 @@ if TYPE_CHECKING:
 class Route(Node):
     """The ports a vessel calls at and the legs and sailing conditions between them."""
 
+    type = ROUTE
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, ROUTE)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.route_type: RouteTypeID
@@ -76,14 +81,17 @@ class Route(Node):
         self.conditions_per_leg: tuple[int, ...]
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_route_type(self, route_type: str) -> None:
         """Set the route type."""
         self.route_type = assign_id(route_type, RouteTypeID)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_ports(self, ports: Port | list[Port]) -> None:
         """Set the list of ports available for bunkering on the route."""
         self.ports = assign_reference_list(ports, PORT, min_length=1)
 
+    @deck_attribute()
     def set_time_at_sea(self, time_at_sea: ForecastArgument) -> None:
         """Set the fraction of time spent at sea."""
         self.time_at_sea = assign_value(
@@ -95,6 +103,7 @@ class Route(Node):
         )
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command()
     def set_speed(
         self, port_name_from: str, port_name_to: str, speed: CurveArgument
     ) -> None:
@@ -116,6 +125,7 @@ class Route(Node):
 
         self._write_legs((port_name_from, port_name_to), value, self.speeds)
 
+    @deck_command()
     def set_utilization(
         self, port_name_from: str, port_name_to: str, utilization: CurveForecastArgument
     ) -> None:
@@ -137,6 +147,7 @@ class Route(Node):
             self.utilizations,
         )
 
+    @deck_command(SECTION_DEFINE)
     def set_distance(
         self, port_name_from: str, port_name_to: str, distance: NumberInput
     ) -> None:
@@ -149,6 +160,7 @@ class Route(Node):
             self.distances,
         )
 
+    @deck_command()
     def set_port_duration(
         self, port_name_from: str, port_name_to: str, port_duration: ForecastArgument
     ) -> None:
@@ -163,6 +175,7 @@ class Route(Node):
             self.port_durations,
         )
 
+    @deck_command()
     def set_voyage_distribution(
         self, port_name_from: str, port_name_to: str, fraction: ScalarArgument
     ) -> None:
@@ -175,6 +188,7 @@ class Route(Node):
             self.voyage_distribution,
         )
 
+    @deck_command()
     def set_port_calls(self, port_name: str, port_calls: ForecastArgument) -> None:
         """Set the number of calls at a port over the reference year."""
         self._check_route_type(RouteTypeID.TRAMP)

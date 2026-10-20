@@ -8,11 +8,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core import (
+    SECTION_DEFINE,
     Scalar,
     as_scalar,
     assign_boolean,
     assign_id,
     assign_value,
+    deck_attribute,
+    deck_command,
     write_matching_keys,
 )
 from navigate.core.enum_ import FuelTypeID
@@ -27,8 +30,10 @@ if TYPE_CHECKING:
 class Fuel(Node):
     """A fuel: its type, market, heating value, density and TTW emission factors."""
 
+    type = FUEL
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, FUEL)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         # definition
@@ -43,14 +48,17 @@ class Fuel(Node):
         self.ttw: dict[str, ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_fuel_type(self, fuel_type: str) -> None:
         """Set the fuel type of the fuel."""
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
+    @deck_attribute(SECTION_DEFINE)
     def set_liquid_market(self, liquid_market: str) -> None:
         """Set whether the fuel belongs to a liquid market."""
         self.liquid_market = assign_boolean(liquid_market)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_lower_heating_value(self, lower_heating_value: ScalarArgument) -> None:
         """Set the lower heating value of the fuel."""
         self.lower_heating_value = assign_value(
@@ -60,6 +68,7 @@ class Fuel(Node):
             inclusive_lower=False,
         )
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_mass_density(self, mass_density: ScalarArgument) -> None:
         """Set the mass density of the fuel."""
         self.mass_density = assign_value(
@@ -70,6 +79,7 @@ class Fuel(Node):
         )
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command(SECTION_DEFINE)
     def set_ttw(self, emission_name: str, ttw: ScalarArgument) -> None:
         """Set the TTW emission factor of the fuel for an emission."""
         write_matching_keys(

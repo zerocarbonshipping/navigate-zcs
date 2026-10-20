@@ -5,7 +5,7 @@
 The parser raises for a required attribute no DEFINE assignment reached.
 
 `BASE` declares one node of every type with required attributes, each
-reachable from a root so the unreachable-node prune keeps it, and each
+reachable from a root so the parser builds it, and each
 assigned every attribute `NODE_REQUIRED_ATTRIBUTES` requires of it. Every
 required attribute is then dropped from it in turn, and the deck read must
 name exactly that one: the check reports the first unassigned attribute it
@@ -21,16 +21,16 @@ import re
 
 import pytest
 
-from navigate.core.enum_ import SectionID
-from navigate.exceptions import DeckFormatError, UnassignedAttributeError
-from navigate.parser._attributes import (
+from helpers.deck_surface import (
     GENERAL_NODE_ATTRIBUTE_SECTIONS,
     GENERAL_NODE_REQUIRED_ATTRIBUTES,
     NODE_ATTRIBUTE_SECTIONS,
     NODE_REQUIRED_ATTRIBUTES,
 )
+from navigate.core.enum_ import SectionID
+from navigate.exceptions import DeckError, UnassignedAttributeError
 
-TABLE_1D = "Table = [\n        0 1\n        1 1\n    ]"
+TABLE_1D = "Table = [\n        0, 1;\n        1, 1;\n    ]"
 
 # (node type, name, body items); every non-root node hangs off a root:
 # Fleet -> Vessel -> PowerSystem/Converter, Route/Port, Tank, Surface;
@@ -66,7 +66,11 @@ BASE = [
         ],
     ),
     ("Tank", "t", ["FuelTypes = OIL", "Size = 100"]),
-    ("Surface", "s", ["Table = [\n        0 1\n        0 1 2\n        1 3 4\n    ]"]),
+    (
+        "Surface",
+        "s",
+        ["Table = [\n        0, 1;\n        0, 1, 2;\n        1, 3, 4;\n    ]"],
+    ),
     (
         "Vessel",
         "v",
@@ -117,8 +121,8 @@ BASE = [
         "Timetable",
         "tt",
         [
-            "Table = [\n        0 1\n        "
-            '"01-01-2026" 1 2\n        "01-01-2030" 1 2\n    ]'
+            "Table = [\n        0, 1;\n        "
+            '"01-01-2026", 1, 2;\n        "01-01-2030", 1, 2;\n    ]'
         ],
     ),
     ("Region", "rgn", ['set_process_capex("p", Timetable("tt"))']),
@@ -233,10 +237,10 @@ def test_a_missing_required_general_node_attribute_is_named(
 
 
 # input:    | a DEFINE section holding only a Fuel, no ModelDefinition block
-# expected: -> DeckFormatError "Error in simulation: 'ModelDefinition' must be defined."
+# expected: -> DeckError "Error in simulation: 'ModelDefinition' must be defined."
 def test_a_deck_without_a_model_definition_is_rejected(read_deck):
     with pytest.raises(
-        DeckFormatError,
+        DeckError,
         match=r"^Error in simulation: 'ModelDefinition' must be defined\.$",
     ):
         read_deck(_fuel(), define_base="")
@@ -245,8 +249,9 @@ def test_a_deck_without_a_model_definition_is_rejected(read_deck):
 # input:    | Fuel "f" { ... }
 #           | Curve "unused" {
 #           | }                    (no Table, and nothing references the Curve)
-# expected: -> no error; the Curve is pruned before its missing Table is checked
-def test_an_unreachable_node_is_pruned_before_the_check(read_deck):
+# expected: -> no error; the Curve is never built, so its missing Table is not
+#              checked
+def test_an_unreachable_node_is_left_out_before_the_check(read_deck):
     # the Curve misses its required Table, but no root reaches it
     parser = read_deck(_fuel() + 'Curve "unused" {\n}\n')
 

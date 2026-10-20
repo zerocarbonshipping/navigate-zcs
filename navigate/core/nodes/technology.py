@@ -12,6 +12,8 @@ from navigate.core import (
     as_scalar,
     assign_id,
     assign_value,
+    deck_attribute,
+    deck_command,
     write_matching_key_pairs,
     write_matching_keys,
 )
@@ -37,8 +39,10 @@ PROPULSION, ELECTRICAL, HEAT = (
 class Technology(_Machinery):
     """An energy saving, external power or power transfer installable on a vessel."""
 
+    type = TECHNOLOGY
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, TECHNOLOGY)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.shore_power_capacity: ScalarInput = Scalar(0.0)
@@ -57,6 +61,7 @@ class Technology(_Machinery):
         }
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute()
     def set_shore_power_capacity(self, capacity: ScalarArgument) -> None:
         """Set the vessel-side shore power connection capacity."""
         self.shore_power_capacity = assign_value(
@@ -64,6 +69,7 @@ class Technology(_Machinery):
         )
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command()
     def set_energy_saving(self, energy_type: str, saving: ScalarArgument) -> None:
         """Set the fraction of the raw energy demand the technology saves."""
         value_ = assign_value(as_scalar(saving), type_=VARIABLE, lower=0.0)
@@ -71,6 +77,7 @@ class Technology(_Machinery):
         id_ = assign_id(energy_type, EnergyDemandID)
         write_matching_keys(id_, value_, self.energy_saving)
 
+    @deck_command()
     def set_external_power(self, energy_type: str, power: ScalarArgument) -> None:
         """Set the external power the technology supplies to an energy demand type."""
         value_ = assign_value(as_scalar(power), type_=VARIABLE, lower=0.0)
@@ -78,15 +85,15 @@ class Technology(_Machinery):
         id_ = assign_id(energy_type, EnergyDemandID)
         write_matching_keys(id_, value_, self.external_power)
 
+    @deck_command()
     def set_power_transfer(
         self, power_system_id: str, energy_id: str, transfer: CurveArgument
     ) -> None:
         """Set the power transferred from a source energy type to a sink energy type."""
         value_ = assign_value(as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0)
 
-        power_system_id_ = assign_id(power_system_id, EnergyDemandID)
-        energy_id_ = assign_id(energy_id, EnergyDemandID)
-
-        write_matching_key_pairs(
-            (power_system_id_, energy_id_), value_, self.power_transfer
+        key = (
+            assign_id(power_system_id, EnergyDemandID),
+            assign_id(energy_id, EnergyDemandID),
         )
+        write_matching_key_pairs(key, value_, self.power_transfer)

@@ -11,6 +11,7 @@ from navigate.core import (
     Scalar,
     as_scalar,
     assign_value,
+    deck_command,
     write_matching_key_pairs,
     write_matching_keys,
 )
@@ -34,8 +35,10 @@ if TYPE_CHECKING:
 class Region(Node):
     """A fuel-producing region: its process, source, feedstock and transport inputs."""
 
+    type = REGION
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, REGION)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         # process
@@ -60,6 +63,7 @@ class Region(Node):
         self.transport_wtt: dict[tuple[str, str], ForecastInput] = {}
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command()
     def set_process_capex(self, process_name: str, value: TimetableArgument) -> None:
         """Set the CAPEX of a production process."""
         write_matching_keys(
@@ -70,6 +74,7 @@ class Region(Node):
             self.process_capex,
         )
 
+    @deck_command()
     def set_process_opex(self, process_name: str, value: TimetableArgument) -> None:
         """Set the OPEX of a production process."""
         write_matching_keys(
@@ -78,6 +83,7 @@ class Region(Node):
             self.process_opex,
         )
 
+    @deck_command()
     def set_process_energy(self, process_name: str, value: ForecastArgument) -> None:
         """Set the energy demand of a production process."""
         write_matching_keys(
@@ -86,6 +92,7 @@ class Region(Node):
             self.process_energy,
         )
 
+    @deck_command()
     def set_process_lifetime(self, process_name: str, value: ForecastArgument) -> None:
         """Set the lifetime of a production process."""
         write_matching_keys(
@@ -99,6 +106,7 @@ class Region(Node):
             self.process_lifetime,
         )
 
+    @deck_command()
     def set_process_replacement(
         self, process_name: str, value: ForecastArgument
     ) -> None:
@@ -111,6 +119,7 @@ class Region(Node):
             self.process_replacement,
         )
 
+    @deck_command()
     def set_process_wtt(
         self, process_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
@@ -121,6 +130,7 @@ class Region(Node):
             self.process_wtt,
         )
 
+    @deck_command()
     def set_source_capex(self, source_name: str, value: ForecastArgument) -> None:
         """Set the CAPEX of a source."""
         write_matching_keys(
@@ -129,6 +139,7 @@ class Region(Node):
             self.source_capex,
         )
 
+    @deck_command()
     def set_source_opex(self, source_name: str, value: ForecastArgument) -> None:
         """Set the OPEX of a source."""
         write_matching_keys(
@@ -137,6 +148,7 @@ class Region(Node):
             self.source_opex,
         )
 
+    @deck_command()
     def set_source_wtt(
         self, source_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
@@ -147,6 +159,7 @@ class Region(Node):
             self.source_wtt,
         )
 
+    @deck_command()
     def set_feedstock_cost(self, feedstock_name: str, value: ForecastArgument) -> None:
         """Set the cost of a feedstock."""
         write_matching_keys(
@@ -155,6 +168,7 @@ class Region(Node):
             self.feedstock_cost,
         )
 
+    @deck_command()
     def set_feedstock_wtt(
         self, feedstock_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
@@ -165,6 +179,7 @@ class Region(Node):
             self.feedstock_wtt,
         )
 
+    @deck_command()
     def set_transport_cost(self, transport_name: str, value: ForecastArgument) -> None:
         """Set the cost of a transport."""
         write_matching_keys(
@@ -173,6 +188,7 @@ class Region(Node):
             self.transport_cost,
         )
 
+    @deck_command()
     def set_transport_wtt(
         self, transport_name: str, emission_name: str, value: ForecastArgument
     ) -> None:

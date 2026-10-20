@@ -51,7 +51,14 @@ def test_curve_refuses_a_table(rows, match):
 # every value shifts by 30 days.
 def test_dated_forecast_is_rebased_to_the_start_date():
     forecast = Forecast("f")
-    forecast.set_table(TableData(rows=[["01-01-2026", 0.0], ["01-01-2027", 365.0]]))
+    forecast.set_table(
+        TableData(
+            rows=[
+                [np.datetime64("2026-01-01"), 0.0],
+                [np.datetime64("2027-01-01"), 365.0],
+            ]
+        )
+    )
     forecast.replace_reference_table(np.datetime64("2025-12-02"))
 
     # 2 Dec 2025 -> 1 Jan 2026 is 30 days, so the rows sit at day 30 and 395

@@ -4,15 +4,11 @@
 """
 The DEFINE and EVENTS sections of a deck, and which keywords each one accepts.
 
-A deck holds one DEFINE block, then one EVENTS block. `KEYWORD_SECTIONS` lists
-the sections every keyword may appear in; each keyword is tried in every
-section, so a keyword added to the table is covered without a new case here.
-
-A keyword is accepted where the parser registers what it declares, read
-through the parser's own section walk; a full deck read would also run the
-required-attribute and reachability checks, which an empty declaration fails
-for reasons that are not the keyword's. A keyword is rejected where a deck
-read stops at it, with its location.
+A deck holds one DEFINE block, then one EVENTS block; the grammar refuses any
+other shape. A node block is read in either section, where EVENTS re-opens a
+node DEFINE declared. The other keywords belong to one section: Copy, Import
+and the general nodes to DEFINE, Start, Date and End to EVENTS. A keyword in
+the wrong section is rejected with its location.
 """
 
 from __future__ import annotations
@@ -23,18 +19,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 
+from helpers.parser_decks import FLEET, FUEL, emission_holding, variable, write_library
 from navigate.core.enum_ import SectionID
-from navigate.exceptions import DeckFormatError, DeckKeywordError
-from navigate.parser._keywords import (
-    DATE,
-    END,
-    GENERAL_NODE_GROUP,
-    KEYWORD_SECTIONS,
-    NODE_GROUP,
-    START,
-    node_group,
-)
-from navigate.parser._lark_parser import parse_include_content
+from navigate.exceptions import DeckError
 from navigate.parser.parser import Parser
 
 if TYPE_CHECKING:
@@ -45,39 +32,24 @@ EVENTS = SectionID.EVENTS
 
 MODEL_DEFINITION = '\nModelDefinition {\n    StartDate = "01-01-2026"\n}\n'
 
-SECTION_ORDER = (
-    "Each section can only be defined once and must be read in the order "
-    "DEFINE, EVENTS."
-)
-BOTH_SECTIONS = "Both a DEFINE and an EVENTS block must be defined in the deck."
+# the keywords of one section, each with a statement using it
+SECTION_KEYWORDS = {
+    DEFINE: {
+        "Copy": 'Copy Variable "v" "w"\n',
+        "Import": 'Import Variable "lib"\n',
+        "BunkerOptions": "BunkerOptions {\n}\n",
+    },
+    EVENTS: {"Start": "Start\n", "Date": 'Date "01-01-2030"\n', "End": "End\n"},
+}
 
-# the text of one use of each timeline keyword
-TIMELINE_STATEMENT = {START: "Start\n", DATE: 'Date "01-01-2030"\n', END: "End\n"}
-
-
-def _statement(keyword: str) -> str:
-    """Return a minimal statement using a keyword."""
-    if keyword in NODE_GROUP:
-        return f'{keyword} "n" {{\n}}\n'
-    if keyword in GENERAL_NODE_GROUP:
-        return f"{keyword} {{\n}}\n"
-    return TIMELINE_STATEMENT[keyword]
+# a declared Variable a root holds, for the DEFINE keywords to act on
+VARIABLE = emission_holding('Variable("v")') + variable(Value=1.0)
 
 
-def _keyword_cases(allowed: bool) -> list[tuple[str, SectionID]]:
+def _keyword_cases(section: SectionID) -> list[tuple[str, str]]:
     return [
-        (keyword, section)
-        for keyword, sections in KEYWORD_SECTIONS.items()
-        for section in (DEFINE, EVENTS)
-        if (section in sections) == allowed
+        (keyword, statement) for keyword, statement in SECTION_KEYWORDS[section].items()
     ]
-
-
-def _walk(parser: Parser, section: SectionID, text: str) -> None:
-    """Read include text into a section the way a deck's block reads it."""
-    parser._begin_reading_section(section)
-    parser._process_statements(parse_include_content(text, file=f"{section.name}.inc"))
-    parser._end_reading_section(section)
 
 
 def _read_nav(tmp_path: Path, nav: str) -> Parser:
@@ -99,8 +71,8 @@ def _read_nav(tmp_path: Path, nav: str) -> Parser:
 #           | DEFINE {
 #           |   Include "define.inc"
 #           | }
-# expected: -> DeckFormatError "...: Each section can only be defined once and must
-#              be read in the order DEFINE, EVENTS."
+# expected: -> DeckError "In file '.../deck.nav', line 1: ..." (a syntax error:
+#              a deck is one DEFINE block followed by one EVENTS block)
 @pytest.mark.parametrize(
     "nav",
     [
@@ -108,28 +80,22 @@ def _read_nav(tmp_path: Path, nav: str) -> Parser:
         'DEFINE {\n  Include "define.inc"\n}\nDEFINE {\n}\nEVENTS {\n}\n',
         'DEFINE {\n  Include "define.inc"\n}\nEVENTS {\n}\nEVENTS {\n}\n',
         'DEFINE {\n  Include "define.inc"\n}\nEVENTS {\n}\nDEFINE {\n}\n',
+        "",
+        'DEFINE {\n  Include "define.inc"\n}\n',
+        "EVENTS {\n}\n",
     ],
-    ids=["events_first", "two_defines", "two_events", "define_after_events"],
+    ids=[
+        "events_first",
+        "two_defines",
+        "two_events",
+        "define_after_events",
+        "empty_deck",
+        "no_events",
+        "no_define",
+    ],
 )
 def test_one_define_block_then_one_events_block(tmp_path, nav):
-    # the deck line the message names is not pinned: it is the last directive
-    # read before the offending block, not the block itself
-    with pytest.raises(DeckFormatError, match=rf": {re.escape(SECTION_ORDER)}$"):
-        _read_nav(tmp_path, nav)
-
-
-# input:    | DEFINE {
-#           |   Include "define.inc"
-#           | }                          (no EVENTS block)
-# expected: -> DeckFormatError "Both a DEFINE and an EVENTS block must be defined in
-#              the deck."
-@pytest.mark.parametrize(
-    "nav",
-    ["", 'DEFINE {\n  Include "define.inc"\n}\n', "EVENTS {\n}\n"],
-    ids=["empty_deck", "no_events", "no_define"],
-)
-def test_a_deck_has_both_blocks(tmp_path, nav):
-    with pytest.raises(DeckFormatError, match=f"^{re.escape(BOTH_SECTIONS)}$"):
+    with pytest.raises(DeckError, match=r"^In file '.*deck\.nav', line \d+:"):
         _read_nav(tmp_path, nav)
 
 
@@ -147,7 +113,7 @@ def test_a_missing_deck_is_named(tmp_path):
 # input:    | DEFINE {
 #           |   Include "missing.inc"
 #           | }
-# expected: -> FileNotFoundError "Error in deck file, line 2: Include file
+# expected: -> DeckError "Error in deck file, line 2: Include file
 #              '.../missing.inc' not found."
 def test_a_missing_include_is_named_with_its_deck_line(tmp_path):
     message = (
@@ -155,7 +121,7 @@ def test_a_missing_include_is_named_with_its_deck_line(tmp_path):
         "not found."
     )
 
-    with pytest.raises(FileNotFoundError, match=f"^{re.escape(message)}$"):
+    with pytest.raises(DeckError, match=f"^{re.escape(message)}$"):
         _read_nav(tmp_path, 'DEFINE {\n  Include "missing.inc"\n}\nEVENTS {\n}\n')
 
 
@@ -186,100 +152,110 @@ def test_an_include_path(tmp_path, include):
 # ── keywords by section ───────────────────────────────────────────────────────
 
 
-# input:    | e.g. Fleet "n" { }   in DEFINE, then again in EVENTS
-# expected: -> accepted in both; EVENTS re-opens the same Fleet "n" instead of
-#              making a new one
-@pytest.mark.parametrize(("keyword", "section"), _keyword_cases(allowed=True))
-def test_a_keyword_is_accepted_in_its_sections(keyword, section):
-    parser = Parser()
-    statement = _statement(keyword)
+# input:    | Fleet "fleet" { ... }   in DEFINE, then
+#           | Fleet "fleet" { Memory = 0.3 }   in EVENTS after Start
+# expected: -> accepted in both; EVENTS re-opens the same Fleet "fleet" instead
+#              of making a new one, so its Memory reads 0.3 at the start date
+def test_a_node_block_is_accepted_in_both_sections(read_deck):
+    parser = read_deck(FLEET + FUEL, events='Start\nFleet "fleet" { Memory = 0.3 }\n')
+    node = parser.nodes.fleets["fleet"]
 
-    if keyword in NODE_GROUP:
-        # EVENTS creates no node, so it re-opens one DEFINE declared
-        _walk(parser, DEFINE, statement)
-        node = node_group(parser.nodes, keyword)["n"]
-        if section == EVENTS:
-            _walk(parser, EVENTS, statement)
+    parser.read_events(parser.dates[0])
 
-        assert node_group(parser.nodes, keyword) == {"n": node}
-        assert node.type == keyword
+    assert parser.nodes.fleets == {"fleet": node}
+    assert node.memory.get() == 0.3
 
-    elif keyword in GENERAL_NODE_GROUP:
-        _walk(parser, section, statement)
 
-        general_node = getattr(
-            parser._declared_general_nodes, GENERAL_NODE_GROUP[keyword]
-        )
-        assert general_node is not None
+# input:    | e.g. Copy Variable "v" "w"   in DEFINE,  or  Start   in EVENTS
+# expected: -> the deck reads
+@pytest.mark.parametrize(
+    ("section", "keyword", "statement"),
+    [
+        (section, keyword, statement)
+        for section in (DEFINE, EVENTS)
+        for keyword, statement in _keyword_cases(section)
+    ],
+    ids=lambda value: value if isinstance(value, str) and " " not in value else None,
+)
+def test_a_keyword_is_accepted_in_its_section(
+    tmp_path, read_deck, section, keyword, statement
+):
+    data_dir = write_library(
+        tmp_path / "data", "Variable", {"lib": variable("lib", Value=1)}
+    )
+    deck = (
+        {"define": VARIABLE + statement} if section == DEFINE else {"events": statement}
+    )
 
-    else:
-        _walk(parser, DEFINE, "")
-        _walk(parser, section, "Start\n" + statement if keyword != START else statement)
+    read_deck(**deck, data_dir=data_dir)
 
 
 # input:    | EVENTS: Start
 #           |         Date "01-01-2030"
-#           |         End
 # expected: -> dates = [2026-01-01 (the StartDate), 2030-01-01]
 def test_a_timeline_read_in_events_dates_the_deck(read_deck):
-    parser = read_deck(events='Start\nDate "01-01-2030"\nEnd\n')
+    parser = read_deck(events='Start\nDate "01-01-2030"\n')
 
     np.testing.assert_array_equal(
         parser.dates, np.array(["2026-01-01", "2030-01-01"], dtype="datetime64[D]")
     )
 
 
-# input:    | e.g. Fuel "n" { }   in EVENTS,  or  Start   in DEFINE
-# expected: -> DeckKeywordError "Error in deck file, line 2, include file
-#              '.../events.inc', line 1: 'Fuel' is not an allowed keyword in
-#              section EVENTS."
-@pytest.mark.parametrize(("keyword", "section"), _keyword_cases(allowed=False))
-def test_a_keyword_is_rejected_outside_its_sections(
-    tmp_path, read_deck, keyword, section
+# input:    | e.g. Copy Variable "v" "w"   in EVENTS,  or  Start   in DEFINE
+# expected: -> DeckError "Error in deck file, line 2, include file
+#              '.../events.inc', line 1: 'Copy' is not allowed in the EVENTS
+#              section."
+@pytest.mark.parametrize(
+    ("section", "keyword", "statement"),
+    [
+        (section, keyword, statement)
+        for section in (DEFINE, EVENTS)
+        for keyword, statement in _keyword_cases(
+            EVENTS if section == DEFINE else DEFINE
+        )
+    ],
+    ids=lambda value: value if isinstance(value, str) and " " not in value else None,
+)
+def test_a_keyword_is_rejected_outside_its_section(
+    tmp_path, read_deck, section, keyword, statement
 ):
-    # an EVENTS statement read before any Start is processed on the spot
     if section == DEFINE:
         location = f"line 1, include file '{tmp_path / 'define.inc'}', line 5"
-        deck = {"define": _statement(keyword)}
+        deck = {"define": statement}
     else:
         location = f"line 2, include file '{tmp_path / 'events.inc'}', line 1"
-        deck = {"events": _statement(keyword)}
+        deck = {"events": statement}
 
     message = (
-        f"Error in deck file, {location}: '{keyword}' is not an allowed keyword in "
-        f"section {section.name}."
+        f"Error in deck file, {location}: '{keyword}' is not allowed in the "
+        f"{section.name} section."
     )
 
-    with pytest.raises(DeckKeywordError, match=f"^{re.escape(message)}$"):
+    with pytest.raises(DeckError, match=f"^{re.escape(message)}$"):
         read_deck(**deck)
 
 
 # input:    | Foo "x" {
 #           | }
-# expected: -> DeckKeywordError "Error in deck file, line 1, include file
-#              '.../define.inc', line 5: 'Foo' is not a recognized keyword. Check the
-#              attributes and commands for spelling"
+# expected: -> DeckError "Error in deck file, line 1, include file
+#              '.../define.inc', line 5: 'Foo' is not a recognized node type."
 @pytest.mark.parametrize(
     ("deck", "location"),
     [
         ({"define": 'Foo "x" {\n}\n'}, "line 1, include file '{define}', line 5"),
         ({"define": "Foo {\n}\n"}, "line 1, include file '{define}', line 5"),
-        # a declaration queued in an event is checked when it is queued
         (
-            {"events": 'Start\nFoo "x" {\n}\nEnd\n'},
+            {"events": 'Start\nFoo "x" {\n}\n'},
             "line 2, include file '{events}', line 2",
         ),
     ],
-    ids=["named", "general", "queued_in_events"],
+    ids=["named", "general", "in_events"],
 )
-def test_an_unknown_keyword_is_rejected(tmp_path, read_deck, deck, location):
+def test_an_unknown_node_type_is_rejected(tmp_path, read_deck, deck, location):
     location = location.format(
         define=tmp_path / "define.inc", events=tmp_path / "events.inc"
     )
-    message = (
-        f"Error in deck file, {location}: \n'Foo' is not a recognized keyword. "
-        "Check the attributes and commands for spelling"
-    )
+    message = f"Error in deck file, {location}: 'Foo' is not a recognized node type."
 
-    with pytest.raises(DeckKeywordError, match=f"^{re.escape(message)}$"):
+    with pytest.raises(DeckError, match=f"^{re.escape(message)}$"):
         read_deck(**deck)

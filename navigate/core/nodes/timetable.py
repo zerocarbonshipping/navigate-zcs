@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, overload
 
+from navigate.core import deck_attribute
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
 from navigate.core.node_type import TIMETABLE
@@ -33,8 +34,10 @@ class Timetable(Node, _Table2D):
         Node name.
     """
 
+    type = TIMETABLE
+
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name, TIMETABLE)
+        Node.__init__(self, name)
         _Table2D.__init__(self)
 
         # temporarily stored variables at current time-step
@@ -45,6 +48,7 @@ class Timetable(Node, _Table2D):
             tuple[FloatArray | DateArray, FloatArray, FloatArray] | None
         ) = None
 
+    @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x-, y- and z-values the timetable interpolates in."""
         x, y, z = build_table_2d_dated(table)

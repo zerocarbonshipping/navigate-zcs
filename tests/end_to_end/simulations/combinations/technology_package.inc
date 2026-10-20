@@ -16,8 +16,8 @@ Technology "combination_technology_b" {
 
 Curve "combination_full_uptake" {
 	Table = [
-		0	1
-		100	1
+		0,	1;
+		100,	1;
 	]
 }
 

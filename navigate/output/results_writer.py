@@ -8,11 +8,11 @@ The file holds every result of the global profile and of each node profile, one
 row per series and date, and nothing but the profiles: the metadata only says
 which schema, Navigate version and deck wrote it, the unit of each result, and
 the run's fuel and emission constants the results were converted with.
-Values are as the profiles hold them, except that the counts a result keeps per
-time step are written per year, as their units say, and a value that is
-not set or not finite is written missing. Lantern reads it; any Parquet reader
-can. The layout is described in docs/reference_manual/results_file.md and
-versioned by SCHEMA_VERSION.
+Values are written as 32-bit floats, as the profiles hold them except that the
+counts a result keeps per time step are written per year, as their units say,
+and a value that is not set or not finite is written missing. Lantern reads it;
+any Parquet reader can. The layout is described in
+docs/reference_manual/results_file.md and versioned by SCHEMA_VERSION.
 """
 
 from __future__ import annotations
@@ -40,12 +40,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 METADATA_KEY = b"navigate"
 
 GLOBAL_KIND = "global"
 
-# Parquet dictionary-encodes the repeated labels on disk by itself
+# the columns naming a series; each holds a few distinct strings
+LABELS = ("kind", "node", "attribute", "key1", "key2")
+
 SCHEMA = pa.schema(
     [
         ("kind", pa.string()),
@@ -54,7 +56,7 @@ SCHEMA = pa.schema(
         ("key1", pa.string()),
         ("key2", pa.string()),
         ("date", pa.date32()),
-        ("value", pa.float64()),
+        ("value", pa.float32()),
     ]
 )
 
@@ -91,7 +93,15 @@ def write_results(results: SimulationResults, path: Path, deck_name: str) -> Pat
     table = results_table(results, deck_name)
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    pq.write_table(table, path, compression="zstd")
+    pq.write_table(
+        table,
+        path,
+        compression="zstd",
+        # the labels and dates repeat a few values; the floats are stored byte
+        # plane by byte plane, which zstd packs far tighter than whole floats
+        use_dictionary=[*LABELS, "date"],
+        column_encoding={"value": "BYTE_STREAM_SPLIT"},
+    )
 
     logger.info("Results written to '%s'.", path)
 
@@ -123,13 +133,15 @@ def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
         name: np.repeat(
             np.array([getattr(s, name) for s in series], dtype=object), steps
         )
-        for name in ("kind", "node", "attribute", "key1", "key2")
+        for name in LABELS
     }
     columns |= {
         "date": pa.concat_arrays([dates] * len(series)) if series else dates[:0],
         "value": pa.array(
-            np.concatenate([s.values for s in series]) if series else [],
-            type=pa.float64(),
+            np.concatenate([s.values for s in series]).astype(np.float32)
+            if series
+            else [],
+            type=pa.float32(),
             from_pandas=True,  # NaN is written missing
         ),
     }

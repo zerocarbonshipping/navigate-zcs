@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 from enum import Enum
+from fnmatch import fnmatchcase
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -48,12 +49,11 @@ def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> lis
                 return [allowed_key]
         raise KeyError(key)
 
-    regex = re.compile(wildcard_to_regex(key))
     # a string pattern only matches string keys
     keys: list[K] = [
         allowed_key
         for allowed_key in allowed_keys
-        if isinstance(allowed_key, str) and regex.match(allowed_key)
+        if isinstance(allowed_key, str) and fnmatchcase(str(allowed_key), str(key))
     ]
 
     if not keys:
@@ -141,6 +141,26 @@ def attribute_to_setter(attribute: str, method: str = "set") -> str:
     )
 
 
+def setter_to_attribute(setter: str) -> str:
+    """
+    Convert a setter method name back to the deck attribute it takes.
+
+    The inverse of ``attribute_to_setter``: ``set_lower_heating_value`` is
+    ``LowerHeatingValue``.
+
+    Parameters
+    ----------
+    setter
+        The method name, ``set_`` followed by lowercase words joined by ``_``.
+
+    Returns
+    -------
+    str
+        The attribute name as a deck writes it.
+    """
+    return "".join(word.capitalize() for word in setter.removeprefix("set_").split("_"))
+
+
 def attribute_to_instance_name(attribute: str) -> str:
     """
     Convert a DSL attribute name to its snake_case instance-attribute name.
@@ -165,6 +185,9 @@ def name_contains_wildcards(name: str) -> bool:
     """
     Test whether a node name includes wildcard characters.
 
+    The glob is matched with ``fnmatch``: ``*`` matches any run of characters,
+    ``?`` any one character, and ``[...]`` one character of a set.
+
     Examples
     --------
     - Na*
@@ -181,27 +204,3 @@ def name_contains_wildcards(name: str) -> bool:
         Whether the name includes wildcards.
     """
     return any(wildcard in name for wildcard in ("*", "?"))
-
-
-def wildcard_to_regex(word: str) -> str:
-    """
-    Convert a limited selection of Windows wildcards to a python regular expression.
-
-    Examples
-    --------
-    - Na*
-    - Na?e
-    - Name
-
-    Parameters
-    ----------
-    word
-        Word possibly containing wildcards.
-
-    Returns
-    -------
-    str
-        Regular expression.
-    """
-    replacements = {"*": r".*", "?": r"\w"}
-    return "^" + "".join(replacements.get(char, re.escape(char)) for char in word) + "$"

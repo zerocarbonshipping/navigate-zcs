@@ -66,16 +66,16 @@ Route "coastal_route" {
 # Share of the time at sea sailed at each speed (x = knots ; y = fraction)
 Curve "speed_distribution_mid_range_route" {
     Table = [
-        12.5    0.38
-        12.8    0.34
-        13.0    0.28
+        12.5,    0.38;
+        12.8,    0.34;
+        13.0,    0.28;
     ]
 }
 
 Curve "speed_distribution_coastal_route" {
     Table = [
-        11.0    0.30
-        11.2    0.30
-        11.5    0.40
+        11.0,    0.30;
+        11.2,    0.30;
+        11.5,    0.40;
     ]
 }

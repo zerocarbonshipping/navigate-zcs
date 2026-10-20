@@ -21,12 +21,12 @@ Producer "producer_fame" {
 # These numbers can be changed if a lower/higher availability is expected.
 Forecast "used_cooking_oil_constraint" {
     Table = [
-		"01-01-2025"    2.80e4
-        "01-01-2030"    3.30e4
-        "01-01-2035"    3.70e4
-        "01-01-2040"    3.90e4
-        "01-01-2045"    4.10e4
-        "01-01-2050"    4.20e4
+		"01-01-2025",    2.80e4;
+        "01-01-2030",    3.30e4;
+        "01-01-2035",    3.70e4;
+        "01-01-2040",    3.90e4;
+        "01-01-2045",    4.10e4;
+        "01-01-2050",    4.20e4;
     ]
 
 	Extrapolate = LINEAR

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
-from navigate.core import assign_value
+from navigate.core import assign_value, deck_attribute
 from navigate.core.node import Node
 from navigate.core.node_type import VARIABLE
 from navigate.core.nodes._calculator import _Calculator, evaluate_number
@@ -30,14 +30,17 @@ class Variable(Node, _Calculator):
         Node name.
     """
 
+    type = VARIABLE
+
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name, VARIABLE)
+        Node.__init__(self, name)
         _Calculator.__init__(self)
 
         # internal variables -----------------------------------------------------------
         self._value: NumberInput | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute()
     def set_value(self, value: NumberInput) -> None:
         """Set the value of the variable."""
         self._value = assign_value(value, allow_infinite=True)

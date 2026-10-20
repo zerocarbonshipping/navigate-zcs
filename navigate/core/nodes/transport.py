@@ -12,5 +12,7 @@ from navigate.core.node_type import TRANSPORT
 class Transport(Node):
     """A mode of transport that plants use to move feedstocks and fuels."""
 
+    type = TRANSPORT
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, TRANSPORT)
+        super().__init__(name)

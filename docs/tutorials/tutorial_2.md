@@ -20,7 +20,7 @@ In Tutorial 1, you learned about the foundations of how to run a model with the 
 **Setting the scene:**
 
 In this scenario, we look at a case where we have 2 fleets. One fleet consists of 2 container ships, and the other fleet consists of 2 bulk carriers. One of the container ships is a mono-fuel fuel oil vessel, the other one is a dual-fuel methane. One of the bulk carriers is a dual-fuel methanol, the other one a dual-fuel ammonia.
-Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under `Navigate/assumptions/defaults/installation/*`. 
+Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under `Navigate/assumptions/defaults/*`. 
 
 **How does it work?**
 
@@ -726,9 +726,8 @@ Plot "plots" {
 ## The `EVENTS` input file
 
 1. Open the ‘includes’ folder in the `tutorial_2`-folder and open the ‘events.inc’ file.
-2. Define `Start`. You will define the `End` later.
+2. Define `Start`.
 3. Because we want Navigate to run simulations until 2050, you need to define intermediate time steps until 2050. In Navigate we have decided on annual time steps, but one could also decide on 5-year time steps, for example. **Define annual time steps with a reference Date.**
-4. Mark the end of the timeline with `End`.
 
 ```python
 Start
@@ -758,7 +757,6 @@ Date "01-01-2047"
 Date "01-01-2048"
 Date "01-01-2049"
 Date "01-01-2050"
-End
 ```
 
 ## Running analyses and interpreting results
@@ -1286,10 +1284,6 @@ Date "01-01-2047"
 Date "01-01-2048"
 Date "01-01-2049"
 Date "01-01-2050"
-
-# Define the End of the timeline.
-
-End
 
 # END OF events.inc FILE
 ```

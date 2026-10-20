@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
-from navigate.core import assign_bound, assign_value
+from navigate.core import assign_bound, assign_value, deck_attribute
 from navigate.core.bounds import Bounds
 from navigate.core.expression import Expression
 from navigate.util import ROUND_OFF
@@ -80,14 +80,17 @@ class _Calculator:
         self._applied_bounds: Bounds = Bounds()
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute()
     def set_addition(self, addition: NumberInput) -> None:
         """Set the addition of the calculator."""
         self.addition = assign_value(addition)
 
+    @deck_attribute()
     def set_multiplier(self, multiplier: NumberInput) -> None:
         """Set the multiplier of the calculator."""
         self.multiplier = assign_value(multiplier)
 
+    @deck_attribute()
     def set_lower_bound(self, lower_bound: float | str) -> None:
         """Set the user-defined lower bound of the calculator."""
         self.lower_bound = assign_bound(lower_bound, inclusive_upper=False)
@@ -95,6 +98,7 @@ class _Calculator:
         # called here in case the lower bound is changed during time-stepping
         self._assign_applied_bounds()
 
+    @deck_attribute()
     def set_upper_bound(self, upper_bound: float | str) -> None:
         """Set the user-defined upper bound of the calculator."""
         self.upper_bound = assign_bound(upper_bound, inclusive_lower=False)

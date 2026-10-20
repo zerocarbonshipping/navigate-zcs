@@ -8,10 +8,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core import (
+    SECTION_DEFINE,
     Scalar,
     as_scalar,
     assign_reference,
     assign_value,
+    deck_attribute,
+    deck_command,
     write_matching_keys,
 )
 from navigate.core.expectations import PlantExpectation
@@ -44,8 +47,10 @@ if TYPE_CHECKING:
 class Plant(Node):
     """A plant type: its fuel, process, region, source, capacity and transport."""
 
+    type = PLANT
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, PLANT)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.fuel: Fuel
@@ -77,22 +82,27 @@ class Plant(Node):
         self.producer_assignment: str | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_fuel(self, fuel: Fuel) -> None:
         """Set the fuel produced by the plant."""
         self.fuel = assign_reference(fuel, FUEL)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_process(self, process: Process) -> None:
         """Set the production process used by the plant."""
         self.process = assign_reference(process, PROCESS)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_region(self, region: Region) -> None:
         """Set the region in which the plant is built."""
         self.region = assign_reference(region, REGION)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_source(self, source: Source) -> None:
         """Set the energy source powering the plant."""
         self.source = assign_reference(source, SOURCE)
 
+    @deck_attribute(required=True)
     def set_capacity(self, capacity: ForecastArgument) -> None:
         """Set the production capacity of the plant."""
         self.capacity = assign_value(
@@ -102,6 +112,7 @@ class Plant(Node):
             inclusive_lower=False,
         )
 
+    @deck_attribute()
     def set_uptime(self, uptime: ForecastArgument) -> None:
         """Set the production uptime of the plant."""
         self.uptime = assign_value(
@@ -112,6 +123,7 @@ class Plant(Node):
             inclusive_lower=False,
         )
 
+    @deck_attribute()
     def set_lifetime(self, lifetime: ForecastArgument) -> None:
         """Set the lifetime of the plant."""
         self.lifetime = assign_value(
@@ -121,12 +133,14 @@ class Plant(Node):
             inclusive_lower=False,
         )
 
+    @deck_attribute()
     def set_lead_time(self, lead_time: ForecastArgument) -> None:
         """Set the planning-to-production lead time of the plant."""
         self.lead_time = assign_value(
             as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
+    @deck_attribute()
     def set_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
         """Set the cost of capital of the plant."""
         self.cost_of_capital = assign_value(
@@ -134,6 +148,7 @@ class Plant(Node):
         )
 
     # external methods (DSL commands) --------------------------------------------------
+    @deck_command()
     def set_feed_transport(self, feed_name: str, value: Transport) -> None:
         """Set the transport mode delivering a feedstock or process output."""
         write_matching_keys(
@@ -142,6 +157,7 @@ class Plant(Node):
             self.feed_transport,
         )
 
+    @deck_command()
     def set_feed_distance(self, feed_name: str, value: ForecastArgument) -> None:
         """Set the distance a feedstock or process output is transported."""
         write_matching_keys(
@@ -150,6 +166,7 @@ class Plant(Node):
             self.feed_distance,
         )
 
+    @deck_command()
     def set_fuel_transport(self, port_name: str, value: Transport) -> None:
         """Set the transport mode delivering the produced fuel to a port."""
         write_matching_keys(
@@ -158,6 +175,7 @@ class Plant(Node):
             self.fuel_transport,
         )
 
+    @deck_command()
     def set_fuel_distance(self, port_name: str, value: ForecastArgument) -> None:
         """Set the distance the produced fuel is transported to a port."""
         write_matching_keys(

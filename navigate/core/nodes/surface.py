@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from navigate.core import deck_attribute
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
 from navigate.core.node_type import SURFACE
@@ -30,13 +31,16 @@ class Surface(Node, _Table2D):
         Node name.
     """
 
+    type = SURFACE
+
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name, SURFACE)
+        Node.__init__(self, name)
         _Table2D.__init__(self)
 
         # used for temporary storage of the table during deck parsing
         self._temporary_table: tuple[FloatArray, FloatArray, FloatArray] | None = None
 
+    @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x-, y- and z-values the surface interpolates in."""
         x, y, z = build_table_2d(table)

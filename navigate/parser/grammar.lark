@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 // SPDX-License-Identifier: Apache-2.0
 
-// Navigate DSL Grammar (Lark LALR)
+// Navigate DSL grammar (Lark LALR).
 //
-// Two entry points:
-//   - "start"  parses .inc file content (node declarations, timeline, etc.)
-//   - "deck"   parses .nav file content (SIMULATION blocks with directives)
+// Start rules:
+//   - "deck"          a .nav file: one DEFINE block followed by one EVENTS block
+//   - "include_file"  a .inc file; which statements a section allows is checked
+//                     by the reader, as a keyword lexes as a node type where the
+//                     grammar does not expect it and the syntax error misleads
 //
 // Keywords and attributes use Title case with acronyms treated as words
 // (Capex, TotalEquivalentWtt). Command names are pure lowercase snake_case
@@ -13,20 +15,17 @@
 // the node method name exactly. ALL_CAPS is reserved for enum keyword
 // values (AMMONIA, WTT, FLAT).
 
-// ── Deck-level (.nav) ────────────────────────────────────────────────────
-deck: block*
-
-?block: define_block
-      | events_block
+// ── Deck (.nav) ──────────────────────────────────────────────────────────
+deck: define_block events_block
 
 define_block: "DEFINE" "{" directive* "}"
 events_block: "EVENTS" "{" directive* "}"
 
-?directive: "Include" QUOTED_STRING    -> include_directive
-          | "Load" NODE_TYPE          -> load_module
+?directive: "Include" QUOTED_STRING -> include_directive
+          | "Load" NODE_TYPE         -> load_module
 
-// ── Include-level (.inc) ─────────────────────────────────────────────────
-start: statement*
+// ── Include files (.inc) ─────────────────────────────────────────────────
+include_file: statement*
 
 ?statement: node_declaration
           | general_node_declaration
@@ -34,45 +33,74 @@ start: statement*
           | import_statement
           | date_statement
           | "Start" -> start_timeline
-          | "End" -> end_timeline
+          | "End"   -> end_timeline
 
 node_declaration: NODE_TYPE QUOTED_STRING "{" body_item* "}"
 general_node_declaration: NODE_TYPE "{" body_item* "}"
 copy_statement: "Copy" NODE_TYPE QUOTED_STRING QUOTED_STRING
 import_statement: "Import" NODE_TYPE QUOTED_STRING
-date_statement: "Date" QUOTED_STRING
+date_statement: "Date" DATE
 
-// ── Node body items ──────────────────────────────────────────────────────
+// ── Node body ────────────────────────────────────────────────────────────
 ?body_item: assignment
+          | table_assignment
           | command
-          | TABLE_BLOCK -> table_block
 
 assignment: name "=" value
 command: name "(" arguments ")"
 ?name: NAME | NODE_TYPE
 arguments: [value ("," value)*]
 
+// a table is rows of comma-separated cells, the rows separated by ";"; a
+// trailing comma is allowed in a row as in a list
+table_assignment: "Table" "=" "[" [table_row (";" table_row)* ";"?] "]"
+table_row: cell ("," cell)* ","?
+?cell: SIGNED_NUMBER | DATE
+
 // ── Values ───────────────────────────────────────────────────────────────
-?value: SIGNED_NUMBER                  -> number
-      | name "(" QUOTED_STRING ")"      -> node_reference
-      | EXPRESSION                     -> expression
-      | WILDCARD_NAME                  -> wildcard_value
-      | NODE_TYPE                       -> ident_value
-      | NAME                           -> ident_value
-      | QUOTED_STRING                  -> string_value
-      | "[" [value ("," value)* ","?] "]"   -> list_value
-      | TABLE_BLOCK                    -> table_value
-      | TEMPLATE                       -> template_value
+// a lone token is the value itself; the transformer reads it as a number, a
+// date or a string
+?value: SIGNED_NUMBER
+      | DATE
+      | node_reference
+      | expression
+      | NODE_TYPE
+      | NAME
+      | QUOTED_STRING
+      | "[" [value ("," value)* ","?] "]" -> list_value
+
+node_reference: name "(" QUOTED_STRING ")"
+
+// ── Expressions ──────────────────────────────────────────────────────────
+// Python precedence: ** binds tighter than a unary sign and associates right;
+// "!" keeps the operator in the tree, so one rule serves every operator
+expression: "<" sum ">"
+
+!?sum: product
+     | sum ("+" | "-") product -> binary_operation
+
+!?product: unary
+         | product ("*" | "/") unary -> binary_operation
+
+!?unary: power
+       | ("+" | "-") unary -> unary_operation
+
+!?power: atom
+       | atom "**" unary -> binary_operation
+
+?atom: NUMBER -> constant
+     | "INF"  -> infinity
+     | node_reference
+     | "(" sum ")"
 
 // ── Terminals ────────────────────────────────────────────────────────────
 NODE_TYPE: /[A-Z][A-Za-z0-9_]*/
-WILDCARD_NAME.1: /[A-Za-z_][A-Za-z0-9_]*[*?][A-Za-z0-9_*?]*|\*/
 NAME: /[A-Za-z_][A-Za-z0-9_]*/
-QUOTED_STRING: /\"[^"]*\"/
+QUOTED_STRING: /"[^"]*"/
+// "dd-mm-yyyy", "dd/mm/yyyy", or yyyy-mm-dd quoted or bare
+DATE.3: /"\d{2}-\d{2}-\d{4}"|"\d{2}\/\d{2}\/\d{4}"|"\d{4}-\d{2}-\d{2}"|\d{4}-\d{2}-\d{2}/
 SIGNED_NUMBER.2: /[+-]?(?:(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?|INF)/
-EXPRESSION: /<[^>]+>/
-TABLE_BLOCK.3: /Table\s*=\s*\[[^\]]*\]/
-TEMPLATE: /%[a-z_]+%/
+NUMBER: /(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/
 
 // ── Ignored ──────────────────────────────────────────────────────────────
 COMMENT: /#[^\n]*/

@@ -34,7 +34,24 @@ step, and `driver/` runs it from a read deck to its output.
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
   nodes (`general_nodes/`), the node maps, `expectations/`, `profiles/`, the
   records nodes hold, and the `SimulationResults` a run hands to output.
-- `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar).
+- `parser/` — reads `.nav`/`.inc` decks into nodes, in four phases that
+  each finish before the next starts: `_lark_parser.py` turns text into an
+  AST through `grammar.lark`, the one place that knows the syntax;
+  `_collect.py` collects the files into declarations (one node's body
+  items in read order) and events, checking each body item against the
+  registries as it is read, and pulls through `_library.py` the
+  default-library file of every name the deck imports, copies, loads or
+  references; `_resolve.py` binds each event to the declarations it
+  targets and, once the prune is done, refuses an event changing a
+  calculator a DEFINE-only input holds; `_prune.py` walks the references
+  from the root node types to decide which declarations the simulation
+  holds; `_build.py` constructs one node per kept declaration, applies the
+  assignments and commands, builds the tables from their rows and runs the
+  lifecycle sweeps of `core/lifecycle.py`. A node the simulation does not
+  hold is never constructed, so it never holds a value and no kept node
+  ever holds it. The prune is self-contained, as pruning may go: nothing
+  else imports it, and without it every declaration is kept. `parser.py`
+  is the facade the driver calls.
 - `output/` — turns `SimulationResults` into reports and figures (`plots/`).
 - `util/` — domain-agnostic helpers.
 - `driver/` — the run: read a deck, step `Simulation`, write the output.
@@ -125,16 +142,23 @@ re-export there would load far more than an import needs.
 
 ## Node lifecycle
 
-`Node` in `core/node.py` has two `@final` entry points the parser calls,
-`initialize()` and `reinitialize()`, which run the hooks; a node overrides
-the hooks only, each documented there with its role and cadence.
-`Simulation`, not the parser, calls `check_dynamic_consistency` once per
-time step. The parser checks the attributes every deck must assign, listed
-in `parser/_attributes.py`, before `initialize_dependencies(...)` and the
-hooks run. `None` on a node attribute means unassigned; no DSL value is
-`None`. What derives from the node registries, and the seeding of the
-command-written dictionaries before the commands run, goes in
-`initialize_dependencies(...)`, the only method the parser hands them. It
-runs before the commands on every pass, DEFINE and each event read, so it
-seeds with `setdefault` and recomputes what it derives. General nodes take
-DEFINE attributes only and have no hooks.
+`Node` in `core/node.py` has two `@final` entry points, `initialize()` and
+`reinitialize()`, which run the default hooks; a node overrides the hooks
+only, each documented there with its role and cadence. `core/lifecycle.py`
+holds the sweeps over the registry that the parser runs: seed the
+command-written dictionaries, initialize or reinitialize every node, then
+validate every node through its `check_requirements` and
+`check_consistency`, once the defaults are in place. It is the one place that
+knows which registries each node type's `initialize_dependencies(...)` takes,
+and the one point at which a node's checks run. `Simulation`, not the parser,
+calls `check_dynamic_consistency` once per time step, and refuses at
+construction a deck without a Fleet or a Fuel. The parser checks the
+attributes every deck must assign, those whose setter is marked
+`required=True`, once the assignments have run and before the dependencies
+are seeded. `None` on a node
+attribute means unassigned; no DSL value is `None`. What derives from the
+node registries, and the seeding of the command-written dictionaries before
+the commands run, goes in `initialize_dependencies(...)`, the only method the
+sweeps hand them. It runs before the commands on every pass, DEFINE and each
+event read, so it seeds with `setdefault` and recomputes what it derives.
+General nodes take DEFINE attributes only and have no hooks.

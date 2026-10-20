@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import assign_reference
+from navigate.core import SECTION_DEFINE, assign_reference, deck_attribute
 from navigate.core.enum_ import EnergyDemandID
 from navigate.core.node_type import CONVERTER, POWER_SYSTEM
 from navigate.core.nodes._machinery import _Machinery
@@ -20,8 +20,10 @@ if TYPE_CHECKING:
 class PowerSystem(_Machinery):
     """The propulsion, electrical and heat converters of a vessel."""
 
+    type = POWER_SYSTEM
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, POWER_SYSTEM)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         # converters
@@ -30,14 +32,17 @@ class PowerSystem(_Machinery):
         self.heat: Converter
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_propulsion(self, propulsion: Converter) -> None:
         """Set the converter used to satisfy the propulsion demand."""
         self.propulsion = assign_reference(propulsion, CONVERTER)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_electrical(self, electrical: Converter) -> None:
         """Set the converter used to satisfy the electrical demand."""
         self.electrical = assign_reference(electrical, CONVERTER)
 
+    @deck_attribute(SECTION_DEFINE, required=True)
     def set_heat(self, heat: Converter) -> None:
         """Set the converter used to satisfy the heat demand."""
         self.heat = assign_reference(heat, CONVERTER)

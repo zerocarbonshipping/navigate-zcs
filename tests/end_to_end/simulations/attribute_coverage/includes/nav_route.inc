@@ -74,15 +74,15 @@ Route "route_liner" {
 # Share of the time at sea sailed at each speed
 Curve "curve_tramp_speed" {
 	Table = [
-		9	0.3
-		11	0.7
+		9,	0.3;
+		11,	0.7;
 	]
 }
 
 # Cargo capacity utilization at each speed: ballast at 9 knots, laden at 11
 Curve "curve_tramp_utilization" {
 	Table = [
-		9	0
-		11	1
+		9,	0;
+		11,	1;
 	]
 }

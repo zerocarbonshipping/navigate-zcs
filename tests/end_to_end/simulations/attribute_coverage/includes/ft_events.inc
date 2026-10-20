@@ -264,8 +264,8 @@ Route "route_tramp" {
 # the same speeds, so the number of sailing conditions on each leg is unchanged
 Curve "curve_tramp_speed" {
 	Table = [
-		9	0.4
-		11	0.6
+		9,	0.4;
+		11,	0.6;
 	]
 }
 
@@ -286,8 +286,8 @@ Variable "var_efficiency" {
 
 Forecast "fc_operational_saving" {
 	Table = [
-		"01-01-2020"	0.02
-		"01-01-2060"	0.06
+		"01-01-2020",	0.02;
+		"01-01-2060",	0.06;
 	]
 	Addition = 0.005
 	Multiplier = 1.05
@@ -297,8 +297,8 @@ Forecast "fc_operational_saving" {
 
 Curve "curve_gwp_methane" {
 	Table = [
-		0	32
-		100	27
+		0,	32;
+		100,	27;
 	]
 	Addition = 0
 	Multiplier = 1.05
@@ -310,10 +310,10 @@ Curve "curve_gwp_methane" {
 
 Timetable "timetable_cost" {
 	Table = [
-		10	20
-		"01-01-2025"	110	210
-		"01-01-2030"	160	260
-		"01-01-2035"	210	310
+		10,	20;
+		"01-01-2025",	110,	210;
+		"01-01-2030",	160,	260;
+		"01-01-2035",	210,	310;
 	]
 	Addition = 5
 	Multiplier = 1.1

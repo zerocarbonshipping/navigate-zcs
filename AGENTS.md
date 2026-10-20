@@ -48,10 +48,8 @@ every change. The detail lives in the files it points to.
   result comparison that maintenance pull requests must pass.
 - `assumptions/` — the model inputs, written in the DSL: `defaults/` holds
   the default nodes, one file per node, and `modules/` the default modules,
-  `.inc` files shared across decks. Each has an `installation/` branch that
-  ships with Navigate and a `user/` branch, searched first, for one's own
-  definitions. By file count this is most of the repository. It is model
-  content under CC-BY-4.0, not code.
+  `.inc` files shared across decks. By file count this is most of the
+  repository. It is model content under CC-BY-4.0, not code.
 - `simulations/` — `scenarios/` are the reference runs, about 25 minutes
   each; they are not tests. `examples/` are small decks that CI smoke-runs.
 - `docs/` — the Sphinx/MyST source of the user manual. It publishes to
@@ -113,19 +111,21 @@ each other's files, and the test suites run decks too.
 
 ## What a change touches
 
-- A DSL attribute or command lives in four places: the setter on the node
-  class, whose docstring is one line for developers; the parser table in
-  `navigate/parser/_attributes.py` or `_commands.py`, which also lists the
-  attribute as required when every deck must assign it; its entry on the
-  node's page in `docs/reference_manual/`, the only place it is explained
-  to users, with its units, limits, default and examples; and the attribute
-  coverage test. `tests/unit/docs/test_setters_registered.py` checks the
-  registries against the setters and `test_node_pages.py` the manual pages
-  against the registries, both in both directions; the report-property
-  appendix of `docs/reference_manual/report.md` is checked against the
-  profile results the same way by `test_report_property_docs.py`. The
-  coverage deck is checked against the registries by
-  `tests/end_to_end/test_attribute_coverage.py`.
+- A DSL attribute or command lives in three places: the setter on the node
+  class, marked `@deck_attribute` or `@deck_command` from
+  `navigate/core/dsl.py` with the sections allowing it and, for an attribute
+  every deck must assign, `required=True`, and whose docstring is one line
+  for developers; its entry on the node's page in `docs/reference_manual/`,
+  the only place it is explained to users, with its units, limits, default
+  and examples; and the attribute coverage test. The parser finds each node
+  type's class through its field in `navigate/core/node_registry.py` and
+  reads the marks off it.
+  `tests/unit/docs/test_setters_registered.py` checks that every setter
+  carries a mark and `test_node_pages.py` the manual pages against the
+  marks, in both directions; the report-property appendix of
+  `docs/reference_manual/report.md` is checked against the profile results
+  the same way by `test_report_property_docs.py`. The coverage deck is
+  checked against the marks by `tests/end_to_end/test_attribute_coverage.py`.
 - A change that moves simulation results explains the difference in the
   pull request and keeps `tests/end_to_end` green. A change meant to leave
   them alone is labelled `maintenance`, and its Compare results check must

@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 
-from navigate.core.expression import Expression
+from navigate.core.expression import Expression, node_references
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.levy import Levy
@@ -25,9 +25,12 @@ from navigate.core.nodes.surface import Surface
 from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.table_data import TableData
+from navigate.parser._lark_parser import parse_include_content
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from navigate.core.node import Node
 
 # every propulsion load below answers 8 MW at 10 knots and utilization 0.5
 SPEED = 10.0
@@ -56,15 +59,23 @@ def _surface() -> Surface:
     return surface
 
 
+def _build_expression(text: str, reference: Node | None, holder: Node) -> Expression:
+    """Build an expression the way the parser does, every reference the given node."""
+    [declaration] = parse_include_content(f'Variable "v" {{\nValue = <{text}>\n}}')
+    syntax = declaration.body[0].value
+    nodes = {r.key: reference for r in node_references(syntax.root)}
+    return Expression(syntax.text, syntax.root, nodes, holder)
+
+
 def _expression(
     text: str, reference: Variable | Curve | None
 ) -> Callable[[Vessel], Expression]:
-    """Return a builder resolving the expression the way the parser does."""
+    """Return a builder binding the expression the way the parser does."""
 
     def build(vessel: Vessel) -> Expression:
-        expression = Expression(text)
+        expression = _build_expression(text, reference, vessel)
         vessel.set_propulsion_load(expression)
-        expression.resolve(vessel, lambda reference_string, location: reference)
+        expression.check_consistency()
         return expression
 
     return build
@@ -159,8 +170,8 @@ def test_an_expression_referencing_a_refused_type_is_refused():
     # the Levy level takes Forecast and Variable, so neither may an expression
     # assigned to it read a Curve
     levy = Levy("l")
-    expression = Expression('Curve("c")')
+    expression = _build_expression('Curve("c")', Curve("c"), levy)
     levy.set_level(expression)
 
     with pytest.raises(ValueError, match="references unacceptable type Curve"):
-        expression.resolve(levy, lambda reference_string, location: Curve("c"))
+        expression.check_consistency()

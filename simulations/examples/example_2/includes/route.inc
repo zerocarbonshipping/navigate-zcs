@@ -36,10 +36,10 @@ Route "pacific_trade" {
 # Share of the time at sea sailed at each speed (x = knots ; y = fraction)
 Curve "speed_distribution_pacific_trade" {
     Table = [
-        11.8    0.17
-        12.0    0.18
-        12.2    0.18
-        12.5    0.21
-        13.0    0.26
+        11.8,    0.17;
+        12.0,    0.18;
+        12.2,    0.18;
+        12.5,    0.21;
+        13.0,    0.26;
     ]
 }

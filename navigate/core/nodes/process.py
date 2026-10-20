@@ -7,7 +7,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import as_list, as_scalar, assign_list, assign_reference_list
+from navigate.core import (
+    SECTION_DEFINE,
+    as_list,
+    as_scalar,
+    assign_list,
+    assign_reference_list,
+    deck_attribute,
+)
 from navigate.core.node import Node
 from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
@@ -19,18 +26,22 @@ if TYPE_CHECKING:
 class Process(Node):
     """A production process turning feedstocks and process outputs into a new stream."""
 
+    type = PROCESS
+
     def __init__(self, name: str) -> None:
-        super().__init__(name, PROCESS)
+        super().__init__(name)
 
         # external variables -----------------------------------------------------------
         self.feeds: list[Feedstock | Process] = []
         self.conversions: list[ForecastInput] = []
 
     # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute(SECTION_DEFINE)
     def set_feeds(self, feeds: Feedstock | Process | list[Feedstock | Process]) -> None:
         """Set the feedstocks and processes whose output feed the process."""
         self.feeds = assign_reference_list(feeds, (FEEDSTOCK, PROCESS), unique=True)
 
+    @deck_attribute()
     def set_conversions(
         self, conversion: ForecastArgument | list[ForecastArgument]
     ) -> None:

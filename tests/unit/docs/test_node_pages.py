@@ -5,30 +5,30 @@
 The reference manual documents exactly the registered DSL surface.
 
 docs/reference_manual is hand-written with no autodoc, so nothing but this test
-keeps it from drifting from the parser registries in _attributes.py and
-_commands.py. One page per node type, named by the repository's own camel-to-snake
-conversion; inside it, the "## Attributes" and "## Commands" sections carry one
-"###" heading per registered name, and a node type whose registry is empty carries
-no section at all. test_setters_registered.py closes the chain from the node
-classes to the registries.
+keeps it from drifting from the deck surface the node classes declare through
+their deck_attribute and deck_command marks. One page per node type, named by
+the repository's own camel-to-snake conversion; inside it, the "## Attributes"
+and "## Commands" sections carry one "###" heading per marked name, and a node
+type with no marks of a kind carries no section at all.
+test_setters_registered.py checks that every setter carries a mark.
 """
 
 from __future__ import annotations
 
 import pytest
 
+from helpers.deck_surface import (
+    GENERAL_NODE_ATTRIBUTE_SECTIONS,
+    NODE_ATTRIBUTE_SECTIONS,
+    NODE_COMMAND_SECTIONS,
+)
 from helpers.reference_manual import (
     MANUAL_DIR,
     NON_NODE_PAGES,
     page_for,
     section_headings,
 )
-from navigate.parser._attributes import (
-    GENERAL_NODE_ATTRIBUTE_SECTIONS,
-    NODE_ATTRIBUTE_SECTIONS,
-)
-from navigate.parser._commands import NODE_COMMAND_SECTIONS
-from navigate.parser._keywords import GENERAL_NODE_CLASS, NODE_CLASS
+from navigate.core.node_registry import GENERAL_NODE_CLASS, NODE_CLASS
 
 _ATTRIBUTE_SECTIONS = NODE_ATTRIBUTE_SECTIONS | GENERAL_NODE_ATTRIBUTE_SECTIONS
 
@@ -38,22 +38,12 @@ _COMMAND_SECTIONS = NODE_COMMAND_SECTIONS | {
     node: {} for node in GENERAL_NODE_ATTRIBUTE_SECTIONS
 }
 
-# the keyword tables, not the registries, decide which node types a deck can
-# declare, so a type missing from a registry still needs a page
 NODE_TYPES = sorted(NODE_CLASS | GENERAL_NODE_CLASS)
 
 REGISTERED = {
     **{(node, "Attributes"): set(names) for node, names in _ATTRIBUTE_SECTIONS.items()},
     **{(node, "Commands"): set(names) for node, names in _COMMAND_SECTIONS.items()},
 }
-
-
-# checks that the node types a deck can declare, the attribute registry and the
-# command registry all list the same types.
-# catches: a new node keyword added without registry entries, so it would get no
-# page check at all.
-def test_every_declarable_node_type_is_registered():
-    assert set(NODE_TYPES) == set(_ATTRIBUTE_SECTIONS) == set(_COMMAND_SECTIONS)
 
 
 # checks each node type has a page in docs/reference_manual, named by the
