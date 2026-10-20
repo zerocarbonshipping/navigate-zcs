@@ -16,10 +16,10 @@ The aim of this section is to work through practical cases with the Navigate mod
 
 1. **Run a simple case**: a made-up example to give an idea of what the model can show, and how changing input data can change the results ([Session 1](01-run-a-simple-case.ipynb))
 2. **Understand Navigate**: how the example was built, the data behind it, how the model solves it step by step, and its results in detail ([Session 2](02-understand-navigate.ipynb))
-3. **Run a global case**: pick one of four reference
-   cases, move some of the assumptions behind it (fuel
+3. **Run a global case**: the Center's mid-regulation reference
+   case on a coarse time grid; move some of the assumptions behind it (fuel
    prices, regulatory stringency,...) and see how results change ([Session 3](03-run-a-global-case.ipynb))
-4. **Run our reference scenarios**: pre-made assumptions set and models maintained by the Center ([Session 4](04-run-our-reference-scenarios.ipynb))
+4. **Run our reference scenarios**: pre-made assumptions set and models maintained by the Center: how the scenarios differ, and three of them solved year by year ([Session 4](04-run-our-reference-scenarios.ipynb))
 5. **Build your own case with an AI assistant**: example prompts that turn a description of your case into a working model ([Session 5](05-build-your-own-case.ipynb))
 
 [Session 4](04-run-our-reference-scenarios.ipynb)'s "Run the scenarios" cell takes about twenty-five minutes, so it is worth starting it early in a separate Colab tab and coming back to it.
