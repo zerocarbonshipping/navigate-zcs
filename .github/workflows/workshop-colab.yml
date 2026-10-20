@@ -19,6 +19,13 @@ on:
 permissions:
   contents: write   # push to the workshop-colab branch
 
+# Each run force-pushes a fresh workshop-colab branch, so two runs at once race
+# and the slower push is rejected. Run one at a time; a newer run replaces a
+# waiting one.
+concurrency:
+  group: workshop-colab
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
