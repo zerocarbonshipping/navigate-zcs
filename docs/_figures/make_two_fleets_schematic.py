@@ -116,8 +116,8 @@ def main():
         f'width="100%" style="max-width:{W:.0f}px;height:auto;'
         f'font-family:system-ui,-apple-system,\'Segoe UI\',sans-serif" role="img" '
         f'aria-label="Schematic of two fleets of the same vessel class sailing one '
-        f'route between two bunker ports the reader chooses: Fleet A fits no '
-        f'efficiency measure, Fleet B fits the efficiency technologies the library '
+        f'route between two bunker ports the reader chooses: Fleet A has no '
+        f'efficiency measure fitted, Fleet B has the efficiency technologies the library '
         f'offers, such as hull coating, propeller devices, Flettner rotors and air '
         f'lubrication">')
     add('<defs>'
@@ -189,12 +189,12 @@ def main():
         lay.icon(f"ship B{i}", b)
         add(svg)
 
-    s = "Fleet A · fits nothing"
+    s = "Fleet A · nothing fitted"
     ya = ROW_A_Y - 24
     lay.label(s, box_of(W / 2, ya, s, 12.5, "middle", "bold"))
     add(txt(W / 2, ya, s, 12.5, "middle", C_FLEET_A, "600"))
 
-    s = "Fleet B · fits efficiency measures"
+    s = "Fleet B · efficiency measures fitted"
     yb = ROW_B_Y + 34
     lay.label(s, box_of(W / 2, yb, s, 12.5, "middle", "bold"))
     add(txt(W / 2, yb, s, 12.5, "middle", C_FLEET_B, "600"))

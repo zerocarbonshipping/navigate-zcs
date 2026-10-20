@@ -205,7 +205,7 @@ Three things that are easy to misread:
 - A bunker price of 0 for a fuel at a port means there is no supply of it, not
   that it is free. To say how far such a fuel is from competing, add
   `add_plant_property("*", InvestmentIntensityCost)` to your Report: it gives
-  each plant's levelized cost per GJ every year, even when none is built.
+  each plant's levelised cost per GJ every year, even when none is built.
 - The investment freight rate and ActualSpeed have no value in the first time
   step; quote the second if the first is asked for. Whether any plant was built does not appear
   in DefaultReport: look at `plots/producer_development.png`.

@@ -276,7 +276,7 @@ burn the fuel they were built for. Remind me which inputs are placeholders.
 
 ### A global study: the cost of waiting
 
-**The study.** The mid-regulation reference scenario includes a global fuel standard (`gfs`): a well-to-wake intensity limit that every ship is held to worldwide, tightening from 2028 to 2050. What if it started five years late, but kept the same 2050 target? No deck to build from scratch here: the scenario is run twice, as it is and with every date before 2050 moved later, on the coarse time grid of [Session 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-run-a-global-case.ipynb) so each run takes a few minutes. The answer is one number worth remembering: the extra megatonnes of CO2e a delay costs, and whether the fleet catches up by 2050. The change goes in a copy of the regulation file, so the reference scenario itself stays untouched.
+**The study.** The mid-regulation reference scenario includes a global fuel standard (`gfs`): a well-to-wake intensity limit that every ship is held to worldwide, tightening from 2028 to 2050. What if it started five years late, but kept the same 2050 target? No deck to build from scratch here: the scenario is run twice, as it is and with every date before 2050 moved later, on the coarse time grid of [Session 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-run-a-global-case.ipynb) so each run takes a few minutes. The answer is one number worth remembering: the extra megatonnes of CO2e a delay costs, and whether the delayed run catches up by 2050. The change goes in a copy of the regulation file, so the reference scenario itself stays untouched.
 
 **How it differs from the scenarios in the repository.** The four reference scenarios in `simulations/scenarios/` differ in *how strict* the regulation is: none at all, EU ETS and FuelEU only (business as usual), or those plus a global fuel standard that is moderate (mid) or strict (strong). Both standards start in 2028. This case keeps the mid scenario exactly as it is and changes only *when* its standard starts, which none of them explores. It also runs on the coarse grid, so compare its two runs with each other, not with the yearly results of Session 4.
 
@@ -286,14 +286,14 @@ burn the fuel they were built for. Remind me which inputs are placeholders.
 
 **What comes from the library.** Everything: the decks are the Center's
 mid-regulation reference scenario on the coarse grid of
-`simulations/scenarios/workshop_whatif/`, run as it is.
+`simulations/scenarios/workshop_whatif/`, one of them run as it is.
 
 **What is INVENTED.** Nothing but the delay itself.
 
 **Limits.** The coarse grid: compare the two runs with each other, not with
 the yearly reference scenarios of Session 4.
 
-**Tested:** 2026-10-06, as Session 5's fourth example: built cold, it ran
+**Tested:** 2026-10-06, as what was then Session 5's fourth example: built cold, it ran
 without errors on the first attempt. It has not yet been checked against the
 criteria above the way the other entries were.
 
