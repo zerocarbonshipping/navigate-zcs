@@ -66,10 +66,9 @@ class Operations:
     cargo_miles_leg_nominal
         Cargo-miles on each leg at full capacity utilization, in cargo-miles/year.
     energy_sea
-        Energy demand at sea per energy demand type, one value per condition, in
-        GJ/year.
+        Energy demand at sea per energy demand type and condition, in GJ/year.
     energy_port
-        Energy demand in port per energy demand type, one value per stop, in GJ/year.
+        Energy demand in port per energy demand type and stop, in GJ/year.
     """
 
     # operating point
@@ -186,19 +185,21 @@ def transfer_operations(
     expectation.set_raw_energy_sea_condition(idx, operations.energy_sea)
     expectation.set_raw_energy_port(idx, operations.energy_port)
 
-    profile.cargo_miles[idx] = operations.cargo_miles
     energy_sea = sum_per_key(operations.energy_sea)
-    for demand_type, values in profile.raw_energy_sea.items():
-        values[idx] = energy_sea[demand_type]
-
     energy_port = sum_per_key(operations.energy_port)
-    for demand_type, values in profile.raw_energy_port.items():
-        values[idx] = energy_port[demand_type]
 
     # the reference speed is weighted by the operated sea time, as speed management
     # may have moved the operated speeds away from the reference speeds
     speed_reference = np.average(trip.speeds, weights=operations.distribution)
+
+    profile.cargo_miles[idx] = operations.cargo_miles
     profile.reference_speed[idx] = speed_reference
+
+    for key, value in energy_sea.items():
+        profile.raw_energy_sea[key][idx] = value
+
+    for key, value in energy_port.items():
+        profile.raw_energy_port[key][idx] = value
 
 
 def transfer_operational_savings(fleet: Fleet) -> None:
@@ -235,15 +236,16 @@ def _calculate_trip(operations: Operations, trip: ReferenceTrip) -> None:
 
     speeds_weighted = shares * speeds
     speeds_leg = sum_per_leg(trip.condition_legs, speeds_weighted)
-    days_leg = divide_nonzero(trip.leg_miles, speeds_leg) * HOUR_TO_DAYS
-    days_condition = days_leg[legs] * shares
     mile_shares = divide_nonzero(speeds_weighted, speeds_leg[legs])
 
-    sea_days = np.sum(days_leg)
-    port_days = np.sum(trip.port_days)
-    voyages = YEAR / (sea_days + port_days)
+    days_leg = divide_nonzero(trip.leg_miles, speeds_leg) * HOUR_TO_DAYS
+    days_condition = days_leg[legs] * shares
 
-    operations.distribution = divide_nonzero(days_condition, sea_days)
+    days_sea = np.sum(days_leg)
+    days_port = np.sum(trip.port_days)
+    voyages = YEAR / (days_sea + days_port)
+
+    operations.distribution = divide_nonzero(days_condition, days_sea)
     operations.distances = trip.leg_miles[legs] * mile_shares * voyages
     operations.times_sea = days_condition * voyages
     operations.times_port = trip.port_days * voyages
