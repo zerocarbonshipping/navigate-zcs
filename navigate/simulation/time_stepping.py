@@ -25,7 +25,8 @@ from navigate.simulation.bunker.solver import set_solver_preference
 from navigate.simulation.fleet import (
     approximate_missing_technology,
     assign_vessels_to_fleets,
-    calculate_cargo_charter_properties,
+    calculate_asset_charter,
+    calculate_cargo_charter,
     calculate_fleet_evolution_expectation,
     calculate_fleet_expectations,
     calculate_fleet_fuel_demand,
@@ -33,7 +34,6 @@ from navigate.simulation.fleet import (
     calculate_fuel_type_balance,
     calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
-    calculate_vessel_charter_properties,
     calculate_vessel_profile,
     check_fuel_options,
     close_trade_gap,
@@ -244,7 +244,7 @@ class Simulation:
 
         # technology costs are excluded here: they enter the cargo charter
         # metrics below as the fleet-average carried technology charge
-        self._calculate_vessel_charter_properties()
+        self._calculate_asset_charter()
 
         if self._idx > 0:
             # ages advance before any calculation that depends on the existing
@@ -286,7 +286,7 @@ class Simulation:
 
             # the freight costs determine the uptake of the vessel types in the
             # fleet evolution
-            self._calculate_cargo_charter_properties()
+            self._calculate_cargo_charter()
             self._perform_fleet_evolution()
             self._perform_producer_evolution()
 
@@ -529,15 +529,15 @@ class Simulation:
                 fleet, self.timeline, self._time_step, self._idx
             )
 
-    def _calculate_vessel_charter_properties(self) -> None:
+    def _calculate_asset_charter(self) -> None:
         for fleet in self.nodes.fleets.values():
             for vessel in fleet.vessels:
-                calculate_vessel_charter_properties(vessel, self.timeline, self._idx)
+                calculate_asset_charter(vessel, self.timeline, self._idx)
 
-    def _calculate_cargo_charter_properties(self) -> None:
+    def _calculate_cargo_charter(self) -> None:
         for fleet in self.nodes.fleets.values():
             for vessel in fleet.vessels:
-                calculate_cargo_charter_properties(vessel, self.timeline, self._idx)
+                calculate_cargo_charter(vessel, self.timeline, self._idx)
 
     @timed(TimingID.FLEET_EVOLUTION)
     def _perform_fleet_evolution(self) -> None:
