@@ -111,9 +111,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Wtt`/`Ttw`/`Wtw` (`TotalEquivalentWtt`). An old report property spelling
   is a deck error at its line.
 - An undersized converter raises a `PowerCapacityError` naming the vessel,
-  converter, leg (by its ports) or sailing condition or port, and the required
-  and installed power, instead of an LP infeasibility. The check is also
-  tighter:
+  converter, leg (by its ports), sailing condition or port (by its name), and
+  the required and installed power, instead of an LP infeasibility. The check
+  is also tighter:
   - port electrical demand must fit the onboard electrical converter even
     where shore power is available;
   - it holds for each sailing condition on a leg, not their mean.

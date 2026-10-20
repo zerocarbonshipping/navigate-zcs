@@ -22,7 +22,7 @@ from navigate.simulation.fleet.operation import (
     transfer_operations,
 )
 from navigate.simulation.fleet.power import (
-    calculate_speed_bounds,
+    calculate_mean_speed_bounds,
     calculate_technical_speed_limits,
     loads_are_convex,
 )
@@ -221,7 +221,7 @@ def _optimize_vessel_speed(
     # conditions that take sea time bound the mean speed
     sailed = trip.sailed
     speed_min, speed_max = calculate_technical_speed_limits(vessel, trip)
-    mu_low, mu_high = calculate_speed_bounds(
+    mu_low, mu_high = calculate_mean_speed_bounds(
         speed_min[sailed], speed_max[sailed], trip.speeds[sailed]
     )
 
