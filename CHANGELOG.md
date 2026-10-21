@@ -548,6 +548,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `PlantTiedCapital` no longer repeats the capital tied up by the plants
   invested in the last time step for every investment time; each time step
   now reports its own plant capital (#588).
+- The editor grammars in `syntax/` no longer highlight `Array`, which is not a
+  DSL keyword (#614).
 
 ## [1.0.0] - 2026-07-16
 

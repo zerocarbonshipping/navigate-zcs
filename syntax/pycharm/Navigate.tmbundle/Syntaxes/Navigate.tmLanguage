@@ -31,7 +31,7 @@ SPDX-License-Identifier: Apache-2.0
             </dict>
             <dict>
                 <key>match</key>
-                <string>\b(Table|Array)\b</string>
+                <string>\bTable\b</string>
                 <key>name</key>
                 <string>keyword.other.navigate</string>
             </dict>
