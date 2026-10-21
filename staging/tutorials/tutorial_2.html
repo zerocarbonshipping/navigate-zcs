@@ -1301,10 +1301,10 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># This definition has the same structure as the definition of the fuel oil vessel, but has</span>
 <span class="c1"># different assigned values.</span>
 <span class="c1">#</span>
-<span class="c1"># Define Vessel "container_ice_methane", Converter "propulsion_ice_methane",</span>
-<span class="c1"># Converter "electrical_ice_methane", Converter "heat_boiler_methane".</span>
+<span class="c1"># Define Vessel "container_ice_methane", Converter "propulsion_ice_methane" and</span>
+<span class="c1"># Converter "electrical_ice_methane". The vessel reuses Converter "heat_boiler_oil".</span>
 <span class="c1">#</span>
-<span class="c1"># Paste the nodes from section Bi) below.</span>
+<span class="c1"># Paste the Vessel and the two Converter nodes from section Bi) below.</span>
 
 <span class="n">Vessel</span> <span class="s2">"container_ice_methane"</span> <span class="p">{</span>
 	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
@@ -1336,10 +1336,10 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 
 <span class="c1"># Biii) DEFINITION OF METHANOL VESSEL</span>
 <span class="c1">#</span>
-<span class="c1"># Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol_bulk",</span>
-<span class="c1"># Converter "electrical_ice_methanol_bulk", Converter "heat_boiler_methanol_bulk".</span>
+<span class="c1"># Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol" and</span>
+<span class="c1"># Converter "electrical_ice_methanol". The vessel reuses Converter "heat_boiler_oil".</span>
 <span class="c1">#</span>
-<span class="c1"># Paste the nodes from section Bi) below.</span>
+<span class="c1"># Paste the Vessel and the two Converter nodes from section Bi) below.</span>
 <span class="n">Vessel</span> <span class="s2">"bulk_ice_methanol"</span> <span class="p">{</span>
 	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
 	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
@@ -1368,10 +1368,10 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 
 <span class="c1"># Biv) DEFINITION OF AMMONIA VESSEL</span>
 <span class="c1">#</span>
-<span class="c1"># Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia_bulk",</span>
-<span class="c1"># Converter "electrical_ice_ammonia_bulk", Converter "heat_boiler_ammonia_bulk".</span>
+<span class="c1"># Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia" and</span>
+<span class="c1"># Converter "electrical_ice_ammonia". The vessel reuses Converter "heat_boiler_oil".</span>
 <span class="c1">#</span>
-<span class="c1"># Paste the nodes from section Bi) below.</span>
+<span class="c1"># Paste the Vessel and the two Converter nodes from section Bi) below.</span>
 <span class="n">Vessel</span> <span class="s2">"bulk_ice_ammonia"</span> <span class="p">{</span>
 	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
 	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
