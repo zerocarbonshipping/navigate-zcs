@@ -28,10 +28,7 @@ logger = logging.getLogger(__name__)
 
 def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> None:
     """
-    Initialize the existing producer.
-
-    This means discretizing the existing producer in time, by splitting the initial
-    number of plants into individual increments with varying age.
+    Initialize the existing producer, splitting its plants into increments by age.
 
     Must be called exactly once per producer: it assigns the producer's plants to it,
     which a second call rejects.
@@ -41,22 +38,20 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     producer
         Producer to initialize.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     """
-    for plant in producer.plants:
-        plant.set_producer_assignment(producer.name)
-
     idx = 0
 
+    for plant in producer.plants:
+        plant.set_producer_assignment(producer.name)
+        producer.fuels.setdefault(plant.fuel.name, plant.fuel)
+
     producer.increments = _build_initial_increments(producer)
-    _define_existing_pipeline(producer, timeline)
+    producer.pipeline = _build_existing_pipeline(producer, timeline)
+    _define_initial_development(producer)
 
     calculate_feed_availability(producer, timeline, idx)
     calculate_producer_evolution_expectation(producer, timeline, idx)
-
-    for plant in producer.plants:
-        fuel = plant.fuel
-        producer.fuels.setdefault(fuel.name, fuel)
 
 
 def _build_initial_increments(producer: Producer) -> list[list[PlantIncrement]]:
@@ -98,29 +93,32 @@ def _build_plant_increments(producer: Producer, plant_idx: int) -> list[PlantInc
     """
     plant = producer.plants[plant_idx]
     initial_capacity = producer.initial_capacity[plant_idx].get()
-    count = _calculate_initial_multiplier(producer, plant, initial_capacity)
+    count = _calculate_initial_count(producer, plant, initial_capacity)
     distribution = producer.initial_age_distribution[plant_idx]
     lifetime = plant.lifetime.get()
     lead_time = plant.lead_time.get()
-    increments: list[PlantIncrement] = []
 
-    if count > 0.0:
-        for age, span, multiplier in split_by_age(count, distribution, lifetime):
-            # only positive multipliers are kept, to reduce overhead and to avoid
-            # round-off errors in the increment average properties
-            if multiplier > 0.0:
-                increment = PlantIncrement(
-                    multiplier=multiplier,
-                    age=float(age),
-                    age_span=float(span),
-                    decided=float(age) + lead_time,
-                )
-                increments.append(increment)
+    # a NaN count, such as from an expression dividing by zero, builds no cohorts
+    if not count > 0.0:
+        return []
+
+    # only positive multipliers are kept, to reduce overhead and to avoid round-off
+    # errors in the increment average properties
+    increments: list[PlantIncrement] = []
+    for age, span, multiplier in split_by_age(count, distribution, lifetime):
+        if multiplier > 0.0:
+            increment = PlantIncrement(
+                multiplier=multiplier,
+                age=float(age),
+                age_span=float(span),
+                decided=float(age) + lead_time,
+            )
+            increments.append(increment)
 
     return increments
 
 
-def _calculate_initial_multiplier(
+def _calculate_initial_count(
     producer: Producer, plant: Plant, initial_capacity: float
 ) -> float:
     """
@@ -146,8 +144,8 @@ def _calculate_initial_multiplier(
         return initial_capacity / capacity
 
     logger.warning(
-        "%s: Unable to initialize a capacity of tons/day from %s (plant %s) as the "
-        "plant capacity is zero.",
+        "%s: Unable to initialize a capacity of %s tons/day (plant %s) as the plant "
+        "capacity is zero.",
         producer,
         initial_capacity,
         plant,
@@ -156,92 +154,124 @@ def _calculate_initial_multiplier(
     return 0.0
 
 
-def _define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
+def _build_existing_pipeline(
+    producer: Producer, timeline: FloatArray
+) -> list[list[PlantIncrement]]:
     """
-    Define the initial number of plants of each type in the production pipeline.
-
-    Also derives the initial uptake and development-constraint utilization from the
-    pipeline counts.
+    Build the increments of every plant type from its existing pipeline.
 
     Parameters
     ----------
     producer
-        Producer to define the pipeline for.
+        Producer whose existing pipelines are split.
     timeline
         Simulation timeline, days.
+
+    Returns
+    -------
+    list[list[PlantIncrement]]
+        The increments of each plant type, earliest delivery first.
     """
-    producer.pipeline = [[] for _ in producer.plants]
+    plant_count = len(producer.plants)
+    return [_build_plant_pipeline(producer, p, timeline) for p in range(plant_count)]
 
-    for p, (_name, pipeline) in enumerate(producer.existing_pipelines.items()):
-        if pipeline is None:
-            continue
 
-        planned_delivery = pipeline.x
-        planned_capacity = pipeline.y
+def _build_plant_pipeline(
+    producer: Producer, plant_idx: int, timeline: FloatArray
+) -> list[PlantIncrement]:
+    """
+    Build the increments of one plant type, one per date its pipeline adds capacity.
 
-        # interpolating on the timeline makes the deliveries overlap the
-        # simulation dates exactly
-        planned_capacity = np.interp(timeline, planned_delivery, planned_capacity)
+    Parameters
+    ----------
+    producer
+        Producer the plants belong to.
+    plant_idx
+        Index of the plant type in the producer.
+    timeline
+        Simulation timeline, days.
 
-        incremental_delivery = timeline / YEAR
-        incremental_capacity = np.insert(
-            np.diff(planned_capacity), 0, planned_capacity[0]
+    Returns
+    -------
+    list[PlantIncrement]
+        The increments of the type, earliest delivery first; none without a
+        pipeline.
+    """
+    plant = producer.plants[plant_idx]
+    pipeline = producer.existing_pipelines[plant.name]
+
+    if pipeline is None:
+        return []
+
+    capacity = plant.capacity.get()
+    lead_time = plant.lead_time.get()
+
+    # interpolating on the timeline makes the deliveries overlap the simulation
+    # dates exactly
+    capacities = np.interp(timeline, pipeline.x, pipeline.y)
+    added = np.diff(capacities, prepend=0.0)
+    is_delivery = added > 0.0
+
+    deliveries = timeline[is_delivery] / YEAR
+    counts = added[is_delivery] / capacity
+
+    # the first increment is assumed to have entered over a year
+    spans = np.insert(np.diff(deliveries), 0, 1.0)
+
+    # the pipeline holds negative ages, as its plants are not yet delivered, each
+    # decided one lead time before its delivery
+    increments: list[PlantIncrement] = []
+    for count, delivery, span in zip(counts, deliveries, spans, strict=True):
+        age = -delivery
+        increment = PlantIncrement(
+            multiplier=count,
+            age=age,
+            age_span=span,
+            decided=age + lead_time,
         )
+        increments.append(increment)
 
-        non_zeros = incremental_capacity > 0.0
-        incremental_delivery = incremental_delivery[non_zeros]
-        incremental_capacity = incremental_capacity[non_zeros]
+    return increments
 
-        # the first increment is assumed to have entered over a year
-        incremental_dt = np.insert(np.diff(incremental_delivery), 0, 1.0)
 
-        plant = producer.plants[p]
-        capacity = plant.capacity.get()
-        incremental_plants = incremental_capacity / capacity
+def _define_initial_development(producer: Producer) -> None:
+    """
+    Define the initial uptake, utilization and development from the pipeline.
 
-        # a project was decided one lead time before its delivery
-        lead_time = plant.lead_time.get()
+    The uptake weighs each pipelined plant by the inertia raised to the years since
+    it was decided, and the development counts every pipelined plant.
 
-        # the pipeline uses negative ages, as its plants are not yet delivered
-        producer.pipeline[p] = [
-            PlantIncrement(multiplier=m, age=-d, age_span=t, decided=lead_time - d)
-            for m, d, t in zip(
-                incremental_plants, incremental_delivery, incremental_dt, strict=True
-            )
-        ]
-
-        producer.results.development[0] = np.sum(incremental_plants)
-
-    # the current uptake is an inertia-weighted average over the pipeline
-    n = len(producer.plants)
-    sum_weights = 0.0
-    uptake = np.zeros((n,), dtype=np.float64)
+    Parameters
+    ----------
+    producer
+        Producer whose pipeline is read.
+    """
     inertia = producer.inertia.get()
+    maximum_development = producer.maximum_development.get()
+    weighted_counts = np.zeros(len(producer.plants))
+    weight_total = 0.0
+    count_total = 0.0
 
-    for p in range(n):
-        pinc = producer.pipeline[p]
-        if not len(pinc):
-            continue
+    # TODO: this may need to be based on continuous compound growth?
+    for p, increments in enumerate(producer.pipeline):
+        decided = np.array([increment.decided for increment in increments])
+        multipliers = np.array([increment.multiplier for increment in increments])
+        weights = inertia ** np.maximum(decided, 0.0)
 
-        # TODO: this may need to be based on continuous compound growth?
-        lead_time = producer.plants[p].lead_time.get()
-        ages = np.array([inc.age for inc in pinc])
-        multipliers = np.array([inc.multiplier for inc in pinc])
-        weights = inertia ** (np.maximum(lead_time + ages, 0.0))
+        weighted_counts[p] = np.dot(multipliers, weights)
+        weight_total += np.sum(weights)
+        count_total += np.sum(multipliers)
 
-        uptake[p] = np.dot(multipliers, weights)
-        sum_weights += np.sum(weights)
-
-    producer.current_uptake = divide_nonzero(
-        uptake, np.sum(uptake), default=1.0 / uptake.size
-    )
+    weighted_total = np.sum(weighted_counts)
+    even_share = 1.0 / weighted_counts.size
+    uptake = divide_nonzero(weighted_counts, weighted_total, default=even_share)
 
     # the latest value of the development constraint is used, since the period
     # to average it back over is hard to define: the pipeline and the lead time
     # are inconsistent, and the lead time varies between plants
-    maximum_development = producer.maximum_development.get()
-    average_development = divide_nonzero(np.sum(uptake), sum_weights)
+    average_development = divide_nonzero(weighted_total, weight_total)
+    utilization = float(divide_nonzero(average_development, maximum_development))
 
-    producer.current_utilization = min(
-        float(divide_nonzero(average_development, maximum_development)), 1.0
-    )
+    producer.current_uptake = uptake
+    producer.current_utilization = min(utilization, 1.0)
+    producer.results.development[0] = count_total

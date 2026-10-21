@@ -302,6 +302,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The producer's expected feed consumption, and hence its feed-constrained
   build-out, was overstated further into the horizon; each year now counts
   only the feed of a plant invested in that year (#587).
+- A producer's `Development` at the first date counts the existing pipeline
+  of every plant, not only of the last plant with a pipeline.
+- The warning for a plant of zero capacity states the initial capacity it
+  could not initialize.
 - A fleet whose vessels differ in `Lifetime` no longer stops with a
   `ValueError` once it has `Technologies`. Technology costs are amortized over
   each vessel's own lifetime, or the years left for a retrofit, so a
