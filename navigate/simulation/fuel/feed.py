@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import logging
+from itertools import compress
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -18,6 +19,8 @@ from navigate.simulation.cohort import (
 from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
+    from navigate.core.increment import PlantIncrement
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
     from navigate.util.types_ import FloatArray, FloatLike
 
@@ -41,127 +44,16 @@ def calculate_feed_availability(
     idx
         Current time-step index.
     """
-    # the existing and pipeline feed below are summed from zero
-    producer.expectation.reset_additive_properties()
-
-    times = timeline[idx:]
     years = timeline / YEAR
     today = years[idx]
 
-    # the feed used per plant and feed constrains the uptake shares later on
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
-            continue
+    # the existing and pipeline feed below are summed from zero
+    producer.expectation.reset_additive_properties()
 
-        for plant in producer.plants:
-            expectation = plant.expectation
-            current_production = float(expectation.get_production(idx))
-            current_conversion = float(expectation.get_feed_mass(feed_name, idx))
-            mass = current_production * current_conversion
-
-            producer.expectation.set_plant_feed_consumption(plant.name, feed_name, mass)
-
-    for p, plant in enumerate(producer.plants):
-        incs = producer.increments[p]
-        if not len(incs):
-            continue
-
-        # increments decommissioned before new plants could be built do not count
-        lifetime = plant.lifetime.get()
-        lead_time = plant.lead_time.get()
-        ages = np.array([inc.age for inc in incs])
-        continued = (lifetime - ages) > lead_time
-
-        if np.all(~continued):
-            continue
-
-        multipliers = np.array([inc.multiplier for inc in incs])
-        decided_arr = np.array([inc.decided for inc in incs])
-
-        existing_increments = multipliers[continued]
-        existing_decided = decided_arr[continued]
-
-        # the first continued increment may be partly decommissioned, as the
-        # model is continuous
-        start = np.argmax(continued)
-        boundary = lifetime - lead_time
-
-        for i in range(start, continued.size):
-            if extends_past(incs[i], boundary):
-                alpha = calculate_share_below(incs[i], boundary)
-                remaining = multipliers[i] * alpha
-
-                existing_increments = np.append(existing_increments, remaining)
-                existing_decided = np.append(existing_decided, decided_arr[i])
-
-        # production and feed use are those of when the plants were built
-        expectation = plant.expectation
-        origins = find_origin_indexes(years, today, existing_decided)
-        production = expectation.get_production(origins)
-        conversions = expectation.get_feed_masses(origins)
-
-        for feed_name, conversion in conversions.items():
-            feed_mass = np.sum(production * conversion * existing_increments)
-            producer.expectation.add_existing_feed(feed_name, feed_mass)
-
-    for p, plant in enumerate(producer.plants):
-        pinc = producer.pipeline[p]
-        if not len(pinc):
-            continue
-
-        expectation = plant.expectation
-
-        decided = np.array([inc.decided for inc in pinc])
-        multipliers = np.array([inc.multiplier for inc in pinc])
-
-        origins = find_origin_indexes(years, today, decided)
-        production = expectation.get_production(origins)
-        conversions = expectation.get_feed_masses(origins)
-
-        for feed_name, conversion in conversions.items():
-            feed_mass = np.sum(production * conversion * multipliers)
-            producer.expectation.add_pipeline_feed(feed_name, feed_mass)
-
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
-            continue
-
-        # the availability gap uses the constraint one minimum lead time ahead;
-        # the minimum across plants guarantees consistency with the constraint
-        lead_times = [
-            plant.lead_time.get()
-            for plant in producer.plants
-            if producer.expectation.get_plant_feed_consumption(plant.name, feed_name)
-            > 0.0
-        ]
-
-        if not lead_times:
-            continue
-
-        minimum_lead_time = np.amin(lead_times)
-        supply = constraint.get(times + minimum_lead_time * YEAR)
-
-        existing = producer.expectation.get_existing_feed(feed_name)
-        pipeline = producer.expectation.get_pipeline_feed(feed_name)
-        demand = existing + pipeline
-
-        gap = supply - demand
-
-        # an initial capacity of plants using more feed than the constraint allows
-        # over-demands the feed; this signals an issue in the input data, so it is
-        # flagged with a warning rather than corrected for internally
-        # TODO: Remove if scrapping for negatives gets implemented
-        if gap[0] < -TOLERANCE:
-            logger.warning(
-                "%s: %s tons/year more '%s' feed is being used than is available.",
-                producer,
-                round(-gap[0]),
-                feed_name,
-            )
-
-            gap = np.zeros_like(gap)
-
-        producer.expectation.set_feed_gap(idx, feed_name, gap)
+    _calculate_plant_feed_consumption(producer, idx)
+    _calculate_existing_feed(producer, years, today)
+    _calculate_pipeline_feed(producer, years, today)
+    _calculate_feed_gaps(producer, timeline, idx)
 
 
 def calculate_constrained_uptakes(
@@ -201,26 +93,242 @@ def calculate_constrained_uptakes(
     tolerance = 1e-3
 
     current_uptakes = uptakes
-    converged = False
 
-    while not converged:
-        new_limits = calculate_feed_uptake_limit_iteration(
+    while True:
+        feed_limits = _calculate_feed_limits(
             producer, development, current_uptakes, idx, additional_consumption
         )
 
         # the feed limits may not be looser than the demand-based limits
-        new_limits = np.minimum(new_limits, limits)
-        new_uptakes, _utilization = _calculate_constrained_shares(uptakes, new_limits)
+        new_limits = np.minimum(feed_limits, limits)
+        new_uptakes = _calculate_constrained_shares(uptakes, new_limits)
 
         if np.sum(np.abs(current_uptakes - new_uptakes)) < tolerance:
-            converged = True
+            return new_uptakes
 
         current_uptakes = new_uptakes
 
-    return current_uptakes
+
+def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
+    """
+    Set the feed a plant built at the time step uses, per constrained feed.
+
+    It constrains the uptake shares later on.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    idx
+        Current time-step index.
+    """
+    for feed_name, constraint in producer.feed_constraints.items():
+        if constraint is None:
+            continue
+
+        for plant in producer.plants:
+            production = float(plant.expectation.get_production(idx))
+            conversion = float(plant.expectation.get_feed_mass(feed_name, idx))
+            mass = production * conversion
+
+            producer.expectation.set_plant_feed_consumption(plant.name, feed_name, mass)
 
 
-def calculate_feed_uptake_limit_iteration(
+def _calculate_existing_feed(
+    producer: Producer, years: FloatArray, today: float
+) -> None:
+    """
+    Add the feed used by the plants still running once new plants are built.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    years
+        Simulation timeline, in years.
+    today
+        Current year.
+    """
+    for plant, increments in zip(producer.plants, producer.increments, strict=True):
+        multipliers, decided = _find_continued_increments(plant, increments)
+
+        if not multipliers.size:
+            continue
+
+        feed_masses = _calculate_feed_masses(plant, multipliers, decided, years, today)
+
+        for key, value in feed_masses.items():
+            producer.expectation.add_existing_feed(key, value)
+
+
+def _calculate_pipeline_feed(
+    producer: Producer, years: FloatArray, today: float
+) -> None:
+    """
+    Add the feed used by the plants in the pipeline.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    years
+        Simulation timeline, in years.
+    today
+        Current year.
+    """
+    for plant, increments in zip(producer.plants, producer.pipeline, strict=True):
+        if not increments:
+            continue
+
+        multipliers = np.array([inc.multiplier for inc in increments])
+        decided = np.array([inc.decided for inc in increments])
+        feed_masses = _calculate_feed_masses(plant, multipliers, decided, years, today)
+
+        for key, value in feed_masses.items():
+            producer.expectation.add_pipeline_feed(key, value)
+
+
+def _find_continued_increments(
+    plant: Plant, increments: list[PlantIncrement]
+) -> tuple[FloatArray, FloatArray]:
+    """
+    Find the plants of each increment still running once new plants are built.
+
+    Increments decommissioned before new plants could be built do not count. As the
+    model is continuous, an increment straddling that boundary adds its share below
+    the boundary after the increments still running.
+
+    Parameters
+    ----------
+    plant
+        The plant type of the increments.
+    increments
+        Increments of the plant type, oldest first.
+
+    Returns
+    -------
+    tuple[FloatArray, FloatArray]
+        The number of plants of each continued increment and the years since it was
+        decided.
+    """
+    lifetime = plant.lifetime.get()
+    lead_time = plant.lead_time.get()
+    boundary = lifetime - lead_time
+
+    ages = np.array([inc.age for inc in increments])
+    continued = lifetime - ages > lead_time
+
+    if not continued.any():
+        return np.empty(0), np.empty(0)
+
+    running = list(compress(increments, continued))
+    start = int(np.argmax(continued))
+    straddling = [inc for inc in increments[start:] if extends_past(inc, boundary)]
+
+    multipliers = [inc.multiplier for inc in running]
+    decided = [inc.decided for inc in running]
+
+    for inc in straddling:
+        multipliers.append(inc.multiplier * calculate_share_below(inc, boundary))
+        decided.append(inc.decided)
+
+    return np.array(multipliers), np.array(decided)
+
+
+def _calculate_feed_masses(
+    plant: Plant,
+    multipliers: FloatArray,
+    decided: FloatArray,
+    years: FloatArray,
+    today: float,
+) -> dict[str, float]:
+    """
+    Calculate the feed mass a set of increments of a plant type uses, per feed.
+
+    Production and feed use are those of when the plants were built.
+
+    Parameters
+    ----------
+    plant
+        The plant type of the increments.
+    multipliers
+        Number of plants in each increment.
+    decided
+        Years since each increment was decided.
+    years
+        Simulation timeline, in years.
+    today
+        Current year.
+
+    Returns
+    -------
+    dict[str, float]
+        Feed mass per feed name, in tons/year.
+    """
+    origins = find_origin_indexes(years, today, decided)
+    production = plant.expectation.get_production(origins)
+    conversions = plant.expectation.get_feed_masses(origins)
+
+    feed_masses: dict[str, float] = {}
+    for feed_name, conversion in conversions.items():
+        feed_masses[feed_name] = np.sum(production * conversion * multipliers)
+
+    return feed_masses
+
+
+def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> None:
+    """
+    Set the gap between the feed supply and the feed the plants use, per feed.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    timeline
+        Simulation timeline, days.
+    idx
+        Current time-step index.
+    """
+    expectation = producer.expectation
+    times = timeline[idx:]
+
+    for feed_name, constraint in producer.feed_constraints.items():
+        if constraint is None:
+            continue
+
+        lead_times: list[float] = []
+        for plant in producer.plants:
+            if expectation.get_plant_feed_consumption(plant.name, feed_name) > 0.0:
+                lead_times.append(plant.lead_time.get())
+
+        if not lead_times:
+            continue
+
+        # the availability gap uses the constraint one minimum lead time ahead;
+        # the minimum across plants guarantees consistency with the constraint
+        supply = constraint.get(times + min(lead_times) * YEAR)
+        existing = expectation.get_existing_feed(feed_name)
+        pipeline = expectation.get_pipeline_feed(feed_name)
+        gap = supply - (existing + pipeline)
+
+        # an initial capacity of plants using more feed than the constraint allows
+        # over-demands the feed; this signals an issue in the input data, so it is
+        # flagged with a warning rather than corrected for internally
+        # TODO: Remove if scrapping for negatives gets implemented
+        if gap[0] < -TOLERANCE:
+            logger.warning(
+                "%s: %s tons/year more '%s' feed is being used than is available.",
+                producer,
+                round(-gap[0]),
+                feed_name,
+            )
+
+            gap = np.zeros_like(gap)
+
+        expectation.set_feed_gap(idx, feed_name, gap)
+
+
+def _calculate_feed_limits(
     producer: Producer,
     development: float,
     uptakes: FloatArray,
@@ -229,6 +337,9 @@ def calculate_feed_uptake_limit_iteration(
 ) -> FloatArray:
     """
     Calculate feed-based uptake limits for a single iteration.
+
+    A feed limits each plant consuming it to its uptake scaled so the feed spent fits
+    into the feed gap; a feed with no spend leaves the uptake as it is.
 
     Parameters
     ----------
@@ -252,65 +363,66 @@ def calculate_feed_uptake_limit_iteration(
     if additional_consumption is None:
         additional_consumption = {}
 
-    spend_map: dict[tuple[str, str], float] = {}
-    total_spend: dict[str, float] = {}
+    expectation = producer.expectation
+    limits = np.ones_like(uptakes)
 
     for feed_name, constraint in producer.feed_constraints.items():
         if constraint is None:
             continue
 
-        additional_consumption.setdefault(feed_name, 0.0)
-        total_spend.setdefault(feed_name, 0.0)
+        gap = float(expectation.get_feed_gap(feed_name, idx))
+        additional = float(additional_consumption.get(feed_name, 0.0))
+        spend = _calculate_feed_spend(producer, feed_name, development, uptakes)
+        scaling = max((gap - additional) / spend, 0.0) if spend > 0.0 else 1.0
 
-        for p, plant in enumerate(producer.plants):
-            key = (plant.name, feed_name)
-            consumption = producer.expectation.get_plant_feed_consumption(*key)
-
-            spend = consumption * uptakes[p] * development
-            spend_map[key] = spend
-            total_spend[feed_name] += spend
-
-    for feed_name, spend in total_spend.items():
-        if not spend > 0.0:
+        # an unbounded feed limits no plant
+        if scaling == np.inf:
             continue
 
-        feed_gap = float(producer.expectation.get_feed_gap(feed_name, idx))
-        gap = feed_gap - float(additional_consumption[feed_name])
-        scaling = max(gap / spend, 0.0)
+        for p, plant in enumerate(producer.plants):
+            consumption = expectation.get_plant_feed_consumption(plant.name, feed_name)
 
-        for _p, plant in enumerate(producer.plants):
-            key = (plant.name, feed_name)
-
-            if scaling == np.inf:
-                spend_map[key] = np.inf
-            else:
-                spend_map[key] *= scaling
-
-    limits = np.ones_like(uptakes)
-    for p, plant in enumerate(producer.plants):
-        plant_name = plant.name
-        current_limit = 1.0
-
-        for feed_name in total_spend:
-            key = (plant_name, feed_name)
-            consumption = (
-                producer.expectation.get_plant_feed_consumption(*key) * development
-            )
-
-            if not consumption > 0.0:
-                continue
-
-            new_limit = spend_map[key] / consumption
-            current_limit = min(current_limit, new_limit)
-
-        limits[p] = current_limit
+            if consumption * development > 0.0:
+                limits[p] = min(limits[p], uptakes[p] * scaling)
 
     return limits
 
 
+def _calculate_feed_spend(
+    producer: Producer, feed_name: str, development: float, uptakes: FloatArray
+) -> float:
+    """
+    Calculate the feed the plants built over the time step use at given uptakes.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    feed_name
+        Name of the feed.
+    development
+        Number of plants built over the time step.
+    uptakes
+        Uptakes-shares for the given iteration.
+
+    Returns
+    -------
+    float
+        Feed used, in tons/year.
+    """
+    expectation = producer.expectation
+    spend = 0.0
+
+    for plant, uptake in zip(producer.plants, uptakes, strict=True):
+        consumption = expectation.get_plant_feed_consumption(plant.name, feed_name)
+        spend += consumption * uptake * development
+
+    return spend
+
+
 def _calculate_constrained_shares(
     shares: FloatArray, maximums: FloatArray
-) -> tuple[FloatArray, float]:
+) -> FloatArray:
     """
     Redistribute discrete-choice shares that exceed their maximum allowed value.
 
@@ -335,18 +447,13 @@ def _calculate_constrained_shares(
 
     Returns
     -------
-    tuple[FloatArray, float]
-        Constrained uptake shares and the utilization share if the problem is
-        over-constrained.
+    FloatArray
+        Constrained uptake shares.
     """
     surplus = np.maximum(shares - maximums, 0.0)
     deficit = np.maximum(maximums - shares, 0.0)
 
-    unutilized = max(1.0 - np.sum(maximums), 0.0)
-
     fraction = min(float(divide_nonzero(np.sum(surplus), np.sum(deficit))), 1.0)
 
     has_surplus = surplus > 0.0
-    constrained_shares = np.where(has_surplus, maximums, shares + deficit * fraction)
-
-    return constrained_shares, 1.0 - unutilized
+    return np.where(has_surplus, maximums, shares + deficit * fraction)
