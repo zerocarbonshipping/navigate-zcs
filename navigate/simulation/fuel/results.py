@@ -43,23 +43,20 @@ def record_plant_results(plant: Plant, idx: int) -> None:
 
 def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) -> None:
     """
-    Calculate the producer results for a given time step.
+    Write the producer's production, feed use, tied capital and limits to its results.
 
     Parameters
     ----------
     producer
         The producer instance.
     timeline
-        Simulation timeline.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
-    years = timeline / YEAR
-    today = years[idx]
-
     _transfer_feed_constraints(producer, idx)
-    _transfer_production_and_feed_mass(producer, years, today, idx)
-    _transfer_plant_tied_capital(producer, years, today, idx)
+    _transfer_production_and_feed_mass(producer, timeline, idx)
+    _transfer_plant_tied_capital(producer, timeline, idx)
 
     producer.results.maximum_development[idx] = producer.maximum_development.get()
 
@@ -81,49 +78,44 @@ def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
 
 
 def _transfer_production_and_feed_mass(
-    producer: Producer, years: FloatArray, today: float, idx: int
+    producer: Producer, timeline: FloatArray, idx: int
 ) -> None:
     """
-    Transfer the produced fuel mass and consumed feed mass per plant.
-
-    Weighted by the increment multipliers.
+    Transfer the fuel produced and feed used per plant, weighted by its increments.
 
     Parameters
     ----------
     producer
         The producer instance.
-    years
-        Simulation timeline in years.
-    today
-        The current year (years[idx]).
+    timeline
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
-    for p, plant in enumerate(producer.plants):
-        incs = producer.increments[p]
-        if not len(incs):
+    results = producer.results
+    years = timeline / YEAR
+    current_year = years[idx]
+
+    for plant, increments in zip(producer.plants, producer.increments, strict=True):
+        if not increments:
             continue
 
-        fuel_name = plant.fuel.name
-        expectation = plant.expectation
+        decided = np.array([increment.decided for increment in increments])
+        multipliers = np.array([increment.multiplier for increment in increments])
+        origins = find_origin_indexes(years, current_year, decided)
 
-        decided = np.array([inc.decided for inc in incs])
-        multipliers = np.array([inc.multiplier for inc in incs])
+        production_per_plant = plant.expectation.get_production(origins)
+        production = np.sum(production_per_plant * multipliers)
+        results.production_mass[plant.fuel.name][idx] += production
 
-        origins = find_origin_indexes(years, today, decided)
-        production_unit = expectation.get_production(origins)
-        production = np.sum(production_unit * multipliers)
-
-        producer.results.production_mass[fuel_name][idx] += production
-
-        conversions = expectation.get_feed_masses(origins)
+        conversions = plant.expectation.get_feed_masses(origins)
         for feed_name, conversion in conversions.items():
-            feed_mass = np.sum(production_unit * conversion * multipliers)
-            producer.results.feed_mass[feed_name][idx] += feed_mass
+            feed_mass = np.sum(production_per_plant * conversion * multipliers)
+            results.feed_mass[feed_name][idx] += feed_mass
 
 
 def _transfer_plant_tied_capital(
-    producer: Producer, years: FloatArray, today: float, idx: int
+    producer: Producer, timeline: FloatArray, idx: int
 ) -> None:
     """
     Transfer the remaining tied-up capital per plant increment.
@@ -132,25 +124,23 @@ def _transfer_plant_tied_capital(
     ----------
     producer
         The producer instance.
-    years
-        Simulation timeline in years.
-    today
-        The current year (years[idx]).
+    timeline
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
-    for p, plant in enumerate(producer.plants):
-        incs = producer.increments[p]
-        for inc in incs:
-            # the cost profile is that of a plant entering production 'age' years
-            # ago; a plant of the initial production uses the results of a plant at
-            # age 0, the best available approximation as historical data is unknown
-            origin = find_origin_index(years, today, inc.age)
+    results = producer.results
+    years = timeline / YEAR
+    current_year = years[idx]
 
+    for plant, increments in zip(producer.plants, producer.increments, strict=True):
+        for increment in increments:
+            # the costs are those of a plant that entered production 'age' years ago
+            origin = find_origin_index(years, current_year, increment.age)
             tied_capital_flow = plant.expectation.get_tied_capital(origin)
-            tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
+            tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age)
 
-            producer.results.plant_tied_capital[idx] += tied_capital * inc.multiplier
+            results.plant_tied_capital[idx] += tied_capital * increment.multiplier
 
 
 def record_port_results(port: Port, idx: int) -> None:
