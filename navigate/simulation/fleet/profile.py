@@ -34,14 +34,14 @@ def calculate_fleet_profile(fleet: Fleet, timeline: FloatArray, idx: int) -> Non
     fleet
         Fleet instance.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
     _transfer_increment_expenses(fleet, timeline, idx)
     _transfer_weighted_age(fleet, idx)
     _transfer_fuel_type_capacity(fleet, idx)
-    _transfer_multipliers(fleet, idx)
+    _transfer_existing_vessels(fleet, idx)
     _transfer_technology_uptake(fleet, idx)
 
 
@@ -50,38 +50,38 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     Transfer the running vessel expenses per increment.
 
     Includes the instantaneous charter rate, remaining tied-up capital, and
-    the carried technology charge.
+    the carried technology charge. The technology charge is the levelized
+    analogue of the asset charter rate for the cohort's installed technologies.
 
     Parameters
     ----------
     fleet
         Fleet instance.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
+    profile = fleet.profile
     years = timeline / YEAR
     current_year = years[idx]
 
     for v, vessel in enumerate(fleet.vessels):
+        expectation = vessel.expectation
+
         for inc in fleet.increments[v]:
-            # the cost profile is that of a vessel entering the fleet 'age' years
-            # ago; an increment of the initial fleet uses the profile at the
-            # simulation start, as historical cost data is unknown
+            # the increment bears the costs of a vessel that entered the fleet
+            # 'age' years ago
             origin = find_origin_index(years, current_year, inc.age)
-            cost = vessel.expectation.get_asset_charter_rate(origin)
-            tied_capital_flow = vessel.expectation.get_tied_capital(origin)
+            tied_capital_flow = expectation.get_tied_capital(origin)
+
+            asset_charter_rate = expectation.get_asset_charter_rate(origin)
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
+            technology_charter_rate = inc.technology_charter_rate
 
-            fleet.profile.vessel_expenses[idx] += cost * inc.multiplier
-            fleet.profile.vessel_tied_capital[idx] += tied_capital * inc.multiplier
-
-            # the carried technology charge is the levelized analogue of the
-            # asset charter rate for the cohort's installed technologies
-            fleet.profile.technology_expenses[idx] += (
-                inc.technology_charter_rate * inc.multiplier
-            )
+            profile.vessel_expenses[idx] += asset_charter_rate * inc.multiplier
+            profile.vessel_tied_capital[idx] += tied_capital * inc.multiplier
+            profile.technology_expenses[idx] += technology_charter_rate * inc.multiplier
 
 
 def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
@@ -98,19 +98,18 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
+    profile = fleet.profile
+
     for v, vessel in enumerate(fleet.vessels):
-        incs = fleet.increments[v]
+        increments = fleet.increments[v]
+        fuel_type = vessel.primary_fuel_type
         power = get_total_power_capacity(vessel)
 
-        age_power_sum = float(sum(inc.age * inc.multiplier for inc in incs)) * power
-        count_power_sum = float(get_multiplier(fleet, v)) * power
+        numerator = sum(inc.age * inc.multiplier for inc in increments) * power
+        denominator = get_multiplier(fleet, v) * power
 
-        fleet.profile.weighted_age_numerator[vessel.primary_fuel_type][idx] += (
-            age_power_sum
-        )
-        fleet.profile.weighted_age_denominator[vessel.primary_fuel_type][idx] += (
-            count_power_sum
-        )
+        profile.weighted_age_numerator[fuel_type][idx] += numerator
+        profile.weighted_age_denominator[fuel_type][idx] += denominator
 
 
 def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
@@ -125,14 +124,13 @@ def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     for fuel_type in FuelTypeID:
-        fleet.profile.fuel_type_capacity[fuel_type][idx] += (
-            fleet.expectation.get_fuel_type_capacity(fuel_type)
-        )
+        capacity = fleet.expectation.get_fuel_type_capacity(fuel_type)
+        fleet.profile.fuel_type_capacity[fuel_type][idx] += capacity
 
 
-def _transfer_multipliers(fleet: Fleet, idx: int) -> None:
+def _transfer_existing_vessels(fleet: Fleet, idx: int) -> None:
     """
-    Transfer the current multiplier state to the profile for output.
+    Transfer the number of vessels of each type to the profile.
 
     Parameters
     ----------
@@ -156,27 +154,27 @@ def _transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
+    profile = fleet.profile
+
     for v, vessel in enumerate(fleet.vessels):
-        for p, _package in enumerate(fleet.technology_packages[1:], start=1):
-            t = fleet.package_to_technology_map[p]
-            technology = fleet.technologies[t]
+        increments = fleet.increments[v]
+        newbuild_package_uptake = fleet.newbuild_package_uptake[v]
+        multipliers_total = get_multiplier(fleet, v)
 
-            nb_uptake = np.sum(fleet.newbuild_package_uptake[v][p:])
-            fleet.profile.newbuild_technology_uptake[vessel.name, technology.name][
-                idx
-            ] = nb_uptake
+        for p, t in fleet.package_to_technology_map.items():
+            # a package holds the technologies of every package before it, so a
+            # technology's uptake is that of the package adding it and all after
+            key = (vessel.name, fleet.technologies[t].name)
+            newbuild_uptake = np.sum(newbuild_package_uptake[p:])
 
-            weighted_uptake = 0.0
-            weight = 0.0
-            for inc in fleet.increments[v]:
-                inc_uptake = float(np.sum(inc.package_uptake[p:]))
-                weighted_uptake += inc_uptake * inc.multiplier
-                weight += inc.multiplier
+            total = 0.0
+            for inc in increments:
+                total += inc.multiplier * float(np.sum(inc.package_uptake[p:]))
 
-            avg_uptake = float(divide_nonzero(weighted_uptake, weight))
-            fleet.profile.technology_uptake[vessel.name, technology.name][idx] = (
-                avg_uptake
-            )
+            average = float(divide_nonzero(total, multipliers_total))
+
+            profile.newbuild_technology_uptake[key][idx] = newbuild_uptake
+            profile.technology_uptake[key][idx] = average
 
 
 def calculate_vessel_profile(vessel: Vessel, idx: int) -> None:
