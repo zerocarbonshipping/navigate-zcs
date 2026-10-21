@@ -39,24 +39,24 @@ def update_plant_ages(producer: Producer, time_step: float) -> None:
 
 def perform_decommissioning(producer: Producer) -> None:
     """
-    Decommission increments that have exceeded their plant's lifetime.
+    Decommission the plants past their lifetime.
+
+    An increment spanning the lifetime keeps the share of its plants below it, as its
+    plants are spread uniformly over its age span.
 
     Parameters
     ----------
     producer
-        The producer instance.
+        Producer whose plants are decommissioned.
     """
     for p, plant in enumerate(producer.plants):
-        incs = producer.increments[p]
         lifetime = plant.lifetime.get()
+        increments = [inc for inc in producer.increments[p] if inc.age < lifetime]
 
-        producer.increments[p] = [inc for inc in incs if inc.age < lifetime]
+        for increment in increments:
+            if extends_past(increment, lifetime):
+                alpha = calculate_share_below(increment, lifetime)
+                increment.multiplier *= alpha
+                increment.age_span = lifetime - increment.age
 
-        # partially decommission increments whose age_span spans the lifetime boundary
-        for inc in producer.increments[p]:
-            if extends_past(inc, lifetime):
-                alpha = calculate_share_below(inc, lifetime)
-                decommissioning = inc.multiplier * (1.0 - alpha)
-
-                inc.multiplier -= decommissioning
-                inc.age_span = lifetime - inc.age
+        producer.increments[p] = increments
