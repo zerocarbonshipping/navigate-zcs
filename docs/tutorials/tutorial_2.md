@@ -827,10 +827,10 @@ Converter "heat_boiler_oil" {
 # This definition has the same structure as the definition of the fuel oil vessel, but has
 # different assigned values.
 #
-# Define Vessel "container_ice_methane", Converter "propulsion_ice_methane",
-# Converter "electrical_ice_methane", Converter "heat_boiler_methane".
+# Define Vessel "container_ice_methane", Converter "propulsion_ice_methane" and
+# Converter "electrical_ice_methane". The vessel reuses Converter "heat_boiler_oil".
 #
-# Paste the nodes from section Bi) below.
+# Paste the Vessel and the two Converter nodes from section Bi) below.
 
 Vessel "container_ice_methane" {
 	PropulsionConverter = Converter("propulsion_ice_methane")
@@ -862,10 +862,10 @@ Converter "electrical_ice_methane" {
 
 # Biii) DEFINITION OF METHANOL VESSEL
 #
-# Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol_bulk",
-# Converter "electrical_ice_methanol_bulk", Converter "heat_boiler_methanol_bulk".
+# Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol" and
+# Converter "electrical_ice_methanol". The vessel reuses Converter "heat_boiler_oil".
 #
-# Paste the nodes from section Bi) below.
+# Paste the Vessel and the two Converter nodes from section Bi) below.
 Vessel "bulk_ice_methanol" {
 	PropulsionConverter = Converter("propulsion_ice_methanol")
 	ElectricalConverter = Converter("electrical_ice_methanol")
@@ -894,10 +894,10 @@ Converter "electrical_ice_methanol" {
 
 # Biv) DEFINITION OF AMMONIA VESSEL
 #
-# Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia_bulk",
-# Converter "electrical_ice_ammonia_bulk", Converter "heat_boiler_ammonia_bulk".
+# Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia" and
+# Converter "electrical_ice_ammonia". The vessel reuses Converter "heat_boiler_oil".
 #
-# Paste the nodes from section Bi) below.
+# Paste the Vessel and the two Converter nodes from section Bi) below.
 Vessel "bulk_ice_ammonia" {
 	PropulsionConverter = Converter("propulsion_ice_ammonia")
 	ElectricalConverter = Converter("electrical_ice_ammonia")
