@@ -13,8 +13,6 @@ from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.util import TON_TO_KG, divide_nonzero
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
     from navigate.core.nodes.regulation import Regulation
 
 
@@ -79,8 +77,8 @@ def calculate_regulation_compliance(
     """
     Calculate the compliance, allowance and units of each active regulation.
 
-    Read from the existing bunkering LP, they go to the regulation's results, per
-    policed vessel and shared across them, with the adjusted thresholds.
+    Each is read from the existing bunkering LP and written, with the adjusted
+    thresholds, to the regulation's results, per policed vessel and shared across them.
 
     Parameters
     ----------
@@ -97,7 +95,7 @@ def calculate_regulation_compliance(
             continue
 
         _calculate_compliance_results(regulation, multipliers, idx)
-        _calculate_adjusted_threshold_results(regulation, multipliers, idx)
+        _record_adjusted_thresholds(regulation, multipliers, idx)
 
 
 def _calculate_compliance_results(
@@ -121,7 +119,7 @@ def _calculate_compliance_results(
         total_allowance += multiplier * account.allowance
 
         # a vessel with no port in the jurisdiction has a zero measure
-        if not (account.measure > 0.0):
+        if account.measure <= 0.0:
             continue
 
         vessel_compliance = account.emissions / account.measure
@@ -151,8 +149,8 @@ def _calculate_compliance_results(
         results.shared_threshold[idx] = threshold
 
 
-def _calculate_adjusted_threshold_results(
-    regulation: Regulation, vessel_names: Iterable[str], idx: int
+def _record_adjusted_thresholds(
+    regulation: Regulation, multipliers: dict[str, float], idx: int
 ) -> None:
     """
     Write the adjusted thresholds to the regulation's results.
@@ -163,7 +161,7 @@ def _calculate_adjusted_threshold_results(
     expectation = regulation.expectation
     results = regulation.results
 
-    for vessel_name in vessel_names:
+    for vessel_name in multipliers:
         if not regulation.vessel_is_policed(vessel_name):
             continue
 
@@ -177,11 +175,11 @@ def _calculate_adjusted_threshold_results(
 
 
 def _normalize_by_measure(
-    regulation: Regulation, value: float, total_measure: float
+    regulation: Regulation, total: float, total_measure: float
 ) -> float:
     """Normalize a fleet aggregate by the pooled measure; ABSOLUTE passes through."""
     if regulation.measure == RegulationMeasureID.ABSOLUTE:
-        return value
+        return total
 
     # the pooled measure is zero when no vessel is policed
-    return np.float64(divide_nonzero(value, total_measure))
+    return np.float64(divide_nonzero(total, total_measure))
