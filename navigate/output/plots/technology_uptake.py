@@ -38,18 +38,18 @@ def plot_technology_uptake(results: SimulationResults, directory: Path) -> None:
     fleets = results.nodes.fleets
 
     for fleet_name, fleet in fleets.items():
-        profile = fleet.profile
+        fleet_results = fleet.results
 
-        uptakes = profile.technology_uptake
-        uptakes_newbuild = profile.newbuild_technology_uptake
-        uptakes_retrofit = profile.retrofit_technology_uptake
+        uptakes = fleet_results.technology_uptake
+        uptakes_newbuild = fleet_results.newbuild_technology_uptake
+        uptakes_retrofit = fleet_results.retrofit_technology_uptake
 
         if not uptakes and not uptakes_newbuild and not uptakes_retrofit:
             continue
 
-        multipliers = profile.existing_vessels
-        newbuilds = profile.newbuilds
-        fleet_uptake = profile.fleet_technology_uptake
+        multipliers = fleet_results.existing_vessels
+        newbuilds = fleet_results.newbuilds
+        fleet_uptake = fleet_results.fleet_technology_uptake
 
         uptake: dict[str, FloatArray] = {}
         uptake_newbuild: dict[str, list[float]] = {}

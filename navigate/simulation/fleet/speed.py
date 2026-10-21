@@ -291,7 +291,7 @@ def _finalize_vessel_speed(
     result: SpeedResult, mu_target: float, maximum_change: float, idx: int
 ) -> None:
     """
-    Move a vessel's mean speed towards the target, transfer its profile, store results.
+    Move a vessel's mean speed towards the target, transfer its results, store results.
 
     Parameters
     ----------
@@ -325,13 +325,13 @@ def _finalize_vessel_speed(
     transfer_operations(vessel, trip, operations_actual, idx)
     vessel.expectation.set_speed_mean(mu_actual)
 
-    profile = vessel.profile
-    profile.minimum_speed[idx] = np.min(speeds_min[sailed])
-    profile.maximum_speed[idx] = np.max(speeds_max[sailed])
-    profile.actual_speed[idx] = np.average(speeds_actual, weights=distribution)
-    profile.optimal_speed[idx] = np.average(speeds_optimal, weights=distribution)
-    profile.lowest_speed[idx] = np.min(speeds_actual[sailed])
-    profile.highest_speed[idx] = np.max(speeds_actual[sailed])
+    results = vessel.results
+    results.minimum_speed[idx] = np.min(speeds_min[sailed])
+    results.maximum_speed[idx] = np.max(speeds_max[sailed])
+    results.actual_speed[idx] = np.average(speeds_actual, weights=distribution)
+    results.optimal_speed[idx] = np.average(speeds_optimal, weights=distribution)
+    results.lowest_speed[idx] = np.min(speeds_actual[sailed])
+    results.highest_speed[idx] = np.max(speeds_actual[sailed])
 
 
 def _apply_operational_savings(

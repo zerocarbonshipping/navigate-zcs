@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The profile layer for the fuel producers: the producer and global profiles."""
+"""The results layer for the fuel producers: the producer and global results."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._base_profile import _BaseProfile, accumulate, result
+from navigate.core.results._base_results import _BaseResults, accumulate, result
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import FuelTypeID
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class _FuelProducerProfile(_BaseProfile):
+class _FuelProducerResults(_BaseResults):
     """Fuel produced, feedstock consumed and the availability limit on it."""
 
     # the mass is written, the energy computed from it
@@ -42,15 +42,15 @@ class _FuelProducerProfile(_BaseProfile):
         self.feed_mass = self._default_dict(feed)
         self.feed_constraint = self._default_dict(feed, default=np.inf)
 
-    def add_fuel_producer_profile(self, profile: _FuelProducerProfile) -> None:
+    def add_fuel_producer_results(self, results: _FuelProducerResults) -> None:
         """
-        Add another fuel producer profile's values into this one.
+        Add another fuel producer's results into this one.
 
         Parameters
         ----------
-        profile
-            Producer profile from another node.
+        results
+            Producer results from another node.
         """
-        accumulate(self.production_mass, profile.production_mass)
-        accumulate(self.feed_mass, profile.feed_mass)
-        accumulate(self.feed_constraint, profile.feed_constraint)
+        accumulate(self.production_mass, results.production_mass)
+        accumulate(self.feed_mass, results.feed_mass)
+        accumulate(self.feed_constraint, results.feed_constraint)

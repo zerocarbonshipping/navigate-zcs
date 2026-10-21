@@ -60,7 +60,7 @@ def _collected(run_combination, scheme, scope, upper):
         )
 
     results = run_combination(*layers)
-    return results.nodes.levies[LEVY].profile.collected
+    return results.nodes.levies[LEVY].results.collected
 
 
 @pytest.mark.parametrize(

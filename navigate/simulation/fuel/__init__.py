@@ -22,17 +22,17 @@ from navigate.simulation.fuel.pipeline import (
     perform_pipeline_planning,
 )
 from navigate.simulation.fuel.port_supply import calculate_fuel_import_to_ports
-from navigate.simulation.fuel.production import calculate_plant_production_expectations
-from navigate.simulation.fuel.profile import (
-    calculate_plant_profile,
-    calculate_port_profile,
-    calculate_producer_profile,
-)
-from navigate.simulation.fuel.results import (
+from navigate.simulation.fuel.post_process import (
     complete_global_fuel_results,
-    complete_plant_profile,
-    complete_port_profile,
-    complete_producer_profile,
+    complete_plant_results,
+    complete_port_results,
+    complete_producer_results,
+)
+from navigate.simulation.fuel.production import calculate_plant_production_expectations
+from navigate.simulation.fuel.results import (
+    record_plant_results,
+    record_port_results,
+    record_producer_results,
 )
 from navigate.simulation.fuel.supply_demand import (
     calculate_constrained_fair_share_fuel_demand,

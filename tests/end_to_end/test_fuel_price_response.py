@@ -43,7 +43,7 @@ def _fleet(results):
 
 def test_dearer_lng_lowers_the_methane_share_of_newbuilds(run_combination):
     def methane_share(results):
-        newbuilds = _fleet(results).profile.newbuilds
+        newbuilds = _fleet(results).results.newbuilds
         methane = newbuilds[METHANE_VESSEL].sum()
         assert methane > 0.0, "the fleet must build methane vessels"
         return methane / (methane + newbuilds[OIL_VESSEL].sum())
@@ -57,7 +57,7 @@ def test_dearer_lng_lowers_the_methane_share_of_newbuilds(run_combination):
 def test_dearer_lng_lowers_the_conversions_to_methane(run_combination):
     def conversions(results):
         lane = (OIL_VESSEL, METHANE_VESSEL)
-        return _fleet(results).profile.fuel_conversions[lane].sum()
+        return _fleet(results).results.fuel_conversions[lane].sum()
 
     base = conversions(_run(run_combination, dearer=False, conversion=True))
     dearer = conversions(_run(run_combination, dearer=True, conversion=True))
@@ -69,7 +69,7 @@ def test_dearer_lng_lowers_the_conversions_to_methane(run_combination):
 def test_dearer_lng_slows_the_methane_vessels(run_combination):
     def speed(results):
         (vessel,) = (v for v in _fleet(results).vessels if v.name == METHANE_VESSEL)
-        return vessel.profile.optimal_speed[1:]
+        return vessel.results.optimal_speed[1:]
 
     base = speed(_run(run_combination, dearer=False, conversion=False))
     dearer = speed(_run(run_combination, dearer=True, conversion=False))

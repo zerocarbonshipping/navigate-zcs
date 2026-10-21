@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The profile layer for the bunkering infrastructure: the port and global profiles."""
+"""The results layer for the bunkering infrastructure: the port and global results."""
 
 from __future__ import annotations
 
@@ -10,14 +10,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._base_profile import _BaseProfile, accumulate, result
+from navigate.core.results._base_results import _BaseResults, accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class _FuelInfrastructureProfile(_BaseProfile):
+class _FuelInfrastructureResults(_BaseResults):
     """Fuel bunkered, supplied and permitted by capacity at a bunkering location."""
 
     # the masses are written, the energies computed from them
@@ -42,17 +42,17 @@ class _FuelInfrastructureProfile(_BaseProfile):
             for fuel_name in fuels
         }
 
-    def add_fuel_infrastructure_profile(
-        self, profile: _FuelInfrastructureProfile
+    def add_fuel_infrastructure_results(
+        self, results: _FuelInfrastructureResults
     ) -> None:
         """
-        Add another fuel infrastructure profile's values into this one.
+        Add another fuel infrastructure's results into this one.
 
         Parameters
         ----------
-        profile
-            Infrastructure profile from another node.
+        results
+            Infrastructure results from another node.
         """
-        accumulate(self.bunker_mass, profile.bunker_mass)
-        accumulate(self.bunker_supply_mass, profile.bunker_supply_mass)
-        accumulate(self.bunkering_limit_mass, profile.bunkering_limit_mass)
+        accumulate(self.bunker_mass, results.bunker_mass)
+        accumulate(self.bunker_supply_mass, results.bunker_supply_mass)
+        accumulate(self.bunkering_limit_mass, results.bunkering_limit_mass)

@@ -342,7 +342,7 @@ class BunkerAlgorithm:
 
     @timed(TimingID.LP_TRANSFER)
     def transfer(self) -> None:
-        """Transfer the LP solution to the expectations and profiles of the nodes."""
+        """Transfer the LP solution to the expectations and results of the nodes."""
         if self.scope == BunkerScopeID.EXISTING:
             # logged once per LP, for the solve its solution comes from
             self._log_fair_share_convergence()

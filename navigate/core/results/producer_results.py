@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""ProducerProfile, the output storage the Producer node reports results from."""
+"""ProducerResults, the output storage the Producer node reports results from."""
 
 from __future__ import annotations
 
@@ -10,18 +10,18 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._base_profile import result
-from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
+from navigate.core.results._base_results import result
+from navigate.core.results._plant_aggregate_results import _PlantAggregateResults
 
 if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.process import Process
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class ProducerProfile(_PlantAggregateProfile):
+class ProducerResults(_PlantAggregateResults):
     """Production, feedstock use and plant development of one fuel producer."""
 
     # plants added to the development pipeline
@@ -32,12 +32,12 @@ class ProducerProfile(_PlantAggregateProfile):
 
     def initialize(
         self,
-        context: ProfileContext,
+        context: ResultsContext,
         feedstocks: dict[str, Feedstock],
         processes: dict[str, Process],
     ) -> None:
         """
-        Initialize the producer profile's storage arrays and lookups.
+        Initialize the producer results' storage arrays and lookups.
 
         Parameters
         ----------

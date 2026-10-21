@@ -53,7 +53,7 @@ arbiter.
 - Read and write attributes directly. Do not add a method that only returns
   or assigns an attribute, except the DSL setters, the expectation accessors,
   and `.get`.
-- A dictionary an expectation or profile class holds as state gets its full
+- A dictionary an expectation or results class holds as state gets its full
   key set at initialization and never allocates a key on first write, so a
   missing key fails loudly instead of growing the dictionary. A dictionary
   that code builds as a local or return value, by a loop or a comprehension,
@@ -80,7 +80,7 @@ arbiter.
 - Order a node class's methods: `__init__`; DSL setters; the lifecycle hooks
   it overrides, in the order `check_requirements`, `apply_defaults`,
   `apply_command_defaults`, `check_consistency`, `initialize_dependencies`,
-  `initialize_expectation`, `initialize_profile`, `check_dynamic_consistency`;
+  `initialize_expectation`, `initialize_results`, `check_dynamic_consistency`;
   getters last.
 - Name the kinds a setter may be handed and store once, in
   `navigate/core/types_.py`, and use those aliases at every attribute
@@ -103,7 +103,7 @@ arbiter.
 ## Dynamic state and results
 
 - A numeric value computed during the time loop and read by another module
-  lives on `node.expectation` or `node.profile`, not on a plain node
+  lives on `node.expectation` or `node.results`, not on a plain node
   attribute. A relation between nodes is the exception: a plain node
   attribute derived from other nodes' attributes, written by
   `navigate/core/node_maps.py` once at initialization where those are
@@ -111,12 +111,12 @@ arbiter.
 - The expectation classes (`navigate/core/expectations/`) are accessed
   through getters, adders and setters, which keep dynamic state apart from
   user input and temporary results.
-- The profile classes (`navigate/core/profiles/`) are dataclasses written and
+- The results classes (`navigate/core/results/`) are dataclasses written and
   read as plain fields; the run-wide timeline, fuel and emission constants,
-  and the conversions by them, are their shared `ProfileContext`. A time step
+  and the conversions by them, are their shared `ResultsContext`. A time step
   writes what it computed where it computed it, in the quantity it has (a
   mass, a ton of each emission, a price per ton). Every other result is
-  computed from those once they are final, by the `results` module of
+  computed from those once they are final, by the `post_process` module of
   the domain, which converts and combines them; read before then, it raises
   `AttributeError`. A field declared with `result(unit)` is a result; these
   declarations are the only record of the results and their units.
@@ -222,7 +222,7 @@ its section layout; the rules below cover the content.
   check the types already rule out).
 - In `navigate/`, confine dynamic attribute access (`hasattr`, `getattr`,
   `setattr`) to the boundary modules: `navigate/parser/` (DSL dispatch),
-  `navigate/output/` (profile results by name) and `navigate/app/` (the
+  `navigate/output/` (results by name) and `navigate/app/` (the
   `extra` keys of a log record).
 
 ## Logging

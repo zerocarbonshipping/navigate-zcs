@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""RegulationProfile, the output storage the Regulation node reports from."""
+"""RegulationResults, the output storage the Regulation node reports from."""
 
 from __future__ import annotations
 
@@ -10,16 +10,16 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._base_profile import _BaseProfile, result
+from navigate.core.results._base_results import _BaseResults, result
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class RegulationProfile(_BaseProfile):
+class RegulationResults(_BaseResults):
     """Thresholds, compliance and the units traded under one regulation."""
 
     # cost of one compliance unit
@@ -57,9 +57,9 @@ class RegulationProfile(_BaseProfile):
     flexibility_expenses: FloatArray = result("USD/year")
     remedial_expenses: FloatArray = result("USD/year")
 
-    def initialize(self, context: ProfileContext, vessels: dict[str, Vessel]) -> None:
+    def initialize(self, context: ResultsContext, vessels: dict[str, Vessel]) -> None:
         """
-        Initialize the regulation profile's storage arrays.
+        Initialize the regulation results' storage arrays.
 
         Parameters
         ----------

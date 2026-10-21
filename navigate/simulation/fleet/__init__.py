@@ -34,9 +34,9 @@ from navigate.simulation.fleet.post_process import (
     complete_vessel_results,
 )
 from navigate.simulation.fleet.power import verify_power_capacity
-from navigate.simulation.fleet.profile import (
-    calculate_fleet_profile,
-    calculate_vessel_profile,
+from navigate.simulation.fleet.results import (
+    record_fleet_results,
+    record_vessel_results,
 )
 from navigate.simulation.fleet.scarcity_beliefs import (
     record_investment_signals,

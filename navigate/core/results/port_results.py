@@ -1,25 +1,25 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""PortProfile, the output storage the Port node reports its results from."""
+"""PortResults, the output storage the Port node reports its results from."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.profiles._base_profile import result
-from navigate.core.profiles._fuel_infrastructure_profile import (
-    _FuelInfrastructureProfile,
+from navigate.core.results._base_results import result
+from navigate.core.results._fuel_infrastructure_results import (
+    _FuelInfrastructureResults,
 )
 
 if TYPE_CHECKING:
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import BoolArray, FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class PortProfile(_FuelInfrastructureProfile):
+class PortResults(_FuelInfrastructureResults):
     """Bunkering permissions, prices and well-to-tank emissions at one port."""
 
     bunkering_allowed: dict[str, BoolArray] = result("-")
@@ -30,9 +30,9 @@ class PortProfile(_FuelInfrastructureProfile):
     bunker_wtt: dict[tuple[str, str], FloatArray] = result("t/t")
     equivalent_bunker_wtt: dict[tuple[str, str], FloatArray] = result("tCO2e/t")
 
-    def initialize(self, context: ProfileContext) -> None:
+    def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the port profile's storage arrays and lookups.
+        Initialize the port results' storage arrays and lookups.
 
         Parameters
         ----------

@@ -38,10 +38,10 @@ def plot_fleet_investment_metric(results: SimulationResults, directory: Path) ->
         fig, axes = subplot_grid(len(vessels), sharey=True)
 
         for ax, vessel in zip(axes, vessels, strict=False):
-            active = vessel.profile.in_fleet
-            expected = np.where(active, vessel.profile.investment_freight_rate, np.nan)
+            active = vessel.results.in_fleet
+            expected = np.where(active, vessel.results.investment_freight_rate, np.nan)
             instantaneous = np.where(
-                active, vessel.profile.instantaneous_freight_rate, np.nan
+                active, vessel.results.instantaneous_freight_rate, np.nan
             )
 
             color = FUEL_TYPE_COLOR[vessel.primary_fuel_type]

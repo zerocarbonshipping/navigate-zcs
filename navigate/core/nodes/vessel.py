@@ -30,7 +30,7 @@ from navigate.core.node_type import (
     VARIABLE,
     VESSEL,
 )
-from navigate.core.profiles import VesselProfile
+from navigate.core.results import VesselResults
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.tank import Tank
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
@@ -90,7 +90,7 @@ class Vessel(Node):
 
         # internal variables -----------------------------------------------------------
         self.expectation: VesselExpectation = VesselExpectation()
-        self.profile: VesselProfile = VesselProfile()
+        self.results: VesselResults = VesselResults()
 
         # convenience variables
         self.primary_fuel_type: FuelTypeID
@@ -244,14 +244,14 @@ class Vessel(Node):
             emissions,
         )
 
-    def initialize_profile(
+    def initialize_results(
         self,
-        context: ProfileContext,
+        context: ResultsContext,
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
 
-        self.profile.initialize(context, regulation_names, levy_names)
+        self.results.initialize(context, regulation_names, levy_names)
 
     def get_converters(self) -> tuple[Converter, Converter, Converter]:
         return self.propulsion_converter, self.electrical_converter, self.heat_converter

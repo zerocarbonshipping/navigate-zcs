@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""GlobalProfile, the model-wide output storage the simulation fills."""
+"""GlobalResults, the model-wide output storage the simulation fills."""
 
 from __future__ import annotations
 
@@ -9,25 +9,25 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import TimingID
-from navigate.core.profiles._base_profile import result
-from navigate.core.profiles._fuel_infrastructure_profile import (
-    _FuelInfrastructureProfile,
+from navigate.core.results._base_results import result
+from navigate.core.results._fuel_infrastructure_results import (
+    _FuelInfrastructureResults,
 )
-from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
-from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
+from navigate.core.results._plant_aggregate_results import _PlantAggregateResults
+from navigate.core.results._vessel_aggregate_results import _VesselAggregateResults
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.process import Process
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class GlobalProfile(
-    _VesselAggregateProfile, _PlantAggregateProfile, _FuelInfrastructureProfile
+class GlobalResults(
+    _VesselAggregateResults, _PlantAggregateResults, _FuelInfrastructureResults
 ):
     """Totals over every vessel, plant and port, plus the run's computational time."""
 
@@ -35,14 +35,14 @@ class GlobalProfile(
 
     def initialize(
         self,
-        context: ProfileContext,
+        context: ResultsContext,
         feedstocks: dict[str, Feedstock],
         processes: dict[str, Process],
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
         """
-        Initialize the global profile's storage arrays and lookups.
+        Initialize the global results' storage arrays and lookups.
 
         Parameters
         ----------

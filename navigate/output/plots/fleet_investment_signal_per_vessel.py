@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from navigate.core.profiles.vessel_profile import VesselProfile
+    from navigate.core.results.vessel_results import VesselResults
     from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
@@ -38,7 +38,7 @@ def plot_fleet_investment_signal_technology_per_vessel(
     _plot_investment_signal_per_vessel(
         results,
         directory,
-        lambda profile: profile.investment_signal_technology,
+        lambda vessel_results: vessel_results.investment_signal_technology,
         "fleet_investment_signal_technology_per_vessel.png",
     )
 
@@ -50,7 +50,7 @@ def plot_fleet_investment_signal_speed_per_vessel(
     _plot_investment_signal_per_vessel(
         results,
         directory,
-        lambda profile: profile.investment_signal_speed,
+        lambda vessel_results: vessel_results.investment_signal_speed,
         "fleet_investment_signal_speed_per_vessel.png",
     )
 
@@ -58,7 +58,7 @@ def plot_fleet_investment_signal_speed_per_vessel(
 def _plot_investment_signal_per_vessel(
     results: SimulationResults,
     directory: Path,
-    signal_getter: Callable[[VesselProfile], FloatArray],
+    signal_getter: Callable[[VesselResults], FloatArray],
     filename: str,
 ) -> None:
     dateline = results.dateline
@@ -76,7 +76,7 @@ def _plot_investment_signal_per_vessel(
         # each vessel carries its energy-weighted investment signal
         signals = []
         for vessel in fleet.vessels:
-            signal = signal_getter(vessel.profile)
+            signal = signal_getter(vessel.results)
             label = FUEL_TYPE_LABEL[vessel.primary_fuel_type]
             color = FUEL_TYPE_COLOR[vessel.primary_fuel_type]
 

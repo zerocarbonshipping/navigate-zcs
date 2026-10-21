@@ -41,7 +41,7 @@ def plot_global_power_converted_cumulative(
 
     fig, ax = single_panel()
 
-    converted_power = results.profile.fuel_converted_power
+    converted_power = results.global_results.fuel_converted_power
     converted_power = {
         key: value
         for key, value in converted_power.items()

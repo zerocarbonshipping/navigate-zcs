@@ -35,10 +35,10 @@ def plot_regulation_unit_trading(results: SimulationResults, directory: Path) ->
 
         fig, ax = single_panel()
 
-        non_compliance_units = regulation.profile.non_compliance_units
-        flexibility_units = regulation.profile.flexibility_units
-        remedial_units = regulation.profile.remedial_units
-        surplus_units = regulation.profile.surplus_units
+        non_compliance_units = regulation.results.non_compliance_units
+        flexibility_units = regulation.results.flexibility_units
+        remedial_units = regulation.results.remedial_units
+        surplus_units = regulation.results.surplus_units
 
         divisor, prefix = find_best_metric_prefix(
             max(

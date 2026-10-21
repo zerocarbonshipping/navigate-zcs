@@ -49,10 +49,10 @@ def plot_port_bunker_supply(results: SimulationResults, directory: Path) -> None
     for port_name, port in ports.items():
         fig, axes = subplot_grid(len(fuels))
 
-        profile = port.profile
-        bunker_mass = profile.bunker_mass
-        bunker_supply_mass = profile.bunker_supply_mass
-        bunkering_limit_mass = profile.bunkering_limit_mass
+        port_results = port.results
+        bunker_mass = port_results.bunker_mass
+        bunker_supply_mass = port_results.bunker_supply_mass
+        bunkering_limit_mass = port_results.bunkering_limit_mass
 
         for ax, fuel_name in zip(axes, fuels, strict=False):
             bunkered = bunker_mass[fuel_name]

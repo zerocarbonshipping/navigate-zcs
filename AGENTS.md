@@ -124,7 +124,7 @@ each other's files, and the test suites run decks too.
   `tests/unit/docs/test_setters_registered.py` checks that every setter
   carries a mark and `test_node_pages.py` the manual pages against the
   marks, in both directions; the report-property appendix of
-  `docs/reference_manual/report.md` is checked against the profile results
+  `docs/reference_manual/report.md` is checked against the results
   the same way by `test_report_property_docs.py`. The coverage deck is
   checked against the marks by `tests/end_to_end/test_attribute_coverage.py`.
 - A change that moves simulation results explains the difference in the

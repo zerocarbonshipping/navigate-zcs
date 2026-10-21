@@ -8,7 +8,7 @@ The deck is compare_results.py's combination base with a levy, fuel conversion
 and technology uptake on, so the bunker, policy and every fleet decision act.
 Two runs in one process catch state that leaks from one run into the next; two
 processes with different hash seeds catch results that depend on the iteration
-order of a set or dict of strings. Every profile getter is compared, exactly:
+order of a set or dict of strings. Every result is compared, exactly:
 on one machine and one solver nothing may move.
 """
 

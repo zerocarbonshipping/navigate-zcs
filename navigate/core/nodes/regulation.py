@@ -23,12 +23,12 @@ from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.core.expectations import RegulationExpectation
 from navigate.core.node_type import FORECAST, REGULATION, VARIABLE
 from navigate.core.nodes._policy import _Policy
-from navigate.core.profiles import RegulationProfile
+from navigate.core.results import RegulationResults
 
 if TYPE_CHECKING:
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
 
 logger = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ class Regulation(_Policy):
 
         # internal variables -----------------------------------------------------------
         self.expectation: RegulationExpectation = RegulationExpectation()
-        self.profile: RegulationProfile = RegulationProfile()
+        self.results: RegulationResults = RegulationResults()
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -186,7 +186,7 @@ class Regulation(_Policy):
         emission_names = [e.name for e in self.emissions]
         self.expectation.initialize(length, emission_names, routes, vessels)
 
-    def initialize_profile(
-        self, context: ProfileContext, vessels: dict[str, Vessel]
+    def initialize_results(
+        self, context: ResultsContext, vessels: dict[str, Vessel]
     ) -> None:
-        self.profile.initialize(context, vessels)
+        self.results.initialize(context, vessels)

@@ -110,7 +110,7 @@ def _scrap_by_age(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    scrap = fleet.profile.scrap
+    scrap = fleet.results.scrap
 
     for v, vessel in enumerate(fleet.vessels):
         lifetime = vessel.lifetime.get()
@@ -243,7 +243,7 @@ def _scrap_oldest(
             groups.setdefault(age, []).append((v, i))
 
     cargo_miles = extract_cargo_miles(fleet.vessels, idx)
-    scrap = fleet.profile.scrap
+    scrap = fleet.results.scrap
 
     remaining = capacity
     youngest_age = None
@@ -312,7 +312,7 @@ def _scrap_in_part(
     float | None
         Youngest age scrapped, years.
     """
-    scrap = fleet.profile.scrap
+    scrap = fleet.results.scrap
     youngest_age = None
 
     for v, i in group:

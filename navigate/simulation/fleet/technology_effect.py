@@ -92,7 +92,7 @@ def _apply_operational_savings(
     Apply the operational saving fractions to the vessel's raw energy demand.
 
     The operational savings are zero-cost reductions such as JIT and weather routing.
-    The result is stored on the expectation and the profile.
+    The result is stored on the expectation and the results.
 
     Parameters
     ----------
@@ -139,11 +139,11 @@ def _apply_operational_savings(
     expectation.set_operational_energy_port(idx, op_port)
 
     energy_sea = sum_per_key(op_sea)
-    for demand_type, values in vessel.profile.operational_energy_sea.items():
+    for demand_type, values in vessel.results.operational_energy_sea.items():
         values[idx] = energy_sea[demand_type]
 
     energy_port = sum_per_key(op_port)
-    for demand_type, values in vessel.profile.operational_energy_port.items():
+    for demand_type, values in vessel.results.operational_energy_port.items():
         values[idx] = energy_port[demand_type]
 
     return op_sea, op_port
@@ -265,11 +265,11 @@ def _transfer_residual_energy(
     vessel.expectation.set_energy_port(idx, avg_residual_port)
 
     energy_sea = sum_per_key(avg_residual_sea)
-    for demand_type, values in vessel.profile.energy_sea.items():
+    for demand_type, values in vessel.results.energy_sea.items():
         values[idx] = energy_sea[demand_type]
 
     energy_port = sum_per_key(avg_residual_port)
-    for demand_type, values in vessel.profile.energy_port.items():
+    for demand_type, values in vessel.results.energy_port.items():
         values[idx] = energy_port[demand_type]
 
 
@@ -442,9 +442,9 @@ def _apply_approximated_saving(
     vessel.expectation.set_energy_port(idx, net_port)
 
     energy_sea = {k: float(np.sum(np.asarray(net_sea[k]))) for k in net_sea}
-    for demand_type, values in vessel.profile.energy_sea.items():
+    for demand_type, values in vessel.results.energy_sea.items():
         values[idx] = energy_sea[demand_type]
 
     energy_port = {k: float(np.sum(np.asarray(net_port[k]))) for k in net_port}
-    for demand_type, values in vessel.profile.energy_port.items():
+    for demand_type, values in vessel.results.energy_port.items():
         values[idx] = energy_port[demand_type]

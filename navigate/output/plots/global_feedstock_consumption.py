@@ -37,7 +37,7 @@ def plot_global_feedstock_consumption(
     """Plot the consumption against the constraint per feedstock."""
     dateline = results.dateline
     feedstocks = results.nodes.feedstocks
-    profile = results.profile
+    global_results = results.global_results
 
     if not feedstocks:
         return
@@ -45,8 +45,8 @@ def plot_global_feedstock_consumption(
     fig, axes = subplot_grid(len(feedstocks))
     colors = generate_color_dict(feedstocks, FEEDSTOCK_COLOR)
 
-    feed_mass = profile.feed_mass
-    feed_constraint = profile.feed_constraint
+    feed_mass = global_results.feed_mass
+    feed_constraint = global_results.feed_constraint
 
     for ax, feedstock_name in zip(axes, feedstocks, strict=False):
         consumed = feed_mass[feedstock_name]

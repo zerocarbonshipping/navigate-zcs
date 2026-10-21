@@ -44,7 +44,7 @@ def calculate_flexibility_markets(
         Multiplier of each vessel in the bunkering LP, in the LP's order, which the
         sums over the vessels follow.
     scope
-        Scope of the bunkering LP: the existing market goes to the profiles, the
+        Scope of the bunkering LP: the existing market goes to the results, the
         expected one to the expectations.
     idx
         Time-step index of the bunkering LP.
@@ -119,7 +119,7 @@ def _calculate_flexibility_market(
 ) -> None:
     """Clear the flexibility market of one regulation; see the public function."""
     expectation = regulation.expectation
-    profile = regulation.profile
+    results = regulation.results
 
     total_remedial_units = expectation.get_pooled_remedial_units(idx)
     remedial_cost = expectation.get_remedial_cost(idx)
@@ -172,13 +172,13 @@ def _calculate_flexibility_market(
     total_surplus_revenue = total_surplus_units * flexibility_cost
 
     if scope == BunkerScopeID.EXISTING:
-        profile.remedial_units[idx] += total_remedial_units
-        profile.remedial_expenses[idx] += total_remedial_expenses
-        profile.flexibility_cost[idx] = flexibility_cost
-        profile.flexibility_units[idx] = total_flexibility_units
-        profile.flexibility_expenses[idx] = total_flexibility_expenses
-        profile.surplus_units[idx] = total_surplus_units
-        profile.surplus_revenue[idx] = total_surplus_revenue
+        results.remedial_units[idx] += total_remedial_units
+        results.remedial_expenses[idx] += total_remedial_expenses
+        results.flexibility_cost[idx] = flexibility_cost
+        results.flexibility_units[idx] = total_flexibility_units
+        results.flexibility_expenses[idx] = total_flexibility_expenses
+        results.surplus_units[idx] = total_surplus_units
+        results.surplus_revenue[idx] = total_surplus_revenue
 
     else:
         expectation.set_flexibility_cost(idx, flexibility_cost)
@@ -197,10 +197,10 @@ def _calculate_flexibility_market(
             flexibility_expenses = flexibility_units * flexibility_cost
             surplus_revenue = surplus * flexibility_cost
 
-            vessel.profile.remedial_units[regulation.name][idx] += remedial_units
-            vessel.profile.remedial_expenses[idx] += remedial_expenses
-            vessel.profile.flexibility_expenses[idx] += flexibility_expenses
-            vessel.profile.surplus_revenue[idx] += surplus_revenue
+            vessel.results.remedial_units[regulation.name][idx] += remedial_units
+            vessel.results.remedial_expenses[idx] += remedial_expenses
+            vessel.results.flexibility_expenses[idx] += flexibility_expenses
+            vessel.results.surplus_revenue[idx] += surplus_revenue
 
         else:
             vessel.expectation.add_remedial_expenses(idx, remedial_expenses)

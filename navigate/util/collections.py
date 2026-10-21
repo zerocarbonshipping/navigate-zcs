@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""List and dict helpers, including arithmetic and slicing of profile results."""
+"""List and dict helpers, including arithmetic and slicing of results."""
 
 from __future__ import annotations
 
@@ -169,7 +169,7 @@ def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
     Parameters
     ----------
     result
-        Profile result given as a non-empty dict of arrays.
+        Result given as a non-empty dict of arrays.
 
     Returns
     -------
@@ -227,7 +227,7 @@ def sum_by_first_key[K1: Hashable, K2: Hashable](
     Parameters
     ----------
     result
-        Profile result given as a tuple dict.
+        Result given as a tuple dict.
 
     Returns
     -------
@@ -252,7 +252,7 @@ def sum_by_second_key[K1: Hashable, K2: Hashable](
     Parameters
     ----------
     result
-        Profile result given as a tuple dict.
+        Result given as a tuple dict.
 
     Returns
     -------

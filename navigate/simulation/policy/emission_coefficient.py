@@ -846,9 +846,9 @@ def _calculate_emission_factor(
     policy
         The Levy or Regulation being calculated.
     key_wtt
-        The key to the WTT attribute of the policy profile.
+        The key to the WTT attribute of the policy results.
     key_ttw
-        The key to the TTW attributes of the policy profile.
+        The key to the TTW attributes of the policy results.
     idx
         Time-step index.
 

@@ -39,7 +39,7 @@ from navigate.core.expectations import FleetExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes.forecast import Forecast
-from navigate.core.profiles import FleetProfile
+from navigate.core.results import FleetResults
 from navigate.core.technology_package import PackageCostFlows, TechnologyPackage
 from navigate.exceptions import UnassignedAttributeError
 from navigate.util import is_non_strictly_increasing
@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.core.types_ import (
         CurveTableArgument,
         CurveTableInput,
@@ -121,7 +121,7 @@ class Fleet(Node):
 
         # internal variables -----------------------------------------------------------
         self.expectation: FleetExpectation = FleetExpectation()
-        self.profile: FleetProfile = FleetProfile()
+        self.results: FleetResults = FleetResults()
 
         self.increments: list[list[VesselIncrement]]
         self.current_uptake: FloatArray = np.empty(0)
@@ -584,9 +584,9 @@ class Fleet(Node):
 
         self.expectation.initialize(length, vessel_names, fuels)
 
-    def initialize_profile(
+    def initialize_results(
         self,
-        context: ProfileContext,
+        context: ResultsContext,
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
@@ -594,7 +594,7 @@ class Fleet(Node):
         vessel_names = [vessel.name for vessel in self.vessels]
         technology_names = [technology.name for technology in self.technologies]
 
-        self.profile.initialize(
+        self.results.initialize(
             context, vessel_names, technology_names, regulation_names, levy_names
         )
 

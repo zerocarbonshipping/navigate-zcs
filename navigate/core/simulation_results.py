@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.core.node_registry import GeneralNodes, Nodes
-    from navigate.core.profiles.global_profile import GlobalProfile
+    from navigate.core.results.global_results import GlobalResults
     from navigate.util.types_ import DateArray
 
 
@@ -23,15 +23,15 @@ class SimulationResults:
     ----------
     dateline
         Dates of the simulation timeline.
-    profile
-        Model-wide profile.
+    global_results
+        Model-wide results.
     nodes
-        Nodes of the deck, holding their profiles.
+        Nodes of the deck, holding their results.
     general_nodes
         General nodes of the deck.
     """
 
     dateline: DateArray
-    profile: GlobalProfile
+    global_results: GlobalResults
     nodes: Nodes
     general_nodes: GeneralNodes

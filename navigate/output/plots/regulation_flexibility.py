@@ -38,12 +38,12 @@ def plot_regulation_flexibility(results: SimulationResults, directory: Path) -> 
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:
             continue
 
-        profile = regulation.profile
-        shared_threshold = profile.shared_threshold
-        shared_compliance = profile.shared_compliance
+        regulation_results = regulation.results
+        shared_threshold = regulation_results.shared_threshold
+        shared_compliance = regulation_results.shared_compliance
         vessel_compliance = {
             vessel_name: compliance
-            for vessel_name, compliance in profile.vessel_compliance.items()
+            for vessel_name, compliance in regulation_results.vessel_compliance.items()
             if regulation.vessel_is_policed(vessel_name)
         }
 

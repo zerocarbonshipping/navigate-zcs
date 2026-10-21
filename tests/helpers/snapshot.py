@@ -4,14 +4,14 @@
 """
 Flatten a run's results into named arrays, and compare two such snapshots.
 
-A snapshot holds every profile result: the global profile's and each node
-profile's, one array per result, or per key for a result that is a mapping. It
-is what the determinism test compares between two runs and what
-tests/compare_results.py compares between two checkouts, so no deck needs a
-report to be compared. It reads the results as the
-profile fields navigate.core.profiles.result_names names where the installed
-Navigate has it, and through the profile getters of an older checkout
-otherwise, under the same names.
+A snapshot holds every result: the global results and each node's, one array
+per result, or per key for a result that is a mapping. It is what the
+determinism test compares between two runs and what tests/compare_results.py
+compares between two checkouts, so no deck needs a report to be compared. It
+reads the results as the fields navigate.core.results.result_names names where
+the installed Navigate has it (navigate.core.profiles on a checkout from before
+the rename of profiles to results), and through the getters of an older
+checkout otherwise, under the same names.
 """
 
 from __future__ import annotations
@@ -35,11 +35,11 @@ type Snapshot = dict[str, np.ndarray]
 # reorder floating-point arithmetic, and LPs and cancellations amplify a
 # last-digit change, most visibly in cells that are zero up to rounding. rtol
 # bounds the relative drift, atol the near-zero cells; 1e-5 is negligible in
-# every unit a profile carries - vessels, MW, USD, tonnes and fractions.
+# every unit the results carry - vessels, MW, USD, tonnes and fractions.
 ROUNDING_RTOL = 1e-8
 ROUNDING_ATOL = 1e-5
 
-# The global profile's wall-clock timings, which differ between any two runs.
+# The global results' wall-clock timings, which differ between any two runs.
 _TIMING_SUFFIX = "_time"
 
 # per differing key, the cells a diff names before summarizing the rest
@@ -57,10 +57,10 @@ def _label(key: object) -> str:
     return str(key)
 
 
-def _getters(profile: object) -> list[str]:
-    """Name the profile's public getters that take no argument."""
+def _getters(node_results: object) -> list[str]:
+    """Name the results' public getters that take no argument."""
     names = []
-    for name, member in inspect.getmembers(type(profile), inspect.isfunction):
+    for name, member in inspect.getmembers(type(node_results), inspect.isfunction):
         if not name.startswith("get_") or name.endswith(_TIMING_SUFFIX):
             continue
         parameters = list(inspect.signature(member).parameters.values())[1:]
@@ -69,27 +69,40 @@ def _getters(profile: object) -> list[str]:
     return names
 
 
-def _readers(profile: Any) -> dict[str, Callable[[], object]]:
-    """Map each result name of the profile to a reader of the result."""
+def _result_names(node_results: object) -> frozenset[str] | None:
+    """Name the results of the object's class; None where the install has no marker."""
     try:
-        from navigate.core.profiles import result_names
+        from navigate.core.results import result_names
     except ImportError:
+        try:
+            # a checkout from before the rename of profiles to results
+            from navigate.core.profiles import result_names
+        except ImportError:
+            return None
+
+    return result_names(type(node_results))
+
+
+def _readers(node_results: Any) -> dict[str, Callable[[], object]]:
+    """Map each result name of a node's results to a reader of the result."""
+    names = _result_names(node_results)
+    if names is None:
         # an older checkout reads every result through a getter
         return {
-            getter.removeprefix("get_"): getattr(profile, getter)
-            for getter in _getters(profile)
+            getter.removeprefix("get_"): getattr(node_results, getter)
+            for getter in _getters(node_results)
         }
 
     return {
-        name: partial(getattr, profile, name)
-        for name in sorted(result_names(type(profile)))
+        name: partial(getattr, node_results, name)
+        for name in sorted(names)
         if not name.endswith(_TIMING_SUFFIX)
     }
 
 
-def _add_profile(snap: Snapshot, prefix: str, profile: object) -> None:
-    """Add every result of one profile under `prefix`."""
-    for result, read in _readers(profile).items():
+def _add_results(snap: Snapshot, prefix: str, node_results: object) -> None:
+    """Add every result of one node under `prefix`."""
+    for result, read in _readers(node_results).items():
         value = read()
         name = f"{prefix}{_SEPARATOR}{result}"
         if isinstance(value, dict):
@@ -101,7 +114,7 @@ def _add_profile(snap: Snapshot, prefix: str, profile: object) -> None:
 
 def snapshot(results: SimulationResults) -> Snapshot:
     """
-    Collect every profile result of a finished run.
+    Collect every result of a finished run.
 
     Parameters
     ----------
@@ -112,15 +125,19 @@ def snapshot(results: SimulationResults) -> Snapshot:
     -------
     Snapshot :
         One array per name ``<group>/<node>/<result>[/<key>]``; the global
-        profile's names start with ``global``.
+        results' names start with ``global``.
     """
     snap: Snapshot = {}
-    _add_profile(snap, "global", results.profile)
+    # a checkout from before the rename holds the results as `profile`
+    global_results = getattr(results, "global_results", None)
+    if global_results is None:
+        global_results = results.profile
+    _add_results(snap, "global", global_results)
     for group, nodes in vars(results.nodes).items():
         for name, node in nodes.items():
-            profile = getattr(node, "profile", None)
-            if profile is not None:
-                _add_profile(snap, f"{group}{_SEPARATOR}{name}", profile)
+            node_results = getattr(node, "results", getattr(node, "profile", None))
+            if node_results is not None:
+                _add_results(snap, f"{group}{_SEPARATOR}{name}", node_results)
     return snap
 
 

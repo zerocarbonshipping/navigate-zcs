@@ -31,7 +31,7 @@ def plot_global_installed_power_share(
     """Plot the share of the global installed engine power per fuel type."""
     dateline = results.dateline
 
-    installed_power = results.profile.installed_power
+    installed_power = results.global_results.installed_power
     engine_power = {
         fuel_type: installed_power[fuel_type] for fuel_type in FUEL_TYPE_ORDER
     }

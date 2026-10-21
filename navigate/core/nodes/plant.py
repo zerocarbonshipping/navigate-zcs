@@ -29,7 +29,7 @@ from navigate.core.node_type import (
     TRANSPORT,
     VARIABLE,
 )
-from navigate.core.profiles import PlantProfile
+from navigate.core.results import PlantResults
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.region import Region
     from navigate.core.nodes.source import Source
     from navigate.core.nodes.transport import Transport
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
 
 
@@ -76,7 +76,7 @@ class Plant(Node):
         self.fuel_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
 
         self.expectation: PlantExpectation = PlantExpectation()
-        self.profile: PlantProfile = PlantProfile()
+        self.results: PlantResults = PlantResults()
 
         # cross-check variables
         self.producer_assignment: str | None = None
@@ -283,8 +283,8 @@ class Plant(Node):
 
         self.expectation.initialize(length, emissions, feedstocks, ports, processes)
 
-    def initialize_profile(self, context: ProfileContext) -> None:
-        self.profile.initialize(context)
+    def initialize_results(self, context: ResultsContext) -> None:
+        self.results.initialize(context)
 
     def set_producer_assignment(self, producer_name: str) -> None:
         """Record the producer building this plant, raising if another already does."""

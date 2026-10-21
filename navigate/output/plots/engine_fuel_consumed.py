@@ -39,7 +39,7 @@ def plot_engine_fuel_consumed(results: SimulationResults, directory: Path) -> No
     dateline = results.dateline
 
     fuels = results.nodes.fuels
-    converter_energy = results.profile.converter_energy
+    converter_energy = results.global_results.converter_energy
 
     engine_fuel_consumed: dict[FuelTypeID, dict[str, FloatArray]] = {}
     for (fuel_type, fuel_name), energy in converter_energy.items():

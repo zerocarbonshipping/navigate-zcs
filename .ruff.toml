@@ -54,8 +54,8 @@ ignore = [
 convention = "numpy"
 
 [lint.flake8-bugbear]
-# result() returns the dataclasses.field that marks a profile field as a result
-extend-immutable-calls = ["navigate.core.profiles._base_profile.result"]
+# result() returns the dataclasses.field that marks a results field as a result
+extend-immutable-calls = ["navigate.core.results._base_results.result"]
 
 [lint.isort]
 required-imports = ["from __future__ import annotations"]

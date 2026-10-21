@@ -36,9 +36,9 @@ def plot_global_energy_demand(results: SimulationResults, directory: Path) -> No
 
     fig, ax = single_panel()
 
-    profile = results.profile
-    energy_sea = profile.energy_sea
-    energy_port = profile.energy_port
+    global_results = results.global_results
+    energy_sea = global_results.energy_sea
+    energy_port = global_results.energy_port
 
     # in port, vessels demand electrical energy and heat only
     propulsion = energy_sea[EnergyDemandID.PROPULSION]

@@ -5,7 +5,7 @@
 Excel and CSV writing engine behind the Report node.
 
 The Report node collects which properties to extract per node type; write_report
-resolves those requests against the profiles in a run's SimulationResults and writes
+resolves those requests against the results in a run's SimulationResults and writes
 the workbook or CSV files.
 """
 
@@ -22,8 +22,8 @@ import numpy as np
 import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportAccumulationID, ReportReduceID
-from navigate.core.node_report import GLOBAL_PROFILE_KEY
-from navigate.core.profiles import per_step_results
+from navigate.core.node_report import GLOBAL_RESULTS_KEY
+from navigate.core.results import per_step_results
 from navigate.util import (
     dates_to_days,
     is_single_dict,
@@ -43,21 +43,21 @@ if TYPE_CHECKING:
 
     from navigate.core.node_report import NodeReport
     from navigate.core.nodes.report import Report
-    from navigate.core.profiles._base_profile import _BaseProfile
+    from navigate.core.results._base_results import _BaseResults
     from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import BoolArray, DateArray, FloatArray
 
 logger = logging.getLogger(__name__)
 
-# what a profile result, or a reduction of it, is: an array, or a dict of arrays
-# keyed by profile keys or pairs of them
+# what a result, or a reduction of it, is: an array, or a dict of arrays
+# keyed by result keys or pairs of them
 type _ReportKeyPart = str | Enum
 type _ReportKey = _ReportKeyPart | tuple[_ReportKeyPart, _ReportKeyPart]
 type ReportArray = FloatArray | BoolArray
 type _ReportDict = dict[_ReportKey, FloatArray] | dict[_ReportKey, BoolArray]
 type _ReportValue = ReportArray | _ReportDict
 
-# the attributes, profile result names, reductions and accumulations requested of
+# the attributes, result names, reductions and accumulations requested of
 # one node
 type _NodeRequests = tuple[
     list[str], list[str], list[ReportReduceID], list[ReportAccumulationID]
@@ -78,11 +78,11 @@ class CsvSheet:
 
 
 class _Section(NamedTuple):
-    """One node type's report requests together with the profiles they resolve to."""
+    """One node type's report requests together with the results they resolve to."""
 
     log_name: str
     sheet_title: str
-    profiles: Mapping[str, _BaseProfile]
+    results_by_node: Mapping[str, _BaseResults]
     requests: dict[str, NodeReport]
 
 
@@ -118,7 +118,7 @@ def write_report(
         def export_section(section: _Section) -> None:
             export_properties_xlsx(
                 wb.create_sheet(title=section.sheet_title),
-                section.profiles,
+                section.results_by_node,
                 section.requests,
                 report_name,
             )
@@ -132,7 +132,7 @@ def write_report(
         def export_section(section: _Section) -> None:
             export_properties_csv(
                 section.sheet_title,
-                section.profiles,
+                section.results_by_node,
                 section.requests,
                 report_name,
                 sheets,
@@ -207,51 +207,51 @@ def _sections(report: Report, results: SimulationResults) -> Iterator[_Section]:
     Yields
     ------
     _Section
-        Each section with at least one request, its profiles keyed by node name.
+        Each section with at least one request, its node results keyed by node name.
     """
     nodes = results.nodes
     sections = (
         _Section(
             "global",
             "Global",
-            {GLOBAL_PROFILE_KEY: results.profile},
+            {GLOBAL_RESULTS_KEY: results.global_results},
             report.global_reports,
         ),
         _Section(
             "fleets",
             "Fleets",
-            {name: fleet.profile for name, fleet in nodes.fleets.items()},
+            {name: fleet.results for name, fleet in nodes.fleets.items()},
             report.fleet_reports,
         ),
         _Section(
             "levies",
             "Levies",
-            {name: levy.profile for name, levy in nodes.levies.items()},
+            {name: levy.results for name, levy in nodes.levies.items()},
             report.levy_reports,
         ),
         _Section(
             "plants",
             "Plants",
-            {name: plant.profile for name, plant in nodes.plants.items()},
+            {name: plant.results for name, plant in nodes.plants.items()},
             report.plant_reports,
         ),
         _Section(
             "ports",
             "Ports",
-            {name: port.profile for name, port in nodes.ports.items()},
+            {name: port.results for name, port in nodes.ports.items()},
             report.port_reports,
         ),
         _Section(
             "producers",
             "Producers",
-            {name: producer.profile for name, producer in nodes.producers.items()},
+            {name: producer.results for name, producer in nodes.producers.items()},
             report.producer_reports,
         ),
         _Section(
             "regulations",
             "Regulations",
             {
-                name: regulation.profile
+                name: regulation.results
                 for name, regulation in nodes.regulations.items()
             },
             report.regulation_reports,
@@ -259,7 +259,7 @@ def _sections(report: Report, results: SimulationResults) -> Iterator[_Section]:
         _Section(
             "vessels",
             "Vessels",
-            {name: vessel.profile for name, vessel in nodes.vessels.items()},
+            {name: vessel.results for name, vessel in nodes.vessels.items()},
             report.vessel_reports,
         ),
     )
@@ -383,7 +383,7 @@ def write_csv_report(
 
                     for i, date in enumerate(dateline):
                         row = [str(date), timeline[i]]
-                        # every column spans the full timeline, as profiles
+                        # every column spans the full timeline, as results
                         # are initialized on it
                         row.extend([col[i] for col in sheet.columns])
                         writer.writerow(row)
@@ -404,19 +404,19 @@ def write_csv_report(
 
 def export_properties_xlsx(
     ws: Worksheet,
-    profiles: Mapping[str, _BaseProfile],
+    results_by_node: Mapping[str, _BaseResults],
     requests: dict[str, NodeReport],
     report_name: str,
 ) -> None:
     """
-    Write the requested properties of the given node profiles into a worksheet.
+    Write the requested properties of the given nodes' results into a worksheet.
 
     Parameters
     ----------
     ws
         Worksheet to write into.
-    profiles
-        Profiles of all nodes of a certain type, keyed by node name.
+    results_by_node
+        Results of all nodes of a certain type, keyed by node name.
     requests
         Node reports requested, keyed by node name or pattern.
     report_name
@@ -424,11 +424,13 @@ def export_properties_xlsx(
     """
     col = 3
 
-    export = _prepare_export(profiles, requests, report_name, ws.title)
+    export = _prepare_export(results_by_node, requests, report_name, ws.title)
 
     for node_name, requested in export.items():
         properties = dict(
-            _extract_properties(node_name, profiles[node_name], requested, report_name)
+            _extract_properties(
+                node_name, results_by_node[node_name], requested, report_name
+            )
         )
 
         col = _export_node(ws, node_name, properties, col)
@@ -436,20 +438,20 @@ def export_properties_xlsx(
 
 def export_properties_csv(
     sheet_name: str,
-    profiles: Mapping[str, _BaseProfile],
+    results_by_node: Mapping[str, _BaseResults],
     requests: dict[str, NodeReport],
     report_name: str,
     sheets: dict[str, CsvSheet],
 ) -> None:
     """
-    Flatten the node profiles' requested properties into one sheet, added to sheets.
+    Flatten the nodes' requested properties into one sheet, added to sheets.
 
     Parameters
     ----------
     sheet_name
         Sheet name to store the flattened data under.
-    profiles
-        Profiles of all nodes of a certain type, keyed by node name.
+    results_by_node
+        Results of all nodes of a certain type, keyed by node name.
     requests
         Node reports requested, keyed by node name or pattern.
     report_name
@@ -458,13 +460,13 @@ def export_properties_csv(
         Sheets keyed by sheet name, modified in-place; a sheet without data
         is not added.
     """
-    export = _prepare_export(profiles, requests, report_name, sheet_name)
+    export = _prepare_export(results_by_node, requests, report_name, sheet_name)
 
     sheet = CsvSheet()
 
     for node_name, requested in export.items():
         for attribute, property_ in _extract_properties(
-            node_name, profiles[node_name], requested, report_name
+            node_name, results_by_node[node_name], requested, report_name
         ):
             _flatten_to_csv(sheet, node_name, attribute, property_)
 
@@ -474,21 +476,21 @@ def export_properties_csv(
 
 def _extract_properties(
     node_name: str,
-    profile: _BaseProfile,
+    node_results: _BaseResults,
     requested: _NodeRequests,
     report_name: str,
 ) -> Iterator[tuple[str, _ReportValue]]:
     """
-    Yield (attribute, property) pairs from the node profile, reduced and accumulated.
+    Yield (attribute, property) pairs from the node's results, reduced and accumulated.
 
     Parameters
     ----------
     node_name
         Name of the node, used in log messages.
-    profile
-        Profile of the node to read properties from.
+    node_results
+        Results of the node to read properties from.
     requested
-        The attribute names, their profile result names, and the reduction and
+        The attribute names, their result names, and the reduction and
         accumulation to apply to each.
     report_name
         Name of the Report node, used in log messages.
@@ -498,20 +500,20 @@ def _extract_properties(
     tuple[str, _ReportValue]
         Each attribute whose result could be read, with its reduced result.
     """
-    per_step = per_step_results(type(profile))
+    per_step = per_step_results(type(node_results))
 
     for attribute, result, reduce, accumulate in zip(*requested, strict=True):
         try:
-            # the parser checked every result name against the profile class of
-            # its command when it read the deck, and every profile result is a
+            # the parser checked every result name against the results class of
+            # its command when it read the deck, and every result is a
             # report value
-            property_: _ReportValue = getattr(profile, result)
+            property_: _ReportValue = getattr(node_results, result)
 
             if isinstance(property_, dict):
                 property_ = _reduce_dict(property_, reduce)
 
             if accumulate is ReportAccumulationID.CUMULATIVE:
-                property_ = _accumulate(property_, profile, result in per_step)
+                property_ = _accumulate(property_, node_results, result in per_step)
 
             yield attribute, property_
 
@@ -528,7 +530,7 @@ def _extract_properties(
 
 def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportValue:
     """
-    Apply a report reduction to a dict-valued profile result.
+    Apply a report reduction to a dict-valued result.
 
     A tuple-keyed dict is collapsed by summing over the element(s) reduce
     names, keyed by whichever element remains: FIRST sums over the first
@@ -542,7 +544,7 @@ def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportVa
     Parameters
     ----------
     property_
-        Profile result to reduce.
+        Result to reduce.
     reduce
         Reduction to apply.
 
@@ -574,12 +576,12 @@ def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportVa
 
 
 def _accumulate(
-    property_: _ReportValue, profile: _BaseProfile, per_step: bool
+    property_: _ReportValue, node_results: _BaseResults, per_step: bool
 ) -> _ReportValue:
     """Sum a reduced result over the time steps up to and including each date."""
     # a rate covers the step ending at its date, the first a year long as in the
     # run; a count per time step is already one step's worth
-    weight = 1.0 if per_step else step_lengths(profile.context.timeline)
+    weight = 1.0 if per_step else step_lengths(node_results.context.timeline)
 
     if isinstance(property_, dict):
         return {key: np.cumsum(values * weight) for key, values in property_.items()}
@@ -607,7 +609,7 @@ def _get_alternative_path(base_path: Path, counter: int) -> Path:
 
 
 def _prepare_export(
-    profiles: Mapping[str, _BaseProfile],
+    results_by_node: Mapping[str, _BaseResults],
     requests: dict[str, NodeReport],
     report_name: str,
     sheet_name: str,
@@ -615,7 +617,7 @@ def _prepare_export(
     export: dict[str, _NodeRequests] = {}
 
     for key, report in requests.items():
-        node_names = matching_keys(key, profiles)
+        node_names = matching_keys(key, results_by_node)
 
         if not node_names:
             logger.warning(
@@ -700,7 +702,7 @@ def _export_dict(
     attribute
         Name of the attribute, written as column header.
     property_
-        Dict of arrays keyed by profile keys or tuples of them.
+        Dict of arrays keyed by result keys or tuples of them.
     col
         Column index to start writing at.
 

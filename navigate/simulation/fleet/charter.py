@@ -70,7 +70,7 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     expectation.set_asset_charter_rate(idx, asset_charter_rate)
     expectation.set_tied_capital(idx, tied_capital)
 
-    vessel.profile.asset_charter_rate[idx] = asset_charter_rate
+    vessel.results.asset_charter_rate[idx] = asset_charter_rate
 
 
 def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> None:
@@ -121,8 +121,8 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     expectation.set_fuel_cost_flow(fuel_cost_flow)
     expectation.set_freight_rate(idx, freight_rate)
 
-    vessel.profile.cargo_charter_rate[idx] = cargo_charter_rate
-    vessel.profile.investment_freight_rate[idx] = freight_rate
+    vessel.results.cargo_charter_rate[idx] = cargo_charter_rate
+    vessel.results.investment_freight_rate[idx] = freight_rate
 
 
 def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: Index) -> FloatLike:

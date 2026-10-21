@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""PlantProfile, the output storage the Plant node reports its results from."""
+"""PlantResults, the output storage the Plant node reports its results from."""
 
 from __future__ import annotations
 
@@ -10,15 +10,15 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._base_profile import _BaseProfile, result
+from navigate.core.results._base_results import _BaseResults, result
 
 if TYPE_CHECKING:
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class PlantProfile(_BaseProfile):
+class PlantResults(_BaseResults):
     """Production cost and well-to-tank emissions of the fuel one plant makes."""
 
     # cost of the fuel produced
@@ -33,9 +33,9 @@ class PlantProfile(_BaseProfile):
     equivalent_investment_wtt: dict[str, FloatArray] = result("tCO2e/t")
     equivalent_instantaneous_wtt: dict[str, FloatArray] = result("tCO2e/t")
 
-    def initialize(self, context: ProfileContext) -> None:
+    def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the plant profile's storage arrays and lookups.
+        Initialize the plant results' storage arrays and lookups.
 
         Parameters
         ----------

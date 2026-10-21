@@ -20,13 +20,13 @@ from navigate.core import (
 from navigate.core.expectations import PortExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, VARIABLE
-from navigate.core.profiles import PortProfile
+from navigate.core.results import PortResults
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
 
 
@@ -58,7 +58,7 @@ class Port(Node):
 
         # internal variables -----------------------------------------------------------
         self.expectation: PortExpectation = PortExpectation()
-        self.profile: PortProfile = PortProfile()
+        self.results: PortResults = PortResults()
 
         self.liquid_market_fuel: dict[str, bool] = {}
         self.imposed_levies: list[Levy]
@@ -202,8 +202,8 @@ class Port(Node):
 
         self.expectation.initialize(length, fuels, emissions)
 
-    def initialize_profile(self, context: ProfileContext) -> None:
-        self.profile.initialize(context)
+    def initialize_results(self, context: ResultsContext) -> None:
+        self.results.initialize(context)
 
     def is_bunkering_allowed(self, fuel_name: str) -> bool:
         """

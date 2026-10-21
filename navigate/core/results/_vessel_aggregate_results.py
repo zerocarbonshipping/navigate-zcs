@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The profile layer that sums vessels into a fleet or the whole model."""
+"""The results layer that sums vessels into a fleet or the whole model."""
 
 from __future__ import annotations
 
@@ -9,15 +9,15 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.profiles._base_profile import accumulate, result
-from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
+from navigate.core.results._base_results import accumulate, result
+from navigate.core.results._fuel_consumer_results import _FuelConsumerResults
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class _VesselAggregateProfile(_FuelConsumerProfile):
+class _VesselAggregateResults(_FuelConsumerResults):
     """Installed power, fleet turnover and expenses summed over a set of vessels."""
 
     # power
@@ -45,7 +45,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     fuel_type_capacity: dict[FuelTypeID, FloatArray] = result("GJ/year")
 
     def _initialize_vessel_aggregate(self) -> None:
-        # the global profile sums its fleets' baselines; a fleet computes its own
+        # the global results sum the fleets' baselines; a fleet computes its own
         self.baseline_energy = self._default_array()
 
         self.installed_power = self._default_dict(FuelTypeID)
@@ -63,24 +63,24 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
         self.fuel_type_capacity = self._default_dict(FuelTypeID)
 
-    def add_vessel_aggregate_profile(self, profile: _VesselAggregateProfile) -> None:
+    def add_vessel_aggregate_results(self, results: _VesselAggregateResults) -> None:
         """
-        Add another vessel aggregate profile's values into this one.
+        Add another vessel aggregate's results into this one.
 
         Parameters
         ----------
-        profile
-            Vessel aggregate profile from another node.
+        results
+            Vessel aggregate results from another node.
         """
-        accumulate(self.baseline_energy, profile.baseline_energy)
-        accumulate(self.installed_power, profile.installed_power)
-        accumulate(self.newbuild_power, profile.newbuild_power)
-        accumulate(self.scrapped_power, profile.scrapped_power)
-        accumulate(self.fuel_converted_power, profile.fuel_converted_power)
-        accumulate(self.vessel_expenses, profile.vessel_expenses)
-        accumulate(self.technology_expenses, profile.technology_expenses)
-        accumulate(self.fuel_conversion_expenses, profile.fuel_conversion_expenses)
-        accumulate(self.vessel_tied_capital, profile.vessel_tied_capital)
-        accumulate(self.weighted_age_numerator, profile.weighted_age_numerator)
-        accumulate(self.weighted_age_denominator, profile.weighted_age_denominator)
-        accumulate(self.fuel_type_capacity, profile.fuel_type_capacity)
+        accumulate(self.baseline_energy, results.baseline_energy)
+        accumulate(self.installed_power, results.installed_power)
+        accumulate(self.newbuild_power, results.newbuild_power)
+        accumulate(self.scrapped_power, results.scrapped_power)
+        accumulate(self.fuel_converted_power, results.fuel_converted_power)
+        accumulate(self.vessel_expenses, results.vessel_expenses)
+        accumulate(self.technology_expenses, results.technology_expenses)
+        accumulate(self.fuel_conversion_expenses, results.fuel_conversion_expenses)
+        accumulate(self.vessel_tied_capital, results.vessel_tied_capital)
+        accumulate(self.weighted_age_numerator, results.weighted_age_numerator)
+        accumulate(self.weighted_age_denominator, results.weighted_age_denominator)
+        accumulate(self.fuel_type_capacity, results.fuel_type_capacity)

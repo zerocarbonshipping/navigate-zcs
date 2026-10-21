@@ -33,9 +33,9 @@ def plot_global_tied_capital(results: SimulationResults, directory: Path) -> Non
 
     fig, ax = single_panel()
 
-    profile = results.profile
-    vessel_tied_capital = profile.vessel_tied_capital
-    plant_tied_capital = profile.plant_tied_capital
+    global_results = results.global_results
+    vessel_tied_capital = global_results.vessel_tied_capital
+    plant_tied_capital = global_results.plant_tied_capital
 
     divisor, unit = get_best_unit_cost(
         max(np.max(vessel_tied_capital), np.max(plant_tied_capital)), rate=False

@@ -48,8 +48,8 @@ def _scaled_fleet(run_combination, factor):
     ],
 )
 def test_twice_the_fleet_doubles_its_extensive_results(run_combination, result):
-    base = getattr(_scaled_fleet(run_combination, 1).profile, result)
-    scaled = getattr(_scaled_fleet(run_combination, FACTOR).profile, result)
+    base = getattr(_scaled_fleet(run_combination, 1).results, result)
+    scaled = getattr(_scaled_fleet(run_combination, FACTOR).results, result)
 
     assert scaled.keys() == base.keys()
     assert any(np.any(array > 0.0) for array in base.values()), f"{result} is zero"
@@ -65,7 +65,7 @@ def test_twice_the_levy_level_doubles_the_first_collection(run_combination):
             ("levy.inc", {"scheme": "PENALTY", "scope": "WTW", "lower_threshold": 85}),
             ("levy_level.inc", {"level": level}),
         )
-        return results.nodes.levies[LEVY].profile.collected[0]
+        return results.nodes.levies[LEVY].results.collected[0]
 
     base = collected(BASE_LEVEL)
 

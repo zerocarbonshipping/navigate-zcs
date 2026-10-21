@@ -74,7 +74,7 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
     Store each vessel's investment signal: its beliefs' energy-weighted average dual.
 
     The technology and speed beliefs each give one signal, in USD/GJ, written to the
-    vessel profile for output.
+    vessel results for output.
 
     Parameters
     ----------
@@ -86,7 +86,7 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
     for fleet in fleets.values():
         for vessel in fleet.vessels:
             expectation = vessel.expectation
-            profile = vessel.profile
+            results = vessel.results
 
             rhs = (
                 expectation.get_energy_conservation_rhs_sea(),
@@ -97,8 +97,8 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
             signal_technology = _average_dual(technology, rhs, idx)
             signal_speed = _average_dual(speed, rhs, idx)
 
-            profile.investment_signal_technology[idx] = signal_technology
-            profile.investment_signal_speed[idx] = signal_speed
+            results.investment_signal_technology[idx] = signal_technology
+            results.investment_signal_speed[idx] = signal_speed
 
 
 def _beliefs(expectation: VesselExpectation) -> tuple[_SeaPortPaths, _SeaPortPaths]:

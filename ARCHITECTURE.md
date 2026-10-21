@@ -19,9 +19,9 @@ step, and `driver/` runs it from a read deck to its output.
   - `simulation/fuel/` — the fuel-supply domain: production and planning.
     Both keep `initialization.py` (simulation start), `expectation.py`
     (what the domain publishes to later phases and other domains),
-    `profile.py` (per-step output) and `results.py` (the results computed
-    from that output after the run); every other file is named for a domain
-    concept.
+    `results.py` (the results written at each time step) and
+    `post_process.py` (the results computed from those after the run); every
+    other file is named for a domain concept.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/cohort.py` — vintage-stock accounting over the asset
     cohorts of both domains.
@@ -32,7 +32,7 @@ step, and `driver/` runs it from a read deck to its output.
     flexibility market and its beliefs.
 - `core/` — the model definition only: the DSL value types and their
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
-  nodes (`general_nodes/`), the node maps, `expectations/`, `profiles/`, the
+  nodes (`general_nodes/`), the node maps, `expectations/`, `results/`, the
   records nodes hold, and the `SimulationResults` a run hands to output.
 - `parser/` — reads `.nav`/`.inc` decks into nodes, in four phases that
   each finish before the next starts: `_lark_parser.py` turns text into an
@@ -63,7 +63,7 @@ step, and `driver/` runs it from a read deck to its output.
 
 A domain's node `x.py` in `core/nodes/` keeps its cross-module dynamic state
 in `core/expectations/x_expectation.py` and its output in
-`core/profiles/x_profile.py`; the domain's calculations live in
+`core/results/x_results.py`; the domain's calculations live in
 `simulation/<domain>/`. The fleet domain owns `Fleet` and `Vessel`, fuel
 owns `Producer`, `Plant` and `Port`, and policy owns `Regulation` and
 `Levy`. `simulation/economics/` and `simulation/cohort.py` own no nodes, and
@@ -108,8 +108,8 @@ new top-level module or package, or a new module or package directly under
 to a simulation unit.
 
 Inside `core/`, runtime imports run one way: `nodes/` imports
-`expectations/`, `profiles/` and the flat modules directly in `core/`;
-`expectations/`, `profiles/` and `general_nodes/` import only the flat
+`expectations/`, `results/` and the flat modules directly in `core/`;
+`expectations/`, `results/` and `general_nodes/` import only the flat
 modules; the flat modules import no subpackage, so one that needs a node
 class imports it under `TYPE_CHECKING`. Imports are absolute. No test
 enforces the table; review does, with type-only imports included.
@@ -131,10 +131,10 @@ re-export there would load far more than an import needs.
   from stored values is computed in the `simulation/` package of the domain
   that reads it; where the parts of a sum are never read on their own, the
   writer stores the sum instead.
-- `profile` is output for reports and plots, never a decision's input.
-  Deriving one profile value from another is fine in post-processing and
-  `Simulation._calculate_profile`, which feed no decision; a result computed
-  from others is written by the domain's `results` module after the run.
+- `results` is output for reports and plots, never a decision's input.
+  Deriving one result from another is fine in post-processing and
+  `Simulation._record_results`, which feed no decision; a result computed
+  from others is written by the domain's `post_process` module after the run.
 - Direct attribute access (`node.some_input.get()`) is reserved for
   DSL-defined inputs and those node maps.
 - `simulation/` handles no files, console output or arguments; its one file
