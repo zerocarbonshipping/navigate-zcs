@@ -43,10 +43,3 @@ SPDX-License-Identifier = "CC-BY-4.0"
 path = ".github/PULL_REQUEST_TEMPLATE.md"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "Apache-2.0"
-
-# Tutorial starting files, offered as zip downloads on the tutorial pages
-# (binary archives).
-[[annotations]]
-path = "docs/_generated/tutorials/*.zip"
-SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
-SPDX-License-Identifier = "CC-BY-4.0"
