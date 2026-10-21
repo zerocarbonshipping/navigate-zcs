@@ -12,11 +12,16 @@ import numpy as np
 from navigate.util import derive_smoothing_alpha, update_belief_path
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Iterator, Mapping, Sequence
 
     from navigate.core.enum_ import EnergyDemandID
+    from navigate.core.expectations.vessel_expectation import VesselExpectation
     from navigate.core.nodes.fleet import Fleet
     from navigate.util.types_ import FloatArray
+
+
+type _LegPaths = Mapping[EnergyDemandID, Sequence[FloatArray]]
+type _SeaPortPaths = tuple[_LegPaths, _LegPaths]
 
 
 def update_vessel_scarcity_beliefs(
@@ -37,45 +42,38 @@ def update_vessel_scarcity_beliefs(
     fleets
         All fleets in the simulation.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
     for fleet in fleets.values():
-        tech_horizon = fleet.technology_horizon.get()
+        technology_horizon = fleet.technology_horizon.get()
         speed_horizon = fleet.speed_horizon.get()
 
-        alpha_tech = derive_smoothing_alpha(idx, tech_horizon, timeline)
+        alpha_technology = derive_smoothing_alpha(idx, technology_horizon, timeline)
         alpha_speed = derive_smoothing_alpha(idx, speed_horizon, timeline)
 
         for vessel in fleet.vessels:
             expectation = vessel.expectation
 
-            raw_pi_sea = expectation.get_energy_conservation_pi_sea()
-            raw_pi_port = expectation.get_energy_conservation_pi_port()
+            raw = (
+                expectation.get_energy_conservation_pi_sea(),
+                expectation.get_energy_conservation_pi_port(),
+            )
+            technology, speed = _beliefs(expectation)
 
-            _smooth_pi_dict(
-                raw_pi_sea, expectation.get_belief_pi_sea_technology(), alpha_tech, idx
-            )
-            _smooth_pi_dict(
-                raw_pi_port,
-                expectation.get_belief_pi_port_technology(),
-                alpha_tech,
-                idx,
-            )
-            _smooth_pi_dict(
-                raw_pi_sea, expectation.get_belief_pi_sea_speed(), alpha_speed, idx
-            )
-            _smooth_pi_dict(
-                raw_pi_port, expectation.get_belief_pi_port_speed(), alpha_speed, idx
-            )
+            for raw_leg, belief_leg in _zip_legs(raw, technology):
+                update_belief_path(raw_leg, belief_leg, alpha_technology, idx)
+
+            for raw_leg, belief_leg in _zip_legs(raw, speed):
+                update_belief_path(raw_leg, belief_leg, alpha_speed, idx)
 
 
 def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
     """
     Store each vessel's investment signal: its beliefs' energy-weighted average dual.
 
-    The technology and speed beliefs each give one signal, USD/GJ, written to the
+    The technology and speed beliefs each give one signal, in USD/GJ, written to the
     vessel profile for output.
 
     Parameters
@@ -88,37 +86,44 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
     for fleet in fleets.values():
         for vessel in fleet.vessels:
             expectation = vessel.expectation
-
-            rhs_sea = expectation.get_energy_conservation_rhs_sea()
-            rhs_port = expectation.get_energy_conservation_rhs_port()
-
-            signal_technology = _energy_weighted_signal(
-                expectation.get_belief_pi_sea_technology(),
-                expectation.get_belief_pi_port_technology(),
-                rhs_sea,
-                rhs_port,
-                idx,
-            )
-            signal_speed = _energy_weighted_signal(
-                expectation.get_belief_pi_sea_speed(),
-                expectation.get_belief_pi_port_speed(),
-                rhs_sea,
-                rhs_port,
-                idx,
-            )
-
             profile = vessel.profile
+
+            rhs = (
+                expectation.get_energy_conservation_rhs_sea(),
+                expectation.get_energy_conservation_rhs_port(),
+            )
+            technology, speed = _beliefs(expectation)
+
+            signal_technology = _average_dual(technology, rhs, idx)
+            signal_speed = _average_dual(speed, rhs, idx)
+
             profile.investment_signal_technology[idx] = signal_technology
             profile.investment_signal_speed[idx] = signal_speed
 
 
-def _energy_weighted_signal(
-    belief_sea: Mapping[EnergyDemandID, Sequence[FloatArray]],
-    belief_port: Mapping[EnergyDemandID, Sequence[FloatArray]],
-    rhs_sea: Mapping[EnergyDemandID, Sequence[FloatArray]],
-    rhs_port: Mapping[EnergyDemandID, Sequence[FloatArray]],
-    idx: int,
-) -> float:
+def _beliefs(expectation: VesselExpectation) -> tuple[_SeaPortPaths, _SeaPortPaths]:
+    """Return a vessel's technology and speed beliefs, each at sea and in port."""
+    technology = (
+        expectation.get_belief_pi_sea_technology(),
+        expectation.get_belief_pi_port_technology(),
+    )
+    speed = (
+        expectation.get_belief_pi_sea_speed(),
+        expectation.get_belief_pi_port_speed(),
+    )
+    return technology, speed
+
+
+def _zip_legs(
+    first: _SeaPortPaths, second: _SeaPortPaths
+) -> Iterator[tuple[FloatArray, FloatArray]]:
+    """Pair the leg paths of two quantities alike in shape, at sea then in port."""
+    for first_side, second_side in zip(first, second, strict=True):
+        for energy_id, first_legs in first_side.items():
+            yield from zip(first_legs, second_side[energy_id], strict=True)
+
+
+def _average_dual(beliefs: _SeaPortPaths, rhs: _SeaPortPaths, idx: int) -> float:
     """
     Collapse the per-(energy-type, leg) belief duals into one energy-weighted average.
 
@@ -127,61 +132,29 @@ def _energy_weighted_signal(
 
     Parameters
     ----------
-    belief_sea
-        Smoothed duals at sea per energy demand type and leg, USD/GJ.
-    belief_port
-        Smoothed duals in port per energy demand type and port, USD/GJ.
-    rhs_sea
-        Energy-conservation RHS at sea, shaped as `belief_sea`, GJ/year.
-    rhs_port
-        Energy-conservation RHS in port, shaped as `belief_port`, GJ/year.
+    beliefs
+        Smoothed duals at sea and in port, per energy demand type and leg or port, in
+        USD/GJ.
+    rhs
+        Energy-conservation RHS at sea and in port, shaped as `beliefs`, in GJ/year.
     idx
         Current time-step index.
 
     Returns
     -------
     float
-        Energy-weighted average dual, USD/GJ, or ``np.nan`` when there is no demand.
+        Energy-weighted average dual, in USD/GJ, or ``np.nan`` when there is no
+        demand.
     """
     weighted_sum = 0.0
     weight_total = 0.0
 
-    for belief_dict, rhs_dict in ((belief_sea, rhs_sea), (belief_port, rhs_port)):
-        for energy_id, belief_legs in belief_dict.items():
-            rhs_legs = rhs_dict[energy_id]
-            for belief_leg, rhs_leg in zip(belief_legs, rhs_legs, strict=True):
-                weight = rhs_leg[idx]
-                weighted_sum += belief_leg[idx] * weight
-                weight_total += weight
+    for belief_leg, rhs_leg in _zip_legs(beliefs, rhs):
+        weight = rhs_leg[idx]
+        weighted_sum += belief_leg[idx] * weight
+        weight_total += weight
 
     if weight_total <= 0.0:
         return np.nan
 
     return weighted_sum / weight_total
-
-
-def _smooth_pi_dict(
-    raw_dict: Mapping[EnergyDemandID, Sequence[FloatArray]],
-    belief_dict: Mapping[EnergyDemandID, Sequence[FloatArray]],
-    alpha: float,
-    idx: int,
-) -> None:
-    """
-    Smooth every per-leg array of a belief dict towards the raw duals, in place.
-
-    Parameters
-    ----------
-    raw_dict
-        Raw LP duals per energy demand type and leg, USD/GJ.
-    belief_dict
-        Beliefs of the same shape; updated in place.
-    alpha
-        EMA weight on the new raw projection, fraction: ``alpha = 1`` trusts the
-        latest projection fully, ``alpha = 0`` ignores it.
-    idx
-        Current time-step index; only the time-steps from it on are updated.
-    """
-    for energy_id, raw_legs in raw_dict.items():
-        belief_legs = belief_dict[energy_id]
-        for raw_leg, belief_leg in zip(raw_legs, belief_legs, strict=True):
-            update_belief_path(raw_leg, belief_leg, alpha, idx)
