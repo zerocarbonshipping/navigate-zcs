@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Define the results a finished run hands to output for its reports and figures."""
+"""The finished run, as the driver hands it to output."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True, eq=False)
 class SimulationResults:
     """
-    Hold everything a finished run hands to its reports and figures.
+    Hold everything a finished run hands to its results file, reports and figures.
 
     Parameters
     ----------

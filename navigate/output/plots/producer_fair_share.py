@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
     from matplotlib.legend import Legend
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def plot_producer_fair_share(results: SimulationResults, directory: Path) -> None:

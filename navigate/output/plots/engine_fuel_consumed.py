@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from matplotlib.legend import Legend
 
     from navigate.core.enum_ import FuelTypeID
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 

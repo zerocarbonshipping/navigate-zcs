@@ -5,7 +5,7 @@
 The model's time stepping: Simulation steps the nodes of a read deck through its dates.
 
 navigate.driver runs it: initialized once, stepped at each date once the date's events
-are applied, and finished into the SimulationResults that navigate.output reads.
+are applied, and finished into the global results; each node holds its own.
 """
 
 from __future__ import annotations
@@ -13,11 +13,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from navigate.core import (
-    SimulationResults,
-    define_vessel_fuel_maps,
-    update_imposed_levies,
-)
+from navigate.core import define_vessel_fuel_maps, update_imposed_levies
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.core.results import GlobalResults, ResultsContext
 from navigate.exceptions import DeckError
@@ -206,23 +202,18 @@ class Simulation:
 
         self._idx += 1
 
-    def finish(self) -> SimulationResults:
+    def finish(self) -> GlobalResults:
         """
         Post-process the completed time steps into the results of the run.
 
         Returns
         -------
-        SimulationResults
-            The dateline, the global results and the nodes of the run.
+        GlobalResults
+            The model-wide results; each node holds its own.
         """
         self._post_process()
 
-        return SimulationResults(
-            dateline=self.dateline,
-            global_results=self.global_results,
-            nodes=self.nodes,
-            general_nodes=self.general_nodes,
-        )
+        return self.global_results
 
     def _progress_date_time(self, date: np.datetime64) -> None:
         self._time_step = timedelta_to_days(date - self._date)

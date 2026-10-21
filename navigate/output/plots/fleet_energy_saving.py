@@ -26,7 +26,7 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def plot_fleet_energy_saving(results: SimulationResults, directory: Path) -> None:

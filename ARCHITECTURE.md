@@ -32,8 +32,8 @@ step, and `driver/` runs it from a read deck to its output.
     flexibility market and its beliefs.
 - `core/` — the model definition only: the DSL value types and their
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
-  nodes (`general_nodes/`), the node maps, `expectations/`, `results/`, the
-  records nodes hold, and the `SimulationResults` a run hands to output.
+  nodes (`general_nodes/`), the node maps, `expectations/`, `results/` and
+  the records nodes hold.
 - `parser/` — reads `.nav`/`.inc` decks into nodes, in four phases that
   each finish before the next starts: `_lark_parser.py` turns text into an
   AST through `grammar.lark`, the one place that knows the syntax;
@@ -52,7 +52,8 @@ step, and `driver/` runs it from a read deck to its output.
   ever holds it. The prune is self-contained, as pruning may go: nothing
   else imports it, and without it every declaration is kept. `parser.py`
   is the facade the driver calls.
-- `output/` — turns `SimulationResults` into reports and figures (`plots/`).
+- `output/` — turns `SimulationResults`, which the driver assembles from the
+  finished run, into the results file, the reports and the figures (`plots/`).
 - `util/` — domain-agnostic helpers.
 - `driver/` — the run: read a deck, step `Simulation`, write the output.
 - `app/` — the command line (`cli.py`) and its run log (`logs.py`), whose

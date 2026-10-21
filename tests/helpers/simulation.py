@@ -22,7 +22,7 @@ from navigate.driver import run_deck
 from navigate.util import YEAR, dates_to_days
 
 if TYPE_CHECKING:
-    from navigate.core import SimulationResults
+    from navigate.output import SimulationResults
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 

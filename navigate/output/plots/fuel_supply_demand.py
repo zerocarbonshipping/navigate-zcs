@@ -28,7 +28,7 @@ from navigate.util import divide_nonzero
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def plot_fuel_supply_demand(results: SimulationResults, directory: Path) -> None:
