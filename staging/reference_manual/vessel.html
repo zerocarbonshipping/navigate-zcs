@@ -385,7 +385,6 @@
 <li class="toctree-l1"><a class="reference internal" href="plant.html">Plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot.html">Plot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="port.html">Port</a></li>
-<li class="toctree-l1"><a class="reference internal" href="power_system.html">PowerSystem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="process.html">Process</a></li>
 <li class="toctree-l1"><a class="reference internal" href="producer.html">Producer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="region.html">Region</a></li>
@@ -472,6 +471,8 @@ SPDX-License-Identifier: CC-BY-4.0
 <h1>Vessel<a class="headerlink" href="#vessel" title="Link to this heading">#</a></h1>
 <p>A <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> node defines a representative vessel which makes up part of the fleet. Examples of vessels
 are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.</p>
+<p>A vessel meets its propulsion, electrical, and heat demand with three distinct converters, for example a
+main engine, an auxiliary engine, and a boiler.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"bulk_carrier_capesize_oil"</span> <span class="p">{</span>
 
@@ -481,7 +482,9 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 	<span class="n">HeatLoadAtSea</span> <span class="o">=</span> <span class="mf">0.</span>
 	<span class="n">HeatLoadInPort</span> <span class="o">=</span> <span class="mf">0.9</span>
 
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"conventional_power_system"</span><span class="p">)</span>
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"main_engine"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"auxiliary_engine"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"boiler"</span><span class="p">)</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"fuel_oil"</span><span class="p">)]</span>
 	
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"rotterdam_singapore"</span><span class="p">)</span>
@@ -589,22 +592,40 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">METHANOL</span></code></p></li>
-<li><p><strong>Default</strong>: Not set. The main fuel type with the largest power capacity summed over the converters in the power system is used. A tie between fuel types is broken by the size of the tanks that store them.</p></li>
+<li><p><strong>Default</strong>: Not set. The main fuel type with the largest power capacity summed over the vessel’s converters is used. A tie between fuel types is broken by the size of the tanks that store them.</p></li>
 </ul>
 </section>
-<section id="powersystem">
-<h3>PowerSystem<a class="headerlink" href="#powersystem" title="Link to this heading">#</a></h3>
-<p>This attribute specifies the PowerSystem that is used to convert fuel to energy.</p>
+<section id="propulsionconverter">
+<h3>PropulsionConverter *<a class="headerlink" href="#propulsionconverter" title="Link to this heading">#</a></h3>
+<p>This attribute defines the converter used to satisfy the propulsion demand. It must differ from the <code class="docutils literal notranslate"><span class="pre">ElectricalConverter</span></code> and <code class="docutils literal notranslate"><span class="pre">HeatConverter</span></code>, while the same converter may be used by other vessels.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> node</p></li>
-<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Converter</span></code> node</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
+</ul>
+</section>
+<section id="electricalconverter">
+<h3>ElectricalConverter *<a class="headerlink" href="#electricalconverter" title="Link to this heading">#</a></h3>
+<p>This attribute defines the converter used to satisfy the electrical demand. It must differ from the <code class="docutils literal notranslate"><span class="pre">PropulsionConverter</span></code> and <code class="docutils literal notranslate"><span class="pre">HeatConverter</span></code>, while the same converter may be used by other vessels.</p>
+<ul class="simple">
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Converter</span></code> node</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
+</ul>
+</section>
+<section id="heatconverter">
+<h3>HeatConverter *<a class="headerlink" href="#heatconverter" title="Link to this heading">#</a></h3>
+<p>This attribute defines the converter used to satisfy the heat demand. It must differ from the <code class="docutils literal notranslate"><span class="pre">PropulsionConverter</span></code> and <code class="docutils literal notranslate"><span class="pre">ElectricalConverter</span></code>, while the same converter may be used by other vessels.</p>
+<ul class="simple">
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Converter</span></code> node</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="tanks">
 <h3>Tanks<a class="headerlink" href="#tanks" title="Link to this heading">#</a></h3>
 <p>This attribute sets the list of tanks used for onboard fuel storage. All Tanks assigned must be unique, i.e., they cannot be duplicated in the input list.</p>
-<p>The list of tanks must include, for each converter in the PowerSystem, at least one tank that stores one of the converter’s MainFuelTypes; for a dual-fuel converter with a MinimumPilotFuel above 0, one of its PilotFuelTypes instead.</p>
+<p>The list of tanks must include, for each of the vessel’s converters, at least one tank that stores one of the converter’s MainFuelTypes; for a dual-fuel converter with a MinimumPilotFuel above 0, one of its PilotFuelTypes instead.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Tank</span></code> nodes</p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -676,7 +697,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 </section>
 <section id="capex">
 <h3>Capex<a class="headerlink" href="#capex" title="Link to this heading">#</a></h3>
-<p>This attribute sets the base CAPEX of building the vessel in USD.</p>
+<p>This attribute sets the base CAPEX of building the vessel, including its fuel supply system, in USD.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -692,7 +713,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 </section>
 <section id="opex">
 <h3>Opex<a class="headerlink" href="#opex" title="Link to this heading">#</a></h3>
-<p>This attribute defines the base OPEX of maintaining the vessel, in USD per year.</p>
+<p>This attribute defines the base OPEX of maintaining the vessel, including its fuel supply system, in USD per year.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -779,7 +800,9 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#heatloadatsea">HeatLoadAtSea</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#heatloadinport">HeatLoadInPort</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fueltype">FuelType</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#powersystem">PowerSystem</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#propulsionconverter">PropulsionConverter *</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#electricalconverter">ElectricalConverter *</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#heatconverter">HeatConverter *</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tanks">Tanks</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#route">Route</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nominalcapacity">NominalCapacity</a></li>
@@ -836,7 +859,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       

@@ -158,8 +158,8 @@ Fleet "fleet" {
 
 1. Define vessel node `"vessel_ice_oil"`: 
 You already defined a Vessel with the node called `"vessel_ice_oil"`.
-2. Within the curly brackets of the vessel node definition, now define the attribute `PowerSystem`.
-In this example, we will be using a simplified power system that is exclusively powered through low sulfur fuel oil.
+2. Within the curly brackets of the vessel node definition, now define the attributes `PropulsionConverter`, `ElectricalConverter`, and `HeatConverter`.
+They name the converters that meet the vessel's energy demands, which the next section explains. In this example, we will be using simplified converters that are exclusively powered through low sulfur fuel oil.
 Continue to define the other attributes within the curly brackets of the vessel node.
 3. Define a Route.
 The attribute Route allows input on the route that a reference ship is taking.
@@ -173,7 +173,9 @@ LoadLevel's (propulsion, electrical, heat) generally describe power and therefor
 
 ```python
 Vessel "vessel_ice_oil" {
-    PowerSystem = PowerSystem("ice_oil")
+    PropulsionConverter = Converter("propulsion_ice_oil")
+    ElectricalConverter = Converter("electrical_ice_oil")
+    HeatConverter = Converter("heat_boiler_oil")
     Route = Route("route") 	
     NominalCapacity = 8000
     Tanks = [Tank("main_oil")]
@@ -181,35 +183,23 @@ Vessel "vessel_ice_oil" {
 }
 ```
 
-### Definition of a `PowerSystem`
+### The converters of a `Vessel`
 
-In the definition of the node `"vessel_ice_oil"`, the attribute, `PowerSystem` has a value, and this value is a separate node `PowerSystem` `"ice_oil"`. In this section, you now need to define the node `"ice_oil"`.
-We assume that there are different energy demands on a vessel. There is a propulsion demand, an electrical demand, and a heat demand onboard of any vessel. To meet these demands, the fuel is converted into energy by converters, e.g., by an engine. 
+In the definition of the node `"vessel_ice_oil"`, the attributes `PropulsionConverter`, `ElectricalConverter`, and `HeatConverter` each have a value, and each value is a separate node of the type `Converter`.
+We assume that there are different energy demands on a vessel. There is a propulsion demand, an electrical demand, and a heat demand onboard of any vessel. To meet these demands, the fuel is converted into energy by converters, e.g., by an engine.
 
-1. Define the node PowerSystem by writing this:
-`PowerSystem "ice_oil" { ... }`
-It represents the reference vessel’s combination of engines and boilers.
-The power system is usually the combination of a main engine, auxiliary engine, and boiler, but can also be configured with a single converter. The main engine is responsible for the propulsion of the vessel, the auxiliary engine is responsible for electrical demand, and the boiler is responsible for the heat demand.
-In the next few steps, you will define the node’s attributes. This should be written within the curly brackets `{ }`.
-2. Define the engine setup.
-3. Define how the `Propulsion` demand is met.
+Together, the three converters represent the reference vessel’s combination of engines and boilers, usually a main engine, an auxiliary engine, and a boiler. They must be three distinct converters.
+
+1. `PropulsionConverter` defines how the propulsion demand is met.
 Usually, the propulsion demand is met through the main engine propelling the vessel forward.
-4. Define how the `Electrical` demand is met.
+2. `ElectricalConverter` defines how the electrical demand is met.
 The electrical demand is often met through an auxiliary engine, which is mostly a smaller engine separate from the main engine.
-5. Define how the Heat demand is met.
+3. `HeatConverter` defines how the heat demand is met.
 The demand is usually met through a boiler.
-
-```python
-PowerSystem "ice_oil" {
-    Propulsion = Converter("propulsion_ice_oil")
-    Electrical = Converter("electrical_ice_oil")
-    Heat = Converter("heat_boiler_oil")
-}
-```
 
 ### Definition of a `Converter`
 
-We introduced three new nodes of the type `Converter` in the definition of the node PowerSystem.
+We introduced three new nodes of the type `Converter` in the definition of the node `"vessel_ice_oil"`.
 Each node needs to be defined by itself.
 
 1. Define the node `"propulsion_ice_oil"` of the node type Converter.
@@ -255,7 +245,7 @@ Converter "heat_boiler_oil" {
 
 ### Definitions of other nodes introduced in `Vessel`
 
-You introduced new nodes when you assigned them as values of the `"vessel_ice_oil"`’s attributes. One of them was the node `PowerSystem` which we defined in the above section.
+You introduced new nodes when you assigned them as values of the `"vessel_ice_oil"`’s attributes. Among them were the three converters which we defined in the above section.
 Others include the definition of a route that the vessel sails, and a definition of a tank node.
 The value assigned to the `Ports` attribute of a Route is a list, marked by square brackets. In this example, the list only contains one port.
 
@@ -514,7 +504,9 @@ Fleet "fleet" {
 # B) DEFINITION OF A VESSEL
 # Bi) Define vessel node "vessel_ice_oil" below.
 Vessel "vessel_ice_oil" {
-	PowerSystem = PowerSystem("ice_oil")
+	PropulsionConverter = Converter("propulsion_ice_oil")
+	ElectricalConverter = Converter("electrical_ice_oil")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route")
 	NominalCapacity = 8000
 	Tanks = [Tank("main_oil")]
@@ -524,17 +516,10 @@ Vessel "vessel_ice_oil" {
 
 # Define and assign attributes of the node "vessel_ice_oil" 
 # Above, edit the vessel node so that each attribute and its value is written within the curly
-# brackets of the "vessel_ice_oil" node (i.e. PowerSystem, Route, Finance etc.). 
+# brackets of the "vessel_ice_oil" node (i.e. PropulsionConverter, Route etc.).
 
 
-# Bii) Define PowerSystem below.
-PowerSystem "ice_oil" {
-	Propulsion = Converter("propulsion_ice_oil")
-	Electrical = Converter("electrical_ice_oil")
-	Heat = Converter("heat_boiler_oil")
-}
-
-
+# Bii) Define the converters assigned to "vessel_ice_oil".
 # Define the node "propulsion_ice_oil" below.
 Converter "propulsion_ice_oil" {
 	PowerCapacity = 50

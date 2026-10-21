@@ -562,8 +562,8 @@ This is a naming convention we use but is not required; a node can be named anyt
 <ol class="arabic simple">
 <li><p>Define vessel node <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>:
 You already defined a Vessel with the node called <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.</p></li>
-<li><p>Within the curly brackets of the vessel node definition, now define the attribute <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code>.
-In this example, we will be using a simplified power system that is exclusively powered through low sulfur fuel oil.
+<li><p>Within the curly brackets of the vessel node definition, now define the attributes <code class="docutils literal notranslate"><span class="pre">PropulsionConverter</span></code>, <code class="docutils literal notranslate"><span class="pre">ElectricalConverter</span></code>, and <code class="docutils literal notranslate"><span class="pre">HeatConverter</span></code>.
+They name the converters that meet the vessel’s energy demands, which the next section explains. In this example, we will be using simplified converters that are exclusively powered through low sulfur fuel oil.
 Continue to define the other attributes within the curly brackets of the vessel node.</p></li>
 <li><p>Define a Route.
 The attribute Route allows input on the route that a reference ship is taking.</p></li>
@@ -576,7 +576,9 @@ It describes the propulsion load level at sea, i.e., how much power we need to m
 LoadLevel’s (propulsion, electrical, heat) generally describe power and therefore have the unit MW (mega-watt). It is not a mandatory attribute to run the model, but necessary if we want an output.  We can assign a number, a Curve, or a Surface as the value of the attribute PropulsionLoad.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"vessel_ice_oil"</span> <span class="p">{</span>
-    <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_oil"</span><span class="p">)</span>
+    <span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
+    <span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
+    <span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
     <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 	
     <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
     <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_oil"</span><span class="p">)]</span>
@@ -585,35 +587,23 @@ LoadLevel’s (propulsion, electrical, heat) generally describe power and theref
 </pre></div>
 </div>
 </section>
-<section id="definition-of-a-powersystem">
-<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code><a class="headerlink" href="#definition-of-a-powersystem" title="Link to this heading">#</a></h3>
-<p>In the definition of the node <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>, the attribute, <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> has a value, and this value is a separate node <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;ice_oil&quot;</span></code>. In this section, you now need to define the node <code class="docutils literal notranslate"><span class="pre">&quot;ice_oil&quot;</span></code>.
+<section id="the-converters-of-a-vessel">
+<h3>The converters of a <code class="docutils literal notranslate"><span class="pre">Vessel</span></code><a class="headerlink" href="#the-converters-of-a-vessel" title="Link to this heading">#</a></h3>
+<p>In the definition of the node <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>, the attributes <code class="docutils literal notranslate"><span class="pre">PropulsionConverter</span></code>, <code class="docutils literal notranslate"><span class="pre">ElectricalConverter</span></code>, and <code class="docutils literal notranslate"><span class="pre">HeatConverter</span></code> each have a value, and each value is a separate node of the type <code class="docutils literal notranslate"><span class="pre">Converter</span></code>.
 We assume that there are different energy demands on a vessel. There is a propulsion demand, an electrical demand, and a heat demand onboard of any vessel. To meet these demands, the fuel is converted into energy by converters, e.g., by an engine.</p>
+<p>Together, the three converters represent the reference vessel’s combination of engines and boilers, usually a main engine, an auxiliary engine, and a boiler. They must be three distinct converters.</p>
 <ol class="arabic simple">
-<li><p>Define the node PowerSystem by writing this:
-<code class="docutils literal notranslate"><span class="pre">PowerSystem</span> <span class="pre">&quot;ice_oil&quot;</span> <span class="pre">{</span> <span class="pre">...</span> <span class="pre">}</span></code>
-It represents the reference vessel’s combination of engines and boilers.
-The power system is usually the combination of a main engine, auxiliary engine, and boiler, but can also be configured with a single converter. The main engine is responsible for the propulsion of the vessel, the auxiliary engine is responsible for electrical demand, and the boiler is responsible for the heat demand.
-In the next few steps, you will define the node’s attributes. This should be written within the curly brackets <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">}</span></code>.</p></li>
-<li><p>Define the engine setup.</p></li>
-<li><p>Define how the <code class="docutils literal notranslate"><span class="pre">Propulsion</span></code> demand is met.
+<li><p><code class="docutils literal notranslate"><span class="pre">PropulsionConverter</span></code> defines how the propulsion demand is met.
 Usually, the propulsion demand is met through the main engine propelling the vessel forward.</p></li>
-<li><p>Define how the <code class="docutils literal notranslate"><span class="pre">Electrical</span></code> demand is met.
+<li><p><code class="docutils literal notranslate"><span class="pre">ElectricalConverter</span></code> defines how the electrical demand is met.
 The electrical demand is often met through an auxiliary engine, which is mostly a smaller engine separate from the main engine.</p></li>
-<li><p>Define how the Heat demand is met.
+<li><p><code class="docutils literal notranslate"><span class="pre">HeatConverter</span></code> defines how the heat demand is met.
 The demand is usually met through a boiler.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">"ice_oil"</span> <span class="p">{</span>
-    <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
-    <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
-    <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 </section>
 <section id="definition-of-a-converter">
 <h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Converter</span></code><a class="headerlink" href="#definition-of-a-converter" title="Link to this heading">#</a></h3>
-<p>We introduced three new nodes of the type <code class="docutils literal notranslate"><span class="pre">Converter</span></code> in the definition of the node PowerSystem.
+<p>We introduced three new nodes of the type <code class="docutils literal notranslate"><span class="pre">Converter</span></code> in the definition of the node <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.
 Each node needs to be defined by itself.</p>
 <ol class="arabic simple">
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code> of the node type Converter.
@@ -658,7 +648,7 @@ Define and assign the attributes <code class="docutils literal notranslate"><spa
 </section>
 <section id="definitions-of-other-nodes-introduced-in-vessel">
 <h3>Definitions of other nodes introduced in <code class="docutils literal notranslate"><span class="pre">Vessel</span></code><a class="headerlink" href="#definitions-of-other-nodes-introduced-in-vessel" title="Link to this heading">#</a></h3>
-<p>You introduced new nodes when you assigned them as values of the <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>’s attributes. One of them was the node <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> which we defined in the above section.
+<p>You introduced new nodes when you assigned them as values of the <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>’s attributes. Among them were the three converters which we defined in the above section.
 Others include the definition of a route that the vessel sails, and a definition of a tank node.
 The value assigned to the <code class="docutils literal notranslate"><span class="pre">Ports</span></code> attribute of a Route is a list, marked by square brackets. In this example, the list only contains one port.</p>
 <ol class="arabic simple">
@@ -911,7 +901,9 @@ Define annual time-steps with a reference Date.</p></li>
 <span class="c1"># B) DEFINITION OF A VESSEL</span>
 <span class="c1"># Bi) Define vessel node "vessel_ice_oil" below.</span>
 <span class="n">Vessel</span> <span class="s2">"vessel_ice_oil"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_oil"</span><span class="p">)</span>
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_oil"</span><span class="p">)]</span>
@@ -921,17 +913,10 @@ Define annual time-steps with a reference Date.</p></li>
 
 <span class="c1"># Define and assign attributes of the node "vessel_ice_oil" </span>
 <span class="c1"># Above, edit the vessel node so that each attribute and its value is written within the curly</span>
-<span class="c1"># brackets of the "vessel_ice_oil" node (i.e. PowerSystem, Route, Finance etc.). </span>
+<span class="c1"># brackets of the "vessel_ice_oil" node (i.e. PropulsionConverter, Route etc.).</span>
 
 
-<span class="c1"># Bii) Define PowerSystem below.</span>
-<span class="n">PowerSystem</span> <span class="s2">"ice_oil"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
-<span class="p">}</span>
-
-
+<span class="c1"># Bii) Define the converters assigned to "vessel_ice_oil".</span>
 <span class="c1"># Define the node "propulsion_ice_oil" below.</span>
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_oil"</span> <span class="p">{</span>
 	<span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
@@ -1137,7 +1122,7 @@ Define annual time-steps with a reference Date.</p></li>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-fleet">Definition of a <code class="docutils literal notranslate"><span class="pre">Fleet</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-vessel">Definition of a <code class="docutils literal notranslate"><span class="pre">Vessel</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-powersystem">Definition of a <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-converters-of-a-vessel">The converters of a <code class="docutils literal notranslate"><span class="pre">Vessel</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-converter">Definition of a <code class="docutils literal notranslate"><span class="pre">Converter</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-of-other-nodes-introduced-in-vessel">Definitions of other nodes introduced in <code class="docutils literal notranslate"><span class="pre">Vessel</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#run-navigate-again">Run Navigate Again</a></li>
@@ -1199,7 +1184,7 @@ Define annual time-steps with a reference Date.</p></li>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       

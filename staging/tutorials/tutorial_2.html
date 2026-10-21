@@ -502,7 +502,9 @@ Add the <code class="docutils literal notranslate"><span class="pre">Vessel(&quo
 This tutorial has two different types of vessels, so they are named accordingly, in order to differentiate them.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"container_ice_oil"</span> <span class="p">{</span>
-   <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_oil"</span><span class="p">)</span>
+   <span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
+   <span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
+   <span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>		
    <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
    <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_oil"</span><span class="p">)]</span>						
@@ -511,8 +513,8 @@ This tutorial has two different types of vessels, so they are named accordingly,
 </pre></div>
 </div>
 <ol class="arabic" start="2">
-<li><p>Copy the section above — but only the four nodes Vessel <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code>, PowerSystem <code class="docutils literal notranslate"><span class="pre">&quot;ice_oil&quot;</span></code>, Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code>, and Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_oil&quot;</span></code> — and paste it three times into Bii), Biii) and Biv).</p>
-<p>Do <strong>not</strong> copy <code class="docutils literal notranslate"><span class="pre">Converter</span> <span class="pre">&quot;heat_boiler_oil&quot;</span></code>. There is a single shared heat boiler that every vessel reuses through <code class="docutils literal notranslate"><span class="pre">Heat</span> <span class="pre">=</span> <span class="pre">Converter(&quot;heat_boiler_oil&quot;)</span></code>, so it is defined once in Bi) only. Copying it as well would create duplicate node definitions and the model would fail to parse.</p>
+<li><p>Copy the section above — but only the three nodes Vessel <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code>, Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code>, and Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_oil&quot;</span></code> — and paste it three times into Bii), Biii) and Biv).</p>
+<p>Do <strong>not</strong> copy <code class="docutils literal notranslate"><span class="pre">Converter</span> <span class="pre">&quot;heat_boiler_oil&quot;</span></code>. There is a single shared heat boiler that every vessel reuses through <code class="docutils literal notranslate"><span class="pre">HeatConverter</span> <span class="pre">=</span> <span class="pre">Converter(&quot;heat_boiler_oil&quot;)</span></code>, so it is defined once in Bi) only. Copying it as well would create duplicate node definitions and the model would fail to parse.</p>
 </li>
 </ol>
 </section>
@@ -524,14 +526,16 @@ This tutorial has two different types of vessels, so they are named accordingly,
 <ol class="arabic simple">
 <li><p>Change the name of the copied node from
 <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_methane&quot;</span></code>.</p></li>
-<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> to <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;ice_methane&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PropulsionConverter</span></code> to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_methane&quot;)</span></code> and for <code class="docutils literal notranslate"><span class="pre">ElectricalConverter</span></code> to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_methane&quot;)</span></code>.</p></li>
 <li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">Tanks</span></code> to <code class="docutils literal notranslate"><span class="pre">[Tank(&quot;main_methane&quot;),</span> <span class="pre">Tank(&quot;pilot_oil&quot;)]</span></code>.
 Next to the main tank for methane, you also need to include the pilot tank for fuel oil here, as a methane vessel requires fuel oil too. You will define both tanks later on).</p></li>
 </ol>
 </li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"container_ice_methane"</span> <span class="p">{</span>
-   <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methane"</span><span class="p">)</span>
+   <span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
+   <span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methane"</span><span class="p">)</span>
+   <span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>		
    <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
    <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methane"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>	
@@ -540,22 +544,6 @@ Next to the main tank for methane, you also need to include the pilot tank for f
 </pre></div>
 </div>
 <ol class="arabic simple" start="2">
-<li><p>Define PowerSystem <code class="docutils literal notranslate"><span class="pre">&quot;ice_methane&quot;</span></code>:</p>
-<ol class="arabic simple">
-<li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">&quot;ice_methane&quot;</span></code>.</p></li>
-<li><p>Change the assigned value for Propulsion to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_methane&quot;)</span></code>.</p></li>
-<li><p>Change the assigned value for Electrical to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_methane&quot;)</span></code>.</p></li>
-</ol>
-</li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">"ice_methane"</span> <span class="p">{</span>
-   <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
-   <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methane"</span><span class="p">)</span>
-   <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<ol class="arabic simple" start="3">
 <li><p>Define Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_methane&quot;</span></code>:</p>
 <ol class="arabic simple">
 <li><p>Change the name of the node to Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_methane&quot;</span></code>. The propulsion engine is the main engine for an internal combustion engine (ice).</p></li>
@@ -575,7 +563,7 @@ Next to the main tank for methane, you also need to include the pilot tank for f
 <span class="p">}</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="4">
+<ol class="arabic simple" start="3">
 <li><p>Define Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_methane&quot;</span></code>:</p>
 <ol class="arabic simple">
 <li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_methane&quot;</span></code>. The electrical engine is the auxiliary engine for an internal combustion engine (ice).</p></li>
@@ -604,14 +592,16 @@ You now edit it by essentially repeating the same steps from the section above, 
 <li><p>Define <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;bulk_ice_methanol&quot;</span></code>:</p>
 <ol class="arabic simple">
 <li><p>Change the name from <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;bulk_ice_methanol&quot;</span></code>.</p></li>
-<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> to <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;ice_methanol&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PropulsionConverter</span></code> to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_methanol&quot;)</span></code> and for <code class="docutils literal notranslate"><span class="pre">ElectricalConverter</span></code> to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_methanol&quot;)</span></code>.</p></li>
 <li><p>Change the assigned value for Tanks to <code class="docutils literal notranslate"><span class="pre">[Tank(&quot;main_methanol&quot;),</span> <span class="pre">Tank(&quot;pilot_oil&quot;)]</span></code>.
 Next to the main tank for methanol, you also need to include the pilot tank for fuel oil here, as a methanol vessel requires fuel oil to operate.</p></li>
 </ol>
 </li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"bulk_ice_methanol"</span> <span class="p">{</span>
-   <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methanol"</span><span class="p">)</span>
+   <span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
+   <span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
+   <span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>		
    <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
    <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methanol"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>	
@@ -620,22 +610,6 @@ Next to the main tank for methanol, you also need to include the pilot tank for 
 </pre></div>
 </div>
 <ol class="arabic simple" start="2">
-<li><p>Define <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;ice_methanol_bulk&quot;</span></code>:</p>
-<ol class="arabic simple">
-<li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;ice_methanol&quot;</span></code>.</p></li>
-<li><p>Change the assigned value for Propulsion to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_methanol&quot;)</span></code>.</p></li>
-<li><p>Change the assigned value for Electrical to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_methanol&quot;)</span></code>.</p></li>
-</ol>
-</li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">"ice_methanol"</span> <span class="p">{</span>
-   <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
-   <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
-   <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<ol class="arabic simple" start="3">
 <li><p>Define the <code class="docutils literal notranslate"><span class="pre">Converter</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_methanol&quot;</span></code>:</p>
 <ol class="arabic simple">
 <li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_methanol&quot;</span></code>.</p></li>
@@ -653,7 +627,7 @@ Next to the main tank for methanol, you also need to include the pilot tank for 
 <span class="p">}</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="4">
+<ol class="arabic simple" start="3">
 <li><p>Define <code class="docutils literal notranslate"><span class="pre">Converter</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_methanol&quot;</span></code>:</p>
 <ol class="arabic simple">
 <li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">Converter</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_methanol&quot;</span></code>.</p></li>
@@ -680,7 +654,7 @@ You now edit it by essentially repeating the same steps from the previous sectio
 <li><p>Define <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;bulk_ice_ammonia&quot;</span></code>:</p>
 <ol class="arabic simple">
 <li><p>Change the name from <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;bulk_ice_ammonia&quot;</span></code>.</p></li>
-<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> to <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;ice_ammonia&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PropulsionConverter</span></code> to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_ammonia&quot;)</span></code> and for <code class="docutils literal notranslate"><span class="pre">ElectricalConverter</span></code> to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_ammonia&quot;)</span></code>.</p></li>
 <li><p>Change the assigned value for Tanks to <code class="docutils literal notranslate"><span class="pre">[Tank(&quot;main_ammonia&quot;),</span> <span class="pre">Tank(&quot;pilot_oil&quot;)]</span></code>.
 Next to the main tank for ammonia, you also need to include the pilot tank for fuel oil here, as an ammonia vessel requires fuel oil to operate.
 You will define both tanks later.</p></li>
@@ -688,7 +662,9 @@ You will define both tanks later.</p></li>
 </li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"bulk_ice_ammonia"</span> <span class="p">{</span>
-   <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_ammonia"</span><span class="p">)</span>
+   <span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
+   <span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
+   <span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>		
    <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
    <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_ammonia"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>	
@@ -697,22 +673,6 @@ You will define both tanks later.</p></li>
 </pre></div>
 </div>
 <ol class="arabic simple" start="2">
-<li><p>Define <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;ice_ammonia_bulk&quot;</span></code>:</p>
-<ol class="arabic simple">
-<li><p>Change the name of the node to PowerSystem <code class="docutils literal notranslate"><span class="pre">&quot;ice_ammonia&quot;</span></code>.</p></li>
-<li><p>Change the assigned value for Propulsion to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_ammonia&quot;)</span></code>.</p></li>
-<li><p>Change the assigned value for Electrical to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_ammonia&quot;)</span></code>.</p></li>
-</ol>
-</li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">"ice_ammonia"</span> <span class="p">{</span>
-   <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
-   <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
-   <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<ol class="arabic simple" start="3">
 <li><p>Define Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_ammonia&quot;</span></code>:</p>
 <ol class="arabic simple">
 <li><p>Change the name of the node to Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_ammonia&quot;</span></code>.</p></li>
@@ -730,7 +690,7 @@ You will define both tanks later.</p></li>
 <span class="p">}</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="4">
+<ol class="arabic simple" start="3">
 <li><p>Define Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_ammonia&quot;</span></code>:</p>
 <ol class="arabic simple">
 <li><p>Change the name of the node to Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_ammonia&quot;</span></code>.</p></li>
@@ -1309,18 +1269,13 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># Change the the value assigned to the attribute Tanks below.</span>
 
 <span class="n">Vessel</span> <span class="s2">"container_ice_oil"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_oil"</span><span class="p">)</span>
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_oil"</span><span class="p">)]</span>
 	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="p">}</span>
-
-<span class="c1"># Same as in tutorial 1.</span>
-<span class="n">PowerSystem</span> <span class="s2">"ice_oil"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_oil"</span> <span class="p">{</span>
@@ -1346,24 +1301,19 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># This definition has the same structure as the definition of the fuel oil vessel, but has</span>
 <span class="c1"># different assigned values.</span>
 <span class="c1">#</span>
-<span class="c1"># Define Vessel "container_ice_methane", Powersystem "ice_methane", Converter "propulsion_ice_methane", </span>
+<span class="c1"># Define Vessel "container_ice_methane", Converter "propulsion_ice_methane",</span>
 <span class="c1"># Converter "electrical_ice_methane", Converter "heat_boiler_methane".</span>
 <span class="c1">#</span>
 <span class="c1"># Paste the nodes from section Bi) below.</span>
 
 <span class="n">Vessel</span> <span class="s2">"container_ice_methane"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methane"</span><span class="p">)</span>
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methane"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methane"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>
 	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="p">}</span>
-
-<span class="c1"># Same as in tutorial 1.</span>
-<span class="n">PowerSystem</span> <span class="s2">"ice_methane"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methane"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_methane"</span> <span class="p">{</span>
@@ -1386,23 +1336,18 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 
 <span class="c1"># Biii) DEFINITION OF METHANOL VESSEL</span>
 <span class="c1">#</span>
-<span class="c1"># Define Vessel "bulk_ice_methanol", Powersystem "ice_methanol_bulk", Converter "propulsion_ice_methanol_bulk", </span>
+<span class="c1"># Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol_bulk",</span>
 <span class="c1"># Converter "electrical_ice_methanol_bulk", Converter "heat_boiler_methanol_bulk".</span>
 <span class="c1">#</span>
 <span class="c1"># Paste the nodes from section Bi) below.</span>
 <span class="n">Vessel</span> <span class="s2">"bulk_ice_methanol"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methanol"</span><span class="p">)</span>
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methanol"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>
 	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="p">}</span>
-
-<span class="c1"># Same as in tutorial 1.</span>
-<span class="n">PowerSystem</span> <span class="s2">"ice_methanol"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_methanol"</span> <span class="p">{</span>
@@ -1423,23 +1368,18 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 
 <span class="c1"># Biv) DEFINITION OF AMMONIA VESSEL</span>
 <span class="c1">#</span>
-<span class="c1"># Define Vessel "bulk_ice_ammonia", Powersystem "ice_ammonia_bulk", Converter "propulsion_ice_ammonia_bulk", </span>
+<span class="c1"># Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia_bulk",</span>
 <span class="c1"># Converter "electrical_ice_ammonia_bulk", Converter "heat_boiler_ammonia_bulk".</span>
 <span class="c1">#</span>
 <span class="c1"># Paste the nodes from section Bi) below.</span>
 <span class="n">Vessel</span> <span class="s2">"bulk_ice_ammonia"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_ammonia"</span><span class="p">)</span>
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span>
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_ammonia"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">)]</span>
 	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="p">}</span>
-
-<span class="c1"># Same as in tutorial 1.</span>
-<span class="n">PowerSystem</span> <span class="s2">"ice_ammonia"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_ammonia"</span> <span class="p">{</span>
@@ -1913,7 +1853,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       

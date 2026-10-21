@@ -655,7 +655,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </li>
 </ul>
 </li>
-<li><p>Copy the relevant section from T2DEF into the corresponding empty file. All nodes, Vessel, Powersystem and converters should be copied into the corresponding file. E.g. all nodes under Bi) in your T2DEF file should be copied and pasted into the file “container_ice_oil”</p></li>
+<li><p>Copy the relevant section from T2DEF into the corresponding empty file. All nodes, the Vessel and its converters, should be copied into the corresponding file. E.g. all nodes under Bi) in your T2DEF file should be copied and pasted into the file “container_ice_oil”</p></li>
 </ol>
 </section>
 <section id="define-file-general-specifications-for-vessels">
@@ -1470,20 +1470,16 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">0_includes_global/bulk_ice_ammonia.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The ammonia powered bulk vessel incl. powersystem and converters</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The ammonia powered bulk vessel incl. converters</span>
 
 <span class="n">Vessel</span> <span class="s2">"bulk_ice_ammonia"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_ammonia"</span><span class="p">)</span> 	
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 		
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"main_ammonia"</span><span class="p">)]</span>	
 	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="p">}</span>
-
-<span class="n">PowerSystem</span> <span class="s2">"ice_ammonia"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_ammonia"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_ammonia"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_ammonia"</span> <span class="p">{</span> 
@@ -1507,20 +1503,16 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">0_includes_global/bulk_ice_methanol.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The methanol powered bulk vessel incl. powersystem and converters</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The methanol powered bulk vessel incl. converters</span>
 
 <span class="n">Vessel</span> <span class="s2">"bulk_ice_methanol"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methanol"</span><span class="p">)</span> 	
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 		
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methanol"</span><span class="p">)]</span> 
 	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="p">}</span>
-
-<span class="n">PowerSystem</span> <span class="s2">"ice_methanol"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methanol"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methanol"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_methanol"</span> <span class="p">{</span> 
@@ -1544,20 +1536,16 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">0_includes_global/container_ice_methane.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The methane powered container vessel incl. powersystem and converters</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The methane powered container vessel incl. converters</span>
 
 <span class="n">Vessel</span> <span class="s2">"container_ice_methane"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_methane"</span><span class="p">)</span> 	
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methane"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 		
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"pilot_oil"</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">"main_methane"</span><span class="p">)]</span>
 	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="p">}</span>
-
-<span class="n">PowerSystem</span> <span class="s2">"ice_methane"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_methane"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_methane"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_methane"</span> <span class="p">{</span> 
@@ -1583,20 +1571,16 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">0_includes_global/container_ice_oil.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The fuel oil powered container vessel incl. powersystem and converters</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The fuel oil powered container vessel incl. converters</span>
 
 <span class="n">Vessel</span> <span class="s2">"container_ice_oil"</span> <span class="p">{</span>
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_oil"</span><span class="p">)</span> 	
+	<span class="n">PropulsionConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
+	<span class="n">ElectricalConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
+	<span class="n">HeatConverter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 		
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
 	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_oil"</span><span class="p">)]</span>						
 	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="p">}</span>
-
-<span class="n">PowerSystem</span> <span class="s2">"ice_oil"</span> <span class="p">{</span>
-	<span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
-	<span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
-	<span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"propulsion_ice_oil"</span> <span class="p">{</span> 
@@ -2221,7 +2205,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       
