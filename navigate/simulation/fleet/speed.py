@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -34,6 +34,9 @@ from navigate.simulation.fleet.trip import ReferenceTrip, derive_reference_trip
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
@@ -52,31 +55,31 @@ class SpeedResult:
         Vessel whose speed is optimized.
     trip
         Reference trip of the vessel's route in this time-step.
+    mu_route
+        Mean of the route's reference speeds, in knots.
     mu_ref
-        Mean speed the actual speed moves from, knots.
+        Mean speed the actual speed moves from, in knots.
     mu_optimal
-        Optimal mean speed, knots.
+        Optimal mean speed, in knots.
     deltas_ref
-        Speed in each condition relative to the mean speed, knots.
-    speed_min
-        Technical minimum speed in each condition, knots.
-    speed_max
-        Technical maximum speed in each condition, knots.
+        Speed in each condition relative to the mean speed, in knots.
+    speeds_min
+        Technical minimum speed in each condition, in knots.
+    speeds_max
+        Technical maximum speed in each condition, in knots.
     distribution
         Share of the sea time in each condition, fraction.
-    maximum_change
-        Largest change of the mean speed in this time-step, knots.
     """
 
     vessel: Vessel
     trip: ReferenceTrip
-    mu_ref: float = 0.0
-    mu_optimal: float = 0.0
-    deltas_ref: FloatArray = field(default_factory=lambda: np.empty(0))
-    speed_min: FloatArray = field(default_factory=lambda: np.empty(0))
-    speed_max: FloatArray = field(default_factory=lambda: np.empty(0))
-    distribution: FloatArray = field(default_factory=lambda: np.empty(0))
-    maximum_change: float = 0.0
+    mu_route: float
+    mu_ref: float
+    mu_optimal: float
+    deltas_ref: FloatArray
+    speeds_min: FloatArray
+    speeds_max: FloatArray
+    distribution: FloatArray
 
 
 def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
@@ -91,98 +94,28 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     fleet
         Fleet for which speed management is performed.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     idx
         Current time-step index.
     """
     if not fleet.allow_speed_management:
         return
 
-    maximum_change = fleet.maximum_speed_change.get() * time_step / YEAR
-    alignment = fleet.speed_alignment
-
     transfer_operational_savings(fleet)
-
-    results = [
-        _optimize_vessel_speed(vessel, maximum_change, idx) for vessel in fleet.vessels
-    ]
+    results = [_optimize_vessel_speed(vessel, idx) for vessel in fleet.vessels]
 
     if fleet.assume_reference_speed_optimal:
         for result in results:
-            anchor_ref = result.vessel.expectation.get_speed_anchor_reference()
-            if np.isnan(anchor_ref):
-                _initialize_speed_anchor(result)
-            else:
-                _shift_speed_to_anchor(result)
+            result.mu_optimal = _anchor_speed(result)
 
-    if alignment == SpeedAlignmentID.INDIVIDUAL:
-        for result in results:
-            _finalize_vessel_speed(result, result.mu_optimal, idx)
+    mu_targets = _align_speeds(fleet, [result.mu_optimal for result in results])
+    maximum_change = fleet.maximum_speed_change.get() * time_step / YEAR
 
-    else:
-        mu_values = [result.mu_optimal for result in results]
-
-        if alignment == SpeedAlignmentID.MINIMUM:
-            mu_aligned = min(mu_values)
-
-        elif alignment == SpeedAlignmentID.MAXIMUM:
-            mu_aligned = max(mu_values)
-
-        elif alignment == SpeedAlignmentID.AVERAGE:
-            weights = get_multipliers(fleet)
-            mu_aligned = float(np.average(mu_values, weights=weights))
-
-        else:
-            raise ValueError(f"Unknown speed alignment method: {alignment}")
-
-        for result in results:
-            _finalize_vessel_speed(result, mu_aligned, idx)
+    for result, mu_target in zip(results, mu_targets, strict=True):
+        _finalize_vessel_speed(result, mu_target, maximum_change, idx)
 
 
-def _initialize_speed_anchor(result: SpeedResult) -> None:
-    """
-    Store the initial route reference speed and modelled optimal speed as anchors.
-
-    The route reference speed is used as the target for the first time-step (no change
-    from the reference). Both values are stored on the vessel expectation for use in
-    subsequent time-steps by :func:`_shift_speed_to_anchor`.
-
-    Parameters
-    ----------
-    result
-        SpeedResult from individual optimization.
-    """
-    mu_route = float(np.average(result.trip.speeds, weights=result.distribution))
-
-    expectation = result.vessel.expectation
-    expectation.set_speed_anchor_reference(mu_route)
-    expectation.set_speed_anchor_optimal(result.mu_optimal)
-    result.mu_optimal = mu_route
-
-
-def _shift_speed_to_anchor(result: SpeedResult) -> None:
-    """
-    Shift the optimal speed relative to the stored anchor values.
-
-    The adjusted target is: mu_ref_initial + (mu_optimal - mu_optimal_initial), so speed
-    only changes if the modelled optimum has shifted relative to its initial value.
-
-    Parameters
-    ----------
-    result
-        SpeedResult from individual optimization.
-    """
-    expectation = result.vessel.expectation
-    anchor_ref = expectation.get_speed_anchor_reference()
-    anchor_opt = expectation.get_speed_anchor_optimal()
-    result.mu_optimal = anchor_ref + (result.mu_optimal - anchor_opt)
-
-
-def _optimize_vessel_speed(
-    vessel: Vessel,
-    maximum_change: float,
-    idx: int,
-) -> SpeedResult:
+def _optimize_vessel_speed(vessel: Vessel, idx: int) -> SpeedResult:
     """
     Calculate a vessel's individually optimal mean speed.
 
@@ -194,8 +127,6 @@ def _optimize_vessel_speed(
     ----------
     vessel
         Vessel whose optimal speed is calculated.
-    maximum_change
-        Largest change of the mean speed in this time-step, up or down, knots.
     idx
         Current time-step index.
 
@@ -205,24 +136,29 @@ def _optimize_vessel_speed(
         Intermediate optimization result.
     """
     trip = derive_reference_trip(vessel.route)
-    deltas_ref, distribution = _calculate_reference_speed_deltas(vessel, trip)
-
+    legs = trip.condition_legs
     expectation = vessel.expectation
 
-    # the actual speed moves from the mean speed set at the previous time-step
+    # the deltas come from the route's reference speeds, which reflect the user's
+    # assumptions, and not from the current speeds, which speed management has
+    # truncated to the propulsion engine's technical limits
+    distribution = calculate_operations(vessel, trip, trip.speeds).distribution
+    mu_route = float(np.average(trip.speeds, weights=distribution))
+    deltas_ref = trip.speeds - mu_route
+
+    # the actual speed moves from the mean speed set at the previous time-step; before
+    # one is first set, the distribution-weighted current speed stands in
     mu_ref = expectation.get_speed_mean()
     if np.isnan(mu_ref):
-        # before a mean speed is first set, the distribution-weighted current speed
-        # stands in
         speeds_current = np.array(expectation.get_speeds_condition(idx), dtype=float)
         mu_ref = float(np.average(speeds_current, weights=distribution))
 
     # the technical limits truncate each condition's speed, and those of the
     # conditions that take sea time bound the mean speed
     sailed = trip.sailed
-    speed_min, speed_max = calculate_technical_speed_limits(vessel, trip)
+    speeds_min, speeds_max = calculate_technical_speed_limits(vessel, trip)
     mu_low, mu_high = calculate_mean_speed_bounds(
-        speed_min[sailed], speed_max[sailed], trip.speeds[sailed]
+        speeds_min[sailed], speeds_max[sailed], trip.speeds[sailed]
     )
 
     fuel_ref = float(calculate_fuel_and_policy_expenses(vessel, idx))
@@ -236,102 +172,31 @@ def _optimize_vessel_speed(
     savings_sea = calculate_energy_savings(energy_sea_ref, raw_energy_sea)
     savings_port = calculate_energy_savings(energy_port_ref, raw_energy_port)
 
-    # pre-compute operational saving factors outside the objective closure
-    saving_fraction_sea = expectation.get_operational_saving_fraction_sea()
-    saving_fraction_port = expectation.get_operational_saving_fraction_port()
-    factor_sea = {d: 1.0 - saving_fraction_sea[d] for d in saving_fraction_sea}
-    factor_port = {d: 1.0 - saving_fraction_port[d] for d in saving_fraction_port}
+    fractions_sea = expectation.get_operational_saving_fraction_sea()
+    fractions_port = expectation.get_operational_saving_fraction_port()
 
     def objective(mu: float) -> float:
-        speeds = _mean_to_speeds(mu, deltas_ref, speed_min, speed_max)
+        speeds = _mean_to_speeds(mu, deltas_ref, speeds_min, speeds_max)
         operations = calculate_operations(vessel, trip, speeds)
 
-        # apply operational savings (JIT, weather routing, etc.) to the
-        # freshly computed energy before applying technology savings
-        energy_sea = {
-            d: [e * factor_sea[d] for e in operations.energy_sea[d]]
-            for d in operations.energy_sea
-        }
-        energy_port = {
-            d: [e * factor_port[d] for e in operations.energy_port[d]]
-            for d in operations.energy_port
-        }
+        # the operational savings (JIT, weather routing, etc.) apply to the freshly
+        # computed energy, before the technology savings
+        energy_sea = _apply_operational_savings(operations.energy_sea, fractions_sea)
+        energy_port = _apply_operational_savings(operations.energy_port, fractions_port)
 
         # the current technology uptake is applied, as the saving is measured from
         # the energy of the expected bunkering; the proportional savings are an
         # approximation, since external power has a larger share at lower speeds
-        residual_energy_sea = calculate_net_energy(energy_sea, savings_sea)
-        residual_energy_port = calculate_net_energy(energy_port, savings_port)
+        net_sea = calculate_net_energy(energy_sea, savings_sea)
+        net_port = calculate_net_energy(energy_port, savings_port)
 
-        fuel_saving = calculate_marginal_speed_saving(
-            vessel,
-            trip.condition_legs,
-            residual_energy_sea,
-            residual_energy_port,
-            idx,
-        )
+        saving = calculate_marginal_speed_saving(vessel, legs, net_sea, net_port, idx)
 
-        fuel_cost = fuel_ref - fuel_saving
+        return (fuel_ref - saving + charter_rate) / operations.cargo_miles
 
-        return (fuel_cost + charter_rate) / operations.cargo_miles
-
-    sol = minimize_scalar(
+    solution = minimize_scalar(
         objective, bounds=(mu_low, mu_high), method="bounded", options={"xatol": 0.1}
     )
-
-    mu_optimal = float(sol.x)
-
-    return SpeedResult(
-        vessel=vessel,
-        trip=trip,
-        mu_ref=mu_ref,
-        mu_optimal=mu_optimal,
-        deltas_ref=deltas_ref,
-        speed_min=speed_min,
-        speed_max=speed_max,
-        distribution=distribution,
-        maximum_change=maximum_change,
-    )
-
-
-def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> None:
-    """
-    Apply the target mean speed to a vessel, transfer the profile, and store results.
-
-    Parameters
-    ----------
-    result
-        Intermediate optimization result from _optimize_vessel_speed.
-    mu_target
-        Target mean speed, knots; the fleet alignment may move it from the individual
-        optimum.
-    idx
-        Current time-step index.
-    """
-    vessel = result.vessel
-    mu_actual = _update_mean_speed(result.mu_ref, mu_target, result.maximum_change)
-
-    speeds_actual = _mean_to_speeds(
-        mu_actual, result.deltas_ref, result.speed_min, result.speed_max
-    )
-    speeds_optimal = _mean_to_speeds(
-        mu_target, result.deltas_ref, result.speed_min, result.speed_max
-    )
-
-    operations_actual = calculate_operations(vessel, result.trip, speeds_actual)
-    transfer_operations(vessel, result.trip, operations_actual, idx)
-    vessel.expectation.set_speed_mean(mu_actual)
-
-    distribution = result.distribution
-    sailed = result.trip.sailed
-
-    profile = vessel.profile
-    profile.minimum_speed[idx] = np.min(result.speed_min[sailed])
-    profile.maximum_speed[idx] = np.max(result.speed_max[sailed])
-    profile.actual_speed[idx] = np.average(speeds_actual, weights=distribution)
-    profile.optimal_speed[idx] = np.average(speeds_optimal, weights=distribution)
-    profile.lowest_speed[idx] = np.min(speeds_actual[sailed])
-    profile.highest_speed[idx] = np.max(speeds_actual[sailed])
 
     # minimize_scalar works best on a unimodal objective, which convex load
     # functions make likely
@@ -342,36 +207,160 @@ def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> N
             vessel,
         )
 
+    return SpeedResult(
+        vessel=vessel,
+        trip=trip,
+        mu_route=mu_route,
+        mu_ref=mu_ref,
+        mu_optimal=float(solution.x),
+        deltas_ref=deltas_ref,
+        speeds_min=speeds_min,
+        speeds_max=speeds_max,
+        distribution=distribution,
+    )
 
-def _calculate_reference_speed_deltas(
-    vessel: Vessel, trip: ReferenceTrip
-) -> tuple[FloatArray, FloatArray]:
+
+def _anchor_speed(result: SpeedResult) -> float:
     """
-    Calculate each condition's reference speed relative to the mean reference speed.
+    Anchor a vessel's optimal mean speed to the mean of its route's reference speeds.
 
-    The deltas come from the route's reference speeds, which reflect the user's
-    assumptions, and not from the current speeds, which speed management has
-    truncated to the propulsion engine's technical limits.
+    The route's reference speeds are assumed optimal when the anchors are first stored,
+    so the modelled optimum only moves the speed by how far it has shifted since then:
+    the anchored speed is anchor_ref + (mu_optimal - anchor_opt). The first call stores
+    the route's mean speed and the current optimum as the anchors, so it returns the
+    route's mean speed.
 
     Parameters
     ----------
-    vessel
-        Vessel for which the reference speed deltas are calculated.
-    trip
-        Reference trip of the vessel's route.
+    result
+        Intermediate optimization result of the vessel.
 
     Returns
     -------
-    tuple[FloatArray, FloatArray]
-        Speed delta in each condition, knots, and share of the sea time in each
-        condition at the reference speeds, fraction.
+    float
+        Anchored optimal mean speed, in knots.
     """
-    operations = calculate_operations(vessel, trip, trip.speeds)
+    expectation = result.vessel.expectation
 
-    speed_mean = np.average(trip.speeds, weights=operations.distribution)
-    deltas = trip.speeds - speed_mean
+    if np.isnan(expectation.get_speed_anchor_reference()):
+        expectation.set_speed_anchor_reference(result.mu_route)
+        expectation.set_speed_anchor_optimal(result.mu_optimal)
 
-    return deltas, operations.distribution
+    anchor_ref = expectation.get_speed_anchor_reference()
+    anchor_opt = expectation.get_speed_anchor_optimal()
+
+    return anchor_ref + (result.mu_optimal - anchor_opt)
+
+
+def _align_speeds(fleet: Fleet, mu_values: list[float]) -> list[float]:
+    """
+    Align the vessels' optimal mean speeds by the fleet's speed alignment method.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose vessels' speeds are aligned.
+    mu_values
+        Optimal mean speed of each vessel, in knots.
+
+    Returns
+    -------
+    list[float]
+        Target mean speed of each vessel, in knots.
+    """
+    match fleet.speed_alignment:
+        case SpeedAlignmentID.INDIVIDUAL:
+            return mu_values
+
+        case SpeedAlignmentID.MINIMUM:
+            mu_aligned = min(mu_values)
+
+        case SpeedAlignmentID.MAXIMUM:
+            mu_aligned = max(mu_values)
+
+        case SpeedAlignmentID.AVERAGE:
+            mu_aligned = float(np.average(mu_values, weights=get_multipliers(fleet)))
+
+        case _:
+            raise ValueError(f"Unknown speed alignment method: {fleet.speed_alignment}")
+
+    return [mu_aligned] * len(mu_values)
+
+
+def _finalize_vessel_speed(
+    result: SpeedResult, mu_target: float, maximum_change: float, idx: int
+) -> None:
+    """
+    Move a vessel's mean speed towards the target, transfer its profile, store results.
+
+    Parameters
+    ----------
+    result
+        Intermediate optimization result of the vessel.
+    mu_target
+        Target mean speed, in knots; the fleet alignment may move it from the
+        individual optimum.
+    maximum_change
+        Largest change of the mean speed in this time-step, up or down, in knots.
+    idx
+        Current time-step index.
+    """
+    vessel = result.vessel
+    trip = result.trip
+    sailed = trip.sailed
+    distribution = result.distribution
+
+    mu_ref = result.mu_ref
+    deltas_ref = result.deltas_ref
+    speeds_min = result.speeds_min
+    speeds_max = result.speeds_max
+
+    change = float(np.clip(mu_target - mu_ref, -maximum_change, maximum_change))
+    mu_actual = mu_ref + change
+
+    speeds_actual = _mean_to_speeds(mu_actual, deltas_ref, speeds_min, speeds_max)
+    speeds_optimal = _mean_to_speeds(mu_target, deltas_ref, speeds_min, speeds_max)
+
+    operations_actual = calculate_operations(vessel, trip, speeds_actual)
+    transfer_operations(vessel, trip, operations_actual, idx)
+    vessel.expectation.set_speed_mean(mu_actual)
+
+    profile = vessel.profile
+    profile.minimum_speed[idx] = np.min(speeds_min[sailed])
+    profile.maximum_speed[idx] = np.max(speeds_max[sailed])
+    profile.actual_speed[idx] = np.average(speeds_actual, weights=distribution)
+    profile.optimal_speed[idx] = np.average(speeds_optimal, weights=distribution)
+    profile.lowest_speed[idx] = np.min(speeds_actual[sailed])
+    profile.highest_speed[idx] = np.max(speeds_actual[sailed])
+
+
+def _apply_operational_savings(
+    energies: Mapping[EnergyDemandID, FloatArray],
+    fractions: Mapping[EnergyDemandID, float],
+) -> dict[EnergyDemandID, list[float]]:
+    """
+    Reduce the energy demand of each step by its type's operational saving.
+
+    Parameters
+    ----------
+    energies
+        Energy demand per energy demand type and step, in GJ/year.
+    fractions
+        Operational saving per energy demand type, fraction.
+
+    Returns
+    -------
+    dict[EnergyDemandID, list[float]]
+        Energy demand net of the operational savings per energy demand type and
+        step, in GJ/year.
+    """
+    reduced: dict[EnergyDemandID, list[float]] = {}
+
+    for demand, steps in energies.items():
+        factor = 1.0 - fractions[demand]
+        reduced[demand] = [energy * factor for energy in steps]
+
+    return reduced
 
 
 def _mean_to_speeds(
@@ -383,39 +372,17 @@ def _mean_to_speeds(
     Parameters
     ----------
     mu
-        Mean speed, knots.
+        Mean speed, in knots.
     deltas_ref
-        Speed in each condition relative to the mean speed, knots.
+        Speed in each condition relative to the mean speed, in knots.
     speeds_min
-        Minimum allowed speed in each condition, knots.
+        Minimum allowed speed in each condition, in knots.
     speeds_max
-        Maximum allowed speed in each condition, knots.
+        Maximum allowed speed in each condition, in knots.
 
     Returns
     -------
     FloatArray
-        Speed in each condition, knots.
+        Speed in each condition, in knots.
     """
     return np.clip(mu + deltas_ref, speeds_min, speeds_max)
-
-
-def _update_mean_speed(mu_ref: float, mu_target: float, maximum_change: float) -> float:
-    """
-    Move the mean speed towards the target by at most the maximum change.
-
-    Parameters
-    ----------
-    mu_ref
-        Mean speed the move starts from, knots.
-    mu_target
-        Target mean speed, knots.
-    maximum_change
-        Largest change of the mean speed, up or down, knots.
-
-    Returns
-    -------
-    float
-        Updated mean speed, knots.
-    """
-    step = float(np.clip(mu_target - mu_ref, -maximum_change, +maximum_change))
-    return mu_ref + step
