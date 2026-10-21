@@ -31,9 +31,9 @@ def plot_fleet_shore_power_share(results: SimulationResults, directory: Path) ->
     fig, axes = subplot_grid(len(fleets), sharey=True)
 
     for ax, fleet in zip(axes, fleets.values(), strict=False):
-        fleet_profile = fleet.profile
-        shore_power = fleet_profile.shore_power_energy
-        port_energy = sum_values(fleet_profile.energy_port, dateline.shape)
+        fleet_results = fleet.results
+        shore_power = fleet_results.shore_power_energy
+        port_energy = sum_values(fleet_results.energy_port, dateline.shape)
 
         shore_power_share = divide_nonzero(shore_power, port_energy) * 100.0
 

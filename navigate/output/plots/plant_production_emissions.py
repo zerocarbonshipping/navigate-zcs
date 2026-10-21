@@ -65,10 +65,12 @@ def plot_plant_production_emissions(
                     emission_name
                 ].get() * emission.global_warming_potential.get(emissions_lifetime)
 
-            profile = plant.profile
+            plant_results = plant.results
             shape = dateline.shape
-            investment_wtt = sum_values(profile.equivalent_investment_wtt, shape)
-            instantaneous_wtt = sum_values(profile.equivalent_instantaneous_wtt, shape)
+            investment_wtt = sum_values(plant_results.equivalent_investment_wtt, shape)
+            instantaneous_wtt = sum_values(
+                plant_results.equivalent_instantaneous_wtt, shape
+            )
             investment = np.round((investment_wtt + ttw) / lhv * 1e3, 5)
             instantaneous = np.round((instantaneous_wtt + ttw) / lhv * 1e3, 5)
 

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 def transfer_spend_sea(alg: BunkerAlgorithm) -> None:
     """
-    Transfer the at-sea fuel spend solution to the vessel expectations and profiles.
+    Transfer the at-sea fuel spend solution to the vessel expectations and results.
 
     Parameters
     ----------
@@ -42,4 +42,4 @@ def transfer_spend_sea(alg: BunkerAlgorithm) -> None:
             ttw_slip = expectation.get_ttw_slip(c, f, e)
 
             ttw_emissions = (ttw_consumption + ttw_slip) * spend_sea.X
-            vessel.profile.ttw[f, e][alg.idx] += ttw_emissions
+            vessel.results.ttw[f, e][alg.idx] += ttw_emissions

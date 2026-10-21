@@ -29,7 +29,7 @@ from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, PLANT, PRODUCER, VARIABLE
-from navigate.core.profiles import ProducerProfile
+from navigate.core.results import ProducerResults
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.core.types_ import (
         CurveTableArgument,
         CurveTableInput,
@@ -92,7 +92,7 @@ class Producer(Node):
 
         # internal variables -----------------------------------------------------------
         self.expectation: ProducerExpectation = ProducerExpectation()
-        self.profile: ProducerProfile = ProducerProfile()
+        self.results: ProducerResults = ProducerResults()
 
         # increments in service, and in the pipeline before their delivery
         self.increments: list[list[PlantIncrement]]
@@ -355,13 +355,13 @@ class Producer(Node):
             length, plant_names, feedstocks, fuels, ports, processes
         )
 
-    def initialize_profile(
+    def initialize_results(
         self,
-        context: ProfileContext,
+        context: ResultsContext,
         feedstocks: dict[str, Feedstock],
         processes: dict[str, Process],
     ) -> None:
-        self.profile.initialize(context, feedstocks, processes)
+        self.results.initialize(context, feedstocks, processes)
 
     def can_produce(self, fuel_name: str) -> bool:
         return fuel_name in self.fuels

@@ -12,11 +12,11 @@ The cumulative technology package is the unit of choice.
 2. ``_reconcile_retrofit_technology_caps`` scales the retrofit proposals to the caps.
 3. ``_apply_retrofits`` updates the per-increment uptake and the carried charge.
 4. ``_transfer_retrofit_uptake`` and ``transfer_technology_charter_rate`` write the
-   profile.
+   results.
 
 The retrofit phases communicate through ``_RetrofitProposal`` objects. Newbuild uptake
 is reconciled later, in ``close_trade_gap`` (``reconcile_newbuild_technology_caps``),
-once newbuild counts per vessel type are known; the fleet profile takes the reconciled
+once newbuild counts per vessel type are known; the fleet results takes the reconciled
 shares at the end of the time-step.
 """
 
@@ -675,9 +675,9 @@ def _transfer_retrofit_uptake(
     fleet: Fleet, proposals: list[_RetrofitProposal], idx: int
 ) -> None:
     """
-    Write each (vessel, technology) retrofit count to the profile.
+    Write each (vessel, technology) retrofit count to the results.
 
-    The stored value, laid out as the fleet profile's technology uptake, is the share
+    The stored value, laid out as the fleet results' technology uptake, is the share
     of the vessel type's existing fleet that retrofitted to the technology this
     time-step, directly comparable to `set_retrofit_technology_limit * time_step /
     YEAR`.
@@ -710,7 +710,7 @@ def _transfer_retrofit_uptake(
 
     multipliers = np.array(get_multipliers(fleet))
     shares = divide_nonzero(counts, multipliers[:, np.newaxis])
-    uptake = fleet.profile.retrofit_technology_uptake
+    uptake = fleet.results.retrofit_technology_uptake
 
     for v, vessel in enumerate(fleet.vessels):
         for i, technology in enumerate(technologies):
@@ -727,12 +727,12 @@ def _get_sorted_technologies(fleet: Fleet) -> list[Technology]:
 
 def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
     """
-    Transfer the fleet-average carried charge to each vessel's expectation and profile.
+    Transfer the fleet-average carried charge to each vessel's expectation and results.
 
     The average is the multiplier-weighted mean of the per-increment carried charges,
     USD/year per vessel. It feeds the investment freight rate within the same
     time-step, as the cargo charter runs after technology installation, and the
-    profile keeps it as the realized series the instantaneous freight rate is
+    results keeps it as the realized series the instantaneous freight rate is
     post-processed from.
 
     Parameters
@@ -752,4 +752,4 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
         average = float(divide_nonzero(total, weight))
 
         vessel.expectation.set_technology_charter_rate(idx, average)
-        vessel.profile.technology_cost[idx] = average
+        vessel.results.technology_cost[idx] = average

@@ -38,10 +38,10 @@ def _plot_global_fuel_related_expenses(
 
     fig, ax = single_panel()
 
-    profile = results.profile
-    fuel_expenses = profile.total_fuel_expenses
-    levy_expenses = sum_values(profile.levy_expenses, dateline.shape)
-    regulation_expenses = profile.regulation_expenses
+    global_results = results.global_results
+    fuel_expenses = global_results.total_fuel_expenses
+    levy_expenses = sum_values(global_results.levy_expenses, dateline.shape)
+    regulation_expenses = global_results.regulation_expenses
 
     values = [fuel_expenses, levy_expenses, regulation_expenses]
 

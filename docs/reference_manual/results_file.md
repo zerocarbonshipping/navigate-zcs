@@ -18,7 +18,7 @@ emissions = results.filter(pl.col("attribute") == "total_equivalent_wtw", pl.col
 ```
 
 Unlike a [Report](report.md), which writes the properties a deck asks for, the
-results file holds every result of every node with a profile: the same values
+results file holds every result of every node that holds results: the same values
 the report properties give, and nothing else. Node inputs, such as a fleet's
 trade target, are not in it, except the fuel and emission constants the results
 were converted with, which the [metadata](#metadata) holds. A Report remains the

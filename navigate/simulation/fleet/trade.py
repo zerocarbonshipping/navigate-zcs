@@ -46,7 +46,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     by secondary scrapping where the fleet allows it. The increments of equal age are
     then merged and the negligible ones dropped, the newbuild technology caps are
     reconciled and the newbuilds added. The newbuilds set the fleet's current uptake,
-    and the trade carried goes to the profile.
+    and the trade carried goes to the results.
 
     Parameters
     ----------
@@ -89,7 +89,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     update_current_uptake(fleet, newbuilds, idx)
 
     carried = trade - trade_gap
-    fleet.profile.trade[idx] = carried
+    fleet.results.trade[idx] = carried
 
     if trade > 0.0 and trade_gap > 1e-3 * trade:
         logger.warning(

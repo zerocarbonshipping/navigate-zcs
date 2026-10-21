@@ -44,14 +44,14 @@ def plot_fleet_speed(results: SimulationResults, directory: Path) -> None:
     fig, axes = subplot_grid(len(relevant_fleets))
 
     for ax, fleet in zip(axes, relevant_fleets.values(), strict=False):
-        profile = fleet.profile
-        reference = profile.reference_speed
-        minimum = profile.minimum_speed
-        maximum = profile.maximum_speed
-        actual = profile.actual_speed
-        optimum = profile.optimal_speed
-        lowest = profile.lowest_speed
-        highest = profile.highest_speed
+        fleet_results = fleet.results
+        reference = fleet_results.reference_speed
+        minimum = fleet_results.minimum_speed
+        maximum = fleet_results.maximum_speed
+        actual = fleet_results.actual_speed
+        optimum = fleet_results.optimal_speed
+        lowest = fleet_results.lowest_speed
+        highest = fleet_results.highest_speed
 
         # there is no speed optimization in the first time-step
         minimum[0] = np.nan

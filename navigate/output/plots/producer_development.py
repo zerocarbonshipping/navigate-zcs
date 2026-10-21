@@ -36,18 +36,18 @@ def _plot_producer_development(
     fig, axes = subplot_grid(len(producers))
 
     for ax, producer in zip(axes, producers.values(), strict=False):
-        profile = producer.profile
+        producer_results = producer.results
 
         if cumulative:
             # development counts the plants added in each step, the constraint is
             # a rate per year
-            development = np.cumsum(profile.development)
+            development = np.cumsum(producer_results.development)
             development_constraint = to_cumulative(
-                dateline, profile.maximum_development
+                dateline, producer_results.maximum_development
             )
         else:
-            development = profile.development
-            development_constraint = profile.maximum_development
+            development = producer_results.development
+            development_constraint = producer_results.maximum_development
 
         ax.plot(
             dateline, development, label="Planned", color=CENTER_COLORS_GREEN[3], lw=2.0

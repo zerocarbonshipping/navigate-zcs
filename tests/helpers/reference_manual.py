@@ -5,7 +5,7 @@
 Readers for the hand-written reference manual under docs/reference_manual.
 
 Used by tests/unit/docs to hold the manual's DSL surface against the parser
-registries and its report-property appendix against the profile getters; nothing
+registries and its report-property appendix against the results; nothing
 generates the manual, so the readers parse its markdown.
 """
 
@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, NamedTuple
 
-from helpers.report_properties import PROFILE_CLASSES
+from helpers.report_properties import RESULTS_CLASSES
 from helpers.simulation import REPO_ROOT
 from navigate.util import attribute_to_instance_name
 
@@ -281,7 +281,7 @@ def _read_commands(lines: list[str], index: int) -> tuple[tuple[str, ...], int]:
             " report-command bullet"
         )
 
-    unregistered = [command for command in commands if command not in PROFILE_CLASSES]
+    unregistered = [command for command in commands if command not in RESULTS_CLASSES]
 
     if unregistered:
         raise ValueError(
@@ -436,10 +436,10 @@ def report_property_tables() -> list[ReportPropertyTable]:
 
     covered = {command for table in tables for command in table.commands}
 
-    if covered != set(PROFILE_CLASSES):
+    if covered != set(RESULTS_CLASSES):
         raise ValueError(
             f"{REPORT_PAGE.name}: no table lists"
-            f" {sorted(set(PROFILE_CLASSES) - covered)}"
+            f" {sorted(set(RESULTS_CLASSES) - covered)}"
         )
 
     return tables

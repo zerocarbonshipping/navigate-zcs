@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""FleetProfile, the output storage the Fleet node reports its results from."""
+"""FleetResults, the output storage the Fleet node reports its results from."""
 
 from __future__ import annotations
 
@@ -10,18 +10,18 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._base_profile import result
-from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
+from navigate.core.results._base_results import result
+from navigate.core.results._vessel_aggregate_results import _VesselAggregateResults
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class FleetProfile(_VesselAggregateProfile):
+class FleetResults(_VesselAggregateResults):
     """Trade, transport work, fleet composition and speeds of one fleet."""
 
     trade: FloatArray = result("cargo-miles/year")
@@ -56,14 +56,14 @@ class FleetProfile(_VesselAggregateProfile):
 
     def initialize(
         self,
-        context: ProfileContext,
+        context: ResultsContext,
         vessel_names: list[str],
         technology_names: list[str],
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
         """
-        Initialize the fleet profile's storage arrays and lookups.
+        Initialize the fleet results' storage arrays and lookups.
 
         Parameters
         ----------

@@ -35,14 +35,14 @@ def plot_fuel_supply_demand(results: SimulationResults, directory: Path) -> None
     """Plot the consumption against the production per fuel."""
     dateline = results.dateline
     fuels = results.nodes.fuels
-    profile = results.profile
+    global_results = results.global_results
 
     fig, axes = subplot_grid(len(fuels))
 
     colors = generate_color_dict(fuels, FUEL_COLOR)
 
-    consumed_energy = profile.consumed_energy
-    production_energy = profile.production_energy
+    consumed_energy = global_results.consumed_energy
+    production_energy = global_results.production_energy
 
     for ax, (fuel_name, fuel) in zip(axes, fuels.items(), strict=False):
         consumed = consumed_energy[fuel_name]

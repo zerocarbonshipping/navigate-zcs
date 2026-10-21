@@ -36,9 +36,9 @@ def plot_fleet_fuel_consumed(results: SimulationResults, directory: Path) -> Non
     fig, axes = subplot_grid(len(fleets), sharex=True)
 
     for ax, fleet in zip(axes, fleets.values(), strict=False):
-        fleet_profile = fleet.profile
-        fuel_demand = fleet_profile.consumed_energy
-        shore_power = fleet_profile.shore_power_energy
+        fleet_results = fleet.results
+        fuel_demand = fleet_results.consumed_energy
+        shore_power = fleet_results.shore_power_energy
 
         divisor, unit = get_best_unit_energy(
             np.amax(sum(list(fuel_demand.values())) + shore_power), unit_order=9

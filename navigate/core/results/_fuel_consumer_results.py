@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The profile layer for the fuel consumers: the vessel, fleet and global profiles."""
+"""The results layer for the fuel consumers: the vessel, fleet and global results."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
-from navigate.core.profiles._base_profile import _BaseProfile, accumulate, result
+from navigate.core.results._base_results import _BaseResults, accumulate, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class _FuelConsumerProfile(_BaseProfile):
+class _FuelConsumerResults(_BaseResults):
     """Energy demand, fuel burnt, emissions and fuel expenses of a fuel consumer."""
 
     # raw energy demand
@@ -105,7 +105,7 @@ class _FuelConsumerProfile(_BaseProfile):
         levy_names: Sequence[str] = (),
     ) -> None:
         """
-        Initialize what the simulation writes to the fuel consumer profile.
+        Initialize what the simulation writes to the fuel consumer results.
 
         The results computed from it are written in post-processing.
 
@@ -147,45 +147,45 @@ class _FuelConsumerProfile(_BaseProfile):
         self.shore_power_expenses = self._default_array()
         self.shore_power_emission = self._default_dict(emissions)
 
-    def add_fuel_consumer_profile(
+    def add_fuel_consumer_results(
         self,
-        profile: _FuelConsumerProfile,
+        results: _FuelConsumerResults,
         multiplier: FloatLike = 1.0,
     ) -> None:
         """
-        Add what another fuel consumer profile was written into this one.
+        Add what another fuel consumer's results were written into this one.
 
         Parameters
         ----------
-        profile
-            Consumer profile from another node.
+        results
+            Consumer results from another node.
         multiplier
             Multiplier applied to each additive attribute when adding; a
             scalar, or a weight per time step.
         """
-        accumulate(self.raw_energy_sea, profile.raw_energy_sea, multiplier)
-        accumulate(self.raw_energy_port, profile.raw_energy_port, multiplier)
+        accumulate(self.raw_energy_sea, results.raw_energy_sea, multiplier)
+        accumulate(self.raw_energy_port, results.raw_energy_port, multiplier)
         accumulate(
-            self.operational_energy_sea, profile.operational_energy_sea, multiplier
+            self.operational_energy_sea, results.operational_energy_sea, multiplier
         )
         accumulate(
             self.operational_energy_port,
-            profile.operational_energy_port,
+            results.operational_energy_port,
             multiplier,
         )
-        accumulate(self.energy_sea, profile.energy_sea, multiplier)
-        accumulate(self.energy_port, profile.energy_port, multiplier)
-        accumulate(self.consumed_mass, profile.consumed_mass, multiplier)
-        accumulate(self.converter_mass, profile.converter_mass, multiplier)
-        accumulate(self.wtt, profile.wtt, multiplier)
-        accumulate(self.ttw, profile.ttw, multiplier)
-        accumulate(self.fuel_expenses, profile.fuel_expenses, multiplier)
-        accumulate(self.levy_expenses, profile.levy_expenses, multiplier)
-        accumulate(self.remedial_expenses, profile.remedial_expenses, multiplier)
-        accumulate(self.remedial_units, profile.remedial_units, multiplier)
-        accumulate(self.levy_units, profile.levy_units, multiplier)
-        accumulate(self.flexibility_expenses, profile.flexibility_expenses, multiplier)
-        accumulate(self.surplus_revenue, profile.surplus_revenue, multiplier)
-        accumulate(self.shore_power_energy, profile.shore_power_energy, multiplier)
-        accumulate(self.shore_power_expenses, profile.shore_power_expenses, multiplier)
-        accumulate(self.shore_power_emission, profile.shore_power_emission, multiplier)
+        accumulate(self.energy_sea, results.energy_sea, multiplier)
+        accumulate(self.energy_port, results.energy_port, multiplier)
+        accumulate(self.consumed_mass, results.consumed_mass, multiplier)
+        accumulate(self.converter_mass, results.converter_mass, multiplier)
+        accumulate(self.wtt, results.wtt, multiplier)
+        accumulate(self.ttw, results.ttw, multiplier)
+        accumulate(self.fuel_expenses, results.fuel_expenses, multiplier)
+        accumulate(self.levy_expenses, results.levy_expenses, multiplier)
+        accumulate(self.remedial_expenses, results.remedial_expenses, multiplier)
+        accumulate(self.remedial_units, results.remedial_units, multiplier)
+        accumulate(self.levy_units, results.levy_units, multiplier)
+        accumulate(self.flexibility_expenses, results.flexibility_expenses, multiplier)
+        accumulate(self.surplus_revenue, results.surplus_revenue, multiplier)
+        accumulate(self.shore_power_energy, results.shore_power_energy, multiplier)
+        accumulate(self.shore_power_expenses, results.shore_power_expenses, multiplier)
+        accumulate(self.shore_power_emission, results.shore_power_emission, multiplier)

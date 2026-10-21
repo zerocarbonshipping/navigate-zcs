@@ -6,7 +6,7 @@ Collect which node properties to export at the end of a simulation.
 
 navigate.output.report_writer.write_report writes the Excel/CSV files from the
 SimulationResults of a finished run. The Report node is not assigned on any other node.
-A property token must name a result of the profile class of the nodes the command
+A property token must name a result of the results class of the nodes the command
 reports on; each command checks its token as it runs.
 """
 
@@ -17,34 +17,34 @@ from typing import TYPE_CHECKING
 from navigate.core import SECTION_DEFINE, assign_id, deck_attribute, deck_command
 from navigate.core.enum_ import FileFormatID, ReportAccumulationID, ReportReduceID
 from navigate.core.node import Node
-from navigate.core.node_report import GLOBAL_PROFILE_KEY, NodeReport
+from navigate.core.node_report import GLOBAL_RESULTS_KEY, NodeReport
 from navigate.core.node_type import REPORT
-from navigate.core.profiles import (
-    FleetProfile,
-    GlobalProfile,
-    LevyProfile,
-    PlantProfile,
-    PortProfile,
-    ProducerProfile,
-    RegulationProfile,
-    VesselProfile,
+from navigate.core.results import (
+    FleetResults,
+    GlobalResults,
+    LevyResults,
+    PlantResults,
+    PortResults,
+    ProducerResults,
+    RegulationResults,
+    VesselResults,
     result_names,
 )
 from navigate.util import attribute_to_instance_name
 
 if TYPE_CHECKING:
-    from navigate.core.profiles._base_profile import _BaseProfile
+    from navigate.core.results._base_results import _BaseResults
 
-# the profile class whose results each Report command reports
-PROFILE_CLASSES: dict[str, type[_BaseProfile]] = {
-    "add_property": GlobalProfile,
-    "add_fleet_property": FleetProfile,
-    "add_levy_property": LevyProfile,
-    "add_plant_property": PlantProfile,
-    "add_port_property": PortProfile,
-    "add_producer_property": ProducerProfile,
-    "add_regulation_property": RegulationProfile,
-    "add_vessel_property": VesselProfile,
+# the results class each Report command reports from
+RESULTS_CLASSES: dict[str, type[_BaseResults]] = {
+    "add_property": GlobalResults,
+    "add_fleet_property": FleetResults,
+    "add_levy_property": LevyResults,
+    "add_plant_property": PlantResults,
+    "add_port_property": PortResults,
+    "add_producer_property": ProducerResults,
+    "add_regulation_property": RegulationResults,
+    "add_vessel_property": VesselResults,
 }
 
 
@@ -62,9 +62,9 @@ def check_report_property(command: str, token: str) -> None:
     Raises
     ------
     ValueError
-        If the command's profile class has no result the token names.
+        If the command's results class has no result the token names.
     """
-    if attribute_to_instance_name(token) not in result_names(PROFILE_CLASSES[command]):
+    if attribute_to_instance_name(token) not in result_names(RESULTS_CLASSES[command]):
         raise ValueError(
             f"does not report the property '{token}'; the properties {command}"
             " reports are listed in the 'Report Node Properties' appendix on the"
@@ -116,7 +116,7 @@ class Report(Node):
         """Record a global property to export."""
         self._add_property(
             "add_property",
-            GLOBAL_PROFILE_KEY,
+            GLOBAL_RESULTS_KEY,
             self.global_reports,
             attribute,
             reduce,

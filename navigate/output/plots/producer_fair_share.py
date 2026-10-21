@@ -39,7 +39,7 @@ def plot_producer_fair_share(results: SimulationResults, directory: Path) -> Non
 
     colors = center_color_saturation(len(producers))
     fair_shares = {
-        producer_name: producer.profile.fair_share_fuel_fraction
+        producer_name: producer.results.fair_share_fuel_fraction
         for producer_name, producer in producers.items()
     }
 

@@ -32,14 +32,14 @@ def plot_global_energy_saving(results: SimulationResults, directory: Path) -> No
 
     fig, axes = subplot_grid(6, sharey=True)
 
-    profile = results.profile
-    saving = profile.saving
+    global_results = results.global_results
+    saving = global_results.saving
     propulsion_saving = saving[EnergyDemandID.PROPULSION] * 100.0
     electrical_saving = saving[EnergyDemandID.ELECTRICAL] * 100.0
     heat_saving = saving[EnergyDemandID.HEAT] * 100.0
-    technology_saving = profile.technology_energy_intensity_saving * 100.0
-    operational_saving = profile.operational_energy_intensity_saving * 100.0
-    total_saving = profile.energy_intensity_saving * 100.0
+    technology_saving = global_results.technology_energy_intensity_saving * 100.0
+    operational_saving = global_results.operational_energy_intensity_saving * 100.0
+    total_saving = global_results.energy_intensity_saving * 100.0
 
     max_value = max(
         propulsion_saving.max(),

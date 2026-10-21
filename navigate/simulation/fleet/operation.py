@@ -157,7 +157,7 @@ def transfer_operations(
     vessel: Vessel, trip: ReferenceTrip, operations: Operations, idx: int
 ) -> None:
     """
-    Store a vessel's evaluated operations on its expectation and profile.
+    Store a vessel's evaluated operations on its expectation and results.
 
     Parameters
     ----------
@@ -171,7 +171,7 @@ def transfer_operations(
         Current time-step index.
     """
     expectation = vessel.expectation
-    profile = vessel.profile
+    results = vessel.results
 
     expectation.set_speeds_condition(idx, operations.speeds)
     expectation.set_time_sea_condition(idx, operations.times_sea)
@@ -192,14 +192,14 @@ def transfer_operations(
     # may have moved the operated speeds away from the reference speeds
     speed_reference = np.average(trip.speeds, weights=operations.distribution)
 
-    profile.cargo_miles[idx] = operations.cargo_miles
-    profile.reference_speed[idx] = speed_reference
+    results.cargo_miles[idx] = operations.cargo_miles
+    results.reference_speed[idx] = speed_reference
 
     for key, value in energy_sea.items():
-        profile.raw_energy_sea[key][idx] = value
+        results.raw_energy_sea[key][idx] = value
 
     for key, value in energy_port.items():
-        profile.raw_energy_port[key][idx] = value
+        results.raw_energy_port[key][idx] = value
 
 
 def transfer_operational_savings(fleet: Fleet) -> None:

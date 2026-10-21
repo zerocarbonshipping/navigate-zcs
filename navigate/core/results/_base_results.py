@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""_BaseProfile, the context every profile is sized by, and the result marker."""
+"""_BaseResults, the context all results are sized by, and the result marker."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ import numpy as np
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import BoolArray, FloatArray, FloatLike
 
 _RESULT = "result"
@@ -29,10 +29,10 @@ class ResultSpec(NamedTuple):
 
 def result(unit: str, *, per_step: bool = False) -> Any:
     """
-    Declare a profile field that holds a result: reported, plotted and written out.
+    Declare a field that holds a result: reported, plotted and written out.
 
     A field declared with a plain ``field(init=False)`` is state the simulation
-    keeps on the profile, and no result.
+    keeps on the results, and no result.
 
     The unit is the one the results file labels the values with, plain ASCII
     without metric prefixes:
@@ -65,18 +65,18 @@ def result(unit: str, *, per_step: bool = False) -> Any:
     return field(init=False, metadata={_RESULT: ResultSpec(unit, per_step)})
 
 
-def _results(cls: type[_BaseProfile]) -> dict[str, ResultSpec]:
+def _results(cls: type[_BaseResults]) -> dict[str, ResultSpec]:
     return {f.name: f.metadata[_RESULT] for f in fields(cls) if _RESULT in f.metadata}
 
 
-def result_units(cls: type[_BaseProfile]) -> dict[str, str]:
+def result_units(cls: type[_BaseResults]) -> dict[str, str]:
     """
-    Map every result of a profile class to its unit.
+    Map every result of a results class to its unit.
 
     Parameters
     ----------
     cls
-        Profile class.
+        Results class.
 
     Returns
     -------
@@ -87,14 +87,14 @@ def result_units(cls: type[_BaseProfile]) -> dict[str, str]:
     return {name: spec.unit for name, spec in _results(cls).items()}
 
 
-def result_names(cls: type[_BaseProfile]) -> frozenset[str]:
+def result_names(cls: type[_BaseResults]) -> frozenset[str]:
     """
-    Name every result of a profile class.
+    Name every result of a results class.
 
     Parameters
     ----------
     cls
-        Profile class.
+        Results class.
 
     Returns
     -------
@@ -104,14 +104,14 @@ def result_names(cls: type[_BaseProfile]) -> frozenset[str]:
     return frozenset(_results(cls))
 
 
-def per_step_results(cls: type[_BaseProfile]) -> frozenset[str]:
+def per_step_results(cls: type[_BaseResults]) -> frozenset[str]:
     """
-    Name the results of a profile class that count what happened in each step.
+    Name the results of a results class that count what happened in each step.
 
     Parameters
     ----------
     cls
-        Profile class.
+        Results class.
 
     Returns
     -------
@@ -127,7 +127,7 @@ def accumulate(
     multiplier: FloatLike = 1.0,
 ) -> None:
     """
-    Add a field of one profile into the same field of another, key by key.
+    Add a field of one results object into the same field of another, key by key.
 
     Parameters
     ----------
@@ -146,12 +146,12 @@ def accumulate(
 
 
 @dataclass(eq=False, repr=False)
-class _BaseProfile:
-    """The run's context and the storage allocation every profile shares."""
+class _BaseResults:
+    """The run's context and the storage allocation all results share."""
 
-    context: ProfileContext = field(init=False)
+    context: ResultsContext = field(init=False)
 
-    def _initialize_base(self, context: ProfileContext) -> None:
+    def _initialize_base(self, context: ResultsContext) -> None:
         self.context = context
 
     def _default_array(self, default: float | None = None) -> FloatArray:

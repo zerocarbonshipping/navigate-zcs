@@ -106,7 +106,7 @@ def _transfer_operational_energy(
     idx: int,
 ) -> None:
     """
-    Store the vessel's operational energy demand on its expectation and profile.
+    Store the vessel's operational energy demand on its expectation and results.
 
     Parameters
     ----------
@@ -122,7 +122,7 @@ def _transfer_operational_energy(
         Current time-step index.
     """
     expectation = vessel.expectation
-    profile = vessel.profile
+    results = vessel.results
 
     condition_legs = bind_conditions_to_legs(vessel.route)
     sea_leg = sum_energy_per_leg(condition_legs, sea)
@@ -134,10 +134,10 @@ def _transfer_operational_energy(
     totals_sea = sum_per_key(sea)
     totals_port = sum_per_key(port)
 
-    for key, values in profile.operational_energy_sea.items():
+    for key, values in results.operational_energy_sea.items():
         values[idx] = totals_sea[key]
 
-    for key, values in profile.operational_energy_port.items():
+    for key, values in results.operational_energy_port.items():
         values[idx] = totals_port[key]
 
 
@@ -250,7 +250,7 @@ def _transfer_residual_energy(
     idx: int,
 ) -> None:
     """
-    Store the vessel's residual energy demand on its expectation and profile.
+    Store the vessel's residual energy demand on its expectation and results.
 
     Parameters
     ----------
@@ -266,7 +266,7 @@ def _transfer_residual_energy(
         Current time-step index.
     """
     expectation = vessel.expectation
-    profile = vessel.profile
+    results = vessel.results
 
     condition_legs = bind_conditions_to_legs(vessel.route)
     sea_leg = sum_energy_per_leg(condition_legs, sea)
@@ -278,10 +278,10 @@ def _transfer_residual_energy(
     totals_sea = sum_per_key(sea)
     totals_port = sum_per_key(port)
 
-    for key, values in profile.energy_sea.items():
+    for key, values in results.energy_sea.items():
         values[idx] = totals_sea[key]
 
-    for key, values in profile.energy_port.items():
+    for key, values in results.energy_port.items():
         values[idx] = totals_port[key]
 
 

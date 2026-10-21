@@ -70,7 +70,7 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
     ports = results.nodes.ports
     fuels = results.nodes.fuels
     converters = results.nodes.converters
-    profile = results.profile
+    global_results = results.global_results
 
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
     fuel_types = _select_fuel_types(fuel_type_to_fuels, converters)
@@ -78,9 +78,9 @@ def plot_fuel_type_supply_demand(results: SimulationResults, directory: Path) ->
     if not fuel_types:
         return
 
-    fuel_type_capacity = profile.fuel_type_capacity
-    production_type_energy = profile.production_type_energy
-    port_bunkering = [port.profile.bunker_energy for port in ports.values()]
+    fuel_type_capacity = global_results.fuel_type_capacity
+    production_type_energy = global_results.production_type_energy
+    port_bunkering = [port.results.bunker_energy for port in ports.values()]
 
     # the series are kept until their overall maximum sets the shared unit
     all_values: dict[FuelTypeID, list[FloatArray]] = {}

@@ -1,30 +1,30 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""LevyProfile, the output storage the Levy node reports its results from."""
+"""LevyResults, the output storage the Levy node reports its results from."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.profiles._base_profile import _BaseProfile, result
+from navigate.core.results._base_results import _BaseResults, result
 
 if TYPE_CHECKING:
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class LevyProfile(_BaseProfile):
+class LevyResults(_BaseResults):
     """Revenue one levy collected over the timeline."""
 
     # negative where the levy pays out a subsidy
     collected: FloatArray = result("USD/year")
 
-    def initialize(self, context: ProfileContext) -> None:
+    def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the levy profile's storage arrays.
+        Initialize the levy results' storage arrays.
 
         Parameters
         ----------

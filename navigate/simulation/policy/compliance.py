@@ -79,7 +79,7 @@ def calculate_regulation_compliance(
     """
     Calculate the compliance, allowance and units of each active regulation.
 
-    Read from the existing bunkering LP, they go to the regulation's profile, per
+    Read from the existing bunkering LP, they go to the regulation's results, per
     policed vessel and shared across them, with the adjusted thresholds.
 
     Parameters
@@ -96,15 +96,15 @@ def calculate_regulation_compliance(
         if not regulation.active:
             continue
 
-        _calculate_compliance_profile(regulation, multipliers, idx)
-        _calculate_adjusted_threshold_profile(regulation, multipliers, idx)
+        _calculate_compliance_results(regulation, multipliers, idx)
+        _calculate_adjusted_threshold_results(regulation, multipliers, idx)
 
 
-def _calculate_compliance_profile(
+def _calculate_compliance_results(
     regulation: Regulation, multipliers: dict[str, float], idx: int
 ) -> None:
-    """Write the vessel and shared compliance, allowance and units to the profile."""
-    profile = regulation.profile
+    """Write the vessel and shared compliance, allowance and units to the results."""
+    results = regulation.results
 
     total_emissions = 0.0
     total_measure = 0.0
@@ -125,12 +125,12 @@ def _calculate_compliance_profile(
             continue
 
         vessel_compliance = account.emissions / account.measure
-        profile.vessel_compliance[vessel_name][idx] = vessel_compliance
-        profile.vessel_allowance[vessel_name][idx] = account.allowance
-        profile.vessel_units[vessel_name][idx] = account.emissions
+        results.vessel_compliance[vessel_name][idx] = vessel_compliance
+        results.vessel_allowance[vessel_name][idx] = account.allowance
+        results.vessel_units[vessel_name][idx] = account.emissions
 
-    profile.shared_allowance[idx] = total_allowance
-    profile.shared_units[idx] = total_emissions
+    results.shared_allowance[idx] = total_allowance
+    results.shared_units[idx] = total_emissions
 
     # shared compliance and threshold only make sense for absolute emissions and
     # energy intensity: transport-based intensities need not share a unit
@@ -141,27 +141,27 @@ def _calculate_compliance_profile(
         return
 
     compliance = _normalize_by_measure(regulation, total_emissions, total_measure)
-    profile.shared_compliance[idx] = compliance
+    results.shared_compliance[idx] = compliance
 
     # the fleet-level effective target of a flexible regulation: the measure-weighted
     # mean of the per-vessel thresholds, equal to the uniform value when the
     # thresholds are assigned via a wildcard
     if regulation.scheme == RegulationSchemeID.FLEXIBLE:
         threshold = _normalize_by_measure(regulation, total_allowance, total_measure)
-        profile.shared_threshold[idx] = threshold
+        results.shared_threshold[idx] = threshold
 
 
-def _calculate_adjusted_threshold_profile(
+def _calculate_adjusted_threshold_results(
     regulation: Regulation, vessel_names: Iterable[str], idx: int
 ) -> None:
     """
-    Write the adjusted thresholds to the regulation's profile.
+    Write the adjusted thresholds to the regulation's results.
 
     Only the vessels of the LP are read: the slot of any other vessel may hold the
     result of an earlier LP.
     """
     expectation = regulation.expectation
-    profile = regulation.profile
+    results = regulation.results
 
     for vessel_name in vessel_names:
         if not regulation.vessel_is_policed(vessel_name):
@@ -169,11 +169,11 @@ def _calculate_adjusted_threshold_profile(
 
         threshold = expectation.get_adjusted_vessel_threshold(vessel_name, idx)
         if not np.isnan(threshold):
-            profile.adjusted_vessel_threshold[vessel_name][idx] = threshold
+            results.adjusted_vessel_threshold[vessel_name][idx] = threshold
 
     shared_threshold = expectation.get_adjusted_shared_threshold(idx)
     if not np.isnan(shared_threshold):
-        profile.adjusted_shared_threshold[idx] = shared_threshold
+        results.adjusted_shared_threshold[idx] = shared_threshold
 
 
 def _normalize_by_measure(

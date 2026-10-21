@@ -30,7 +30,7 @@ def plot_engine_age(results: SimulationResults, directory: Path) -> None:
     """Plot the weighted average vessel age per fuel type."""
     dateline = results.dateline
 
-    weighted_average_age = results.profile.weighted_average_age
+    weighted_average_age = results.global_results.weighted_average_age
 
     # a fuel type without vessels has an age of zero throughout
     weighted_average_age = {

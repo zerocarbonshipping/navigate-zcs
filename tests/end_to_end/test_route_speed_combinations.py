@@ -67,19 +67,19 @@ def test_fleet_sails_its_route_at_aligned_speeds(
         return
 
     for vessel in vessels:
-        decided = vessel.profile.optimal_speed[1:]
+        decided = vessel.results.optimal_speed[1:]
         assert np.all(np.isfinite(decided)), f"{vessel} took no speed decision"
 
     if alignment in ALIGNED:
-        reference = vessels[0].profile
+        reference = vessels[0].results
         for vessel in vessels[1:]:
             np.testing.assert_allclose(
-                vessel.profile.optimal_speed,
+                vessel.results.optimal_speed,
                 reference.optimal_speed,
                 rtol=SPEED_RTOL,
             )
             np.testing.assert_allclose(
-                vessel.profile.actual_speed,
+                vessel.results.actual_speed,
                 reference.actual_speed,
                 rtol=SPEED_RTOL,
             )
@@ -94,13 +94,13 @@ def test_alignment_picks_from_the_individual_optima(
     individual = _vessels(_run(run_combination, route_type, "INDIVIDUAL", True))
     aligned = _vessels(_run(run_combination, route_type, alignment, True))
 
-    speeds = individual[0].profile.optimal_speed
+    speeds = individual[0].results.optimal_speed
     first = np.flatnonzero(np.isfinite(speeds))[0]
 
-    optima = [vessel.profile.optimal_speed[first] for vessel in individual]
+    optima = [vessel.results.optimal_speed[first] for vessel in individual]
     assert min(optima) < max(optima), "the vessels' optima must differ"
 
-    speed = aligned[0].profile.optimal_speed[first]
+    speed = aligned[0].results.optimal_speed[first]
 
     if alignment == "MINIMUM":
         assert speed == pytest.approx(min(optima), rel=SPEED_RTOL)
@@ -119,8 +119,8 @@ def test_alignment_is_ignored_without_speed_management(
     individual = _run(run_combination, route_type, "INDIVIDUAL", False)
     aligned = _run(run_combination, route_type, alignment, False)
 
-    expected = individual.profile.consumed_energy
-    consumed = aligned.profile.consumed_energy
+    expected = individual.global_results.consumed_energy
+    consumed = aligned.global_results.consumed_energy
 
     assert consumed.keys() == expected.keys()
     for fuel, energy in consumed.items():

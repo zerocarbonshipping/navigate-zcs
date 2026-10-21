@@ -91,7 +91,7 @@ def plot_engine_pilot_fuel_share(results: SimulationResults, directory: Path) ->
     if not relevant_fuel_types:
         return
 
-    fleet_pilot_fuel_share = results.profile.pilot_fuel_share
+    fleet_pilot_fuel_share = results.global_results.pilot_fuel_share
     pilot_fuel_share = {
         fuel_type: np.where(
             fleet_pilot_fuel_share[fuel_type] > 0.0,

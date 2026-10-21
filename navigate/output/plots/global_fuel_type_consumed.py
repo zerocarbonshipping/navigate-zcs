@@ -47,7 +47,7 @@ def plot_global_fuel_type_consumed(results: SimulationResults, directory: Path) 
     dateline = results.dateline
     fuels = results.nodes.fuels
 
-    fuel_type_consumed = results.profile.fuel_type_energy
+    fuel_type_consumed = results.global_results.fuel_type_energy
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
     fuel_type_consumed = {
         fuel_type: fuel_type_consumed[fuel_type]
@@ -59,7 +59,7 @@ def plot_global_fuel_type_consumed(results: SimulationResults, directory: Path) 
 
     fig, ax = single_panel()
 
-    shore_power = results.profile.shore_power_energy
+    shore_power = results.global_results.shore_power_energy
 
     divisor, unit = get_best_unit_energy(
         np.amax(sum(list(fuel_type_consumed.values())) + shore_power), unit_order=9

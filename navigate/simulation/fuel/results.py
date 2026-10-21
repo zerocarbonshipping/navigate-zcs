@@ -1,93 +1,174 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-The results of the port, plant, producer and global profiles, from what was written.
-
-The time steps write masses and emissions per ton of fuel. Once a profile holds its
-final values, they are converted to energy and CO2-equivalents.
-"""
+"""The plant, producer and port results written at each time step."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
+from navigate.simulation.cohort import find_origin_index, find_origin_indexes
+from navigate.util import YEAR, interpolate_yearly_flow
+
 if TYPE_CHECKING:
-    from navigate.core.profiles import (
-        GlobalProfile,
-        PlantProfile,
-        PortProfile,
-        ProducerProfile,
-    )
+    from navigate.core.nodes.plant import Plant
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.producer import Producer
+    from navigate.util.types_ import FloatArray
 
 
-def complete_port_profile(profile: PortProfile) -> None:
+def record_plant_results(plant: Plant, idx: int) -> None:
     """
-    Write the results of a port profile computed from its written ones.
+    Write the cost and WTT per ton of the plant invested in at the step to its results.
 
     Parameters
     ----------
-    profile
-        Port profile, written for the whole run.
+    plant
+        The plant instance.
+    idx
+        Current time-step index.
     """
-    _complete_fuel_infrastructure(profile)
-    profile.equivalent_bunker_wtt = profile.context.equivalent(profile.bunker_wtt)
+    expectation = plant.expectation
+    results = plant.results
+
+    cost = expectation.get_levelized_production_cost(idx)
+    results.investment_cost[idx] = cost
+
+    for emission in expectation.get_emissions():
+        wtt = expectation.get_production_wtt(emission, idx)
+        results.investment_wtt[emission][idx] = wtt
 
 
-def complete_plant_profile(profile: PlantProfile) -> None:
+def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) -> None:
     """
-    Write the results of a plant profile computed from its written ones.
+    Calculate the producer results for a given time step.
 
     Parameters
     ----------
-    profile
-        Plant profile, written for the whole run.
+    producer
+        The producer instance.
+    timeline
+        Simulation timeline.
+    idx
+        Current time-step index.
     """
-    context = profile.context
+    years = timeline / YEAR
+    today = years[idx]
 
-    profile.equivalent_investment_wtt = context.equivalent_by_emission(
-        profile.investment_wtt
-    )
-    profile.equivalent_instantaneous_wtt = context.equivalent_by_emission(
-        profile.instantaneous_wtt
-    )
+    _transfer_feed_constraints(producer, idx)
+    _transfer_production_and_feed_mass(producer, years, today, idx)
+    _transfer_plant_tied_capital(producer, years, today, idx)
+
+    producer.results.maximum_development[idx] = producer.maximum_development.get()
 
 
-def complete_producer_profile(profile: ProducerProfile) -> None:
+def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
     """
-    Write the results of a producer profile computed from its written ones.
+    Transfer the current feed constraints to the results.
 
     Parameters
     ----------
-    profile
-        Producer profile, written for the whole run.
+    producer
+        The producer instance.
+    idx
+        Current time-step index.
     """
-    _complete_fuel_producer(profile)
+    for feed_name, constraint in producer.feed_constraints.items():
+        if constraint is not None:
+            producer.results.feed_constraint[feed_name][idx] = constraint.get()
 
 
-def complete_global_fuel_results(profile: GlobalProfile) -> None:
+def _transfer_production_and_feed_mass(
+    producer: Producer, years: FloatArray, today: float, idx: int
+) -> None:
     """
-    Write the fuel results of the global profile computed from its written ones.
+    Transfer the produced fuel mass and consumed feed mass per plant.
+
+    Weighted by the increment multipliers.
 
     Parameters
     ----------
-    profile
-        Global profile, the ports and producers summed into it.
+    producer
+        The producer instance.
+    years
+        Simulation timeline in years.
+    today
+        The current year (years[idx]).
+    idx
+        Current time-step index.
     """
-    _complete_fuel_infrastructure(profile)
-    _complete_fuel_producer(profile)
+    for p, plant in enumerate(producer.plants):
+        incs = producer.increments[p]
+        if not len(incs):
+            continue
+
+        fuel_name = plant.fuel.name
+        expectation = plant.expectation
+
+        decided = np.array([inc.decided for inc in incs])
+        multipliers = np.array([inc.multiplier for inc in incs])
+
+        origins = find_origin_indexes(years, today, decided)
+        production_unit = expectation.get_production(origins)
+        production = np.sum(production_unit * multipliers)
+
+        producer.results.production_mass[fuel_name][idx] += production
+
+        conversions = expectation.get_feed_masses(origins)
+        for feed_name, conversion in conversions.items():
+            feed_mass = np.sum(production_unit * conversion * multipliers)
+            producer.results.feed_mass[feed_name][idx] += feed_mass
 
 
-def _complete_fuel_infrastructure(profile: PortProfile | GlobalProfile) -> None:
-    context = profile.context
+def _transfer_plant_tied_capital(
+    producer: Producer, years: FloatArray, today: float, idx: int
+) -> None:
+    """
+    Transfer the remaining tied-up capital per plant increment.
 
-    profile.bunker_energy = context.energy(profile.bunker_mass)
-    profile.bunker_supply_energy = context.energy(profile.bunker_supply_mass)
-    profile.bunkering_limit_energy = context.energy(profile.bunkering_limit_mass)
+    Parameters
+    ----------
+    producer
+        The producer instance.
+    years
+        Simulation timeline in years.
+    today
+        The current year (years[idx]).
+    idx
+        Current time-step index.
+    """
+    for p, plant in enumerate(producer.plants):
+        incs = producer.increments[p]
+        for inc in incs:
+            # the cost profile is that of a plant entering production 'age' years
+            # ago; a plant of the initial production uses the results of a plant at
+            # age 0, the best available approximation as historical data is unknown
+            origin = find_origin_index(years, today, inc.age)
+
+            tied_capital_flow = plant.expectation.get_tied_capital(origin)
+            tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
+
+            producer.results.plant_tied_capital[idx] += tied_capital * inc.multiplier
 
 
-def _complete_fuel_producer(profile: ProducerProfile | GlobalProfile) -> None:
-    context = profile.context
+def record_port_results(port: Port, idx: int) -> None:
+    """
+    Write the port's bunkering permissions and limits to its results.
 
-    profile.production_energy = context.energy(profile.production_mass)
-    profile.production_type_energy = context.fuel_type_energy(profile.production_mass)
+    Parameters
+    ----------
+    port
+        The port instance.
+    idx
+        Current time-step index.
+    """
+    results = port.results
+
+    for key, value in port.bunkering_allowed.items():
+        results.bunkering_allowed[key][idx] = value
+
+    for key, value in port.bunkering_limit.items():
+        if value is not None:
+            results.bunkering_limit_mass[key][idx] = value.get()

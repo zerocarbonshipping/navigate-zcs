@@ -4,11 +4,11 @@
 """
 Write the full results of a run to one Parquet file.
 
-The file holds every result of the global profile and of each node profile, one
-row per series and date, and nothing but the profiles: the metadata only says
+The file holds every result of the global results and of each node's results, one
+row per series and date, and nothing but the results: the metadata only says
 which schema, Navigate version and deck wrote it, the unit of each result, and
 the run's fuel and emission constants the results were converted with.
-Values are written as 32-bit floats, as the profiles hold them except that the
+Values are written as 32-bit floats, as the results hold them except that the
 counts a result keeps per time step are written per year, as their units say,
 and a value that is not set or not finite is written missing. Lantern reads it;
 any Parquet reader can. The layout is described in
@@ -28,14 +28,14 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from navigate.core.profiles import per_step_results, result_names, result_units
+from navigate.core.results import per_step_results, result_names, result_units
 from navigate.util import TOLERANCE, dates_to_years, step_lengths
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-    from navigate.core.profiles._base_profile import _BaseProfile
+    from navigate.core.results._base_results import _BaseResults
     from navigate.core.simulation_results import SimulationResults
 
 logger = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ SCHEMA = pa.schema(
 
 
 class Series(NamedTuple):
-    """One timeline of one profile result, with its place in the file."""
+    """One timeline of one result, with its place in the file."""
 
     kind: str
     node: str
@@ -74,7 +74,7 @@ class Series(NamedTuple):
 
 def write_results(results: SimulationResults, path: Path, deck_name: str) -> Path:
     """
-    Write every profile result of a finished run to a Parquet file.
+    Write every result of a finished run to a Parquet file.
 
     Parameters
     ----------
@@ -152,9 +152,11 @@ def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
     )
 
 
-def _profiles(results: SimulationResults) -> Iterator[tuple[str, str, _BaseProfile]]:
+def _results_by_node(
+    results: SimulationResults,
+) -> Iterator[tuple[str, str, _BaseResults]]:
     """
-    Walk the global profile and every node profile of the run.
+    Walk the global results and every node's results of the run.
 
     Parameters
     ----------
@@ -163,19 +165,19 @@ def _profiles(results: SimulationResults) -> Iterator[tuple[str, str, _BaseProfi
 
     Yields
     ------
-    tuple[str, str, _BaseProfile]
-        Node kind, node name ("" for the global profile) and profile.
+    tuple[str, str, _BaseResults]
+        Node kind, node name ("" for the global results) and results.
     """
-    yield GLOBAL_KIND, "", results.profile
+    yield GLOBAL_KIND, "", results.global_results
 
     for node in results.nodes.all_nodes():
-        if hasattr(node, "profile"):
-            yield node.type.lower(), node.name, node.profile
+        if hasattr(node, "results"):
+            yield node.type.lower(), node.name, node.results
 
 
 def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Series]:
     """
-    Yield every series of every profile result that is not negligible throughout.
+    Yield every series of every result that is not negligible throughout.
 
     Parameters
     ----------
@@ -187,12 +189,12 @@ def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Seri
     Yields
     ------
     Series
-        Each timeline, in profile and result order.
+        Each timeline, in node and result order.
     """
-    for kind, node, profile in _profiles(results):
-        per_step = per_step_results(type(profile))
+    for kind, node, node_results in _results_by_node(results):
+        per_step = per_step_results(type(node_results))
 
-        for attribute, value in _results(kind, node, profile):
+        for attribute, value in _results(kind, node, node_results):
             items = value.items() if isinstance(value, dict) else [(None, value)]
 
             for key, values in items:
@@ -212,11 +214,13 @@ def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Seri
                 yield Series(kind, node, attribute, _label(key1), _label(key2), floats)
 
 
-def _results(kind: str, node: str, profile: _BaseProfile) -> Iterator[tuple[str, Any]]:
-    """Yield each result of a profile by name, logging and skipping one that fails."""
-    for name in sorted(result_names(type(profile))):
+def _results(
+    kind: str, node: str, node_results: _BaseResults
+) -> Iterator[tuple[str, Any]]:
+    """Yield each result of a node by name, logging and skipping one that fails."""
+    for name in sorted(result_names(type(node_results))):
         try:
-            value = getattr(profile, name)
+            value = getattr(node_results, name)
 
         except Exception as e:
             logger.error("Results: skipping '%s' of %s '%s': %s", name, kind, node, e)
@@ -239,7 +243,7 @@ def _metadata(results: SimulationResults, deck_name: str) -> dict[str, Any]:
     Parameters
     ----------
     results
-        Results of the finished run, whose profiles name the units and hold the
+        Results of the finished run, whose results name the units and hold the
         constants.
     deck_name
         Name of the simulation deck.
@@ -263,18 +267,18 @@ def _metadata(results: SimulationResults, deck_name: str) -> dict[str, Any]:
 
 
 def _units(results: SimulationResults) -> dict[str, str]:
-    """Map every result of the run's profiles to its unit, sorted by name."""
+    """Map every result of the run to its unit, sorted by name."""
     units: dict[str, str] = {}
 
-    for _, _, profile in _profiles(results):
-        units |= result_units(type(profile))
+    for _, _, node_results in _results_by_node(results):
+        units |= result_units(type(node_results))
 
     return dict(sorted(units.items()))
 
 
 def _constants(results: SimulationResults) -> dict[str, Any]:
     """Give the fuel and emission constants the run converted its results with."""
-    context = results.profile.context
+    context = results.global_results.context
 
     return {
         "lower_heating_value": context.lower_heating_value,

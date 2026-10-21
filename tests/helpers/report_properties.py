@@ -2,22 +2,22 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Shared state for the tests that check report properties against profile results.
+Shared state for the tests that check report properties against the results.
 
 Used by the report-property checks over the reference manual in tests/unit/docs.
 """
 
 from __future__ import annotations
 
-from navigate.core.nodes.report import PROFILE_CLASSES, Report
+from navigate.core.nodes.report import RESULTS_CLASSES, Report
 from navigate.util import attribute_to_instance_name
 
-assert set(PROFILE_CLASSES) == set(Report.deck_commands)
+assert set(RESULTS_CLASSES) == set(Report.deck_commands)
 
 
 def result_for(token: str) -> str:
     """
-    Name the profile result a report-property token resolves to.
+    Name the result a report-property token resolves to.
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ def result_for(token: str) -> str:
 
 def token_for(result: str) -> str:
     """
-    Spell the report-property token a profile result would be reached by.
+    Spell the report-property token a result would be reached by.
 
     ``attribute_to_instance_name`` is lossy - it drops every character outside an
     ``[A-Z][a-z]*`` run - so this is a candidate token, not an inverse: a caller
@@ -43,7 +43,7 @@ def token_for(result: str) -> str:
     Parameters
     ----------
     result : str
-        A result name of a profile class, e.g. ``total_equivalent_wtt``.
+        A result name of a results class, e.g. ``total_equivalent_wtt``.
 
     Returns
     -------

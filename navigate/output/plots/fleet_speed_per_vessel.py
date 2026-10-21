@@ -45,9 +45,9 @@ def plot_fleet_speed_per_vessel(results: SimulationResults, directory: Path) -> 
     fig, axes = subplot_grid(len(relevant_fleets))
 
     for ax, fleet in zip(axes, relevant_fleets.values(), strict=False):
-        profile = fleet.profile
-        minimum = profile.minimum_speed
-        maximum = profile.maximum_speed
+        fleet_results = fleet.results
+        minimum = fleet_results.minimum_speed
+        maximum = fleet_results.maximum_speed
 
         # there is no speed optimization in the first time-step
         minimum[0] = np.nan
@@ -63,7 +63,7 @@ def plot_fleet_speed_per_vessel(results: SimulationResults, directory: Path) -> 
         )
 
         for vessel in fleet.vessels:
-            actual = vessel.profile.actual_speed
+            actual = vessel.results.actual_speed
             label = FUEL_TYPE_LABEL[vessel.primary_fuel_type]
             color = FUEL_TYPE_COLOR[vessel.primary_fuel_type]
 

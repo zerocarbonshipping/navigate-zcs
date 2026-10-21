@@ -39,13 +39,14 @@ def _plot_global_expenses(
 
     fig, ax = single_panel()
 
-    profile = results.profile
-    vessel_expenses = profile.vessel_expenses
-    conversion_expenses = profile.fuel_conversion_expenses
-    technology_expenses = profile.technology_expenses
-    fuel_expenses = profile.total_fuel_expenses
+    global_results = results.global_results
+    vessel_expenses = global_results.vessel_expenses
+    conversion_expenses = global_results.fuel_conversion_expenses
+    technology_expenses = global_results.technology_expenses
+    fuel_expenses = global_results.total_fuel_expenses
     policy_expenses = (
-        sum_values(profile.levy_expenses, dateline.shape) + profile.regulation_expenses
+        sum_values(global_results.levy_expenses, dateline.shape)
+        + global_results.regulation_expenses
     )
 
     values = [

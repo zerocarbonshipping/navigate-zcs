@@ -35,9 +35,9 @@ def plot_regulation_flexibility_cost(
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:
             continue
 
-        profile = regulation.profile
-        remedial_cost = profile.remedial_cost
-        flexible_cost = profile.flexibility_cost
+        regulation_results = regulation.results
+        remedial_cost = regulation_results.remedial_cost
+        flexible_cost = regulation_results.flexibility_cost
 
         fig, ax = single_panel()
 

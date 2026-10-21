@@ -96,7 +96,7 @@ def _calculate_import_from_liquid_market(
             port.expectation.set_bunker_price(idx, f, price)
 
             if allowed:
-                port.profile.bunker_price[f][idx] = price[0]
+                port.results.bunker_price[f][idx] = price[0]
 
             # a liquid-market fuel is never short of supply, so a port offers as much as
             # it may bunker: its bunkering limit, unlimited where none is declared, and
@@ -109,7 +109,7 @@ def _calculate_import_from_liquid_market(
             port.expectation.set_bunker_supply(idx, f, supply)
 
             if allowed and np.isfinite(supply[0]):
-                port.profile.bunker_supply_mass[f][idx] = supply[0]
+                port.results.bunker_supply_mass[f][idx] = supply[0]
 
             for e in emissions:
                 if port.bunker_wtt_overwrite[(f, e)] is not None:
@@ -122,7 +122,7 @@ def _calculate_import_from_liquid_market(
                 port.expectation.set_bunker_wtt(idx, f, e, wtt)
 
                 if allowed:
-                    port.profile.bunker_wtt[f, e][idx] = wtt[0]
+                    port.results.bunker_wtt[f, e][idx] = wtt[0]
 
 
 def _calculate_import_from_producers(
@@ -222,7 +222,7 @@ def _calculate_import_from_producers(
             port.expectation.set_bunker_price(idx, f, price)
 
             if supplies[p][f][0] > 0.0:
-                port.profile.bunker_price[f][idx] = price[0]
+                port.results.bunker_price[f][idx] = price[0]
 
             for e in emissions:
                 if port.bunker_wtt_overwrite[(f, e)] is not None:
@@ -235,7 +235,7 @@ def _calculate_import_from_producers(
                 port.expectation.set_bunker_wtt(idx, f, e, wtt)
 
                 if supplies[p][f][0] > 0.0:
-                    port.profile.bunker_wtt[f, e][idx] = wtt[0]
+                    port.results.bunker_wtt[f, e][idx] = wtt[0]
 
     # the import of fuel to ports is adjusted to account for local bunkering
     # limits. A port that already imports the fuel keeps the price and WTT
@@ -254,7 +254,7 @@ def _calculate_import_from_producers(
             supplies[p][f] = np.where(bunker_price > TOLERANCE, supplies[p][f], 0.0)
 
             port.expectation.set_bunker_supply(idx, f, supplies[p][f])
-            port.profile.bunker_supply_mass[f][idx] = supplies[p][f][0]
+            port.results.bunker_supply_mass[f][idx] = supplies[p][f][0]
 
 
 def _calculate_export_normalization_factors(ports: dict[str, Port]) -> dict[str, float]:

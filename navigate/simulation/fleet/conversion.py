@@ -9,7 +9,7 @@ The evaluation runs in three phases per fleet and time-step:
 1. ``_propose_fuel_conversions`` computes the proposed conversion counts and changes
    no fleet state.
 2. ``_reconcile_fuel_conversion_caps`` scales the proposals to the per-pair flow caps.
-3. ``_apply_fuel_conversions`` updates the fleet: multipliers, profile and expenses.
+3. ``_apply_fuel_conversions`` updates the fleet: multipliers, results and expenses.
 
 The phases communicate through one ``_ConversionProposal`` per (from-type, increment)
 cohort, each holding a ``_ConversionCandidate`` per destination type.
@@ -255,7 +255,7 @@ def _propose_fuel_conversions(
         walk order.
     """
     # the supply beyond what the fleet can already burn, from the previous step's
-    # totals (the profile phase writes this step's after this runs); the proposals
+    # totals (the results phase writes this step's after this runs); the proposals
     # debit this working copy so the DCM supply cap stays realistic
     supply_excess: dict[FuelTypeID, float] = {}
     for fuel_type in FuelTypeID:
@@ -348,7 +348,7 @@ def _apply_fuel_conversions(
     timeline
         Simulation timeline, in days.
     idx
-        Current time-step index, where the profile is written and the expenses start.
+        Current time-step index, where the results are written and the expenses start.
     """
     names = [vessel.name for vessel in fleet.vessels]
     increments = dict(zip(names, fleet.increments, strict=True))
@@ -705,7 +705,7 @@ def _apply_from_side(
     idx: int,
 ) -> None:
     """
-    Decrement source-side multipliers, write the profile, and book transition expenses.
+    Decrement source-side multipliers, write the results, and book transition expenses.
 
     Parameters
     ----------
@@ -732,7 +732,7 @@ def _apply_from_side(
         if increment_from.baseline is not None:
             increment_from.baseline -= count
 
-        fleet.profile.fuel_conversions[proposal.name_from, name_to][idx] += count
+        fleet.results.fuel_conversions[proposal.name_from, name_to][idx] += count
 
         # the levelized charge is booked over the service window; the coverage
         # prorates the final partial year so the booked amounts match the

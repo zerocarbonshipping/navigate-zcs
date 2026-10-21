@@ -5,13 +5,13 @@
 The report-property appendix documents exactly the properties a report can carry.
 
 docs/reference_manual/report.md is hand-written with no autodoc, so a table row
-and a profile result can drift apart in either direction without anything else
+and a result can drift apart in either direction without anything else
 failing: a stale row sends a deck writer after a property the parser rejects, and
 a result no row names is one nobody can find.
 
 Both directions are checked here. Forward: every documented token passes the
 parser's check for every command the table is listed under. Reverse: every result
-reachable from a token is documented under every command whose profile class
+reachable from a token is documented under every command whose results class
 exposes it.
 """
 
@@ -20,16 +20,16 @@ from __future__ import annotations
 import pytest
 
 from helpers.reference_manual import REPORT_PAGE, report_property_tables
-from helpers.report_properties import PROFILE_CLASSES, result_for, token_for
+from helpers.report_properties import RESULTS_CLASSES, result_for, token_for
 from navigate.core.nodes.report import check_report_property
-from navigate.core.profiles import result_names
+from navigate.core.results import result_names
 
 TABLES = report_property_tables()
 
 
 def _documented_tokens():
     """Collect the tokens each report command is given a table row under."""
-    documented = {command: set() for command in PROFILE_CLASSES}
+    documented = {command: set() for command in RESULTS_CLASSES}
 
     for table in TABLES:
         for command in table.commands:
@@ -52,11 +52,11 @@ def _documented_properties():
 
 
 def _resolvable_properties():
-    """Every (command, token) pair the report writer could resolve on a profile."""
+    """Every (command, token) pair the report writer could resolve on the results."""
     found = []
 
-    for command, profile_class in PROFILE_CLASSES.items():
-        for result in sorted(result_names(profile_class)):
+    for command, results_class in RESULTS_CLASSES.items():
+        for result in sorted(result_names(results_class)):
             token = token_for(result)
 
             # a result whose token reads back as another result is reachable from
@@ -71,20 +71,20 @@ def _resolvable_properties():
 
 # takes every property listed in the report.md tables and checks the parser
 # accepts it for each command the table is listed under.
-# catches: a renamed profile getter, so the manual sends users to a property the
+# catches: a renamed result, so the manual sends users to a property the
 # parser now rejects.
 @pytest.mark.parametrize(("command", "token"), _documented_properties())
 def test_documented_property_resolves(command, token):
     check_report_property(command, token)
 
 
-# takes every property a report command could read from its profile and checks
+# takes every property a report command could read from its results and checks
 # report.md lists it under that command.
-# catches: a new profile getter added with no manual row, so nobody knows the
+# catches: a new result added with no manual row, so nobody knows the
 # property exists.
 @pytest.mark.parametrize(("command", "token"), _resolvable_properties())
 def test_resolvable_property_is_documented(command, token):
     assert token in DOCUMENTED[command], (
-        f"'{token}' resolves on {PROFILE_CLASSES[command].__name__} but no"
+        f"'{token}' resolves on {RESULTS_CLASSES[command].__name__} but no"
         f" {REPORT_PAGE.name} table listing {command} documents it"
     )

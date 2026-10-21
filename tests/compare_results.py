@@ -5,7 +5,7 @@
 Compare the results of a fixed set of decks between two installs of Navigate.
 
 A change meant to leave simulation results alone (a pull request labelled
-`maintenance`) must leave every profile result of these decks where it was, up
+`maintenance`) must leave every result of these decks where it was, up
 to rounding. `snapshot` runs the decks with the Navigate that the running
 interpreter imports, and writes one snapshot per deck (helpers/snapshot.py);
 `diff` compares two such directories and fails on any difference beyond

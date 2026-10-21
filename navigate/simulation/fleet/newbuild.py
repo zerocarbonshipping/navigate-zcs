@@ -166,7 +166,7 @@ def add_newbuilds(
 
     for v, count in enumerate(increments):
         vessel = fleet.vessels[v]
-        fleet.profile.newbuilds[vessel.name][idx] += count
+        fleet.results.newbuilds[vessel.name][idx] += count
 
         if count <= 0.0:
             continue

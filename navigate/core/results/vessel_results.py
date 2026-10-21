@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""VesselProfile, the output storage the Vessel node reports its results from."""
+"""VesselResults, the output storage the Vessel node reports its results from."""
 
 from __future__ import annotations
 
@@ -10,18 +10,18 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._base_profile import result
-from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
+from navigate.core.results._base_results import result
+from navigate.core.results._fuel_consumer_results import _FuelConsumerResults
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import BoolArray, FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class VesselProfile(_FuelConsumerProfile):
+class VesselResults(_FuelConsumerResults):
     """Energy, emissions, speeds, expenses and charter rates of one vessel type."""
 
     lifetime: FloatArray = result("years")
@@ -63,12 +63,12 @@ class VesselProfile(_FuelConsumerProfile):
 
     def initialize(
         self,
-        context: ProfileContext,
+        context: ResultsContext,
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
         """
-        Initialize the vessel profile's storage arrays and lookups.
+        Initialize the vessel results' storage arrays and lookups.
 
         Parameters
         ----------

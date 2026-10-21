@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def transfer_shore_power(alg: BunkerAlgorithm) -> None:
     """
-    Transfer the shore-power solution to the vessel expectations and profiles.
+    Transfer the shore-power solution to the vessel expectations and results.
 
     Parameters
     ----------
@@ -38,8 +38,8 @@ def transfer_shore_power(alg: BunkerAlgorithm) -> None:
         shore_cost = cost * shore_energy_gj
 
         if alg.scope == BunkerScopeID.EXISTING:
-            vessel.profile.shore_power_energy[alg.idx] += shore_energy_gj
-            vessel.profile.shore_power_expenses[alg.idx] += shore_cost
+            vessel.results.shore_power_energy[alg.idx] += shore_energy_gj
+            vessel.results.shore_power_expenses[alg.idx] += shore_cost
 
             # the shore-power emission factors are well-to-wake
             for e in alg.emissions:
@@ -47,7 +47,7 @@ def transfer_shore_power(alg: BunkerAlgorithm) -> None:
                     port.expectation.get_shore_power_emission_factor(e, alg.idx)
                 )
                 emission_mass = emission_factor * shore_energy_gj
-                vessel.profile.shore_power_emission[e][alg.idx] += emission_mass
+                vessel.results.shore_power_emission[e][alg.idx] += emission_mass
 
         else:
             vessel.expectation.add_total_energy(alg.idx, shore_energy_gj)

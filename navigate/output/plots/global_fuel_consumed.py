@@ -34,8 +34,8 @@ def plot_global_fuel_consumed(results: SimulationResults, directory: Path) -> No
 
     fuels = results.nodes.fuels
 
-    fuel_consumed = results.profile.consumed_energy
-    shore_power = results.profile.shore_power_energy
+    fuel_consumed = results.global_results.consumed_energy
+    shore_power = results.global_results.shore_power_energy
 
     divisor, unit = get_best_unit_energy(
         np.amax(sum(list(fuel_consumed.values())) + shore_power), unit_order=9

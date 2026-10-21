@@ -210,7 +210,7 @@ def _define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
             )
         ]
 
-        producer.profile.development[0] = np.sum(incremental_plants)
+        producer.results.development[0] = np.sum(incremental_plants)
 
     # the current uptake is an inertia-weighted average over the pipeline
     n = len(producer.plants)

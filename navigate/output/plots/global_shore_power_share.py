@@ -27,9 +27,9 @@ def plot_global_shore_power_share(results: SimulationResults, directory: Path) -
 
     fig, ax = single_panel()
 
-    profile = results.profile
-    shore_power = profile.shore_power_energy
-    port_energy = sum_values(profile.energy_port, dateline.shape)
+    global_results = results.global_results
+    shore_power = global_results.shore_power_energy
+    port_energy = sum_values(global_results.energy_port, dateline.shape)
 
     shore_power_share = divide_nonzero(shore_power, port_energy) * 100.0
 

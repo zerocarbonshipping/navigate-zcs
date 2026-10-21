@@ -37,7 +37,7 @@ def calculate_individual_remedial_expenses(
         Multiplier of each vessel in the bunkering LP, in the LP's order, which the
         sums over the vessels follow.
     scope
-        Scope of the bunkering LP: the existing expenses go to the profiles, the
+        Scope of the bunkering LP: the existing expenses go to the results, the
         expected ones to the expectations.
     idx
         Time-step index of the bunkering LP.
@@ -77,10 +77,10 @@ def _calculate_regulation_remedial_expenses(
             total_remedial_units = remedial_units * multiplier
             total_remedial_expenses = total_remedial_units * remedial_cost
 
-            regulation.profile.remedial_units[idx] += total_remedial_units
-            regulation.profile.remedial_expenses[idx] += total_remedial_expenses
-            vessel.profile.remedial_units[regulation.name][idx] += remedial_units
-            vessel.profile.remedial_expenses[idx] += remedial_expenses
+            regulation.results.remedial_units[idx] += total_remedial_units
+            regulation.results.remedial_expenses[idx] += total_remedial_expenses
+            vessel.results.remedial_units[regulation.name][idx] += remedial_units
+            vessel.results.remedial_expenses[idx] += remedial_expenses
 
         else:
             vessel.expectation.add_remedial_expenses(idx, remedial_expenses)

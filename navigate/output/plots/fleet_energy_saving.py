@@ -40,11 +40,11 @@ def plot_fleet_energy_saving(results: SimulationResults, directory: Path) -> Non
     max_saving = 0.0
 
     for ax, fleet in zip(axes, fleets.values(), strict=False):
-        fleet_profile = fleet.profile
+        fleet_results = fleet.results
 
-        operational_saving = fleet_profile.operational_energy_intensity_saving * 100.0
-        technology_saving = fleet_profile.technology_energy_intensity_saving * 100.0
-        total_saving = fleet_profile.energy_intensity_saving * 100.0
+        operational_saving = fleet_results.operational_energy_intensity_saving * 100.0
+        technology_saving = fleet_results.technology_energy_intensity_saving * 100.0
+        total_saving = fleet_results.energy_intensity_saving * 100.0
 
         min_saving = min(
             min_saving,

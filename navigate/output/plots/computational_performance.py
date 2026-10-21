@@ -35,7 +35,7 @@ def _plot_computational_performance(
     results: SimulationResults, directory: Path, cumulative: bool
 ) -> None:
     dateline = results.dateline
-    seconds = results.profile.computational_time
+    seconds = results.global_results.computational_time
 
     fig, ax = single_panel()
 

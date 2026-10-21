@@ -21,11 +21,11 @@ from navigate.core.enum_ import LevySchemeID
 from navigate.core.expectations import LevyExpectation
 from navigate.core.node_type import FORECAST, LEVY, VARIABLE
 from navigate.core.nodes._policy import _Policy
-from navigate.core.profiles import LevyProfile
+from navigate.core.results import LevyResults
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.profiles.profile_context import ProfileContext
+    from navigate.core.results.results_context import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import DateArray, FloatArray
 
@@ -45,7 +45,7 @@ class Levy(_Policy):
 
         # internal variables -----------------------------------------------------------
         self.expectation: LevyExpectation = LevyExpectation()
-        self.profile: LevyProfile = LevyProfile()
+        self.results: LevyResults = LevyResults()
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -89,8 +89,8 @@ class Levy(_Policy):
     def initialize_expectation(self, length: int) -> None:
         self.expectation.initialize(length, [e.name for e in self.emissions])
 
-    def initialize_profile(self, context: ProfileContext) -> None:
-        self.profile.initialize(context)
+    def initialize_results(self, context: ResultsContext) -> None:
+        self.results.initialize(context)
 
     def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
         super().check_dynamic_consistency(times, dates)

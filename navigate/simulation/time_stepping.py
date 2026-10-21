@@ -19,7 +19,7 @@ from navigate.core import (
     update_imposed_levies,
 )
 from navigate.core.enum_ import BunkerScopeID, TimingID
-from navigate.core.profiles import GlobalProfile, ProfileContext
+from navigate.core.results import GlobalResults, ResultsContext
 from navigate.exceptions import DeckError
 from navigate.simulation.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.simulation.bunker.solver import set_solver_preference
@@ -31,25 +31,23 @@ from navigate.simulation.fleet import (
     calculate_fleet_evolution_expectation,
     calculate_fleet_expectations,
     calculate_fleet_fuel_demand,
-    calculate_fleet_profile,
     calculate_fuel_type_balance,
     calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
-    calculate_vessel_profile,
     check_fuel_options,
     close_trade_gap,
-    complete_fleet_profile,
+    complete_fleet_results,
     complete_global_fleet_results,
-    complete_vessel_profile,
+    complete_vessel_results,
     determine_fuel_type,
     initialize_existing_fleet,
     perform_fuel_conversions,
     perform_primary_scrapping,
     perform_speed_management,
     perform_technology_installation,
-    post_process_fleet_profile,
-    post_process_investment_metric,
+    record_fleet_results,
     record_investment_signals,
+    record_vessel_results,
     transfer_technology_charter_rate,
     update_operations,
     update_residual_energy_demand,
@@ -68,19 +66,19 @@ from navigate.simulation.fuel import (
     calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
-    calculate_plant_profile,
     calculate_port_expectations,
-    calculate_port_profile,
     calculate_producer_evolution_expectation,
-    calculate_producer_profile,
     complete_global_fuel_results,
-    complete_plant_profile,
-    complete_port_profile,
-    complete_producer_profile,
+    complete_plant_results,
+    complete_port_results,
+    complete_producer_results,
     initialize_existing_producer,
     perform_decommissioning,
     perform_pipeline_delivery,
     perform_pipeline_planning,
+    record_plant_results,
+    record_port_results,
+    record_producer_results,
     update_plant_ages,
 )
 from navigate.simulation.policy import (
@@ -92,8 +90,8 @@ from navigate.simulation.policy import (
     calculate_regulation_bunkering_inputs,
     calculate_regulation_compliance,
     calculate_regulation_measures,
-    calculate_regulation_profile,
-    complete_regulation_profile,
+    complete_regulation_results,
+    record_regulation_results,
     update_regulation_flexibility_beliefs,
 )
 from navigate.util import YEAR, Timings, dates_to_days, timed, timedelta_to_days
@@ -169,8 +167,8 @@ class Simulation:
         self.dateline: DateArray = dateline
         self.timeline: FloatArray = dates_to_days(self.dateline)
 
-        # profile
-        self.profile: GlobalProfile = GlobalProfile()
+        # results
+        self.global_results: GlobalResults = GlobalResults()
 
         # bunker algorithm -------------------------------------------------------------
         self._bunker_existing: BunkerAlgorithm = BunkerAlgorithm()
@@ -180,15 +178,15 @@ class Simulation:
         self.timings: Timings[TimingID]
 
     def initialize(self) -> None:
-        """Set up the node maps, expectations, profiles and bunker models."""
+        """Set up the node maps, expectations, results and bunker models."""
         logger.info(
             "Initialize model before start of simulation", extra={"heading": True}
         )
 
         self._define_node_maps()
         self._initialize_expectations()
-        self._initialize_profiles()
-        self.timings = Timings(self.profile.computational_time)
+        self._initialize_results()
+        self.timings = Timings(self.global_results.computational_time)
         self._initialize_bunker_models()
 
     def step(self, date: np.datetime64, inputs_changed: bool) -> None:
@@ -215,13 +213,13 @@ class Simulation:
         Returns
         -------
         SimulationResults
-            The dateline, the global profile and the nodes of the run.
+            The dateline, the global results and the nodes of the run.
         """
         self._post_process()
 
         return SimulationResults(
             dateline=self.dateline,
-            profile=self.profile,
+            global_results=self.global_results,
             nodes=self.nodes,
             general_nodes=self.general_nodes,
         )
@@ -330,11 +328,11 @@ class Simulation:
         self._calculate_individual_remedial_expenses(self._bunker_existing)
         self._calculate_flexibility_markets(self._bunker_existing)
 
-        # the fuel-type balance weighs this step's existing bunkering; the profile
+        # the fuel-type balance weighs this step's existing bunkering; the results
         # below transfers the capacity just calculated, and the next step's fuel
         # conversion reads both totals
         self._calculate_fuel_type_balance()
-        self._calculate_profile()
+        self._record_results()
 
     def _check_dynamic_consistency(self) -> None:
         """Raise where a node's time-varying attributes contradict each other."""
@@ -724,8 +722,8 @@ class Simulation:
                 length, self.nodes.fuels, self.nodes.emissions
             )
 
-    def _initialize_profiles(self) -> None:
-        context = ProfileContext.from_nodes(
+    def _initialize_results(self) -> None:
+        context = ResultsContext.from_nodes(
             self.timeline / YEAR,
             self.nodes.fuels,
             self.nodes.emissions,
@@ -735,7 +733,7 @@ class Simulation:
         regulation_names = list(self.nodes.regulations.keys())
         levy_names = list(self.nodes.levies.keys())
 
-        self.profile.initialize(
+        self.global_results.initialize(
             context,
             self.nodes.feedstocks,
             self.nodes.processes,
@@ -744,27 +742,27 @@ class Simulation:
         )
 
         for fleet in self.nodes.fleets.values():
-            fleet.initialize_profile(context, regulation_names, levy_names)
+            fleet.initialize_results(context, regulation_names, levy_names)
 
         for levy in self.nodes.levies.values():
-            levy.initialize_profile(context)
+            levy.initialize_results(context)
 
         for plant in self.nodes.plants.values():
-            plant.initialize_profile(context)
+            plant.initialize_results(context)
 
         for port in self.nodes.ports.values():
-            port.initialize_profile(context)
+            port.initialize_results(context)
 
         for producer in self.nodes.producers.values():
-            producer.initialize_profile(
+            producer.initialize_results(
                 context, self.nodes.feedstocks, self.nodes.processes
             )
 
         for regulation in self.nodes.regulations.values():
-            regulation.initialize_profile(context, self.nodes.vessels)
+            regulation.initialize_results(context, self.nodes.vessels)
 
         for vessel in self.nodes.vessels.values():
-            vessel.initialize_profile(context, regulation_names, levy_names)
+            vessel.initialize_results(context, regulation_names, levy_names)
 
     def _initialize_existing_fleet(self) -> None:
         for vessel in self.nodes.vessels.values():
@@ -784,62 +782,54 @@ class Simulation:
         for fleet in self.nodes.fleets.values():
             calculate_fuel_type_balance(fleet, self.nodes.fuels, self._idx)
 
-    def _calculate_profile(self) -> None:
+    def _record_results(self) -> None:
         for fleet in self.nodes.fleets.values():
-            calculate_fleet_profile(fleet, self.timeline, self._idx)
+            record_fleet_results(fleet, self.timeline, self._idx)
 
         for plant in self.nodes.plants.values():
-            calculate_plant_profile(plant, self._idx)
+            record_plant_results(plant, self._idx)
 
         for port in self.nodes.ports.values():
-            calculate_port_profile(port, self._idx)
+            record_port_results(port, self._idx)
 
         for producer in self.nodes.producers.values():
-            calculate_producer_profile(producer, self.timeline, self._idx)
+            record_producer_results(producer, self.timeline, self._idx)
 
         for regulation in self.nodes.regulations.values():
-            calculate_regulation_profile(regulation, self._idx)
+            record_regulation_results(regulation, self._idx)
 
         for vessel in self.nodes.vessels.values():
-            calculate_vessel_profile(vessel, self._idx)
+            record_vessel_results(vessel, self._idx)
 
     def _post_process(self) -> None:
         logger.info(
             "Post-process model after end of simulation", extra={"heading": True}
         )
 
-        # a vessel's expenses, which the investment metric reads, are complete
-        # once the time steps are done
+        # every vessel before any fleet: a fleet's achieved rates read its vessels'
+        # completed expenses, and a vessel may be kept without a fleet
         for vessel in self.nodes.vessels.values():
-            complete_vessel_profile(vessel.profile)
+            complete_vessel_results(vessel)
 
-        # fold the recorded multipliers into the fleet output profiles before
-        # the investment metric reads the in-fleet windows and before the
-        # fleet profiles are merged into the global profile
-        post_process_fleet_profile(self.nodes.fleets)
-        post_process_investment_metric(self.nodes.fleets, self.timeline)
-
-        # a fleet's baseline energy, which the global profile sums, is complete
-        # before the fleet is merged
         for fleet in self.nodes.fleets.values():
-            complete_fleet_profile(fleet.profile)
-            self.profile.add_fuel_consumer_profile(fleet.profile)
-            self.profile.add_vessel_aggregate_profile(fleet.profile)
+            complete_fleet_results(fleet, self.timeline)
+            self.global_results.add_fuel_consumer_results(fleet.results)
+            self.global_results.add_vessel_aggregate_results(fleet.results)
 
         for port in self.nodes.ports.values():
-            complete_port_profile(port.profile)
-            self.profile.add_fuel_infrastructure_profile(port.profile)
+            complete_port_results(port.results)
+            self.global_results.add_fuel_infrastructure_results(port.results)
 
         for producer in self.nodes.producers.values():
-            complete_producer_profile(producer.profile)
-            self.profile.add_fuel_producer_profile(producer.profile)
-            self.profile.add_plant_aggregate_profile(producer.profile)
+            complete_producer_results(producer.results)
+            self.global_results.add_fuel_producer_results(producer.results)
+            self.global_results.add_plant_aggregate_results(producer.results)
 
-        complete_global_fleet_results(self.profile)
-        complete_global_fuel_results(self.profile)
+        complete_global_fleet_results(self.global_results)
+        complete_global_fuel_results(self.global_results)
 
         for plant in self.nodes.plants.values():
-            complete_plant_profile(plant.profile)
+            complete_plant_results(plant.results)
 
         for regulation in self.nodes.regulations.values():
-            complete_regulation_profile(regulation.profile)
+            complete_regulation_results(regulation.results)

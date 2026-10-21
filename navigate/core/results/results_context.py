@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""ProfileContext, the run-wide constants every profile is sized and converted by."""
+"""ResultsContext, the run-wide constants all results are sized and converted by."""
 
 from __future__ import annotations
 
@@ -19,9 +19,9 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, slots=True, eq=False)
-class ProfileContext:
+class ResultsContext:
     """
-    The timeline, fuels and emissions of a run, shared by all of its profiles.
+    The timeline, fuels and emissions of a run, shared by all of its results.
 
     Parameters
     ----------
@@ -51,7 +51,7 @@ class ProfileContext:
         fuels: dict[str, Fuel],
         emissions: dict[str, Emission],
         emissions_lifetime: float,
-    ) -> ProfileContext:
+    ) -> ResultsContext:
         """
         Read the constants of a run off its fuel and emission nodes.
 
@@ -68,8 +68,8 @@ class ProfileContext:
 
         Returns
         -------
-        ProfileContext
-            The context every profile of the run is initialized with.
+        ResultsContext
+            The context all results of the run are initialized with.
         """
         # a heating value read without an input, and a warming potential read at a
         # single lifetime, are one number, while the getters' return types also

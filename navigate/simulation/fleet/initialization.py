@@ -360,4 +360,4 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
 
     initial_trade = np.dot(multipliers, cargo_miles)
     fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
-    fleet.profile.trade[idx] = fleet.trade[idx]
+    fleet.results.trade[idx] = fleet.trade[idx]

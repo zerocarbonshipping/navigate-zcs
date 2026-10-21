@@ -29,7 +29,7 @@ def plot_fleet_emission_intensity(results: SimulationResults, directory: Path) -
     fig, axes = subplot_grid(len(fleets))
 
     for ax, fleet in zip(axes, fleets.values(), strict=False):
-        intensity = fleet.profile.intensity_total_equivalent_wtw
+        intensity = fleet.results.intensity_total_equivalent_wtw
 
         ax.plot(dateline, intensity, label="Model", color="k")
 
