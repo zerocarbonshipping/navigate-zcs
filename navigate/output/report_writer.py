@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     from navigate.core.node_report import NodeReport
     from navigate.core.nodes.report import Report
     from navigate.core.results._base_results import _BaseResults
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
     from navigate.util.types_ import BoolArray, DateArray, FloatArray
 
 logger = logging.getLogger(__name__)

@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from navigate.core import SimulationResults
+    from navigate.output import SimulationResults
 
 type Snapshot = dict[str, np.ndarray]
 

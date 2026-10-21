@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from helpers.combinations import DeckFamily, Layer
-    from navigate.core import SimulationResults
+    from navigate.output import SimulationResults
 
 
 def _cached_runner(

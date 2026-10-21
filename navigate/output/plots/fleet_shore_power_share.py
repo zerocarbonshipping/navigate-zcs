@@ -20,7 +20,7 @@ from navigate.util import divide_nonzero, sum_values
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def plot_fleet_shore_power_share(results: SimulationResults, directory: Path) -> None:

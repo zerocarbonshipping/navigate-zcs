@@ -29,7 +29,7 @@ from navigate.util import sum_values
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def _plot_global_expenses(
