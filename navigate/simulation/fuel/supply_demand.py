@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Expected fuel supply, demand and gap, and each producer's share of the gap."""
+"""Producer development potential, the expected fuel gap and each producer's share."""
 
 from __future__ import annotations
 
@@ -18,105 +18,89 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatLike
 
 
-def calculate_constrained_fair_share_fuel_demand(
-    fuels: dict[str, Fuel],
-    producers: dict[str, Producer],
-    gap: dict[str, FloatLike],
-    idx: int,
+def calculate_development_potential(
+    producer: Producer, time_step: float, idx: int
 ) -> None:
     """
-    Assign each constrained producer a fair share of its fuels' supply gap.
-
-    TODO: Can be improved with a regionality aspect
+    Calculate the development potential of the producer per fuel.
 
     Parameters
     ----------
-    fuels
-        All fuels in the simulation not belonging to a liquid market.
-    producers
-        All constrained producers in the simulation.
-    gap
-        The expected future gap between fuel supply and demand for each fuel pathway,
-        tons/year.
+    producer
+        The producer instance.
+    time_step
+        Current time-step size, in days.
     idx
         Current time-step index.
     """
-    total_potentials = dict.fromkeys(fuels, 0.0)
+    ramp_up = producer.maximum_ramp_up.get() * time_step / YEAR
+    utilization = min(producer.current_utilization + ramp_up, 1.0)
+    development = producer.maximum_development.get() * time_step / YEAR * utilization
 
-    for fuel_name in fuels:
-        for producer in producers.values():
-            if not producer.can_produce(fuel_name):
-                continue
+    potential = dict.fromkeys(producer.fuels, 0.0)
 
-            total_potentials[fuel_name] += (
-                producer.expectation.get_development_potential(fuel_name)
-            )
-
-    fair_share = {
-        (producer_name, fuel_name): 0.0
-        for fuel_name in fuels
-        for producer_name in producers
-    }
-
-    for fuel_name, total_potential in total_potentials.items():
-        if total_potential == 0.0:
+    for plant in producer.plants:
+        if not producer.allow_plant[plant.name]:
             continue
 
-        for producer_name, producer in producers.items():
-            if not producer.can_produce(fuel_name):
-                continue
+        multipliers = _limit_by_feed(producer, plant.name, development, idx)
+        production = float(plant.expectation.get_production(idx))
+        potential[plant.fuel.name] += multipliers * production
 
-            potential = producer.expectation.get_development_potential(fuel_name)
-            fair_share[(producer_name, fuel_name)] += potential / total_potential
+    # TODO: can easily loop over export distribution to include shares going to ports
+    for key, value in potential.items():
+        producer.expectation.set_development_potential(key, value)
 
-    _assign_fair_share_of_gap(producers, fair_share, gap, idx)
 
-
-def calculate_fuel_supply_demand_gap(
-    fuels: dict[str, Fuel],
-    supply: dict[str, FloatLike],
-    demand: dict[str, FloatLike],
-) -> dict[str, FloatLike]:
+def _limit_by_feed(
+    producer: Producer, plant_name: str, development: float, idx: int
+) -> float:
     """
-    Calculate the expected future gap between supply and demand of each fuel pathway.
+    Limit the plants a producer can develop to those its constrained feeds can supply.
 
     Parameters
     ----------
-    fuels
-        All fuels in the simulation.
-    supply
-        The sum of expected future fuel supply for all fuel pathways, tons/year.
-    demand
-        The sum of expected future fuel demand for all fuel pathways, tons/year.
+    producer
+        The producer instance.
+    plant_name
+        Name of the plant to develop.
+    development
+        Number of plants the ramp-up allows the producer to develop over the time step.
+    idx
+        Current time-step index.
 
     Returns
     -------
-    dict[str, FloatLike]
-        The expected future gap between fuel supply and demand for each fuel pathway,
-        tons/year.
+    float
+        Number of the plants the producer can develop within its feed constraints.
     """
-    gap: dict[str, FloatLike] = {}
+    expectation = producer.expectation
+    limit = development
 
-    for fuel_name, fuel in fuels.items():
-        if fuel.liquid_market:
+    for feed_name, constraint in producer.feed_constraints.items():
+        if constraint is None:
             continue
 
-        gap.setdefault(fuel_name, 0.0)
+        mass = expectation.get_plant_feed_consumption(plant_name, feed_name)
 
-        if fuel_name in demand:
-            gap[fuel_name] += demand[fuel_name]
+        if mass == 0.0:
+            continue
 
-        if fuel_name in supply:
-            gap[fuel_name] -= supply[fuel_name]
+        gap = float(expectation.get_feed_gap(feed_name, idx))
+        limit = min(limit, gap / mass)
 
-    return gap
+    return limit
 
 
 def calculate_expected_fuel_demand(
     fleets: dict[str, Fleet], idx: int
 ) -> dict[str, FloatLike]:
     """
-    Calculate the expected future demand of each fuel pathway across all fleets.
+    Calculate the expected future demand of each fuel across all fleets.
+
+    The demand is the expected bunkering calculated earlier in the time step, so it
+    lags the newest fleet evolution. This keeps feedstock availability and bunker
+    limits satisfied.
 
     Parameters
     ----------
@@ -128,21 +112,18 @@ def calculate_expected_fuel_demand(
     Returns
     -------
     dict[str, FloatLike]
-        The sum of expected future fuel demand for all fuel pathways, tons/year.
+        Expected future demand of each fuel, in tons/year.
     """
-    return add_dicts(
-        *(
-            _calculate_expected_fleet_fuel_demand(fleet, idx)
-            for fleet in fleets.values()
-        )
-    )
+    horizon = np.s_[idx:]
+    demands = [fleet.expectation.get_fuel_demand(horizon) for fleet in fleets.values()]
+    return add_dicts(*demands)
 
 
 def calculate_expected_fuel_supply(
     producers: dict[str, Producer], idx: int
 ) -> dict[str, FloatLike]:
     """
-    Calculate the expected future supply of each fuel pathway across all producers.
+    Calculate the expected future supply of each fuel across all producers.
 
     Parameters
     ----------
@@ -154,164 +135,104 @@ def calculate_expected_fuel_supply(
     Returns
     -------
     dict[str, FloatLike]
-        The sum of expected future fuel supply for all fuel pathways, tons/year.
+        Expected future supply of each fuel, in tons/year.
     """
-    return add_dicts(
-        *(
-            _calculate_expected_producer_fuel_supply(producer, idx)
-            for producer in producers.values()
-        )
-    )
-
-
-def calculate_development_potential(
-    producer: Producer, time_step: float, idx: int
-) -> None:
-    """
-    Calculate the development potential of the producer per fuel type.
-
-    Parameters
-    ----------
-    producer
-        The producer instance.
-    time_step
-        Current time-step size, days.
-    idx
-        Current time-step index.
-    """
-    maximum_development = producer.maximum_development.get() * time_step / YEAR
-    ramp_up = producer.maximum_ramp_up.get() * time_step / YEAR
-    utilization = min(producer.current_utilization + ramp_up, 1.0)
-    maximum_development *= utilization
-
-    potential = dict.fromkeys(producer.fuels, 0.0)
-
-    for plant in producer.plants:
-        plant_name = plant.name
-        fuel_name = plant.fuel.name
-        production = float(plant.expectation.get_production(idx))
-
-        uptake = 1.0 if producer.allow_plant[plant_name] else 0.0
-        plant_potential = uptake * maximum_development
-
-        for feed_name, constraint in producer.feed_constraints.items():
-            if constraint is None:
-                continue
-
-            mass = producer.expectation.get_plant_feed_consumption(
-                plant_name, feed_name
-            )
-
-            if mass == 0.0:
-                continue
-
-            gap = float(producer.expectation.get_feed_gap(feed_name, idx))
-            potential_multipliers = uptake * gap / mass
-
-            if potential_multipliers < plant_potential:
-                plant_potential = potential_multipliers
-
-        potential[fuel_name] += plant_potential * production
-
-    for fuel_name in producer.fuels:
-        # TODO: can easily loop over export distribution to include shares going to
-        # ports
-        producer.expectation.set_development_potential(fuel_name, potential[fuel_name])
-
-
-def _assign_fair_share_of_gap(
-    producers: dict[str, Producer],
-    fair_share: dict[tuple[str, str], float],
-    gap: dict[str, FloatLike],
-    idx: int,
-) -> None:
-    """
-    Assign fair-share of the supply/demand gap of a fuel pathway to producers.
-
-    Parameters
-    ----------
-    producers
-        Either all constrained producers or all unconstrained producers in the
-        simulation.
-    fair_share
-        Fair-share of the supply/demand gap per producer and fuel.
-    gap
-        The expected future gap between fuel supply and demand for each fuel pathway,
-        tons/year.
-    idx
-        Current time-step index.
-    """
-    for producer_name, producer in producers.items():
-        expectation = producer.expectation
-        results = producer.results
-
-        for fuel_name in gap:
-            if not producer.can_produce(fuel_name):
-                continue
-
-            key = (producer_name, fuel_name)
-            demand_share = gap[fuel_name] * fair_share[key]
-            expectation.set_fair_share_demand(idx, fuel_name, demand_share)
-            results.fair_share_fuel_fraction[fuel_name][idx] = fair_share[key]
-
-
-def _calculate_expected_producer_fuel_supply(
-    producer: Producer, idx: int
-) -> dict[str, FloatLike]:
-    """
-    Calculate the future supply of each fuel pathway across all plants of the producer.
-
-    Parameters
-    ----------
-    producer
-        Producer for which fuel production is calculated.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    dict[str, FloatLike]
-        The sum of expected future fuel production from the producer for each fuel
-        pathway, tons/year.
-    """
-    idx_ = np.s_[idx:]
-
-    expectation = producer.expectation
+    horizon = np.s_[idx:]
     supply: dict[str, FloatLike] = {}
 
-    for plant in producer.plants:
-        plant_name = plant.name
-        fuel_name = plant.fuel.name
+    for producer in producers.values():
+        expectation = producer.expectation
 
-        supply.setdefault(fuel_name, 0.0)
-        supply[fuel_name] += expectation.get_guaranteed_production(plant_name, idx=idx_)
+        for plant in producer.plants:
+            fuel_name = plant.fuel.name
+            production = expectation.get_guaranteed_production(plant.name, horizon)
+            supply[fuel_name] = supply.get(fuel_name, 0.0) + production
 
     return supply
 
 
-def _calculate_expected_fleet_fuel_demand(
-    fleet: Fleet, idx: int
+def calculate_expected_fuel_gap(
+    fuels: dict[str, Fuel],
+    supply: dict[str, FloatLike],
+    demand: dict[str, FloatLike],
 ) -> dict[str, FloatLike]:
     """
-    Calculate future demand of each fuel pathway across all vessel of a single fleet.
-
-    Notice that the demand is taken directly from the expected bunkering calculated
-    previously in the time-step. This means that it does not account for the newest
-    fleet evolution but rather a time-lagged view on the expected multipliers. This is
-    necessary to ensure potential feedstock availability and bunker limits are
-    satisfied.
+    Calculate the expected future gap between demand and supply of each fuel.
 
     Parameters
     ----------
-    fleet
-        Fleet for which demand is being calculated.
-    idx
-        Current time-step index.
+    fuels
+        All fuels in the simulation not traded on a liquid market.
+    supply
+        Expected future supply of each fuel, in tons/year.
+    demand
+        Expected future demand of each fuel, in tons/year.
 
     Returns
     -------
     dict[str, FloatLike]
-        The sum of expected future fuel consumption from the fleet for each fuel
-        pathway, tons/year.
+        Expected future demand less supply of each fuel, in tons/year.
     """
-    return fleet.expectation.get_fuel_demand(np.s_[idx:])
+    return {name: demand.get(name, 0.0) - supply.get(name, 0.0) for name in fuels}
+
+
+def calculate_fair_share_demand(
+    producers: dict[str, Producer], gap: dict[str, FloatLike], idx: int
+) -> None:
+    """
+    Assign each producer a share of each fuel's gap in proportion to its potential.
+
+    TODO: Can be improved with a regionality aspect
+
+    Parameters
+    ----------
+    producers
+        All producers in the simulation.
+    gap
+        Expected future gap between demand and supply of each fuel, in tons/year.
+    idx
+        Current time-step index.
+    """
+    for fuel_name, fuel_gap in gap.items():
+        shares = _calculate_fair_shares(producers, fuel_name)
+
+        for producer_name, share in shares.items():
+            producer = producers[producer_name]
+            demand = fuel_gap * share
+            producer.expectation.set_fair_share_demand(idx, fuel_name, demand)
+            producer.results.fair_share_fuel_fraction[fuel_name][idx] = share
+
+
+def _calculate_fair_shares(
+    producers: dict[str, Producer], fuel_name: str
+) -> dict[str, float]:
+    """
+    Calculate each producer's share of the total development potential of a fuel.
+
+    Parameters
+    ----------
+    producers
+        All producers in the simulation.
+    fuel_name
+        Name of the fuel.
+
+    Returns
+    -------
+    dict[str, float]
+        Share of each producer able to produce the fuel, zero for all when no
+        producer has any potential.
+    """
+    potentials: dict[str, float] = {}
+
+    for name, producer in producers.items():
+        if not producer.can_produce(fuel_name):
+            continue
+
+        potentials[name] = producer.expectation.get_development_potential(fuel_name)
+
+    total = sum(potentials.values())
+
+    if total == 0.0:
+        return dict.fromkeys(potentials, 0.0)
+
+    return {name: potential / total for name, potential in potentials.items()}

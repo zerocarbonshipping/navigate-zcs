@@ -35,9 +35,9 @@ from navigate.simulation.fuel.results import (
     record_producer_results,
 )
 from navigate.simulation.fuel.supply_demand import (
-    calculate_constrained_fair_share_fuel_demand,
     calculate_development_potential,
     calculate_expected_fuel_demand,
+    calculate_expected_fuel_gap,
     calculate_expected_fuel_supply,
-    calculate_fuel_supply_demand_gap,
+    calculate_fair_share_demand,
 )

@@ -52,14 +52,14 @@ from navigate.simulation.fleet import (
     verify_power_capacity,
 )
 from navigate.simulation.fuel import (
-    calculate_constrained_fair_share_fuel_demand,
     calculate_development_potential,
     calculate_expected_fuel_demand,
+    calculate_expected_fuel_gap,
     calculate_expected_fuel_supply,
     calculate_export_expectations,
+    calculate_fair_share_demand,
     calculate_feed_availability,
     calculate_fuel_import_to_ports,
-    calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
     calculate_port_expectations,
@@ -475,10 +475,8 @@ class Simulation:
 
         demand = calculate_expected_fuel_demand(self.nodes.fleets, self._idx)
         supply = calculate_expected_fuel_supply(self.nodes.producers, self._idx)
-        gap = calculate_fuel_supply_demand_gap(fuels, supply, demand)
-        calculate_constrained_fair_share_fuel_demand(
-            fuels, self.nodes.producers, gap, self._idx
-        )
+        gap = calculate_expected_fuel_gap(fuels, supply, demand)
+        calculate_fair_share_demand(self.nodes.producers, gap, self._idx)
 
         for producer in self.nodes.producers.values():
             perform_pipeline_planning(
