@@ -45,12 +45,11 @@ def complete_plant_results(results: PlantResults) -> None:
     """
     context = results.context
 
-    results.equivalent_investment_wtt = context.equivalent_by_emission(
-        results.investment_wtt
-    )
-    results.equivalent_instantaneous_wtt = context.equivalent_by_emission(
-        results.instantaneous_wtt
-    )
+    investment = context.equivalent_by_emission(results.investment_wtt)
+    instantaneous = context.equivalent_by_emission(results.instantaneous_wtt)
+
+    results.equivalent_investment_wtt = investment
+    results.equivalent_instantaneous_wtt = instantaneous
 
 
 def complete_producer_results(results: ProducerResults) -> None:
