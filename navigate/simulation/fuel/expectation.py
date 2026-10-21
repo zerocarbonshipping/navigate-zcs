@@ -20,13 +20,14 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Collection, Iterator
 
+    from navigate.core.expectations import PlantExpectation
     from navigate.core.increment import PlantIncrement
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray, IntArray
+    from navigate.util.types_ import FloatArray
 
 
 def calculate_port_expectations(
@@ -90,15 +91,19 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
         if value is not None:
             expectation.set_bunker_wtt_overwrite(idx, *key, value.get(times))
 
-    # shore power (convert from USD/MWh to USD/GJ, and ton/MWh to ton/GJ)
-    cost = port.shore_power_cost.get(times) / MWH_TO_GJ
     share = port.shore_power_connection_share.get(times)
-    expectation.set_shore_power_cost(idx, cost)
-    expectation.set_shore_power_connection_share(idx, share)
 
+    # convert from USD/MWh to USD/GJ, and ton/MWh to ton/GJ
+    cost = port.shore_power_cost.get(times) / MWH_TO_GJ
+    factors: dict[str, FloatArray] = {}
     for key, value in port.shore_power_emission_factor.items():
-        factor = value.get(times) / MWH_TO_GJ
-        expectation.set_shore_power_emission_factor(idx, key, factor)
+        factors[key] = value.get(times) / MWH_TO_GJ
+
+    expectation.set_shore_power_connection_share(idx, share)
+    expectation.set_shore_power_cost(idx, cost)
+
+    for key, value in factors.items():
+        expectation.set_shore_power_emission_factor(idx, key, value)
 
 
 def _calculate_export_expectation(
@@ -108,16 +113,15 @@ def _calculate_export_expectation(
     if not producer.export_distribution:
         return
 
+    expectation = producer.expectation
     exports: dict[str, FloatArray] = {}
+
     for key, value in producer.export_distribution.items():
         exports[key] = value.get(times)
 
-    total = sum(exports.values())
-
     # at steps where the total is not positive, ports share exports equally
+    total = sum(exports.values())
     default = 1.0 / len(exports)
-
-    expectation = producer.expectation
 
     for port_name, export in exports.items():
         share = divide_nonzero(export, total, default=default)
@@ -141,297 +145,253 @@ def calculate_producer_evolution_expectation(
     idx
         Current time-step index.
     """
-    idx_ = np.s_[idx:]
-    years = timeline / YEAR
-    times = timeline[idx_]
-    today = times[0]
-
-    if idx == 0:
-        time_steps = np.insert((timeline[1:] - timeline[:-1]), 0, YEAR)
-    else:
-        time_steps = timeline[idx:] - timeline[idx - 1 : -1]
-
-    year_steps = time_steps / YEAR
-
-    n = len(producer.plants)
+    times = timeline[idx:]
+    plants = producer.plants
+    in_service = producer.increments
+    in_pipeline = producer.pipeline
 
     # every plant carries the same emissions, so an arbitrary one names them
-    emissions = producer.plants[0].expectation.get_emissions() if n > 0 else []
+    emissions = plants[0].expectation.get_emissions()
+    mix = _ProductionMix((len(plants), times.size), emissions)
 
-    cost = np.zeros((n, times.size))
-    wtt = {emission_name: np.zeros((n, times.size)) for emission_name in emissions}
-    weight = np.zeros((n, times.size))
-
-    existing = np.zeros((n, times.size))
-
-    for p, plant in enumerate(producer.plants):
-        incs = producer.increments[p]
-        if not len(incs):
-            continue
-
-        decided = np.array([inc.decided for inc in incs])
-        origins = find_origin_indexes(years, years[idx], decided)
-        production = np.asarray(plant.expectation.get_production(origins))
-
-        existing[p, :] = _calculate_increments_production(
-            incs, production, plant.lifetime.get(), today, times
-        )
-
-        _accumulate_weighted_cost(
-            incs,
-            plant,
-            origins,
-            production,
-            today,
-            times,
-            emissions,
-            p,
-            cost,
-            weight,
-            wtt,
-        )
-
-    pipeline = np.zeros((n, times.size))
-
-    for p, plant in enumerate(producer.plants):
-        pinc = producer.pipeline[p]
-        if not len(pinc):
-            continue
-
-        decided = np.array([inc.decided for inc in pinc])
-        origins = find_origin_indexes(years, years[idx], decided)
-        production = np.asarray(plant.expectation.get_production(origins))
-
-        pipeline[p, :] = _calculate_increments_production(
-            pinc, production, plant.lifetime.get(), today, times
-        )
-
-        _accumulate_weighted_cost(
-            pinc,
-            plant,
-            origins,
-            production,
-            today,
-            times,
-            emissions,
-            p,
-            cost,
-            weight,
-            wtt,
-        )
-
-    # without initial production the supply/demand interaction never starts, as
-    # no supply is expected and thus no demand; a partially uniform uptake
-    # expectation weighted by the jump-start fraction starts it
-    allowed = np.array(
-        [producer.allow_plant[plant.name] for plant in producer.plants], dtype=bool
-    )
-    total = np.count_nonzero(allowed)
-    uniform = np.zeros_like(producer.current_uptake)
-    uniform[allowed] = 1.0 / total
-
-    jump_start = producer.jump_start_fraction.get()
-    uptakes = (1.0 - jump_start) * producer.current_uptake + jump_start * uniform
-
-    uptake_limits = np.zeros_like(uptakes)
-    uptake_limits[allowed] = 1.0
-
-    # likewise, without previous development the expectation needs a minimum of
-    # development potential to jump-start production
-    if producer.current_utilization > 0.0:
-        utilization = producer.current_utilization
-    else:
-        utilization = jump_start
-
-    newbuild = np.zeros((n, times.size))
-    feed_consumption = {
-        feed_name: np.zeros_like(times) for feed_name in producer.feed_constraints
-    }
-
-    for t, time in enumerate(times):
-        # t=0 is already in the pipeline from the current time step's planning
-        if t == 0:
-            continue
-
-        time_step = time_steps[t]
-        year_step = year_steps[t]
-
-        # the utilization is only accounted for if the model is ramp-up
-        # constrained; otherwise the model cannot increase the utilization over
-        # time when the demand equals the supply
-        ramp_up = producer.maximum_ramp_up.get(time) * year_step
-        utilization = min(utilization + ramp_up, 1.0)
-
-        maximum_development = (
-            utilization * producer.maximum_development.get(time) * year_step
-        )
-        consumption = slice_dict(feed_consumption, t)
-
-        constrained_uptakes = calculate_constrained_uptakes(
-            producer,
-            uptakes,
-            maximum_development,
-            uptake_limits,
-            idx + t,
-            additional_consumption=consumption,
-        )
-
-        for p, plant in enumerate(producer.plants):
-            lifetime = plant.lifetime.get(time)
-            lead_time = plant.lead_time.get(time)
-
-            # the delivery and decommission times of the last expected increment,
-            # as increments enter uniformly over the time step
-            delivery = time + lead_time * YEAR
-            decommission = delivery + lifetime * YEAR
-
-            # the production capacity of a plant is locked when it is decided, not
-            # when it is delivered, so production is read at time 't'
-            expectation = plant.expectation
-            plant_production = float(expectation.get_production(idx + t))
-            total_production = (
-                maximum_development * constrained_uptakes[p] * plant_production
-            )
-
-            newbuild_production = _calculate_increment_production_interval(
-                total_production, delivery, decommission, time_step, times
-            )
-            newbuild[p, :] += newbuild_production
-
-            newbuild_cost = expectation.get_levelized_production_cost(idx + t)
-            cost[p, :] += newbuild_production * newbuild_cost
-            weight[p, :] += newbuild_production
-
-            for e in emissions:
-                newbuild_wtt = expectation.get_production_wtt(e, idx + t)
-                wtt[e][p, :] += newbuild_production * newbuild_wtt
-
-            conversions = expectation.get_feed_masses(idx + t)
-            for feed_name, conversion in conversions.items():
-                # the feed gap moves everything forward by the lead time: it is the
-                # gap of what can enter the pipeline at 't', not the gap at
-                # 't + lead_time'
-                feed_consumption[feed_name][t:] += total_production * conversion
-
-    cost_avg = divide_nonzero(cost, weight)
-    wtt_avg = {
-        emission_name: divide_nonzero(unit_wtt, weight)
-        for emission_name, unit_wtt in wtt.items()
-    }
+    existing = _calculate_cohort_production(plants, in_service, mix, timeline, idx)
+    pipeline = _calculate_cohort_production(plants, in_pipeline, mix, timeline, idx)
+    newbuild = _calculate_newbuild_production(producer, mix, times, idx)
 
     guaranteed = existing + pipeline
     expected = guaranteed + newbuild
 
-    for p, plant in enumerate(producer.plants):
-        name = plant.name
-        producer.expectation.set_guaranteed_production(idx, name, guaranteed[p, :])
-        producer.expectation.set_expected_production(idx, name, expected[p, :])
+    for p, plant in enumerate(plants):
+        cost, wtt = mix.calculate_averages(p)
 
-    for p, plant in enumerate(producer.plants):
-        plant.expectation.set_expected_production_cost(idx, cost_avg[p, :])
+        producer.expectation.set_guaranteed_production(idx, plant.name, guaranteed[p])
+        producer.expectation.set_expected_production(idx, plant.name, expected[p])
+        plant.expectation.set_expected_production_cost(idx, cost)
 
-        for e in plant.expectation.get_emissions():
-            plant.expectation.set_expected_production_wtt(idx, e, wtt_avg[e][p, :])
+        for key, value in wtt.items():
+            plant.expectation.set_expected_production_wtt(idx, key, value)
 
-    supply = expected[:, 0]
-    for p, plant in enumerate(producer.plants):
-        if supply[p] > TOLERANCE:
-            plant.results.instantaneous_cost[idx] = cost_avg[p, 0]
+        if expected[p, 0] > TOLERANCE:
+            plant.results.instantaneous_cost[idx] = cost[0]
 
-            for e in plant.expectation.get_emissions():
-                plant.results.instantaneous_wtt[e][idx] = wtt_avg[e][p, 0]
+            for key, value in wtt.items():
+                plant.results.instantaneous_wtt[key][idx] = value[0]
 
 
-def _calculate_increments_production(
-    incs: list[PlantIncrement],
-    production: FloatArray,
-    lifetime: float,
-    today: float,
-    times: FloatArray,
+class _ProductionMix:
+    """Accumulate each plant's production-weighted cost and WTT over the times."""
+
+    def __init__(self, shape: tuple[int, int], emissions: Collection[str]) -> None:
+        self.cost: FloatArray = np.zeros(shape)
+        self.weight: FloatArray = np.zeros(shape)
+        self.wtt: dict[str, FloatArray] = {name: np.zeros(shape) for name in emissions}
+
+    def add(
+        self,
+        p: int,
+        production: FloatArray,
+        expectation: PlantExpectation,
+        origin: int | np.signedinteger,
+    ) -> None:
+        """Add plant `p`'s production at the cost and WTT of its decision `origin`."""
+        self.cost[p] += production * expectation.get_levelized_production_cost(origin)
+        self.weight[p] += production
+
+        for name, wtt in self.wtt.items():
+            wtt[p] += production * expectation.get_production_wtt(name, origin)
+
+    def calculate_averages(self, p: int) -> tuple[FloatArray, dict[str, FloatArray]]:
+        """Calculate plant `p`'s production-weighted average cost and WTT."""
+        weight = self.weight[p]
+        cost = divide_nonzero(self.cost[p], weight)
+
+        wtt: dict[str, FloatArray] = {}
+        for name, values in self.wtt.items():
+            wtt[name] = divide_nonzero(values[p], weight)
+
+        return cost, wtt
+
+
+def _calculate_cohort_production(
+    plants: list[Plant],
+    cohorts: list[list[PlantIncrement]],
+    mix: _ProductionMix,
+    timeline: FloatArray,
+    idx: int,
 ) -> FloatArray:
     """
-    Calculate the combined production profile of a set of increments over time.
+    Calculate each plant's production from its increments, adding it to the mix.
 
     Each increment enters and exits uniformly over its age span, as pipeline
     delivery and decommissioning move it.
 
     Parameters
     ----------
-    incs
-        Increments of one plant type, delivered or in the pipeline.
-    production
-        Production per plant of each increment, tons/year.
-    lifetime
-        Lifetime of the plant, years.
-    today
-        Current time, days.
-    times
-        Future times from the simulation timeline (timeline[idx:]), days.
+    plants
+        Plants of the producer.
+    cohorts
+        Increments of each plant, all delivered or all in the pipeline.
+    mix
+        Production mix the increments are added to.
+    timeline
+        Simulation timeline, days.
+    idx
+        Current time-step index.
 
     Returns
     -------
     FloatArray
-        Production at each of the times, tons/year.
+        Production of each plant at each of the times from idx on, tons/year.
     """
-    total = np.zeros_like(times)
+    years = timeline / YEAR
+    times = timeline[idx:]
+    today = times[0]
+    production = np.zeros((len(plants), times.size))
 
-    for inc, plant_production in zip(incs, production, strict=True):
-        delivery = today - inc.age * YEAR
-        decommission = delivery + lifetime * YEAR
+    for p, plant, increment, origin in _iterate_increments(plants, cohorts, years, idx):
+        capacity = float(plant.expectation.get_production(origin))
+        decision = today - increment.decided * YEAR
+        lifetime = plant.lifetime.get()
+        lifetime_decided = plant.lifetime.get(decision)
 
-        total += _calculate_increment_production_interval(
-            plant_production * inc.multiplier,
-            delivery,
-            decommission,
-            inc.age_span * YEAR,
-            times,
+        profile = _calculate_cohort_profile(increment, capacity, lifetime, times)
+        weight = _calculate_cohort_profile(increment, capacity, lifetime_decided, times)
+        production[p] += profile
+        mix.add(p, weight, plant.expectation, origin)
+
+    return production
+
+
+def _iterate_increments(
+    plants: list[Plant],
+    cohorts: list[list[PlantIncrement]],
+    years: FloatArray,
+    idx: int,
+) -> Iterator[tuple[int, Plant, PlantIncrement, np.signedinteger]]:
+    """Yield each plant's increments with the time-step index each was decided at."""
+    for p, plant in enumerate(plants):
+        increments = cohorts[p]
+        if not increments:
+            continue
+
+        decided = np.array([increment.decided for increment in increments])
+        origins = find_origin_indexes(years, years[idx], decided)
+
+        for increment, origin in zip(increments, origins, strict=True):
+            yield p, plant, increment, origin
+
+
+def _calculate_cohort_profile(
+    increment: PlantIncrement, capacity: float, lifetime: float, times: FloatArray
+) -> FloatArray:
+    """Calculate a delivered or pipeline increment's production at each of the times."""
+    production = capacity * increment.multiplier
+    delivery = times[0] - increment.age * YEAR
+    dt = increment.age_span * YEAR
+    return _calculate_increment_production(production, delivery, lifetime, dt, times)
+
+
+def _calculate_newbuild_production(
+    producer: Producer, mix: _ProductionMix, times: FloatArray, idx: int
+) -> FloatArray:
+    """
+    Calculate each plant's production from the newbuilds decided at future times.
+
+    The newbuilds decided at each time are added to the mix, and their feed
+    consumption constrains the uptakes at the times after.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    mix
+        Production mix the newbuilds are added to.
+    times
+        Future times from the simulation timeline (timeline[idx:]), days.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    FloatArray
+        Production of each plant at each of the times, tons/year.
+    """
+    plants = producer.plants
+    jump_start = producer.jump_start_fraction.get()
+    production = np.zeros((len(plants), times.size))
+    feed_consumption = {key: np.zeros_like(times) for key in producer.feed_constraints}
+
+    # without initial production the supply/demand interaction never starts, as
+    # no supply is expected and thus no demand; a partially uniform uptake
+    # expectation weighted by the jump-start fraction starts it
+    allowed = np.array([producer.allow_plant[plant.name] for plant in plants])
+    uniform = np.zeros_like(producer.current_uptake)
+    uniform[allowed] = 1.0 / np.count_nonzero(allowed)
+    uptakes = (1.0 - jump_start) * producer.current_uptake + jump_start * uniform
+    limits = allowed.astype(float)
+
+    # likewise, without previous development the expectation needs a minimum of
+    # development potential to jump-start production
+    current_utilization = producer.current_utilization
+    utilization = current_utilization if current_utilization > 0.0 else jump_start
+
+    # t=0 is already in the pipeline from the current time step's planning
+    for t in range(1, times.size):
+        time = times[t]
+        origin = idx + t
+        dt = times[t] - times[t - 1]
+        dt_years = dt / YEAR
+
+        # the utilization is only accounted for if the model is ramp-up
+        # constrained; otherwise the model cannot increase the utilization over
+        # time when the demand equals the supply
+        ramp_up = producer.maximum_ramp_up.get(time) * dt_years
+        utilization = min(utilization + ramp_up, 1.0)
+
+        development = utilization * producer.maximum_development.get(time) * dt_years
+        consumption = slice_dict(feed_consumption, t)
+        constrained_uptakes = calculate_constrained_uptakes(
+            producer, uptakes, development, limits, origin, consumption
         )
 
-    return total
+        for p, plant in enumerate(plants):
+            # the production capacity of a plant is locked when it is decided, not
+            # when it is delivered, so production is read at time 't'
+            expectation = plant.expectation
+            plant_capacity = float(expectation.get_production(origin))
+            capacity = development * constrained_uptakes[p] * plant_capacity
+
+            profile = _calculate_newbuild_profile(plant, capacity, time, dt, times)
+            production[p] += profile
+            mix.add(p, profile, expectation, origin)
+
+            for feed_name, conversion in expectation.get_feed_masses(origin).items():
+                # the feed gap moves everything forward by the lead time: it is the
+                # gap of what can enter the pipeline at 't', not the gap at
+                # 't + lead_time'
+                feed_consumption[feed_name][t:] += capacity * conversion
+
+    return production
 
 
-def _accumulate_weighted_cost(
-    incs: list[PlantIncrement],
-    plant: Plant,
-    origins: IntArray,
-    production: FloatArray,
-    today: float,
-    times: FloatArray,
-    emissions: Collection[str],
-    p: int,
-    cost: FloatArray,
-    weight: FloatArray,
-    wtt: dict[str, FloatArray],
-) -> None:
-    """
-    Accumulate weighted production cost and emissions for a set of increments.
+def _calculate_newbuild_profile(
+    plant: Plant, capacity: float, time: float, dt: float, times: FloatArray
+) -> FloatArray:
+    """Calculate the production at each of the times of newbuilds decided at `time`."""
+    lifetime = plant.lifetime.get(time)
+    lead_time = plant.lead_time.get(time)
 
-    Shared by the existing-plant and pipeline sections of the evolution expectation.
-    """
-    expectation = plant.expectation
-
-    for i, inc in enumerate(incs):
-        lifetime = plant.lifetime.get(today - inc.decided * YEAR)
-        delivery = today - inc.age * YEAR
-        decommission = delivery + lifetime * YEAR
-
-        total_production = production[i] * inc.multiplier
-        interval = _calculate_increment_production_interval(
-            total_production, delivery, decommission, inc.age_span * YEAR, times
-        )
-
-        cost[p, :] += interval * expectation.get_levelized_production_cost(origins[i])
-        weight[p, :] += interval
-
-        for e in emissions:
-            wtt[e][p, :] += interval * expectation.get_production_wtt(e, origins[i])
+    # the delivery of the last expected increment, as increments enter uniformly
+    # over the time step
+    delivery = time + lead_time * YEAR
+    return _calculate_increment_production(capacity, delivery, lifetime, dt, times)
 
 
-def _calculate_increment_production_interval(
+def _calculate_increment_production(
     production: float,
     delivery: float,
-    decommission: float,
-    time_step: float,
+    lifetime: float,
+    dt: float,
     times: FloatArray,
 ) -> FloatArray:
     """
@@ -444,10 +404,11 @@ def _calculate_increment_production_interval(
         delivered), tons/year.
     delivery
         Time at which production was or will be delivered, days.
-    decommission
-        Time at which production will be decommissioned, days.
-    time_step
-        Time-step duration over which production was or will be delivered, days.
+    lifetime
+        Time production stays in service after its delivery, years.
+    dt
+        Time-step duration over which production was or will be delivered, and
+        will be decommissioned, days.
     times
         Future times from the simulation timeline (timeline[idx:]), days.
 
@@ -456,59 +417,46 @@ def _calculate_increment_production_interval(
     FloatArray
         The production active at each of the times, tons/year.
     """
-    # ignore small increments to avoid round-off issues
-    tol = 1e-5
-
-    end = times[-1]
-    output = np.zeros_like(times)
-
-    time_delivery = delivery - time_step
-    delivery_period = time_step
-
     if delivery <= 0.0:
         # an existing increment is already delivered, so all its production is
         # assigned at t=0
-        output[0] = production
-
+        delivered = np.zeros_like(times)
+        delivered[0] = production
     else:
-        # the plants are delivered continuously over the time step, the first in
-        # 'delivery - time_step' time
-        t_delivery = np.argmax(time_delivery < times)
+        delivered = _spread_uniformly(production, delivery, dt, times)
 
-        while delivery_period > tol:
-            if time_delivery >= end:
-                break
+    decommission = delivery + lifetime * YEAR
+    decommissioned = _spread_uniformly(production, decommission, dt, times)
 
-            end_point = np.minimum(times[t_delivery], delivery)
-            partial = end_point - time_delivery
-            scaling = partial / time_step
-            output[t_delivery] = scaling * production
+    return np.cumsum(delivered - decommissioned)
 
-            t_delivery += 1
-            time_delivery += partial
-            delivery_period -= partial
 
-    # the plants are decommissioned continuously over the time step, the first in
-    # 'decommission - time_step' time
-    time_decommission = decommission - time_step
-    t_decom = np.argmax(time_decommission < times)
-    decommission_period = time_step
+def _spread_uniformly(
+    production: float, end: float, dt: float, times: FloatArray
+) -> FloatArray:
+    """
+    Spread production uniformly over the window from `end - dt` to `end`.
 
-    while decommission_period > tol:
-        # the end of the simulation also covers decommissioning beyond the timeline
-        if time_decommission >= end:
+    Each time takes the part of the window since the previous time; the part
+    beyond the last time is left out.
+    """
+    # a remainder of the window below the tolerance is round-off
+    tolerance = 1e-5
+
+    spread = np.zeros_like(times)
+    start = end - dt
+    remaining = dt
+    t = np.argmax(start < times)
+
+    while remaining > tolerance:
+        if start >= times[-1]:
             break
 
-        end_point = np.minimum(times[t_decom], decommission)
-        partial = end_point - time_decommission
-        scaling = partial / time_step
+        partial = min(times[t], end) - start
+        spread[t] = partial / dt * production
 
-        # subtract rather than assign, as the time step may also hold part of the
-        # increment's delivery
-        output[t_decom] -= scaling * production
+        t += 1
+        start += partial
+        remaining -= partial
 
-        t_decom += 1
-        time_decommission += partial
-        decommission_period -= partial
-
-    return np.cumsum(output)
+    return spread
