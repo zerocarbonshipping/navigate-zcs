@@ -108,16 +108,15 @@ def calculate_vessel_spend_coefficients(
     """
     vessel_name = vessel.name
     expectation = regulation.expectation
-    vessel_expectation = vessel.expectation
-    is_intensity = regulation.measure == RegulationMeasureID.INTENSITY
 
     # in ton emission/GJ; zero where the threshold enters the right-hand side
+    is_intensity = regulation.measure == RegulationMeasureID.INTENSITY
     threshold_term = threshold / TON_TO_KG if is_intensity else 0.0
 
-    for converter_name, burned in vessel.fuels_per_converter.items():
-        for fuel_name in burned:
+    for converter_name, fuel_names in vessel.fuels_per_converter.items():
+        for fuel_name in fuel_names:
             fuel_key = (vessel_name, converter_name, fuel_name)
-            lhv = vessel_expectation.get_effective_lhv(converter_name, fuel_name)
+            lhv = vessel.expectation.get_effective_lhv(converter_name, fuel_name)
             emission = expectation.get_emission_coefficient(fuel_key, idx)
 
             spend = emission - threshold_term * lhv
