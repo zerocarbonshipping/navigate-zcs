@@ -64,8 +64,7 @@ def calculate_plant_production_expectations(
     component = None
     durations = None
 
-    # TODO: Forward calculation can be removed once fuel market expectation is
-    # simplified
+    # TODO: drop the forward calculation once the fuel market expectation is simplified
     for t, time in enumerate(timeline[idx:], start=idx):
         lead_time = expectation.get_lead_time(t)
         lifetime = expectation.get_lifetime(t)
@@ -73,7 +72,7 @@ def calculate_plant_production_expectations(
         # the flow sizes depend on the lead time and lifetime alone, so an
         # unchanged pair reuses the component instead of reallocating it
         if component is None or (lead_time, lifetime) != durations:
-            component = _build_component(plant, process, emissions, time, t)
+            component = _build_component(plant, process, emissions.keys(), time, t)
             durations = (lead_time, lifetime)
         else:
             component.reset_flow(time)
@@ -119,7 +118,7 @@ def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) ->
 def _build_component(
     plant: Plant,
     process: Process,
-    emissions: Iterable[str],
+    emission_names: Iterable[str],
     time_initial: float,
     idx: int,
 ) -> Component:
@@ -135,7 +134,7 @@ def _build_component(
         Plant whose lead time and lifetime set the horizon.
     process
         Process the component holds the flows of.
-    emissions
+    emission_names
         Names of the emissions to allocate a WTT flow for.
     time_initial
         Time of the investment decision, in days since the start of the simulation.
@@ -149,7 +148,8 @@ def _build_component(
     """
     lead_time = float(plant.expectation.get_lead_time(idx))
     lifetime = float(plant.expectation.get_lifetime(idx))
-    component = Component(lead_time, lifetime, time_initial, emissions)
+
+    component = Component(lead_time, lifetime, time_initial, emission_names)
     component.initialize_process_component(plant.region, process.name)
 
     return component
@@ -194,20 +194,21 @@ def _add_process_tree(
     _add_energy_flows(component, plant, process, production, conversion)
     _add_transport_flows(component, plant, process, production, conversion)
 
-    for feed, feed_conversion in zip(process.feeds, process.conversions, strict=True):
-        conversion_feed = conversion * feed_conversion.get(time_initial)
+    for feed, feed_ratio in zip(process.feeds, process.conversions, strict=True):
+        feed_conversion = conversion * feed_ratio.get(time_initial)
 
         if is_feedstock(feed):
-            expectation.add_feed_mass(idx, feed.name, conversion_feed)
+            expectation.add_feed_mass(idx, feed.name, feed_conversion)
 
-            _add_feedstock_flows(component, plant, feed, production, conversion_feed)
-            _add_transport_flows(component, plant, feed, production, conversion_feed)
+            _add_feedstock_flows(component, plant, feed, production, feed_conversion)
+            _add_transport_flows(component, plant, feed, production, feed_conversion)
 
         elif is_process(feed):
             # a subprocess gets its own component, since its lifetime and
             # replacement cycle differ from those of its parent
-            child = _build_component(plant, feed, component.wtt_flow, time_initial, idx)
-            _add_process_tree(child, plant, feed, conversion_feed, idx)
+            emission_names = component.wtt_flow.keys()
+            child = _build_component(plant, feed, emission_names, time_initial, idx)
+            _add_process_tree(child, plant, feed, feed_conversion, idx)
             component.add_component(child)
 
 
@@ -243,21 +244,23 @@ def _add_process_flows(
     region = plant.region
     capex_rate = region.process_capex[process.name]
     opex_rate = region.process_opex[process.name]
+
     scale = size * conversion
+    output = production * conversion
 
     def capex(time: float) -> float:
-        return capex_rate.get(time, scale) * production * conversion
+        return capex_rate.get(time, scale) * output
 
     def opex(time: float) -> float:
-        return opex_rate.get(time, scale) * production * conversion
+        return opex_rate.get(time, scale) * output
 
     def wtt(emission: str, time: float) -> float:
-        rate = region.process_wtt[(process.name, emission)]
-        return rate.get(time) * production * conversion
+        wtt_rate = region.process_wtt[(process.name, emission)]
+        return wtt_rate.get(time) * output
 
-    add_capex_flow(component=component, capex=capex)
-    add_fixed_opex(component=component, value=opex)
-    add_fixed_wtt(component=component, wtt=wtt)
+    add_capex_flow(component, capex)
+    add_fixed_opex(component, opex)
+    add_fixed_wtt(component, wtt)
 
 
 def _add_energy_flows(
@@ -286,31 +289,32 @@ def _add_energy_flows(
     region = plant.region
     source = plant.source
     energy_rate = region.process_energy[process.name]
+    output = production * conversion
 
     def energy(time: float) -> float:
-        return energy_rate.get(time) * production * conversion
+        return energy_rate.get(time) * output
 
     if source.dependency == SourceDependencyID.STANDALONE:
         # a standalone source is built with the plant, so its unit cost and emission
         # factors are locked at the time of investment even as a replaced process
         # changes the energy demand
-        time_invest = component.time_initial
-        capex_rate = region.source_capex[source.name].get(time_invest)
-        opex_rate = region.source_opex[source.name].get(time_invest)
+        time_initial = component.time_initial
+        capex_locked = region.source_capex[source.name].get(time_initial)
+        opex_locked = region.source_opex[source.name].get(time_initial)
 
         def capex(time: float) -> float:
-            return capex_rate * energy(time)
+            return capex_locked * energy(time)
 
         def opex(time: float) -> float:
-            return opex_rate * energy(time)
+            return opex_locked * energy(time)
 
         def fixed_wtt(emission: str, time: float) -> float:
-            rate = region.source_wtt[(source.name, emission)].get(time_invest)
-            return rate * energy(time)
+            wtt_locked = region.source_wtt[(source.name, emission)].get(time_initial)
+            return wtt_locked * energy(time)
 
-        add_capex_flow(component=component, capex=capex)
-        add_fixed_opex(component=component, value=opex)
-        add_fixed_wtt(component=component, wtt=fixed_wtt)
+        add_capex_flow(component, capex)
+        add_fixed_opex(component, opex)
+        add_fixed_wtt(component, fixed_wtt)
 
     elif source.dependency == SourceDependencyID.CONNECTED:
         # a connected source is bought at the prevailing price and emits at the
@@ -321,8 +325,8 @@ def _add_energy_flows(
         def variable_wtt(emission: str, time: FloatArray) -> FloatArray:
             return region.source_wtt[(source.name, emission)].get(time)
 
-        add_variable_opex(component=component, metric=energy, cost=cost)
-        add_variable_wtt(component=component, metric=energy, wtt=variable_wtt)
+        add_variable_opex(component, energy, cost)
+        add_variable_wtt(component, energy, variable_wtt)
 
 
 def _add_feedstock_flows(
@@ -361,11 +365,11 @@ def _add_feedstock_flows(
         return cost_rate.get(time) * production
 
     def wtt(emission: str, time: FloatArray) -> FloatArray:
-        rate = region.feedstock_wtt[(feedstock.name, emission)]
-        return rate.get(time) * production
+        wtt_rate = region.feedstock_wtt[(feedstock.name, emission)]
+        return wtt_rate.get(time) * production
 
-    add_variable_opex(component=component, metric=metric, cost=cost)
-    add_variable_wtt(component=component, metric=metric, wtt=wtt)
+    add_variable_opex(component, metric, cost)
+    add_variable_wtt(component, metric, wtt)
 
 
 def _add_transport_flows(
@@ -406,14 +410,14 @@ def _add_transport_flows(
         return conversion
 
     def cost(time: FloatArray) -> FloatArray:
-        return cost_rate.get(time) * (distance.get(time) * production)
+        return cost_rate.get(time) * distance.get(time) * production
 
     def wtt(emission: str, time: FloatArray) -> FloatArray:
-        rate = region.transport_wtt[(transport.name, emission)]
-        return rate.get(time) * distance.get(time) * production
+        wtt_rate = region.transport_wtt[(transport.name, emission)]
+        return wtt_rate.get(time) * distance.get(time) * production
 
-    add_variable_opex(component=component, metric=metric, cost=cost)
-    add_variable_wtt(component=component, metric=metric, wtt=wtt)
+    add_variable_opex(component, metric, cost)
+    add_variable_wtt(component, metric, wtt)
 
 
 def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> None:
@@ -430,16 +434,16 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
         Current time-step index.
     """
     expectation = plant.expectation
+    commence_idx = component.get_commence_index()
 
     production = float(expectation.get_production(idx))
-    production_flow = build_production_flow(component=component, production=production)
+    production_flow = build_production_flow(component, production)
 
     cost_flow = component.get_cost_flow()
     discount_rate = plant.cost_of_capital.get(component.time_initial)
     levelized_cost = calculate_levelized_cost(cost_flow, production_flow, discount_rate)
     expectation.set_levelized_production_cost(idx, levelized_cost)
 
-    commence_idx = component.get_commence_index()
     # a copy, since the component is reused and refilled for the next step
     tied_capital = component.tied_capital_flow[commence_idx:].copy()
     expectation.set_tied_capital(idx, tied_capital)
