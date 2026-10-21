@@ -1419,6 +1419,7 @@ if you want more details.</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -1439,6 +1440,16 @@ if you want more details.</p>
     <span class="sa">f</span><span class="s2">"not at the repository root (</span><span class="si">{</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="si">}</span><span class="s2">) -- run the Setup cell at the "</span>
     <span class="s2">"top of the notebook first"</span>
 <span class="p">)</span>
+
+<span class="c1"># This version of Navigate's solver can hang on one year of a run. This caps the</span>
+<span class="c1"># method that hangs and solves that year again with another one; runs that solve</span>
+<span class="c1"># today are unchanged. See _solver.py.</span>
+<span class="n">_STYLE_DIR</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"docs/workshop"</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
+<span class="k">if</span> <span class="n">_STYLE_DIR</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_STYLE_DIR</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">guard_interior_point</span>
+
+<span class="n">guard_interior_point</span><span class="p">()</span>
 
 <span class="n">NAV</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"simulations/examples/example_4/example_4.nav"</span><span class="p">)</span>
 <span class="n">ARGS</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">(</span><span class="n">data_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"./assumptions"</span><span class="p">),</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -3099,8 +3110,8 @@ several ways.</p>
 <hr class="docutils" />
 <section id="one-time-step-from-the-inside">
 <h3>One time step, from the inside<a class="headerlink" href="#one-time-step-from-the-inside" title="Link to this heading">#</a></h3>
-<section id="stage-0-initialization">
-<h4>Stage 0 — Initialization<a class="headerlink" href="#stage-0-initialization" title="Link to this heading">#</a></h4>
+<section id="stage-0-initialisation">
+<h4>Stage 0 — Initialisation<a class="headerlink" href="#stage-0-initialisation" title="Link to this heading">#</a></h4>
 <p>A time step starts with an initialisation. It inherits a fleet with an age
 structure, plants that were sanctioned years ago, and two regulations whose
 terms for this year are already fixed.</p>
@@ -4784,8 +4795,8 @@ next year’s look-ahead.</p>
 </div>
 </div>
 </div>
-<section id="stage-0-initialization-the-two-years">
-<h4>Stage 0 — Initialization (the two years)<a class="headerlink" href="#stage-0-initialization-the-two-years" title="Link to this heading">#</a></h4>
+<section id="stage-0-initialisation-the-two-years">
+<h4>Stage 0 — Initialisation (the two years)<a class="headerlink" href="#stage-0-initialisation-the-two-years" title="Link to this heading">#</a></h4>
 <p>Each year starts from what it inherits: the fleet with its age structure, the plants already sanctioned, and this year’s terms of the two regulations.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -6403,7 +6414,7 @@ from the top.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#one-time-step-from-the-inside">One time step, from the inside</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-0-initialization">Stage 0 — Initialization</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-0-initialisation">Stage 0 — Initialisation</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-1-look-ahead">Stage 1 — Look ahead</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#year-by-year-what-each-configuration-expects-to-burn-and-why">Year by year: what each configuration expects to burn, and why</a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#year-by-year-what-each-configuration-expects-to-pay">Year by year: what each configuration expects to pay</a></li>
@@ -6425,7 +6436,7 @@ from the top.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#later-on-the-same-step-again">Later on: the same step again</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-0-initialization-the-two-years">Stage 0 — Initialization (the two years)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-0-initialisation-the-two-years">Stage 0 — Initialisation (the two years)</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-1-look-ahead-the-two-years">Stage 1 — Look ahead (the two years)</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-2-decide-the-two-years">Stage 2 — Decide (the two years)</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-3-the-producers-decide-too-the-two-years">Stage 3 — The producers decide too (the two years)</a></li>

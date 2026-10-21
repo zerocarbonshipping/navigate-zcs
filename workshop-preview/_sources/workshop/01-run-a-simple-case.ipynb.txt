@@ -978,7 +978,7 @@
     "  energy consumed in 2050;\n",
     "- the three biggest fuels in 2050.\n",
     "For comparison, the workshop's own deck for this case gives 5,935 kt in 2026,\n",
-    "3,541 kt in 2050, 127,773 kt in total and 38.5 % alternative fuels in 2050, with\n",
+    "3,541 kt in 2050, about 127,800 kt in total and 38.5 % alternative fuels in 2050, with\n",
     "fuel oil, e-ammonia and LNG the three biggest fuels. Say\n",
     "how close you are, and if you are far off, what in your deck could explain it.\n",
     "````\n",
