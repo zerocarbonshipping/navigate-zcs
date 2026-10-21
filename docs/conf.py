@@ -8,6 +8,7 @@ All documentation content lives under docs/, so the site builds with a plain
 sphinx-build.
 """
 
+import json
 import os
 import tomllib
 import zipfile
@@ -111,10 +112,11 @@ html_sidebars = {
 }
 
 
-# -- Tutorial downloads ------------------------------------------------------
+# -- Downloads ---------------------------------------------------------------
 
 DOCS_DIR = Path(__file__).resolve().parent
 TUTORIALS_DIR = DOCS_DIR / 'tutorials'
+EXTENSION_DIR = DOCS_DIR.parent / 'syntax' / 'vscode'
 DOWNLOADS_DIR = DOCS_DIR / '_generated' / 'tutorials'
 
 # fixed timestamp so the archives do not change between builds
@@ -136,5 +138,72 @@ def zip_tutorial_skeletons(app):
                 archive.writestr(info, path.read_bytes())
 
 
+def vsix_manifest(package):
+    """Return the `extension.vsixmanifest` that VS Code reads from a package.json."""
+    tags = []
+    for language in package['contributes']['languages']:
+        tags += [language['id'], *language['aliases']]
+        tags += [f'__ext_{extension.removeprefix(".")}' for extension in language['extensions']]
+
+    tags = ','.join(dict.fromkeys([*tags, '__web_extension']))
+    return f"""<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Language="en-US" Id="{package['name']}" Version="{package['version']}" Publisher="{package['publisher']}" />
+        <DisplayName>{package['displayName']}</DisplayName>
+        <Description xml:space="preserve"></Description>
+        <Tags>{tags}</Tags>
+        <Categories>{','.join(package['categories'])}</Categories>
+        <GalleryFlags>Public</GalleryFlags>
+        <Properties>
+            <Property Id="Microsoft.VisualStudio.Code.Engine" Value="{package['engines']['vscode']}" />
+            <Property Id="Microsoft.VisualStudio.Code.ExtensionDependencies" Value="" />
+            <Property Id="Microsoft.VisualStudio.Code.ExtensionPack" Value="" />
+            <Property Id="Microsoft.VisualStudio.Code.ExtensionKind" Value="ui,workspace,web" />
+            <Property Id="Microsoft.VisualStudio.Code.LocalizedLanguages" Value="" />
+            <Property Id="Microsoft.VisualStudio.Code.EnabledApiProposals" Value="" />
+            <Property Id="Microsoft.VisualStudio.Services.GitHubFlavoredMarkdown" Value="true" />
+            <Property Id="Microsoft.VisualStudio.Services.Content.Pricing" Value="Free"/>
+        </Properties>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Code"/>
+    </Installation>
+    <Dependencies/>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true" />
+        <Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/readme.md" Addressable="true" />
+        <Asset Type="Microsoft.VisualStudio.Services.Content.Changelog" Path="extension/changelog.md" Addressable="true" />
+    </Assets>
+</PackageManifest>
+"""
+
+
+def zip_vscode_extension(app):
+    """Package `syntax/vscode/` as the `.vsix` that the getting-started page offers."""
+    package = json.loads((EXTENSION_DIR / 'package.json').read_text())
+    vsix_path = DOWNLOADS_DIR / f"{package['name']}.vsix"
+    content_types = """<?xml version="1.0" encoding="utf-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+    <Default Extension=".json" ContentType="application/json"/>
+    <Default Extension=".md" ContentType="text/markdown"/>
+    <Default Extension=".vsixmanifest" ContentType="text/xml"/>
+</Types>
+"""
+    entries = {
+        '[Content_Types].xml': content_types,
+        'extension.vsixmanifest': vsix_manifest(package),
+    }
+    for path in sorted(path for path in EXTENSION_DIR.rglob('*') if path.is_file()):
+        entries[f'extension/{path.relative_to(EXTENSION_DIR).as_posix()}'] = path.read_bytes()
+
+    with zipfile.ZipFile(vsix_path, 'w') as archive:
+        for name, content in entries.items():
+            info = zipfile.ZipInfo(name, ZIP_DATE_TIME)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            archive.writestr(info, content)
+
+
 def setup(app):
     app.connect('builder-inited', zip_tutorial_skeletons)
+    app.connect('builder-inited', zip_vscode_extension)

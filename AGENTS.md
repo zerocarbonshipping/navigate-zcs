@@ -56,9 +56,10 @@ every change. The detail lives in the files it points to.
   `gh-pages`; `dev` publishes to `/staging/`. `docs/tutorials/` holds each
   tutorial's starting files next to its page; the docs build zips them into
   the page's download, and the example solution is written into the page.
-  Nothing runs the tutorials.
-- `syntax/` — editor syntax highlighting for the DSL, including a committed
-  VS Code `.vsix`.
+  Nothing runs the tutorials. The build also packages the VS Code extension
+  from `syntax/vscode/` for the getting-started page.
+- `syntax/` — editor syntax highlighting for the DSL; `syntax/vscode/` is the
+  VS Code extension's source.
 
 A run writes its output next to its deck: `plots*/`, `*.xlsx`, `*.parquet`
 and `*.log`.

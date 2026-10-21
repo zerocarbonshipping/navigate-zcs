@@ -1,0 +1,25 @@
+{
+  "name": "navigate-language",
+  "displayName": "Navigate Language Support",
+  "version": "2.0.0",
+  "publisher": "zerocarbonshipping",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "navigate",
+        "aliases": ["Navigate", "navigate"],
+        "extensions": [".nav", ".inc", ".unc"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "navigate",
+        "scopeName": "source.navigate",
+        "path": "./syntaxes/navigate.tmLanguage.json"
+      }
+    ]
+  }
+}

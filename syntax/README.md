@@ -9,19 +9,30 @@ Syntax highlighting packages for the `.nav` / `.inc` DSL in three editors.
 
 ## VS Code
 
-The package is distributed as a `.vsix` bundle.
+The extension is distributed as a `.vsix` bundle that the documentation build
+packages from `syntax/vscode/`. Download it from the
+[getting-started page](https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html)
+of the documentation.
 
 1. Open VS Code.
 2. Run `Extensions: Install from VSIX...` from the command palette (`Ctrl+Shift+P`).
-3. Select `syntax/vscode/navigate-language-2.0.0.vsix`.
+3. Select the downloaded `.vsix`.
 
-Alternatively, from a terminal at the repo root:
+Alternatively, from a terminal:
 
 ```bash
-code --install-extension syntax/vscode/navigate-language-2.0.0.vsix
+code --install-extension <path to the .vsix>
 ```
 
 Reload the window. `.nav` and `.inc` files will be highlighted automatically.
+
+To edit the grammar, change the files in `syntax/vscode/`, the extension's
+source. To try a change, open a window with the extension loaded from the
+folder:
+
+```bash
+code --extensionDevelopmentPath=<absolute path to syntax/vscode>
+```
 
 ## PyCharm (and other JetBrains IDEs)
 
