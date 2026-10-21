@@ -14,6 +14,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
+    from navigate.core.nodes.transport import Transport
+    from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray
 
 
@@ -29,13 +31,8 @@ def calculate_plant_logistics_expectations(
 
     The delivery cost and emissions are given by the transport mode and distance
     assigned per port on the plant, combined with the per-distance rates of the plant's
-    region.
-
-    The delivery cost is production-levelized over the same window as the levelized cost
-    of production: the plant's construction lead time followed by its operational
-    lifetime, anchored at the evaluation time. Since the plant's annual production is
-    constant over the operating window, it cancels from the levelization ratio, leaving
-    the per-year operating fraction as the leveling flow.
+    region. The cost is levelized over the plant's lead time and lifetime; the emissions
+    are instantaneous.
 
     Parameters
     ----------
@@ -46,67 +43,150 @@ def calculate_plant_logistics_expectations(
     emissions
         All emissions in the simulation.
     timeline
-        Simulation timeline in days since the start of simulation.
+        Simulation timeline, in days since the start of the simulation.
     idx
         Current time-step index in the simulation timeline.
     """
-    times = timeline[idx:]
-
-    # rate expectations are shared between every plant in the same region
-    # using the same transport over the same window: resolve each combination once
+    # rate expectations are shared between every plant in the same region using the
+    # same transport over the same window: resolve each combination once
     cost_rates: dict[tuple[str, str, int, float, float], FloatArray] = {}
     wtt_rates: dict[tuple[str, str, str], FloatArray] = {}
 
     for plant in plants.values():
-        region = plant.region
-        fuel_name = plant.fuel.name
+        deliveries = _find_deliveries(plant, ports)
 
         # without a transport assignment no delivery cost or emissions accrue: the
         # expectation defaults are zero
-        deliveries = [
-            (port_name, delivery)
-            for port_name, port in ports.items()
-            if port.is_bunkering_allowed(fuel_name)
-            and (delivery := plant.fuel_deliveries[port_name]) is not None
-        ]
-
         if not deliveries:
             continue
 
-        for t, time in enumerate(times, start=idx):
-            # the lifetime, discount rate and cost flow may change over time, so
-            # the levelized cost of delivery is calculated per time step
-            lead_time = float(plant.expectation.get_lead_time(t))
-            lifetime = float(plant.expectation.get_lifetime(t))
-            year_flow, overlap = build_operating_flows(time, lead_time, lifetime)
-            discount_rate = plant.cost_of_capital.get(time)
+        _calculate_delivery_cost(plant, deliveries, cost_rates, timeline, idx)
+        _calculate_delivery_wtt(plant, deliveries, emissions, wtt_rates, timeline, idx)
 
-            for port_name, (transport, distance) in deliveries:
-                cost_key = (region.name, transport.name, t, lead_time, lifetime)
-                if cost_key not in cost_rates:
-                    cost_rates[cost_key] = region.transport_cost[transport.name].get(
-                        year_flow
-                    )
 
-                cost_flow = cost_rates[cost_key] * distance.get(year_flow) * overlap
-                levelized_cost = calculate_levelized_cost(
-                    cost_flow, overlap, discount_rate
-                )
-                plant.expectation.set_levelized_delivery_cost(
-                    t, port_name, levelized_cost
-                )
+def _find_deliveries(
+    plant: Plant, ports: dict[str, Port]
+) -> dict[str, tuple[Transport, ForecastInput]]:
+    """
+    Find the transport and distance assigned to the plant for each port it supplies.
 
-        # emissions are undiscounted and thus can be assigned as instantaneous values
-        for port_name, (transport, distance) in deliveries:
-            distance_values = distance.get(times)
+    Parameters
+    ----------
+    plant
+        Plant delivering its fuel.
+    ports
+        All ports in the simulation.
 
-            for emission_name in emissions:
-                wtt_key = (region.name, transport.name, emission_name)
-                if wtt_key not in wtt_rates:
-                    wtt_rates[wtt_key] = region.transport_wtt[
-                        (transport.name, emission_name)
-                    ].get(times)
+    Returns
+    -------
+    dict[str, tuple[Transport, ForecastInput]]
+        Transport and distance per port name, for the ports that allow bunkering of
+        the plant's fuel and have a transport assigned.
+    """
+    deliveries = {}
 
-                plant.expectation.set_delivery_wtt(
-                    idx, port_name, emission_name, wtt_rates[wtt_key] * distance_values
-                )
+    for port_name, port in ports.items():
+        if not port.is_bunkering_allowed(plant.fuel.name):
+            continue
+
+        delivery = plant.fuel_deliveries[port_name]
+        if delivery is not None:
+            deliveries[port_name] = delivery
+
+    return deliveries
+
+
+def _calculate_delivery_cost(
+    plant: Plant,
+    deliveries: dict[str, tuple[Transport, ForecastInput]],
+    cost_rates: dict[tuple[str, str, int, float, float], FloatArray],
+    timeline: FloatArray,
+    idx: int,
+) -> None:
+    """
+    Calculate the levelized cost of delivering the plant's fuel to each port.
+
+    The delivery cost is production-levelized over the same window as the levelized
+    cost of production: the plant's construction lead time followed by its operational
+    lifetime, anchored at the evaluation time. Since the plant's annual production is
+    constant over the operating window, it cancels from the levelization ratio, leaving
+    the per-year operating fraction as the leveling flow.
+
+    Parameters
+    ----------
+    plant
+        Plant delivering its fuel.
+    deliveries
+        Transport and distance per port name.
+    cost_rates
+        Transport cost rates already resolved, filled in as new combinations occur.
+    timeline
+        Simulation timeline, in days since the start of the simulation.
+    idx
+        Current time-step index in the simulation timeline.
+    """
+    region = plant.region
+    expectation = plant.expectation
+
+    # the lifetime, discount rate and cost flow may change over time, so the
+    # levelized cost of delivery is calculated per time step
+    for t, time in enumerate(timeline[idx:], start=idx):
+        lead_time = float(expectation.get_lead_time(t))
+        lifetime = float(expectation.get_lifetime(t))
+        year_flow, overlap = build_operating_flows(time, lead_time, lifetime)
+        discount_rate = plant.cost_of_capital.get(time)
+
+        for port_name, (transport, distance) in deliveries.items():
+            key = (region.name, transport.name, t, lead_time, lifetime)
+            if key not in cost_rates:
+                rate = region.transport_cost[transport.name]
+                cost_rates[key] = rate.get(year_flow)
+
+            cost_flow = cost_rates[key] * distance.get(year_flow) * overlap
+            levelized_cost = calculate_levelized_cost(cost_flow, overlap, discount_rate)
+            expectation.set_levelized_delivery_cost(t, port_name, levelized_cost)
+
+
+def _calculate_delivery_wtt(
+    plant: Plant,
+    deliveries: dict[str, tuple[Transport, ForecastInput]],
+    emissions: dict[str, Emission],
+    wtt_rates: dict[tuple[str, str, str], FloatArray],
+    timeline: FloatArray,
+    idx: int,
+) -> None:
+    """
+    Calculate the WTT emissions of delivering the plant's fuel to each port.
+
+    Emissions are undiscounted and thus can be assigned as instantaneous values.
+
+    Parameters
+    ----------
+    plant
+        Plant delivering its fuel.
+    deliveries
+        Transport and distance per port name.
+    emissions
+        All emissions in the simulation.
+    wtt_rates
+        Transport WTT rates already resolved, filled in as new combinations occur.
+    timeline
+        Simulation timeline, in days since the start of the simulation.
+    idx
+        Current time-step index in the simulation timeline.
+    """
+    region = plant.region
+    expectation = plant.expectation
+    times = timeline[idx:]
+
+    for port_name, (transport, distance) in deliveries.items():
+        distances = distance.get(times)
+
+        for emission_name in emissions:
+            key = (region.name, transport.name, emission_name)
+            if key not in wtt_rates:
+                rate = region.transport_wtt[(transport.name, emission_name)]
+                wtt_rates[key] = rate.get(times)
+
+            delivery_wtt = wtt_rates[key] * distances
+            expectation.set_delivery_wtt(idx, port_name, emission_name, delivery_wtt)
