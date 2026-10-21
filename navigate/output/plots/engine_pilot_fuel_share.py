@@ -46,7 +46,7 @@ def _select_fuel_types(vessels: dict[str, Vessel]) -> list[FuelTypeID]:
         if any(
             converter.is_dual_fuel()
             and vessel.primary_fuel_type in converter.main_fuel_types
-            for converter in vessel.power_system.get_converters()
+            for converter in vessel.get_converters()
         )
     }
     return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type in vessel_types]
@@ -71,7 +71,7 @@ def _minimum_pilot_share(
         if fuel_type not in minimum_share:
             continue
 
-        for converter in vessel.power_system.get_converters():
+        for converter in vessel.get_converters():
             if converter.is_dual_fuel() and fuel_type in converter.main_fuel_types:
                 converter_minimum = converter.minimum_pilot_fuel.get()
                 minimum_share[fuel_type] = max(

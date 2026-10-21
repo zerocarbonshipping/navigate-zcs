@@ -9,14 +9,16 @@ Vessel "ferry_ice_methane" {
 	HeatLoadAtSea = Variable("ferry_heat_load_sea")
 	HeatLoadInPort = Variable("ferry_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_methane_ferry")
+	PropulsionConverter = Converter("propulsion_ice_methane_ferry")
+	ElectricalConverter = Converter("electrical_ice_methane_ferry")
+	HeatConverter = Converter("heat_boiler_oil_ferry")
 	Tanks = [Tank("main_methane_ferry"), Tank("pilot_oil_ferry")]
 	
 	Route = Route("operational_profile_ferry")
 	NominalCapacity = Variable("ferry_nominal_capacity")
 	Lifetime = Variable("ferry_lifetime")
 	
-	Capex = Forecast("ferry_capex")
-	Opex = Forecast("ferry_opex")
+	Capex = <Forecast("ferry_capex") + Forecast("ferry_supply_system_methane_capex")>
+	Opex = <Forecast("ferry_opex") + Forecast("ferry_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

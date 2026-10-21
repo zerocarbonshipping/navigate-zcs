@@ -34,18 +34,13 @@ Fleet "fleet" {
 # Change the the value assigned to the attribute Tanks below.
 
 Vessel "vessel_ice_oil" {
-	PowerSystem = PowerSystem("ice_oil")
+	PropulsionConverter = Converter("propulsion_ice_oil")
+	ElectricalConverter = Converter("electrical_ice_oil")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route")
 	NominalCapacity = 8000
 	Tanks = [Tank("main_oil")]
 	PropulsionLoad = 10
-}
-
-# Same as in tutorial 1.
-PowerSystem "ice_oil" {
-	Propulsion = Converter("propulsion_ice_oil")
-	Electrical = Converter("electrical_ice_oil")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_oil" {
@@ -71,7 +66,7 @@ Converter "heat_boiler_oil" {
 # This definition has the same structure as the definition of the fuel oil vessel, but has
 # different assigned values.
 #
-# Define Vessel "container_ice_methane", Powersystem "ice_methane", Converter "propulsion_ice_methane", 
+# Define Vessel "container_ice_methane", Converter "propulsion_ice_methane",
 # Converter "electrical_ice_methane", Converter "heat_boiler_methane".
 #
 # Paste the nodes from section Bi) below.
@@ -81,7 +76,7 @@ Converter "heat_boiler_oil" {
 
 # Biii) DEFINITION OF METHANOL VESSEL
 #
-# Define Vessel "bulk_ice_methanol", Powersystem "ice_methanol_bulk", Converter "propulsion_ice_methanol_bulk", 
+# Define Vessel "bulk_ice_methanol", Converter "propulsion_ice_methanol_bulk",
 # Converter "electrical_ice_methanol_bulk", Converter "heat_boiler_methanol_bulk".
 #
 # Paste the nodes from section Bi) below.
@@ -91,7 +86,7 @@ Converter "heat_boiler_oil" {
 
 # Biv) DEFINITION OF AMMONIA VESSEL
 #
-# Define Vessel "bulk_ice_ammonia", Powersystem "ice_ammonia_bulk", Converter "propulsion_ice_ammonia_bulk", 
+# Define Vessel "bulk_ice_ammonia", Converter "propulsion_ice_ammonia_bulk",
 # Converter "electrical_ice_ammonia_bulk", Converter "heat_boiler_ammonia_bulk".
 #
 # Paste the nodes from section Bi) below.

@@ -27,16 +27,13 @@ Fleet "fleet" {{
     InitialVessels = 100
 }}
 Vessel "vessel" {{
-    PowerSystem = PowerSystem("ps")
+    PropulsionConverter = Converter("propulsion")
+    ElectricalConverter = Converter("electrical")
+    HeatConverter = Converter("heat")
     Route = Route("route")
     NominalCapacity = 8000
     Tanks = [Tank("tank")]
     PropulsionLoad = 10
-}}
-PowerSystem "ps" {{
-    Propulsion = Converter("propulsion")
-    Electrical = Converter("electrical")
-    Heat = Converter("heat")
 }}
 Converter "propulsion" {{
     PowerCapacity = {power_capacity}

@@ -33,7 +33,7 @@ from navigate.exceptions import DeckError, UnassignedAttributeError
 TABLE_1D = "Table = [\n        0, 1;\n        1, 1;\n    ]"
 
 # (node type, name, body items); every non-root node hangs off a root:
-# Fleet -> Vessel -> PowerSystem/Converter, Route/Port, Tank, Surface;
+# Fleet -> Vessel -> Converter, Route/Port, Tank, Surface;
 # Producer -> Plant -> Fuel, Process, Region -> Timetable, Source;
 # Emission -> Curve; Levy -> Forecast
 BASE = [
@@ -42,15 +42,6 @@ BASE = [
         "Converter",
         "c",
         ["PowerCapacity = 10", "Efficiency = 0.5", "MainFuelTypes = OIL"],
-    ),
-    (
-        "PowerSystem",
-        "ps",
-        [
-            'Propulsion = Converter("c")',
-            'Electrical = Converter("c")',
-            'Heat = Converter("c")',
-        ],
     ),
     ("Port", "a", []),
     ("Port", "b", []),
@@ -75,7 +66,9 @@ BASE = [
         "Vessel",
         "v",
         [
-            'PowerSystem = PowerSystem("ps")',
+            'PropulsionConverter = Converter("c")',
+            'ElectricalConverter = Converter("c")',
+            'HeatConverter = Converter("c")',
             'Route = Route("r")',
             "NominalCapacity = 1000",
             'Tanks = [Tank("t")]',

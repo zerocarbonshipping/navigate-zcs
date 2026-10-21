@@ -9,14 +9,16 @@ Vessel "roro_7000_ceu_ice_ammonia" {
 	HeatLoadAtSea = Variable("roro_7000_ceu_heat_load_sea")
 	HeatLoadInPort = Variable("roro_7000_ceu_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_ammonia_roro_7000_ceu")
+	PropulsionConverter = Converter("propulsion_ice_ammonia_roro_7000_ceu")
+	ElectricalConverter = Converter("electrical_ice_ammonia_roro_7000_ceu")
+	HeatConverter = Converter("heat_boiler_oil_roro_7000_ceu")
 	Tanks = [Tank("main_ammonia_roro_7000_ceu"), Tank("pilot_oil_roro_7000_ceu")]
 	
 	Route = Route("operational_profile_roro_7000_ceu")
 	NominalCapacity = Variable("roro_7000_ceu_nominal_capacity")
 	Lifetime = Variable("roro_7000_ceu_lifetime")
 	
-	Capex = Forecast("roro_7000_ceu_capex")
-	Opex = Forecast("roro_7000_ceu_opex")
+	Capex = <Forecast("roro_7000_ceu_capex") + Forecast("roro_7000_ceu_supply_system_ammonia_capex")>
+	Opex = <Forecast("roro_7000_ceu_opex") + Forecast("roro_7000_ceu_supply_system_ammonia_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Forecast("cost_of_capital_vessel_ammonia")
 }

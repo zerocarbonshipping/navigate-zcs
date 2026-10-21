@@ -9,14 +9,16 @@ Vessel "tug_ice_oil" {
 	HeatLoadAtSea = Variable("tug_heat_load_sea")
 	HeatLoadInPort = Variable("tug_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_oil_tug")
+	PropulsionConverter = Converter("propulsion_ice_oil_tug")
+	ElectricalConverter = Converter("electrical_ice_oil_tug")
+	HeatConverter = Converter("heat_boiler_oil_tug")
 	Tanks = [Tank("main_oil_tug")]
 	
 	Route = Route("operational_profile_tug")
 	NominalCapacity = Variable("tug_nominal_capacity")
 	Lifetime = Variable("tug_lifetime")
 	
-	Capex = Forecast("tug_capex")
-	Opex = Forecast("tug_opex")
+	Capex = <Forecast("tug_capex") + Forecast("tug_supply_system_oil_capex")>
+	Opex = <Forecast("tug_opex") + Forecast("tug_supply_system_oil_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

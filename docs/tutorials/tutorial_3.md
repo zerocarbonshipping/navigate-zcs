@@ -217,7 +217,7 @@ Fleet "*" {
      - `bulk_ice_ammonia.inc`
    - From the folder `tutorial_2`: 
       - `define.inc` (T2DEF)
-3. Copy the relevant section from T2DEF into the corresponding empty file. All nodes, Vessel, Powersystem and converters should be copied into the corresponding file. E.g. all nodes under Bi) in your T2DEF file should be copied and pasted into the file “container_ice_oil”
+3. Copy the relevant section from T2DEF into the corresponding empty file. All nodes, the Vessel and its converters, should be copied into the corresponding file. E.g. all nodes under Bi) in your T2DEF file should be copied and pasted into the file “container_ice_oil”
 
 ### DEFINE File: General Specifications for Vessels
 
@@ -981,20 +981,16 @@ Port "port" {
 
 :::{dropdown} 0_includes_global/bulk_ice_ammonia.inc
 ```python
-# The ammonia powered bulk vessel incl. powersystem and converters
+# The ammonia powered bulk vessel incl. converters
 
 Vessel "bulk_ice_ammonia" {
-	PowerSystem = PowerSystem("ice_ammonia") 	
+	PropulsionConverter = Converter("propulsion_ice_ammonia")
+	ElectricalConverter = Converter("electrical_ice_ammonia")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route") 		
 	NominalCapacity = 8000
 	Tanks = [Tank("pilot_oil"), Tank("main_ammonia")]	
 	PropulsionLoad = 10
-}
-
-PowerSystem "ice_ammonia" {
-	Propulsion = Converter("propulsion_ice_ammonia")
-	Electrical = Converter("electrical_ice_ammonia")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_ammonia" { 
@@ -1017,20 +1013,16 @@ Converter "electrical_ice_ammonia" {
 
 :::{dropdown} 0_includes_global/bulk_ice_methanol.inc
 ```python
-# The methanol powered bulk vessel incl. powersystem and converters
+# The methanol powered bulk vessel incl. converters
 
 Vessel "bulk_ice_methanol" {
-	PowerSystem = PowerSystem("ice_methanol") 	
+	PropulsionConverter = Converter("propulsion_ice_methanol")
+	ElectricalConverter = Converter("electrical_ice_methanol")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route") 		
 	NominalCapacity = 8000
 	Tanks = [Tank("pilot_oil"), Tank("main_methanol")] 
 	PropulsionLoad = 10
-}
-
-PowerSystem "ice_methanol" {
-	Propulsion = Converter("propulsion_ice_methanol")
-	Electrical = Converter("electrical_ice_methanol")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_methanol" { 
@@ -1053,20 +1045,16 @@ Converter "electrical_ice_methanol" {
 
 :::{dropdown} 0_includes_global/container_ice_methane.inc
 ```python
-# The methane powered container vessel incl. powersystem and converters
+# The methane powered container vessel incl. converters
 
 Vessel "container_ice_methane" {
-	PowerSystem = PowerSystem("ice_methane") 	
+	PropulsionConverter = Converter("propulsion_ice_methane")
+	ElectricalConverter = Converter("electrical_ice_methane")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route") 		
 	NominalCapacity = 8000
 	Tanks = [Tank("pilot_oil"), Tank("main_methane")]
 	PropulsionLoad = 10
-}
-
-PowerSystem "ice_methane" {
-	Propulsion = Converter("propulsion_ice_methane")
-	Electrical = Converter("electrical_ice_methane")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_methane" { 
@@ -1091,20 +1079,16 @@ Converter "electrical_ice_methane" {
 
 :::{dropdown} 0_includes_global/container_ice_oil.inc
 ```python
-# The fuel oil powered container vessel incl. powersystem and converters
+# The fuel oil powered container vessel incl. converters
 
 Vessel "container_ice_oil" {
-	PowerSystem = PowerSystem("ice_oil") 	
+	PropulsionConverter = Converter("propulsion_ice_oil")
+	ElectricalConverter = Converter("electrical_ice_oil")
+	HeatConverter = Converter("heat_boiler_oil")
 	Route = Route("route") 		
 	NominalCapacity = 8000
 	Tanks = [Tank("main_oil")]						
 	PropulsionLoad = 10
-}
-
-PowerSystem "ice_oil" {
-	Propulsion = Converter("propulsion_ice_oil")
-	Electrical = Converter("electrical_ice_oil")
-	Heat = Converter("heat_boiler_oil")
 }
 
 Converter "propulsion_ice_oil" { 

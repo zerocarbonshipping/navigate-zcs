@@ -87,12 +87,12 @@ def page_for(node_type: str) -> Path:
     Parameters
     ----------
     node_type : str
-        A node-type name as navigate.core.node_type spells it, e.g. ``PowerSystem``.
+        A node-type name as navigate.core.node_type spells it, e.g. ``ModelDefinition``.
 
     Returns
     -------
     Path :
-        The page, e.g. ``docs/reference_manual/power_system.md``. The page is not
+        The page, e.g. ``docs/reference_manual/model_definition.md``. The page is not
         read, so a node type without one resolves to a path that does not exist.
     """
     return MANUAL_DIR / f"{attribute_to_instance_name(node_type)}.md"
@@ -103,7 +103,7 @@ def normalise_heading(heading: str) -> str | None:
     Reduce a level-three heading to the DSL name it documents.
 
     Command headings escape every underscore, many attribute headings carry a
-    trailing space, and three headings on power_system.md end in an escaped
+    trailing space, and three headings on vessel.md end in an escaped
     asterisk footnote marker. A heading that is prose survives none of it.
 
     Parameters

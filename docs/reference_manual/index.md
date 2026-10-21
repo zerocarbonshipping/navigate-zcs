@@ -42,7 +42,6 @@ levy
 plant
 plot
 port
-power_system
 process
 producer
 region

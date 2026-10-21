@@ -243,7 +243,7 @@ Expressions are restricted arithmetic, not general Python. The only accepted syn
 
 ## Unreachable nodes
 
-A defined node only participates in the simulation when a chain of node references connects it to a top-level node: `Fleet`, `Producer`, `Levy`, `Regulation`, `Emission`, `Fuel`, `Report`, or `Plot`. For example, a `Converter` participates when a `PowerSystem` referencing it is assigned to a `Vessel` that is itself assigned to a `Fleet`.
+A defined node only participates in the simulation when a chain of node references connects it to a top-level node: `Fleet`, `Producer`, `Levy`, `Regulation`, `Emission`, `Fuel`, `Report`, or `Plot`. For example, a `Converter` participates when it is assigned to a `Vessel` that is itself assigned to a `Fleet`.
 
 Once the deck is read, Navigate keeps the nodes with such a chain and no others, and logs one warning listing the nodes it declared but did not use. An unused node produces no results and its attribute values are not checked. A reference it makes is looked up in the default library like any other reference, but one found nowhere is not an error. `EVENTS` blocks targeting only unused nodes are dropped with a warning; a block naming a node the deck never declared is an error. A node referenced only from an `EVENTS` block is kept, provided the block's target is itself part of the simulation. A node used only as the source of a `Copy` is not reported — its copies carry its role.
 

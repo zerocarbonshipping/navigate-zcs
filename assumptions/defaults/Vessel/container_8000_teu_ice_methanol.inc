@@ -9,14 +9,16 @@ Vessel "container_8000_teu_ice_methanol" {
 	HeatLoadAtSea = Variable("container_8000_teu_heat_load_sea")
 	HeatLoadInPort = Variable("container_8000_teu_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_methanol_container_8000_teu")
+	PropulsionConverter = Converter("propulsion_ice_methanol_container_8000_teu")
+	ElectricalConverter = Converter("electrical_ice_methanol_container_8000_teu")
+	HeatConverter = Converter("heat_boiler_oil_container_8000_teu")
 	Tanks = [Tank("main_methanol_container_8000_teu"), Tank("pilot_oil_container_8000_teu")]
 	
 	Route = Route("operational_profile_container_8000_teu")
 	NominalCapacity = Variable("container_8000_teu_nominal_capacity")
 	Lifetime = Variable("container_8000_teu_lifetime")
 	
-	Capex = Forecast("container_8000_teu_capex")
-	Opex = Forecast("container_8000_teu_opex")
+	Capex = <Forecast("container_8000_teu_capex") + Forecast("container_8000_teu_supply_system_methanol_capex")>
+	Opex = <Forecast("container_8000_teu_opex") + Forecast("container_8000_teu_supply_system_methanol_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

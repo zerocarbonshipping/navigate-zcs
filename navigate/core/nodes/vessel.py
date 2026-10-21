@@ -17,13 +17,13 @@ from navigate.core import (
     assign_value,
     deck_attribute,
 )
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import EnergyDemandID, FuelTypeID
 from navigate.core.expectations import VesselExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import (
+    CONVERTER,
     CURVE,
     FORECAST,
-    POWER_SYSTEM,
     ROUTE,
     SURFACE,
     TANK,
@@ -31,6 +31,7 @@ from navigate.core.node_type import (
     VESSEL,
 )
 from navigate.core.profiles import VesselProfile
+from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -38,7 +39,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.tank import Tank
     from navigate.core.profiles.profile_context import ProfileContext
@@ -69,7 +69,9 @@ class Vessel(Node):
         self.heat_load_in_port: ScalarInput = Scalar(0.0)
 
         # fuel based power
-        self.power_system: PowerSystem
+        self.propulsion_converter: Converter
+        self.electrical_converter: Converter
+        self.heat_converter: Converter
         self.tanks: list[Tank]
 
         # voyage
@@ -148,9 +150,19 @@ class Vessel(Node):
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_power_system(self, power_system: PowerSystem) -> None:
-        """Set the power system converting fuel to energy."""
-        self.power_system = assign_reference(power_system, POWER_SYSTEM)
+    def set_propulsion_converter(self, propulsion_converter: Converter) -> None:
+        """Set the converter used to satisfy the propulsion demand."""
+        self.propulsion_converter = assign_reference(propulsion_converter, CONVERTER)
+
+    @deck_attribute(SECTION_DEFINE, required=True)
+    def set_electrical_converter(self, electrical_converter: Converter) -> None:
+        """Set the converter used to satisfy the electrical demand."""
+        self.electrical_converter = assign_reference(electrical_converter, CONVERTER)
+
+    @deck_attribute(SECTION_DEFINE, required=True)
+    def set_heat_converter(self, heat_converter: Converter) -> None:
+        """Set the converter used to satisfy the heat demand."""
+        self.heat_converter = assign_reference(heat_converter, CONVERTER)
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_tanks(self, tanks: Tank | list[Tank]) -> None:
@@ -209,6 +221,17 @@ class Vessel(Node):
         )
 
     # internal methods -----------------------------------------------------------------
+    def check_consistency(self) -> None:
+
+        # downstream code sums over the converters (installed power, cost, fuel demand);
+        # a shared one would double-count
+        names = [converter.name for converter in self.get_converters()]
+        if not list_is_unique(names):
+            raise ValueError(
+                f"{self}: 'PropulsionConverter', 'ElectricalConverter' and"
+                f" 'HeatConverter' must be three distinct converters, got {names}."
+            )
+
     def initialize_expectation(
         self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
     ) -> None:
@@ -229,3 +252,15 @@ class Vessel(Node):
     ) -> None:
 
         self.profile.initialize(context, regulation_names, levy_names)
+
+    def get_converters(self) -> tuple[Converter, Converter, Converter]:
+        return self.propulsion_converter, self.electrical_converter, self.heat_converter
+
+    def get_converter_by_energy_type(self, demand_type: EnergyDemandID) -> Converter:
+        match demand_type:
+            case EnergyDemandID.PROPULSION:
+                return self.propulsion_converter
+            case EnergyDemandID.ELECTRICAL:
+                return self.electrical_converter
+            case EnergyDemandID.HEAT:
+                return self.heat_converter

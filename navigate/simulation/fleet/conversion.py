@@ -854,7 +854,7 @@ def _calculate_fuel_type_capacity(fleet: Fleet) -> None:
         Fleet instance.
     """
     for vessel, multiplier in _vessels_in_service(fleet):
-        for converter in vessel.power_system.get_converters():
+        for converter in vessel.get_converters():
             converter_energy = vessel.expectation.get_spend_energy(converter.name)
             fleet_energy = converter_energy * multiplier
 

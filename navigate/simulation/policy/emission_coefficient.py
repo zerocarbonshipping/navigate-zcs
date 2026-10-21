@@ -901,14 +901,14 @@ def _usable_target_fuels(
     policy: Levy | Regulation, usable_fuels: dict[str, Fuel]
 ) -> list[Fuel]:
     """
-    Filter the policy's targeted fuels down to those usable by a vessel's power system.
+    Filter the policy's targeted fuels down to those usable by a vessel.
 
     Parameters
     ----------
     policy
         The policy whose targeted fuels are filtered.
     usable_fuels
-        Fuels usable by the vessel's power system, keyed by name.
+        Fuels usable by the vessel, keyed by name.
 
     Returns
     -------

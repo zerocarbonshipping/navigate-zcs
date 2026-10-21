@@ -20,7 +20,6 @@ from navigate.simulation.economics.metric import calculate_net_present_value
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
-    from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.tank import Tank
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray, FloatLike, Index
@@ -157,8 +156,8 @@ def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
     """
     Build the component holding a vessel's asset cost flow.
 
-    The cost flow holds the CAPEX and fixed OPEX of the hull, power system,
-    converters and tanks.
+    The cost flow holds the CAPEX and fixed OPEX of the vessel, its converters and
+    its tanks.
 
     Parameters
     ----------
@@ -173,14 +172,11 @@ def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
         Component holding the asset cost flow.
     """
     component = _initialize_vessel_component(vessel, time_initial)
-    power_system = vessel.power_system
 
     add_capex_flow(component=component, capex=vessel.capex.get)
     add_fixed_opex(component=component, value=vessel.opex.get)
 
-    _add_machinery_cost(vessel, component, power_system, 1.0)
-
-    for converter in power_system.get_converters():
+    for converter in vessel.get_converters():
         capacity = converter.power_capacity.get()
         _add_machinery_cost(vessel, component, converter, capacity)
 
@@ -216,7 +212,7 @@ def _initialize_vessel_component(vessel: Vessel, time_initial: float) -> Compone
 def _add_machinery_cost(
     vessel: Vessel,
     component: Component,
-    machinery: Converter | PowerSystem | Tank,
+    machinery: Converter | Tank,
     scale: float,
 ) -> None:
     """
@@ -231,10 +227,10 @@ def _add_machinery_cost(
     component
         Root component accumulating the vessel's cost flows.
     machinery
-        Power system, converter or tank whose costs are added.
+        Converter or tank whose costs are added.
     scale
-        Capacity the costs are scaled by: one for the power system, the power
-        capacity of a converter, the size of a tank.
+        Capacity the costs are scaled by: the power capacity of a converter, the
+        size of a tank.
     """
     subcomponent = _initialize_vessel_component(vessel, component.time_initial)
     subcomponent.initialize_machinery_component(machinery)

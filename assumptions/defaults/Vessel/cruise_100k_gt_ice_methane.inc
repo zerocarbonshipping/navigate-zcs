@@ -9,14 +9,16 @@ Vessel "cruise_100k_gt_ice_methane" {
 	HeatLoadAtSea = Variable("cruise_100k_gt_heat_load_sea")
 	HeatLoadInPort = Variable("cruise_100k_gt_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_methane_cruise_100k_gt")
+	PropulsionConverter = Converter("propulsion_ice_methane_cruise_100k_gt")
+	ElectricalConverter = Converter("electrical_ice_methane_cruise_100k_gt")
+	HeatConverter = Converter("heat_boiler_oil_cruise_100k_gt")
 	Tanks = [Tank("main_methane_cruise_100k_gt"), Tank("pilot_oil_cruise_100k_gt")]
 	
 	Route = Route("operational_profile_cruise_100k_gt")
 	NominalCapacity = Variable("cruise_100k_gt_nominal_capacity")
 	Lifetime = Variable("cruise_100k_gt_lifetime")
 	
-	Capex = Forecast("cruise_100k_gt_capex")
-	Opex = Forecast("cruise_100k_gt_opex")
+	Capex = <Forecast("cruise_100k_gt_capex") + Forecast("cruise_100k_gt_supply_system_methane_capex")>
+	Opex = <Forecast("cruise_100k_gt_opex") + Forecast("cruise_100k_gt_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

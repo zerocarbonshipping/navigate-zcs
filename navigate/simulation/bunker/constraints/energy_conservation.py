@@ -105,7 +105,7 @@ def _update_sea_energy_conservation(
     """
     v = vessel.name
     expectation = vessel.expectation
-    converter = vessel.power_system.get_converter_by_energy_type(energy_type)
+    converter = vessel.get_converter_by_energy_type(energy_type)
     c = converter.name
     efficiency = converter.efficiency.get()
     demand = demands[energy_type]
@@ -154,7 +154,7 @@ def _update_port_energy_conservation(
     """
     v = vessel.name
     expectation = vessel.expectation
-    converter = vessel.power_system.get_converter_by_energy_type(energy_type)
+    converter = vessel.get_converter_by_energy_type(energy_type)
     c = converter.name
     efficiency = converter.efficiency.get()
     demand = demands[energy_type]

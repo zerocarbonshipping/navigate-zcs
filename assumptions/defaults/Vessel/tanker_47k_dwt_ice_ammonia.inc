@@ -9,14 +9,16 @@ Vessel "tanker_47k_dwt_ice_ammonia" {
 	HeatLoadAtSea = Variable("tanker_47k_dwt_heat_load_sea")
 	HeatLoadInPort = Variable("tanker_47k_dwt_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_ammonia_tanker_47k_dwt")
+	PropulsionConverter = Converter("propulsion_ice_ammonia_tanker_47k_dwt")
+	ElectricalConverter = Converter("electrical_ice_ammonia_tanker_47k_dwt")
+	HeatConverter = Converter("heat_boiler_oil_tanker_47k_dwt")
 	Tanks = [Tank("main_ammonia_tanker_47k_dwt"), Tank("pilot_oil_tanker_47k_dwt")]
 	
 	Route = Route("operational_profile_tanker_47k_dwt")
 	NominalCapacity = Variable("tanker_47k_dwt_nominal_capacity")
 	Lifetime = Variable("tanker_47k_dwt_lifetime")
 	
-	Capex = Forecast("tanker_47k_dwt_capex")
-	Opex = Forecast("tanker_47k_dwt_opex")
+	Capex = <Forecast("tanker_47k_dwt_capex") + Forecast("tanker_47k_dwt_supply_system_ammonia_capex")>
+	Opex = <Forecast("tanker_47k_dwt_opex") + Forecast("tanker_47k_dwt_supply_system_ammonia_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Forecast("cost_of_capital_vessel_ammonia")
 }

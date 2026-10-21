@@ -50,7 +50,7 @@ def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) 
     A usable fuel type is one a tank stores or a converter burns, and a usable fuel
     is a fuel of a usable type. Each converter is paired with the usable fuels of
     its fuel types, in usable-fuel order, and each usable fuel with the converters
-    burning it, in power-system order; a fuel only a tank stores has no converter.
+    burning it, in converter order; a fuel only a tank stores has no converter.
 
     Parameters
     ----------
@@ -82,7 +82,7 @@ def _usable_fuel_types(vessel: Vessel) -> list[FuelTypeID]:
     for tank in vessel.tanks:
         fuel_types.extend(tank.get_fuel_types())
 
-    for converter in vessel.power_system.get_converters():
+    for converter in vessel.get_converters():
         fuel_types.extend(converter.get_fuel_types())
 
     return unique_list(fuel_types)
@@ -107,7 +107,7 @@ def _fuels_per_converter(
     """Return, per converter name, the usable fuels of its fuel types."""
     fuels_per_converter: dict[str, dict[str, Fuel]] = {}
 
-    for converter in vessel.power_system.get_converters():
+    for converter in vessel.get_converters():
         fuel_types = converter.get_fuel_types()
         burned: dict[str, Fuel] = {}
 
@@ -131,7 +131,7 @@ def _converters_per_fuel(
     for fuel_name in usable_fuels:
         converters_per_fuel[fuel_name] = {}
 
-    for converter in vessel.power_system.get_converters():
+    for converter in vessel.get_converters():
         for fuel_name in fuels_per_converter[converter.name]:
             converters_per_fuel[fuel_name][converter.name] = converter
 

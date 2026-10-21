@@ -48,8 +48,8 @@ REGISTERED = {
 
 # checks each node type has a page in docs/reference_manual, named by the
 # camel-to-snake rule and spelling back to the type.
-# catches: a new node type with no manual page, or a page named power-system.md
-# that does not match PowerSystem.
+# catches: a new node type with no manual page, or a page named
+# model-definition.md that does not match ModelDefinition.
 @pytest.mark.parametrize("node_type", NODE_TYPES)
 def test_node_type_has_a_page(node_type):
     page = page_for(node_type)

@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.port import Port
-    from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatLike
@@ -76,12 +75,11 @@ def _calculate_vessel_demand(
         Potential demand per (port name, fuel type), in GJ/year.
     """
     route = vessel.route
-    power_system = vessel.power_system
     demand: dict[tuple[str, FuelTypeID], FloatLike] = {}
 
     for port in dict.fromkeys(route.ports):
         energies = _calculate_energy_at_port(route, port, energy_sea_leg, energy_port)
-        fuel_type_demand = _calculate_fuel_type_demand(power_system, energies)
+        fuel_type_demand = _calculate_fuel_type_demand(vessel, energies)
 
         for fuel_type, value in fuel_type_demand.items():
             demand[(port.name, fuel_type)] = value
@@ -137,15 +135,15 @@ def _calculate_energy_at_port(
 
 
 def _calculate_fuel_type_demand(
-    power_system: PowerSystem, energies: Mapping[EnergyDemandID, FloatLike]
+    vessel: Vessel, energies: Mapping[EnergyDemandID, FloatLike]
 ) -> dict[FuelTypeID, FloatLike]:
     """
     Calculate the most of each fuel type the converters can burn for the given energy.
 
     Parameters
     ----------
-    power_system
-        Power system whose converters burn the fuel.
+    vessel
+        Vessel whose converters burn the fuel.
     energies
         Energy per energy demand type, in GJ/year.
 
@@ -157,7 +155,7 @@ def _calculate_fuel_type_demand(
     demand: dict[FuelTypeID, FloatLike] = dict.fromkeys(FuelTypeID, 0.0)
 
     for energy_id, energy in energies.items():
-        converter = power_system.get_converter_by_energy_type(energy_id)
+        converter = vessel.get_converter_by_energy_type(energy_id)
 
         # a dual-fuel converter burns all but its minimum pilot share as main fuel at
         # most, and any converter up to all of its energy as pilot fuel

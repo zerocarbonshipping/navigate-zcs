@@ -9,14 +9,16 @@ Vessel "tanker_7500_dwt_ice_oil" {
 	HeatLoadAtSea = Variable("tanker_7500_dwt_heat_load_sea")
 	HeatLoadInPort = Variable("tanker_7500_dwt_heat_load_port")
 	
-	PowerSystem = PowerSystem("ice_oil_tanker_7500_dwt")
+	PropulsionConverter = Converter("propulsion_ice_oil_tanker_7500_dwt")
+	ElectricalConverter = Converter("electrical_ice_oil_tanker_7500_dwt")
+	HeatConverter = Converter("heat_boiler_oil_tanker_7500_dwt")
 	Tanks = [Tank("main_oil_tanker_7500_dwt")]
 	
 	Route = Route("operational_profile_tanker_7500_dwt")
 	NominalCapacity = Variable("tanker_7500_dwt_nominal_capacity")
 	Lifetime = Variable("tanker_7500_dwt_lifetime")
 	
-	Capex = Forecast("tanker_7500_dwt_capex")
-	Opex = Forecast("tanker_7500_dwt_opex")
+	Capex = <Forecast("tanker_7500_dwt_capex") + Forecast("tanker_7500_dwt_supply_system_oil_capex")>
+	Opex = <Forecast("tanker_7500_dwt_opex") + Forecast("tanker_7500_dwt_supply_system_oil_capex") * Variable("supply_system_opex_percentage_of_capex")>
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

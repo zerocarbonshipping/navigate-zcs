@@ -36,13 +36,6 @@ Converter "prop_oil" {
 	set_consumption_ttw(OIL, "nitrous_oxide", 0.00020)
 }
 
-PowerSystem "ps_oil" {
-	Capex = 10000
-	Opex = 1000
-	Lifetime = 25
-	Replacement = 0.9
-}
-
 Tank "tank_oil" {
 	Capex = 110000
 	Opex = 5500
@@ -53,8 +46,8 @@ Tank "tank_oil" {
 Vessel "vessel_oil" {
 	Lifetime = 25
 	LeadTime = 1
-	Capex = 52e6
-	Opex = 2.1e6
+	Capex = 52.01e6
+	Opex = 2.101e6
 	CostOfCapital = 0.07
 }
 

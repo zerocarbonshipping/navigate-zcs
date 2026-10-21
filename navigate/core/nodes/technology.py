@@ -87,13 +87,13 @@ class Technology(_Machinery):
 
     @deck_command()
     def set_power_transfer(
-        self, power_system_id: str, energy_id: str, transfer: CurveArgument
+        self, source_id: str, sink_id: str, transfer: CurveArgument
     ) -> None:
         """Set the power transferred from a source energy type to a sink energy type."""
         value_ = assign_value(as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0)
 
         key = (
-            assign_id(power_system_id, EnergyDemandID),
-            assign_id(energy_id, EnergyDemandID),
+            assign_id(source_id, EnergyDemandID),
+            assign_id(sink_id, EnergyDemandID),
         )
         write_matching_key_pairs(key, value_, self.power_transfer)
