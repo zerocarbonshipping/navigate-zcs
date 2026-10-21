@@ -18,7 +18,7 @@ from navigate.output.plots._layout import trim_axes
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def plot_fleet_emission_intensity(results: SimulationResults, directory: Path) -> None:

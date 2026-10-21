@@ -95,7 +95,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 type PlotFunction = Callable[[SimulationResults, Path], None]
 

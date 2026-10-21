@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from navigate.core.results.vessel_results import VesselResults
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 

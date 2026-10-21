@@ -15,7 +15,7 @@ import timeit
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import SolverBackendID
-from navigate.output import write_report, write_results
+from navigate.output import SimulationResults, write_report, write_results
 from navigate.parser import Parser
 from navigate.simulation.time_stepping import Simulation
 from navigate.util import YEAR, timedelta_to_days
@@ -24,8 +24,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import numpy as np
-
-    from navigate.core import SimulationResults
 
 # the solver names run_deck takes, each with the backend it selects
 SOLVER_BACKENDS: dict[str, SolverBackendID] = {
@@ -90,7 +88,13 @@ def run_deck(
         print(f"Date: {date}")
         simulation.step(date, inputs_changed)
 
-    results = simulation.finish()
+    # the simulation ran the parser's nodes, which now hold their own results
+    results = SimulationResults(
+        dateline=parser.dates,
+        global_results=simulation.finish(),
+        nodes=parser.nodes,
+        general_nodes=parser.general_nodes,
+    )
 
     for report in results.nodes.reports.values():
         write_report(report, results, deck_directory, deck_path.stem)

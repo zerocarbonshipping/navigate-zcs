@@ -7,3 +7,4 @@ from __future__ import annotations
 
 from navigate.output.report_writer import write_report
 from navigate.output.results_writer import write_results
+from navigate.output.simulation_results import SimulationResults

@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from navigate.core.results._base_results import _BaseResults
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 logger = logging.getLogger(__name__)
 

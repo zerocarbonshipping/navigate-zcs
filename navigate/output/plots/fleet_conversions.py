@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from matplotlib.typing import ColorType
 
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 

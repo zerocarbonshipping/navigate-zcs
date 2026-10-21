@@ -24,7 +24,7 @@ from navigate.output.plots._units import get_best_unit_cargo_miles
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def plot_fleet_trade(results: SimulationResults, directory: Path) -> None:

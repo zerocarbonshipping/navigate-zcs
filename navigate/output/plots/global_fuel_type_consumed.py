@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def _select_fuel_types(

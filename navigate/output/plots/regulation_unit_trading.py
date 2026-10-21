@@ -21,7 +21,7 @@ from navigate.output.plots._units import find_best_metric_prefix
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.simulation_results import SimulationResults
+    from navigate.output.simulation_results import SimulationResults
 
 
 def plot_regulation_unit_trading(results: SimulationResults, directory: Path) -> None:
