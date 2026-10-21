@@ -25,7 +25,6 @@ from navigate.util import YEAR, calculate_inertia, divide_nonzero
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
-    from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray, FloatLike
 
 
@@ -42,49 +41,31 @@ def perform_pipeline_delivery(producer: Producer) -> None:
     producer
         The producer instance.
     """
-    for p in range(len(producer.plants)):
-        pinc = producer.pipeline[p]
-        incs = producer.increments[p]
-        last_idx = None
+    for operating, pipeline in zip(producer.increments, producer.pipeline, strict=True):
+        fully_delivered = 0
 
-        for i in range(len(pinc)):
-            pinc_i = pinc[i]
-            increment = pinc_i.multiplier
+        for increment in pipeline:
+            if increment.age >= 0.0:
+                # the age already counts the time since delivery
+                operating.append(increment)
+                fully_delivered += 1
 
-            if pinc_i.age >= 0.0:
-                # fully delivered: the age already counts the time since delivery
-                incs.append(
-                    PlantIncrement(
-                        increment, pinc_i.age, pinc_i.age_span, decided=pinc_i.decided
-                    )
-                )
+            elif extends_past(increment, 0.0):
+                # plants enter uniformly over the age span, so the part past zero is
+                # delivered and the rest keeps its span up to zero; the delivered part
+                # keeps 'decided', so its origin index stays that of the increment
+                share = calculate_share_below(increment, 0.0)
+                remaining = increment.multiplier * share
+                delivered = increment.multiplier - remaining
+                span = increment.age + increment.age_span
+                decided = increment.decided
 
-                last_idx = i
+                operating.append(PlantIncrement(delivered, 0.0, span, decided=decided))
+                increment.multiplier = remaining
+                increment.age_span = -increment.age
 
-            else:
-                # the ongoing increment delivers the part that has crossed zero, as
-                # plants enter uniformly over a time step
-                if extends_past(pinc_i, 0.0):
-                    alpha = calculate_share_below(pinc_i, 0.0)
-                    remaining = increment * alpha
-                    delivered = increment - remaining
-                    delivered_dt = pinc_i.age + pinc_i.age_span
-
-                    # the delivered portion keeps the original 'decided', so its
-                    # origin index stays that of the original increment
-                    incs.append(
-                        PlantIncrement(
-                            delivered, 0.0, delivered_dt, decided=pinc_i.decided
-                        )
-                    )
-
-                    # shrink the pipeline portion and truncate its age span, to keep
-                    # the plants entering uniformly
-                    pinc_i.multiplier = remaining
-                    pinc_i.age_span = -pinc_i.age
-
-        if last_idx is not None:
-            producer.pipeline[p] = pinc[(last_idx + 1) :]
+        # the pipeline is sorted oldest first, so the fully delivered come first
+        del pipeline[:fully_delivered]
 
 
 def perform_pipeline_planning(
@@ -92,6 +73,10 @@ def perform_pipeline_planning(
 ) -> None:
     """
     Plan new plant additions to the pipeline based on supply/demand gap.
+
+    The plants built through inertia come first and cover part of the gap; the
+    plants modelled from the uptake metrics share what is left of the development
+    limit.
 
     Parameters
     ----------
@@ -104,101 +89,62 @@ def perform_pipeline_planning(
     idx
         Current time-step index.
     """
-    inertia_increments = calculate_inertia_increments(producer, time_step, idx)
+    dt = time_step / YEAR
+    limit = producer.maximum_development.get() * time_step / YEAR
+    ramp_up = producer.maximum_ramp_up.get()
+    offtake_duration = producer.minimum_offtake_duration.get()
 
-    # the production just added through inertia already covers part of the
-    # supply/demand gap. get_fair_share_demand returns the stored arrays, so the
-    # dict is copied here and subtraction stays out of place, leaving the stored
-    # demand untouched
-    demand = dict(producer.expectation.get_fair_share_demand())
-
-    for p, plant in enumerate(producer.plants):
-        production = plant.expectation.get_production(idx) * inertia_increments[p]
-        fuel_name = plant.fuel.name
-        demand[fuel_name] = demand[fuel_name] - production
+    inertia = _calculate_inertia_increments(producer, limit, time_step, idx)
+    _calculate_inertia_feed_gaps(producer, inertia, idx)
+    demand = _calculate_uncovered_demand(producer, inertia, idx)
 
     export_distribution = producer.expectation.get_export_distribution(idx=idx)
 
-    # the inter metric also checks that there is sufficient future offtake to
-    # merit building plants
     for plant in producer.plants:
-        _calculate_uptake_inter_metric(
-            plant, demand, producer.minimum_offtake_duration, timeline, idx
-        )
-        _calculate_uptake_intra_metric(plant, export_distribution, idx)
+        _calculate_inter_fuel_metric(plant, demand, offtake_duration, timeline, idx)
+        _calculate_intra_fuel_metric(plant, export_distribution, idx)
 
-    demand_multipliers = np.array(
-        [
-            plant.expectation.get_demand_newbuilds()
-            if producer.allow_plant[plant.name]
-            else 0.0
-            for plant in producer.plants
-        ]
-    )
+    # the utilization is the previous time step's, and the inertia already counts
+    # against the development limit
+    utilization = min(producer.current_utilization + ramp_up, 1.0)
+    development = limit * utilization - np.sum(inertia)
+    increments = inertia + _calculate_modelled_increments(producer, development, idx)
 
-    model_increments = np.zeros_like(inertia_increments)
-    maximum_development = producer.maximum_development.get() * time_step / YEAR
+    # the new plants enter the pipeline one lead time ahead of delivery
+    additions = zip(producer.plants, producer.pipeline, increments, strict=True)
 
-    ramp_up = producer.maximum_ramp_up.get()
-    maximum_increase = min(producer.current_utilization + ramp_up, 1.0)
-    maximum_development *= maximum_increase
-
-    # the inertia-based increments already count against the development limit
-    maximum_development -= np.sum(inertia_increments)
-
-    if maximum_development > 0.0:
-        modelled_uptakes = calculate_modelled_uptake(producer)
-        demand_limits = np.array(
-            [
-                min(multiplier / maximum_development, 1.0)
-                for multiplier in demand_multipliers
-            ]
-        )
-        constrained_uptakes = calculate_constrained_uptakes(
-            producer, modelled_uptakes, maximum_development, demand_limits, idx
-        )
-        model_increments = maximum_development * constrained_uptakes
-
-    increments = np.add(inertia_increments, model_increments)
-
-    # the utilization carries into the next time step's ramp-up constraint
-    producer.current_utilization = float(
-        divide_nonzero(
-            np.sum(increments), producer.maximum_development.get() * time_step / YEAR
-        )
-    )
-
-    dt = time_step / YEAR
-
-    for p, plant in enumerate(producer.plants):
-        if increments[p] == 0.0:
+    for plant, pipeline, increment in additions:
+        if increment == 0.0:
             continue
 
-        lead_time = plant.lead_time.get()
-        pinc = producer.pipeline[p]
-        new_age = -lead_time
-        i = find_insertion_index(pinc, new_age)
+        age = -plant.lead_time.get()
+        index = find_insertion_index(pipeline, age)
+        pipeline.insert(index, PlantIncrement(increment, age, dt, decided=0.0))
 
-        pinc.insert(i, PlantIncrement(increments[p], new_age, dt, decided=0.0))
+    total = np.sum(increments)
+    even_share = 1.0 / increments.size
 
-    total_increments = np.sum(increments)
-    producer.results.development[idx] = total_increments
-
-    producer.current_uptake = divide_nonzero(
-        increments, total_increments, default=1.0 / increments.size
-    )
+    # the utilization carries into the next time step's ramp-up constraint
+    producer.current_utilization = float(divide_nonzero(total, limit))
+    producer.current_uptake = divide_nonzero(increments, total, default=even_share)
+    producer.results.development[idx] = total
 
 
-def calculate_inertia_increments(
-    producer: Producer, time_step: float, idx: int
+def _calculate_inertia_increments(
+    producer: Producer, limit: float, time_step: float, idx: int
 ) -> FloatArray:
     """
-    Calculate the increments being built due to inertia from previous uptake.
+    Calculate the plants built due to inertia from the previous uptake.
+
+    The previous uptake shares decay by the inertia and build their share of the
+    development the previous utilization allows.
 
     Parameters
     ----------
     producer
         The producer.
+    limit
+        Number of plants the producer may build over the time step.
     time_step
         Current time-step size, days.
     idx
@@ -209,71 +155,140 @@ def calculate_inertia_increments(
     FloatArray
         Inertia-based increments per plant type, number of plants.
     """
-    # the uptake shares decay by the inertia here, before the inertia-related
-    # newbuilds, so the decay happens at every time step
-    producer.current_uptake *= calculate_inertia(producer.inertia.get(), time_step)
+    development = limit * producer.current_utilization
 
-    for p, plant in enumerate(producer.plants):
-        if not producer.allow_plant[plant.name]:
-            producer.current_uptake[p] = 0.0
+    if development <= 0.0:
+        return np.zeros(len(producer.plants))
 
-    # inertia only happens if the producer is development constrained
-    increments = np.zeros((len(producer.plants),))
+    decay = calculate_inertia(producer.inertia.get(), time_step)
+    allowed = [producer.allow_plant[plant.name] for plant in producer.plants]
+    uptake = np.where(allowed, producer.current_uptake * decay, 0.0)
 
-    # the current utilization is the previous time step's, as this step's
-    # planning has not run yet
-    maximum_development = (
-        producer.current_utilization
-        * producer.maximum_development.get()
-        * time_step
-        / YEAR
-    )
-
-    if maximum_development > 0.0:
-        demand_multipliers = np.array(
-            [
-                plant.expectation.get_demand_newbuilds()
-                if producer.allow_plant[plant.name]
-                else 0.0
-                for plant in producer.plants
-            ]
-        )
-        demand_limits = np.array(
-            [
-                min(multiplier / maximum_development, 1.0)
-                for multiplier in demand_multipliers
-            ]
-        )
-
-        uptake = producer.current_uptake
-        constrained_uptake = calculate_constrained_uptakes(
-            producer, uptake, maximum_development, demand_limits, idx
-        )
-        increments = constrained_uptake * maximum_development
-
-        for feed_name, constraint in producer.feed_constraints.items():
-            if constraint is None:
-                continue
-
-            added_consumption = 0.0
-
-            for p, plant in enumerate(producer.plants):
-                consumption = producer.expectation.get_plant_feed_consumption(
-                    plant.name, feed_name
-                )
-                added_consumption += consumption * increments[p]
-
-            original_gap = producer.expectation.get_feed_gap(feed_name, idx)
-            new_gap = original_gap - added_consumption
-            producer.expectation.set_feed_gap(idx, feed_name, new_gap)
-
-    return increments
+    limits = _calculate_demand_limits(producer, development)
+    shares = calculate_constrained_uptakes(producer, uptake, development, limits, idx)
+    return shares * development
 
 
-def _calculate_uptake_inter_metric(
+def _calculate_inertia_feed_gaps(
+    producer: Producer, increments: FloatArray, idx: int
+) -> None:
+    """
+    Take the feed the plants built through inertia use off the feed gaps.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    increments
+        Inertia-based increments per plant type, number of plants.
+    idx
+        Current time-step index.
+    """
+    expectation = producer.expectation
+
+    for feed_name, constraint in producer.feed_constraints.items():
+        if constraint is None:
+            continue
+
+        added_consumption = 0.0
+        for plant, increment in zip(producer.plants, increments, strict=True):
+            consumption = expectation.get_plant_feed_consumption(plant.name, feed_name)
+            added_consumption += consumption * increment
+
+        gap = expectation.get_feed_gap(feed_name, idx)
+        expectation.set_feed_gap(idx, feed_name, gap - added_consumption)
+
+
+def _calculate_uncovered_demand(
+    producer: Producer, inertia: FloatArray, idx: int
+) -> dict[str, FloatArray]:
+    """
+    Calculate the fair-share demand left once the inertia's production covers some.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    inertia
+        Inertia-based increments per plant type, number of plants.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    dict[str, FloatArray]
+        Demand per fuel pathway not covered by the inertia, tons/year.
+    """
+    # the getter returns the stored arrays, so the subtraction stays out of place
+    demand = dict(producer.expectation.get_fair_share_demand())
+
+    for plant, increment in zip(producer.plants, inertia, strict=True):
+        production = plant.expectation.get_production(idx) * increment
+        fuel_name = plant.fuel.name
+        demand[fuel_name] = demand[fuel_name] - production
+
+    return demand
+
+
+def _calculate_modelled_increments(
+    producer: Producer, development: float, idx: int
+) -> FloatArray:
+    """
+    Calculate the plants built from the uptake metrics.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    development
+        Number of plants left to build over the time step.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    FloatArray
+        Modelled increments per plant type, number of plants.
+    """
+    if development <= 0.0:
+        return np.zeros(len(producer.plants))
+
+    uptake = _calculate_modelled_uptake(producer)
+    limits = _calculate_demand_limits(producer, development)
+    shares = calculate_constrained_uptakes(producer, uptake, development, limits, idx)
+    return development * shares
+
+
+def _calculate_demand_limits(producer: Producer, development: float) -> FloatArray:
+    """
+    Calculate each plant type's uptake limit from the plants its demand merits.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    development
+        Number of plants built over the time step.
+
+    Returns
+    -------
+    FloatArray
+        Uptake limit per plant type, zero for a plant type not allowed.
+    """
+    limits: list[float] = []
+
+    for plant in producer.plants:
+        is_allowed = producer.allow_plant[plant.name]
+        newbuilds = plant.expectation.get_demand_newbuilds() if is_allowed else 0.0
+        limits.append(min(newbuilds / development, 1.0))
+
+    return np.array(limits)
+
+
+def _calculate_inter_fuel_metric(
     plant: Plant,
     demand: dict[str, FloatArray],
-    minimum_offtake_duration: ForecastInput,
+    offtake_duration: float,
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -281,7 +296,8 @@ def _calculate_uptake_inter_metric(
     Calculate the business-case metric used to choose a fuel pathway.
 
     This is based on the expected future gap between supply and demand and the number of
-    plants required to satisfy that gap.
+    plants required to satisfy that gap, which also checks that there is sufficient
+    future offtake to merit building plants.
 
     Parameters
     ----------
@@ -290,7 +306,7 @@ def _calculate_uptake_inter_metric(
     demand
         The expected demand per fuel pathway that is not satisfied by current supply,
         tons/year.
-    minimum_offtake_duration
+    offtake_duration
         The minimum duration of offtake to justify building a plant, years.
     timeline
         Simulation timeline, days.
@@ -298,43 +314,38 @@ def _calculate_uptake_inter_metric(
         Current time-step index.
     """
     expectation = plant.expectation
-
-    # the plant's discount rate discounts the future multipliers: dwindling
-    # demand is worth less than immediate demand, since the production can be
-    # sold to other industries later on
-    discount_rate = plant.cost_of_capital.get()
-
-    evaluation_timeline = _get_plant_evaluation_timeline(plant, timeline, idx)
-    production = expectation.get_production(idx)
-
     fuel = plant.fuel
+    lifetime = plant.lifetime.get()
     lhv = fuel.lower_heating_value.get()
+    discount_rate = plant.cost_of_capital.get()
+    production = expectation.get_production(idx)
 
     # the fair-share demand is re-sampled onto the plant's business cash-flow
     # horizon, its operating years after the lead time
-    demand_int = np.interp(evaluation_timeline, timeline, demand[fuel.name], left=0.0)
-    demand_multipliers = demand_int / production
-
-    lifetime = plant.lifetime.get()
-    minimum_duration = minimum_offtake_duration.get()
+    times = _calculate_evaluation_timeline(plant, timeline, idx)
+    operating_demand = np.interp(times, timeline, demand[fuel.name], left=0.0)
 
     # the lowest equivalent multiplier within the sufficient offtake duration is
     # the most plants it makes sense to sanction
-    to_ = min(ceil(minimum_duration), ceil(lifetime), demand_int.size)
-    demand_newbuilds = max(np.amin(demand_multipliers[:to_]), 0)
+    horizon = min(ceil(offtake_duration), ceil(lifetime), operating_demand.size)
+    multipliers = operating_demand[:horizon] / production
+    newbuilds = max(np.amin(multipliers), 0.0)
 
-    demand_energy = demand_int * lhv
-    metric = calculate_age_levelized_cost(demand_energy, lifetime, discount_rate)
+    # the plant's discount rate discounts the demand: dwindling demand is worth less
+    # than immediate demand, since the production can be sold to other industries
+    # later on
+    energy = operating_demand * lhv
+    metric = calculate_age_levelized_cost(energy, lifetime, discount_rate)
 
-    expectation.set_demand_newbuilds(demand_newbuilds)
+    expectation.set_demand_newbuilds(newbuilds)
     expectation.set_inter_fuel_metric(metric)
 
 
-def _get_plant_evaluation_timeline(
+def _calculate_evaluation_timeline(
     plant: Plant, timeline: FloatArray, idx: int
 ) -> FloatArray:
     """
-    Build the timeline at which cash flows should be evaluated.
+    Calculate the times at which a plant's cash flows are evaluated.
 
     Parameters
     ----------
@@ -352,16 +363,13 @@ def _get_plant_evaluation_timeline(
     """
     lifetime = plant.lifetime.get()
     lead_time = plant.lead_time.get()
+    years = np.arange(ceil(lead_time), ceil(lifetime + lead_time), dtype=np.float64)
+    times: FloatArray = years * YEAR + timeline[idx]
 
-    evaluation_timeline: FloatArray = (
-        np.arange(ceil(lead_time), ceil(lifetime + lead_time), dtype=np.float64) * YEAR
-        + timeline[idx]
-    )
-
-    return evaluation_timeline
+    return times
 
 
-def _calculate_uptake_intra_metric(
+def _calculate_intra_fuel_metric(
     plant: Plant, export_distribution: dict[str, FloatLike], idx: int
 ) -> None:
     """
@@ -384,13 +392,13 @@ def _calculate_uptake_intra_metric(
 
     for port_name, export in export_distribution.items():
         delivery_cost = expectation.get_levelized_delivery_cost(port_name, idx)
-        lcof = float(production_cost + delivery_cost)
-        metric += float(export) * lcof
+        delivered_cost = float(production_cost + delivery_cost)
+        metric += float(export) * delivered_cost
 
     expectation.set_intra_fuel_metric(metric)
 
 
-def calculate_modelled_uptake(producer: Producer) -> FloatArray:
+def _calculate_modelled_uptake(producer: Producer) -> FloatArray:
     """
     Calculate each plant type's relative uptake share.
 
@@ -417,7 +425,7 @@ def calculate_modelled_uptake(producer: Producer) -> FloatArray:
             plants.append(plant)
 
     if not plants:
-        return np.zeros((len(producer.plants),))
+        return np.zeros(len(producer.plants))
 
     group_keys = [plant.fuel.name for plant in plants]
     metrics_intra = [plant.expectation.get_intra_fuel_metric() for plant in plants]
@@ -434,9 +442,7 @@ def calculate_modelled_uptake(producer: Producer) -> FloatArray:
         context=str(producer),
     )
 
-    uptake_padded = np.zeros(len(producer.plants))
+    padded = np.zeros(len(producer.plants))
+    padded[index] = uptake
 
-    for i, p in enumerate(index):
-        uptake_padded[p] = uptake[i]
-
-    return uptake_padded
+    return padded
