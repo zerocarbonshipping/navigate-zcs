@@ -29,18 +29,14 @@ from navigate.simulation.fleet.initialization import (
 from navigate.simulation.fleet.operation import update_operations
 from navigate.simulation.fleet.port_demand import calculate_potential_fuel_type_demand
 from navigate.simulation.fleet.post_process import (
-    post_process_fleet_profile,
-    post_process_investment_metric,
+    complete_fleet_results,
+    complete_global_fleet_results,
+    complete_vessel_results,
 )
 from navigate.simulation.fleet.power import verify_power_capacity
 from navigate.simulation.fleet.profile import (
     calculate_fleet_profile,
     calculate_vessel_profile,
-)
-from navigate.simulation.fleet.results import (
-    complete_fleet_profile,
-    complete_global_fleet_results,
-    complete_vessel_profile,
 )
 from navigate.simulation.fleet.scarcity_beliefs import (
     record_investment_signals,

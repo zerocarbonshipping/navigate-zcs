@@ -38,17 +38,15 @@ from navigate.simulation.fleet import (
     calculate_vessel_profile,
     check_fuel_options,
     close_trade_gap,
-    complete_fleet_profile,
+    complete_fleet_results,
     complete_global_fleet_results,
-    complete_vessel_profile,
+    complete_vessel_results,
     determine_fuel_type,
     initialize_existing_fleet,
     perform_fuel_conversions,
     perform_primary_scrapping,
     perform_speed_management,
     perform_technology_installation,
-    post_process_fleet_profile,
-    post_process_investment_metric,
     record_investment_signals,
     transfer_technology_charter_rate,
     update_operations,
@@ -808,21 +806,13 @@ class Simulation:
             "Post-process model after end of simulation", extra={"heading": True}
         )
 
-        # a vessel's expenses, which the investment metric reads, are complete
-        # once the time steps are done
+        # every vessel before any fleet: a fleet's achieved rates read its vessels'
+        # completed expenses, and a vessel may be kept without a fleet
         for vessel in self.nodes.vessels.values():
-            complete_vessel_profile(vessel.profile)
+            complete_vessel_results(vessel)
 
-        # fold the recorded multipliers into the fleet output profiles before
-        # the investment metric reads the in-fleet windows and before the
-        # fleet profiles are merged into the global profile
-        post_process_fleet_profile(self.nodes.fleets)
-        post_process_investment_metric(self.nodes.fleets, self.timeline)
-
-        # a fleet's baseline energy, which the global profile sums, is complete
-        # before the fleet is merged
         for fleet in self.nodes.fleets.values():
-            complete_fleet_profile(fleet.profile)
+            complete_fleet_results(fleet, self.timeline)
             self.profile.add_fuel_consumer_profile(fleet.profile)
             self.profile.add_vessel_aggregate_profile(fleet.profile)
 
