@@ -225,6 +225,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `<fleet>: Deferred inertia newbuilds due to newbuild limit (N% delivered).`
   like the orderbook deferral lines, instead of `Inertia not fully applied
   due to newbuild limit`.
+- The VS Code extension is downloaded from the getting-started page of the
+  documentation instead of taken from the checkout.
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`

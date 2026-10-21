@@ -1,0 +1,67 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Navigate",
+    "scopeName": "source.navigate",
+    "patterns": [
+      { "include": "#comments" },
+      { "include": "#strings" },
+      { "include": "#numbers" },
+      { "include": "#keywords_control" },
+      { "include": "#keywords_types" },
+      { "include": "#operators" }
+    ],
+    "repository": {
+      "comments": {
+        "patterns": [
+          {
+            "name": "comment.line.number-sign.navigate",
+            "match": "#.*$"
+          }
+        ]
+      },
+      "strings": {
+        "patterns": [
+          {
+            "name": "string.quoted.double.navigate",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+              { "name": "constant.character.escape.navigate", "match": "\\\\." }
+            ]
+          }
+        ]
+      },
+      "numbers": {
+        "patterns": [
+          {
+            "name": "constant.numeric.navigate",
+            "match": "\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b"
+          }
+        ]
+      },
+      "operators": {
+        "patterns": [
+          {
+            "name": "keyword.operator.navigate",
+            "match": "(\\(|\\)|\\[|\\]|=)"
+          }
+        ]
+      },
+      "keywords_control": {
+        "patterns": [
+          {
+            "name": "keyword.control.navigate",
+            "match": "\\b(?:DEFINE|EVENTS|Include|Load|Start|End)\\b"
+          }
+        ]
+      },
+      "keywords_types": {
+        "patterns": [
+          {
+            "name": "storage.type.navigate",
+            "match": "\\b(?:ModelDefinition|BunkerOptions|Date|Import|Copy|Converter|Curve|Emission|Feedstock|Fleet|Forecast|Fuel|Levy|Plant|Plot|Port|Process|Producer|Region|Regulation|Report|Route|Source|Surface|Tank|Technology|Timetable|Transport|Variable|Vessel|Table)\\b"
+          }
+        ]
+      }
+    }
+  }

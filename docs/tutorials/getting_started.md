@@ -96,10 +96,16 @@ Syntax highlighting shows keywords in the Navigate language in different colors,
 
 ### VS Code
 
+```{button-link} navigate-language.vsix
+:color: primary
+
+Download the VS Code extension
+```
+
 1. In the left sidebar, click extensions.
 2. Still in the sidebar, on the top, click `...`
 3. Select *Install from VSIX*
-4. Find and select the file under `Navigate/syntax/vscode/navigate-language-x.x.x.vsix`
+4. Find and select the downloaded `navigate-language.vsix`
 
 ### PyCharm
 
