@@ -38,11 +38,9 @@ def complete_vessel_profile(profile: VesselProfile) -> None:
         Vessel profile, written for the whole run.
     """
     _complete_energy(profile)
-    profile.baseline_energy = _baseline_energy(profile.raw_energy, profile.cargo_miles)
-
+    _complete_baseline_energy(profile)
     _complete_savings(profile)
     _complete_vessel_savings(profile)
-
     _complete_fuel_consumer(profile)
 
 
@@ -56,12 +54,11 @@ def complete_fleet_profile(profile: FleetProfile) -> None:
         Fleet profile, its vessels summed into it.
     """
     _complete_energy(profile)
-    profile.baseline_energy = _baseline_energy(profile.raw_energy, profile.cargo_miles)
-
+    _complete_baseline_energy(profile)
     _complete_savings(profile)
-
     _complete_fuel_consumer(profile)
     _complete_vessel_aggregate(profile)
+
     profile.fleet_technology_uptake = _fleet_technology_uptake(profile)
 
 
@@ -75,21 +72,19 @@ def complete_global_fleet_results(profile: GlobalProfile) -> None:
         Global profile, the fleets summed into it.
     """
     _complete_energy(profile)
-
     _complete_savings(profile)
-
     _complete_fuel_consumer(profile)
     _complete_vessel_aggregate(profile)
 
 
-def _baseline_energy(raw_energy: FloatArray, cargo_miles: FloatArray) -> FloatArray:
+def _complete_baseline_energy(profile: VesselProfile | FleetProfile) -> None:
     # the year-0 raw energy intensity times the transport work performed; a fleet
     # with no vessels at the first step has no year-0 intensity to measure against,
     # so its baseline stays 0, its intensity savings read 0, and it adds no baseline
     # to aggregate savings
-    growth = divide_nonzero(cargo_miles, cargo_miles[0], default=1.0)
-    initial_energy: float = raw_energy[0]
-    return initial_energy * growth
+    growth = divide_nonzero(profile.cargo_miles, profile.cargo_miles[0], default=1.0)
+    initial_energy: float = profile.raw_energy[0]
+    profile.baseline_energy = initial_energy * growth
 
 
 def _complete_energy(profile: _ConsumerProfile) -> None:
