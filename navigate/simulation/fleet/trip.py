@@ -109,20 +109,14 @@ def derive_reference_trip(route: Route) -> ReferenceTrip:
         Reference trip of the route.
     """
     condition_legs = bind_conditions_to_legs(route)
-
-    inputs = zip(route.leg_speeds, route.leg_utilizations, strict=True)
-    conditions = [_read_leg_conditions(*leg) for leg in inputs]
-    speeds_per_leg, shares_per_leg, utilizations_per_leg = zip(*conditions, strict=True)
-    speeds = np.concatenate(speeds_per_leg)
-    shares = np.concatenate(shares_per_leg)
-    utilizations = np.concatenate(utilizations_per_leg)
+    speeds, shares, utilizations = _read_conditions(route)
 
     # check_requirements requires TimeAtSea on every TRAMP, so the None test only
     # narrows its type
     if route.route_type == RouteTypeID.TRAMP and route.time_at_sea is not None:
         time_at_sea = route.time_at_sea.get()
-
         speeds_leg = sum_per_leg(condition_legs, shares * speeds)
+
         leg_miles = _calculate_tramp_leg_miles(route, speeds_leg, time_at_sea)
         port_days = _calculate_tramp_port_days(route, time_at_sea)
 
@@ -198,10 +192,38 @@ def sum_energy_per_leg(
     dict[EnergyDemandID, list[FloatLike]]
         Energy per energy demand type and leg, in GJ/year.
     """
-    return {
-        energy_id: list(sum_per_leg(condition_legs, energy))
-        for energy_id, energy in energies.items()
-    }
+    energies_leg: dict[EnergyDemandID, list[FloatLike]] = {}
+
+    for energy_id, energy in energies.items():
+        energies_leg[energy_id] = list(sum_per_leg(condition_legs, energy))
+
+    return energies_leg
+
+
+def _read_conditions(route: Route) -> tuple[FloatArray, FloatArray, FloatArray]:
+    """
+    Read the speed, sea-time share and utilization of each sailing condition of a route.
+
+    Parameters
+    ----------
+    route
+        Route holding the per-leg speed and utilization inputs.
+
+    Returns
+    -------
+    tuple[FloatArray, FloatArray, FloatArray]
+        Speed, in knots, share of its leg's sea time and utilization of each
+        condition, in the order of `Route.get_conditions`.
+    """
+    inputs = zip(route.leg_speeds, route.leg_utilizations, strict=True)
+    conditions = [_read_leg_conditions(*leg) for leg in inputs]
+    speeds_per_leg, shares_per_leg, utilizations_per_leg = zip(*conditions, strict=True)
+
+    speeds = np.concatenate(speeds_per_leg)
+    shares = np.concatenate(shares_per_leg)
+    utilizations = np.concatenate(utilizations_per_leg)
+
+    return speeds, shares, utilizations
 
 
 def _read_leg_conditions(
@@ -312,9 +334,11 @@ def _calculate_tramp_port_days(route: Route, time_at_sea: float) -> FloatArray:
         Time at each port, in days/year.
     """
     port_calls = to_numpy([route.port_calls[port.name] for port in route.ports])
+    call_shares = divide_nonzero(port_calls, np.sum(port_calls))
+
     port_days = (1.0 - time_at_sea) * YEAR
 
-    return port_days * divide_nonzero(port_calls, np.sum(port_calls))
+    return call_shares * port_days
 
 
 def _normalize_voyage_shares(route: Route) -> FloatArray:
