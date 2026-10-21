@@ -34,7 +34,7 @@ from navigate.simulation.economics.flows import (
     timeline_to_yearly,
     trim_flow_to_lifetime,
 )
-from navigate.simulation.fleet.composition import get_multiplier, get_multipliers
+from navigate.simulation.fleet.composition import get_multipliers
 from navigate.simulation.fleet.conversion import is_retrofit_cycle
 from navigate.simulation.fleet.marginal_saving import (
     calculate_marginal_technology_saving,
@@ -50,8 +50,11 @@ from navigate.simulation.fleet.trip import bind_conditions_to_legs
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.technology_package import TechnologyPackage
     from navigate.core.types_ import ForecastInput
@@ -82,6 +85,8 @@ class _AdoptionBasis:
         the technology rate.
     capex_npv
         Summed ship CAPEX NPV, USD; it non-dimensionalizes the NPVs in the DCM.
+    sensitivity
+        Odds ratio of the adoption choice.
     """
 
     vessel: Vessel
@@ -90,6 +95,24 @@ class _AdoptionBasis:
     discount_rate: float
     vessel_discount_rate: float
     capex_npv: float
+    sensitivity: float
+
+    def calculate_shares(self, npv: FloatArray) -> tuple[FloatArray, str]:
+        """
+        Calculate the MNL shares of the options from their NPVs.
+
+        Parameters
+        ----------
+        npv
+            NPV of each option, USD.
+
+        Returns
+        -------
+        tuple[FloatArray, str]
+            Share of each option, fraction, and a potential warning message.
+        """
+        utility = UtilityID.SIGNED_REFERENCE
+        return calculate_asset_shares(npv, utility, self.sensitivity, self.capex_npv)
 
 
 @dataclass
@@ -103,7 +126,9 @@ class _RetrofitProposal:
         Index of the vessel in ``fleet.vessels``; it groups the proposals per vessel in
         the transfer.
     increment
-        Age cohort whose ``package_uptake`` the apply step updates.
+        Age cohort whose ``package_uptake`` the apply step updates. Holding it is safe:
+        the structure of the ``fleet.increments`` lists changes only in the fleet
+        evolution, after the transfer.
     package_idx
         Package the eligible share sits at.
     choices
@@ -117,19 +142,10 @@ class _RetrofitProposal:
     """
 
     vessel_idx: int
-
-    # holding the cohort is safe: nothing changes the structure of the
-    # fleet.increments lists between propose and transfer, as that happens in
-    # the fleet evolution later in the step
     increment: VesselIncrement
-
     package_idx: int
     choices: FloatArray
-
-    # equals the live share at apply time, as proposals apply in decreasing package
-    # order and an apply only adds to higher packages
     eligible_share: float
-
     annual_costs: FloatArray
 
     @property
@@ -141,7 +157,7 @@ class _RetrofitProposal:
         """
         Return the first choice step reaching the technology at `technology_idx`.
 
-        May exceed the number of steps; callers guard.
+        It is not positive when the package already holds the technology.
 
         Parameters
         ----------
@@ -167,10 +183,10 @@ class _RetrofitProposal:
         Returns
         -------
         _CapContribution | None
-            The contribution, or None when no retrofit step reaches the technology.
+            The contribution, or None when the package already holds the technology.
         """
         start = self.first_adopting_step(technology_idx)
-        if not 0 < start < len(self.choices):
+        if start <= 0:
             return None
 
         return _CapContribution(self.choices, start, self.eligible_count)
@@ -234,14 +250,13 @@ def perform_technology_installation(
     # the fleet count before newbuilds is the denominator of both the retrofit and the
     # newbuild technology caps
     multipliers_total = float(sum(get_multipliers(fleet)))
+    sensitivity = technology_sensitivity.get()
 
     proposals = []
     for v, vessel in enumerate(fleet.vessels):
-        basis = _extract_adoption_basis(fleet, vessel, v, timeline, idx)
-        fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(
-            fleet, basis, technology_sensitivity
-        )
-        proposals += _propose_retrofits(fleet, basis, technology_sensitivity, time_step)
+        basis = _extract_adoption_basis(fleet, vessel, v, sensitivity, timeline, idx)
+        fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(fleet, basis)
+        proposals += _propose_retrofits(fleet, basis, time_step)
 
     _reconcile_retrofit_technology_caps(fleet, proposals, time_step, multipliers_total)
     _apply_retrofits(proposals)
@@ -256,6 +271,7 @@ def _extract_adoption_basis(
     fleet: Fleet,
     vessel: Vessel,
     vessel_idx: int,
+    sensitivity: float,
     timeline: FloatArray,
     idx: int,
 ) -> _AdoptionBasis:
@@ -270,6 +286,8 @@ def _extract_adoption_basis(
         Vessel type the basis is built for.
     vessel_idx
         Index of `vessel` in `fleet.vessels`.
+    sensitivity
+        Odds ratio of the adoption choice.
     timeline
         Simulation timeline, days.
     idx
@@ -280,17 +298,12 @@ def _extract_adoption_basis(
     _AdoptionBasis
         The basis bundle.
     """
-    if fleet.technology_cost_of_capital:
-        discount_rate = fleet.technology_cost_of_capital.get()
-    else:
-        discount_rate = vessel.cost_of_capital.get()
+    technology_rate = fleet.technology_cost_of_capital
+    vessel_rate = vessel.cost_of_capital.get()
+    discount_rate = vessel_rate if technology_rate is None else technology_rate.get()
 
-    packages_saving = _calculate_packages_saving(
-        vessel, fleet.technology_packages, timeline, idx
-    )
-
-    # the NPV is non-dimensionalized by the summed ship CAPEX so the sensitivity is
-    # unit-free
+    packages = fleet.technology_packages
+    packages_saving = _calculate_packages_saving(vessel, packages, timeline, idx)
     capex_npv = vessel.expectation.get_capex_npv(idx)
 
     return _AdoptionBasis(
@@ -298,8 +311,9 @@ def _extract_adoption_basis(
         vessel_idx,
         packages_saving,
         discount_rate,
-        vessel.cost_of_capital.get(),
+        vessel_rate,
         capex_npv,
+        sensitivity,
     )
 
 
@@ -329,26 +343,22 @@ def _calculate_packages_saving(
         Saving flow of each package, USD/year.
     """
     lifetime = vessel.lifetime.get()
-    idx_ = np.s_[idx:]
-    times = timeline[idx_]
+    horizon = np.s_[idx:]
+    legs = bind_conditions_to_legs(vessel.route)
 
-    time_flow = timeline_to_yearly(vessel, idx, timeline)
-    condition_legs = bind_conditions_to_legs(vessel.route)
+    times = timeline[horizon]
+    yearly_times = timeline_to_yearly(vessel, idx, timeline)
 
     savings = []
     for package in packages:
-        saving = calculate_marginal_technology_saving(
-            vessel, condition_legs, package, idx_
-        )
-        saving_flow = np.interp(time_flow, times, saving)
-        savings.append(trim_flow_to_lifetime(saving_flow, lifetime))
+        saving = calculate_marginal_technology_saving(vessel, legs, package, horizon)
+        yearly_saving = np.interp(yearly_times, times, saving)
+        savings.append(trim_flow_to_lifetime(yearly_saving, lifetime))
 
     return savings
 
 
-def _propose_newbuild_uptake(
-    fleet: Fleet, basis: _AdoptionBasis, technology_sensitivity: ForecastInput
-) -> FloatArray:
+def _propose_newbuild_uptake(fleet: Fleet, basis: _AdoptionBasis) -> FloatArray:
     """
     Make the unconstrained MNL choice over newbuild packages for one vessel type.
 
@@ -361,26 +371,18 @@ def _propose_newbuild_uptake(
         Fleet owning the vessel.
     basis
         Per-vessel invariants of the adoption pass.
-    technology_sensitivity
-        Odds ratio of the adoption choice.
 
     Returns
     -------
     FloatArray
         MNL share of each newbuild package, fraction.
     """
-    cost_flows = get_package_cost_flows(
-        fleet.technology_packages,
-        fleet.package_cost_flows,
-        basis.vessel.lifetime.get(),
-    )
+    packages = fleet.technology_packages
+    lifetime = basis.vessel.lifetime.get()
+
+    cost_flows = get_package_cost_flows(packages, fleet.package_cost_flows, lifetime)
     npv = calculate_newbuild_npv(basis.packages_saving, cost_flows, basis.discount_rate)
-    choices, msg = calculate_asset_shares(
-        npv,
-        UtilityID.SIGNED_REFERENCE,
-        technology_sensitivity.get(),
-        reference=basis.capex_npv,
-    )
+    choices, msg = basis.calculate_shares(npv)
 
     if msg:
         logger.warning(
@@ -391,10 +393,7 @@ def _propose_newbuild_uptake(
 
 
 def _propose_retrofits(
-    fleet: Fleet,
-    basis: _AdoptionBasis,
-    technology_sensitivity: ForecastInput,
-    time_step: float,
+    fleet: Fleet, basis: _AdoptionBasis, time_step: float
 ) -> list[_RetrofitProposal]:
     """
     Propose unconstrained MNL retrofit jumps for every (increment, package) pair.
@@ -407,8 +406,6 @@ def _propose_retrofits(
         Fleet owning the vessel.
     basis
         Per-vessel invariants of the adoption pass.
-    technology_sensitivity
-        Odds ratio of the adoption choice.
     time_step
         Current time-step size, days.
 
@@ -418,68 +415,72 @@ def _propose_retrofits(
         One proposal per (increment, package) pair with vessels eligible to move, in
         decreasing package order, which `_apply_retrofits` relies on.
     """
-    vessel = basis.vessel
-    n_packages = len(fleet.technology_packages)
+    cohorts = list(_retrofit_cohorts(fleet, basis, time_step))
 
-    retrofit_frequency = fleet.retrofit_frequency.get()
-    sensitivity = technology_sensitivity.get()
-    dt_years = time_step / YEAR
+    v = basis.vessel_idx
+    savings = basis.packages_saving
+    discount_rate = basis.discount_rate
+    vessel_rate = basis.vessel_discount_rate
 
     proposals = []
 
-    for package_idx in range(n_packages - 1, -1, -1):
-        for inc in fleet.increments[basis.vessel_idx]:
-            if not is_retrofit_cycle(inc.age, retrofit_frequency, dt_years):
+    for p in reversed(range(len(fleet.technology_packages))):
+        for increment, remaining, flows in cohorts:
+            share = float(increment.package_uptake[p])
+            if share <= 0.0:
                 continue
 
-            remaining = _get_remaining_lifetime(vessel, inc.age, inc.age_span)
-            if remaining <= 0:
-                continue
+            npv = calculate_retrofit_npv(p, savings, flows, remaining, discount_rate)
+            choices, _ = basis.calculate_shares(npv)
+            costs = calculate_retrofit_charter_rates(p, flows, remaining, vessel_rate)
 
-            eligible_share = float(inc.package_uptake[package_idx])
-            if eligible_share <= 0.0:
-                continue
-
-            # the step is amortized over the years the cohort still serves
-            cost_flows = get_package_cost_flows(
-                fleet.technology_packages, fleet.package_cost_flows, remaining
-            )
-            npv = calculate_retrofit_npv(
-                package_idx,
-                basis.packages_saving,
-                cost_flows,
-                remaining,
-                basis.discount_rate,
-            )
-            choices, _ = calculate_asset_shares(
-                npv,
-                UtilityID.SIGNED_REFERENCE,
-                sensitivity,
-                reference=basis.capex_npv,
-            )
-            annual_costs = calculate_retrofit_charter_rates(
-                package_idx,
-                cost_flows,
-                remaining,
-                basis.vessel_discount_rate,
-            )
-            proposals.append(
-                _RetrofitProposal(
-                    basis.vessel_idx,
-                    inc,
-                    package_idx,
-                    choices,
-                    eligible_share,
-                    annual_costs,
-                )
-            )
+            proposals.append(_RetrofitProposal(v, increment, p, choices, share, costs))
 
     return proposals
 
 
-def _get_remaining_lifetime(vessel: Vessel, age: float, dt: float) -> int:
-    lifetime = vessel.lifetime.get()
-    return max(0, int(round(lifetime - (age + dt / 2.0), ROUND_OFF)))
+def _retrofit_cohorts(
+    fleet: Fleet, basis: _AdoptionBasis, time_step: float
+) -> Iterator[tuple[VesselIncrement, int, list[FloatArray]]]:
+    """
+    Yield the vessel's cohorts at a retrofit cycle that have lifetime left.
+
+    Parameters
+    ----------
+    fleet
+        Fleet owning the vessel.
+    basis
+        Per-vessel invariants of the adoption pass.
+    time_step
+        Current time-step size, days.
+
+    Yields
+    ------
+    tuple[VesselIncrement, int, list[FloatArray]]
+        Each cohort, its remaining lifetime in years, and the cost flow of each package
+        over that lifetime, USD/year.
+    """
+    packages = fleet.technology_packages
+    frequency = fleet.retrofit_frequency.get()
+    dt = time_step / YEAR
+
+    for increment in fleet.increments[basis.vessel_idx]:
+        if not is_retrofit_cycle(increment.age, frequency, dt):
+            continue
+
+        remaining = _get_remaining_lifetime(basis.vessel, increment)
+        if remaining <= 0:
+            continue
+
+        # a retrofit is amortized over the years the cohort still serves
+        flows = get_package_cost_flows(packages, fleet.package_cost_flows, remaining)
+        yield increment, remaining, flows
+
+
+def _get_remaining_lifetime(vessel: Vessel, increment: VesselIncrement) -> int:
+    """Return the whole years of vessel lifetime left past the cohort's mean age."""
+    age = increment.age + increment.age_span / 2.0
+    return int(round(vessel.lifetime.get() - age, ROUND_OFF))
 
 
 def _reconcile_retrofit_technology_caps(
@@ -514,19 +515,10 @@ def _reconcile_retrofit_technology_caps(
     multipliers_total
         Number of vessels in the fleet before newbuilds.
     """
-    if multipliers_total <= 0.0 or not proposals or not fleet.technology_packages:
-        return
+    limits = fleet.retrofit_technology_limit
+    caps = _technology_caps(fleet, limits, time_step, multipliers_total)
 
-    sorted_technologies = fleet.technology_packages[-1].technologies
-    if not sorted_technologies:
-        return
-
-    budget = multipliers_total * (time_step / YEAR)
-
-    for i in range(len(sorted_technologies) - 1, -1, -1):
-        technology_name = sorted_technologies[i].name
-        cap = fleet.retrofit_technology_limit[technology_name].get() * budget
-
+    for i, cap in caps:
         contributions = []
         for proposal in proposals:
             contribution = proposal.cap_contribution(i)
@@ -560,31 +552,58 @@ def reconcile_newbuild_technology_caps(
     multipliers_total
         Number of vessels in the fleet before newbuilds.
     """
-    if multipliers_total <= 0.0 or not fleet.technology_packages:
-        return
+    limits = fleet.newbuild_technology_limit
+    caps = _technology_caps(fleet, limits, time_step, multipliers_total)
+    uptakes = fleet.newbuild_package_uptake
 
-    sorted_technologies = fleet.technology_packages[-1].technologies
-    if not sorted_technologies:
-        return
-
-    budget = multipliers_total * (time_step / YEAR)
-
-    for i in range(len(sorted_technologies) - 1, -1, -1):
-        technology_name = sorted_technologies[i].name
-        cap = fleet.newbuild_technology_limit[technology_name].get() * budget
-        k_start = i + 1
-
+    # package i + 1 is the first to hold technology i, as the packages are cumulative
+    for i, cap in caps:
         contributions = []
-        for v in range(len(fleet.vessels)):
-            uptake = fleet.newbuild_package_uptake[v]
-            if k_start >= len(uptake) or increments[v] <= 0.0:
+        for uptake, count in zip(uptakes, increments, strict=True):
+            if count <= 0.0:
                 continue
 
-            contributions.append(
-                _CapContribution(uptake, k_start, float(increments[v]))
-            )
+            contributions.append(_CapContribution(uptake, i + 1, float(count)))
 
         _scale_tails_to_cap(contributions, cap)
+
+
+def _technology_caps(
+    fleet: Fleet,
+    limits: dict[str, ForecastInput],
+    time_step: float,
+    multipliers_total: float,
+) -> Iterator[tuple[int, float]]:
+    """
+    Yield each technology's cap this time-step, outermost technology first.
+
+    A fleet without vessels before newbuilds has no caps to enforce.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose technologies are capped.
+    limits
+        Yearly cap of each technology as a share of the fleet, fraction.
+    time_step
+        Current time-step size, days.
+    multipliers_total
+        Number of vessels in the fleet before newbuilds.
+
+    Yields
+    ------
+    tuple[int, float]
+        Index of the technology in the CAPEX-sorted order, and its cap, number of
+        vessels.
+    """
+    if multipliers_total <= 0.0:
+        return
+
+    technologies = _get_sorted_technologies(fleet)
+    budget = multipliers_total * (time_step / YEAR)
+
+    for i in reversed(range(len(technologies))):
+        yield i, limits[technologies[i].name].get() * budget
 
 
 def _scale_tails_to_cap(contributions: list[_CapContribution], cap: float) -> None:
@@ -641,19 +660,15 @@ def _apply_retrofits(proposals: list[_RetrofitProposal]) -> None:
         increment = proposal.increment
         uptake = increment.package_uptake
         choices = proposal.choices
-        annual_costs = proposal.annual_costs
         package_idx = proposal.package_idx
 
         current = uptake[package_idx]
-        moved_total = np.sum(choices[1:])
-
-        uptake[package_idx] = current * (1.0 - moved_total)
+        uptake[package_idx] = current * (1.0 - np.sum(choices[1:]))
 
         for step in range(1, len(choices)):
-            uptake[package_idx + step] += current * choices[step]
-            increment.technology_charter_rate += (
-                current * choices[step] * annual_costs[step]
-            )
+            moved = current * choices[step]
+            uptake[package_idx + step] += moved
+            increment.technology_charter_rate += moved * proposal.annual_costs[step]
 
 
 def _transfer_retrofit_uptake(
@@ -676,39 +691,38 @@ def _transfer_retrofit_uptake(
     idx
         Current time-step index.
     """
-    if not fleet.technology_packages or not proposals:
+    if not proposals:
         return
 
-    sorted_technologies = fleet.technology_packages[-1].technologies
-    if not sorted_technologies:
-        return
+    technologies = _get_sorted_technologies(fleet)
+    counts = np.zeros((len(fleet.vessels), len(technologies)))
 
-    retrofit_counts: dict[tuple[int, int], float] = {}
+    # `_apply_retrofits` only reads `choices`, so the reconciled tail sums are intact
     for proposal in proposals:
-        weight = proposal.eligible_count
-        if weight <= 0.0:
+        v = proposal.vessel_idx
+        count = proposal.eligible_count
+        if count <= 0.0:
             continue
 
-        for i in range(proposal.package_idx, len(sorted_technologies)):
-            k_start = proposal.first_adopting_step(i)
-            if k_start >= len(proposal.choices):
-                break
+        for i in range(proposal.package_idx, len(technologies)):
+            start = proposal.first_adopting_step(i)
+            counts[v, i] += count * np.sum(proposal.choices[start:])
 
-            # `_apply_retrofits` only reads `choices`, so the reconciled tail sums
-            # are intact
-            key = (proposal.vessel_idx, i)
-            retrofit_counts[key] = retrofit_counts.get(key, 0.0) + weight * float(
-                np.sum(proposal.choices[k_start:])
-            )
+    multipliers = np.array(get_multipliers(fleet))
+    shares = divide_nonzero(counts, multipliers[:, np.newaxis])
+    uptake = fleet.results.retrofit_technology_uptake
 
     for v, vessel in enumerate(fleet.vessels):
-        multipliers_total = float(get_multiplier(fleet, v))
-        for i, technology in enumerate(sorted_technologies):
-            count = retrofit_counts.get((v, i), 0.0)
-            share = float(divide_nonzero(count, multipliers_total))
-            fleet.results.retrofit_technology_uptake[vessel.name, technology.name][
-                idx
-            ] = share
+        for i, technology in enumerate(technologies):
+            uptake[vessel.name, technology.name][idx] = shares[v, i]
+
+
+def _get_sorted_technologies(fleet: Fleet) -> list[Technology]:
+    """Return the fleet's technologies in CAPEX order, none before its packages."""
+    if not fleet.technology_packages:
+        return []
+
+    return fleet.technology_packages[-1].technologies
 
 
 def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
@@ -728,12 +742,12 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for v, vessel in enumerate(fleet.vessels):
+    for vessel, increments in zip(fleet.vessels, fleet.increments, strict=True):
         total = 0.0
         weight = 0.0
-        for inc in fleet.increments[v]:
-            total += inc.multiplier * inc.technology_charter_rate
-            weight += inc.multiplier
+        for increment in increments:
+            total += increment.multiplier * increment.technology_charter_rate
+            weight += increment.multiplier
 
         average = float(divide_nonzero(total, weight))
 

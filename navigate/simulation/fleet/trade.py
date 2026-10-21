@@ -53,20 +53,19 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     fleet
         Fleet whose trade gap is closed.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     idx
         Current time-step index.
     """
     trade = fleet.trade[idx]
     trade_gap = trade - get_trade_capacity(fleet, idx)
 
-    # each vessel type's newbuild budget for this time-step, shared by the three
-    # newbuild sources; the fleet count before newbuilds stands in for yard capacity
+    # each vessel type's newbuild budget; the fleet count stands in for yard capacity
     multipliers_total = float(sum(get_multipliers(fleet)))
     limit_share = np.array([fleet.newbuild_limit[v.name].get() for v in fleet.vessels])
     cap_count = limit_share * multipliers_total * (time_step / YEAR)
 
-    increments, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
+    newbuilds, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
         fleet, trade_gap, cap_count, idx
     )
     trade_gap -= delivered_capacity
@@ -75,30 +74,26 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     fleet.current_uptake *= calculate_inertia(fleet.inertia.get(), time_step)
 
     if trade_gap > TOLERANCE:
-        increments_model, delivered_capacity = calculate_modelled_newbuilds(
+        modelled, delivered_capacity = calculate_modelled_newbuilds(
             fleet, trade_gap, cap_count, idx
         )
-        increments += increments_model
+        newbuilds += modelled
         trade_gap -= delivered_capacity
 
-    elif (trade_gap < -TOLERANCE) and fleet.allow_secondary_scrapping:
-        secondary_scrapping = perform_secondary_scrapping(fleet, trade_gap, idx)
-        trade_gap += secondary_scrapping
+    elif trade_gap < -TOLERANCE and fleet.allow_secondary_scrapping:
+        trade_gap += perform_secondary_scrapping(fleet, trade_gap, idx)
 
     consolidate_increments(fleet)
+    reconcile_newbuild_technology_caps(fleet, newbuilds, time_step, multipliers_total)
+    add_newbuilds(fleet, newbuilds, time_step, idx)
+    update_current_uptake(fleet, newbuilds, idx)
 
-    # reconcile newbuild package shares against per-technology flow caps now that
-    # vessel-type counts are known
-    reconcile_newbuild_technology_caps(fleet, increments, time_step, multipliers_total)
-    add_newbuilds(fleet, increments, time_step, idx)
+    carried = trade - trade_gap
+    fleet.results.trade[idx] = carried
 
-    if trade > 0 and (trade_gap / trade) > 1e-3:
+    if trade > 0.0 and trade_gap > 1e-3 * trade:
         logger.warning(
             "%s: Model was only able to satisfy %s%% of the expected trade.",
             fleet,
-            round((1.0 - trade_gap / trade) * 100.0),
+            round(carried / trade * 100.0),
         )
-
-    update_current_uptake(fleet, increments, idx)
-
-    fleet.results.trade[idx] = trade - trade_gap
