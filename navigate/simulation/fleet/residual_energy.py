@@ -62,10 +62,10 @@ def calculate_residual_energy(
     times_sea = np.asarray(expectation.get_time_sea_condition(idx), dtype=float)
     times_port = np.asarray(expectation.get_time_port(idx), dtype=float)
 
-    energy_sea = _residual_energy(vessel, package, times_sea, raw_demand_sea)
-    energy_port = _residual_energy(vessel, package, times_port, raw_demand_port)
+    residual_sea = _calculate_residuals(vessel, package, times_sea, raw_demand_sea)
+    residual_port = _calculate_residuals(vessel, package, times_port, raw_demand_port)
 
-    return energy_sea, energy_port
+    return residual_sea, residual_port
 
 
 def calculate_net_energy(
@@ -131,13 +131,10 @@ def _stack_steps(
     energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
 ) -> dict[EnergyDemandID, FloatArray]:
     """Stack the energy of each step into one array per type, the step axis first."""
-    return {
-        energy_id: np.asarray(energy, dtype=float)
-        for energy_id, energy in energies.items()
-    }
+    return {key: np.asarray(value, dtype=float) for key, value in energies.items()}
 
 
-def _residual_energy(
+def _calculate_residuals(
     vessel: Vessel,
     package: TechnologyPackage,
     times: FloatArray,
@@ -168,27 +165,27 @@ def _residual_energy(
     dict[EnergyDemandID, FloatArray]
         Residual energy per energy demand type, the step axis first, in GJ/year.
     """
-    residual_energy: dict[EnergyDemandID, FloatArray] = {}
+    residuals: dict[EnergyDemandID, FloatArray] = {}
 
     for energy_id, raw_demand in raw_demands.items():
         saving = package.compound_savings[energy_id]
         power = package.compound_powers[energy_id]
 
+        net_demand = raw_demand * (1.0 - saving)
         external_energy = _power_to_energy(power, times)
-        residual = _raw_to_residual_energy(raw_demand, saving, external_energy)
-        residual_energy[energy_id] = residual
+        residuals[energy_id] = np.maximum(net_demand - external_energy, 0.0)
 
     if not package.includes_transfer:
-        return residual_energy
+        return residuals
 
-    return _subtract_transfers(vessel, package, times, residual_energy)
+    return _subtract_transfers(vessel, package, times, residuals)
 
 
 def _subtract_transfers(
     vessel: Vessel,
     package: TechnologyPackage,
     times: FloatArray,
-    residual_energy: Mapping[EnergyDemandID, FloatArray],
+    residuals: Mapping[EnergyDemandID, FloatArray],
 ) -> dict[EnergyDemandID, FloatArray]:
     """
     Reduce each sink's residual energy by the energy transferred into it.
@@ -205,7 +202,7 @@ def _subtract_transfers(
         Technology package holding the transfer curves.
     times
         Time spent on each step, in days/year.
-    residual_energy
+    residuals
         Residual energy before the transfers per energy demand type, the step axis
         first, in GJ/year.
 
@@ -215,24 +212,23 @@ def _subtract_transfers(
         Residual energy after the transfers per energy demand type, the step axis
         first, in GJ/year.
     """
-    transfer_energy = {
-        energy_id: np.zeros_like(energy)
-        for energy_id, energy in residual_energy.items()
-    }
+    transferred = {key: np.zeros_like(value) for key, value in residuals.items()}
 
     for (source_id, sink_id), curves in package.transfer_curves.items():
-        if source_id not in residual_energy or sink_id not in residual_energy:
+        if source_id not in residuals or sink_id not in residuals:
             continue
 
-        residual_power = _energy_to_power(residual_energy[source_id], times)
+        residual_power = _energy_to_power(residuals[source_id], times)
         load = _calculate_converter_load(vessel, source_id, residual_power)
         transfer_power = _calculate_power_transfer(curves, load)
-        transfer_energy[sink_id] += _power_to_energy(transfer_power, times)
+        transferred[sink_id] += _power_to_energy(transfer_power, times)
 
-    return {
-        energy_id: np.maximum(energy - transfer_energy[energy_id], 0.0)
-        for energy_id, energy in residual_energy.items()
-    }
+    remaining: dict[EnergyDemandID, FloatArray] = {}
+
+    for energy_id, residual in residuals.items():
+        remaining[energy_id] = np.maximum(residual - transferred[energy_id], 0.0)
+
+    return remaining
 
 
 def _calculate_converter_load(
@@ -262,13 +258,6 @@ def _calculate_power_transfer(curves: list[CurveInput], load: FloatArray) -> Flo
     """
     powers = np.array([curve.get(load) for curve in curves])
     return np.sum(powers, axis=0, dtype=float)
-
-
-def _raw_to_residual_energy(
-    raw_energy: FloatArray, saving: float, external_energy: FloatArray
-) -> FloatArray:
-    """Reduce the raw energy by the saving and the external energy, floored at zero."""
-    return np.maximum(raw_energy * (1.0 - saving) - external_energy, 0.0)
 
 
 def _power_to_energy(power: FloatLike, duration: FloatArray) -> FloatArray:
