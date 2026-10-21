@@ -4,12 +4,11 @@
 """
 Each vessel's energy demand after its installed technology.
 
-Fleets that cannot retrofit take the average saving of those that can.
+Fleets that cannot retrofit take the ratio of residual to raw energy of those that can.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -17,44 +16,18 @@ import numpy as np
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.simulation.fleet.composition import get_multiplier
 from navigate.simulation.fleet.operation import transfer_operational_savings
-from navigate.simulation.fleet.residual_energy import (
-    calculate_energy_savings,
-    calculate_net_energy,
-    calculate_residual_energy,
-)
+from navigate.simulation.fleet.residual_energy import calculate_residual_energy
 from navigate.simulation.fleet.trip import bind_conditions_to_legs, sum_energy_per_leg
-from navigate.util import sum_per_key
+from navigate.util import divide_nonzero, sum_per_key
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
+    from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.technology_package import TechnologyPackage
     from navigate.util.types_ import FloatArray, FloatLike
-
-
-@dataclass
-class _TechnologyEffect:
-    """
-    Uptake-weighted technology effect on a vessel type, over (increment, package).
-
-    Parameters
-    ----------
-    saving_sea
-        Weighted saving in each sailing condition, operational minus residual
-        energy, GJ/year.
-    saving_port
-        Weighted saving at each port call, GJ/year.
-    weight
-        Total uptake weight, which normalizes the averages, number of vessels.
-    shore_capacity
-        Weighted shore power capacity, MW.
-    """
-
-    saving_sea: dict[EnergyDemandID, FloatArray]
-    saving_port: dict[EnergyDemandID, FloatArray]
-    weight: float = 0.0
-    shore_capacity: float = 0.0
 
 
 def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
@@ -69,44 +42,45 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     transfer_operational_savings(fleet)
+    packages = fleet.technology_packages
 
-    for v, vessel in enumerate(fleet.vessels):
-        op_sea, op_port = _apply_operational_savings(vessel, idx)
-        op_sea_arr = {d: np.asarray(op_sea[d], dtype=float) for d in EnergyDemandID}
-        op_port_arr = {
-            d: np.asarray(op_port[d], dtype=float) for d in PORT_ENERGY_DEMANDS
-        }
+    for vessel, increments in zip(fleet.vessels, fleet.increments, strict=True):
+        sea, port = _calculate_operational_energy(vessel, idx)
+        _transfer_operational_energy(vessel, sea, port, idx)
 
-        effect = _accumulate_technology_effect(
-            fleet, v, vessel, op_sea_arr, op_port_arr, idx
-        )
-        _transfer_residual_energy(vessel, op_sea_arr, op_port_arr, effect, idx)
+        # a vessel type without technology uptake keeps its operational energy
+        weights = _calculate_package_weights(increments, packages)
+        shore = 0.0
+        if weights:
+            sea, port, shore = _calculate_technology_effect(vessel, weights, idx)
+
+        _transfer_residual_energy(vessel, sea, port, idx)
+        vessel.expectation.set_shore_power_capacity(idx, shore)
 
 
-def _apply_operational_savings(
+def _calculate_operational_energy(
     vessel: Vessel, idx: int
-) -> tuple[
-    dict[EnergyDemandID, list[FloatArray]], dict[EnergyDemandID, list[FloatArray]]
-]:
+) -> tuple[dict[EnergyDemandID, FloatArray], dict[EnergyDemandID, FloatArray]]:
     """
-    Apply the operational saving fractions to the vessel's raw energy demand.
+    Calculate the vessel's raw energy demand less its operational savings.
 
     The operational savings are zero-cost reductions such as JIT and weather routing.
-    The result is stored on the expectation and the profile.
 
     Parameters
     ----------
     vessel
-        Vessel to apply the operational savings for.
+        Vessel to calculate the operational energy for.
     idx
         Current time-step index.
 
     Returns
     -------
-    dict[EnergyDemandID, list[FloatArray]]
-        Operational energy at sea per energy demand type and condition, GJ/year.
-    dict[EnergyDemandID, list[FloatArray]]
-        Operational energy in port per energy demand type and port call, GJ/year.
+    dict[EnergyDemandID, FloatArray]
+        Operational energy at sea per energy demand type, one value per condition, in
+        GJ/year.
+    dict[EnergyDemandID, FloatArray]
+        Operational energy in port per energy demand type, one value per port call, in
+        GJ/year.
     """
     expectation = vessel.expectation
 
@@ -116,170 +90,208 @@ def _apply_operational_savings(
     saving_sea = expectation.get_operational_saving_fraction_sea()
     saving_port = expectation.get_operational_saving_fraction_port()
 
-    op_sea = {
-        d: [
-            np.asarray(condition, dtype=float) * (1.0 - saving_sea[d])
-            for condition in raw_sea[d]
-        ]
-        for d in EnergyDemandID
-    }
-    op_port = {
-        d: [
-            np.asarray(port, dtype=float) * (1.0 - saving_port[d])
-            for port in raw_port[d]
-        ]
-        for d in PORT_ENERGY_DEMANDS
-    }
+    remaining_sea = {key: 1.0 - value for key, value in saving_sea.items()}
+    remaining_port = {key: 1.0 - value for key, value in saving_port.items()}
 
-    condition_legs = bind_conditions_to_legs(vessel.route)
-    op_sea_leg = sum_energy_per_leg(condition_legs, op_sea)
+    sea = _scale_per_key(raw_sea, remaining_sea)
+    port = _scale_per_key(raw_port, remaining_port)
 
-    expectation.set_operational_energy_sea_condition(idx, op_sea)
-    expectation.set_operational_energy_sea_leg(idx, op_sea_leg)
-    expectation.set_operational_energy_port(idx, op_port)
-
-    energy_sea = sum_per_key(op_sea)
-    for demand_type, values in vessel.profile.operational_energy_sea.items():
-        values[idx] = energy_sea[demand_type]
-
-    energy_port = sum_per_key(op_port)
-    for demand_type, values in vessel.profile.operational_energy_port.items():
-        values[idx] = energy_port[demand_type]
-
-    return op_sea, op_port
+    return sea, port
 
 
-def _accumulate_technology_effect(
-    fleet: Fleet,
-    vessel_idx: int,
+def _transfer_operational_energy(
     vessel: Vessel,
-    op_sea_arr: dict[EnergyDemandID, FloatArray],
-    op_port_arr: dict[EnergyDemandID, FloatArray],
+    sea: Mapping[EnergyDemandID, FloatArray],
+    port: Mapping[EnergyDemandID, FloatArray],
     idx: int,
-) -> _TechnologyEffect:
+) -> None:
     """
-    Accumulate the uptake-weighted technology effect over (increment, package) pairs.
-
-    A technology saving is the operational energy less the residual energy.
+    Store the vessel's operational energy demand on its expectation and profile.
 
     Parameters
     ----------
-    fleet
-        Fleet owning the increments and technology packages.
-    vessel_idx
-        Index of `vessel` in `fleet.vessels`.
     vessel
-        Vessel to accumulate the effect for.
-    op_sea_arr
-        Operational energy at sea per demand type, one array over conditions, GJ/year.
-    op_port_arr
-        Operational energy in port per demand type, one array over ports, GJ/year.
+        Vessel to store the operational energy for.
+    sea
+        Operational energy at sea per energy demand type, one value per condition, in
+        GJ/year.
+    port
+        Operational energy in port per energy demand type, one value per port call, in
+        GJ/year.
+    idx
+        Current time-step index.
+    """
+    expectation = vessel.expectation
+    profile = vessel.profile
+
+    condition_legs = bind_conditions_to_legs(vessel.route)
+    sea_leg = sum_energy_per_leg(condition_legs, sea)
+
+    expectation.set_operational_energy_sea_condition(idx, sea)
+    expectation.set_operational_energy_sea_leg(idx, sea_leg)
+    expectation.set_operational_energy_port(idx, port)
+
+    totals_sea = sum_per_key(sea)
+    totals_port = sum_per_key(port)
+
+    for key, values in profile.operational_energy_sea.items():
+        values[idx] = totals_sea[key]
+
+    for key, values in profile.operational_energy_port.items():
+        values[idx] = totals_port[key]
+
+
+def _calculate_package_weights(
+    increments: Sequence[VesselIncrement], packages: Sequence[TechnologyPackage]
+) -> dict[TechnologyPackage, float]:
+    """
+    Calculate the number of vessels of a type carrying each technology package.
+
+    Parameters
+    ----------
+    increments
+        Age cohorts of the vessel type.
+    packages
+        Technology packages of the fleet.
+
+    Returns
+    -------
+    dict[TechnologyPackage, float]
+        Vessels carrying each package, summed over the cohorts, for the packages
+        carried at all, number of vessels.
+    """
+    weights = dict.fromkeys(packages, 0.0)
+
+    for increment in increments:
+        uptake = zip(packages, increment.package_uptake, strict=True)
+
+        for package, share in uptake:
+            weights[package] += increment.multiplier * float(share)
+
+    return {package: weight for package, weight in weights.items() if weight > 0.0}
+
+
+def _calculate_technology_effect(
+    vessel: Vessel, weights: Mapping[TechnologyPackage, float], idx: int
+) -> tuple[dict[EnergyDemandID, FloatArray], dict[EnergyDemandID, FloatArray], float]:
+    """
+    Average the residual energy and shore power capacity over the vessel's packages.
+
+    Parameters
+    ----------
+    vessel
+        Vessel providing the operational energy demand.
+    weights
+        Vessels carrying each package, summed over the cohorts, for the packages
+        carried at all, number of vessels.
     idx
         Current time-step index.
 
     Returns
     -------
-    _TechnologyEffect
-        The accumulated effect.
+    dict[EnergyDemandID, FloatArray]
+        Residual energy at sea per energy demand type, one value per condition, in
+        GJ/year.
+    dict[EnergyDemandID, FloatArray]
+        Residual energy in port per energy demand type, one value per port call, in
+        GJ/year.
+    float
+        Shore power capacity, in MW.
     """
-    route = vessel.route
-    n_conditions = len(route.get_conditions())
-    n_ports = route.get_number_of_ports()
+    residuals_sea = []
+    residuals_port = []
 
-    effect = _TechnologyEffect(
-        {d: np.zeros(n_conditions, dtype=float) for d in EnergyDemandID},
-        {d: np.zeros(n_ports, dtype=float) for d in PORT_ENERGY_DEMANDS},
-    )
+    for package in weights:
+        residual_sea, residual_port = calculate_residual_energy(vessel, package, idx)
+        residuals_sea.append(residual_sea)
+        residuals_port.append(residual_port)
 
-    for inc in fleet.increments[vessel_idx]:
-        uptake = inc.package_uptake
+    package_weights = list(weights.values())
+    capacities = [package.shore_power_capacity for package in weights]
 
-        for p, package in enumerate(fleet.technology_packages):
-            w = float(inc.multiplier) * float(uptake[p])
-            if w <= 0.0:
-                continue
+    sea = _average_per_key(residuals_sea, package_weights)
+    port = _average_per_key(residuals_port, package_weights)
+    shore = float(np.average(capacities, weights=package_weights))
 
-            residual_sea, residual_port = calculate_residual_energy(
-                vessel, package, np.s_[idx]
-            )
+    return sea, port, shore
 
-            for demand, residual in residual_sea.items():
-                effect.saving_sea[demand] += w * (op_sea_arr[demand] - residual)
 
-            for demand, residual in residual_port.items():
-                effect.saving_port[demand] += w * (op_port_arr[demand] - residual)
+def _average_per_key(
+    energies: Sequence[Mapping[EnergyDemandID, FloatArray]], weights: Sequence[float]
+) -> dict[EnergyDemandID, FloatArray]:
+    """
+    Average the energy of each demand type over the packages, weighted by uptake.
 
-            effect.weight += w
-            effect.shore_capacity += w * package.shore_power_capacity
+    Parameters
+    ----------
+    energies
+        Energy per energy demand type of each package, in GJ/year.
+    weights
+        Vessels carrying each package, summed over the cohorts, number of vessels.
 
-    return effect
+    Returns
+    -------
+    dict[EnergyDemandID, FloatArray]
+        Weighted average energy per energy demand type, in GJ/year.
+    """
+    averages: dict[EnergyDemandID, FloatArray] = {}
+
+    for energy_id in energies[0]:
+        stacked = [energy[energy_id] for energy in energies]
+        averages[energy_id] = np.average(stacked, axis=0, weights=weights)
+
+    return averages
 
 
 def _transfer_residual_energy(
     vessel: Vessel,
-    op_sea_arr: dict[EnergyDemandID, FloatArray],
-    op_port_arr: dict[EnergyDemandID, FloatArray],
-    effect: _TechnologyEffect,
+    sea: Mapping[EnergyDemandID, FloatArray],
+    port: Mapping[EnergyDemandID, FloatArray],
     idx: int,
 ) -> None:
     """
-    Store the averaged technology effect's shore power and residual energy demand.
+    Store the vessel's residual energy demand on its expectation and profile.
 
     Parameters
     ----------
     vessel
-        Vessel to store the results for.
-    op_sea_arr
-        Operational energy at sea per demand type, one array over conditions, GJ/year.
-    op_port_arr
-        Operational energy in port per demand type, one array over ports, GJ/year.
-    effect
-        Accumulated technology effect.
+        Vessel to store the residual energy for.
+    sea
+        Residual energy at sea per energy demand type, one value per condition, in
+        GJ/year.
+    port
+        Residual energy in port per energy demand type, one value per port call, in
+        GJ/year.
     idx
         Current time-step index.
     """
-    avg_shore_capacity = (
-        effect.shore_capacity / effect.weight if effect.weight > 0.0 else 0.0
-    )
-    vessel.expectation.set_shore_power_capacity(idx, avg_shore_capacity)
-
-    # without any uptake weight the residual energy stays the operational energy
-    if effect.weight <= 0.0:
-        avg_residual_sea = op_sea_arr
-        avg_residual_port = op_port_arr
-    else:
-        inv_w = 1.0 / effect.weight
-        avg_residual_sea = {
-            d: op_sea_arr[d] - effect.saving_sea[d] * inv_w for d in EnergyDemandID
-        }
-        avg_residual_port = {
-            d: op_port_arr[d] - effect.saving_port[d] * inv_w
-            for d in PORT_ENERGY_DEMANDS
-        }
+    expectation = vessel.expectation
+    profile = vessel.profile
 
     condition_legs = bind_conditions_to_legs(vessel.route)
-    avg_residual_sea_leg = sum_energy_per_leg(condition_legs, avg_residual_sea)
+    sea_leg = sum_energy_per_leg(condition_legs, sea)
 
-    vessel.expectation.set_energy_sea_condition(idx, avg_residual_sea)
-    vessel.expectation.set_energy_sea_leg(idx, avg_residual_sea_leg)
-    vessel.expectation.set_energy_port(idx, avg_residual_port)
+    expectation.set_energy_sea_condition(idx, sea)
+    expectation.set_energy_sea_leg(idx, sea_leg)
+    expectation.set_energy_port(idx, port)
 
-    energy_sea = sum_per_key(avg_residual_sea)
-    for demand_type, values in vessel.profile.energy_sea.items():
-        values[idx] = energy_sea[demand_type]
+    totals_sea = sum_per_key(sea)
+    totals_port = sum_per_key(port)
 
-    energy_port = sum_per_key(avg_residual_port)
-    for demand_type, values in vessel.profile.energy_port.items():
-        values[idx] = energy_port[demand_type]
+    for key, values in profile.energy_sea.items():
+        values[idx] = totals_sea[key]
+
+    for key, values in profile.energy_port.items():
+        values[idx] = totals_port[key]
 
 
 def approximate_missing_technology(fleets: dict[str, Fleet], idx: int) -> None:
     """
     Estimate the energy-efficiency savings of the fleets that cannot retrofit.
 
-    The average saving of the fleets that can retrofit applies to the energy demand
-    of every fleet allowing the approximation. It carries no cost, so the cost of the
-    efficiency improvements is underestimated.
+    The fleet-wide ratio of residual to raw energy of the fleets that can retrofit
+    scales the operational energy of every fleet allowing the approximation. It
+    carries no cost, so the cost of the efficiency improvements is underestimated.
 
     Parameters
     ----------
@@ -288,23 +300,25 @@ def approximate_missing_technology(fleets: dict[str, Fleet], idx: int) -> None:
     idx
         Current time-step index.
     """
-    average_saving_sea, average_saving_port = _average_retrofit_savings(fleets, idx)
+    ratio_sea, ratio_port = _calculate_retrofit_ratios(fleets, idx)
 
     for fleet in fleets.values():
         if fleet.can_retrofit() or not fleet.allow_technology_approximation:
             continue
 
         for vessel in fleet.vessels:
-            _apply_approximated_saving(
-                vessel, average_saving_sea, average_saving_port, idx
-            )
+            sea, port = _calculate_approximation(vessel, ratio_sea, ratio_port, idx)
+            _transfer_residual_energy(vessel, sea, port, idx)
 
 
-def _average_retrofit_savings(
+def _calculate_retrofit_ratios(
     fleets: dict[str, Fleet], idx: int
 ) -> tuple[dict[EnergyDemandID, float], dict[EnergyDemandID, float]]:
     """
-    Calculate the energy-weighted average technology saving of retrofit-capable fleets.
+    Calculate the ratio of residual to raw energy over the retrofit-capable fleets.
+
+    Each ratio sums every condition or port call of every vessel, weighted by its
+    number of vessels. A demand type without raw energy keeps its energy.
 
     Parameters
     ----------
@@ -316,15 +330,14 @@ def _average_retrofit_savings(
     Returns
     -------
     dict[EnergyDemandID, float]
-        Average saving at sea per demand type, fraction.
+        Ratio at sea per energy demand type, fraction.
     dict[EnergyDemandID, float]
-        Average saving in port per demand type, fraction.
+        Ratio in port per energy demand type, fraction.
     """
-    average_saving_sea = dict.fromkeys(EnergyDemandID, 0.0)
-    average_saving_port = dict.fromkeys(PORT_ENERGY_DEMANDS, 0.0)
-
-    weight_sea = dict.fromkeys(average_saving_sea, 0.0)
-    weight_port = dict.fromkeys(average_saving_port, 0.0)
+    residual_sea = dict.fromkeys(EnergyDemandID, 0.0)
+    residual_port = dict.fromkeys(PORT_ENERGY_DEMANDS, 0.0)
+    raw_sea = dict.fromkeys(EnergyDemandID, 0.0)
+    raw_port = dict.fromkeys(PORT_ENERGY_DEMANDS, 0.0)
 
     for fleet in fleets.values():
         if not fleet.can_retrofit():
@@ -339,112 +352,131 @@ def _average_retrofit_savings(
             raw_energy_sea = expectation.get_raw_energy_sea_condition(idx)
             raw_energy_port = expectation.get_raw_energy_port(idx)
 
-            savings_sea = calculate_energy_savings(energy_sea, raw_energy_sea)
-            savings_port = calculate_energy_savings(energy_port, raw_energy_port)
+            _accumulate_weighted(residual_sea, energy_sea, multiplier)
+            _accumulate_weighted(residual_port, energy_port, multiplier)
+            _accumulate_weighted(raw_sea, raw_energy_sea, multiplier)
+            _accumulate_weighted(raw_port, raw_energy_port, multiplier)
 
-            _accumulate_energy_weighted_saving(
-                raw_energy_sea, savings_sea, multiplier, average_saving_sea, weight_sea
-            )
-            _accumulate_energy_weighted_saving(
-                raw_energy_port,
-                savings_port,
-                multiplier,
-                average_saving_port,
-                weight_port,
-            )
+    ratio_sea = _divide_per_key(residual_sea, raw_sea)
+    ratio_port = _divide_per_key(residual_port, raw_port)
 
-    for k in average_saving_sea:
-        average_saving_sea[k] = (
-            (average_saving_sea[k] / weight_sea[k]) if weight_sea[k] else 0.0
-        )
-    for k in average_saving_port:
-        average_saving_port[k] = (
-            (average_saving_port[k] / weight_port[k]) if weight_port[k] else 0.0
-        )
-
-    return average_saving_sea, average_saving_port
+    return ratio_sea, ratio_port
 
 
-def _accumulate_energy_weighted_saving(
-    raw_energy: Mapping[EnergyDemandID, Sequence[FloatLike]],
-    savings: Mapping[EnergyDemandID, Sequence[float]],
+def _accumulate_weighted(
+    totals: dict[EnergyDemandID, float],
+    energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
     multiplier: float,
-    saving_totals: dict[EnergyDemandID, float],
-    weight_totals: dict[EnergyDemandID, float],
 ) -> None:
     """
-    Accumulate one vessel's energy-weighted saving fractions into the running totals.
+    Add one vessel type's energy, times its number of vessels, to the running totals.
 
     Parameters
     ----------
-    raw_energy
-        Raw energy demand per demand type, one value per condition or port call,
-        GJ/year; with `multiplier`, it weights the accumulation.
-    savings
-        Saving per demand type, one value per condition or port call, fraction.
+    totals
+        Running total per energy demand type, in GJ/year; updated in place.
+    energies
+        Energy per energy demand type, one value per condition or port call, in
+        GJ/year.
     multiplier
-        Number of vessels of this type.
-    saving_totals
-        Running weighted saving sums per demand type; updated in place.
-    weight_totals
-        Running weight sums per demand type; updated in place.
+        Number of vessels of the type.
     """
-    for k in saving_totals:
-        for step, raw in enumerate(raw_energy[k]):
-            weight = float(raw) * multiplier
-            saving_totals[k] += savings[k][step] * weight
-            weight_totals[k] += weight
+    for energy_id in totals:
+        energy = np.asarray(energies[energy_id], dtype=float)
+        totals[energy_id] += multiplier * float(np.sum(energy))
 
 
-def _apply_approximated_saving(
+def _divide_per_key(
+    residuals: Mapping[EnergyDemandID, float], raws: Mapping[EnergyDemandID, float]
+) -> dict[EnergyDemandID, float]:
+    """
+    Divide each demand type's residual energy by its raw energy, 1 without raw energy.
+
+    Parameters
+    ----------
+    residuals
+        Residual energy per energy demand type, in GJ/year.
+    raws
+        Raw energy per energy demand type, in GJ/year.
+
+    Returns
+    -------
+    dict[EnergyDemandID, float]
+        Ratio per energy demand type, fraction.
+    """
+    ratios: dict[EnergyDemandID, float] = {}
+
+    for energy_id, residual in residuals.items():
+        raw = raws[energy_id]
+        ratios[energy_id] = float(divide_nonzero(residual, raw, default=1.0))
+
+    return ratios
+
+
+def _calculate_approximation(
     vessel: Vessel,
-    average_saving_sea: dict[EnergyDemandID, float],
-    average_saving_port: dict[EnergyDemandID, float],
+    ratio_sea: Mapping[EnergyDemandID, float],
+    ratio_port: Mapping[EnergyDemandID, float],
     idx: int,
-) -> None:
+) -> tuple[dict[EnergyDemandID, FloatArray], dict[EnergyDemandID, FloatArray]]:
     """
-    Apply the fleet-average savings to one vessel's operational energy and store it.
+    Scale the vessel's operational energy demand by the retrofit ratios.
 
     Parameters
     ----------
     vessel
-        Vessel to apply the approximated savings to.
-    average_saving_sea
-        Average saving at sea per demand type, fraction.
-    average_saving_port
-        Average saving in port per demand type, fraction.
+        Vessel to approximate the residual energy for.
+    ratio_sea
+        Ratio of residual to raw energy at sea per energy demand type, fraction.
+    ratio_port
+        Ratio of residual to raw energy in port per energy demand type, fraction.
     idx
         Current time-step index.
+
+    Returns
+    -------
+    dict[EnergyDemandID, FloatArray]
+        Approximated residual energy at sea per energy demand type, one value per
+        condition, in GJ/year.
+    dict[EnergyDemandID, FloatArray]
+        Approximated residual energy in port per energy demand type, one value per
+        port call, in GJ/year.
     """
-    op_sea = vessel.expectation.get_operational_energy_sea_condition(idx=idx)
-    op_port = vessel.expectation.get_operational_energy_port(idx=idx)
+    expectation = vessel.expectation
 
-    sav_sea = {
-        k: [average_saving_sea[k]] * len(op_sea[k])
-        for k in average_saving_sea
-        if k in op_sea
-    }
+    operational_sea = expectation.get_operational_energy_sea_condition(idx=idx)
+    operational_port = expectation.get_operational_energy_port(idx=idx)
 
-    sav_port = {
-        k: [average_saving_port[k]] * len(op_port[k])
-        for k in average_saving_port
-        if k in op_port
-    }
+    sea = _scale_per_key(operational_sea, ratio_sea)
+    port = _scale_per_key(operational_port, ratio_port)
 
-    net_sea = calculate_net_energy(op_sea, sav_sea)
-    net_port = calculate_net_energy(op_port, sav_port)
+    return sea, port
 
-    condition_legs = bind_conditions_to_legs(vessel.route)
-    net_sea_leg = sum_energy_per_leg(condition_legs, net_sea)
 
-    vessel.expectation.set_energy_sea_condition(idx, net_sea)
-    vessel.expectation.set_energy_sea_leg(idx, net_sea_leg)
-    vessel.expectation.set_energy_port(idx, net_port)
+def _scale_per_key(
+    energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    factors: Mapping[EnergyDemandID, float],
+) -> dict[EnergyDemandID, FloatArray]:
+    """
+    Scale the energy of each demand type by its factor.
 
-    energy_sea = {k: float(np.sum(np.asarray(net_sea[k]))) for k in net_sea}
-    for demand_type, values in vessel.profile.energy_sea.items():
-        values[idx] = energy_sea[demand_type]
+    Parameters
+    ----------
+    energies
+        Energy per energy demand type, one value per condition or port call, in
+        GJ/year.
+    factors
+        Factor per energy demand type, fraction.
 
-    energy_port = {k: float(np.sum(np.asarray(net_port[k]))) for k in net_port}
-    for demand_type, values in vessel.profile.energy_port.items():
-        values[idx] = energy_port[demand_type]
+    Returns
+    -------
+    dict[EnergyDemandID, FloatArray]
+        Scaled energy per energy demand type, one value per condition or port call,
+        in GJ/year.
+    """
+    scaled: dict[EnergyDemandID, FloatArray] = {}
+
+    for energy_id, energy in energies.items():
+        scaled[energy_id] = np.asarray(energy, dtype=float) * factors[energy_id]
+
+    return scaled
