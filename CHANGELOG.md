@@ -294,6 +294,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- The VS Code extension in `syntax/vscode/` highlights the current node types:
+  `Plot` and `Technology` are highlighted, and names that are no longer node
+  types are not (#608).
 - The producer's expected feed consumption, and hence its feed-constrained
   build-out, was overstated further into the horizon; each year now counts
   only the feed of a plant invested in that year (#587).
