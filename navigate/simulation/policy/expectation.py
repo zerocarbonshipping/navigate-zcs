@@ -34,7 +34,7 @@ def calculate_policy_expectations(
 
     Levy levels, regulation remedial costs, transport-measure vessel capacities and the
     jurisdiction fractions of every route port and leg are set over the remaining
-    timeline; global warming potentials at each policy's emissions lifetime.
+    timeline. Global warming potentials are set at each policy's emissions lifetime.
 
     Parameters
     ----------
@@ -105,8 +105,10 @@ def _calculate_global_warming_potentials(
     emissions_lifetime: float,
 ) -> None:
     """Set the policy's global warming potentials at its emissions lifetime."""
-    if policy.emissions_lifetime is not None:
-        emissions_lifetime = policy.emissions_lifetime.get()
+    if policy.emissions_lifetime is None:
+        lifetime = emissions_lifetime
+    else:
+        lifetime = policy.emissions_lifetime.get()
 
     for emission_name, own_potential in policy.global_warming_potential.items():
         if own_potential is None:
@@ -114,5 +116,5 @@ def _calculate_global_warming_potentials(
         else:
             potential = own_potential
 
-        gwp = potential.get(emissions_lifetime)
+        gwp = potential.get(lifetime)
         policy.expectation.set_global_warming_potential(emission_name, gwp)
