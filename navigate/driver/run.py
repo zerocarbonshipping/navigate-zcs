@@ -69,39 +69,39 @@ def run_deck(
     # resolved as the parser resolves it, so the deck location matches the deck read
     deck_path = deck.resolve()
     deck_directory = deck_path.parent
+    deck_name = deck_path.stem
 
     parser = Parser()
     parser.read_deck(deck_path, data_dir=data_dir)
+    dates = parser.dates
 
     if solver is not None:
         parser.general_nodes.bunker_options.solver = SOLVER_BACKENDS[solver]
 
     start_time = timeit.default_timer()
-    simulation = Simulation(
-        parser.nodes, parser.general_nodes, parser.dates, deck_directory
-    )
+    simulation = Simulation(parser.nodes, parser.general_nodes, dates, deck_directory)
     simulation.initialize()
 
-    for idx, date in enumerate(parser.dates):
-        _log_time_step(idx, date, parser.dates[0], start_time)
-        inputs_changed = parser.read_events(date)
+    for idx, date in enumerate(dates):
+        _log_time_step(idx, date, dates[0], start_time)
         print(f"Date: {date}")
+
+        inputs_changed = parser.read_events(date)
         simulation.step(inputs_changed)
 
     # the simulation ran the parser's nodes, which now hold their own results
     results = SimulationResults(
-        dateline=parser.dates,
+        dateline=dates,
         global_results=simulation.finish(),
         nodes=parser.nodes,
         general_nodes=parser.general_nodes,
     )
 
     for report in results.nodes.reports.values():
-        write_report(report, results, deck_directory, deck_path.stem)
+        write_report(report, results, deck_directory, deck_name)
 
-    write_results(
-        results, results_file or deck_path.with_suffix(".parquet"), deck_path.stem
-    )
+    results_path = results_file or deck_path.with_suffix(".parquet")
+    write_results(results, results_path, deck_name)
 
     elapsed = _format_duration(timeit.default_timer() - start_time)
 
@@ -118,6 +118,8 @@ def _log_time_step(
     idx: int, date: np.datetime64, start_date: np.datetime64, start_time: float
 ) -> None:
     days_elapsed = timedelta_to_days(date - start_date)
+    years_elapsed = round(days_elapsed / YEAR)
+    wall_time = timeit.default_timer() - start_time
 
     logger.info(
         "Time-step: %d, current date: %s. %d days (%d years) since start "
@@ -125,8 +127,8 @@ def _log_time_step(
         idx,
         date,
         days_elapsed,
-        round(days_elapsed / YEAR),
-        timeit.default_timer() - start_time,
+        years_elapsed,
+        wall_time,
         extra={"heading": True},
     )
 
