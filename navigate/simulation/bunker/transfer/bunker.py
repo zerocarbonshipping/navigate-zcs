@@ -17,59 +17,79 @@ if TYPE_CHECKING:
 
 def transfer_bunker(alg: BunkerAlgorithm) -> None:
     """
-    Transfer the bunker solution to the vessel, port and levy results.
+    Transfer the bunker solution to the vessel expectations or results.
+
+    The existing fleet's solution goes to the vessel, port and levy results, any
+    other scope's to the vessel expectations.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     """
+    if alg.scope == BunkerScopeID.EXISTING:
+        _transfer_existing(alg)
+    else:
+        _transfer_expected(alg)
+
+
+def _transfer_existing(alg: BunkerAlgorithm) -> None:
+    """Write the bunkered mass, expenses, WTT emissions and levies to the results."""
+    idx = alg.idx
+
     for (v, p, f), bunker in alg.bunker.items():
-        if alg.options.solution_tolerance > bunker.X:
+        mass = bunker.X
+        if mass < alg.options.solution_tolerance:
             continue
 
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
-        port_name = port.name
+        results = vessel.results
+        multiplier = alg.multipliers[v]
 
-        fuel_energy = alg.fuels[f].lower_heating_value.get() * bunker.X
-        price = np.float64(port.expectation.get_bunker_price(f, alg.idx))
+        price = np.float64(port.expectation.get_bunker_price(f, idx))
+        expenses = price * mass
 
-        if alg.scope == BunkerScopeID.EXISTING:
-            fuel_expenses = price * bunker.X
+        # kept for the inertia floor of the next time-step
+        vessel.expectation.add_bunker_mass_existing(port.name, f, mass)
 
-            # kept for the inertia floor of the next time-step
-            vessel.expectation.add_bunker_mass_existing(port_name, f, bunker.X)
-
-            vessel.results.consumed_mass[f][alg.idx] += bunker.X
-            vessel.results.converter_mass[vessel.primary_fuel_type][f][alg.idx] += (
-                bunker.X
-            )
-            vessel.results.fuel_expenses[f][alg.idx] += fuel_expenses
-            port.results.bunker_mass[f][alg.idx] += alg.multipliers[v] * bunker.X
-
-        else:
-            fuel_expenses = price * bunker.X
-            vessel.expectation.add_total_energy(alg.idx, fuel_energy)
-            vessel.expectation.add_fuel_expenses(alg.idx, fuel_expenses)
-            vessel.expectation.add_bunker_mass_expected(alg.idx, port_name, f, bunker.X)
+        results.consumed_mass[f][idx] += mass
+        results.converter_mass[vessel.primary_fuel_type][f][idx] += mass
+        results.fuel_expenses[f][idx] += expenses
+        port.results.bunker_mass[f][idx] += multiplier * mass
 
         for emission_name in alg.emissions:
-            if alg.scope == BunkerScopeID.EXISTING:
-                emission_factor = np.float64(
-                    port.expectation.get_bunker_wtt(f, emission_name, alg.idx)
-                )
-                wtt_emissions = emission_factor * bunker.X
-                vessel.results.wtt[f, emission_name][alg.idx] += wtt_emissions
+            wtt = np.float64(port.expectation.get_bunker_wtt(f, emission_name, idx))
+            results.wtt[f, emission_name][idx] += wtt * mass
 
         for levy in port.imposed_levies:
-            cost = levy.expectation.get_cost((v, port_name, f), alg.idx)
-            collected = cost * bunker.X
+            cost = levy.expectation.get_cost((v, port.name, f), idx)
+            collected = cost * mass
+            level = np.float64(levy.expectation.get_level(idx))
 
-            if alg.scope == BunkerScopeID.EXISTING:
-                levy.results.collected[alg.idx] += collected * alg.multipliers[v]
-                vessel.results.levy_expenses[f][alg.idx] += collected
+            levy.results.collected[idx] += collected * multiplier
+            results.levy_expenses[f][idx] += collected
 
-                level = float(levy.expectation.get_level(alg.idx))
-                if level > 0.0:
-                    vessel.results.levy_units[levy.name][alg.idx] += collected / level
+            if level > 0.0:
+                results.levy_units[levy.name][idx] += collected / level
+
+
+def _transfer_expected(alg: BunkerAlgorithm) -> None:
+    """Add the bunkered energy, expenses and mass to the vessel expectations."""
+    idx = alg.idx
+
+    for (v, p, f), bunker in alg.bunker.items():
+        mass = bunker.X
+        if mass < alg.options.solution_tolerance:
+            continue
+
+        vessel = alg.vessels[v]
+        port = vessel.route.ports[p]
+
+        energy = alg.fuels[f].lower_heating_value.get() * mass
+        price = np.float64(port.expectation.get_bunker_price(f, idx))
+        expenses = price * mass
+
+        vessel.expectation.add_total_energy(idx, energy)
+        vessel.expectation.add_fuel_expenses(idx, expenses)
+        vessel.expectation.add_bunker_mass_expected(idx, port.name, f, mass)
