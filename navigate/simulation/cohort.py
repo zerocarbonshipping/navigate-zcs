@@ -125,9 +125,6 @@ def find_insertion_index(increments: Sequence[Increment], age: float) -> int:
     int
         Index to insert the increment at.
     """
-    if not increments:
-        return 0
-
     ages = np.array([increment.age for increment in increments])
     return int(np.searchsorted(-ages, -age, side="right"))
 
@@ -145,7 +142,7 @@ def find_origin_index(years: FloatArray, current_year: float, age: float) -> int
     years
         Simulation timeline, in years.
     current_year
-        Current year, years[idx].
+        Current year of the simulation.
     age
         Age of the increment, in years.
 
@@ -170,7 +167,7 @@ def find_origin_indexes(
     years
         Simulation timeline, in years.
     current_year
-        Current year, years[idx].
+        Current year of the simulation.
     ages
         Ages of the increments, in years.
 
