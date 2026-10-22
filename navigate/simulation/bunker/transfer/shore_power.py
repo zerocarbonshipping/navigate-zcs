@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Transfer the shore-power solution to the vessel results."""
+"""Transfer the shore-power solution to the vessel expectations or results."""
 
 from __future__ import annotations
 
@@ -17,38 +17,60 @@ if TYPE_CHECKING:
 
 def transfer_shore_power(alg: BunkerAlgorithm) -> None:
     """
-    Transfer the shore-power solution to the vessel expectations and results.
+    Transfer the shore-power solution to the vessel expectations or results.
+
+    The existing fleet's solution goes to the vessel results, any other scope's to the
+    vessel expectations.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     """
-    tol = alg.options.solution_tolerance
+    if alg.scope == BunkerScopeID.EXISTING:
+        _transfer_existing(alg)
+    else:
+        _transfer_expected(alg)
 
-    for (v, p), shore_power_variable in alg.shore_power.items():
-        if tol > shore_power_variable.X:
+
+def _transfer_existing(alg: BunkerAlgorithm) -> None:
+    """Write the shore-power energy, expenses and WTW emissions to the results."""
+    idx = alg.idx
+
+    for (v, p), shore_power in alg.shore_power.items():
+        energy = shore_power.X
+        if energy < alg.options.solution_tolerance:
             continue
 
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
-        shore_energy_gj = shore_power_variable.X
+        results = vessel.results
 
-        cost = np.float64(port.expectation.get_shore_power_cost(alg.idx))
-        shore_cost = cost * shore_energy_gj
+        cost = np.float64(port.expectation.get_shore_power_cost(idx))
+        expenses = cost * energy
 
-        if alg.scope == BunkerScopeID.EXISTING:
-            vessel.results.shore_power_energy[alg.idx] += shore_energy_gj
-            vessel.results.shore_power_expenses[alg.idx] += shore_cost
+        results.shore_power_energy[idx] += energy
+        results.shore_power_expenses[idx] += expenses
 
-            # the shore-power emission factors are well-to-wake
-            for e in alg.emissions:
-                emission_factor = np.float64(
-                    port.expectation.get_shore_power_emission_factor(e, alg.idx)
-                )
-                emission_mass = emission_factor * shore_energy_gj
-                vessel.results.shore_power_emission[e][alg.idx] += emission_mass
+        for e in alg.emissions:
+            wtw = np.float64(port.expectation.get_shore_power_emission_factor(e, idx))
+            results.shore_power_emission[e][idx] += wtw * energy
 
-        else:
-            vessel.expectation.add_total_energy(alg.idx, shore_energy_gj)
-            vessel.expectation.add_fuel_expenses(alg.idx, shore_cost)
+
+def _transfer_expected(alg: BunkerAlgorithm) -> None:
+    """Add the shore-power energy and expenses to the vessel expectations."""
+    idx = alg.idx
+
+    for (v, p), shore_power in alg.shore_power.items():
+        energy = shore_power.X
+        if energy < alg.options.solution_tolerance:
+            continue
+
+        vessel = alg.vessels[v]
+        port = vessel.route.ports[p]
+
+        cost = np.float64(port.expectation.get_shore_power_cost(idx))
+        expenses = cost * energy
+
+        vessel.expectation.add_total_energy(idx, energy)
+        vessel.expectation.add_fuel_expenses(idx, expenses)
