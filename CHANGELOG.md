@@ -296,9 +296,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
-- A dearer vessel type no longer lowers its fuel type's newbuild share unless a
-  `set_newbuild_limit` binds on that fuel type's vessel types, nor a dearer plant
-  its fuel's plant uptake: each is valued by its cheapest option (#653).
+- A dearer vessel type no longer lowers its fuel type's newbuild share unless the
+  `set_newbuild_limit` of a cheaper vessel type of that fuel type binds, nor a
+  dearer plant its fuel's plant uptake: each is valued by its cheapest option (#653).
+- A `set_newbuild_limit` that is not reached no longer lowers the vessel type's
+  newbuild share, and one that is reached caps the share at the limit instead of
+  below it, where a fuel type has more than one vessel type in the fleet (#654).
 - The VS Code extension in `syntax/vscode/` highlights the current node types:
   `Plot` and `Technology` are highlighted, and names that are no longer node
   types are not (#608).
