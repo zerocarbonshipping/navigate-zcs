@@ -83,7 +83,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
-    from navigate.simulation.bunker.fair_share import FairShareSolutions
     from navigate.util import Timings
     from navigate.util.types_ import FloatLike, Index
 
@@ -223,12 +222,9 @@ class BunkerAlgorithm:
 
         # fair-share fuel properties ---------------------------------------------------
 
-        self.previous_bunker: dict[tuple[str, int, str], float]
         self.allocation_fuel: dict[tuple[str, str, str], float]
-        self.previously_released_fuel: dict[tuple[str, str, str], bool]
         self.fair_share_convergence_statistics: dict[str, list[float]]
         self.fair_share_converged: bool
-        self.fair_share_solutions: FairShareSolutions | None
 
         # primary model attributes -----------------------------------------------------
 
