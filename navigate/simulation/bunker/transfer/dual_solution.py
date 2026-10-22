@@ -15,42 +15,37 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     """
     Transfer the shadow prices and right-hand sides of the energy-conservation rows.
 
+    The objective scales each vessel's terms by its number of vessels, so the shadow
+    price divided by that number is the price per vessel; the right-hand side is
+    already per vessel.
+
     Parameters
     ----------
     alg
         The algorithm instance.
     """
-    # the sea rows are keyed by each leg's stops, the expectation lists the legs in
-    # the order of their route
-    leg_positions = {
-        v: {leg: position for position, leg in enumerate(vessel.route.get_legs())}
-        for v, vessel in alg.vessels.items()
-    }
+    idx = alg.idx
 
-    for (v, i, e, energy_id), constr in alg.energy_conservation_sea.items():
-        vessel = alg.vessels[v]
-        position = leg_positions[v][i, e]
+    # the sea rows are keyed by a leg's stops, the expectation by its route position
+    leg_positions = {}
 
-        # the objective scales the shadow price by the number of vessels, so
-        # dividing by it gives the impact per vessel; the rhs is already per vessel
-        shadow_price = constr.Pi / alg.multipliers[v]
-        rhs = constr.RHS
+    for v, vessel in alg.vessels.items():
+        legs = vessel.route.get_legs()
+        leg_positions[v] = {stops: leg for leg, stops in enumerate(legs)}
 
-        vessel.expectation.set_energy_conservation_pi_sea(
-            alg.idx, energy_id, position, shadow_price
-        )
-        vessel.expectation.set_energy_conservation_rhs_sea(
-            alg.idx, energy_id, position, rhs
-        )
+    for (v, i, e, energy_id), constraint in alg.energy_conservation_sea.items():
+        expectation = alg.vessels[v].expectation
+        leg = leg_positions[v][i, e]
+        pi = constraint.Pi / alg.multipliers[v]
+        rhs = constraint.RHS
 
-    for (v, p, energy_id), constr in alg.energy_conservation_port.items():
-        # the objective scales the shadow price by the number of vessels, so
-        # dividing by it gives the impact per vessel; the rhs is already per vessel
-        shadow_price = constr.Pi / alg.multipliers[v]
-        rhs = constr.RHS
+        expectation.set_energy_conservation_pi_sea(idx, energy_id, leg, pi)
+        expectation.set_energy_conservation_rhs_sea(idx, energy_id, leg, rhs)
 
-        vessel = alg.vessels[v]
-        vessel.expectation.set_energy_conservation_pi_port(
-            alg.idx, energy_id, p, shadow_price
-        )
-        vessel.expectation.set_energy_conservation_rhs_port(alg.idx, energy_id, p, rhs)
+    for (v, p, energy_id), constraint in alg.energy_conservation_port.items():
+        expectation = alg.vessels[v].expectation
+        pi = constraint.Pi / alg.multipliers[v]
+        rhs = constraint.RHS
+
+        expectation.set_energy_conservation_pi_port(idx, energy_id, p, pi)
+        expectation.set_energy_conservation_rhs_port(idx, energy_id, p, rhs)
