@@ -12,18 +12,27 @@ import navigate.simulation.bunker.solver as gp
 from navigate.simulation.bunker.utils import get_port_converters
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
-class _Term(NamedTuple):
-    """A regulated variable with its constraint, emission and energy weights."""
+class _Weights(NamedTuple):
+    """The spend, emission and energy weights of a variable, before its fraction."""
 
-    variable: gp.Var
-    weight: float
+    spend: float
     emission: float
     energy: float
+
+
+class _Term(NamedTuple):
+    """A regulated variable with its jurisdiction fraction and weights."""
+
+    variable: gp.Var
+    fraction: float
+    weights: _Weights
 
 
 def calculate_regulation_terms(
@@ -67,76 +76,91 @@ def calculate_regulation_terms(
     """
     v = vessel.name
     idx = alg.idx
+    route = vessel.route
+    ports = route.ports
     expectation = regulation.expectation
-    vessel_expectation = vessel.expectation
 
     port_converters = get_port_converters(vessel)
     fuels_per_converter = vessel.fuels_per_converter
 
-    route = vessel.route
-
-    port_fractions: list[float] = []
-    for port in route.ports:
-        port_fractions.append(expectation.get_port_fraction(port.name, idx))
+    port_weights = _calculate_weights(vessel, regulation, port_converters, idx)
+    sea_weights = _calculate_weights(vessel, regulation, fuels_per_converter, idx)
+    port_fractions = [expectation.get_port_fraction(port.name, idx) for port in ports]
 
     terms: list[_Term] = []
 
     # in ports
     for p, fraction in enumerate(port_fractions):
-        terms.extend(
-            _Term(
-                alg.spend_port[v, c, f, p],
-                fraction * expectation.get_spend_coefficient((v, c, f), idx),
-                fraction * expectation.get_emission_coefficient((v, c, f), idx),
-                fraction * vessel_expectation.get_effective_lhv(c, f),
-            )
-            for c in port_converters
-            for f in fuels_per_converter[c]
-        )
+        for (c, f), weights in port_weights.items():
+            terms.append(_Term(alg.spend_port[v, c, f, p], fraction, weights))
 
     # at sea
-    legs = zip(route.get_legs(), route.get_leg_keys(), strict=True)
-    for (port_start, port_end), leg in legs:
+    for (i, e), leg in zip(route.get_legs(), route.get_leg_keys(), strict=True):
         fraction = float(expectation.get_leg_fraction(leg, idx))
 
-        terms.extend(
-            _Term(
-                alg.spend_sea[v, c, f, port_start, port_end],
-                fraction * expectation.get_spend_coefficient((v, c, f), idx),
-                fraction * expectation.get_emission_coefficient((v, c, f), idx),
-                fraction * vessel_expectation.get_effective_lhv(c, f),
-            )
-            for c, burned in fuels_per_converter.items()
-            for f in burned
-        )
+        for (c, f), weights in sea_weights.items():
+            terms.append(_Term(alg.spend_sea[v, c, f, i, e], fraction, weights))
 
-    # shore power, at the ports where the vessel can connect
-    for p, (port, fraction) in enumerate(zip(route.ports, port_fractions, strict=True)):
+    # shore power, at the connections the regulations weigh
+    for p, (port, fraction) in enumerate(zip(ports, port_fractions, strict=True)):
         if (v, p) not in alg.regulated_shore_power:
             continue
 
-        port_name = port.name
-        spend = expectation.get_shore_power_spend_coefficient((v, port_name), idx)
-        emission = expectation.get_shore_power_emission_coefficient(port_name, idx)
+        spend = expectation.get_shore_power_spend_coefficient((v, port.name), idx)
+        emission = expectation.get_shore_power_emission_coefficient(port.name, idx)
+        weights = _Weights(spend, emission, 1.0)
 
-        terms.append(
-            _Term(
-                alg.shore_power[v, p],
-                fraction * spend,
-                fraction * emission,
-                fraction,
-            )
-        )
+        terms.append(_Term(alg.shore_power[v, p], fraction, weights))
 
     variables = [term.variable for term in terms]
-    emission_weights = [term.emission for term in terms]
-    energy_weights = [term.energy for term in terms]
+    spends = [term.fraction * term.weights.spend for term in terms]
+    emissions = [term.fraction * term.weights.emission for term in terms]
+    energies = [term.fraction * term.weights.energy for term in terms]
 
-    constraint_terms = [(term.variable, term.weight) for term in terms]
-    emissions = gp.create_linear_expression(emission_weights, variables)
-    energy = gp.create_linear_expression(energy_weights, variables)
+    constraint_terms = list(zip(variables, spends, strict=True))
+    emission_expression = gp.create_linear_expression(emissions, variables)
+    energy_expression = gp.create_linear_expression(energies, variables)
 
-    return constraint_terms, emissions, energy
+    return constraint_terms, emission_expression, energy_expression
+
+
+def _calculate_weights(
+    vessel: Vessel, regulation: Regulation, converters: Iterable[str], idx: int
+) -> dict[tuple[str, str], _Weights]:
+    """
+    Calculate the weights of each fuel of the given converters of a vessel.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose fuels are weighted.
+    regulation
+        Regulation whose coefficients weigh the fuels.
+    converters
+        Names of the converters whose fuels are weighted.
+    idx
+        Time index the coefficients are read at.
+
+    Returns
+    -------
+    dict[tuple[str, str], _Weights]
+        Spend and emission coefficient and effective lower heating value, in
+        GJ/t, per converter and fuel name.
+    """
+    v = vessel.name
+    expectation = regulation.expectation
+    lhv = vessel.expectation.get_effective_lhv
+    fuels_per_converter = vessel.fuels_per_converter
+
+    weights: dict[tuple[str, str], _Weights] = {}
+
+    for c in converters:
+        for f in fuels_per_converter[c]:
+            spend = expectation.get_spend_coefficient((v, c, f), idx)
+            emission = expectation.get_emission_coefficient((v, c, f), idx)
+            weights[c, f] = _Weights(spend, emission, lhv(c, f))
+
+    return weights
 
 
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
@@ -157,7 +181,7 @@ def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
                 continue
 
             allowance = regulation.expectation.get_vessel_allowance(v, alg.idx)
-            alg.regulation_rhs_individual[(r, v)] = allowance
+            alg.regulation_rhs_individual[r, v] = allowance
 
 
 def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
