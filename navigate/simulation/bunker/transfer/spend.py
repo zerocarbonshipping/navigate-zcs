@@ -26,10 +26,10 @@ def transfer_spend(alg: BunkerAlgorithm) -> None:
         return
 
     for (v, c, f, _port_start, _port_end), variable in alg.spend_sea.items():
-        _transfer_spend(alg, v, c, f, variable.X)
+        _transfer_spend(alg, v, c, f, alg.model.value(variable))
 
     for (v, c, f, _p), variable in alg.spend_port.items():
-        _transfer_spend(alg, v, c, f, variable.X)
+        _transfer_spend(alg, v, c, f, alg.model.value(variable))
 
 
 def _transfer_spend(alg: BunkerAlgorithm, v: str, c: str, f: str, spend: float) -> None:

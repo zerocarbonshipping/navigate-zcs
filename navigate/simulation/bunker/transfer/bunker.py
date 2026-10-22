@@ -38,7 +38,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
     idx = alg.idx
 
     for (v, p, f), bunker in alg.bunker.items():
-        mass = bunker.X
+        mass = alg.model.value(bunker)
         if mass < alg.options.solution_tolerance:
             continue
 
@@ -79,7 +79,7 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
     idx = alg.idx
 
     for (v, p, f), bunker in alg.bunker.items():
-        mass = bunker.X
+        mass = alg.model.value(bunker)
         if mass < alg.options.solution_tolerance:
             continue
 

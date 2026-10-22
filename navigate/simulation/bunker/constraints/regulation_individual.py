@@ -40,7 +40,7 @@ def update_individual_regulation_threshold_constraints(alg: BunkerAlgorithm) -> 
         The algorithm instance.
     """
     rows = alg.regulation_threshold_individual
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     for key, rhs in alg.regulation_rhs_individual.items():
         r, v = key
@@ -56,9 +56,9 @@ def update_individual_regulation_threshold_constraints(alg: BunkerAlgorithm) -> 
         constraint = get_constraint(
             alg, rows, key, "<=", "regulation_threshold_individual"
         )
-        constraint.rhs = rhs
+        model.set_rhs(constraint, rhs)
 
         for variable, weight in terms:
-            change_coefficient(constraint, variable, weight)
+            model.set_coefficient(constraint, variable, weight)
 
-        change_coefficient(constraint, alg.remedial_factor_individual[key], -1.0)
+        model.set_coefficient(constraint, alg.remedial_factor_individual[key], -1.0)

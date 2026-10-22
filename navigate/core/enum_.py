@@ -170,6 +170,15 @@ class BunkerScopeID(Enum):
     EXISTING = auto()  # final pass solved for the fleet as it currently stands
 
 
+class SolveStatusID(Enum):
+    """How the last solve of the bunkering linear program ended."""
+
+    OPTIMAL = auto()  # an optimal solution was found
+    INFEASIBLE = auto()  # no point satisfies every constraint
+    INFEASIBLE_OR_UNBOUNDED = auto()  # infeasible or unbounded, not told apart
+    OTHER = auto()  # any other outcome, such as a reached limit
+
+
 class UtilityID(Enum):
     """How a metric is turned into the dimensionless utility of a discrete choice."""
 

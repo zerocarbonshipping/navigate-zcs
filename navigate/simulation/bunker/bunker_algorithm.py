@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-import navigate.simulation.bunker.solver as gp
 from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.simulation.bunker.cleanup import (
@@ -56,6 +55,7 @@ from navigate.simulation.bunker.objectives import (
     update_regulation_objectives,
     update_vessel_objectives,
 )
+from navigate.simulation.bunker.solver_backend import create_model
 from navigate.simulation.bunker.transfer.allocation_fuel import transfer_allocation_fuel
 from navigate.simulation.bunker.transfer.bunker import transfer_bunker
 from navigate.simulation.bunker.transfer.dual_solution import transfer_dual_solution
@@ -74,7 +74,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-    from navigate.core.enum_ import EnergyDemandID, FuelTypeID
+    from navigate.core.enum_ import EnergyDemandID, FuelTypeID, SolverBackendID
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fleet import Fleet
@@ -82,6 +82,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
+    from navigate.simulation.bunker import solver
     from navigate.util import Timings
     from navigate.util.types_ import FloatLike, Index
 
@@ -111,35 +112,6 @@ def _is_admitted(multiplier: FloatLike) -> bool:
     return bool(np.max(multiplier) > 0.0)
 
 
-def _create_model(scope: BunkerScopeID, options: BunkerOptions) -> gp.Model:
-    """
-    Create the empty LP model of a scope, set up with the solver options.
-
-    Parameters
-    ----------
-    scope
-        Whether the model bunkers the existing or the expected fleet.
-    options
-        Settings of the bunker algorithm.
-
-    Returns
-    -------
-    gp.Model
-        The model, named after its scope.
-    """
-    model_name = "existing" if scope == BunkerScopeID.EXISTING else "expected"
-
-    model = gp.create_model(model_name)
-
-    model.Params.OutputFlag = 0
-    model.Params.Method = options.solver_method.value
-    model.Params.Threads = options.threads
-    model.Params.FeasibilityTol = options.solution_tolerance
-    model.Params.OptimalityTol = options.solution_tolerance
-
-    return model
-
-
 class BunkerAlgorithm:
     """
     Build, solve and transfer the bunkering LP of one scope at every time step.
@@ -158,6 +130,8 @@ class BunkerAlgorithm:
         All regulations in the simulation.
     options
         Settings of the bunker algorithm.
+    backend
+        Solver backend the LP model is created on, as ``select_backend()`` resolves it.
     scope
         Whether the algorithm bunkers the existing or the expected fleet.
     output_directory
@@ -174,6 +148,7 @@ class BunkerAlgorithm:
         ports: dict[str, Port],
         regulations: dict[str, Regulation],
         options: BunkerOptions,
+        backend: SolverBackendID,
         scope: BunkerScopeID,
         output_directory: Path,
         timings: Timings[TimingID],
@@ -216,8 +191,8 @@ class BunkerAlgorithm:
         self.regulation_total_rhs_flexibility: dict[str, float]
 
         # regulation emission and energy terms per (regulation, vessel)
-        self.regulation_emission_terms: dict[tuple[str, str], gp.LinExpr]
-        self.regulation_energy_terms: dict[tuple[str, str], gp.LinExpr]
+        self.regulation_emission_terms: dict[tuple[str, str], solver.Terms]
+        self.regulation_energy_terms: dict[tuple[str, str], solver.Terms]
 
         # fair-share fuel properties ---------------------------------------------------
 
@@ -227,40 +202,42 @@ class BunkerAlgorithm:
 
         # primary model attributes -----------------------------------------------------
 
-        self.model: gp.Model = _create_model(scope, options)
+        self.model: solver.Model = create_model(scope.name.lower(), backend, options)
 
         # vessel variables
-        self.bunker: dict[tuple[str, int, str], gp.Var] = {}
-        self.spend_sea: dict[tuple[str, str, str, int, int], gp.Var] = {}
-        self.spend_port: dict[tuple[str, str, str, int], gp.Var] = {}
-        self.mass_tank: dict[tuple[str, int, str], gp.Var] = {}
-        self.shore_power: dict[tuple[str, int], gp.Var] = {}
+        self.bunker: dict[tuple[str, int, str], solver.Variable] = {}
+        self.spend_sea: dict[tuple[str, str, str, int, int], solver.Variable] = {}
+        self.spend_port: dict[tuple[str, str, str, int], solver.Variable] = {}
+        self.mass_tank: dict[tuple[str, int, str], solver.Variable] = {}
+        self.shore_power: dict[tuple[str, int], solver.Variable] = {}
 
         # regulation variables
-        self.remedial_factor_individual: dict[tuple[str, str], gp.Var] = {}
-        self.remedial_factor_flexibility: dict[str, gp.Var] = {}
+        self.remedial_factor_individual: dict[tuple[str, str], solver.Variable] = {}
+        self.remedial_factor_flexibility: dict[str, solver.Variable] = {}
 
         # vessel constraints
         self.energy_conservation_sea: dict[
-            tuple[str, int, int, EnergyDemandID], gp.Constr
+            tuple[str, int, int, EnergyDemandID], solver.Constraint
         ] = {}
         self.energy_conservation_port: dict[
-            tuple[str, int, EnergyDemandID], gp.Constr
+            tuple[str, int, EnergyDemandID], solver.Constraint
         ] = {}
-        self.pilot_fuel_sea: dict[tuple[str, str, int, int], gp.Constr] = {}
-        self.pilot_fuel_port: dict[tuple[str, str, int], gp.Constr] = {}
-        self.mass_conservation: dict[tuple[str, int, str], gp.Constr] = {}
-        self.mass_sufficient: dict[tuple[str, int, str], gp.Constr] = {}
-        self.tank_capacity: dict[tuple[str, int, str], gp.Constr] = {}
-        self.bunker_equals_spent: dict[tuple[str, str], gp.Constr] = {}
-        self.fuel_inertia: dict[tuple[str, str, str], gp.Constr] = {}
+        self.pilot_fuel_sea: dict[tuple[str, str, int, int], solver.Constraint] = {}
+        self.pilot_fuel_port: dict[tuple[str, str, int], solver.Constraint] = {}
+        self.mass_conservation: dict[tuple[str, int, str], solver.Constraint] = {}
+        self.mass_sufficient: dict[tuple[str, int, str], solver.Constraint] = {}
+        self.tank_capacity: dict[tuple[str, int, str], solver.Constraint] = {}
+        self.bunker_equals_spent: dict[tuple[str, str], solver.Constraint] = {}
+        self.fuel_inertia: dict[tuple[str, str, str], solver.Constraint] = {}
 
         # regulation constraints
-        self.regulation_threshold_individual: dict[tuple[str, str], gp.Constr] = {}
-        self.regulation_threshold_flexibility: dict[str, gp.Constr] = {}
+        self.regulation_threshold_individual: dict[
+            tuple[str, str], solver.Constraint
+        ] = {}
+        self.regulation_threshold_flexibility: dict[str, solver.Constraint] = {}
 
         # fair-share constraints
-        self.fair_share_fuel: dict[tuple[str, str, str], gp.Constr] = {}
+        self.fair_share_fuel: dict[tuple[str, str, str], solver.Constraint] = {}
 
     @timed(TimingID.LP_BUILD)
     def build(self, current_idx: int, idx: int, time: float, time_step: float) -> None:

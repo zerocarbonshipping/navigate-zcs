@@ -36,9 +36,7 @@ arbiter.
   Use from `tests/` does not count (ruff `SLF001` flags `obj._name` on any
   object but `self`, `cls` or an instance of the enclosing class).
 - Keep an external API's casing only where it is called, and bind the result
-  to a snake_case name: `change_coefficient = model.chgCoeff`. The solver
-  shims (`navigate/simulation/bunker/solver.py`, `solver_highs.py`) mirror
-  gurobipy's names (ruff `N802` is waived there).
+  to a snake_case name: `solution = self._highs.getSolution()`.
 - If a function can only be named with "and", split it.
 
 ## Classes and attributes

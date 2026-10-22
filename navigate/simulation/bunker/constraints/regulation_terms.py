@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, NamedTuple
 
 import navigate.core.enum_ as enum_
-import navigate.simulation.bunker.solver as gp
 from navigate.simulation.bunker.utils import get_port_converters
 
 if TYPE_CHECKING:
@@ -16,6 +15,7 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
+    from navigate.simulation.bunker import solver
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
@@ -30,14 +30,14 @@ class _Weights(NamedTuple):
 class _Term(NamedTuple):
     """A regulated variable with its jurisdiction fraction and weights."""
 
-    variable: gp.Var
+    variable: solver.Variable
     fraction: float
     weights: _Weights
 
 
 def calculate_regulation_terms(
     alg: BunkerAlgorithm, vessel: Vessel, regulation: Regulation
-) -> tuple[list[tuple[gp.Var, float]], gp.LinExpr, gp.LinExpr]:
+) -> tuple[solver.Terms, solver.Terms, solver.Terms]:
     r"""
     Calculate the three regulated terms of a vessel under a regulation.
 
@@ -70,7 +70,7 @@ def calculate_regulation_terms(
 
     Returns
     -------
-    tuple[list[tuple[gp.Var, float]], gp.LinExpr, gp.LinExpr]
+    tuple[solver.Terms, solver.Terms, solver.Terms]
         T as each variable with its weight, a variable appearing once as each is
         keyed by a distinct converter, fuel and port or leg; then M and Q.
     """
@@ -118,10 +118,10 @@ def calculate_regulation_terms(
     energies = [term.fraction * term.weights.energy for term in terms]
 
     constraint_terms = list(zip(variables, spends, strict=True))
-    emission_expression = gp.create_linear_expression(emissions, variables)
-    energy_expression = gp.create_linear_expression(energies, variables)
+    emission_terms = list(zip(variables, emissions, strict=True))
+    energy_terms = list(zip(variables, energies, strict=True))
 
-    return constraint_terms, emission_expression, energy_expression
+    return constraint_terms, emission_terms, energy_terms
 
 
 def _calculate_weights(

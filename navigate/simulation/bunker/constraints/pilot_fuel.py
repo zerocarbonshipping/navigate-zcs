@@ -83,14 +83,14 @@ def _update_sea_rows(
     v = vessel.name
     rows = alg.pilot_fuel_sea
     spend_sea = alg.spend_sea
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     for i, e in legs:
         key = (v, c, i, e)
         constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_at_sea")
 
         for f, coefficient in coefficients.items():
-            change_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
+            model.set_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
 
 
 def _update_port_rows(
@@ -119,14 +119,14 @@ def _update_port_rows(
     v = vessel.name
     rows = alg.pilot_fuel_port
     spend_port = alg.spend_port
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     for p in stops:
         key = (v, c, p)
         constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_in_port")
 
         for f, coefficient in coefficients.items():
-            change_coefficient(constraint, spend_port[v, c, f, p], coefficient)
+            model.set_coefficient(constraint, spend_port[v, c, f, p], coefficient)
 
 
 def _calculate_pilot_coefficients(
