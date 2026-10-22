@@ -35,31 +35,26 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
     alg
         The algorithm instance.
     vessel
-        Vessel for which the constraint is added.
+        Vessel for which the constraints are added.
     """
     v = vessel.name
-    ports = vessel.route.ports
     change_coefficient = alg.model.chgCoeff
 
-    for p, port in enumerate(ports):
-        port_name = port.name
-
+    for p, port in enumerate(vessel.route.ports):
         for f in vessel.usable_fuels:
             if not port.is_bunkering_allowed(f):
                 continue
 
             supply = np.float64(port.expectation.get_bunker_supply(f, alg.idx))
 
-            # an infinite supply was either never constrained or its constraint has
-            # been removed
+            # an infinite supply was never constrained, or its constraint was removed
             if not np.isfinite(supply):
                 continue
 
-            key = (v, port_name, f)
-
+            key = (v, port.name, f)
             constraint = get_constraint(
                 alg, alg.fair_share_fuel, key, "<=", "fair_share_fuel"
             )
-            constraint.rhs = alg.allocation_fuel[key]
 
+            constraint.rhs = alg.allocation_fuel[key]
             change_coefficient(constraint, alg.bunker[v, p, f], 1.0)
