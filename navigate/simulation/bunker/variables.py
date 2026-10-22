@@ -17,44 +17,38 @@ if TYPE_CHECKING:
 
 def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
-    Update all variables related to a single vessel.
+    Add the LP variables of a vessel that do not exist yet.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     vessel
-        Vessel for which variables are updated.
+        Vessel for which variables are added.
     """
     v = vessel.name
     route = vessel.route
-    ports = route.ports
-    usable_fuels = vessel.usable_fuels
-    port_converters = get_port_converters(vessel)
+    legs = route.get_legs()
     fuels_per_converter = vessel.fuels_per_converter
-    leg_idx = route.get_legs()
-    port_idx = range(len(ports))
 
-    for p, port in enumerate(ports):
-        for f in usable_fuels:
+    for p, port in enumerate(route.ports):
+        for f in vessel.usable_fuels:
             if port.is_bunkering_allowed(f):
                 add_variable(alg, alg.bunker, (v, p, f), "bunker")
 
-    for c, burned in fuels_per_converter.items():
-        for f in burned:
-            for port_start, port_end in leg_idx:
-                add_variable(
-                    alg, alg.spend_sea, (v, c, f, port_start, port_end), "spend_sea"
-                )
+    for c, fuels in fuels_per_converter.items():
+        for f in fuels:
+            for leg in legs:
+                add_variable(alg, alg.spend_sea, (v, c, f, *leg), "spend_sea")
 
     # only the converters serving port energy demands spend in port
-    for c in port_converters:
+    for c in get_port_converters(vessel):
         for f in fuels_per_converter[c]:
-            for p in port_idx:
+            for p in range(route.get_number_of_ports()):
                 add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
 
     for p in route.get_tank_stops():
-        for f in usable_fuels:
+        for f in vessel.usable_fuels:
             add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank")
 
     shore_power_limits = vessel.expectation.get_shore_power_limit_port(alg.idx)
@@ -66,19 +60,18 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
 def update_regulation_variables(alg: BunkerAlgorithm) -> None:
     """
-    Update regulation remedial factor variables.
+    Add the remedial factor variables of the regulations that do not exist yet.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     """
-    for key in alg.regulation_rhs_individual:
-        add_variable(
-            alg, alg.remedial_factor_individual, key, "remedial_factor_individual"
-        )
+    individual = alg.remedial_factor_individual
+    flexibility = alg.remedial_factor_flexibility
 
-    for r in alg.regulation_total_rhs_flexibility:
-        add_variable(
-            alg, alg.remedial_factor_flexibility, r, "remedial_factor_flexibility"
-        )
+    for key in alg.regulation_rhs_individual:
+        add_variable(alg, individual, key, "remedial_factor_individual")
+
+    for key in alg.regulation_total_rhs_flexibility:
+        add_variable(alg, flexibility, key, "remedial_factor_flexibility")
