@@ -41,14 +41,11 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
         The algorithm instance.
     """
     change_coefficient = alg.model.chgCoeff
+    rows = alg.regulation_threshold_flexibility
 
     for r, rhs in alg.regulation_total_rhs_flexibility.items():
         constraint = get_constraint(
-            alg,
-            alg.regulation_threshold_flexibility,
-            r,
-            "<=",
-            "regulation_threshold_flexibility",
+            alg, rows, r, "<=", "regulation_threshold_flexibility"
         )
         constraint.rhs = rhs
 
@@ -62,13 +59,11 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
                 alg, vessel, regulation
             )
 
+            # kept for transferring the regulation solution after the solve
             if is_policed:
-                # kept for transferring the regulation solution after the solve
                 alg.regulation_emission_terms[(r, v)] = emissions
                 alg.regulation_energy_terms[(r, v)] = energy
 
-            # a vessel out of the pool is still written, to zero its columns
-            # out of the pooled row
             for variable, weight in terms:
                 change_coefficient(constraint, variable, weight * multiplier)
 
