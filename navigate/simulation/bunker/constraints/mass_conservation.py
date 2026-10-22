@@ -53,39 +53,38 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     """
     v = vessel.name
     route = vessel.route
-    ports = route.ports
     voyages = float(vessel.expectation.get_voyages(alg.idx))
-    change_coefficient = alg.model.chgCoeff
+
+    stops = route.get_tank_stops()
+    previous = {e: i for i, e in route.get_tank_legs()}
+    port_converters = get_port_converters(vessel)
+
+    rows = alg.mass_conservation
     mass_tank = alg.mass_tank
     bunker = alg.bunker
-    spend_port = alg.spend_port
     spend_sea = alg.spend_sea
-    port_converters = get_port_converters(vessel)
-    mass_conservation = alg.mass_conservation
+    spend_port = alg.spend_port
+    change_coefficient = alg.model.chgCoeff
 
     for f, converters in vessel.converters_per_fuel.items():
         converters_in_port = [c for c in converters if c in port_converters]
 
-        for p in route.get_tank_stops():
+        for p in stops:
             key = (v, p, f)
-
-            constraint = get_constraint(
-                alg, mass_conservation, key, "==", "mass_conservation"
-            )
+            constraint = get_constraint(alg, rows, key, "==", "mass_conservation")
 
             change_coefficient(constraint, mass_tank[v, p, f], voyages)
 
-            if ports[p].is_bunkering_allowed(f):
+            if route.ports[p].is_bunkering_allowed(f):
                 change_coefficient(constraint, bunker[v, p, f], -1.0)
 
             for c in converters_in_port:
                 change_coefficient(constraint, spend_port[v, c, f, p], 1.0)
 
-        # a tank leg carries the tank from its origin's row into its destination's
-        for i, e in route.get_tank_legs():
-            constraint = mass_conservation[v, e, f]
+            # no tank leg reaches the first tank stop, whose tank starts empty
+            if p in previous:
+                i = previous[p]
+                change_coefficient(constraint, mass_tank[v, i, f], -voyages)
 
-            for c in converters:
-                change_coefficient(constraint, spend_sea[v, c, f, i, e], 1.0)
-
-            change_coefficient(constraint, mass_tank[v, i, f], -voyages)
+                for c in converters:
+                    change_coefficient(constraint, spend_sea[v, c, f, i, p], 1.0)
