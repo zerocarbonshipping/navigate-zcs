@@ -290,6 +290,12 @@ def _calculate_limited_shares(
     tuple[FloatArray, str]
         Constrained shares and a warning message (empty when no warning).
     """
+    if limits.shape != shares.shape:
+        raise ValueError(
+            f"'limits' length ({limits.size}) must match 'values' length "
+            f"({shares.size})"
+        )
+
     limits = np.clip(limits, 0.0, 1.0)
 
     # infeasible: even saturating every option cannot reach a unit total
