@@ -63,6 +63,10 @@ logger = logging.getLogger(__name__)
 # a node declared by name: its type and name
 type Key = tuple[str, str]
 
+# the date a Start or Date keyword opens: None for Start, resolved once the start
+# date is known
+type StepDate = np.datetime64 | None
+
 
 def matching(keys: Collection[Key], node_type: str, pattern: str) -> list[Key]:
     """Return the keys of a node type whose name the pattern matches, in order."""
@@ -114,19 +118,20 @@ class Declaration:
             if isinstance(item, Assignment):
                 last[item.attribute] = index
 
-        return [
-            item
-            for index, item in enumerate(self.body)
-            if not isinstance(item, Assignment) or last[item.attribute] == index
-        ]
+        effective: list[BodyItem] = []
+        for index, item in enumerate(self.body):
+            superseded = isinstance(item, Assignment) and last[item.attribute] > index
+            if not superseded:
+                effective.append(item)
+
+        return effective
 
 
 @dataclass
 class EventBlock:
     """A node block under EVENTS, applied at its date to the nodes its name matches."""
 
-    # None stands for the Start keyword, resolved once the start date is known
-    date: np.datetime64 | None
+    date: StepDate
     node_type: str
     pattern: str
     body: list[BodyItem]
@@ -151,12 +156,11 @@ class Collector:
         self.general: dict[str, list[BodyItem]] = {}
         self.events: list[EventBlock] = []
         # every Start (None) and Date read, each a time step of the simulation
-        self.timeline: list[np.datetime64 | None] = []
+        self.timeline: list[StepDate] = []
 
         # names are unique across node types
-        self._names: dict[str, Key] = {}
+        self._names: set[str] = set()
         self._origin: Origin = Origin.DECK
-        self._deck_directory: Path | None = None
         # the nodes whose default files are being read, outermost first; a pull
         # of one of them again is a cycle between default files
         self._pulling: list[Key] = []
@@ -177,28 +181,28 @@ class Collector:
         except FileNotFoundError:
             raise FileNotFoundError(f"Unable to locate {path}.") from None
 
-        self._deck_directory = path.parent
         deck = parse_deck_content(content, file=str(path))
 
         for directive in deck.define:
-            self._read_directive(directive, SectionID.DEFINE)
+            self._read_directive(directive, path.parent, SectionID.DEFINE)
 
         for directive in deck.events:
-            self._read_directive(directive, SectionID.EVENTS)
+            self._read_directive(directive, path.parent, SectionID.EVENTS)
 
         self._pull_references()
 
-    def _read_directive(self, directive: Directive, section: SectionID) -> None:
+    def _read_directive(
+        self, directive: Directive, directory: Path, section: SectionID
+    ) -> None:
         deck_line = directive.source.line
-        location = SourceLocation(deck_line=deck_line)
 
         if isinstance(directive, IncludeDirective):
-            assert self._deck_directory is not None
-            path = self._deck_directory / directive.path
+            path = directory / directive.path
             logger.debug("[%s] Include %s", section.name, path)
             self._read_file(path, deck_line, section)
             return
 
+        location = SourceLocation(deck_line=deck_line)
         if not self.library.available:
             raise self.library.unavailable_error(f"Module '{directive.name}'", location)
 
@@ -243,29 +247,24 @@ class Collector:
 
     def _declare(self, statement: NodeDeclaration) -> None:
         node_type, name, source = statement.node_type, statement.name, statement.source
+
         _check_node_type(node_type, source)
         for item in statement.body:
             _validate_item(node_type, item, SectionID.DEFINE)
 
-        if name_contains_wildcards(name):
-            targets = matching(self.declarations, node_type, name)
-            if not targets:
+        targets = matching(self.declarations, node_type, name)
+        if not targets:
+            if name_contains_wildcards(name):
                 raise source.error(
                     f"No node of type '{node_type}' matches the wildcard expression "
                     f"'{name}'."
                 )
 
-            for key in targets:
-                check_no_self_reference(key, statement.body)
-                self.declarations[key].body.extend(statement.body)
-            return
+            targets = [self._new_declaration((node_type, name), source).key]
 
-        check_no_self_reference((node_type, name), statement.body)
-        declaration = self.declarations.get((node_type, name))
-        if declaration is None:
-            declaration = self._new_declaration(node_type, name, source)
-
-        declaration.body.extend(statement.body)
+        for key in targets:
+            check_no_self_reference(key, statement.body)
+            self.declarations[key].body.extend(statement.body)
 
     def _declare_general(self, statement: GeneralNodeDeclaration) -> None:
         node_type = statement.node_type
@@ -278,79 +277,80 @@ class Collector:
 
     def _import(self, statement: ImportStatement) -> None:
         node_type, name, source = statement.node_type, statement.name, statement.source
+
         _check_node_type(node_type, source)
 
         if name_contains_wildcards(name):
             raise source.error(f"Import names one node; '{name}' is a wildcard.")
 
-        self._check_name_free(node_type, name, source)
-        self._pull_required(node_type, name, source)
-        self.declarations[(node_type, name)].origin = self._origin
+        key = (node_type, name)
+        self._check_name_free(key, source)
+        self._pull_required(key, source)
+        self.declarations[key].origin = self._origin
 
     def _copy(self, statement: CopyStatement) -> None:
         node_type, source = statement.node_type, statement.source
-        copy_from, copy_to = statement.copy_from, statement.copy_to
+        original_key = (node_type, statement.copy_from)
+        copy_key = (node_type, statement.copy_to)
 
         if node_type in GENERAL_NODE_CLASS:
             raise source.error(f"'{node_type}' cannot be copied.")
 
         _check_node_type(node_type, source)
-        self._check_name_free(node_type, copy_to, source)
+        self._check_name_free(copy_key, source)
 
-        pulled = (node_type, copy_from) not in self.declarations
+        pulled = original_key not in self.declarations
         if pulled:
-            self._pull_required(node_type, copy_from, source)
+            self._pull_required(original_key, source)
 
-        origin = self.declarations[(node_type, copy_from)]
-        target = self._new_declaration(node_type, copy_to, source)
-        target.body = list(origin.body)
-        origin.copied = True
+        original = self.declarations[original_key]
+        copy = self._new_declaration(copy_key, source)
+        copy.body.extend(original.body)
+        original.copied = True
 
         # a source pulled for the copy alone is not part of the deck: only the
         # copy remains, and a later reference pulls the source afresh
         if pulled:
-            del self.declarations[origin.key]
-            del self._names[origin.name]
+            del self.declarations[original_key]
+            self._names.remove(original.name)
 
     # EVENTS ---------------------------------------------------------------------------
 
     def _walk_events(self, statements: list[Statement]) -> None:
         # the date the blocks apply at: None for Start, once a date is read
-        current: np.datetime64 | None = None
+        date: StepDate = None
         dated = False
 
         for statement in statements:
             if isinstance(statement, StartTimeline):
-                current, dated = None, True
+                date, dated = None, True
                 self.timeline.append(None)
             elif isinstance(statement, DateStatement):
-                current, dated = statement.date, True
+                date, dated = statement.date, True
                 self.timeline.append(statement.date)
             elif isinstance(statement, EndTimeline):
                 continue
             elif isinstance(statement, NodeDeclaration):
-                _check_node_type(statement.node_type, statement.source)
                 if not dated:
                     raise statement.source.error(
                         "A node block under EVENTS must follow a Start or Date keyword."
                     )
 
-                for item in statement.body:
-                    _validate_item(statement.node_type, item, SectionID.EVENTS)
-
-                self.events.append(
-                    EventBlock(
-                        current,
-                        statement.node_type,
-                        statement.name,
-                        statement.body,
-                        statement.source,
-                    )
-                )
+                self._add_event(statement, date)
             else:
                 raise statement.source.error(
                     f"'{statement.keyword}' is not allowed in the EVENTS section."
                 )
+
+    def _add_event(self, statement: NodeDeclaration, date: StepDate) -> None:
+        node_type, source = statement.node_type, statement.source
+
+        _check_node_type(node_type, source)
+        for item in statement.body:
+            _validate_item(node_type, item, SectionID.EVENTS)
+
+        block = EventBlock(date, node_type, statement.name, statement.body, source)
+        self.events.append(block)
 
     # library --------------------------------------------------------------------------
 
@@ -366,9 +366,7 @@ class Collector:
                     if reference.is_wildcard or reference.key in self.declarations:
                         continue
 
-                    pulled |= self._pull_default(
-                        reference.type, reference.name, item.source
-                    )
+                    pulled |= self._pull_default(reference.key, item.source)
 
     def _body_items(self) -> list[BodyItem]:
         """Every item of the declarations' effective bodies and of the events."""
@@ -380,14 +378,29 @@ class Collector:
 
         return items
 
-    def _pull_default(self, node_type: str, name: str, source: SourceLocation) -> bool:
-        """Read the library file declaring a default node; whether there was one."""
-        # source: where the node is asked for, named in the errors a read file raises
+    def _pull_default(self, key: Key, source: SourceLocation) -> bool:
+        """
+        Read the library file declaring a default node.
+
+        Parameters
+        ----------
+        key
+            The node to read the file of.
+        source
+            Where the node is asked for, named in the errors the read file raises.
+
+        Returns
+        -------
+        bool
+            Whether the library holds a file for the node.
+        """
+        node_type, name = key
+
         if not self.library.available:
             return False
 
         # re-entering a file being read would read it without end
-        if (node_type, name) in self._pulling:
+        if key in self._pulling:
             raise source.error(
                 f'{node_type}("{name}") is pulled from the default library while '
                 "its own default file is being read. Default files cannot import or "
@@ -398,9 +411,9 @@ class Collector:
         if path is None:
             return False
 
-        self._read_default_file(path, (node_type, name), source)
+        self._read_default_file(path, key, source)
 
-        if (node_type, name) not in self.declarations:
+        if key not in self.declarations:
             raise source.error(
                 f"A file with name '{name}' was found, but not containing a node "
                 f"with type '{node_type}' and similar name."
@@ -409,9 +422,10 @@ class Collector:
         logger.debug('%s("%s") was retrieved from the defaults.', node_type, name)
         return True
 
-    def _pull_required(self, node_type: str, name: str, source: SourceLocation) -> None:
+    def _pull_required(self, key: Key, source: SourceLocation) -> None:
         """Pull a default node a statement names outright, raising if there is none."""
-        if not self._pull_default(node_type, name, source):
+        if not self._pull_default(key, source):
+            node_type, name = key
             raise self.library.missing_default(node_type, name, source)
 
     def _read_default_file(self, path: Path, key: Key, source: SourceLocation) -> None:
@@ -426,18 +440,17 @@ class Collector:
 
     # helpers --------------------------------------------------------------------------
 
-    def _new_declaration(
-        self, node_type: str, name: str, source: SourceLocation
-    ) -> Declaration:
-        self._check_name_free(node_type, name, source)
+    def _new_declaration(self, key: Key, source: SourceLocation) -> Declaration:
+        node_type, name = key
+
+        self._check_name_free(key, source)
         declaration = Declaration(node_type, name, [], self._origin, source)
-        self.declarations[declaration.key] = declaration
-        self._names[name] = declaration.key
+        self.declarations[key] = declaration
+        self._names.add(name)
         return declaration
 
-    def _check_name_free(
-        self, node_type: str, name: str, source: SourceLocation
-    ) -> None:
+    def _check_name_free(self, key: Key, source: SourceLocation) -> None:
+        node_type, name = key
         if name in self._names:
             raise source.error(
                 f'Unable to add {node_type}("{name}"), the name is already in use by '
