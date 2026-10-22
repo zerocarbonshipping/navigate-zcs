@@ -42,26 +42,23 @@ def calculate_jurisdiction_fractions(
         Current time-step index.
     """
     expectation = regulation.expectation
-    jurisdiction = set(regulation.jurisdiction)
+    jurisdiction = {port.name for port in regulation.jurisdiction}
 
     intra = regulation.intra_fraction.get(times)
     inter = regulation.inter_fraction.get(times)
     extra = regulation.extra_fraction.get(times)
 
     for route in routes.values():
-        ports = route.ports
-
-        for port in ports:
-            fraction = intra if port in jurisdiction else 0.0
+        for port in route.ports:
+            fraction = intra if port.name in jurisdiction else 0.0
             expectation.set_port_fraction(idx, port.name, fraction)
 
-        for (i, j), leg in zip(route.get_legs(), route.get_leg_keys(), strict=True):
-            departure_inside = ports[i] in jurisdiction
-            arrival_inside = ports[j] in jurisdiction
+        for leg in route.get_leg_keys():
+            inside = [name in jurisdiction for name in leg]
 
-            if departure_inside and arrival_inside:
+            if all(inside):
                 fraction = intra
-            elif departure_inside or arrival_inside:
+            elif any(inside):
                 fraction = inter
             else:
                 fraction = extra
@@ -129,8 +126,6 @@ def _calculate_vessel_measure(
         1 for ABSOLUTE, 0 for INTENSITY, and the capacity-scaled cargo miles in the
         jurisdiction for the transport measures.
     """
-    vessel_expectation = vessel.expectation
-
     if regulation.measure == RegulationMeasureID.ABSOLUTE:
         return 1.0
 
@@ -140,9 +135,9 @@ def _calculate_vessel_measure(
         return 0.0
 
     if regulation.measure == RegulationMeasureID.TRANSPORT:
-        cargo_miles = vessel_expectation.get_cargo_miles_leg(horizon)
+        cargo_miles = vessel.expectation.get_cargo_miles_leg(horizon)
     else:
-        cargo_miles = vessel_expectation.get_cargo_miles_leg_nominal(horizon)
+        cargo_miles = vessel.expectation.get_cargo_miles_leg_nominal(horizon)
 
     return _calculate_transport_measure(regulation, vessel, cargo_miles, times, horizon)
 
@@ -178,18 +173,16 @@ def _calculate_transport_measure(
         vessel over its nominal capacity, in units that turn a threshold in grams
         per cargo mile into tons.
     """
-    regulation_expectation = regulation.expectation
+    expectation = regulation.expectation
     legs = vessel.route.get_leg_keys()
 
-    transport_measure: FloatLike = 0.0
+    regulated_cargo_miles: FloatLike = 0.0
     for leg, cargo_miles_leg in zip(legs, cargo_miles, strict=True):
-        fraction = regulation_expectation.get_leg_fraction(leg, horizon)
-        transport_measure += fraction * cargo_miles_leg
+        fraction = expectation.get_leg_fraction(leg, horizon)
+        regulated_cargo_miles += fraction * cargo_miles_leg
 
-    capacity = regulation_expectation.get_vessel_capacity(vessel.name, horizon)
+    capacity = expectation.get_vessel_capacity(vessel.name, horizon)
     nominal_capacity = vessel.nominal_capacity.get(times)
+    capacity_ratio = capacity / nominal_capacity
 
-    transport_measure *= capacity / nominal_capacity
-    transport_measure /= TON_TO_GRAM
-
-    return transport_measure
+    return regulated_cargo_miles * capacity_ratio / TON_TO_GRAM
