@@ -34,7 +34,7 @@ def calculate_asset_shares(
     utility: UtilityID,
     odds: float,
     reference: float | None = None,
-    limits: list[float] | None = None,
+    limits: list[float] | FloatArray | None = None,
 ) -> tuple[FloatArray, str]:
     """
     Calculate investment shares from a case-specific dimensionless utility.
@@ -250,7 +250,9 @@ def _uniform_at_min(values: FloatArray) -> FloatArray:
     return shares
 
 
-def _apply_limits(shares: FloatArray, limits: list[float]) -> tuple[FloatArray, str]:
+def _apply_limits(
+    shares: FloatArray, limits: list[float] | FloatArray
+) -> tuple[FloatArray, str]:
     """
     Enforce per-option upper bounds on a share vector, rescaling surplus proportionally.
 
@@ -354,8 +356,11 @@ def calculate_two_axis_uptake[T: Hashable](
 
     Assets are grouped by *group_keys* (e.g. fuel type). Within each group, intra-group
     shares are determined from *metrics_intra*. Across groups, inter-group shares are
-    determined from the intra-share-weighted *metrics_inter*. The final per-asset share
-    is the product of the two.
+    determined from each group's metric: its *metrics_inter* weighted by filling the
+    group with its members in order of *metrics_intra*, best first, each up to its
+    intra-group cap. Uncapped, this is the inter metric of the group's best member, so
+    a group's metric does not fall when a worse option is added to it, nor rise when
+    an identical one is. The final per-asset share is the product of the two.
 
     When *limits* is given, the per-asset bounds are projected onto the two axes: the
     inter-group cap is the sum of the member caps (clamped to 1.0), so a group can
@@ -391,42 +396,40 @@ def calculate_two_axis_uptake[T: Hashable](
         Uptake share per asset.
     """
     group_map = define_index_map(group_keys)
-    unique_groups = list(group_map.keys())
-    metrics_inter_arr = np.asarray(metrics_inter, dtype=np.float64)
 
-    metrics_2nd: list[float] = []
-    uptake = np.zeros((len(metrics_intra),))
+    uptake = np.zeros(len(group_keys))
+    group_metrics: list[float] = []
     group_limits: list[float] = []
 
-    for group in unique_groups:
-        indices = group_map[group]
-        metrics_1st = [metrics_intra[i] for i in indices]
+    for group, indices in group_map.items():
+        intra = np.take(metrics_intra, indices)
+        inter = np.take(metrics_inter, indices)
 
-        intra_limits = None
-        if limits is not None:
+        if limits is None:
+            intra_limits = np.ones(len(indices))
+        else:
             group_cap = min(sum(limits[i] for i in indices), 1.0)
+            group_limits.append(group_cap)
             if group_cap > 0.0:
-                intra_limits = [limits[i] / group_cap for i in indices]
+                intra_limits = limits[indices] / group_cap
             else:
                 # group hard-capped to zero by the inter-group limit; intra shares are
                 # irrelevant but the intra DCM still needs well-posed limits
-                intra_limits = [1.0 for _ in indices]
-            group_limits.append(group_cap)
+                intra_limits = np.ones(len(indices))
 
         shares, msg = calculate_asset_shares(
-            metrics_1st, intra_utility, intra_odds, limits=intra_limits
+            intra, intra_utility, intra_odds, limits=intra_limits
         )
+        metric = _calculate_group_metric(intra, inter, intra_limits, intra_utility)
 
         if msg:
             logger.warning("%s: intra-group '%s' %s", context, group, msg)
 
-        for i, share in zip(indices, shares, strict=True):
-            uptake[i] = share
-
-        metrics_2nd.append(np.dot(metrics_inter_arr[indices], shares))
+        uptake[indices] = shares
+        group_metrics.append(metric)
 
     group_shares, msg = calculate_asset_shares(
-        metrics_2nd,
+        group_metrics,
         inter_utility,
         inter_odds,
         limits=group_limits if limits is not None else None,
@@ -435,9 +438,48 @@ def calculate_two_axis_uptake[T: Hashable](
     if msg:
         logger.warning("%s: inter-group %s", context, msg)
 
-    for j, group in enumerate(unique_groups):
-        indices = group_map[group]
-        for i in indices:
-            uptake[i] *= group_shares[j]
+    for indices, group_share in zip(group_map.values(), group_shares, strict=True):
+        uptake[indices] *= group_share
 
     return uptake
+
+
+def _calculate_group_metric(
+    intra: FloatArray,
+    inter: FloatArray,
+    intra_limits: FloatArray,
+    intra_utility: UtilityID,
+) -> float:
+    """
+    Calculate a group's inter-group metric by filling the group with its best members.
+
+    The members are ranked by their intra-group metric, best first, ties in input order,
+    and each in turn fills the group up to its limit until the group is full. The
+    group's metric is the inter-group metric weighted by that fill.
+
+    Parameters
+    ----------
+    intra
+        Intra-group metric per member, ranking the members.
+    inter
+        Inter-group metric per member.
+    intra_limits
+        Upper bound on each member's part of the group, each in [0, 1], summing to at
+        least 1.
+    intra_utility
+        Utility transformation of the intra-group axis, saying whether lower or higher
+        metrics are better.
+
+    Returns
+    -------
+    float
+        Inter-group metric of the group.
+    """
+    sign = 1.0 if intra_utility == UtilityID.LOWER_LOG_RATIO else -1.0
+    ranking = np.argsort(sign * intra, kind="stable")
+
+    filled = np.minimum(np.cumsum(intra_limits[ranking]), 1.0)
+    fill = np.zeros_like(filled)
+    fill[ranking] = np.diff(filled, prepend=0.0)
+
+    return float(np.dot(inter, fill))
