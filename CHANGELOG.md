@@ -227,6 +227,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   due to newbuild limit`.
 - The VS Code extension is downloaded from the getting-started page of the
   documentation instead of taken from the checkout.
+- The errors for a bad deck path or `-d` folder now read `argument PATH: file
+  not found: '...'`, `argument PATH: a directory, not a file: '...'`, `argument
+  PATH: must have a '.nav' extension: '...'` and `argument -d/--data-dir:
+  folder not found: '...'`.
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`
@@ -296,6 +300,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- The `--help` text and the README no longer say `-p` silences other console
+  output or that `-s` leaves Excel reports; reports keep their own format
+  (#444).
+- The `--help` text and the README named `auto` as the default of `--solver`;
+  without the flag, the deck's `BunkerOptions` `Solver` applies.
 - A dearer vessel type no longer lowers its fuel type's newbuild share unless the
   `set_newbuild_limit` of a cheaper vessel type of that fuel type binds, nor a
   dearer plant its fuel's plant uptake: each is valued by its cheapest option (#653).

@@ -27,58 +27,88 @@ _FATAL_ERRORS = (NavigateError, OSError)
 logger = logging.getLogger(__name__)
 
 
+def _deck_file(value: str) -> Path:
+    """Return the deck path; raise ArgumentTypeError unless it is an existing deck."""
+    path = Path(value)
+
+    if not path.exists():
+        raise argparse.ArgumentTypeError(f"file not found: '{path}'")
+
+    if path.is_dir():
+        raise argparse.ArgumentTypeError(f"a directory, not a file: '{path}'")
+
+    if path.suffix.lower() != ".nav" or not path.stem.strip("."):
+        raise argparse.ArgumentTypeError(f"must have a '.nav' extension: '{path}'")
+
+    return path
+
+
+def _data_dir(value: str) -> Path:
+    """Return the folder path; raise ArgumentTypeError unless it is a directory."""
+    path = Path(value)
+
+    if not path.is_dir():
+        raise argparse.ArgumentTypeError(
+            f"folder not found: '{path}' (given with -d/--data-dir "
+            f"or the {ASSUMPTIONS_ENV_VAR} environment variable)"
+        )
+
+    return path
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="Navigate")
     parser.add_argument(
         "-p",
         "--profile",
         action="store_true",
-        help="Profile the computational performance of the simulation. Note that this"
-        " suppresses all output that is not directly related to the simulation.",
+        help="Profile the run, write the statistics to the file 'profile' next to "
+        "the deck and print the 100 functions with the highest cumulative time. A "
+        "profiled run renders no plots and prints no warning count.",
     )
     parser.add_argument(
         "-s",
         "--suppress-plots",
         action="store_true",
-        help="Suppress the generation of plots at the end of the simulation. Note that"
-        " Excel based output reports will still be generated.",
+        help="Skip the plots at the end of the run. The reports are still written, "
+        "in each Report's file format.",
     )
     parser.add_argument(
         "-o",
         "--results",
         type=Path,
         metavar="FILE",
-        default=None,
-        help="Parquet file the full results of the run are written to, to be opened"
-        " with Lantern. Default: '<deck>.parquet' next to the deck.",
+        help="Parquet file the full results of the run are written to, to be opened "
+        "with Lantern. Default: '<deck>.parquet' next to the deck.",
     )
     parser.add_argument(
         "-l",
         "--log-level",
         default="INFO",
         choices=LOG_LEVELS,
-        help="Set the level of how much output is generated for the .log file. DEBUG"
-        " also prints the full traceback to the console if the run fails.",
+        help="Set the level of how much output is generated for the .log file. DEBUG "
+        "also prints the full traceback to the console if the run fails.",
     )
     parser.add_argument(
         "-d",
         "--data-dir",
-        type=Path,
+        type=_data_dir,
         metavar="DIR",
         default=os.environ.get(ASSUMPTIONS_ENV_VAR),
-        help=f"Folder location for assumptions that may be imported. "
-        f"Can also be set with the environment variable '{ASSUMPTIONS_ENV_VAR}'",
+        help="Folder location for assumptions that may be imported. "
+        f"Can also be set with the environment variable '{ASSUMPTIONS_ENV_VAR}'.",
     )
     parser.add_argument(
         "--solver",
         choices=SOLVER_BACKENDS,
         help="Solver backend: 'auto' tries Gurobi then falls back to HiGHS, "
         "'gurobi' prefers Gurobi (falls back to HiGHS if unlicensed), "
-        "'highs' skips Gurobi and uses HiGHS directly. Default: auto.",
+        "'highs' skips Gurobi and uses HiGHS directly. Without the flag, the "
+        "deck's BunkerOptions Solver applies.",
     )
     parser.add_argument(
         "filename",
-        type=Path,
+        type=_deck_file,
         metavar="PATH",
         help="Path to the .nav simulation deck to run.",
     )
@@ -93,16 +123,14 @@ def main() -> int:
     -------
     int
         The exit code: 0 on success, 1 on a reported error, 130 on interrupt.
-        A usage error exits with 2 through parser.error instead.
+        A usage error exits with 2 through argparse instead.
     """
-    parser = _build_parser()
-    args = parser.parse_args()
-    _validate_args(parser, args)
+    args = _build_parser().parse_args()
 
     try:
         with RunLog(args.filename, args.log_level) as run_log:
             try:
-                return _dispatch(args, run_log)
+                _run(args, run_log)
             except _FATAL_ERRORS as exc:
                 # recorded while the run log is open; the console report below
                 # also covers an error that kept the log from opening
@@ -112,54 +140,16 @@ def main() -> int:
         print("Interrupted.", file=sys.stderr)
         return 130
     except _FATAL_ERRORS as exc:
-        _print_error(exc, debug=(args.log_level == "DEBUG"))
+        if args.log_level == "DEBUG":
+            traceback.print_exc()
+        else:
+            print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-
-def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
-    """
-    Validate the CLI paths up front so bad input fails fast with a clear message.
-
-    Exits via parser.error() (exit code 2) on the first problem found.
-
-    Parameters
-    ----------
-    parser
-        Parser used to report usage-style errors.
-    args
-        Parsed CLI arguments.
-    """
-    if args.data_dir is not None and not args.data_dir.is_dir():
-        parser.error(
-            f"assumptions data directory not found: '{args.data_dir}' "
-            f"(set via -d/--data-dir or the {ASSUMPTIONS_ENV_VAR} environment variable)"
-        )
-
-    _validate_file(parser, args.filename)
+    return 0
 
 
-def _validate_file(parser: argparse.ArgumentParser, path: Path) -> None:
-    """
-    Exit via parser.error() (code 2) unless `path` is an existing '.nav' deck file.
-
-    Parameters
-    ----------
-    parser
-        Parser used to report usage-style errors.
-    path
-        Path to validate.
-    """
-    if not path.exists():
-        parser.error(f"deck file not found: '{path}'")
-
-    if path.is_dir():
-        parser.error(f"deck file is a directory, not a file: '{path}'")
-
-    if path.suffix.lower() != ".nav" or not path.stem.strip("."):
-        parser.error(f"deck file must have a '.nav' extension: '{path}'")
-
-
-def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
+def _run(args: argparse.Namespace, run_log: RunLog) -> None:
     print_preamble()
     run = functools.partial(
         run_deck,
@@ -169,56 +159,32 @@ def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
         results_file=args.results,
     )
 
+    # a profiled run ends its console output with the profile statistics, so it
+    # prints no warning count
     if args.profile:
-        # a profiled run ends its console output with the profile statistics, so
-        # it prints no warning notice
         with cProfile.Profile() as profiler:
             run(plots=False)
 
-        _report_profile(profiler, args.filename.resolve().parent)
+        _report_profile(profiler, args.filename.with_name("profile"))
         run_log.log_summary()
-        return 0
-
-    run(plots=not args.suppress_plots)
-
-    run_log.log_summary()
-    run_log.print_warning_notice()
-
-    return 0
-
-
-def _print_error(exc: Exception, debug: bool) -> None:
-    """
-    Print a fatal error to the console.
-
-    The run log has recorded the full traceback, unless the error kept the log
-    from opening; the console gets either a one-line message or, with -l DEBUG,
-    the full traceback.
-
-    Parameters
-    ----------
-    exc
-        The error that terminated the run.
-    debug
-        Whether the full traceback should be printed to the console.
-    """
-    if debug:
-        traceback.print_exc()
     else:
-        print(f"Error: {exc}", file=sys.stderr)
+        run(plots=not args.suppress_plots)
+
+        run_log.log_summary()
+        run_log.print_warning_notice()
 
 
-def _report_profile(profiler: cProfile.Profile, deck_directory: Path) -> None:
+def _report_profile(profiler: cProfile.Profile, path: Path) -> None:
     """
-    Dump the profile statistics next to the deck and print the costliest calls.
+    Dump the profile statistics to `path` and print the costliest functions.
 
     Parameters
     ----------
     profiler
         Profiler that has finished the run.
-    deck_directory
-        Folder the 'profile' statistics file is written to.
+    path
+        File the profile statistics are written to.
     """
     stats = pstats.Stats(profiler).sort_stats("cumtime")
-    stats.dump_stats(str(deck_directory / "profile"))
+    stats.dump_stats(path)
     stats.print_stats(100)
