@@ -159,8 +159,8 @@ class Simulation:
         self.global_results: GlobalResults = GlobalResults()
         self.timings: Timings[TimingID]
 
-        self._bunker_existing: BunkerAlgorithm = BunkerAlgorithm()
-        self._bunker_expected: BunkerAlgorithm = BunkerAlgorithm()
+        self._bunker_existing: BunkerAlgorithm
+        self._bunker_expected: BunkerAlgorithm
 
         self._produced_fuels: dict[str, Fuel] = {}
 
@@ -313,24 +313,21 @@ class Simulation:
         # the solver backend is chosen before any model is created
         set_solver_preference(self.general_nodes.bunker_options.solver)
 
-        bunkers = {
-            BunkerScopeID.EXISTING: self._bunker_existing,
-            BunkerScopeID.EXPECTED: self._bunker_expected,
-        }
+        self._bunker_existing = self._create_bunker_model(BunkerScopeID.EXISTING)
+        self._bunker_expected = self._create_bunker_model(BunkerScopeID.EXPECTED)
 
-        for scope, bunker in bunkers.items():
-            bunker.initialize(
-                self.nodes.emissions,
-                self.nodes.feedstocks,
-                self.nodes.fleets,
-                self.nodes.fuels,
-                self.nodes.ports,
-                self.nodes.regulations,
-                self.general_nodes.bunker_options,
-                scope,
-                output_directory=self._output_directory,
-                timings=self.timings,
-            )
+    def _create_bunker_model(self, scope: BunkerScopeID) -> BunkerAlgorithm:
+        return BunkerAlgorithm(
+            self.nodes.emissions,
+            self.nodes.fleets,
+            self.nodes.fuels,
+            self.nodes.ports,
+            self.nodes.regulations,
+            self.general_nodes.bunker_options,
+            scope,
+            output_directory=self._output_directory,
+            timings=self.timings,
+        )
 
     def _time_step_at(self, idx: int) -> float:
         """Return the size of the time step ending at a date, in days."""
