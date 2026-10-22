@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from navigate.simulation.bunker._build import get_constraint
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.tank import Tank
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
@@ -35,26 +36,45 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     """
     v = vessel.name
     tanks = vessel.tanks
-    usable_fuels = vessel.usable_fuels
+    stops = vessel.route.get_tank_stops()
+
+    volume_per_ton = {tank.name: _calculate_volume_per_ton(alg, tank) for tank in tanks}
+
+    rows = alg.tank_capacity
+    mass_tank = alg.mass_tank
     change_coefficient = alg.model.chgCoeff
 
-    for p in vessel.route.get_tank_stops():
+    for p in stops:
         for tank in tanks:
             t = tank.name
             key = (v, p, t)
-
-            constraint = get_constraint(
-                alg, alg.tank_capacity, key, "<=", "tank_capacity"
-            )
+            constraint = get_constraint(alg, rows, key, "<=", "tank_capacity")
             constraint.rhs = tank.size.get()
 
-            for fuel_type in tank.get_fuel_types():
-                for fuel in alg.fuels_per_fuel_type[fuel_type]:
-                    f = fuel.name
+            for f, coefficient in volume_per_ton[t].items():
+                change_coefficient(constraint, mass_tank[v, p, f], coefficient)
 
-                    if f in usable_fuels:
-                        change_coefficient(
-                            constraint,
-                            alg.mass_tank[v, p, f],
-                            1.0 / fuel.mass_density.get(),
-                        )
+
+def _calculate_volume_per_ton(alg: BunkerAlgorithm, tank: Tank) -> dict[str, float]:
+    """
+    Calculate the volume a ton of each fuel the tank stores takes up.
+
+    Parameters
+    ----------
+    alg
+        The algorithm instance.
+    tank
+        Tank whose fuels are converted.
+
+    Returns
+    -------
+    dict[str, float]
+        Inverse mass density per fuel name, in m3/t.
+    """
+    volume_per_ton: dict[str, float] = {}
+
+    for fuel_type in tank.get_fuel_types():
+        for fuel in alg.fuels_per_fuel_type[fuel_type]:
+            volume_per_ton[fuel.name] = 1.0 / fuel.mass_density.get()
+
+    return volume_per_ton
