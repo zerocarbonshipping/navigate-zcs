@@ -24,7 +24,7 @@ from navigate.simulation.bunker.cleanup import (
     remove_redundant_vessel,
 )
 from navigate.simulation.bunker.constraints.bunkered_equals_spent import (
-    update_bunkered_equals_spent_constraint,
+    update_bunkered_equals_spent_constraints,
 )
 from navigate.simulation.bunker.constraints.energy_conservation import (
     update_energy_conservation_constraints,
@@ -487,7 +487,7 @@ class BunkerAlgorithm:
         update_mass_sufficient_constraints(self, vessel)
         update_tank_capacity_constraints(self, vessel)
 
-        update_bunkered_equals_spent_constraint(self, vessel)
+        update_bunkered_equals_spent_constraints(self, vessel)
 
     def _log_fair_share_convergence(self) -> None:
         """Log the outcome of the last fair-share iterations, with their statistics."""

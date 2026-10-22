@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the constraint that all fuel bunkered over a vessel's route is spent on it."""
+"""Add the constraints that all fuel bunkered over a vessel's route is spent on it."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
-def update_bunkered_equals_spent_constraint(
+def update_bunkered_equals_spent_constraints(
     alg: BunkerAlgorithm, vessel: Vessel
 ) -> None:
     r"""
@@ -40,11 +40,11 @@ def update_bunkered_equals_spent_constraint(
     """
     v = vessel.name
     route = vessel.route
-    port_converters = get_port_converters(vessel)
-    leg_idx = route.get_legs()
-    port_idx = range(route.get_number_of_ports())
-
     change_coefficient = alg.model.chgCoeff
+
+    legs = route.get_legs()
+    stops = range(route.get_number_of_ports())
+    port_converters = get_port_converters(vessel)
 
     for f, converters in vessel.converters_per_fuel.items():
         converters_in_port = [c for c in converters if c in port_converters]
@@ -54,16 +54,14 @@ def update_bunkered_equals_spent_constraint(
             alg, alg.bunker_equals_spent, key, "==", "bunkered_equals_spent"
         )
 
-        for p in port_idx:
+        for p in stops:
             if (v, p, f) in alg.bunker:
                 change_coefficient(constraint, alg.bunker[v, p, f], 1.0)
 
         for c in converters:
-            for port_start, port_end in leg_idx:
-                change_coefficient(
-                    constraint, alg.spend_sea[v, c, f, port_start, port_end], -1.0
-                )
+            for i, e in legs:
+                change_coefficient(constraint, alg.spend_sea[v, c, f, i, e], -1.0)
 
         for c in converters_in_port:
-            for p in port_idx:
+            for p in stops:
                 change_coefficient(constraint, alg.spend_port[v, c, f, p], -1.0)
