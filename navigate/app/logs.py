@@ -30,8 +30,8 @@ _LINE_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 _TIME_FORMAT = "%H:%M:%S"
 _HLINE = "=" * 120
 
-_MAX_DIGEST_WARNINGS = 20
-_MAX_DIGEST_LENGTH = 120
+_MAX_LISTED_WARNINGS = 20
+_MAX_MESSAGE_LENGTH = 120
 
 logger = logging.getLogger(__name__)
 
@@ -64,21 +64,22 @@ class RunLog:
         # the file opens before the root logger changes, so a file that cannot be
         # opened leaves the logging configuration as it was
         handler = logging.FileHandler(self._log_path, mode="w", encoding="utf-8")
+
+        # propagation hands a module logger's record to the root's handlers without
+        # checking the root's level or filters, so the handler holds both the run's
+        # level and the ledger
         handler.setFormatter(_RunLogFormatter())
-        # propagation does not recheck the root's level, so the handler holds the
-        # level for a logger that a host program has set lower
         handler.setLevel(self._level)
-        # on the handler, the ledger sees every record at the run's level that
-        # propagates from the module loggers
         handler.addFilter(self._ledger)
+
+        root = logging.getLogger()
+        self._handler = handler
+        self._previous_level = root.level
 
         # module loggers inherit their effective level from the root, so a record
         # below the run's level is not even created
-        root = logging.getLogger()
-        self._previous_level = root.level
         root.addHandler(handler)
         root.setLevel(self._level)
-        self._handler = handler
 
         return self
 
@@ -96,26 +97,27 @@ class RunLog:
     def log_summary(self) -> None:
         """Log the end-of-run summary: the record counts, then the unique warnings."""
         level_counts = self._ledger.level_counts
-        warning_counts = self._ledger.warning_counts
-        levels = LOG_LEVELS + [
-            level for level in level_counts if level not in LOG_LEVELS
-        ]
+        other_levels = [level for level in level_counts if level not in LOG_LEVELS]
+        levels = LOG_LEVELS + other_levels
 
         # read before the summary is logged, so its own records are not counted
-        table = {"Level": levels, "Count": [level_counts[level] for level in levels]}
+        counts = [level_counts[level] for level in levels]
+        table = {"Level": levels, "Count": counts}
 
         logger.info("Log summary:", extra={"table": table})
 
+        warning_counts = self._ledger.warning_counts
         if not warning_counts:
             return
 
-        unique_count = len(warning_counts)
-
+        unique = len(warning_counts)
+        duplicates = warning_counts.total() - unique
+        listing = _list_warnings(warning_counts)
         logger.info(
             "Unique warnings (%d unique, %d duplicates suppressed):\n%s",
-            unique_count,
-            warning_counts.total() - unique_count,
-            _list_warnings(warning_counts),
+            unique,
+            duplicates,
+            listing,
         )
 
     def print_warning_notice(self) -> None:
@@ -190,10 +192,10 @@ class _RunLogFormatter(logging.Formatter):
 
         table = getattr(record, "table", None)
         if table is not None:
-            message += "\n\n" + _render_table(table)
+            message = f"{message}\n\n{_render_table(table)}"
 
         if getattr(record, "heading", False):
-            message = "\n" + _HLINE + "\n" + message + "\n" + _HLINE + "\n"
+            message = f"\n{_HLINE}\n{message}\n{_HLINE}\n"
 
         # every handler formats the same record, so the extended message goes
         # into the line format and the record keeps the message it was logged with
@@ -207,8 +209,8 @@ def print_preamble() -> None:
     except PackageNotFoundError:
         package_version = "Debug"
 
-    file = Path(__file__).parent / "preamble.txt"
-    preamble = file.read_text()
+    path = Path(__file__).parent / "preamble.txt"
+    preamble = path.read_text()
 
     print(preamble.format(package_version))
 
@@ -228,20 +230,18 @@ def _list_warnings(warning_counts: Counter[str]) -> str:
         One line per warning, and a closing line counting those left out.
     """
     lines = []
-    first = islice(warning_counts.items(), _MAX_DIGEST_WARNINGS)
+    first = islice(warning_counts.items(), _MAX_LISTED_WARNINGS)
 
     for i, (message, count) in enumerate(first, 1):
         # the count leads, so truncating a long message never hides it
-        times = f"({count}x) " if count > 1 else ""
-        short = (
-            message[:_MAX_DIGEST_LENGTH] + "..."
-            if len(message) > _MAX_DIGEST_LENGTH
-            else message
-        )
-        lines.append(f"  {i}. {times}{short}")
+        repeats = f"({count}x) " if count > 1 else ""
+        shown = message[:_MAX_MESSAGE_LENGTH]
+        cut = "..." if len(message) > _MAX_MESSAGE_LENGTH else ""
+        lines.append(f"  {i}. {repeats}{shown}{cut}")
 
-    if len(warning_counts) > _MAX_DIGEST_WARNINGS:
-        lines.append(f"  ... and {len(warning_counts) - _MAX_DIGEST_WARNINGS} more")
+    left_out = len(warning_counts) - _MAX_LISTED_WARNINGS
+    if left_out > 0:
+        lines.append(f"  ... and {left_out} more")
 
     return "\n".join(lines)
 
