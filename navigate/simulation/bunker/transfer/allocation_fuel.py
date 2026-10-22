@@ -28,9 +28,7 @@ def transfer_allocation_fuel(alg: BunkerAlgorithm) -> None:
     if alg.scope != BunkerScopeID.EXISTING:
         return
 
-    # every vessel's allocation restarts from zero, also for a vessel this solve
-    # left out and a port and fuel it did not allocate, so none keeps the value of
-    # an earlier solve
+    # every vessel restarts from zero, also one this solve left out
     for fleet in alg.fleets.values():
         for vessel in fleet.vessels:
             vessel.expectation.reset_allocation_fuel_existing()
