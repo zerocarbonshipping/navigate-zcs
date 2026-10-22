@@ -8,8 +8,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.enum_ import BunkerScopeID
 from navigate.util import TOLERANCE
 
@@ -22,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
-    Update objective coefficients for a single vessel.
+    Update the objective coefficients of one vessel, and its shore-power bounds.
 
     Parameters
     ----------
@@ -31,29 +29,33 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     vessel
         Vessel for which objective is updated.
     """
+    _update_bunker_objectives(alg, vessel)
+    _update_shore_power(alg, vessel)
+
+
+def _update_bunker_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
+    """Set each bunker variable's cost: the multiplier times the price plus levies."""
     v = vessel.name
     multiplier = alg.multipliers[v]
-    ports = vessel.route.ports
+    is_existing = alg.scope == BunkerScopeID.EXISTING
 
-    for p, port in enumerate(ports):
-        port_name = port.name
-
+    for p, port in enumerate(vessel.route.ports):
         for f, fuel in vessel.usable_fuels.items():
             if not port.is_bunkering_allowed(f):
                 continue
 
-            price = np.float64(port.expectation.get_bunker_price(f, alg.idx))
+            price = float(port.expectation.get_bunker_price(f, alg.idx))
 
             levy_cost = 0.0
             for levy in port.imposed_levies:
-                levy_cost += levy.expectation.get_cost((v, port_name, f), alg.idx)
+                levy_cost += levy.expectation.get_cost((v, port.name, f), alg.idx)
 
             total_price = price + levy_cost
 
             alg.bunker[v, p, f].Obj = multiplier * total_price
 
-            # a zero price on available supply is typically unintended
-            if (alg.scope == BunkerScopeID.EXISTING) and (total_price <= TOLERANCE):
+            # a zero or negative price on available supply is typically unintended
+            if is_existing and total_price <= TOLERANCE:
                 supply = port.expectation.get_bunker_supply(f, alg.idx)
 
                 if supply > 0.0:
@@ -65,18 +67,22 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                         round(total_price, 1),
                     )
 
-    shore_power_limits = vessel.expectation.get_shore_power_limit_port(alg.idx)
 
-    for p, port in enumerate(ports):
-        key = (v, p)
+def _update_shore_power(alg: BunkerAlgorithm, vessel: Vessel) -> None:
+    """Set the cost and upper bound of each shore-power variable of the vessel."""
+    v = vessel.name
+    multiplier = alg.multipliers[v]
+    limits = vessel.expectation.get_shore_power_limit_port(alg.idx)
 
-        if key not in alg.shore_power:
+    for p, port in enumerate(vessel.route.ports):
+        if (v, p) not in alg.shore_power:
             continue
 
+        shore_power = alg.shore_power[v, p]
         cost = float(port.expectation.get_shore_power_cost(alg.idx))
 
-        alg.shore_power[key].UB = float(shore_power_limits[p])
-        alg.shore_power[key].Obj = multiplier * cost
+        shore_power.UB = float(limits[p])
+        shore_power.Obj = multiplier * cost
 
 
 def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
@@ -89,12 +95,9 @@ def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
         The algorithm instance.
     """
     for r, v in alg.regulation_rhs_individual:
-        key = (r, v)
-        regulation = alg.regulations[r]
-        remedial_cost = regulation.expectation.get_remedial_cost(alg.idx)
-        alg.remedial_factor_individual[key].Obj = remedial_cost * alg.multipliers[v]
+        cost = alg.regulations[r].expectation.get_remedial_cost(alg.idx)
+        alg.remedial_factor_individual[r, v].Obj = alg.multipliers[v] * cost
 
     for r in alg.regulation_total_rhs_flexibility:
-        regulation = alg.regulations[r]
-        remedial_cost = regulation.expectation.get_remedial_cost(alg.idx)
-        alg.remedial_factor_flexibility[r].Obj = remedial_cost
+        cost = alg.regulations[r].expectation.get_remedial_cost(alg.idx)
+        alg.remedial_factor_flexibility[r].Obj = cost
