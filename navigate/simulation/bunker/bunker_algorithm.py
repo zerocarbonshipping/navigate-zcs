@@ -63,8 +63,7 @@ from navigate.simulation.bunker.transfer.regulation_solution import (
     transfer_regulation_solution,
 )
 from navigate.simulation.bunker.transfer.shore_power import transfer_shore_power
-from navigate.simulation.bunker.transfer.spend_port import transfer_spend_port
-from navigate.simulation.bunker.transfer.spend_sea import transfer_spend_sea
+from navigate.simulation.bunker.transfer.spend import transfer_spend
 from navigate.simulation.bunker.variables import (
     update_regulation_variables,
     update_vessel_variables,
@@ -344,8 +343,7 @@ class BunkerAlgorithm:
                     vessel.expectation.reset_spend_energy()
 
         transfer_bunker(self)
-        transfer_spend_sea(self)
-        transfer_spend_port(self)
+        transfer_spend(self)
         transfer_shore_power(self)
         transfer_allocation_fuel(self)
 
