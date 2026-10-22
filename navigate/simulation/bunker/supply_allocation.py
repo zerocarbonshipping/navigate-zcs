@@ -10,13 +10,13 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
-from navigate.util import divide_nonzero
+from navigate.util import divide_nonzero, unique_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatLike
 
 
 def calculate_fair_share_fuel_supply(
@@ -26,111 +26,81 @@ def calculate_fair_share_fuel_supply(
     scope: BunkerScopeID,
 ) -> None:
     """
-    Calculate fair-share fuel supply from each port for every vessel in the simulation.
+    Calculate each vessel's fair share of each port's supply of the given fuels.
 
-    Used as a starting guess for the fair-share of fuel supply during existing
-    bunkering.
+    A vessel's fair share is its potential demand for the fuel's type at the port, as a
+    fraction of the demand of every vessel calling there, each counted by its
+    multiplier. The fair-share iteration of the bunkering starts from these shares.
 
     Parameters
     ----------
     fleets
         All fleets in the simulation.
     fuels
-        All fuels in the simulation.
+        Fuels whose port supply is shared out, those with a liquid market excluded.
     idx
         Current time-step index.
     scope
         Whether the fair shares are for existing or for expected bunkering.
     """
-    fair_share, vessels = _calculate_demand_based_fair_share_fuel_supply(
-        fleets, idx, scope
-    )
-
-    for v, vessel in vessels.items():
-        for port in vessel.route.ports:
-            p = port.name
-
-            for f, fuel in fuels.items():
-                if f not in vessel.usable_fuels:
-                    continue
-
-                fuel_type = fuel.fuel_type
-
-                # existing bunkering evaluates a single time step, where the shares
-                # are zero-dimensional arrays
-                if scope == BunkerScopeID.EXISTING:
-                    vessel.expectation.set_fair_share_fuel_existing(
-                        p, f, np.float64(fair_share[(v, p, fuel_type)])
-                    )
-                else:
-                    vessel.expectation.set_fair_share_fuel_expected(
-                        idx, p, f, fair_share[(v, p, fuel_type)]
-                    )
-
-
-def _calculate_demand_based_fair_share_fuel_supply(
-    fleets: dict[str, Fleet],
-    idx: int,
-    scope: BunkerScopeID,
-) -> tuple[dict[tuple[str, str, FuelTypeID], FloatArray], dict[str, Vessel]]:
-    """
-    Calculate the fair-share fuel type supply from each port for every vessel.
-
-    Parameters
-    ----------
-    fleets
-        All fleets in the simulation.
-    idx
-        Current time-step index.
-    scope
-        Whether the fair shares are for existing or for expected bunkering; expected
-        bunkering evaluates the remaining timeline.
-
-    Returns
-    -------
-    tuple[dict[tuple[str, str, FuelTypeID], FloatArray], dict[str, Vessel]]
-        Fair share of the fuel type supply per (vessel, port, fuel type), and every
-        vessel in the simulation by name.
-    """
-    time_index = idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]
-
-    vessels: dict[str, Vessel] = {}
-    multipliers: dict[str, FloatLike] = {}
+    port_demand = _calculate_port_demand(fleets, idx, scope)
 
     for fleet in fleets.values():
         for vessel in fleet.vessels:
-            v = vessel.name
+            _calculate_vessel_fair_shares(vessel, fuels, port_demand, idx, scope)
 
-            vessels[v] = vessel
-            multipliers[v] = fleet.expectation.get_multiplier(v, scope, time_index)
 
-    all_demand: dict[tuple[str, str, FuelTypeID], FloatLike] = {}
-    for v, vessel in vessels.items():
-        expectation = vessel.expectation
+def _calculate_port_demand(
+    fleets: dict[str, Fleet], idx: int, scope: BunkerScopeID
+) -> dict[tuple[str, FuelTypeID], FloatLike]:
+    """Calculate each port's potential demand per fuel type, summed over its vessels."""
+    horizon = _horizon(idx, scope)
+    port_demand: dict[tuple[str, FuelTypeID], FloatLike] = {}
 
-        for port in vessel.route.ports:
-            p = port.name
+    for fleet in fleets.values():
+        for vessel in fleet.vessels:
+            expectation = vessel.expectation
+            multiplier = fleet.expectation.get_multiplier(vessel.name, scope, horizon)
 
-            for ft in FuelTypeID:
-                demand = expectation.get_potential_fuel_type_demand(p, ft, time_index)
-                all_demand[(v, p, ft)] = demand
+            # the demand is held per port, so a port called at twice counts once
+            for port in unique_list(vessel.route.ports):
+                for fuel_type in FuelTypeID:
+                    key = (port.name, fuel_type)
+                    demand = expectation.get_potential_fuel_type_demand(*key, horizon)
+                    port_demand[key] = port_demand.get(key, 0.0) + demand * multiplier
 
-    # the demand is held vessel by vessel, so each port total adds up in vessel order
-    total_demand: dict[tuple[str, FuelTypeID], FloatLike] = {}
-    for (v, p, ft), demand in all_demand.items():
-        total = total_demand.get((p, ft), 0.0)
-        total_demand[(p, ft)] = total + demand * multipliers[v]
+    return port_demand
 
-    fair_share = {}
-    for v, vessel in vessels.items():
-        for port in vessel.route.ports:
-            p = port.name
 
-            for ft in FuelTypeID:
-                if ft not in vessel.usable_fuel_types:
-                    continue
+def _calculate_vessel_fair_shares(
+    vessel: Vessel,
+    fuels: dict[str, Fuel],
+    port_demand: dict[tuple[str, FuelTypeID], FloatLike],
+    idx: int,
+    scope: BunkerScopeID,
+) -> None:
+    """Calculate the vessel's fair share of each port's supply of the given fuels."""
+    expectation = vessel.expectation
+    horizon = _horizon(idx, scope)
 
-                share = divide_nonzero(all_demand[(v, p, ft)], total_demand[(p, ft)])
-                fair_share[(v, p, ft)] = share
+    for port in vessel.route.ports:
+        for name, fuel in fuels.items():
+            if name not in vessel.usable_fuels:
+                continue
 
-    return fair_share, vessels
+            key = (port.name, fuel.fuel_type)
+            demand = expectation.get_potential_fuel_type_demand(*key, horizon)
+            share = divide_nonzero(demand, port_demand[key])
+
+            # existing bunkering evaluates a single time step, where the shares are
+            # zero-dimensional arrays
+            if scope == BunkerScopeID.EXISTING:
+                share = np.float64(share)
+                expectation.set_fair_share_fuel_existing(port.name, name, share)
+            else:
+                expectation.set_fair_share_fuel_expected(idx, port.name, name, share)
+
+
+def _horizon(idx: int, scope: BunkerScopeID) -> int | slice:
+    """Return the steps a scope reads: the current one, or the rest if expected."""
+    return idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]
