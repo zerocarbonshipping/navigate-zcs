@@ -50,7 +50,7 @@ Navigate ships with the open-source [HiGHS](https://highs.dev/) solver and uses 
 pip install .[gurobi]
 ```
 
-The default `--solver auto` then detects the license and uses Gurobi automatically. Note that installing `gurobipy` from pip only includes a size-limited trial license that cannot solve full Navigate scenarios — without a full Gurobi license, skip this extra (or run with `--solver highs`).
+The default solver, `auto`, then detects the license and uses Gurobi automatically. Note that installing `gurobipy` from pip only includes a size-limited trial license that cannot solve full Navigate scenarios — without a full Gurobi license, skip this extra (or run with `--solver highs`).
 
 ## Running Navigate
 
@@ -75,11 +75,11 @@ The following options are available when running Navigate. See them in the comma
 | Flag                            | Description                                                                                                                                                                                                                                                       |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `-d DIR`, `--data-dir DIR`      | Folder location for assumptions that may be imported. Can also be set with the environment variable `ASSUMPTIONS_DATA_DIR`. <br/> The Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping supplies assumptions in the `assumptions` folder of this repository. |
-| `-s`, `--suppress-plots`        | Suppress the generation of plots at the end of the simulation. Excel reports will still be generated.                                                                                                                                                             |
+| `-s`, `--suppress-plots`        | Skip the plots at the end of the run. The reports are still written, in each Report's file format.                                                                                                                                                                |
 | `-o FILE`, `--results FILE`     | Parquet file the full results of the run are written to, for Lantern. Default: `<deck>.parquet` next to the deck.                                                                                                                                                 |
 | `-l LEVEL`, `--log-level LEVEL` | Set the log level for the `.log` file. With `DEBUG`, a failed run also prints the full traceback to the console.                                                                                                                                                  |
-| `--solver {auto,gurobi,highs}`  | Solver backend. `auto` tries Gurobi then falls back to HiGHS. Default: `auto`.                                                                                                                                                                                    |
-| `-p`, `--profile`               | Profile the computational performance of the simulation. Note that this suppresses all output that is not directly related to the simulation.                                                                                                                    |
+| `--solver {auto,gurobi,highs}`  | Solver backend. `auto` tries Gurobi then falls back to HiGHS. Without the flag, the deck's `BunkerOptions` `Solver` applies.                                                                                                                                      |
+| `-p`, `--profile`               | Profile the run, write the statistics to the file `profile` next to the deck and print the 100 functions with the highest cumulative time. A profiled run renders no plots and prints no warning count.                                                           |
 
 ## License
 
