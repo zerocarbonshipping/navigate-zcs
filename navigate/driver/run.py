@@ -86,7 +86,7 @@ def run_deck(
         _log_time_step(idx, date, parser.dates[0], start_time)
         inputs_changed = parser.read_events(date)
         print(f"Date: {date}")
-        simulation.step(date, inputs_changed)
+        simulation.step(inputs_changed)
 
     # the simulation ran the parser's nodes, which now hold their own results
     results = SimulationResults(
