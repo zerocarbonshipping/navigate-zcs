@@ -11,7 +11,7 @@ from navigate.simulation.bunker._build import get_constraint
 from navigate.simulation.bunker.utils import get_converters, get_port_converters
 
 if TYPE_CHECKING:
-    import navigate.simulation.bunker.solver as gp
+    from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
@@ -39,123 +39,125 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     vessel
         Vessel for which constraints are added.
     """
-    v = vessel.name
     route = vessel.route
-    usable_fuels = vessel.usable_fuels
     port_converters = get_port_converters(vessel)
-    leg_idx = route.get_legs()
-    port_idx = range(route.get_number_of_ports())
+
+    legs = route.get_legs()
+    stops = range(route.get_number_of_ports())
 
     for c, converter in get_converters(vessel).items():
         if not converter.is_dual_fuel():
             continue
 
-        fraction = converter.minimum_pilot_fuel.get()
+        coefficients = _calculate_pilot_coefficients(vessel, converter)
+        _update_sea_rows(alg, vessel, c, coefficients, legs)
 
-        pilot_fuels = [
-            fuel.name
-            for fuel_type in converter.pilot_fuel_types
-            for fuel in alg.fuels_per_fuel_type[fuel_type]
-            if fuel.name in usable_fuels
-        ]
-
-        main_fuels = [
-            fuel.name
-            for fuel_type in converter.main_fuel_types
-            for fuel in alg.fuels_per_fuel_type[fuel_type]
-            if fuel.name in usable_fuels
-        ]
-
-        for port_start, port_end in leg_idx:
-            sea_key = (v, c, port_start, port_end)
-            constraint = get_constraint(
-                alg, alg.pilot_fuel_sea, sea_key, ">=", "pilot_fuel_at_sea"
-            )
-
-            _apply_pilot_fuel_coefficients(
-                alg,
-                constraint,
-                alg.spend_sea,
-                vessel,
-                c,
-                (port_start, port_end),
-                pilot_fuels,
-                main_fuels,
-                fraction,
-            )
-
-        if c not in port_converters:
-            continue
-
-        for p in port_idx:
-            port_key = (v, c, p)
-            constraint = get_constraint(
-                alg, alg.pilot_fuel_port, port_key, ">=", "pilot_fuel_in_port"
-            )
-
-            _apply_pilot_fuel_coefficients(
-                alg,
-                constraint,
-                alg.spend_port,
-                vessel,
-                c,
-                (p,),
-                pilot_fuels,
-                main_fuels,
-                fraction,
-            )
+        # the propulsion converter serves no port energy demand
+        if c in port_converters:
+            _update_port_rows(alg, vessel, c, coefficients, stops)
 
 
-def _apply_pilot_fuel_coefficients[*Indices](
+def _update_sea_rows(
     alg: BunkerAlgorithm,
-    constraint: gp.Constr,
-    spend: dict[tuple[str, str, str, *Indices], gp.Var],
     vessel: Vessel,
     c: str,
-    indices: tuple[*Indices],
-    pilot_fuels: list[str],
-    main_fuels: list[str],
-    fraction: float,
+    coefficients: dict[str, float],
+    legs: tuple[tuple[int, int], ...],
 ) -> None:
     """
-    Apply the pilot- and main-fuel coefficients of one pilot-fuel row.
+    Create or update the sea pilot-fuel rows of one converter.
 
     Parameters
     ----------
     alg
         The algorithm instance.
-    constraint
-        Row to apply the coefficients to.
-    spend
-        Spend variables of the row's domain (``alg.spend_sea`` or ``alg.spend_port``).
     vessel
-        Vessel whose converter the row constrains.
+        Vessel whose rows are updated.
     c
         Converter name.
-    indices
-        Leg or port indices of the row; each fuel's variable is keyed
-        ``(v, c, f, *indices)``.
-    pilot_fuels
-        Names of the converter's usable pilot fuels.
-    main_fuels
-        Names of the converter's usable main fuels.
-    fraction
-        Minimum pilot fuel fraction of the converter.
+    coefficients
+        Pilot-fuel coefficient of each fuel name, in GJ/t.
+    legs
+        Origin and destination stop indices of each leg of the vessel's route.
     """
     v = vessel.name
-    expectation = vessel.expectation
+    rows = alg.pilot_fuel_sea
+    spend_sea = alg.spend_sea
     change_coefficient = alg.model.chgCoeff
 
-    for f in pilot_fuels:
-        change_coefficient(
-            constraint,
-            spend[(v, c, f, *indices)],
-            (1.0 - fraction) * expectation.get_effective_lhv(c, f),
-        )
+    for i, e in legs:
+        key = (v, c, i, e)
+        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_at_sea")
 
-    for f in main_fuels:
-        change_coefficient(
-            constraint,
-            spend[(v, c, f, *indices)],
-            -fraction * expectation.get_effective_lhv(c, f),
-        )
+        for f, coefficient in coefficients.items():
+            change_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
+
+
+def _update_port_rows(
+    alg: BunkerAlgorithm,
+    vessel: Vessel,
+    c: str,
+    coefficients: dict[str, float],
+    stops: range,
+) -> None:
+    """
+    Create or update the port pilot-fuel rows of one converter.
+
+    Parameters
+    ----------
+    alg
+        The algorithm instance.
+    vessel
+        Vessel whose rows are updated.
+    c
+        Converter name.
+    coefficients
+        Pilot-fuel coefficient of each fuel name, in GJ/t.
+    stops
+        Stop indices of the vessel's route.
+    """
+    v = vessel.name
+    rows = alg.pilot_fuel_port
+    spend_port = alg.spend_port
+    change_coefficient = alg.model.chgCoeff
+
+    for p in stops:
+        key = (v, c, p)
+        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_in_port")
+
+        for f, coefficient in coefficients.items():
+            change_coefficient(constraint, spend_port[v, c, f, p], coefficient)
+
+
+def _calculate_pilot_coefficients(
+    vessel: Vessel, converter: Converter
+) -> dict[str, float]:
+    """
+    Calculate the pilot-fuel coefficient of each usable fuel of a converter.
+
+    Parameters
+    ----------
+    vessel
+        Vessel the converter belongs to.
+    converter
+        Dual-fuel converter whose fuels are weighted.
+
+    Returns
+    -------
+    dict[str, float]
+        Effective lower heating value per fuel name, weighted by 1 - fraction for
+        pilot fuels and by -fraction for main fuels, in GJ/t.
+    """
+    c = converter.name
+    fraction = converter.minimum_pilot_fuel.get()
+    lhv = vessel.expectation.get_effective_lhv
+    fuels = vessel.fuels_per_converter[c]
+
+    coefficients: dict[str, float] = {}
+
+    for f, fuel in fuels.items():
+        is_pilot = fuel.fuel_type in converter.pilot_fuel_types
+        weight = 1.0 - fraction if is_pilot else -fraction
+        coefficients[f] = weight * lhv(c, f)
+
+    return coefficients
