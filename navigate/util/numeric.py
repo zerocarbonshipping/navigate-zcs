@@ -144,17 +144,17 @@ def find_nearest(array: npt.ArrayLike, values: FloatArray) -> IntArray:
     """
     array = np.asarray(array)
 
-    idxs = np.searchsorted(array, values, side="left")
+    indices = np.searchsorted(array, values, side="left")
 
     # where the previous entry is closer, or the query fell past the end,
     # step one index back; booleans subtract as 0/1
-    prev_idx_is_less = (idxs == len(array)) | (
-        np.fabs(values - array[np.maximum(idxs - 1, 0)])
-        < np.fabs(values - array[np.minimum(idxs, len(array) - 1)])
+    is_previous_closer = (indices == len(array)) | (
+        np.fabs(values - array[np.maximum(indices - 1, 0)])
+        < np.fabs(values - array[np.minimum(indices, len(array) - 1)])
     )
-    idxs -= prev_idx_is_less
+    indices -= is_previous_closer
 
-    return idxs
+    return indices
 
 
 def find_nearest_index(array: npt.ArrayLike, value: float) -> int:
@@ -214,14 +214,14 @@ def update_belief_path(
     idx
         Current outer time-step index. Only ``s >= idx`` are updated.
     """
-    forward_slice = np.s_[idx:]
-    belief_forward = belief[forward_slice]
-    raw_forward = raw_path[forward_slice]
+    forward = np.s_[idx:]
+    belief_forward = belief[forward]
+    raw_forward = raw_path[forward]
 
     # exponential smoothing blends the new projection with the prior belief;
     # an entry with no prior (NaN) bootstraps to the raw value instead
     smoothed = alpha * raw_forward + (1.0 - alpha) * belief_forward
-    belief[forward_slice] = np.where(np.isnan(belief_forward), raw_forward, smoothed)
+    belief[forward] = np.where(np.isnan(belief_forward), raw_forward, smoothed)
 
 
 def derive_smoothing_alpha(

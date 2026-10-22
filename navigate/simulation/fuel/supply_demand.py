@@ -114,8 +114,8 @@ def calculate_expected_fuel_demand(
     dict[str, FloatLike]
         Expected future demand of each fuel, in tons/year.
     """
-    horizon = np.s_[idx:]
-    demands = [fleet.expectation.get_fuel_demand(horizon) for fleet in fleets.values()]
+    forward = np.s_[idx:]
+    demands = [fleet.expectation.get_fuel_demand(forward) for fleet in fleets.values()]
     return add_dicts(*demands)
 
 
@@ -137,7 +137,7 @@ def calculate_expected_fuel_supply(
     dict[str, FloatLike]
         Expected future supply of each fuel, in tons/year.
     """
-    horizon = np.s_[idx:]
+    forward = np.s_[idx:]
     supply: dict[str, FloatLike] = {}
 
     for producer in producers.values():
@@ -145,7 +145,7 @@ def calculate_expected_fuel_supply(
 
         for plant in producer.plants:
             fuel_name = plant.fuel.name
-            production = expectation.get_guaranteed_production(plant.name, horizon)
+            production = expectation.get_guaranteed_production(plant.name, forward)
             supply[fuel_name] = supply.get(fuel_name, 0.0) + production
 
     return supply

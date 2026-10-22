@@ -21,6 +21,10 @@ arbiter.
   integer index of a loop or comprehension (`i`, `j`, `k`, `t`), but not an
   element or key variable, and the axis variables `x`, `y` of a table or
   interpolation.
+- Reserve a bare `idx` for the time-step index, or for the slice of time steps a
+  getter takes in its place, and qualify every other index: `vessel_idx`,
+  `plant_idx`. Bound to a name, the slice from the time step onward is
+  `forward = np.s_[idx:]`.
 - Use domain words, not abbreviations: `newbuild_technology`, not `nb_tech`.
   Abbreviate only a term the DSL or the reference manual uses (`co2`, `lng`,
   `capex`, `wtt`).

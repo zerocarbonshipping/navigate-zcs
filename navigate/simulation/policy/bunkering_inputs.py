@@ -36,7 +36,7 @@ def calculate_regulation_bunkering_inputs(
     idx
         Current time-step index.
     """
-    horizon = np.s_[idx:]
+    forward = np.s_[idx:]
 
     for regulation in regulations.values():
         if not regulation.active:
@@ -45,12 +45,12 @@ def calculate_regulation_bunkering_inputs(
         expectation = regulation.expectation
 
         for vessel_name, vessel in vessels.items():
-            threshold = expectation.get_vessel_threshold(vessel_name, horizon)
+            threshold = expectation.get_vessel_threshold(vessel_name, forward)
 
-            calculate_vessel_spend_coefficients(regulation, vessel, threshold, horizon)
+            calculate_vessel_spend_coefficients(regulation, vessel, threshold, forward)
 
             if regulation.vessel_is_policed(vessel_name):
-                calculate_vessel_allowance(regulation, vessel_name, threshold, horizon)
+                calculate_vessel_allowance(regulation, vessel_name, threshold, forward)
 
 
 def calculate_vessel_allowance(

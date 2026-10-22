@@ -92,6 +92,6 @@ class _Expectation:
     def _reset_dict_array_partial[K](
         self, dict_: dict[K, FloatArray], idx: int
     ) -> None:
-        s = np.s_[idx:]
+        forward = np.s_[idx:]
         for array in dict_.values():
-            array[s] = self._default_array()[s]
+            array[forward] = self._default_array()[forward]

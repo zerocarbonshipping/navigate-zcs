@@ -193,16 +193,16 @@ def calculate_fleet_evolution_expectation(
     idx
         Current time-step index, where the expectation starts.
     """
-    horizon = np.s_[idx:]
-    years = timeline[horizon] / YEAR
+    forward = np.s_[idx:]
+    years = timeline[forward] / YEAR
     years_ahead = years - years[0]
 
     existing = _existing_multipliers(fleet, years_ahead)
 
     # the multipliers become cargo-miles to take the speed expectations into account
-    cargo_miles = np.array(extract_cargo_miles_timeline(fleet.vessels, horizon))
+    cargo_miles = np.array(extract_cargo_miles_timeline(fleet.vessels, forward))
     existing_trade = existing * cargo_miles
-    gap = fleet.trade[horizon] - np.sum(existing_trade, axis=0)
+    gap = fleet.trade[forward] - np.sum(existing_trade, axis=0)
 
     # a gap turned negative by falling trade is truncated to zero, which leaves more
     # vessels than trade; where secondary scrapping is allowed this overestimates the
@@ -322,19 +322,19 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     idx
         Current time-step index.
     """
-    horizon = np.s_[idx:]
+    forward = np.s_[idx:]
     scope = BunkerScopeID.EXPECTED
     demand: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
 
     for vessel in fleet.vessels:
         expectation = vessel.expectation
-        multipliers = fleet.expectation.get_multiplier(vessel.name, scope, horizon)
+        multipliers = fleet.expectation.get_multiplier(vessel.name, scope, forward)
 
         # the bunkered mass is per port, so a port the route calls more than once
         # counts once
         ports = dict.fromkeys(vessel.route.ports)
         for port, fuel_name in itertools.product(ports, fuels):
-            mass = expectation.get_bunker_mass_expected(port.name, fuel_name, horizon)
+            mass = expectation.get_bunker_mass_expected(port.name, fuel_name, forward)
             demand[fuel_name] += multipliers * mass
 
     for key, value in demand.items():
