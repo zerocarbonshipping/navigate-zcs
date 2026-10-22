@@ -49,34 +49,31 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
 
 def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
     """
-    Remove redundant port-fuel bunker variables and availability/inertia constraints.
+    Remove the LP elements of fuels ports stop bunkering, and caps on unlimited supply.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     """
-    for v, p, f in list(alg.bunker.keys()):
+    for v, p, f in list(alg.bunker):
         port = alg.vessels[v].route.ports[p]
 
         if not port.is_bunkering_allowed(f):
-            alg.model.remove(alg.bunker[v, p, f])
-            del alg.bunker[v, p, f]
+            alg.model.remove(alg.bunker.pop((v, p, f)))
 
-    for v, port_name, f in list(alg.fuel_inertia.keys()):
-        if not alg.ports[port_name].is_bunkering_allowed(f):
-            alg.model.remove(alg.fuel_inertia[v, port_name, f])
-            del alg.fuel_inertia[v, port_name, f]
-
-    for v, port_name, f in list(alg.fair_share_fuel.keys()):
+    for v, port_name, f in list(alg.fuel_inertia):
         port = alg.ports[port_name]
 
-        available = port.is_bunkering_allowed(f)
+        if not port.is_bunkering_allowed(f):
+            alg.model.remove(alg.fuel_inertia.pop((v, port_name, f)))
+
+    for v, port_name, f in list(alg.fair_share_fuel):
+        port = alg.ports[port_name]
         supply = port.expectation.get_bunker_supply(f, alg.idx)
 
-        if (not available) or (not np.isfinite(supply)):
-            alg.model.remove(alg.fair_share_fuel[v, port_name, f])
-            del alg.fair_share_fuel[v, port_name, f]
+        if not port.is_bunkering_allowed(f) or not np.isfinite(supply):
+            alg.model.remove(alg.fair_share_fuel.pop((v, port_name, f)))
 
 
 def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
@@ -88,21 +85,15 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-    for key in list(alg.remedial_factor_individual.keys()):
+    for key in list(alg.remedial_factor_individual):
         if key not in alg.regulation_rhs_individual:
-            alg.model.remove(alg.remedial_factor_individual[key])
-            del alg.remedial_factor_individual[key]
+            alg.model.remove(alg.remedial_factor_individual.pop(key))
+            alg.model.remove(alg.regulation_threshold_individual.pop(key))
 
-            alg.model.remove(alg.regulation_threshold_individual[key])
-            del alg.regulation_threshold_individual[key]
-
-    for r in list(alg.remedial_factor_flexibility.keys()):
-        if r not in alg.regulation_total_rhs_flexibility:
-            alg.model.remove(alg.remedial_factor_flexibility[r])
-            del alg.remedial_factor_flexibility[r]
-
-            alg.model.remove(alg.regulation_threshold_flexibility[r])
-            del alg.regulation_threshold_flexibility[r]
+    for key in list(alg.remedial_factor_flexibility):
+        if key not in alg.regulation_total_rhs_flexibility:
+            alg.model.remove(alg.remedial_factor_flexibility.pop(key))
+            alg.model.remove(alg.regulation_threshold_flexibility.pop(key))
 
 
 def _remove_vessel_elements[
@@ -121,7 +112,6 @@ def _remove_vessel_elements[
     container
         Variable or constraint dict of one family on the algorithm.
     """
-    for key, element in list(container.items()):
+    for key in list(container):
         if key[0] == v:
-            alg.model.remove(element)
-            del container[key]
+            alg.model.remove(container.pop(key))
