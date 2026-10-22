@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 
@@ -17,6 +17,23 @@ if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
+
+
+class _Units(NamedTuple):
+    """Remedial, flexibility and surplus units of a regulation or one of its vessels."""
+
+    remedial: float
+    flexibility: float
+    surplus: float
+
+
+class _Market(NamedTuple):
+    """A regulation's flexibility market cleared at one time step."""
+
+    remedial_cost: float
+    flexibility_cost: float
+    total: _Units
+    vessels: dict[str, _Units]
 
 
 def calculate_flexibility_markets(
@@ -54,7 +71,12 @@ def calculate_flexibility_markets(
         if not (regulation.active and is_flexible):
             continue
 
-        _calculate_flexibility_market(regulation, vessels, multipliers, scope, idx)
+        market = _clear_flexibility_market(regulation, multipliers, idx)
+
+        if scope == BunkerScopeID.EXISTING:
+            _calculate_market_results(regulation, vessels, market, idx)
+        else:
+            _calculate_market_expectations(regulation, vessels, market, idx)
 
 
 def update_regulation_flexibility_beliefs(
@@ -64,41 +86,38 @@ def update_regulation_flexibility_beliefs(
     idx: int,
 ) -> None:
     """
-    Update flexibility cost belief and apply expected expenses for flexible regulations.
+    Smooth each FLEXIBLE regulation's flexibility cost and apply its vessels' expenses.
 
-    The raw flexibility cost (the cost the market clearing derives from the shadow
-    price of the pooled threshold) is smoothed via exponential moving average, in place
-    on the regulation expectation's belief array. This prevents small changes in future
-    fuel availability from translating into expectations of large flexibility-cost
-    differences.
+    The raw flexibility cost the market clearing derived from the shadow price is
+    smoothed by an exponential moving average, in place on the expectation's belief, so
+    that small changes in future fuel availability do not become expectations of large
+    differences in flexibility cost.
 
-    The expected flexibility expenses of each policed vessel are then applied as the net
-    flexibility units (flexibility units minus surplus units, stored by the market
-    clearing) valued at the smoothed cost. Surplus revenue is implicitly valued at the
-    same smoothed cost through the net units.
+    A policed vessel's expected flexibility expenses are its net flexibility units,
+    flexibility minus surplus units, valued at the smoothed cost, which values its
+    surplus revenue at that cost too.
 
     Parameters
     ----------
     regulations
-        Mapping of regulation name to regulation object.
+        All regulations in the simulation.
     vessels
-        Mapping of vessel name to vessel object.
+        All vessels in the simulation.
     timeline
-        Simulation timeline in days.
+        Simulation timeline, in days.
     idx
-        Current outer time-step index.
+        Current time-step index.
     """
     for regulation in regulations.values():
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:
             continue
 
-        flexibility_horizon = regulation.flexibility_horizon.get()
-        alpha = derive_smoothing_alpha(idx, flexibility_horizon, timeline)
-
         expectation = regulation.expectation
+        horizon = regulation.flexibility_horizon.get()
+
+        alpha = derive_smoothing_alpha(idx, horizon, timeline)
         raw_cost = expectation.get_flexibility_cost()
         belief = expectation.get_belief_flexibility_cost()
-
         update_belief_path(raw_cost, belief, alpha, idx)
 
         for vessel_name, vessel in vessels.items():
@@ -110,26 +129,19 @@ def update_regulation_flexibility_beliefs(
             vessel.expectation.add_flexibility_expenses_path(idx, expenses)
 
 
-def _calculate_flexibility_market(
-    regulation: Regulation,
-    vessels: dict[str, Vessel],
-    multipliers: dict[str, float],
-    scope: BunkerScopeID,
-    idx: int,
-) -> None:
+def _clear_flexibility_market(
+    regulation: Regulation, multipliers: dict[str, float], idx: int
+) -> _Market:
     """Clear the flexibility market of one regulation; see the public function."""
     expectation = regulation.expectation
-    results = regulation.results
-
-    total_remedial_units = expectation.get_pooled_remedial_units(idx)
+    total_remedial = expectation.get_pooled_remedial_units(idx)
     remedial_cost = expectation.get_remedial_cost(idx)
-    total_remedial_expenses = total_remedial_units * remedial_cost
+    shadow_price = expectation.get_pooled_shadow_price(idx)
 
     # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance
-    non_compliance_units = {}
-    surplus_units = {}
-    total_non_compliance_units = 0.0
-    total_surplus_units = 0.0
+    balances: dict[str, tuple[float, float]] = {}
+    total_non_compliance = 0.0
+    total_surplus = 0.0
     for vessel_name, multiplier in multipliers.items():
         if not regulation.vessel_is_policed(vessel_name):
             continue
@@ -138,75 +150,91 @@ def _calculate_flexibility_market(
         non_compliance = max(account.emissions - account.allowance, 0.0)
         surplus = max(account.allowance - account.emissions, 0.0)
 
-        non_compliance_units[vessel_name] = non_compliance
-        surplus_units[vessel_name] = surplus
-        total_non_compliance_units += multiplier * non_compliance
-        total_surplus_units += multiplier * surplus
+        balances[vessel_name] = (non_compliance, surplus)
+        total_non_compliance += multiplier * non_compliance
+        total_surplus += multiplier * surplus
 
     # the non-compliance not remediated is covered by flexibility units
-    total_flexibility_units = total_non_compliance_units - total_remedial_units
+    total_flexibility = total_non_compliance - total_remedial
 
-    # the fraction of non-compliance remediated through remedial units rather than
-    # surplus units, capped at one against the numerical instability of vessels with
-    # a low multiplier (the jump-start fraction)
-    ratio = divide_nonzero(
-        total_remedial_units, total_non_compliance_units, default=1.0
-    )
+    # the share of the non-compliance remediated rather than covered by flexibility
+    # units, capped at one against the numerical instability of vessels with a low
+    # multiplier (the jump-start fraction)
+    ratio = divide_nonzero(total_remedial, total_non_compliance, default=1.0)
     remedial_fraction = min(1.0, np.float64(ratio))
 
-    flexibility_cost = expectation.get_pooled_shadow_price(idx)
-
-    # the flexibility units and surplus units may be at a disequilibrium if the
-    # surplus-generating fuels are so cheap (e.g., due to subsidies) that they are a
-    # good business case regardless of the remuneration from selling them, seen as
-    # over-compliance with the global regulation target; the scaling requires
-    # positive flexibility units, which numerical instability can make negative
-    if total_flexibility_units > 0.0 and total_surplus_units > total_flexibility_units:
-        # reduce the value of surplus units and the cost of flexibility units
-        # linearly, from the threshold down to the zero line, ignoring the option of
+    # the surplus may exceed the flexibility units when the surplus-generating fuels
+    # pay off without the remuneration (e.g., through subsidies), an over-compliance
+    # with the global target; numerical instability can make the flexibility units
+    # negative, which the scaling excludes
+    if total_surplus > total_flexibility > 0.0:
+        # the cost falls linearly from the threshold to the zero line, ignoring
         # negative emissions
-        cost_scaling = divide_nonzero(total_flexibility_units, total_surplus_units)
-        flexibility_cost = flexibility_cost * np.float64(cost_scaling)
-
-    total_flexibility_expenses = total_flexibility_units * flexibility_cost
-    total_surplus_revenue = total_surplus_units * flexibility_cost
-
-    if scope == BunkerScopeID.EXISTING:
-        results.remedial_units[idx] += total_remedial_units
-        results.remedial_expenses[idx] += total_remedial_expenses
-        results.flexibility_cost[idx] = flexibility_cost
-        results.flexibility_units[idx] = total_flexibility_units
-        results.flexibility_expenses[idx] = total_flexibility_expenses
-        results.surplus_units[idx] = total_surplus_units
-        results.surplus_revenue[idx] = total_surplus_revenue
-
+        cost_scaling = divide_nonzero(total_flexibility, total_surplus)
+        flexibility_cost = shadow_price * np.float64(cost_scaling)
     else:
-        expectation.set_flexibility_cost(idx, flexibility_cost)
+        flexibility_cost = shadow_price
 
-    # the flexibility units are distributed by equal fraction to all vessels with
-    # non-compliance
-    for vessel_name, non_compliance in non_compliance_units.items():
+    # every vessel's non-compliance splits into remedial and flexibility units by the
+    # same fraction
+    vessel_units: dict[str, _Units] = {}
+    for vessel_name, (non_compliance, surplus) in balances.items():
+        remedial = non_compliance * remedial_fraction
+        flexibility = non_compliance * (1.0 - remedial_fraction)
+        vessel_units[vessel_name] = _Units(remedial, flexibility, surplus)
+
+    total = _Units(total_remedial, total_flexibility, total_surplus)
+    return _Market(remedial_cost, flexibility_cost, total, vessel_units)
+
+
+def _calculate_market_results(
+    regulation: Regulation, vessels: dict[str, Vessel], market: _Market, idx: int
+) -> None:
+    """Record a cleared flexibility market in the results."""
+    results = regulation.results
+    total = market.total
+    remedial_cost = market.remedial_cost
+    flexibility_cost = market.flexibility_cost
+
+    remedial_expenses = total.remedial * remedial_cost
+    flexibility_expenses = total.flexibility * flexibility_cost
+    surplus_revenue = total.surplus * flexibility_cost
+
+    results.remedial_units[idx] += total.remedial
+    results.remedial_expenses[idx] += remedial_expenses
+    results.flexibility_cost[idx] = flexibility_cost
+    results.flexibility_units[idx] = total.flexibility
+    results.flexibility_expenses[idx] = flexibility_expenses
+    results.surplus_units[idx] = total.surplus
+    results.surplus_revenue[idx] = surplus_revenue
+
+    for vessel_name, units in market.vessels.items():
         vessel = vessels[vessel_name]
-        surplus = surplus_units[vessel_name]
 
-        remedial_units = non_compliance * remedial_fraction
-        flexibility_units = non_compliance * (1.0 - remedial_fraction)
-        remedial_expenses = remedial_units * remedial_cost
+        remedial_expenses = units.remedial * remedial_cost
+        flexibility_expenses = units.flexibility * flexibility_cost
+        surplus_revenue = units.surplus * flexibility_cost
 
-        if scope == BunkerScopeID.EXISTING:
-            flexibility_expenses = flexibility_units * flexibility_cost
-            surplus_revenue = surplus * flexibility_cost
+        vessel.results.remedial_units[regulation.name][idx] += units.remedial
+        vessel.results.remedial_expenses[idx] += remedial_expenses
+        vessel.results.flexibility_expenses[idx] += flexibility_expenses
+        vessel.results.surplus_revenue[idx] += surplus_revenue
 
-            vessel.results.remedial_units[regulation.name][idx] += remedial_units
-            vessel.results.remedial_expenses[idx] += remedial_expenses
-            vessel.results.flexibility_expenses[idx] += flexibility_expenses
-            vessel.results.surplus_revenue[idx] += surplus_revenue
 
-        else:
-            vessel.expectation.add_remedial_expenses(idx, remedial_expenses)
+def _calculate_market_expectations(
+    regulation: Regulation, vessels: dict[str, Vessel], market: _Market, idx: int
+) -> None:
+    """Record a cleared flexibility market in the expectations."""
+    expectation = regulation.expectation
+    expectation.set_flexibility_cost(idx, market.flexibility_cost)
 
-            # the expected flexibility expenses and surplus revenue are not applied
-            # with the raw flexibility cost: only the net units are stored, and the
-            # belief update applies the expenses with the smoothed flexibility cost
-            net_units = flexibility_units - surplus
-            expectation.set_vessel_net_flexibility_units(idx, vessel_name, net_units)
+    # the flexibility expenses and surplus revenue wait for the belief update, which
+    # values the net flexibility units at the smoothed rather than the raw cost
+    for vessel_name, units in market.vessels.items():
+        vessel = vessels[vessel_name]
+
+        remedial_expenses = units.remedial * market.remedial_cost
+        net_units = units.flexibility - units.surplus
+
+        vessel.expectation.add_remedial_expenses(idx, remedial_expenses)
+        expectation.set_vessel_net_flexibility_units(idx, vessel_name, net_units)
