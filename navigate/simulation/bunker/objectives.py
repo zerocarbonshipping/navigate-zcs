@@ -34,9 +34,10 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
 
 def _update_bunker_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """Set each bunker variable's cost: the bunker price plus the port's levies."""
+    """Set each bunker variable's cost: the multiplier times the price plus levies."""
     v = vessel.name
     multiplier = alg.multipliers[v]
+    is_existing = alg.scope == BunkerScopeID.EXISTING
 
     for p, port in enumerate(vessel.route.ports):
         for f, fuel in vessel.usable_fuels.items():
@@ -53,16 +54,18 @@ def _update_bunker_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
             alg.bunker[v, p, f].Obj = multiplier * total_price
 
-            # a zero price on available supply is typically unintended
-            is_free = total_price <= TOLERANCE and alg.scope == BunkerScopeID.EXISTING
-            if is_free and port.expectation.get_bunker_supply(f, alg.idx) > 0.0:
-                logger.warning(
-                    "The bunker price of %s for %s in %s is negative or zero (%s).",
-                    fuel,
-                    vessel,
-                    port,
-                    round(total_price, 1),
-                )
+            # a zero or negative price on available supply is typically unintended
+            if is_existing and total_price <= TOLERANCE:
+                supply = port.expectation.get_bunker_supply(f, alg.idx)
+
+                if supply > 0.0:
+                    logger.warning(
+                        "The bunker price of %s for %s in %s is negative or zero (%s).",
+                        fuel,
+                        vessel,
+                        port,
+                        round(total_price, 1),
+                    )
 
 
 def _update_shore_power(alg: BunkerAlgorithm, vessel: Vessel) -> None:
