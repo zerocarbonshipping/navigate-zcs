@@ -19,40 +19,40 @@ def calculate_age_levelized_cost(
     cost_flow: FloatArray, lifetime: float, discount_rate: float
 ) -> float:
     """
-    Calculate the levelized cost of age.
+    Calculate a cost levelized over the years of an asset's lifetime.
 
     Parameters
     ----------
     cost_flow
-        The cost-flow.
+        Cost per year of age.
     lifetime
-        Lifetime of the vessel.
+        Lifetime of the asset, in years.
     discount_rate
-        Discount rate representing the return on alternative investment.
+        Discount rate, the return on an alternative investment, in fraction/year.
 
     Returns
     -------
     float
-        Yearly average net present cost.
+        Discounted cost per discounted year of lifetime.
     """
-    time_steps = get_age_flow(lead_time=0.0, lifetime=lifetime)
-    return calculate_levelized_cost(cost_flow, time_steps, discount_rate)
+    age_flow = get_age_flow(lead_time=0.0, lifetime=lifetime)
+    return calculate_levelized_cost(cost_flow, age_flow, discount_rate)
 
 
 def calculate_levelized_cost(
     cost_flow: FloatArray, level_flow: FloatArray, discount_rate: float
 ) -> float:
     """
-    Calculate the levelized cost according to some leveling metric.
+    Calculate the present cost per present unit of a leveling flow.
 
     Parameters
     ----------
     cost_flow
-        The cost-flow.
+        Cost per year.
     level_flow
-        The leveling-flow.
+        Quantity per year the cost is levelized over, such as production.
     discount_rate
-        Discount rate representing the return on alternative investment.
+        Discount rate, the return on an alternative investment, in fraction/year.
 
     Returns
     -------
@@ -61,43 +61,24 @@ def calculate_levelized_cost(
     """
     net_present_cost = calculate_net_present_value(cost_flow, discount_rate)
     net_present_level = calculate_net_present_value(level_flow, discount_rate)
-
     return net_present_cost / net_present_level
 
 
-def calculate_net_present_value(values: FloatArray, discount_rate: float) -> float:
+def calculate_net_present_value(flow: FloatArray, discount_rate: float) -> float:
     """
-    Calculate the net present value of a property.
+    Calculate the net present value of a yearly flow, year 0 undiscounted.
 
     Parameters
     ----------
-    values
-        Values for which to calculate the net present value.
+    flow
+        Value per year.
     discount_rate
-        Discount rate representing the return on alternative investment, fraction/year.
+        Discount rate, the return on an alternative investment, in fraction/year.
 
     Returns
     -------
     float
         The sum of discounted values.
     """
-    return float(np.sum(_discount_values(values, discount_rate)))
-
-
-def _discount_values(values: FloatArray, discount_rate: float) -> FloatArray:
-    """
-    Discounts values along a time dimension according to a specific discount factor.
-
-    Parameters
-    ----------
-    values
-        Values to be discounted.
-    discount_rate
-        Discount rate representing the return on alternative investment, fraction/year.
-
-    Returns
-    -------
-    FloatArray
-        Discounted values.
-    """
-    return values / ((1.0 + discount_rate) ** np.arange(len(values)))
+    years = np.arange(len(flow))
+    return float(np.sum(flow / (1.0 + discount_rate) ** years))
