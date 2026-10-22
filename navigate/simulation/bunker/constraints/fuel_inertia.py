@@ -16,7 +16,6 @@ from navigate.util import calculate_inertia
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.util.types_ import FloatLike
 
 
 def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -45,8 +44,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
         return
 
     v = vessel.name
-    route = vessel.route
-    ports = route.ports
+    change_coefficient = alg.model.chgCoeff
 
     # a change in the vessel's energy demand since the last time-step scales the
     # floor by the ratio, downwards only: a vessel whose fuel consumption grew
@@ -61,49 +59,52 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     multiplier_old = np.float64(expectation.get_multiplier(v, alg.scope, alg.idx - 1))
     multiplier_scaling = min(multiplier_old / alg.multipliers[v], 1.0)
 
-    change_coefficient = alg.model.chgCoeff
+    scaling = multiplier_scaling * energy_scaling
 
     for f in vessel.usable_fuels:
-        for p, port in enumerate(ports):
+        for p, port in enumerate(vessel.route.ports):
             if not port.is_bunkering_allowed(f):
                 continue
 
-            port_name = port.name
-            key = (v, port_name, f)
+            key = (v, port.name, f)
+            bunkered = _get_previous_bunker_mass(alg, vessel, port.name, f)
+
+            # an established offtake winds down at the port's inertia rate, capped
+            # at the vessel's fair share where a fair-share constraint applies
+            if bunkered > 0.0:
+                inertia = port.bunkering_inertia[f].get(alg.time)
+                decay = calculate_inertia(inertia, alg.time_step)
+                cap = alg.allocation_fuel.get(key, np.inf)
+                floor = min(bunkered * decay * scaling, cap)
+            else:
+                floor = 0.0
 
             constraint = get_constraint(
                 alg, alg.fuel_inertia, key, ">=", "fuel_inertia"
             )
 
+            constraint.rhs = floor
             change_coefficient(constraint, alg.bunker[v, p, f], 1.0)
 
-            # the first expected time-step continues from what the existing
-            # solution actually bunkered
-            if alg.scope == BunkerScopeID.EXPECTED and alg.idx > alg.current_idx:
-                mass = vessel.expectation.get_bunker_mass_expected(
-                    port_name, f, alg.idx - 1
-                )
-                bunkering = np.float64(mass)
-            else:
-                bunkering = vessel.expectation.get_bunker_mass_existing(port_name, f)
 
-            if bunkering > 0.0:
-                inertia = port.bunkering_inertia[f].get(alg.time)
-                fuel_inertia = bunkering * calculate_inertia(inertia, alg.time_step)
-                fuel_inertia *= multiplier_scaling * energy_scaling
+def _get_previous_bunker_mass(
+    alg: BunkerAlgorithm, vessel: Vessel, port_name: str, fuel_name: str
+) -> np.float64:
+    """
+    Get the fuel mass the previous step bunkered at the port.
 
-                # with a fair-share constraint, the floor can at most equal the
-                # vessel's fair share
-                if (
-                    key in alg.allocation_fuel
-                    and fuel_inertia > alg.allocation_fuel[key]
-                ):
-                    fuel_inertia = alg.allocation_fuel[key]
+    Later expected steps continue from the expected solution; the existing scope and
+    the first expected step continue from what the existing solution actually
+    bunkered.
+    """
+    expectation = vessel.expectation
 
-            else:
-                fuel_inertia = 0.0
+    if alg.scope == BunkerScopeID.EXPECTED and alg.idx > alg.current_idx:
+        return np.float64(
+            expectation.get_bunker_mass_expected(port_name, fuel_name, alg.idx - 1)
+        )
 
-            constraint.rhs = fuel_inertia
+    return np.float64(expectation.get_bunker_mass_existing(port_name, fuel_name))
 
 
 def _calculate_total_demand(vessel: Vessel, idx: int) -> np.float64:
@@ -113,11 +114,6 @@ def _calculate_total_demand(vessel: Vessel, idx: int) -> np.float64:
     energy_sea = expectation.get_energy_sea_leg(idx)
     energy_port = expectation.get_energy_port(idx)
 
-    energies: list[FloatLike] = []
-    for area in (energy_sea, energy_port):
-        for steps in area.values():
-            energies.extend(steps)
+    energies = np.concatenate([*energy_sea.values(), *energy_port.values()])
 
-    # a route always has at least one leg and one port and the energy dicts are
-    # keyed by a fixed enum, so the list is never empty
-    return np.float64(np.add.reduce(np.asarray(energies)))
+    return np.float64(np.add.reduce(energies))
