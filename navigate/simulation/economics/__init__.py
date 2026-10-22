@@ -11,16 +11,14 @@ from navigate.simulation.economics.decision import (
 )
 from navigate.simulation.economics.flows import (
     Component,
-    add_capex_flow,
+    add_capex,
     add_fixed_opex,
     add_fixed_wtt,
     add_variable_opex,
     add_variable_wtt,
     build_cargo_flow,
-    build_operating_age_flow,
     build_operating_flows,
     build_production_flow,
-    correct_flow_residual,
     expand_to_flow,
     get_age_flow,
     get_flow_size,

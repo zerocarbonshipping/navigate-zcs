@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.simulation.economics.flows import (
     Component,
-    add_capex_flow,
+    add_capex,
     add_fixed_opex,
     add_variable_opex,
     build_cargo_flow,
@@ -173,8 +173,8 @@ def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
     """
     component = _initialize_vessel_component(vessel, time_initial)
 
-    add_capex_flow(component=component, capex=vessel.capex.get)
-    add_fixed_opex(component=component, value=vessel.opex.get)
+    add_capex(component=component, capex=vessel.capex.get)
+    add_fixed_opex(component=component, opex=vessel.opex.get)
 
     for converter in vessel.get_converters():
         capacity = converter.power_capacity.get()
@@ -233,7 +233,7 @@ def _add_machinery_cost(
         size of a tank.
     """
     subcomponent = _initialize_vessel_component(vessel, component.time_initial)
-    subcomponent.initialize_machinery_component(machinery)
+    subcomponent.attach_machinery_cycle(machinery)
 
     def capex(time: float) -> float:
         return machinery.capex.get(time) * scale
@@ -241,8 +241,8 @@ def _add_machinery_cost(
     def opex(time: float) -> float:
         return machinery.opex.get(time) * scale
 
-    add_capex_flow(component=subcomponent, capex=capex)
-    add_fixed_opex(component=subcomponent, value=opex)
+    add_capex(component=subcomponent, capex=capex)
+    add_fixed_opex(component=subcomponent, opex=opex)
     component.add_component(subcomponent)
 
 
@@ -277,9 +277,9 @@ def _build_fuel_component(vessel: Vessel, timeline: FloatArray, idx: int) -> Com
     def metric(time: float) -> float:
         return 1.0
 
-    def cost(time: FloatArray) -> FloatArray:
+    def price(time: FloatArray) -> FloatArray:
         return np.interp(time, times, expenses)
 
-    add_variable_opex(component=component, metric=metric, cost=cost)
+    add_variable_opex(component=component, metric=metric, price=price)
 
     return component
