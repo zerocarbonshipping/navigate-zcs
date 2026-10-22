@@ -16,7 +16,7 @@ from navigate.core.enum_ import EnergyDemandID
 from navigate.core.technology_package import TechnologyPackage
 from navigate.simulation.economics.flows import (
     Component,
-    add_capex_flow,
+    add_capex,
     add_fixed_opex,
     expand_to_flow,
     get_flow_size,
@@ -193,9 +193,9 @@ def _build_technology_component(
 ) -> Component:
     """Build a technology's CAPEX and OPEX cost component over a horizon."""
     component = Component(0.0, horizon, time)
-    component.initialize_machinery_component(technology)
+    component.attach_machinery_cycle(technology)
 
-    add_capex_flow(component, technology.capex.get)
+    add_capex(component, technology.capex.get)
     add_fixed_opex(component, technology.opex.get)
 
     return component

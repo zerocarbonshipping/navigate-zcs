@@ -11,7 +11,7 @@ from navigate.core.enum_ import SourceDependencyID
 from navigate.core.node_type import is_feedstock, is_process
 from navigate.simulation.economics.flows import (
     Component,
-    add_capex_flow,
+    add_capex,
     add_fixed_opex,
     add_fixed_wtt,
     add_variable_opex,
@@ -75,7 +75,7 @@ def calculate_plant_production_expectations(
             component = _build_component(plant, process, emissions.keys(), time, t)
             durations = (lead_time, lifetime)
         else:
-            component.reset_flow(time)
+            component.reset(time)
 
         _add_process_tree(component, plant, process, 1.0, t)
         _calculate_unit_properties(component, plant, t)
@@ -150,7 +150,7 @@ def _build_component(
     lifetime = float(plant.expectation.get_lifetime(idx))
 
     component = Component(lead_time, lifetime, time_initial, emission_names)
-    component.initialize_process_component(plant.region, process.name)
+    component.attach_process_cycle(plant.region, process.name)
 
     return component
 
@@ -258,7 +258,7 @@ def _add_process_flows(
         wtt_rate = region.process_wtt[(process.name, emission)]
         return wtt_rate.get(time) * output
 
-    add_capex_flow(component, capex)
+    add_capex(component, capex)
     add_fixed_opex(component, opex)
     add_fixed_wtt(component, wtt)
 
@@ -312,7 +312,7 @@ def _add_energy_flows(
             wtt_locked = region.source_wtt[(source.name, emission)].get(time_initial)
             return wtt_locked * energy(time)
 
-        add_capex_flow(component, capex)
+        add_capex(component, capex)
         add_fixed_opex(component, opex)
         add_fixed_wtt(component, fixed_wtt)
 
@@ -320,12 +320,12 @@ def _add_energy_flows(
         # a connected source is bought at the prevailing price and emits at the
         # prevailing factors, so only the energy demand is locked, at investment and
         # at each replacement
-        cost = region.source_opex[source.name].get
+        price = region.source_opex[source.name].get
 
         def variable_wtt(emission: str, time: FloatArray) -> FloatArray:
             return region.source_wtt[(source.name, emission)].get(time)
 
-        add_variable_opex(component, energy, cost)
+        add_variable_opex(component, energy, price)
         add_variable_wtt(component, energy, variable_wtt)
 
 
