@@ -55,16 +55,16 @@ def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatLike]:
         Shore-power limit per port over the remaining horizon, in GJ/year.
     """
     expectation = vessel.expectation
-    horizon = np.s_[idx:]
+    forward = np.s_[idx:]
 
-    capacity = expectation.get_shore_power_capacity(horizon)
-    times = expectation.get_time_port(horizon)
-    demands = expectation.get_energy_port(horizon)[EnergyDemandID.ELECTRICAL]
+    capacity = expectation.get_shore_power_capacity(forward)
+    times = expectation.get_time_port(forward)
+    demands = expectation.get_energy_port(forward)[EnergyDemandID.ELECTRICAL]
 
     limits = []
 
     for port, time, demand in zip(vessel.route.ports, times, demands, strict=True):
-        share = port.expectation.get_shore_power_connection_share(horizon)
+        share = port.expectation.get_shore_power_connection_share(forward)
         deliverable = capacity * time * MWD_TO_GJ
         limits.append(share * np.minimum(deliverable, demand))
 

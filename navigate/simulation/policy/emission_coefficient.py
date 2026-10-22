@@ -300,7 +300,7 @@ def _calculate_regulation_shore_power_coefficients(
         Current time-step index.
     """
     expectation = regulation.expectation
-    from_idx = np.s_[idx:]
+    forward = np.s_[idx:]
 
     route_ports = (port for vessel in vessels.values() for port in vessel.route.ports)
 
@@ -309,7 +309,7 @@ def _calculate_regulation_shore_power_coefficients(
 
         coefficient: FloatLike = 0.0
         for emission in regulation.emissions:
-            factor = get_emission_factor(emission.name, from_idx)
+            factor = get_emission_factor(emission.name, forward)
             coefficient += _apply_gwp(factor, regulation, emission)
 
         expectation.set_shore_power_emission_coefficient(idx, port.name, coefficient)
@@ -792,11 +792,11 @@ def _calculate_emission_factor(
         Emission factor, in ton emissions per ton fuel.
     """
     expectation = policy.expectation
-    from_idx = np.s_[idx:]
+    forward = np.s_[idx:]
 
-    wtt = expectation.get_wtt(key_wtt, from_idx)
-    ttw_consumption = expectation.get_ttw_consumption(key_ttw, from_idx)
-    ttw_slip = expectation.get_ttw_slip(key_ttw, from_idx)
+    wtt = expectation.get_wtt(key_wtt, forward)
+    ttw_consumption = expectation.get_ttw_consumption(key_ttw, forward)
+    ttw_slip = expectation.get_ttw_slip(key_ttw, forward)
 
     # the WTT and TTW factors are adjusted for scope, slip and the like when they are
     # calculated, so the emission factor is their plain sum
@@ -910,11 +910,11 @@ def _estimate_port_wtt(
     FloatLike
         WTT emissions from `idx` onward, in ton emission/ton fuel.
     """
-    from_idx = np.s_[idx:]
+    forward = np.s_[idx:]
     key = (fuel.name, emission.name)
 
     if port.bunker_wtt_overwrite[key] is not None:
-        return port.expectation.get_bunker_wtt_overwrite(*key, from_idx)
+        return port.expectation.get_bunker_wtt_overwrite(*key, forward)
 
     if not plants:
         return np.full(port.expectation.get_shape(idx), np.nan)
@@ -922,8 +922,8 @@ def _estimate_port_wtt(
     estimates: list[FloatLike] = []
     for plant in plants:
         expectation = plant.expectation
-        production = expectation.get_production_wtt(emission.name, from_idx)
-        delivery = expectation.get_delivery_wtt(port.name, emission.name, from_idx)
+        production = expectation.get_production_wtt(emission.name, forward)
+        delivery = expectation.get_delivery_wtt(port.name, emission.name, forward)
         estimates.append(production + delivery)
 
     return np.stack(estimates).mean(axis=0)

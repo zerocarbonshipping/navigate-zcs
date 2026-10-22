@@ -343,15 +343,15 @@ def _calculate_packages_saving(
         Saving flow of each package, USD/year.
     """
     lifetime = vessel.lifetime.get()
-    horizon = np.s_[idx:]
+    forward = np.s_[idx:]
     legs = bind_conditions_to_legs(vessel.route)
 
-    times = timeline[horizon]
+    times = timeline[forward]
     yearly_times = timeline_to_yearly(vessel, idx, timeline)
 
     savings = []
     for package in packages:
-        saving = calculate_marginal_technology_saving(vessel, legs, package, horizon)
+        saving = calculate_marginal_technology_saving(vessel, legs, package, forward)
         yearly_saving = np.interp(yearly_times, times, saving)
         savings.append(trim_flow_to_lifetime(yearly_saving, lifetime))
 

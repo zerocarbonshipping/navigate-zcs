@@ -93,17 +93,17 @@ def _calculate_import_from_liquid_market(
     idx
         Current time-step index.
     """
-    idx_ = np.s_[idx:]
-    zeros = np.zeros_like(timeline[idx_])
+    forward = np.s_[idx:]
+    zeros = np.zeros_like(timeline[forward])
     zero_wtts = dict.fromkeys(emissions, zeros)
 
     for port in ports.values():
         for f in fuels:
             allowed = port.is_bunkering_allowed(f)
-            limit = np.asarray(port.expectation.get_bunkering_limit(f, idx_))
+            limit = np.asarray(port.expectation.get_bunkering_limit(f, forward))
 
-            bunker_price = _calculate_bunker_price(port, f, zeros, idx_)
-            bunker_wtts = _calculate_bunker_wtts(port, f, zero_wtts, idx_)
+            bunker_price = _calculate_bunker_price(port, f, zeros, forward)
+            bunker_wtts = _calculate_bunker_wtts(port, f, zero_wtts, forward)
             bunker_supply = limit if allowed else zeros
 
             port.expectation.set_bunker_price(idx, f, bunker_price)
@@ -148,7 +148,7 @@ def _calculate_import_from_producers(
     idx
         Current time-step index.
     """
-    idx_ = np.s_[idx:]
+    forward = np.s_[idx:]
 
     supplies, costs, wtts = _calculate_import_totals(
         ports, producers, emissions, fuels, timeline, idx
@@ -164,8 +164,8 @@ def _calculate_import_from_producers(
             average_cost = divide_nonzero(costs[f][p], supply)
             average_wtts = {e: divide_nonzero(wtts[f, e][p], supply) for e in emissions}
 
-            bunker_price = _calculate_bunker_price(port, f, average_cost, idx_)
-            bunker_wtts = _calculate_bunker_wtts(port, f, average_wtts, idx_)
+            bunker_price = _calculate_bunker_price(port, f, average_cost, forward)
+            bunker_wtts = _calculate_bunker_wtts(port, f, average_wtts, forward)
 
             port.expectation.set_bunker_price(idx, f, bunker_price)
 
@@ -179,13 +179,13 @@ def _calculate_import_from_producers(
                     port.results.bunker_wtt[f, key][idx] = value[0]
 
     for f in fuels:
-        supplies[f] = _align_with_bunkering_limits(supplies[f], ports, f, idx_)
+        supplies[f] = _align_with_bunkering_limits(supplies[f], ports, f, forward)
 
     # a port without a bunker price supplies nothing, so the optimizer cannot use the
     # fuel at zero cost
     for f in fuels:
         for p, port in ports.items():
-            bunker_price = port.expectation.get_bunker_price(f, idx_)
+            bunker_price = port.expectation.get_bunker_price(f, forward)
             bunker_supply = np.where(bunker_price > TOLERANCE, supplies[f][p], 0.0)
 
             port.expectation.set_bunker_supply(idx, f, bunker_supply)
@@ -226,8 +226,8 @@ def _calculate_import_totals(
     _ImportTotals
         The supply of each fuel at each port, with its supply-weighted cost and WTT.
     """
-    idx_ = np.s_[idx:]
-    times = timeline[idx_]
+    forward = np.s_[idx:]
+    times = timeline[forward]
 
     shares = _allowed_port_shares(ports)
 
@@ -243,7 +243,7 @@ def _calculate_import_totals(
             wtts[f, e] = {p: np.zeros_like(times) for p in ports}
 
     for producer in producers.values():
-        exports = producer.expectation.get_export_distribution(idx=idx_)
+        exports = producer.expectation.get_export_distribution(idx=forward)
 
         for plant in producer.plants:
             f = plant.fuel.name
@@ -259,12 +259,14 @@ def _calculate_import_totals(
                 continue
 
             expectation = plant.expectation
-            production = producer.expectation.get_expected_production(plant.name, idx_)
-            production_cost = expectation.get_expected_production_cost(idx_)
+            production = producer.expectation.get_expected_production(
+                plant.name, forward
+            )
+            production_cost = expectation.get_expected_production_cost(forward)
 
             production_wtts = {}
             for e in emissions:
-                production_wtts[e] = expectation.get_expected_production_wtt(e, idx_)
+                production_wtts[e] = expectation.get_expected_production_wtt(e, forward)
 
             for p, export in exports.items():
                 if not ports[p].is_bunkering_allowed(f):
@@ -272,13 +274,13 @@ def _calculate_import_totals(
 
                 rerouted = export / shares[f]
                 supply = production * rerouted
-                delivery_cost = expectation.get_levelized_delivery_cost(p, idx_)
+                delivery_cost = expectation.get_levelized_delivery_cost(p, forward)
 
                 supplies[f][p] += supply
                 costs[f][p] += supply * (production_cost + delivery_cost)
 
                 for e in emissions:
-                    delivery_wtt = expectation.get_delivery_wtt(p, e, idx_)
+                    delivery_wtt = expectation.get_delivery_wtt(p, e, forward)
                     wtts[f, e][p] += supply * (production_wtts[e] + delivery_wtt)
 
     return _ImportTotals(supplies, costs, wtts)

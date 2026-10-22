@@ -270,9 +270,9 @@ def _build_fuel_component(vessel: Vessel, timeline: FloatArray, idx: int) -> Com
     """
     component = _initialize_vessel_component(vessel, timeline[idx])
 
-    remaining = np.s_[idx:]
-    expenses = calculate_fuel_and_policy_expenses(vessel, remaining)
-    times = timeline[remaining]
+    forward = np.s_[idx:]
+    expenses = calculate_fuel_and_policy_expenses(vessel, forward)
+    times = timeline[forward]
 
     def metric(time: float) -> float:
         return 1.0

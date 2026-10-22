@@ -88,8 +88,8 @@ def calculate_regulation_measures(
     idx
         Current time-step index.
     """
-    horizon = np.s_[idx:]
-    times = timeline[horizon]
+    forward = np.s_[idx:]
+    times = timeline[forward]
 
     for regulation in regulations.values():
         if not regulation.active:
@@ -99,12 +99,12 @@ def calculate_regulation_measures(
             if not regulation.vessel_is_policed(vessel_name):
                 continue
 
-            measure = _calculate_vessel_measure(regulation, vessel, times, horizon)
+            measure = _calculate_vessel_measure(regulation, vessel, times, forward)
             regulation.expectation.set_vessel_measure(idx, vessel_name, measure)
 
 
 def _calculate_vessel_measure(
-    regulation: Regulation, vessel: Vessel, times: FloatArray, horizon: slice
+    regulation: Regulation, vessel: Vessel, times: FloatArray, forward: slice
 ) -> FloatLike:
     """
     Calculate a vessel's measure under a regulation over the remaining timeline.
@@ -117,7 +117,7 @@ def _calculate_vessel_measure(
         Vessel whose measure is calculated.
     times
         Remaining timeline, in days.
-    horizon
+    forward
         Slice of the remaining timeline.
 
     Returns
@@ -135,11 +135,11 @@ def _calculate_vessel_measure(
         return 0.0
 
     if regulation.measure == RegulationMeasureID.TRANSPORT:
-        cargo_miles = vessel.expectation.get_cargo_miles_leg(horizon)
+        cargo_miles = vessel.expectation.get_cargo_miles_leg(forward)
     else:
-        cargo_miles = vessel.expectation.get_cargo_miles_leg_nominal(horizon)
+        cargo_miles = vessel.expectation.get_cargo_miles_leg_nominal(forward)
 
-    return _calculate_transport_measure(regulation, vessel, cargo_miles, times, horizon)
+    return _calculate_transport_measure(regulation, vessel, cargo_miles, times, forward)
 
 
 def _calculate_transport_measure(
@@ -147,7 +147,7 @@ def _calculate_transport_measure(
     vessel: Vessel,
     cargo_miles: list[FloatLike],
     times: FloatArray,
-    horizon: slice,
+    forward: slice,
 ) -> FloatLike:
     """
     Calculate a vessel's capacity-scaled cargo miles in the regulation's jurisdiction.
@@ -163,7 +163,7 @@ def _calculate_transport_measure(
         `Route.get_legs`.
     times
         Remaining timeline, in days.
-    horizon
+    forward
         Slice of the remaining timeline.
 
     Returns
@@ -178,10 +178,10 @@ def _calculate_transport_measure(
 
     regulated_cargo_miles: FloatLike = 0.0
     for leg, cargo_miles_leg in zip(legs, cargo_miles, strict=True):
-        fraction = expectation.get_leg_fraction(leg, horizon)
+        fraction = expectation.get_leg_fraction(leg, forward)
         regulated_cargo_miles += fraction * cargo_miles_leg
 
-    capacity = expectation.get_vessel_capacity(vessel.name, horizon)
+    capacity = expectation.get_vessel_capacity(vessel.name, forward)
     nominal_capacity = vessel.nominal_capacity.get(times)
     capacity_ratio = capacity / nominal_capacity
 

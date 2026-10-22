@@ -38,14 +38,14 @@ def calculate_potential_fuel_type_demand(fleets: dict[str, Fleet], idx: int) -> 
     idx
         Current time-step index.
     """
-    remaining = np.s_[idx:]
+    forward = np.s_[idx:]
 
     for fleet in fleets.values():
         for vessel in fleet.vessels:
             expectation = vessel.expectation
 
-            energy_sea_leg = expectation.get_operational_energy_sea_leg(remaining)
-            energy_port = expectation.get_operational_energy_port(remaining)
+            energy_sea_leg = expectation.get_operational_energy_sea_leg(forward)
+            energy_port = expectation.get_operational_energy_port(forward)
 
             demand = _calculate_vessel_demand(vessel, energy_sea_leg, energy_port)
             expectation.set_potential_fuel_type_demand(idx, demand)
