@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import logging
 import math
-from functools import partial
 from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
@@ -23,13 +22,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# reference changes baked into the odds-ratio calibration. The log-ratio cases state the
-# odds for a metric that is 10% higher; the signed case states the odds for an advantage
-# equal to 5% of the reference value. The DSL exposes only the odds ratio; beta is
-# derived from it here.
-_REFERENCE_INCREASE = 0.10
-_REFERENCE_ADVANTAGE = 0.05
-_LOG_REFERENCE_INCREASE = np.log(1.0 + _REFERENCE_INCREASE)
+# slack on comparisons of shares with their limits, absorbing rounding error
+_SHARE_TOLERANCE = 1e-12
 
 # Brent's method on the group shares and their log scale: absolute tolerance 1e-12, and
 # room for its worst case, about the square of bisection's 100 steps
@@ -71,32 +65,34 @@ def calculate_asset_shares(
     tuple[FloatArray, str]
         Asset investment shares and a potential warning message.
     """
-    value_array = np.asarray(values, dtype=np.float64)
-    beta = _beta_from_odds(odds, utility)
+    values = np.asarray(values, dtype=np.float64)
+    beta = _calculate_beta(odds, utility)
 
     if utility == UtilityID.LOWER_LOG_RATIO:
-        shares, msg = _shares_lower_log_ratio(value_array, beta)
+        shares, msg = _calculate_shares_lower_log_ratio(values, beta)
     elif utility == UtilityID.HIGHER_LOG_RATIO:
-        shares, msg = _shares_higher_log_ratio(value_array, beta)
+        shares, msg = _calculate_shares_higher_log_ratio(values, beta)
     else:
-        shares, msg = _shares_signed_reference(value_array, beta, reference)
+        shares, msg = _calculate_shares_signed_reference(values, beta, reference)
 
     if limits is not None:
-        shares, limit_msg = _apply_limits(shares, limits)
+        limits = np.asarray(limits, dtype=np.float64)
+        shares, limit_msg = _calculate_limited_shares(shares, limits)
         if limit_msg:
             msg = f"{msg}; {limit_msg}" if msg else limit_msg
 
     return shares, msg
 
 
-def _beta_from_odds(odds: float, utility: UtilityID) -> float:
+def _calculate_beta(odds: float, utility: UtilityID) -> float:
     """
-    Convert an interpretable odds ratio into the multinomial-logit sensitivity beta.
+    Calculate the multinomial-logit sensitivity beta from an interpretable odds ratio.
 
-    The reference change is fixed per utility kind: a 10% higher metric for the
-    log-ratio cases and an advantage equal to 5% of the reference value for the signed
-    case. An odds ratio of 1 yields beta = 0 (uniform shares); values on the wrong side
-    of 1 yield beta < 0 (a perverse calibration).
+    The DSL exposes only the odds ratio, stated for a reference change fixed per utility
+    kind: a 10% higher metric for the log-ratio cases and an advantage equal to 5% of
+    the reference value for the signed case. An odds ratio of 1 yields beta = 0
+    (uniform shares); values on the wrong side of 1 yield beta < 0 (a perverse
+    calibration).
 
     Parameters
     ----------
@@ -110,16 +106,30 @@ def _beta_from_odds(odds: float, utility: UtilityID) -> float:
     float
         Sensitivity coefficient beta.
     """
-    if utility == UtilityID.LOWER_LOG_RATIO:
-        return float(-np.log(odds) / _LOG_REFERENCE_INCREASE)
+    if utility == UtilityID.SIGNED_REFERENCE:
+        return float(np.log(odds) / 0.05)
 
-    if utility == UtilityID.HIGHER_LOG_RATIO:
-        return float(np.log(odds) / _LOG_REFERENCE_INCREASE)
-
-    return float(np.log(odds) / _REFERENCE_ADVANTAGE)
+    return float(_preference_sign(utility) * np.log(odds) / np.log(1.10))
 
 
-def softmax(utilities: FloatArray) -> FloatArray:
+def _preference_sign(utility: UtilityID) -> float:
+    """
+    Return 1 where a utility prefers higher metrics and -1 where it prefers lower ones.
+
+    Parameters
+    ----------
+    utility
+        Utility transformation.
+
+    Returns
+    -------
+    float
+        Sign of the preference.
+    """
+    return -1.0 if utility == UtilityID.LOWER_LOG_RATIO else 1.0
+
+
+def _softmax(utilities: FloatArray) -> FloatArray:
     """
     Numerically stable softmax over deterministic utilities.
 
@@ -141,7 +151,9 @@ def softmax(utilities: FloatArray) -> FloatArray:
     return probabilities
 
 
-def _shares_lower_log_ratio(values: FloatArray, beta: float) -> tuple[FloatArray, str]:
+def _calculate_shares_lower_log_ratio(
+    values: FloatArray, beta: float
+) -> tuple[FloatArray, str]:
     """
     Shares for a lower-is-better metric via V_i = -beta * log(value_i / min_j value_j).
 
@@ -170,10 +182,34 @@ def _shares_lower_log_ratio(values: FloatArray, beta: float) -> tuple[FloatArray
         return _uniform_at_min(values), msg
 
     utilities = -beta * np.log(values / np.min(values))
-    return softmax(utilities), ""
+    return _softmax(utilities), ""
 
 
-def _shares_higher_log_ratio(values: FloatArray, beta: float) -> tuple[FloatArray, str]:
+def _uniform_at_min(values: FloatArray) -> FloatArray:
+    """
+    Assign uniform shares among alternatives tied at the minimum value, zero elsewhere.
+
+    Parameters
+    ----------
+    values
+        Metric per alternative.
+
+    Returns
+    -------
+    FloatArray
+        Shares per alternative.
+    """
+    shares = np.zeros_like(values)
+
+    at_min = values == np.min(values)
+    shares[at_min] = 1.0 / np.count_nonzero(at_min)
+
+    return shares
+
+
+def _calculate_shares_higher_log_ratio(
+    values: FloatArray, beta: float
+) -> tuple[FloatArray, str]:
     """
     Shares for a higher-is-better metric via V_i = beta * log(value_i / max_j value_j).
 
@@ -199,51 +235,14 @@ def _shares_higher_log_ratio(values: FloatArray, beta: float) -> tuple[FloatArra
     if not np.any(positive):
         return shares, ""
 
-    shares[positive] = softmax(
-        beta * np.log(values[positive] / np.max(values[positive]))
-    )
+    positive_values = values[positive]
+    utilities = beta * np.log(positive_values / np.max(positive_values))
+    shares[positive] = _softmax(utilities)
+
     return shares, ""
 
 
-def _log_ratio_utility(metric: float, utility: UtilityID, beta: float) -> float:
-    """
-    Calculate the log-ratio utility of a metric, up to a constant shared by all options.
-
-    Parameters
-    ----------
-    metric
-        Strictly-positive metric of the option.
-    utility
-        Log-ratio utility transformation, saying whether lower or higher is better.
-    beta
-        Sensitivity coefficient.
-
-    Returns
-    -------
-    float
-        Utility of the option.
-    """
-    return _preference_sign(utility) * beta * math.log(metric)
-
-
-def _preference_sign(utility: UtilityID) -> float:
-    """
-    Return 1 where a utility prefers higher metrics and -1 where it prefers lower ones.
-
-    Parameters
-    ----------
-    utility
-        Utility transformation.
-
-    Returns
-    -------
-    float
-        Sign of the preference.
-    """
-    return -1.0 if utility == UtilityID.LOWER_LOG_RATIO else 1.0
-
-
-def _shares_signed_reference(
+def _calculate_shares_signed_reference(
     values: FloatArray, beta: float, reference: float | None
 ) -> tuple[FloatArray, str]:
     """
@@ -270,33 +269,11 @@ def _shares_signed_reference(
         msg = "has a non-positive reference value; shares were split uniformly"
         return np.ones_like(values) / values.size, msg
 
-    return softmax(beta * values / reference), ""
+    return _softmax(beta * values / reference), ""
 
 
-def _uniform_at_min(values: FloatArray) -> FloatArray:
-    """
-    Assign uniform shares among alternatives tied at the minimum value, zero elsewhere.
-
-    Parameters
-    ----------
-    values
-        Metric per alternative.
-
-    Returns
-    -------
-    FloatArray
-        Shares per alternative.
-    """
-    shares = np.zeros_like(values)
-
-    at_min = values == np.min(values)
-    shares[at_min] = 1.0 / np.count_nonzero(at_min)
-
-    return shares
-
-
-def _apply_limits(
-    shares: FloatArray, limits: list[float] | FloatArray
+def _calculate_limited_shares(
+    shares: FloatArray, limits: FloatArray
 ) -> tuple[FloatArray, str]:
     """
     Enforce per-option upper bounds on a share vector, rescaling surplus proportionally.
@@ -313,39 +290,32 @@ def _apply_limits(
     tuple[FloatArray, str]
         Constrained shares and a warning message (empty when no warning).
     """
-    limit_array = np.asarray(limits, dtype=np.float64)
-    if limit_array.shape != shares.shape:
-        raise ValueError(
-            f"'limits' length ({limit_array.size}) must match 'values' length "
-            f"({shares.size})"
-        )
+    limits = np.clip(limits, 0.0, 1.0)
 
-    limit_array = np.clip(limit_array, 0.0, 1.0)
-
-    msg = ""
-
-    # infeasible: even saturating every option cannot reach a unit total.
-    total_limit = float(np.sum(limit_array))
-    if total_limit < 1.0 - 1e-12:
+    # infeasible: even saturating every option cannot reach a unit total
+    total_limit = float(np.sum(limits))
+    if total_limit < 1.0 - _SHARE_TOLERANCE:
         msg = (
             f"sum of limits ({total_limit:.4f}) is below 1; allocation is infeasible "
             "and every option has been saturated to its limit"
         )
-        return limit_array.copy(), msg
+        return limits, msg
 
-    # no effective constraint.
-    if not np.any(shares > limit_array + 1e-12):
-        return shares.copy(), msg
+    # no effective constraint
+    if not np.any(shares > limits + _SHARE_TOLERANCE):
+        return shares, ""
 
-    return _redistribute_proportional(shares, limit_array), msg
+    return _calculate_redistributed_shares(shares, limits), ""
 
 
-def _redistribute_proportional(shares: FloatArray, limits: FloatArray) -> FloatArray:
+def _calculate_redistributed_shares(
+    shares: FloatArray, limits: FloatArray
+) -> FloatArray:
     """
     Clip shares exceeding their limit and rescale the rest so the total stays at 1.
 
-    Each pass: shares above their limit are clipped and frozen; the non-saturated shares
-    are multiplied by (1 - sum_clipped) / sum_free. Repeats up to `len(shares)` times
+    Each pass: shares above their limit are clipped and frozen; the free shares are
+    multiplied by (1 - saturated total) / free total. Repeats up to `len(shares)` times
     since each pass freezes at least one new option. Applied to the uniform vector this
     is exactly water-filling.
 
@@ -361,26 +331,25 @@ def _redistribute_proportional(shares: FloatArray, limits: FloatArray) -> FloatA
     FloatArray
         Constrained shares.
     """
-    shares = np.array(shares, dtype=np.float64, copy=True)
+    shares = shares.copy()
     saturated = np.zeros_like(shares, dtype=bool)
 
     for _ in range(shares.size):
-        over = (shares > limits + 1e-12) & ~saturated
+        over = (shares > limits + _SHARE_TOLERANCE) & ~saturated
         if not np.any(over):
             break
 
         shares[over] = limits[over]
         saturated |= over
 
-        s_clip = float(np.sum(shares[saturated]))
-        free_mask = ~saturated
-        s_free = float(np.sum(shares[free_mask]))
+        free = ~saturated
+        total_saturated = float(np.sum(shares[saturated]))
+        total_free = float(np.sum(shares[free]))
 
-        if s_free <= 0.0:
+        if total_free <= 0.0:
             break
 
-        factor = (1.0 - s_clip) / s_free
-        shares[free_mask] *= factor
+        shares[free] *= (1.0 - total_saturated) / total_free
 
     return shares
 
@@ -391,6 +360,23 @@ class _Axis(NamedTuple):
     metrics: FloatArray
     utility: UtilityID
     odds: float
+
+    def select(self, indices: list[int]) -> _Axis:
+        """Restrict the axis to the assets at the indexes."""
+        return self._replace(metrics=self.metrics[indices])
+
+    def calculate_shares(
+        self, limits: FloatArray | None = None
+    ) -> tuple[FloatArray, str]:
+        """Calculate the assets' shares of the choice on this axis alone."""
+        return calculate_asset_shares(
+            self.metrics, self.utility, self.odds, limits=limits
+        )
+
+    def calculate_utility(self, metric: float) -> float:
+        """Calculate the log-ratio utility of a metric, up to a constant per choice."""
+        beta = _calculate_beta(self.odds, self.utility)
+        return _preference_sign(self.utility) * beta * math.log(metric)
 
 
 def calculate_two_axis_uptake[T: Hashable](
@@ -496,16 +482,48 @@ def _calculate_group_shares[T: Hashable](
     group_metrics = []
 
     for indices in group_map.values():
-        intra_metrics = intra.metrics[indices]
-        inter_metrics = inter.metrics[indices]
+        group_intra = intra.select(indices)
+        group_inter = inter.select(indices)
         fill_caps = np.ones(len(indices))
 
-        metric = _calculate_group_metric(
-            intra_metrics, inter_metrics, fill_caps, intra.utility
-        )
+        metric = _calculate_group_metric(group_intra, group_inter, fill_caps)
         group_metrics.append(metric)
 
     return calculate_asset_shares(group_metrics, inter.utility, inter.odds)
+
+
+def _calculate_group_metric(intra: _Axis, inter: _Axis, fill_caps: FloatArray) -> float:
+    """
+    Calculate a group's inter-group metric by filling the group with its best members.
+
+    The members are ranked by their intra-group metric, best first, ties in input order,
+    and each in turn fills the group up to its fill cap until the group is full. The
+    group's metric is the inter-group metric weighted by that fill.
+
+    Parameters
+    ----------
+    intra
+        Intra-group axis of the group's members, ranking them.
+    inter
+        Inter-group axis of the group's members.
+    fill_caps
+        Upper bound on each member's part of the group, each in [0, 1], summing to at
+        least 1: were every cap below 1, each limit would be below its wanted share,
+        and the limits together below the group's share.
+
+    Returns
+    -------
+    float
+        Inter-group metric of the group.
+    """
+    preference = _preference_sign(intra.utility) * intra.metrics
+    ranking = np.argsort(-preference, kind="stable")
+
+    filled = np.minimum(np.cumsum(fill_caps[ranking]), 1.0)
+    fill = np.zeros_like(filled)
+    fill[ranking] = np.diff(filled, prepend=0.0)
+
+    return float(np.dot(inter.metrics, fill))
 
 
 def _allocate_members[T: Hashable](
@@ -538,7 +556,6 @@ def _allocate_members[T: Hashable](
 
     for i, (group, indices) in enumerate(group_map.items()):
         group_share = group_shares[i]
-        intra_metrics = intra.metrics[indices]
 
         # a group without share gives its members none, whatever their bounds
         if limits is None or group_share == 0.0:
@@ -546,9 +563,7 @@ def _allocate_members[T: Hashable](
         else:
             bounds = limits[indices] / group_share
 
-        shares, msg = calculate_asset_shares(
-            intra_metrics, intra.utility, intra.odds, limits=bounds
-        )
+        shares, msg = intra.select(indices).calculate_shares(bounds)
         uptake[indices] = group_share * shares
 
         if msg:
@@ -572,9 +587,9 @@ def _solve_group_shares[T: Hashable](
 
     where ``C_g = min(sum(L_i), 1)`` is its cap, ``V_g`` the log-ratio utility of its
     metric, and ``mu`` sets the shares' sum to 1. This is exactly the capped logit
-    that `_apply_limits` and `_redistribute_proportional` reach by redistribution.
-    Under limits ``V_g`` depends on ``G_g`` through the fill caps, so each ``G_g`` is
-    a root of its own equation, and ``mu`` a root of the shares' sum.
+    that `_calculate_limited_shares` and `_calculate_redistributed_shares` reach by
+    redistribution. Under limits ``V_g`` depends on ``G_g`` through the fill caps, so
+    each ``G_g`` is a root of its own equation, and ``mu`` a root of the shares' sum.
 
     When the members of every group rank alike on both axes, as vessel types do, a
     larger ``G_g`` lowers the fill caps and moves the fill to worse members, so ``V_g``
@@ -608,12 +623,9 @@ def _solve_group_shares[T: Hashable](
     for indices in group_map.values():
         groups.append(_LimitedGroup(indices, intra, inter, limits))
 
-    beta = _beta_from_odds(inter.odds, inter.utility)
-    utility_of = partial(_log_ratio_utility, utility=inter.utility, beta=beta)
-
     # no group's utility exceeds that of its best member on the inter axis, so at the
     # lower scale the groups take at most half the total
-    max_utilities = [max(map(utility_of, group.inter.metrics)) for group in groups]
+    max_utilities = [group.max_utility for group in groups]
     lower = -float(np.logaddexp.reduce(max_utilities)) - math.log(2.0)
 
     # from the upper scale on, every group takes its cap
@@ -633,27 +645,7 @@ def _solve_group_shares[T: Hashable](
     shares = np.array([group.calculate_share(log_scale) for group in groups])
     caps = np.array([group.cap for group in groups])
 
-    return _apply_limits(shares, caps)
-
-
-def _calculate_total_excess(log_scale: float, groups: list[_LimitedGroup]) -> float:
-    """
-    Calculate how far the groups' shares at a log scale exceed a unit total.
-
-    Parameters
-    ----------
-    log_scale
-        Log scale shared by the groups' utilities.
-    groups
-        Groups of the limited choice.
-
-    Returns
-    -------
-    float
-        Total share of the groups minus 1.
-    """
-    shares = [group.calculate_share(log_scale) for group in groups]
-    return sum(shares) - 1.0
+    return _calculate_limited_shares(shares, caps)
 
 
 class _LimitedGroup:
@@ -662,16 +654,16 @@ class _LimitedGroup:
     def __init__(
         self, indices: list[int], intra: _Axis, inter: _Axis, limits: FloatArray
     ) -> None:
-        group_intra = _Axis(intra.metrics[indices], intra.utility, intra.odds)
-        group_inter = _Axis(inter.metrics[indices], inter.utility, inter.odds)
-        intra_shares, _ = calculate_asset_shares(
-            group_intra.metrics, intra.utility, intra.odds
-        )
+        group_intra = intra.select(indices)
+        group_inter = inter.select(indices)
+        intra_shares, _ = group_intra.calculate_shares()
+        max_utility = max(map(group_inter.calculate_utility, group_inter.metrics))
 
         self.limits: FloatArray = limits[indices]
         self.intra: _Axis = group_intra
         self.inter: _Axis = group_inter
         self.intra_shares: FloatArray = intra_shares
+        self.max_utility: float = max_utility
         self.cap: float = min(float(np.sum(self.limits)), 1.0)
 
     def calculate_fill_caps(self, share: float) -> FloatArray:
@@ -688,16 +680,10 @@ class _LimitedGroup:
 
     def calculate_utility(self, share: float) -> float:
         """Calculate the group's inter-group utility at a share of the group."""
-        intra = self.intra
-        inter = self.inter
         fill_caps = self.calculate_fill_caps(share)
+        metric = _calculate_group_metric(self.intra, self.inter, fill_caps)
 
-        metric = _calculate_group_metric(
-            intra.metrics, inter.metrics, fill_caps, intra.utility
-        )
-        beta = _beta_from_odds(inter.odds, inter.utility)
-
-        return _log_ratio_utility(metric, inter.utility, beta)
+        return self.inter.calculate_utility(metric)
 
     def calculate_share(self, log_scale: float) -> float:
         """Calculate the group's share at a log scale, solving its own equation."""
@@ -718,43 +704,21 @@ class _LimitedGroup:
         return share - chosen
 
 
-def _calculate_group_metric(
-    intra_metrics: FloatArray,
-    inter_metrics: FloatArray,
-    fill_caps: FloatArray,
-    intra_utility: UtilityID,
-) -> float:
+def _calculate_total_excess(log_scale: float, groups: list[_LimitedGroup]) -> float:
     """
-    Calculate a group's inter-group metric by filling the group with its best members.
-
-    The members are ranked by their intra-group metric, best first, ties in input order,
-    and each in turn fills the group up to its fill cap until the group is full. The
-    group's metric is the inter-group metric weighted by that fill.
+    Calculate how far the groups' shares at a log scale exceed a unit total.
 
     Parameters
     ----------
-    intra_metrics
-        Intra-group metric per member, ranking the members.
-    inter_metrics
-        Inter-group metric per member.
-    fill_caps
-        Upper bound on each member's part of the group, each in [0, 1], summing to at
-        least 1: were every cap below 1, each limit would be below its wanted share,
-        and the limits together below the group's share.
-    intra_utility
-        Utility transformation of the intra-group axis, saying whether lower or higher
-        metrics are better.
+    log_scale
+        Log scale shared by the groups' utilities.
+    groups
+        Groups of the limited choice.
 
     Returns
     -------
     float
-        Inter-group metric of the group.
+        Total share of the groups minus 1.
     """
-    preference = _preference_sign(intra_utility) * intra_metrics
-    ranking = np.argsort(-preference, kind="stable")
-
-    filled = np.minimum(np.cumsum(fill_caps[ranking]), 1.0)
-    fill = np.zeros_like(filled)
-    fill[ranking] = np.diff(filled, prepend=0.0)
-
-    return float(np.dot(inter_metrics, fill))
+    shares = [group.calculate_share(log_scale) for group in groups]
+    return sum(shares) - 1.0
