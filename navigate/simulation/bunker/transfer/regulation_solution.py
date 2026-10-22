@@ -27,18 +27,13 @@ def transfer_regulation_solution(alg: BunkerAlgorithm) -> None:
     """
     idx = alg.idx
 
-    for r, regulation in alg.active_regulations.items():
-        expectation = regulation.expectation
+    for r, v in alg.regulation_emission_terms:
+        expectation = alg.regulations[r].expectation
+        emissions = alg.regulation_emission_terms[r, v].getValue()
+        energy = alg.regulation_energy_terms[r, v].getValue()
 
-        for v in alg.vessels:
-            if not regulation.vessel_is_policed(v):
-                continue
-
-            emissions = alg.regulation_emission_terms[(r, v)].getValue()
-            energy = alg.regulation_energy_terms[(r, v)].getValue()
-
-            expectation.set_vessel_emissions(idx, v, emissions)
-            expectation.set_vessel_energy(idx, v, energy)
+        expectation.set_vessel_emissions(idx, v, emissions)
+        expectation.set_vessel_energy(idx, v, energy)
 
     for (r, v), remedial_factor in alg.remedial_factor_individual.items():
         expectation = alg.regulations[r].expectation
