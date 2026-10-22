@@ -53,17 +53,17 @@ def update_energy_conservation_constraints(
     demands_sea = expectation.get_energy_sea_leg(idx=alg.idx)
     demands_port = expectation.get_energy_port(idx=alg.idx)
 
-    for d in EnergyDemandID:
-        _update_sea_rows(alg, vessel, d, demands_sea[d], legs)
+    for demand_type in EnergyDemandID:
+        _update_sea_rows(alg, vessel, demand_type, demands_sea[demand_type], legs)
 
-    for d in PORT_ENERGY_DEMANDS:
-        _update_port_rows(alg, vessel, d, demands_port[d], stops)
+    for demand_type in PORT_ENERGY_DEMANDS:
+        _update_port_rows(alg, vessel, demand_type, demands_port[demand_type], stops)
 
 
 def _update_sea_rows(
     alg: BunkerAlgorithm,
     vessel: Vessel,
-    d: EnergyDemandID,
+    demand_type: EnergyDemandID,
     demand: list[FloatLike],
     legs: tuple[tuple[int, int], ...],
 ) -> None:
@@ -76,7 +76,7 @@ def _update_sea_rows(
         The algorithm instance.
     vessel
         Vessel whose rows are updated.
-    d
+    demand_type
         Energy demand the rows conserve.
     demand
         Sea energy demand per leg, in GJ.
@@ -84,7 +84,7 @@ def _update_sea_rows(
         Origin and destination stop indices of each leg of the vessel's route.
     """
     v = vessel.name
-    converter = vessel.get_converter_by_energy_type(d)
+    converter = vessel.get_converter_by_energy_type(demand_type)
     c = converter.name
     energy_per_ton = _calculate_energy_per_ton(vessel, converter)
 
@@ -93,7 +93,7 @@ def _update_sea_rows(
     change_coefficient = alg.model.chgCoeff
 
     for leg, (i, e) in enumerate(legs):
-        key = (v, i, e, d)
+        key = (v, i, e, demand_type)
         constraint = get_constraint(alg, rows, key, "==", "energy_conservation_at_sea")
         constraint.rhs = float(demand[leg])
 
@@ -104,7 +104,7 @@ def _update_sea_rows(
 def _update_port_rows(
     alg: BunkerAlgorithm,
     vessel: Vessel,
-    d: EnergyDemandID,
+    demand_type: EnergyDemandID,
     demand: list[FloatLike],
     stops: range,
 ) -> None:
@@ -117,7 +117,7 @@ def _update_port_rows(
         The algorithm instance.
     vessel
         Vessel whose rows are updated.
-    d
+    demand_type
         Energy demand the rows conserve.
     demand
         Port energy demand per stop, in GJ.
@@ -125,7 +125,7 @@ def _update_port_rows(
         Stop indices of the vessel's route.
     """
     v = vessel.name
-    converter = vessel.get_converter_by_energy_type(d)
+    converter = vessel.get_converter_by_energy_type(demand_type)
     c = converter.name
     energy_per_ton = _calculate_energy_per_ton(vessel, converter)
 
@@ -135,14 +135,14 @@ def _update_port_rows(
     change_coefficient = alg.model.chgCoeff
 
     for p in stops:
-        key = (v, p, d)
+        key = (v, p, demand_type)
         constraint = get_constraint(alg, rows, key, "==", "energy_conservation_in_port")
         constraint.rhs = float(demand[p])
 
         for f, coefficient in energy_per_ton.items():
             change_coefficient(constraint, spend_port[v, c, f, p], coefficient)
 
-        if d == EnergyDemandID.ELECTRICAL and (v, p) in shore_power:
+        if demand_type == EnergyDemandID.ELECTRICAL and (v, p) in shore_power:
             change_coefficient(constraint, shore_power[v, p], 1.0)
 
 
