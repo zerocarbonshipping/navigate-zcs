@@ -66,6 +66,9 @@ type MaterializedValue = (
 
 type Holder = Node | _GeneralNode
 
+# a node and the body items to apply to it
+type Target = tuple[Node, list[BodyItem]]
+
 
 class Builder:
     """
@@ -111,13 +114,17 @@ class Builder:
             raise DeckError("Error in simulation: 'ModelDefinition' must be defined.")
 
         model_definition, bunker_options = ModelDefinition(), BunkerOptions()
-        for holder in (model_definition, bunker_options):
+        holders = (model_definition, bunker_options)
+
+        for holder in holders:
             # the collect phase lets no command onto a general node
             for item in self._collector.general.get(holder.type, []):
                 assert isinstance(item, Assignment)
                 self._assign(holder, item)
 
-        self._check_required(model_definition)
+        for holder in holders:
+            self._check_required(holder)
+
         self.general_nodes = GeneralNodes(
             bunker_options=bunker_options, model_definition=model_definition
         )
@@ -127,45 +134,25 @@ class Builder:
 
     def build_nodes(self) -> Nodes:
         """
-        Construct, assign, seed, command, build tables, initialize, validate.
+        Construct the kept declarations' nodes and apply their bodies.
 
         Returns
         -------
         Nodes
             The node registry.
         """
+        targets: list[Target] = []
+
         for key in self._kept:
             node_type, name = key
             node = NODE_CLASS[node_type](name)
+            body = self._collector.declarations[key].effective_body()
+
             self.nodes.group(node_type)[name] = node
             self._node_by_key[key] = node
+            targets.append((node, body))
 
-        bodies = {
-            key: self._collector.declarations[key].effective_body()
-            for key in self._kept
-        }
-
-        for key, node in self._node_by_key.items():
-            for item in bodies[key]:
-                if isinstance(item, Assignment):
-                    self._assign(node, item)
-
-        self._warn_dropped()
-
-        # before anything reads a node's attributes, the seeding included
-        for node in self.nodes.all_nodes():
-            self._check_required(node)
-
-        seed_dependencies(self.nodes)
-
-        for node in self.nodes.all_nodes():
-            for item in bodies[(node.type, node.name)]:
-                if isinstance(item, Command):
-                    self._run_command(node, item)
-
-        self._build_tables()
-        self._run_lifecycle(initialize)
-        self._run_lifecycle(validate)
+        self._apply(targets, initialize)
         return self.nodes
 
     def apply_events(self, events: list[BoundEvent]) -> None:
@@ -178,26 +165,40 @@ class Builder:
             The event blocks to apply, each with the nodes it targets; empty on
             a date with no events, which only re-initializes.
         """
-        targets = [
-            (block, [self._node_by_key[key] for key in keys]) for block, keys in events
-        ]
+        targets: list[Target] = []
 
-        for block, nodes in targets:
-            for node in nodes:
-                for item in block.body:
-                    if isinstance(item, Assignment):
-                        self._assign(node, item)
+        for block, keys in events:
+            for key in keys:
+                targets.append((self._node_by_key[key], block.body))
+
+        self._apply(targets, reinitialize)
+
+    def _apply(self, targets: list[Target], sweep: Callable[[Nodes], None]) -> None:
+        """
+        Assign, seed, command, build tables, run the lifecycle sweep, validate.
+
+        The required attributes are checked before anything reads a node's
+        attributes, the seeding included.
+        """
+        for node, body in targets:
+            for item in body:
+                if isinstance(item, Assignment):
+                    self._assign(node, item)
+
+        self._warn_dropped()
+
+        for node, _ in targets:
+            self._check_required(node)
 
         seed_dependencies(self.nodes)
 
-        for block, nodes in targets:
-            for node in nodes:
-                for item in block.body:
-                    if isinstance(item, Command):
-                        self._run_command(node, item)
+        for node, body in targets:
+            for item in body:
+                if isinstance(item, Command):
+                    self._run_command(node, item)
 
         self._build_tables()
-        self._run_lifecycle(reinitialize)
+        self._run_lifecycle(sweep)
         self._run_lifecycle(validate)
 
     # applying items -------------------------------------------------------------------
@@ -207,8 +208,9 @@ class Builder:
         if value is None:
             value = []
 
+        setter = getattr(holder, attribute_to_setter(item.attribute))
+
         try:
-            setter = getattr(holder, attribute_to_setter(item.attribute))
             setter(value)
         except ValueError as e:
             raise item.source.error(
@@ -265,11 +267,11 @@ class Builder:
             *self.nodes.surfaces.values(),
         ]
 
-        for dated_table in dated:
+        for table in dated:
             try:
-                dated_table.replace_reference_table(start_date)
+                table.replace_reference_table(start_date)
             except ValueError as e:
-                raise DeckError(f"{dated_table}: {e!s}") from None
+                raise DeckError(f"{table}: {e!s}") from None
 
         for table in undated:
             try:
@@ -328,16 +330,13 @@ class Builder:
     def _expand_wildcard(
         self, reference: NodeReference, item: BodyItem
     ) -> list[MaterializedValue]:
-        matched: list[MaterializedValue] = [
-            self._node_by_key[key]
-            for key in matching(self._node_by_key, reference.type, reference.name)
-        ]
-        if not matched:
+        keys = matching(self._node_by_key, reference.type, reference.name)
+        if not keys:
             raise item.source.error(
                 f"Wildcard '{reference.name}' did not match any {reference.type} nodes."
             )
 
-        return matched
+        return [self._node_by_key[key] for key in keys]
 
     def _materialize_expression(
         self, syntax: ExpressionSyntax, holder: Holder, item: BodyItem
