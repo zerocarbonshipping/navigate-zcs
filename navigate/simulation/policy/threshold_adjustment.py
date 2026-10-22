@@ -69,25 +69,22 @@ def calculate_adjusted_regulation_thresholds(
         if not regulation.active:
             continue
 
-        policed_multipliers = {
-            vessel_name: multiplier
-            for vessel_name, multiplier in multipliers.items()
-            if regulation.vessel_is_policed(vessel_name)
-        }
-        vessel_names = policed_multipliers.keys()
+        policed: dict[str, float] = {}
+
+        for vessel_name, multiplier in multipliers.items():
+            if regulation.vessel_is_policed(vessel_name):
+                policed[vessel_name] = multiplier
+
+        vessel_names = policed.keys()
 
         if not regulation.allow_threshold_adjustment:
             _clear_adjusted_thresholds(regulation, vessel_names, idx)
             continue
 
         if regulation.scheme == RegulationSchemeID.INDIVIDUAL:
-            is_adjusted = _adjust_individual_thresholds(
-                regulation, vessels, vessel_names, idx
-            )
+            is_adjusted = _calculate_individual(regulation, vessels, vessel_names, idx)
         else:
-            is_adjusted = _adjust_flexible_thresholds(
-                regulation, vessels, policed_multipliers, idx
-            )
+            is_adjusted = _calculate_flexible(regulation, vessels, policed, idx)
 
         needs_resolve = needs_resolve or is_adjusted
 
@@ -106,14 +103,13 @@ def _clear_adjusted_thresholds(
     expectation.set_adjusted_shared_threshold(idx, np.nan)
 
 
-def _adjust_individual_thresholds(
+def _calculate_individual(
     regulation: Regulation,
     vessels: dict[str, Vessel],
     vessel_names: Iterable[str],
     idx: int,
 ) -> bool:
-    """Adjust the threshold of each non-compliant vessel; True if any was."""
-    measure = regulation.measure
+    """Calculate each vessel's adjusted threshold; True if any was raised."""
     expectation = regulation.expectation
 
     is_adjusted = False
@@ -127,11 +123,9 @@ def _adjust_individual_thresholds(
 
         emissions = expectation.get_vessel_emissions(vessel_name, idx)
         energy = expectation.get_vessel_energy(vessel_name, idx)
-        vessel_measure = expectation.get_vessel_measure(vessel_name, idx)
+        measure = expectation.get_vessel_measure(vessel_name, idx)
 
-        threshold = _compute_adjusted_threshold(
-            measure, emissions, energy, vessel_measure
-        )
+        threshold = _adjusted_threshold(regulation, emissions, energy, measure)
         expectation.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
 
         _calculate_adjusted_bunkering_inputs(regulation, vessels[vessel_name], idx)
@@ -142,14 +136,13 @@ def _adjust_individual_thresholds(
     return is_adjusted
 
 
-def _adjust_flexible_thresholds(
+def _calculate_flexible(
     regulation: Regulation,
     vessels: dict[str, Vessel],
     policed_multipliers: dict[str, float],
     idx: int,
 ) -> bool:
-    """Adjust the vessel and shared thresholds of a non-compliant pool; True if so."""
-    measure = regulation.measure
+    """Calculate the pool's adjusted vessel and shared thresholds; True if raised."""
     expectation = regulation.expectation
 
     if expectation.get_pooled_remedial_units(idx) <= 0.0:
@@ -170,19 +163,17 @@ def _adjust_flexible_thresholds(
     for vessel_name, multiplier in policed_multipliers.items():
         emissions = expectation.get_vessel_emissions(vessel_name, idx)
         energy = expectation.get_vessel_energy(vessel_name, idx)
-        vessel_measure = expectation.get_vessel_measure(vessel_name, idx)
+        measure = expectation.get_vessel_measure(vessel_name, idx)
 
         total_emissions += emissions * multiplier
         total_energy += energy * multiplier
-        total_measure += vessel_measure * multiplier
+        total_measure += measure * multiplier
 
-        threshold = _compute_adjusted_threshold(
-            measure, emissions, energy, vessel_measure
-        )
+        threshold = _adjusted_threshold(regulation, emissions, energy, measure)
         expectation.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
 
-    shared_threshold = _compute_adjusted_threshold(
-        measure, total_emissions, total_energy, total_measure
+    shared_threshold = _adjusted_threshold(
+        regulation, total_emissions, total_energy, total_measure
     )
     expectation.set_adjusted_shared_threshold(idx, shared_threshold)
 
@@ -215,21 +206,21 @@ def _calculate_adjusted_bunkering_inputs(
     calculate_vessel_spend_coefficients(regulation, vessel, threshold, idx)
 
 
-def _compute_adjusted_threshold(
-    measure: RegulationMeasureID, emissions: float, energy: float, measure_value: float
+def _adjusted_threshold(
+    regulation: Regulation, emissions: float, energy: float, measure: float
 ) -> float:
     """
-    Compute the adjusted threshold from actual emissions, with the tolerance margin.
+    Return the threshold the achieved emissions meet, with the tolerance margin.
 
     Parameters
     ----------
-    measure
-        Measure of the regulation.
+    regulation
+        Regulation whose measure the threshold is expressed in.
     emissions
         Emissions, tons.
     energy
         Energy spent, GJ; read for the INTENSITY measure only.
-    measure_value
+    measure
         Transport measure; read for the TRANSPORT and TRANSPORT_NOMINAL measures only.
 
     Returns
@@ -237,11 +228,11 @@ def _compute_adjusted_threshold(
     float
         Adjusted threshold, in the unit of the regulation's threshold.
     """
-    if measure == RegulationMeasureID.ABSOLUTE:
-        actual = emissions
-    elif measure == RegulationMeasureID.INTENSITY:
-        actual = np.float64(divide_nonzero(emissions, energy / TON_TO_KG))
+    if regulation.measure == RegulationMeasureID.ABSOLUTE:
+        achieved = emissions
+    elif regulation.measure == RegulationMeasureID.INTENSITY:
+        achieved = np.float64(divide_nonzero(emissions, energy / TON_TO_KG))
     else:
-        actual = np.float64(divide_nonzero(emissions, measure_value))
+        achieved = np.float64(divide_nonzero(emissions, measure))
 
-    return actual * (1.0 + _THRESHOLD_TOLERANCE)
+    return achieved * (1.0 + _THRESHOLD_TOLERANCE)
