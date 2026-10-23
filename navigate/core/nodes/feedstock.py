@@ -10,7 +10,7 @@ from navigate.core.node_type import FEEDSTOCK
 
 
 class Feedstock(Node):
-    """A feedstock that processes consume and regions and plants price and transport."""
+    """A feedstock that processes consume, regions price and plants transport."""
 
     type = FEEDSTOCK
 
