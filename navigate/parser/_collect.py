@@ -203,12 +203,9 @@ class Collector:
             return
 
         location = SourceLocation(deck_line=deck_line)
-        if not self.library.available:
-            raise self.library.unavailable_error(f"Module '{directive.name}'", location)
-
         path = self.library.module_file(directive.name)
         if path is None:
-            raise location.error(f"No module with name '{directive.name}' was found.")
+            raise self.library.missing_module(directive.name, location)
 
         logger.debug("[%s] Load %s from %s", section.name, directive.name, path)
         self._read_file(path, deck_line, section)
@@ -395,9 +392,6 @@ class Collector:
             Whether the library holds a file for the node.
         """
         node_type, name = key
-
-        if not self.library.available:
-            return False
 
         # re-entering a file being read would read it without end
         if key in self._pulling:
