@@ -14,7 +14,6 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field
-from importlib.resources import files
 from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
@@ -43,11 +42,10 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class SourceLocation:
-    """Where a statement was written: its include file and line, and the deck line."""
+    """Where a statement was written: file and line, and the deck line that read it."""
 
     file: str = ""
     line: int = 0
-    # the line of the Include or Load directive the file was read through
     deck_line: int = 0
 
     def prefix(self) -> str:
@@ -257,9 +255,6 @@ type Statement = (
 
 # lark transformer ---------------------------------------------------------------------
 
-# a day-first date token, "dd-mm-yyyy" or "dd/mm/yyyy"
-_DAY_FIRST = re.compile(r'"(\d{2})[-/](\d{2})[-/](\d{4})"')
-
 
 @v_args(inline=True)
 class _NavTransformer(Transformer[Token, object]):
@@ -271,7 +266,7 @@ class _NavTransformer(Transformer[Token, object]):
         self._file = file
         self._deck_line = deck_line
 
-    def _loc(self, line: int) -> SourceLocation:
+    def _source(self, line: int) -> SourceLocation:
         return SourceLocation(self._file, line, self._deck_line)
 
     def __default_token__(self, token: Token) -> object:
@@ -286,14 +281,15 @@ class _NavTransformer(Transformer[Token, object]):
                 return str(token)
 
     def _date(self, token: Token) -> np.datetime64:
-        # numpy reads the ISO form and refuses a day the calendar lacks
-        day_first = _DAY_FIRST.fullmatch(token)
+        # numpy reads only the ISO form, so a day-first dd-mm-yyyy or dd/mm/yyyy date
+        # is reordered, and numpy refuses a day the calendar lacks
+        day_first = re.fullmatch(r'"(\d{2})[-/](\d{2})[-/](\d{4})"', token)
         iso = "-".join(reversed(day_first.groups())) if day_first else token.strip('"')
         try:
             return np.datetime64(iso, "D")
         except ValueError:
-            location = self._loc(token.line or 0)
-            raise location.error(f"{token} is not a calendar date.") from None
+            source = self._source(token.line or 0)
+            raise source.error(f"{token} is not a calendar date.") from None
 
     def _as_list(self, *children: object) -> list[object]:
         return list(children)
@@ -307,59 +303,59 @@ class _NavTransformer(Transformer[Token, object]):
 
     @v_args(meta=True, inline=True)
     def include_directive(self, meta: Meta, path: str) -> IncludeDirective:
-        return IncludeDirective(path, self._loc(meta.line))
+        return IncludeDirective(path, self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def load_module(self, meta: Meta, name: str) -> LoadModuleDirective:
-        return LoadModuleDirective(name, self._loc(meta.line))
+        return LoadModuleDirective(name, self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def node_declaration(
         self, meta: Meta, node_type: str, name: str, *body: BodyItem
     ) -> NodeDeclaration:
-        return NodeDeclaration(node_type, name, list(body), self._loc(meta.line))
+        return NodeDeclaration(node_type, name, list(body), self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def general_node_declaration(
         self, meta: Meta, node_type: str, *body: BodyItem
     ) -> GeneralNodeDeclaration:
-        return GeneralNodeDeclaration(node_type, list(body), self._loc(meta.line))
+        return GeneralNodeDeclaration(node_type, list(body), self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def copy_statement(
         self, meta: Meta, node_type: str, copy_from: str, copy_to: str
     ) -> CopyStatement:
-        return CopyStatement(node_type, copy_from, copy_to, self._loc(meta.line))
+        return CopyStatement(node_type, copy_from, copy_to, self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def import_statement(
         self, meta: Meta, node_type: str, name: str
     ) -> ImportStatement:
-        return ImportStatement(node_type, name, self._loc(meta.line))
+        return ImportStatement(node_type, name, self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def date_statement(self, meta: Meta, date: np.datetime64) -> DateStatement:
-        return DateStatement(date, self._loc(meta.line))
+        return DateStatement(date, self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def start_timeline(self, meta: Meta) -> StartTimeline:
-        return StartTimeline(self._loc(meta.line))
+        return StartTimeline(self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def end_timeline(self, meta: Meta) -> EndTimeline:
-        return EndTimeline(self._loc(meta.line))
+        return EndTimeline(self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def assignment(self, meta: Meta, attribute: str, value: DeckValue) -> Assignment:
-        return Assignment(attribute, value, self._loc(meta.line))
+        return Assignment(attribute, value, self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def table_assignment(self, meta: Meta, *rows: list[Cell]) -> Assignment:
-        return Assignment("Table", TableData(list(rows)), self._loc(meta.line))
+        return Assignment("Table", TableData(list(rows)), self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def command(self, meta: Meta, name: str, arguments: list[DeckValue]) -> Command:
-        return Command(name, arguments, self._loc(meta.line))
+        return Command(name, arguments, self._source(meta.line))
 
     def node_reference(self, node_type: str, name: str) -> NodeReference:
         return NodeReference(node_type, name)
@@ -387,10 +383,9 @@ class _NavTransformer(Transformer[Token, object]):
 
 # public API ---------------------------------------------------------------------------
 
-_GRAMMAR_TEXT = (files("navigate.parser") / "grammar.lark").read_text(encoding="utf-8")
-
-_parser = Lark(
-    _GRAMMAR_TEXT,
+_PARSER = Lark.open_from_package(
+    "navigate.parser",
+    "grammar.lark",
     parser="lalr",
     propagate_positions=True,
     maybe_placeholders=False,
@@ -401,7 +396,7 @@ _parser = Lark(
 # the text of each fixed-string terminal, e.g. LBRACE -> {
 _LITERALS = {
     terminal.name: terminal.pattern.value
-    for terminal in _parser.terminals
+    for terminal in _PARSER.terminals
     if isinstance(terminal.pattern, PatternStr)
 }
 
@@ -423,11 +418,12 @@ def _syntax_error(
 ) -> DeckError:
     """Build the error for text the grammar refuses, quoting its line with a caret."""
     if isinstance(error, UnexpectedToken):
-        is_end = error.token.type == "$END"
-        got = _describe("$END") if is_end else repr(str(error.token))
+        token = error.token
+        got = _describe(token.type) if token.type == "$END" else repr(str(token))
         expected = error.expected
     else:
-        got, expected = repr(error.char), error.allowed
+        got = repr(error.char)
+        expected = error.allowed
 
     *others, last = sorted(_describe(name) for name in expected) or ["nothing"]
     listed = f"{', '.join(others)} or {last}" if others else last
@@ -446,7 +442,7 @@ def _syntax_error(
 def _parse(start: str, text: str, file: str, deck_line: int) -> object:
     # the LALR parser reports running out of input as an UnexpectedToken
     try:
-        tree = _parser.parse(text, start=start)
+        tree = _PARSER.parse(text, start=start)
     except (UnexpectedToken, UnexpectedCharacters) as error:
         raise _syntax_error(error, text, file, deck_line) from None
 
