@@ -65,7 +65,6 @@ def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) 
         per_converter = _fuels_per_converter(vessel, usable_fuels)
         per_fuel = _converters_per_fuel(vessel, usable_fuels, per_converter)
 
-        vessel.usable_fuel_types = usable_fuel_types
         vessel.usable_fuels = usable_fuels
         vessel.fuels_per_converter = per_converter
         vessel.converters_per_fuel = per_fuel

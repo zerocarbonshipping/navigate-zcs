@@ -235,7 +235,7 @@ def _calculate_converter_load(
     vessel: Vessel, energy_id: EnergyDemandID, residual_power: FloatArray
 ) -> FloatArray:
     """Return the load of the converter serving a demand, fraction of capacity."""
-    converter = vessel.get_converter_by_energy_type(energy_id)
+    converter = vessel.get_converter(energy_id)
     capacity = converter.power_capacity.get()
     return residual_power / capacity
 
