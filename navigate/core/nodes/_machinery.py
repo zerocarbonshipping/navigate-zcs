@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the machinery base shared by the Converter, Tank and Technology nodes."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -14,13 +16,7 @@ if TYPE_CHECKING:
 
 
 class _Machinery(Node):
-    """
-    Provide a generic node for cost parameters shared by all machinery types.
-
-    - Converter
-    - Tank
-    - Technology
-    """
+    """The costs, lifetime and replacement share common to every machinery node."""
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
