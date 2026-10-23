@@ -14,7 +14,6 @@ from navigate.core import (
     assign_id,
     assign_reference_list,
     assign_value,
-    command_assignment_to_boolean_dict,
     deck_attribute,
     deck_command,
     write_matching_key_pairs,
@@ -117,8 +116,11 @@ class _Policy(Node):
     @deck_command()
     def set_include_vessel(self, vessel_name: str, include_vessel: str) -> None:
         """Set whether a vessel is impacted by the policy."""
-        command_assignment_to_boolean_dict(
-            vessel_name, include_vessel, self.include_vessel, allow_empty=True
+        write_matching_keys(
+            vessel_name,
+            assign_boolean(include_vessel),
+            self.include_vessel,
+            allow_empty=True,
         )
 
     @deck_command()

@@ -23,7 +23,6 @@ from navigate.core import (
     assign_reference_list,
     assign_value,
     check_curves_are_finite,
-    command_assignment_to_boolean_dict,
     deck_attribute,
     deck_command,
     write_matching_key_pairs,
@@ -390,15 +389,21 @@ class Fleet(Node):
     @deck_command()
     def set_allow_vessel(self, vessel_name: str, allow_vessel: str) -> None:
         """Set whether a vessel type may enter the fleet."""
-        command_assignment_to_boolean_dict(
-            vessel_name, allow_vessel, self.allow_vessel, allow_empty=True
+        write_matching_keys(
+            vessel_name,
+            assign_boolean(allow_vessel),
+            self.allow_vessel,
+            allow_empty=True,
         )
 
     @deck_command()
     def set_newbuild_available(self, vessel_name: str, newbuild_available: str) -> None:
         """Set whether a vessel type is available as a newbuild."""
-        command_assignment_to_boolean_dict(
-            vessel_name, newbuild_available, self.newbuild_available, allow_empty=True
+        write_matching_keys(
+            vessel_name,
+            assign_boolean(newbuild_available),
+            self.newbuild_available,
+            allow_empty=True,
         )
 
     @deck_command()
@@ -406,9 +411,9 @@ class Fleet(Node):
         self, vessel_name: str, conversion_available: str
     ) -> None:
         """Set whether a vessel type is available as a conversion target."""
-        command_assignment_to_boolean_dict(
+        write_matching_keys(
             vessel_name,
-            conversion_available,
+            assign_boolean(conversion_available),
             self.conversion_available,
             allow_empty=True,
         )

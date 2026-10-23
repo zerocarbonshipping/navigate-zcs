@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 from navigate.core import (
     Scalar,
     as_scalar,
+    assign_boolean,
     assign_value,
-    command_assignment_to_boolean_dict,
     deck_attribute,
     deck_command,
     write_matching_key_pairs,
@@ -67,7 +67,7 @@ class Port(Node):
     @deck_command()
     def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:
         """Set whether a fuel may be bunkered in the port."""
-        command_assignment_to_boolean_dict(fuel_name, value, self.bunkering_allowed)
+        write_matching_keys(fuel_name, assign_boolean(value), self.bunkering_allowed)
 
     @deck_command()
     def set_bunkering_limit(self, fuel_name: str, value: ForecastArgument) -> None:
