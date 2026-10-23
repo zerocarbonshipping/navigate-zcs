@@ -16,11 +16,11 @@ from navigate.core import (
     Scalar,
     as_list,
     as_scalar,
+    assign_boolean,
     assign_list,
     assign_reference_list,
     assign_value,
     check_curves_are_finite,
-    command_assignment_to_boolean_dict,
     deck_attribute,
     deck_command,
     write_matching_keys,
@@ -219,8 +219,11 @@ class Producer(Node):
     @deck_command()
     def set_allow_plant(self, plant_name: str, allow_plant: str) -> None:
         """Set whether a plant may be built."""
-        command_assignment_to_boolean_dict(
-            plant_name, allow_plant, self.allow_plant, allow_empty=True
+        write_matching_keys(
+            plant_name,
+            assign_boolean(allow_plant),
+            self.allow_plant,
+            allow_empty=True,
         )
 
     @deck_command()

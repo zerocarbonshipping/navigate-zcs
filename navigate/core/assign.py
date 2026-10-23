@@ -88,6 +88,7 @@ def assign_integer(
     assignment: float,
     lower: float = -np.inf,
     upper: float = np.inf,
+    *,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
 ) -> int:
@@ -235,7 +236,7 @@ def assign_list[T: Assignment](
     inclusive_upper: bool = True,
 ) -> list[T]:
     """
-    Check whether a value assigned to an attribute satisfies its requirements.
+    Check each value of a list assigned to an attribute against its requirements.
 
     Only applicable to attributes requiring a list of values read through a
     getter, each checked as assign_value checks a single one; a list of node
@@ -372,13 +373,10 @@ def assign_boolean(assignment: str) -> bool:
     bool
         Value of the keyword.
     """
-    if not isinstance(assignment, str):
+    if not (isinstance(assignment, str) and assignment in _BOOL_ID):
         raise ValueError(_only_allows("TRUE or FALSE", assignment))
 
-    try:
-        return _BOOL_ID[assignment]
-    except KeyError:
-        raise ValueError(_only_allows("TRUE or FALSE", assignment)) from None
+    return _BOOL_ID[assignment]
 
 
 def assign_date(assignment: np.datetime64) -> np.datetime64:
@@ -395,10 +393,10 @@ def assign_date(assignment: np.datetime64) -> np.datetime64:
     np.datetime64
         The date that was passed, so a setter assigns what it validated.
     """
-    if isinstance(assignment, np.datetime64):
-        return assignment
+    if not isinstance(assignment, np.datetime64):
+        raise ValueError(_only_allows("dates", assignment))
 
-    raise ValueError(_only_allows("dates", assignment))
+    return assignment
 
 
 def assign_bound(
@@ -429,10 +427,7 @@ def assign_bound(
         The scalar itself, or the value of the keyword.
     """
     if isinstance(assignment, str):
-        try:
-            assignment = _BOUND_ID[assignment]
-        except KeyError:
-            raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
+        assignment = _BOUND_ID.get(assignment, assignment)
 
     if not isinstance(assignment, float):
         raise ValueError(_only_allows("scalars, -INF or INF", assignment))
@@ -496,7 +491,8 @@ def assign_member[E: Enum](assignment: str, members: tuple[E, ...]) -> E:
         if member.name == assignment:
             return member
 
-    raise ValueError(_only_allows(_member_names(members), assignment))
+    names = ", ".join(member.name for member in members)
+    raise ValueError(_only_allows(names, assignment))
 
 
 def assign_id_list[E: Enum](
@@ -530,7 +526,6 @@ def assign_id_list[E: Enum](
         The members the assigned IDs name.
     """
     members = [assign_id(value, id_enum) for value in as_list(assignment)]
-
     _check_list_length(members, min_length)
 
     if unique:
@@ -541,12 +536,12 @@ def assign_id_list[E: Enum](
 
 def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     """
-    Check whether a value assigned to an attribute satisfies its requirements.
+    Check a list of fractions assigned to an attribute and rescale it to sum to 1.
 
     Only applicable to attributes requiring a list of values summing to 1.
     Entries are floated first, so a list written as integers is rescaled the
-    same way as its float spelling; the guard has already rejected any entry,
-    or total, that does not float to a finite value. The entries must sum to
+    same way as its float spelling; an entry, or a total, that does
+    not float to a finite value is rejected. The entries must sum to
     more than 0 once rounded to ``ROUND_OFF`` decimals, so an all-zero list
     and an empty list are rejected: a zero total cannot be rescaled to 1. Any
     other total than 1 is rescaled proportionally.
@@ -567,21 +562,16 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     ValueError
         If the entries do not sum to more than 0.
     """
-    _check_fraction_list(fractions)
+    floated = _floated_fractions(fractions)
+    total = round(sum(floated), ROUND_OFF)
 
-    fractions = [float(fraction) for fraction in fractions]
-
-    rescaled = False
-    total = round(sum(fractions), ROUND_OFF)
-
-    if not total > 0.0:
+    if total <= 0.0:
         raise ValueError("requires entries summing to more than 0")
 
-    if total != 1.0:
-        fractions = [fraction / total for fraction in fractions]
-        rescaled = abs(total - 1) > 0.01
+    rescaled = [fraction / total for fraction in floated]
+    was_rescaled = abs(total - 1.0) > 0.01
 
-    return assign_list(fractions, lower=0.0, upper=1.0), rescaled
+    return assign_list(rescaled, lower=0.0, upper=1.0), was_rescaled
 
 
 def check_curves_are_finite(
@@ -617,15 +607,12 @@ def check_curves_are_finite(
             raise ValueError(f"{node}: {attribute} ({entry}) must hold finite values.")
 
 
-def _missing_names(names: str) -> ValueError:
-    """Build the error for a command naming keys its dictionary does not hold."""
-    return ValueError(f"attempts to reference non-existing name(s) '{names}'")
-
-
 def write_matching_keys[K: str | Enum, V](
     key: K | str,
     value: V,
     assignment_dict: _CommandDict[K, V],
+    *,
+    allow_empty: bool = False,
 ) -> None:
     """
     Write an already validated value to each dict entry matching a key pattern.
@@ -638,16 +625,23 @@ def write_matching_keys[K: str | Enum, V](
         Value assigned to every matched entry, validated by the caller.
     assignment_dict
         The dictionary being assigned to.
+    allow_empty
+        Whether a wildcard pattern that matches nothing is not an error.
     """
     try:
-        keys = retrieve_keys(key, assignment_dict)
+        matches = retrieve_keys(key, assignment_dict)
     except KeyError:
+        if allow_empty and isinstance(key, str) and name_contains_wildcards(key):
+            # wildcards in a shared include are written against whatever the
+            # deck defines, so a pattern that matches nothing is not an error
+            return
+
         raise _missing_names(key_name(key)) from None
 
     # every matched key holds the same object: a Scalar answers a getter and
     # carries no per-key state, and a node or an expression was always shared
-    for key_ in keys:
-        assignment_dict[key_] = value
+    for match in matches:
+        assignment_dict[match] = value
 
 
 def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
@@ -672,7 +666,7 @@ def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
 
     columns = zip(*assignment_dict, strict=True)
     try:
-        keys = [
+        matches = [
             retrieve_keys(key_part, unique_list(existing_keys))
             for key_part, existing_keys in zip(key, columns, strict=True)
         ]
@@ -681,46 +675,10 @@ def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
 
     # every matched key holds the same object: a Scalar answers a getter and
     # carries no per-key state, and a node or an expression was always shared
-    keys1, keys2 = keys
-    for key1 in keys1:
-        for key2 in keys2:
-            assignment_dict[(key1, key2)] = value
-
-
-def command_assignment_to_boolean_dict[K: str | Enum](
-    key: K | str,
-    assignment: str,
-    assignment_dict: dict[K, bool],
-    allow_empty: bool = False,
-) -> None:
-    """
-    Assign a boolean value to dict keys matching a key pattern.
-
-    Parameters
-    ----------
-    key
-        Key to assignment_dict. May include wildcards.
-    assignment
-        Boolean value TRUE or FALSE.
-    assignment_dict
-        Dict to assign the boolean value to.
-    allow_empty
-        Whether no matches are allowed for wildcards.
-    """
-    value = assign_boolean(assignment)
-
-    try:
-        names = retrieve_keys(key, assignment_dict)
-    except KeyError:
-        if allow_empty and isinstance(key, str) and name_contains_wildcards(key):
-            # wildcards in a shared include are written against whatever the
-            # deck defines, so a pattern that matches nothing is not an error
-            return
-
-        raise _missing_names(key_name(key)) from None
-
-    for name in names:
-        assignment_dict[name] = value
+    firsts, seconds = matches
+    for first in firsts:
+        for second in seconds:
+            assignment_dict[(first, second)] = value
 
 
 def _accepts_reference(node: Node, type_: AcceptedNodeTypes | None) -> bool:
@@ -768,20 +726,13 @@ def _failed_value_message(
     str
         Error message of a failed error check.
     """
-    # a setter accepting no kind at all is an implementation error rather
-    # than a deck error, so the empty 'allowed' is not handled
     allowed = []
     if allow_scalar:
         allowed.append("scalars")
     if type_ is not None:
         allowed.append(_node_types_phrase(type_))
 
-    if len(allowed) == 1:
-        joined = allowed[0]
-    else:
-        joined = ", ".join(allowed[:-1]) + " and " + allowed[-1]
-
-    return _only_allows(joined, assignment)
+    return _only_allows(" and ".join(allowed), assignment)
 
 
 def _node_types_phrase(type_: AcceptedNodeTypes) -> str:
@@ -806,6 +757,11 @@ def _node_types_phrase(type_: AcceptedNodeTypes) -> str:
     return "nodes of type {} or {}".format(", ".join(type_[:-1]), type_[-1])
 
 
+def _missing_names(names: str) -> ValueError:
+    """Build the error for a command naming keys its dictionary does not hold."""
+    return ValueError(f"attempts to reference non-existing name(s) '{names}'")
+
+
 def _only_allows(allowed: str, assignment: object) -> str:
     """
     Spell the sentence every rejected value is reported with.
@@ -823,23 +779,6 @@ def _only_allows(allowed: str, assignment: object) -> str:
         Error message of a failed error check.
     """
     return f"only allows assignment of {allowed}, but got {_value_kind(assignment)}"
-
-
-def _member_names(members: tuple[Enum, ...]) -> str:
-    """
-    Spell the members a setter accepts, so both its spellings name the same set.
-
-    Parameters
-    ----------
-    members
-        The enum members the setter accepts.
-
-    Returns
-    -------
-    str
-        The member names, in the order the setter accepts them.
-    """
-    return ", ".join(member.name for member in members)
 
 
 def _value_kind(assignment: object) -> str:
@@ -908,11 +847,11 @@ def _inclusive_flags(
 
 def _check_scalar(
     assignment: float | Scalar,
-    lower: float = -np.inf,
-    upper: float = np.inf,
+    lower: float,
+    upper: float,
     *,
-    inclusive_lower: bool = True,
-    inclusive_upper: bool = True,
+    inclusive_lower: bool,
+    inclusive_upper: bool,
 ) -> None:
     """
     Validate that a scalar value satisfies the given bounds.
@@ -985,9 +924,9 @@ def _check_list_is_unique(entries: Collection[Hashable]) -> None:
         raise ValueError("requires all entries in the list to be unique")
 
 
-def _check_fraction_list(fractions: list[float]) -> None:
+def _floated_fractions(fractions: list[float]) -> list[float]:
     """
-    Validate that an assignment is a list of non-negative finite numbers.
+    Float the entries of a fraction list, rejecting a negative or non-finite one.
 
     Every entry must be a plain number that floats to a finite value, and the
     float total must be finite too, so the rescale in assign_fraction_list
@@ -997,16 +936,19 @@ def _check_fraction_list(fractions: list[float]) -> None:
     ----------
     fractions
         The value passed to the setter.
+
+    Returns
+    -------
+    list[float]
+        The entries, floated.
     """
     if not isinstance(fractions, list):
         raise ValueError("only allows assignment of lists")
 
     # a non-number would reach the comparison below as a TypeError carrying no
-    # deck line for the parser to report; int, and the bool that subclasses it,
-    # pass because assign_fraction_list floats every entry it is handed, so
-    # each entry is floated here first: an int too large for a float would
-    # otherwise escape that floating as an OverflowError, which the parser
-    # cannot locate either
+    # deck line for the parser to report, and an int too large for a float
+    # would escape the floating as an OverflowError, which the parser cannot
+    # locate either; int, and the bool that subclasses it, pass
     floated = []
     for fraction in fractions:
         if not isinstance(fraction, (int, float)):
@@ -1036,3 +978,5 @@ def _check_fraction_list(fractions: list[float]) -> None:
     # divides by that sum
     if not math.isfinite(sum(floated)):
         raise ValueError("requires entries whose sum is finite")
+
+    return floated

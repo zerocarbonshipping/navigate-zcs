@@ -24,7 +24,6 @@ from navigate.core.assign import (
     assign_reference_list,
     assign_value,
     check_curves_are_finite,
-    command_assignment_to_boolean_dict,
     write_matching_key_pairs,
     write_matching_keys,
 )
