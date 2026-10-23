@@ -59,9 +59,6 @@ class Model(Protocol):
     def solve(self) -> None:
         """Solve the linear program."""
 
-    def set_dual_reductions(self, enabled: bool) -> None:
-        """Switch the dual reductions of presolve on or off."""
-
     @property
     def status(self) -> SolveStatusID:
         """Status of the last solve."""

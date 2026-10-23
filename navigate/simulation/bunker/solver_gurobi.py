@@ -139,12 +139,23 @@ class GurobiModel:
         self._model.remove(self._rows[constraint])
 
     def solve(self) -> None:
-        """Solve the linear program."""
+        """
+        Solve the linear program.
+
+        When presolve finds the model infeasible or unbounded without telling which,
+        the model is solved once more with dual reductions off, which tells the two
+        apart, and dual reductions are switched back on.
+        """
         self._model.optimize()
 
-    def set_dual_reductions(self, enabled: bool) -> None:
-        """Switch the dual reductions of presolve on or off."""
-        self._model.Params.DualReductions = int(enabled)
+        if self._model.Status == grb.GRB.INF_OR_UNBD:
+            params = self._model.Params
+            params.DualReductions = 0
+
+            try:
+                self._model.optimize()
+            finally:
+                params.DualReductions = 1
 
     @property
     def status(self) -> SolveStatusID:
@@ -156,6 +167,9 @@ class GurobiModel:
 
         if status == grb.GRB.INFEASIBLE:
             return SolveStatusID.INFEASIBLE
+
+        if status == grb.GRB.UNBOUNDED:
+            return SolveStatusID.UNBOUNDED
 
         if status == grb.GRB.INF_OR_UNBD:
             return SolveStatusID.INFEASIBLE_OR_UNBOUNDED

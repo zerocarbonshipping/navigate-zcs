@@ -198,9 +198,6 @@ class HighsModel:
         self._col_values = np.array(solution.col_value)
         self._row_duals = np.array(solution.row_dual)
 
-    def set_dual_reductions(self, enabled: bool) -> None:
-        """Do nothing; HiGHS has no switch for the dual reductions of presolve."""
-
     @property
     def status(self) -> SolveStatusID:
         """Status of the last solve."""
@@ -212,8 +209,14 @@ class HighsModel:
         if status == HighsModelStatus.kInfeasible:
             return SolveStatusID.INFEASIBLE
 
-        # every other status, such as unbounded, an error or a reached limit
-        return SolveStatusID.INFEASIBLE_OR_UNBOUNDED
+        if status == HighsModelStatus.kUnbounded:
+            return SolveStatusID.UNBOUNDED
+
+        if status == HighsModelStatus.kUnboundedOrInfeasible:
+            return SolveStatusID.INFEASIBLE_OR_UNBOUNDED
+
+        # every other status, such as a reached limit or a solver error
+        return SolveStatusID.OTHER
 
     def value(self, variable: Variable) -> float:
         """Return the value of a variable at the last solution."""

@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import BunkerScopeID, SolveStatusID, TimingID
-from navigate.exceptions import InfeasibleLPError
+from navigate.exceptions import InfeasibleLPError, LPSolveError
 from navigate.util import timed
 
 if TYPE_CHECKING:
@@ -31,16 +31,11 @@ def optimize(alg: BunkerAlgorithm) -> None:
 
 def check_solution(alg: BunkerAlgorithm) -> None:
     """
-    Check the solution of the LP model after a solve.
+    Check that the last solve of the LP model found an optimal solution.
 
-    An infeasible model raises, after its IIS is computed and the model and its
-    limiting constraints are written as LP files to the output directory. A model
-    reported infeasible or unbounded is solved again with dual reductions off and
-    checked again; every other status returns without raising. On Gurobi, a re-solve
-    that reports the model unbounded therefore returns as well. The HiGHS backend
-    reports every status but optimal and infeasible as infeasible or unbounded and
-    does not apply the dual-reductions switch, so such a model is solved again to the
-    same status until the recursion limit is reached.
+    An infeasible model raises after its IIS is computed and the model and its
+    limiting constraints are written as LP files to the output directory. Every
+    other status but optimal raises with the reason the solve ended.
 
     Parameters
     ----------
@@ -51,10 +46,9 @@ def check_solution(alg: BunkerAlgorithm) -> None:
     ------
     InfeasibleLPError
         If the model is infeasible.
+    LPSolveError
+        If the solve ended without an optimal solution for another reason.
     """
-    # dual reductions go back on after a solve that switched them off
-    alg.model.set_dual_reductions(True)
-
     status = alg.model.status
 
     if status == SolveStatusID.OPTIMAL:
@@ -72,6 +66,11 @@ def check_solution(alg: BunkerAlgorithm) -> None:
             f" due to the IIS limiting constraint: {', '.join(iis)}."
         )
 
-    if status == SolveStatusID.INFEASIBLE_OR_UNBOUNDED:
-        alg.model.set_dual_reductions(False)
-        optimize(alg)
+    reason = {
+        SolveStatusID.UNBOUNDED: "the LP is unbounded",
+        SolveStatusID.INFEASIBLE_OR_UNBOUNDED: "the LP is infeasible or unbounded",
+        SolveStatusID.OTHER: "the solver stopped without an optimal solution",
+    }[status]
+
+    scope = alg.scope.name.lower()
+    raise LPSolveError(f"Optimal bunkering failed for {scope} bunkering: {reason}.")
