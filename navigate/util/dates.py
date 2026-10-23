@@ -48,14 +48,14 @@ def timedelta_to_days(delta: np.timedelta64 | TimedeltaArray) -> FloatLike:
     Parameters
     ----------
     delta
-        Difference between two np.datetime64 objects, scalar or array.
+        Difference between two dates, scalar or array.
 
     Returns
     -------
     FloatLike
         Timedelta in days, mirroring the input's scalar- or arrayness.
     """
-    return delta.astype(np.float64)
+    return delta / np.timedelta64(1, "D")
 
 
 def dates_to_days(dates: DateArray) -> FloatArray:
@@ -90,5 +90,4 @@ def dates_to_years(dates: DateArray) -> FloatArray:
     FloatArray
         Array of years since the first date.
     """
-    deltas: TimedeltaArray = dates - dates[0]
-    return timedelta_to_days(deltas) / YEAR
+    return dates_to_days(dates) / YEAR
