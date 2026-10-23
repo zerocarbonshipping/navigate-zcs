@@ -12,8 +12,8 @@ from enum import Enum, auto
 class SectionID(Enum):
     """The section of a deck a declaration is read in."""
 
-    DEFINE = auto()  # deck section where nodes are defined
-    EVENTS = auto()  # deck section where the timeline and attribute changes are read
+    DEFINE = auto()  # where nodes are defined
+    EVENTS = auto()  # where the timeline and attribute changes are read
 
 
 class FuelTypeID(Enum):
@@ -39,9 +39,9 @@ class SourceDependencyID(Enum):
 class EnergyDemandID(Enum):
     """The kind of vessel energy demand a technology targets."""
 
-    PROPULSION = auto()  # propulsive energy demand
-    ELECTRICAL = auto()  # electrical energy demand
-    HEAT = auto()  # heat energy demand
+    PROPULSION = auto()  # energy that propels the vessel
+    ELECTRICAL = auto()  # the vessel's electricity demand
+    HEAT = auto()  # the vessel's heat demand
 
 
 # iteration order feeds LP variable/constraint creation order, which must be
@@ -60,24 +60,24 @@ class Interpolate1DID(Enum):
     """The interpolation method of a curve or a forecast."""
 
     LINEAR = auto()  # interpolate linearly
-    PREVIOUS = auto()  # interpolate to the previous down in the table
-    NEXT = auto()  # interpolate to the next up in the table
-    NEAREST = auto()  # interpolate to nearest (round down at half integer)
-    NEAREST_UP = auto()  # interpolate to nearest (round up at half integer)
+    PREVIOUS = auto()  # take the value at the previous point
+    NEXT = auto()  # take the value at the next point
+    NEAREST = auto()  # take the value at the nearest point, the lower on a tie
+    NEAREST_UP = auto()  # take the value at the nearest point, the higher on a tie
 
 
 class Interpolate2DID(Enum):
     """The interpolation method of a surface or a timetable."""
 
     LINEAR = auto()  # interpolate linearly
-    NEAREST = auto()  # interpolate to nearest-neighbour
+    NEAREST = auto()  # take the value at the nearest point
 
 
 class ExtrapolateID(Enum):
     """The extrapolation method beyond the ends of a curve or a forecast."""
 
     FALSE = auto()  # extrapolation not allowed
-    FLAT = auto()  # extrapolate flat (either assigned or table values)
+    FLAT = auto()  # hold the assigned value, or the table's end value, flat
     LINEAR = auto()  # extrapolate linearly
 
 
@@ -92,23 +92,23 @@ class PolicyScopeID(Enum):
 class RegulationSchemeID(Enum):
     """Whether vessels may trade compliance with a regulation between them."""
 
-    INDIVIDUAL = auto()  # penalized above, no remuneration below
-    FLEXIBLE = auto()  # trading scheme, remunerated below
+    INDIVIDUAL = auto()  # penalty above, no remuneration below
+    FLEXIBLE = auto()  # trading scheme, remuneration below
 
 
 class RegulationMeasureID(Enum):
     """The quantity a regulation measures emissions in."""
 
     ABSOLUTE = auto()  # tons of emissions
-    INTENSITY = auto()  # kg emissions per GJ
-    TRANSPORT = auto()  # gram emissions per cargo-mile
-    TRANSPORT_NOMINAL = auto()  # gram emissions per cargo-mile (nominal)
+    INTENSITY = auto()  # kg of emissions per GJ
+    TRANSPORT = auto()  # g of emissions per actual cargo-mile
+    TRANSPORT_NOMINAL = auto()  # g of emissions per nominal cargo-mile
 
 
 class LevySchemeID(Enum):
     """Whether a levy penalizes emissions, subsidizes avoiding them, or both."""
 
-    PENALTY = auto()  # penalized above, no remuneration below
+    PENALTY = auto()  # penalty above, no subsidy below
     SUBSIDY = auto()  # subsidy below, no penalty above
     BOTH = auto()  # penalty above, subsidy below
 
@@ -117,9 +117,9 @@ class SpeedAlignmentID(Enum):
     """How the optimal speeds of the vessel types in a fleet are aligned."""
 
     INDIVIDUAL = auto()  # keep each vessel type's own optimal speed
-    MINIMUM = auto()  # use minimum optimal speed across vessels
-    MAXIMUM = auto()  # use maximum optimal speed across vessels
-    AVERAGE = auto()  # use weighted arithmetic mean of optimal speeds
+    MINIMUM = auto()  # use the lowest optimal speed of the vessel types
+    MAXIMUM = auto()  # use the highest optimal speed of the vessel types
+    AVERAGE = auto()  # use the mean optimal speed, weighted by vessel count
 
 
 class ReportReduceID(Enum):
@@ -149,14 +149,14 @@ class SolverBackendID(Enum):
     """The solver backend the bunkering linear program is solved with."""
 
     AUTOMATIC = auto()  # use Gurobi if available, else HiGHS
-    GUROBI = auto()  # prefer Gurobi, falling back to HiGHS if unavailable
+    GUROBI = auto()  # use Gurobi if available, else warn and use HiGHS
     HIGHS = auto()  # always use HiGHS
 
 
 class SolverMethodID(Enum):
     """The solution method, applied as Gurobi's Method parameter; HiGHS ignores it."""
 
-    # integer values are Gurobi Method IDs; the HiGHS backend does not read them
+    # the values are Gurobi's Method parameter codes
     AUTOMATIC = -1  # let the solver choose the method automatically
     DETERMINISTIC = 4  # request the deterministic concurrent method
     NON_DETERMINISTIC = 3  # request the concurrent method
