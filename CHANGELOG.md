@@ -300,6 +300,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- An unbounded bunkering LP, or a solve that stops at a limit, now stops the run
+  with an error naming the bunkering scope, instead of a `RecursionError` on
+  HiGHS or a silent continuation on Gurobi (#368).
 - The `--help` text and the README no longer say `-p` silences other console
   output or that `-s` leaves Excel reports; reports keep their own format
   (#444).

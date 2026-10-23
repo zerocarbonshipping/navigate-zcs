@@ -50,6 +50,14 @@ class InfeasibleLPError(NavigateError):
     """Raised if an LP is infeasible."""
 
 
+class LPSolveError(NavigateError):
+    """
+    Raised if an LP solve ends without an optimal solution.
+
+    An infeasible LP raises ``InfeasibleLPError`` instead.
+    """
+
+
 class PowerCapacityError(NavigateError):
     """Raised if a vessel's energy demand exceeds installed converter power capacity."""
 

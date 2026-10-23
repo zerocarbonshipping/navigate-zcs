@@ -175,6 +175,7 @@ class SolveStatusID(Enum):
 
     OPTIMAL = auto()  # an optimal solution was found
     INFEASIBLE = auto()  # no point satisfies every constraint
+    UNBOUNDED = auto()  # the objective decreases without bound
     INFEASIBLE_OR_UNBOUNDED = auto()  # infeasible or unbounded, not told apart
     OTHER = auto()  # any other outcome, such as a reached limit
 
