@@ -27,7 +27,7 @@ class Increment:
     multiplier
         Number of assets in the cohort.
     age
-        Age of the cohort in years, negative while it is still undelivered.
+        Age of the cohort in years.
     age_span
         Width in years of the age bin the cohort spans.
     """
