@@ -50,26 +50,20 @@ class Regulation(_Policy):
         self.inter_fraction: ForecastInput = Scalar(1.0)
         self.extra_fraction: ForecastInput = Scalar(0.0)
 
-        # remedial compliance
         self.remedial_cost: ForecastInput = Scalar(0.0)
-
-        # flexibility cost belief
         self.flexibility_horizon: ForecastInput = Scalar(3.0)
-        # set on assignment, cleared once the unused-under-this-scheme warning fires
-        self._flexibility_horizon_unreported: bool = False
 
-        # threshold
-        self.vessel_threshold: dict[str, ForecastInput | None] = {}
-
-        # capacity (measure specific)
-        self.vessel_capacity: dict[str, ForecastInput | None] = {}
-
-        # threshold adjustment
         self.allow_threshold_adjustment: bool = False
+
+        self.vessel_threshold: dict[str, ForecastInput | None] = {}
+        self.vessel_capacity: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: RegulationExpectation = RegulationExpectation()
         self.results: RegulationResults = RegulationResults()
+
+        # set on assignment, cleared once the unused-under-this-scheme warning fires
+        self._flexibility_horizon_unreported: bool = False
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -118,6 +112,11 @@ class Regulation(_Policy):
         )
         self._flexibility_horizon_unreported = True
 
+    @deck_attribute()
+    def set_allow_threshold_adjustment(self, allow_threshold_adjustment: str) -> None:
+        """Set whether the threshold is automatically adjusted on non-compliance."""
+        self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)
+
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
     def set_vessel_threshold(
@@ -139,25 +138,19 @@ class Regulation(_Policy):
             self.vessel_capacity,
         )
 
-    @deck_attribute()
-    def set_allow_threshold_adjustment(self, allow_threshold_adjustment: str) -> None:
-        """Set whether the threshold is automatically adjusted on non-compliance."""
-        self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)
-
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
         super().check_consistency()
 
         for vessel_name, include_vessel in self.include_vessel.items():
-            if include_vessel and (self.vessel_threshold[vessel_name] is None):
+            if include_vessel and self.vessel_threshold[vessel_name] is None:
                 raise ValueError(
                     f'{self}: Vessel("{vessel_name}") is included in the regulation but'
                     " no vessel_threshold is defined."
                 )
 
-        if self._flexibility_horizon_unreported and (
-            self.scheme != RegulationSchemeID.FLEXIBLE
-        ):
+        is_flexible = self.scheme == RegulationSchemeID.FLEXIBLE
+        if self._flexibility_horizon_unreported and not is_flexible:
             logger.warning(
                 "%s: 'FlexibilityHorizon' is assigned but is unused for Scheme = %s.",
                 self,
