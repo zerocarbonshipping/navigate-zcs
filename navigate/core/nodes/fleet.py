@@ -42,7 +42,7 @@ from navigate.core.nodes.forecast import Forecast
 from navigate.core.results import FleetResults
 from navigate.core.technology_package import PackageCostFlows, TechnologyPackage
 from navigate.exceptions import UnassignedAttributeError
-from navigate.util import is_non_strictly_increasing
+from navigate.util import is_nondecreasing
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -542,7 +542,7 @@ class Fleet(Node):
                 continue
 
             # an orderbook is a cumulative count of the vessels on order
-            if not is_non_strictly_increasing(orderbook.y):
+            if not is_nondecreasing(orderbook.y):
                 raise ValueError(
                     f"{self}: Orderbook ({orderbook}) is not non-strictly increasing."
                 )

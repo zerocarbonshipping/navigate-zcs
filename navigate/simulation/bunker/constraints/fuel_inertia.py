@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID
 from navigate.simulation.bunker._build import get_constraint
-from navigate.util import calculate_inertia
+from navigate.util import calculate_step_inertia
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -73,7 +73,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
             # at the vessel's fair share where a fair-share constraint applies
             if bunkered > 0.0:
                 inertia = port.bunkering_inertia[f].get(alg.time)
-                decay = calculate_inertia(inertia, alg.time_step)
+                decay = calculate_step_inertia(inertia, alg.time_step)
                 cap = alg.allocation_fuel.get(key, np.inf)
                 floor = min(bunkered * decay * scaling, cap)
             else:

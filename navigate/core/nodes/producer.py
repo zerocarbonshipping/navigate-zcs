@@ -30,7 +30,7 @@ from navigate.core.expectations import ProducerExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.results import ProducerResults
-from navigate.util import is_non_strictly_increasing
+from navigate.util import is_nondecreasing
 
 if TYPE_CHECKING:
     from navigate.core.increment import PlantIncrement
@@ -294,7 +294,7 @@ class Producer(Node):
                 )
 
             # a pipeline is the cumulative capacity committed to, in tons/day
-            if not is_non_strictly_increasing(pipeline.y):
+            if not is_nondecreasing(pipeline.y):
                 raise ValueError(
                     f"{self}: Pipeline ({pipeline}) is not non-strictly increasing."
                 )

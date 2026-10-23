@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -48,7 +49,7 @@ def divide_nonzero(
     quotients = np.full(shape, default, dtype=dtype)
 
     # entries excluded by where= keep the prefilled default
-    np.divide(numerator, denominator, out=quotients, where=(denominator > 0.0))
+    np.divide(numerator, denominator, out=quotients, where=denominator > 0.0)
     return quotients
 
 
@@ -59,258 +60,233 @@ def step_lengths(timeline: FloatArray) -> FloatArray:
     Parameters
     ----------
     timeline
-        Dates of the simulation, years.
+        Dates of the simulation, in years.
 
     Returns
     -------
     FloatArray
-        Years each step spans, one per date.
+        Length of each step, in years, one per date.
     """
     return np.insert(np.diff(timeline), 0, 1.0)
 
 
 def is_strictly_increasing(values: FloatArray) -> bool:
     """
-    Test whether values are strictly increasing.
+    Test whether every value exceeds the one before it.
 
     Parameters
     ----------
     values
-        Vector.
+        Values to test, in order, such as the points of a table axis.
 
     Returns
     -------
     bool
-        Whether 'values' is strictly increasing.
+        Whether ``values`` is strictly increasing.
     """
     return not np.any(np.diff(values) <= 0)
 
 
-def is_non_strictly_increasing(values: FloatArray) -> bool:
+def is_nondecreasing(values: FloatArray) -> bool:
     """
-    Test whether values are non-strictly increasing.
+    Test whether no value falls below the one before it.
 
     Parameters
     ----------
     values
-        Vector.
+        Values to test, in order.
 
     Returns
     -------
     bool
-        Whether 'values' is non-strictly increasing.
+        Whether ``values`` is nondecreasing.
     """
     return not np.any(np.diff(values) < 0)
 
 
 def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:
     """
-    Interpolate a per-year flow at a fractional age in years.
+    Interpolate a flow given per whole year of age at a fractional age.
 
     Parameters
     ----------
     yearly_flow
-        Flow values at whole years 0, 1, 2, ...
+        Flow at the ages 0, 1, 2, ... years.
     age
-        Query age in years; clamped to the flow's ends.
+        Age to interpolate at, in years; clamped to the flow's ends.
 
     Returns
     -------
     float
-        Flow value interpolated at the given age.
+        Flow interpolated at ``age``.
     """
-    time_flow = np.arange(0, yearly_flow.size) * YEAR
-    return np.interp(age * YEAR, time_flow, yearly_flow)
+    return np.interp(age, np.arange(yearly_flow.size), yearly_flow)
 
 
-def find_nearest(array: npt.ArrayLike, values: FloatArray) -> IntArray:
+def find_nearest(grid: FloatArray, queries: FloatArray) -> IntArray:
     """
-    Find the index of the entry in 'array' nearest to each of 'values'.
+    Find the index of the grid point nearest to each query.
 
     Reference: https://stackoverflow.com/questions/2566412/find-nearest-value-in-numpy-array
     Answer by "anthonybell".
 
     Parameters
     ----------
-    array
-        Values to search, assumed sorted ascending.
-    values
-        Query values.
+    grid
+        Points to search, sorted ascending.
+    queries
+        Values to find the nearest grid point of.
 
     Returns
     -------
     IntArray
-        Indexes of the nearest entries, one per query value.
+        Index of the nearest grid point, one per query; a tie goes to the higher.
     """
-    array = np.asarray(array)
+    last = len(grid) - 1
 
-    indices = np.searchsorted(array, values, side="left")
+    indices = np.searchsorted(grid, queries, side="left")
+    previous = grid[np.maximum(indices - 1, 0)]
+    current = grid[np.minimum(indices, last)]
 
-    # where the previous entry is closer, or the query fell past the end,
-    # step one index back; booleans subtract as 0/1
-    is_previous_closer = (indices == len(array)) | (
-        np.fabs(values - array[np.maximum(indices - 1, 0)])
-        < np.fabs(values - array[np.minimum(indices, len(array) - 1)])
-    )
-    indices -= is_previous_closer
-
-    return indices
+    is_past_end = indices > last
+    is_previous_closer = np.fabs(queries - previous) < np.fabs(queries - current)
+    return indices - (is_past_end | is_previous_closer)
 
 
-def find_nearest_index(array: npt.ArrayLike, value: float) -> int:
+def find_nearest_index(grid: FloatArray, query: float) -> int:
     """
-    Find the index of the entry in 'array' nearest to 'value'.
+    Find the index of the grid point nearest to the query.
 
-    Scalar counterpart of `find_nearest`.
+    Scalar counterpart of ``find_nearest``.
 
     Parameters
     ----------
-    array
-        Values to search, assumed sorted ascending.
-    value
-        Query value.
+    grid
+        Points to search, sorted ascending.
+    query
+        Value to find the nearest grid point of.
 
     Returns
     -------
     int
-        Index of the nearest entry.
+        Index of the nearest grid point.
     """
-    return int(find_nearest(array, np.array([value]))[0])
+    return int(find_nearest(grid, np.array([query]))[0])
+
+
+def derive_smoothing_alpha(idx: int, horizon: float, timeline: FloatArray) -> float:
+    """
+    Derive the exponential smoothing weight of a time step from a decision horizon.
+
+    A shorter horizon gives a larger alpha, a more responsive belief: with 1-year steps,
+    a 5-year horizon gives alpha ~ 0.17 and a 3-year horizon alpha ~ 0.25.
+
+    Parameters
+    ----------
+    idx
+        Current time-step index.
+    horizon
+        Characteristic decision horizon, in years.
+    timeline
+        Dates of the simulation, in days.
+
+    Returns
+    -------
+    float
+        Smoothing weight; 1.0, adopting the projection in full, at ``idx = 0``, which
+        has no preceding step.
+    """
+    if idx == 0:
+        return 1.0
+
+    dt: float = (timeline[idx] - timeline[idx - 1]) / YEAR
+    return 1.0 / (1.0 + horizon / dt)
 
 
 def update_belief_path(
     raw_path: FloatArray, belief: FloatArray, alpha: float, idx: int
 ) -> None:
     """
-    Calendar-date belief update for a single per-leg path.
+    Smooth a belief path towards the latest raw path, entry by calendar date.
 
-    Match is by calendar index, not look-ahead position, so a given future
-    year's belief evolves coherently as successive projections refine it. A
-    belief that has never been updated bootstraps to the raw path; every later
-    call blends the new projection with the prior, including a prior that is
-    exactly zero, so a price that appears after a stretch of zeros ramps up
-    from ``alpha * raw`` rather than being adopted in full.
+    Match is by calendar index, not look-ahead position, so a given future year's belief
+    evolves coherently as successive projections refine it. A belief that has never
+    been updated bootstraps to the raw path; every later call blends the new projection
+    with the prior, including a prior that is exactly zero, so a price that appears
+    after a stretch of zeros ramps up from ``alpha * raw`` rather than being adopted in
+    full.
 
-    Contract: NaN marks an entry never updated, so a caller allocates
-    ``belief`` NaN-filled and passes a ``raw_path`` without NaN. The rule is
-    per entry: a NaN entry of ``belief[idx:]`` adopts the raw value, any other
-    entry is smoothed. Updated at non-decreasing ``idx``, the forward slice is
-    all-NaN on the first call and free of NaN after it, so a partially NaN
-    slice does not arise; were it to, each entry would still bootstrap on its
-    first observation. Entries before the first call's ``idx`` are never
-    written and stay NaN.
+    A NaN entry of ``belief[idx:]`` adopts the raw value and any other entry is
+    smoothed, so a caller allocates ``belief`` NaN-filled and passes a ``raw_path``
+    without NaN.
 
     Parameters
     ----------
     raw_path
-        Raw forward path from the latest LP solve. Values at ``s < idx`` are
-        ignored.
+        Raw forward path from the latest LP solve; entries before ``idx`` are ignored.
     belief
-        Previous belief path, NaN where never updated. Same length as
-        ``raw_path``. Modified in place.
+        Previous belief path, NaN where never updated, the length of ``raw_path``;
+        updated in place.
     alpha
-        Smoothing weight. ``alpha = 1`` trusts the new projection fully;
-        ``alpha = 0`` ignores it entirely.
+        Smoothing weight: 1 adopts the raw path in full, 0 keeps the belief.
     idx
-        Current outer time-step index. Only ``s >= idx`` are updated.
+        Current time-step index; only entries from it onward are updated.
     """
     forward = np.s_[idx:]
-    belief_forward = belief[forward]
-    raw_forward = raw_path[forward]
+    raw = raw_path[forward]
+    prior = belief[forward]
 
-    # exponential smoothing blends the new projection with the prior belief;
-    # an entry with no prior (NaN) bootstraps to the raw value instead
-    smoothed = alpha * raw_forward + (1.0 - alpha) * belief_forward
-    belief[forward] = np.where(np.isnan(belief_forward), raw_forward, smoothed)
+    # exponential smoothing, where an entry with no prior (NaN) adopts the raw value
+    smoothed = alpha * raw + (1.0 - alpha) * prior
+    belief[forward] = np.where(np.isnan(prior), raw, smoothed)
 
 
-def derive_smoothing_alpha(
-    idx: int,
-    decision_horizon_years: float,
-    timeline: FloatArray,
-) -> float:
+def calculate_step_inertia(inertia: float, time_step: float) -> float:
     """
-    Derive the EMA smoothing parameter from the decision horizon.
-
-    Shorter horizons give a larger alpha (more responsive). A 5-year
-    horizon with 1-year steps gives alpha ~ 0.17; a 3-year horizon
-    with 1-year steps gives alpha ~ 0.25.
-
-    Parameters
-    ----------
-    idx
-        Current outer time-step index.
-    decision_horizon_years
-        Characteristic decision horizon, in years.
-    timeline
-        Simulation timeline in days.
-
-    Returns
-    -------
-    float
-        Smoothing parameter. 1.0 (the projection adopted in full) at
-        `idx = 0`, which has no preceding step, and for an index past the
-        end of the timeline.
-    """
-    horizon_idx = timeline.size - 1
-    if idx == 0 or idx > horizon_idx:
-        return 1.0
-
-    outer_step_years: float = (timeline[idx] - timeline[idx - 1]) / YEAR
-    if outer_step_years <= 0.0:
-        return 1.0
-
-    return 1.0 / (1.0 + decision_horizon_years / outer_step_years)
-
-
-def calculate_inertia(inertia: float, time_step: float) -> float:
-    """
-    Calculate the fraction of previous time-steps' value(s) that should be continued.
+    Calculate the fraction of a value continued over one time step.
 
     Parameters
     ----------
     inertia
-        Inertia, fraction/year.
+        Fraction of a value continued over a year, in fraction/year.
     time_step
-        Current time-step size, days.
+        Length of the time step, in days.
 
     Returns
     -------
     float
-        Fraction of previous time-steps value(s) that should be continued.
+        Fraction of the value continued over the time step.
     """
-    fraction: float = inertia ** (time_step / YEAR)
-    return fraction
+    return math.pow(inertia, time_step / YEAR)
 
 
 def calculate_compound_growth(
     initial: float, growth: FloatArray, timeline: FloatArray
 ) -> FloatArray:
     """
-    Calculate the continuous compound growth of a property.
+    Calculate a value compounding continuously at a yearly growth rate.
 
-    The formula assumes that the growth is forward-looking, meaning that the growth at
-    index t is applied over the time-step from t to t+1.
+    The growth at index t applies over the step from t to t+1.
 
     Parameters
     ----------
     initial
-        Initial value.
+        Value at the first date.
     growth
-        Instantaneous growth rate with values corresponding to the timeline,
-        fraction/year.
+        Growth rate at each date of the timeline, in fraction/year.
     timeline
-        Timeline of the simulation.
+        Dates of the simulation, in days.
 
     Returns
     -------
     FloatArray
-        Resulting compounded growth.
+        Value at each date of the timeline.
     """
-    continuous_growth = np.log(1.0 + growth)
-    compound_growth = np.cumsum(continuous_growth[:-1] * np.diff(timeline) / YEAR)
+    rates = np.log(1.0 + growth)
+    dt = np.diff(timeline) / YEAR
+    exponents = np.cumsum(rates[:-1] * dt)
 
     values = np.full_like(timeline, initial)
-    values[1:] *= np.exp(compound_growth)
+    values[1:] *= np.exp(exponents)
 
     return values

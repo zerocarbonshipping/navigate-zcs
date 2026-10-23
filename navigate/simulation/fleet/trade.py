@@ -29,7 +29,7 @@ from navigate.simulation.fleet.scrapping import perform_secondary_scrapping
 from navigate.simulation.fleet.technology_adoption import (
     reconcile_newbuild_technology_caps,
 )
-from navigate.util import TOLERANCE, YEAR, calculate_inertia
+from navigate.util import TOLERANCE, YEAR, calculate_step_inertia
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -71,7 +71,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     trade_gap -= delivered_capacity
 
     # inertia decays the current uptake shares before the modelled newbuilds read them
-    fleet.current_uptake *= calculate_inertia(fleet.inertia.get(), time_step)
+    fleet.current_uptake *= calculate_step_inertia(fleet.inertia.get(), time_step)
 
     if trade_gap > TOLERANCE:
         modelled, delivered_capacity = calculate_modelled_newbuilds(
