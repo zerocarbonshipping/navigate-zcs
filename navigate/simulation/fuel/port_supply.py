@@ -99,7 +99,7 @@ def _calculate_import_from_liquid_market(
 
     for port in ports.values():
         for f in fuels:
-            allowed = port.is_bunkering_allowed(f)
+            allowed = port.bunkering_allowed[f]
             limit = np.asarray(port.expectation.get_bunkering_limit(f, forward))
 
             bunker_price = _calculate_bunker_price(port, f, zeros, forward)
@@ -269,7 +269,7 @@ def _calculate_import_totals(
                 production_wtts[e] = expectation.get_expected_production_wtt(e, forward)
 
             for p, export in exports.items():
-                if not ports[p].is_bunkering_allowed(f):
+                if not ports[p].bunkering_allowed[f]:
                     continue
 
                 rerouted = export / shares[f]

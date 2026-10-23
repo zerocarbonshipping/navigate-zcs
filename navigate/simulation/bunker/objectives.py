@@ -41,7 +41,7 @@ def _update_bunker_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     for p, port in enumerate(vessel.route.ports):
         for f, fuel in vessel.usable_fuels.items():
-            if not port.is_bunkering_allowed(f):
+            if not port.bunkering_allowed[f]:
                 continue
 
             price = float(port.expectation.get_bunker_price(f, alg.idx))

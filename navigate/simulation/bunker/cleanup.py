@@ -63,20 +63,20 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
     for v, p, f in list(alg.bunker):
         port = alg.vessels[v].route.ports[p]
 
-        if not port.is_bunkering_allowed(f):
+        if not port.bunkering_allowed[f]:
             alg.model.remove_variable(alg.bunker.pop((v, p, f)))
 
     for v, port_name, f in list(alg.fuel_inertia):
         port = alg.ports[port_name]
 
-        if not port.is_bunkering_allowed(f):
+        if not port.bunkering_allowed[f]:
             alg.model.remove_constraint(alg.fuel_inertia.pop((v, port_name, f)))
 
     for v, port_name, f in list(alg.fair_share_fuel):
         port = alg.ports[port_name]
         supply = port.expectation.get_bunker_supply(f, alg.idx)
 
-        if not port.is_bunkering_allowed(f) or not np.isfinite(supply):
+        if not port.bunkering_allowed[f] or not np.isfinite(supply):
             alg.model.remove_constraint(alg.fair_share_fuel.pop((v, port_name, f)))
 
 
