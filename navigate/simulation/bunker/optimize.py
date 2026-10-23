@@ -61,9 +61,15 @@ def check_solution(alg: BunkerAlgorithm) -> None:
         alg.model.write(alg.output_directory / "bunkering_infeasible.lp")
 
         scope = "existing" if alg.scope == BunkerScopeID.EXISTING else "expected"
+        message = f"Optimal bunkering was infeasible for {scope} bunkering"
+
+        if iis:
+            raise InfeasibleLPError(
+                f"{message} due to the IIS limiting constraint: {', '.join(iis)}."
+            )
+
         raise InfeasibleLPError(
-            f"Optimal bunkering was infeasible for {scope} bunkering"
-            f" due to the IIS limiting constraint: {', '.join(iis)}."
+            f"{message}; the solver could not identify the limiting constraints."
         )
 
     reason = {

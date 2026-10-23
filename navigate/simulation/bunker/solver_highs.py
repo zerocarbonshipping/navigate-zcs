@@ -13,7 +13,13 @@ from typing import TYPE_CHECKING
 
 import highspy
 import numpy as np
-from highspy import HighsBasisStatus, HighsModelStatus
+from highspy import (
+    HighsBasisStatus,
+    HighsModelStatus,
+    HighsStatus,
+    IisStatus,
+    IisStrategy,
+)
 
 from navigate.core.enum_ import SolveStatusID
 from navigate.simulation.bunker.solver import Constraint, Variable
@@ -29,6 +35,10 @@ if TYPE_CHECKING:
 # iterations stable, simplex warm-starts cheaply from a saved basis
 _INTERIOR_POINT = {"solver": "ipm", "run_crossover": "on", "presolve": "on"}
 _SIMPLEX = {"solver": "simplex", "run_crossover": "off", "presolve": "off"}
+
+# the IIS and the simplex run before it can take minutes on a large model and only
+# delay the error message; a minute is long enough for the models that finish
+_IIS_SECONDS = 60.0
 
 
 class HighsModel:
@@ -53,13 +63,20 @@ class HighsModel:
         self._highs.setOptionValue("primal_feasibility_tolerance", tolerance)
         self._highs.setOptionValue("dual_feasibility_tolerance", tolerance)
 
+        # an IIS found from the LP itself and reduced to an irreducible set; the
+        # default light strategy returns no rows at all
+        iis_strategy = (
+            IisStrategy.kIisStrategyFromLp.value
+            | IisStrategy.kIisStrategyIrreducible.value
+        )
+        self._highs.setOptionValue("iis_strategy", iis_strategy)
+
+        self._highs.setOptionValue("iis_time_limit", _IIS_SECONDS)
+
         self._num_cols: int = 0
         self._row_senses: list[Sense] = []
         self._row_rhs: list[float] = []
         self._row_names: list[str] = []
-
-        # the rows neutralized by remove_constraint, excluded from the IIS fallback
-        self._removed_rows: set[Constraint] = set()
 
         # solution of the last solve
         self._col_values: FloatArray
@@ -160,7 +177,6 @@ class HighsModel:
 
         The row stays in place with infinite bounds, so it always holds.
         """
-        self._removed_rows.add(constraint)
         self._highs.changeRowBounds(constraint, -highspy.kHighsInf, highspy.kHighsInf)
         self._pending_row_bounds.pop(constraint, None)
 
@@ -236,16 +252,30 @@ class HighsModel:
         """
         Return the names of the constraints in an irreducible infeasible subset.
 
-        Where HiGHS cannot compute one, every constraint not removed counts as a
-        member.
+        The list is empty where HiGHS finds none, or finds an IIS it does not vouch
+        for: a status other than ok, an invalid IIS, or a row not known to be in
+        conflict, as after a time-out or on a badly scaled model.
         """
-        try:
-            _, iis = self._highs.getIis()
-            rows = set(iis.row_index_)
-        except Exception:
-            rows = set(range(len(self._row_names))) - self._removed_rows
+        # after an interior point run HiGHS only narrows the IIS down to candidate
+        # rows, a simplex run lets it prove the irreducible set
+        self._set_strategy(_SIMPLEX)
+        self._highs.setOptionValue("time_limit", _IIS_SECONDS)
+        self._highs.run()
+        self._highs.setOptionValue("time_limit", highspy.kHighsInf)
 
-        return [name for row, name in enumerate(self._row_names) if row in rows]
+        try:
+            status, iis = self._highs.getIis()
+        except Exception:
+            return []
+
+        if status != HighsStatus.kOk or not iis.valid_:
+            return []
+
+        rows = list(iis.row_index_)
+        if any(iis.row_status_[row] != IisStatus.kIisStatusInConflict for row in rows):
+            return []
+
+        return [self._row_names[row] for row in sorted(rows)]
 
     def write(self, path: Path) -> None:
         """Write the model to a file, in the format its extension names."""

@@ -73,7 +73,11 @@ class Model(Protocol):
         """Return the right-hand side of a constraint."""
 
     def compute_iis(self) -> list[str]:
-        """Return the names of the constraints in an irreducible infeasible subset."""
+        """
+        Return the names of the constraints in an irreducible infeasible subset.
+
+        The list is empty where the solver identifies none.
+        """
 
     def write(self, path: Path) -> None:
         """Write the model to a file, in the format its extension names."""

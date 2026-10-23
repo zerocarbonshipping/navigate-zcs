@@ -574,6 +574,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   now reports its own plant capital (#588).
 - The editor grammars in `syntax/` no longer highlight `Array`, which is not a
   DSL keyword (#614).
+- An infeasible bunkering problem on HiGHS now names its limiting constraints,
+  or says they could not be identified, instead of listing none (#465).
 
 ## [1.0.0] - 2026-07-16
 
