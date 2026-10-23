@@ -57,20 +57,17 @@ class Surface(Node, _Table2D):
         self._temporary_table = None
 
     def check_consistency(self) -> None:
-        if self.extrapolate == ExtrapolateID.FLAT:
-            if self._outside is None:
-                raise ValueError(
-                    f"{self}: 'Outside' must be defined when 'Extrapolate' is set to"
-                    " FLAT."
-                )
+        if self.extrapolate == ExtrapolateID.FLAT and self._outside is None:
+            raise ValueError(
+                f"{self}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
+            )
 
-        else:
-            if self._outside is not None:
-                logger.warning(
-                    "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
-                    " to LINEAR.",
-                    self,
-                )
+        if self.extrapolate != ExtrapolateID.FLAT and self._outside is not None:
+            logger.warning(
+                "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
+                " to LINEAR.",
+                self,
+            )
 
     def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike:
         """
