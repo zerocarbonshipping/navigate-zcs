@@ -4,15 +4,8 @@
 """
 Write the full results of a run to one Parquet file.
 
-The file holds every result of the global results and of each node's results, one
-row per series and date, and nothing but the results: the metadata only says
-which schema, Navigate version and deck wrote it, the unit of each result, and
-the run's fuel and emission constants the results were converted with.
-Values are written as 32-bit floats, as the results hold them except that the
-counts a result keeps per time step are written per year, as their units say,
-and a value that is not set or not finite is written missing. Lantern reads it;
-any Parquet reader can. The layout is described in
-docs/reference_manual/results_file.md and versioned by SCHEMA_VERSION.
+The layout is described in docs/reference_manual/results_file.md and versioned by
+SCHEMA_VERSION.
 """
 
 from __future__ import annotations
@@ -93,12 +86,13 @@ def write_results(results: SimulationResults, path: Path, deck_name: str) -> Pat
     table = results_table(results, deck_name)
 
     path.parent.mkdir(parents=True, exist_ok=True)
+
+    # the labels and dates repeat a few values; the floats are stored byte
+    # plane by byte plane, which zstd packs far tighter than whole floats
     pq.write_table(
         table,
         path,
         compression="zstd",
-        # the labels and dates repeat a few values; the floats are stored byte
-        # plane by byte plane, which zstd packs far tighter than whole floats
         use_dictionary=[*LABELS, "date"],
         column_encoding={"value": "BYTE_STREAM_SPLIT"},
     )
@@ -125,31 +119,25 @@ def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
         One row per series and date, in SCHEMA.
     """
     days = results.dateline.astype("datetime64[D]")
-    dates = pa.array(days, type=pa.date32())
-    series = list(_series(results, step_lengths(dates_to_years(results.dateline))))
-    steps = len(dates)
+    step_years = step_lengths(dates_to_years(results.dateline))
+    series = list(_series(results, step_years))
 
-    columns = {
-        name: np.repeat(
-            np.array([getattr(s, name) for s in series], dtype=object), steps
-        )
-        for name in LABELS
-    }
-    columns |= {
-        "date": pa.concat_arrays([dates] * len(series)) if series else dates[:0],
-        "value": pa.array(
-            np.concatenate([s.values for s in series]).astype(np.float32)
-            if series
-            else [],
-            type=pa.float32(),
-            from_pandas=True,  # NaN is written missing
-        ),
-    }
+    columns: dict[str, Any] = {}
+
+    for name in LABELS:
+        labels = np.array([getattr(entry, name) for entry in series], dtype=object)
+        columns[name] = np.repeat(labels, len(days))
+
+    columns["date"] = pa.array(np.tile(days, len(series)), type=pa.date32())
+
+    # NaN is written missing
+    values = np.array([entry.values for entry in series], dtype=np.float32).ravel()
+    columns["value"] = pa.array(values, type=pa.float32(), from_pandas=True)
+
+    metadata = json.dumps(_metadata(results, deck_name)).encode()
     table = pa.table(columns, schema=SCHEMA)
 
-    return table.replace_schema_metadata(
-        {METADATA_KEY: json.dumps(_metadata(results, deck_name)).encode()}
-    )
+    return table.replace_schema_metadata({METADATA_KEY: metadata})
 
 
 def _results_by_node(
@@ -207,7 +195,7 @@ def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Seri
                 floats = np.where(np.isinf(floats), np.nan, floats)
 
                 # a series negligible or missing throughout carries no result
-                if not np.any(np.abs(np.nan_to_num(floats)) >= TOLERANCE):
+                if not np.any(np.abs(floats) >= TOLERANCE):
                     continue
 
                 key1, key2 = key if isinstance(key, tuple) else (key, None)
@@ -253,6 +241,8 @@ def _metadata(results: SimulationResults, deck_name: str) -> dict[str, Any]:
     dict[str, Any]
         JSON-serializable metadata.
     """
+    plants = results.nodes.plants.values()
+
     return {
         "schema_version": SCHEMA_VERSION,
         "navigate_version": _navigate_version(),
@@ -260,9 +250,7 @@ def _metadata(results: SimulationResults, deck_name: str) -> dict[str, Any]:
         "created": datetime.now(UTC).isoformat(timespec="seconds"),
         "units": _units(results),
         "constants": _constants(results),
-        "plant_fuel": {
-            plant.name: plant.fuel.name for plant in results.nodes.plants.values()
-        },
+        "plant_fuel": {plant.name: plant.fuel.name for plant in plants},
     }
 
 
@@ -279,16 +267,14 @@ def _units(results: SimulationResults) -> dict[str, str]:
 def _constants(results: SimulationResults) -> dict[str, Any]:
     """Give the fuel and emission constants the run converted its results with."""
     context = results.global_results.context
+    definition = results.general_nodes.model_definition
 
     return {
         "lower_heating_value": context.lower_heating_value,
-        "fuel_type": {
-            fuel_name: fuel_type.name
-            for fuel_name, fuel_type in context.fuel_type.items()
-        },
+        "fuel_type": {key: value.name for key, value in context.fuel_type.items()},
         "liquid_market_fuels": sorted(context.liquid_market_fuels),
         "global_warming_potential": context.global_warming_potential,
-        "emissions_lifetime": results.general_nodes.model_definition.emissions_lifetime,
+        "emissions_lifetime": definition.emissions_lifetime,
     }
 
 
