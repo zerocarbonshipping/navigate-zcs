@@ -76,7 +76,8 @@ class Levy(_Policy):
 
     # internal methods -----------------------------------------------------------------
     def initialize_expectation(self, length: int) -> None:
-        self.expectation.initialize(length, [e.name for e in self.emissions])
+        emission_names = [emission.name for emission in self.emissions]
+        self.expectation.initialize(length, emission_names)
 
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)
@@ -84,10 +85,8 @@ class Levy(_Policy):
     def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
         super().check_dynamic_consistency(times, dates)
 
-        # nothing to compare without an UpperThreshold; an inactive levy is
-        # checked once an event activates it, over timeline[idx:] from that
-        # step; a SUBSIDY scheme never reads upper_threshold in the levy
-        # coefficient
+        # SUBSIDY never reads the upper threshold, and an inactive levy is
+        # checked from the step an event activates it
         if self.upper_threshold is None:
             return
         if not self.active:
@@ -98,9 +97,10 @@ class Levy(_Policy):
         lower = self.lower_threshold.get(times)
         upper = self.upper_threshold.get(times)
         crossed = np.flatnonzero(upper < lower)
+
         if crossed.size:
-            i = crossed[0]
+            date = dates[crossed[0]]
             raise ValueError(
                 f"{self}: 'UpperThreshold' must be >= 'LowerThreshold' at every "
-                f"time step, but is below it at {dates[i]}."
+                f"time step, but is below it at {date}."
             )

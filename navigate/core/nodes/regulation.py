@@ -184,7 +184,7 @@ class Regulation(_Policy):
     def initialize_expectation(
         self, length: int, routes: dict[str, Route], vessels: dict[str, Vessel]
     ) -> None:
-        emission_names = [e.name for e in self.emissions]
+        emission_names = [emission.name for emission in self.emissions]
         self.expectation.initialize(length, emission_names, routes, vessels)
 
     def initialize_results(
