@@ -415,7 +415,7 @@ def _calculate_levy_wtt(
             key = (fuel.name, emission.name)
 
             for port in levy.jurisdiction:
-                if not port.is_bunkering_allowed(fuel.name):
+                if not port.bunkering_allowed[fuel.name]:
                     continue
 
                 wtt = supplied[key]
@@ -507,7 +507,7 @@ def _calculate_levy_costs(
             lhv = vessel.expectation.get_mean_effective_lhv(fuel.name)
 
             for port in ports:
-                if not port.is_bunkering_allowed(fuel.name):
+                if not port.bunkering_allowed[fuel.name]:
                     continue
 
                 key = (vessel_name, port.name, fuel.name)
@@ -645,7 +645,7 @@ def _average_wtt_over_route(
     """
     estimates: list[FloatLike] = []
     for port in ports:
-        if not port.is_bunkering_allowed(fuel.name):
+        if not port.bunkering_allowed[fuel.name]:
             continue
 
         estimate = _estimate_port_wtt(port, fuel, emission, plants, idx)

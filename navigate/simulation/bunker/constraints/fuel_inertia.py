@@ -63,7 +63,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
 
     for f in vessel.usable_fuels:
         for p, port in enumerate(vessel.route.ports):
-            if not port.is_bunkering_allowed(f):
+            if not port.bunkering_allowed[f]:
                 continue
 
             key = (v, port.name, f)

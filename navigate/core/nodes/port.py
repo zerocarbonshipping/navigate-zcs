@@ -47,7 +47,7 @@ class Port(Node):
         # fuel handling
         self.handling_cost: dict[str, ForecastInput] = {}
 
-        # bunker overwrite
+        # bunker overwrites
         self.bunker_price_overwrite: dict[str, ForecastInput | None] = {}
         self.bunker_wtt_overwrite: dict[tuple[str, str], ForecastInput | None] = {}
 
@@ -62,6 +62,26 @@ class Port(Node):
 
         self.liquid_market_fuel: dict[str, bool] = {}
         self.imposed_levies: list[Levy]
+
+    # external methods (DSL attributes) ------------------------------------------------
+    @deck_attribute()
+    def set_shore_power_cost(self, shore_power_cost: ForecastArgument) -> None:
+        """Set the shore power electricity tariff of the port."""
+        self.shore_power_cost = assign_value(
+            as_scalar(shore_power_cost), type_=(FORECAST, VARIABLE), lower=0.0
+        )
+
+    @deck_attribute()
+    def set_shore_power_connection_share(
+        self, shore_power_connection_share: ForecastArgument
+    ) -> None:
+        """Set the fraction of port time with a shore power connection."""
+        self.shore_power_connection_share = assign_value(
+            as_scalar(shore_power_connection_share),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
@@ -125,20 +145,6 @@ class Port(Node):
             self.bunker_wtt_overwrite,
         )
 
-    @deck_attribute()
-    def set_shore_power_cost(self, value: ForecastArgument) -> None:
-        """Set the shore power electricity tariff of the port."""
-        self.shore_power_cost = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
-        )
-
-    @deck_attribute()
-    def set_shore_power_connection_share(self, value: ForecastArgument) -> None:
-        """Set the fraction of port time with a shore power connection."""
-        self.shore_power_connection_share = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
-        )
-
     @deck_command()
     def set_shore_power_emission_factor(
         self, emission_name: str, value: ForecastArgument
@@ -176,13 +182,14 @@ class Port(Node):
         fuels
             All fuels in the simulation.
         """
+        # a None limit is unlimited, a None overwrite selects the bottom-up calculation
         for fuel_name in fuels:
             self.bunkering_allowed.setdefault(fuel_name, True)
-            # stays None when unset: PortExpectation reads a missing limit as unlimited
             self.bunkering_limit.setdefault(fuel_name, None)
             self.bunkering_inertia.setdefault(fuel_name, Scalar(0.0))
 
             self.handling_cost.setdefault(fuel_name, Scalar(0.0))
+
             self.bunker_price_overwrite.setdefault(fuel_name, None)
 
             for emission_name in emissions:
@@ -199,24 +206,7 @@ class Port(Node):
     def initialize_expectation(
         self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
     ) -> None:
-
         self.expectation.initialize(length, fuels, emissions)
 
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)
-
-    def is_bunkering_allowed(self, fuel_name: str) -> bool:
-        """
-        Return whether fuel can be bunkered at this port in the current time-step.
-
-        Parameters
-        ----------
-        fuel_name
-            Name of fuel.
-
-        Returns
-        -------
-        bool
-            Whether fuel can be bunkered at the current time-step
-        """
-        return self.bunkering_allowed[fuel_name]

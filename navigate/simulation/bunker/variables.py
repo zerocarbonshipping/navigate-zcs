@@ -33,7 +33,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     for p, port in enumerate(route.ports):
         for f in vessel.usable_fuels:
-            if port.is_bunkering_allowed(f):
+            if port.bunkering_allowed[f]:
                 add_variable(alg, alg.bunker, (v, p, f), "bunker")
 
     for c, fuels in fuels_per_converter.items():

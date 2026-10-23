@@ -42,7 +42,7 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
 
     for p, port in enumerate(vessel.route.ports):
         for f in vessel.usable_fuels:
-            if not port.is_bunkering_allowed(f):
+            if not port.bunkering_allowed[f]:
                 continue
 
             supply = np.float64(port.expectation.get_bunker_supply(f, alg.idx))
