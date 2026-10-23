@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Wrapping of a deck value so a plain number and a calculator node read alike."""
+"""Wrapping of deck values for storage, and evaluation of calculators into numbers."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def as_scalar(
     value: float | Calculator | Expression,
 ) -> Scalar | Calculator | Expression:
     """
-    Wrap a value in a Scalar class if it is a float, otherwise return the value as is.
+    Wrap a float deck value in a Scalar, and return anything else as is.
 
     The wrapping is necessary as Scalar provides a getter which takes two
     arguments, similar to all calculator nodes. The parser hands deck values
@@ -61,12 +61,12 @@ def as_list[T](value: T | list[T]) -> list[T]:
     Parameters
     ----------
     value
-        Value that may or may not already be a list.
+        A deck value, bare or a list.
 
     Returns
     -------
     list[T]
-        A list containing the passed value or simply the value itself if already a list.
+        The value in a list, or the list as is.
     """
     if isinstance(value, list):
         return value
@@ -74,26 +74,21 @@ def as_list[T](value: T | list[T]) -> list[T]:
     return [value]
 
 
-def to_numpy(scalars: Iterable[float | ForecastInput]) -> FloatArray:
+def to_numpy(calculators: Iterable[ForecastInput]) -> FloatArray:
     """
-    Evaluate a collection of floats and/or calculators into a numpy array.
+    Evaluate a collection of calculators into a numpy array.
 
     Parameters
     ----------
-    scalars
-        Floats and/or calculator nodes to evaluate.
+    calculators
+        Calculator nodes to evaluate.
 
     Returns
     -------
     FloatArray
         Evaluated values.
     """
-    return np.array(
-        [
-            scalar if isinstance(scalar, float) else scalar.get(None, None)
-            for scalar in scalars
-        ]
-    )
+    return np.array([calculator.get(None, None) for calculator in calculators])
 
 
 def to_floats[K](calculators: Mapping[K, ForecastInput]) -> dict[K, float]:
