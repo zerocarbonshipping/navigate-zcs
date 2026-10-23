@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Wildcard matching and mapping of deck-facing attribute tokens to method names."""
+"""Wildcard matching of keys and conversion of deck attribute tokens to Python names."""
 
 from __future__ import annotations
 
@@ -50,11 +50,11 @@ def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> lis
         raise KeyError(key)
 
     # a string pattern only matches string keys
-    keys: list[K] = [
-        allowed_key
-        for allowed_key in allowed_keys
-        if isinstance(allowed_key, str) and fnmatchcase(str(allowed_key), str(key))
-    ]
+    keys: list[K] = []
+
+    for allowed_key in allowed_keys:
+        if isinstance(allowed_key, str) and fnmatchcase(str(allowed_key), str(key)):
+            keys.append(allowed_key)
 
     if not keys:
         raise KeyError(key)
@@ -87,6 +87,31 @@ def matching_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> lis
         return []
 
 
+def name_contains_wildcards(name: str) -> bool:
+    """
+    Test whether a node name includes wildcard characters.
+
+    A name is a pattern when it holds ``*`` (any run of characters) or ``?`` (any one
+    character); ``fnmatch`` then also reads ``[...]`` as one character of a set.
+
+    Examples
+    --------
+    - Na*
+    - Na?e
+
+    Parameters
+    ----------
+    name
+        Name used to access a specific node.
+
+    Returns
+    -------
+    bool
+        Whether the name includes wildcards.
+    """
+    return "*" in name or "?" in name
+
+
 def key_name(key: str | Enum) -> str:
     """
     Name a dictionary key the way a deck writes it.
@@ -107,38 +132,46 @@ def key_name(key: str | Enum) -> str:
     return key.name if isinstance(key, Enum) else key
 
 
-def attribute_to_setter(attribute: str, method: str = "set") -> str:
+def attribute_to_instance_name(attribute: str) -> str:
     """
-    Convert a Parser-read attribute name to a setter method name.
+    Convert a DSL attribute name to its snake_case instance-attribute name.
 
-    The attribute is read from the input deck in format:
-        AbcdEfgh
-    and converted to internal setter method format:
-        <method>_abcd_efgh
-
-    Only capitalized words are kept: any character outside an [A-Z][a-z]* run
-    is dropped.
-
-    Examples
-    --------
-    - Extrapolate
-    - LowerHeatingValue
+    E.g. 'LowerHeatingValue' becomes 'lower_heating_value', matching what its setter
+    assigns. Only capitalized words are kept: any character outside an [A-Z][a-z]*
+    run is dropped.
 
     Parameters
     ----------
     attribute
         String read as the left-hand side of an assignment statement in the input deck.
-    method
-        Prefix to the function, usually either 'set' or 'get'.
 
     Returns
     -------
     str
-        String which can be used to call a setter method of a Class using 'getattr()'.
+        The corresponding instance-attribute name.
     """
-    return method + "".join(
-        "_" + word.lower() for word in re.findall(r"[A-Z][a-z]*", attribute)
-    )
+    words = re.findall(r"[A-Z][a-z]*", attribute)
+    return "_".join(word.lower() for word in words)
+
+
+def attribute_to_setter(attribute: str) -> str:
+    """
+    Convert a deck attribute name to the name of the setter that takes it.
+
+    The setter's name is the instance name with ``set_`` before it:
+    ``LowerHeatingValue`` is ``set_lower_heating_value``.
+
+    Parameters
+    ----------
+    attribute
+        The attribute name as a deck writes it.
+
+    Returns
+    -------
+    str
+        The setter method name.
+    """
+    return f"set_{attribute_to_instance_name(attribute)}"
 
 
 def setter_to_attribute(setter: str) -> str:
@@ -159,48 +192,3 @@ def setter_to_attribute(setter: str) -> str:
         The attribute name as a deck writes it.
     """
     return "".join(word.capitalize() for word in setter.removeprefix("set_").split("_"))
-
-
-def attribute_to_instance_name(attribute: str) -> str:
-    """
-    Convert a DSL attribute name to its snake_case instance-attribute name.
-
-    E.g. 'LowerHeatingValue' becomes 'lower_heating_value', matching what its setter
-    assigns.
-
-    Parameters
-    ----------
-    attribute
-        String read as the left-hand side of an assignment statement in the input deck.
-
-    Returns
-    -------
-    str
-        The corresponding instance-attribute name.
-    """
-    return attribute_to_setter(attribute, method="")[1:]
-
-
-def name_contains_wildcards(name: str) -> bool:
-    """
-    Test whether a node name includes wildcard characters.
-
-    The glob is matched with ``fnmatch``: ``*`` matches any run of characters,
-    ``?`` any one character, and ``[...]`` one character of a set.
-
-    Examples
-    --------
-    - Na*
-    - Na?e
-
-    Parameters
-    ----------
-    name
-        Name used to access a specific node.
-
-    Returns
-    -------
-    bool
-        Whether the name includes wildcards.
-    """
-    return any(wildcard in name for wildcard in ("*", "?"))
