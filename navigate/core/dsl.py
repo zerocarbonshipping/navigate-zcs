@@ -35,15 +35,14 @@ SECTION_BOTH: AllowedSections = (SectionID.DEFINE, SectionID.EVENTS)
 class DeckEntry:
     """What a deck may do with one attribute or command."""
 
-    # the sections a deck may use it in
     sections: AllowedSections
-    # whether every deck must assign it; always False for a command
     required: bool = False
 
 
-# the marked functions, keyed by the function object itself
-_ATTRIBUTE_MARKS: dict[object, DeckEntry] = {}
-_COMMAND_MARKS: dict[object, DeckEntry] = {}
+type DeckEntries = dict[str, DeckEntry]
+
+_ATTRIBUTE_MARKS: dict[Callable[..., None], DeckEntry] = {}
+_COMMAND_MARKS: dict[Callable[..., None], DeckEntry] = {}
 
 
 def deck_attribute[F: Callable[..., None]](
@@ -108,9 +107,7 @@ def required_attributes(entries: Mapping[str, DeckEntry]) -> tuple[str, ...]:
     return tuple(name for name, entry in entries.items() if entry.required)
 
 
-def collect_deck_entries(
-    cls: type,
-) -> tuple[dict[str, DeckEntry], dict[str, DeckEntry]]:
+def collect_deck_entries(cls: type) -> tuple[DeckEntries, DeckEntries]:
     """
     Gather the marked setters and commands of a class and its bases.
 
@@ -121,26 +118,22 @@ def collect_deck_entries(
 
     Returns
     -------
-    dict[str, DeckEntry]
+    DeckEntries
         The attributes, by deck name, in definition order from the base down.
-    dict[str, DeckEntry]
+    DeckEntries
         The commands, by name.
     """
-    attributes: dict[str, DeckEntry] = {}
-    commands: dict[str, DeckEntry] = {}
+    attributes: DeckEntries = {}
+    commands: DeckEntries = {}
 
     for base in reversed(cls.__mro__):
         for name, member in vars(base).items():
             if not isinstance(member, FunctionType):
                 continue
 
-            entry = _ATTRIBUTE_MARKS.get(member)
-            if entry is not None:
-                attributes[setter_to_attribute(name)] = entry
-                continue
-
-            entry = _COMMAND_MARKS.get(member)
-            if entry is not None:
-                commands[name] = entry
+            if member in _ATTRIBUTE_MARKS:
+                attributes[setter_to_attribute(name)] = _ATTRIBUTE_MARKS[member]
+            elif member in _COMMAND_MARKS:
+                commands[name] = _COMMAND_MARKS[member]
 
     return attributes, commands
