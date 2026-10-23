@@ -407,7 +407,7 @@ class Route(Node):
         """Raise where an expression on a leg references a Curve it cannot read."""
         # an expression is evaluated without an input, as one value per leg, so a
         # Curve it references has no speed to be read at
-        if any(isinstance(node, Curve) for node in expression.calculators):
+        if any(isinstance(node, Curve) for node in expression.calculators.values()):
             raise ValueError(
                 f"{self}: The expression <{expression}> given to '{command}' on the"
                 f" leg {_name_leg(key)} references a Curve, but an expression is"
