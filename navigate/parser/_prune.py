@@ -38,7 +38,7 @@ from navigate.parser._collect import Origin, matching
 from navigate.parser._lark_parser import Assignment, item_references
 
 if TYPE_CHECKING:
-    from navigate.parser._collect import Collector, EventBlock, Key
+    from navigate.parser._collect import Collector, Declaration, EventBlock, Key
     from navigate.parser._lark_parser import BodyItem
     from navigate.parser._resolve import BoundEvent
 
@@ -47,9 +47,7 @@ logger = logging.getLogger(__name__)
 ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
 
 # the (node type, deck attribute) pairs whose references keep nothing alive
-NON_ACTIVATING: frozenset[tuple[str, str]] = frozenset(
-    {(LEVY, "Jurisdiction"), (REGULATION, "Jurisdiction")}
-)
+NON_ACTIVATING = frozenset({(LEVY, "Jurisdiction"), (REGULATION, "Jurisdiction")})
 
 
 @dataclass
@@ -62,22 +60,8 @@ class Pruning:
     events: list[BoundEvent]
 
 
-def is_activating(node_type: str, item: BodyItem) -> bool:
-    """
-    Whether the references an item holds make their targets part of the simulation.
-
-    Parameters
-    ----------
-    node_type
-        The type of the node the item is written on.
-    item
-        The assignment or command.
-
-    Returns
-    -------
-    bool
-        False only for an assignment to a NON_ACTIVATING attribute.
-    """
+def _is_activating(node_type: str, item: BodyItem) -> bool:
+    """Whether the references of an item make their targets part of the simulation."""
     if isinstance(item, Assignment):
         return (node_type, item.attribute) not in NON_ACTIVATING
 
@@ -107,60 +91,72 @@ def prune(collector: Collector, events: list[BoundEvent]) -> Pruning:
         If a reached node references a name the deck and the library lack.
     """
     reached = _reach(collector, events)
-
-    unreached = [key for key in collector.declarations if key not in reached]
-    _warn_unused(collector, unreached)
-
     kept = [key for key in collector.declarations if key in reached]
-    return Pruning(kept, _keep_events(events, reached))
+
+    _warn_unused(collector.declarations, reached)
+    kept_events = _keep_events(events, reached)
+
+    return Pruning(kept, kept_events)
 
 
 def _reach(collector: Collector, events: list[BoundEvent]) -> set[Key]:
     """Walk the references from the top-level nodes; return the declarations reached."""
-    events_of: dict[Key, list[EventBlock]] = {}
+    declarations = collector.declarations
+
+    blocks_of: dict[Key, list[EventBlock]] = {}
     for block, targets in events:
         for key in targets:
-            events_of.setdefault(key, []).append(block)
+            blocks_of.setdefault(key, []).append(block)
 
-    reached: set[Key] = {key for key in collector.declarations if key[0] in ROOT_TYPES}
+    reached = {key for key in declarations if key[0] in ROOT_TYPES}
     frontier = list(reached)
 
     while frontier:
         key = frontier.pop()
-        declaration = collector.declarations[key]
 
-        items = [(key[0], item) for item in declaration.effective_body()]
-        for block in events_of.get(key, []):
-            items.extend((block.node_type, item) for item in block.body)
+        items = declarations[key].effective_body()
+        for block in blocks_of.get(key, []):
+            items.extend(block.body)
 
-        for node_type, item in items:
-            if not is_activating(node_type, item):
-                continue
-
-            for reference, _ in item_references(item):
-                targets = matching(
-                    collector.declarations, reference.type, reference.name
-                )
-                if not targets and not reference.is_wildcard:
-                    raise collector.library.missing_default(
-                        reference.type, reference.name, item.source
-                    )
-
-                for target in targets:
-                    if target not in reached:
-                        reached.add(target)
-                        frontier.append(target)
+        for target in _referenced(collector, key[0], items):
+            if target not in reached:
+                reached.add(target)
+                frontier.append(target)
 
     return reached
 
 
-def _warn_unused(collector: Collector, unreached: list[Key]) -> None:
-    unused = [
-        collector.declarations[key]
-        for key in unreached
-        if collector.declarations[key].origin is Origin.DECK
-        and not collector.declarations[key].copied
-    ]
+def _referenced(
+    collector: Collector, node_type: str, items: list[BodyItem]
+) -> list[Key]:
+    """Return the declarations the items of a node make part of the simulation."""
+    library = collector.library
+    declarations = collector.declarations
+    referenced: list[Key] = []
+
+    for item in items:
+        if not _is_activating(node_type, item):
+            continue
+
+        for reference, _ in item_references(item):
+            kind, name = reference.type, reference.name
+
+            targets = matching(declarations, kind, name)
+            if not targets and not reference.is_wildcard:
+                raise library.missing_default(kind, name, item.source)
+
+            referenced.extend(targets)
+
+    return referenced
+
+
+def _warn_unused(declarations: dict[Key, Declaration], reached: set[Key]) -> None:
+    unused: list[Declaration] = []
+
+    for key, declaration in declarations.items():
+        is_own = declaration.origin is Origin.DECK and not declaration.copied
+        if is_own and key not in reached:
+            unused.append(declaration)
 
     if not unused:
         return
