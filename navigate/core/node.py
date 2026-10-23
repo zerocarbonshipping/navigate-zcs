@@ -44,15 +44,6 @@ class Node:
         """Re-fill what a re-read of the deck can invalidate."""
         self.apply_command_defaults()
 
-    def check_requirements(self) -> None:
-        """
-        Raise where an attribute the node cannot run without is unassigned.
-
-        Holds what the required-attribute mark cannot say: an empty list, or an
-        attribute required only under another. Run by the validate sweep of
-        `core/lifecycle.py` after the defaults, after DEFINE and after every event.
-        """
-
     def apply_defaults(self) -> None:
         """
         Fill values whose default is derived from another attribute.
@@ -66,11 +57,20 @@ class Node:
         """
         Fill and resolve the dictionaries the DSL commands write.
 
-        Fills the entries 'initialize_dependencies' cannot seed with their
+        Fills the entries `initialize_dependencies` cannot seed with their
         default, such as the keys a command creates, and resolves the
-        dictionaries into whatever internal form the node reads them through. Runs after
-        the DEFINE block and again after every event read, because a
-        SECTION_BOTH command can create a key mid-run.
+        dictionaries into whatever internal form the node reads them
+        through. Runs after the DEFINE block and again after every event
+        read, because a SECTION_BOTH command can create a key mid-run.
+        """
+
+    def check_requirements(self) -> None:
+        """
+        Raise where an attribute the node cannot run without is unassigned.
+
+        Holds what the required-attribute mark cannot say: an empty list, or an
+        attribute required only under another. Run by the validate sweep of
+        `core/lifecycle.py` after the defaults, after DEFINE and after every event.
         """
 
     def check_consistency(self) -> None:
@@ -99,19 +99,3 @@ class Node:
         dates
             Dates matching `times`, one per element.
         """
-
-    def is_type(self, type_: str) -> bool:
-        """
-        Check whether the node was declared with the given DSL node-type keyword.
-
-        Parameters
-        ----------
-        type_
-            Node-type name to compare the type tag against.
-
-        Returns
-        -------
-        bool
-            True if the node carries that type.
-        """
-        return self.type == type_

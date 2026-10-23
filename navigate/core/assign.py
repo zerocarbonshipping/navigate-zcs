@@ -703,7 +703,7 @@ def _accepts_reference(node: Node, type_: AcceptedNodeTypes | None) -> bool:
     if isinstance(type_, tuple):
         return node.type in type_
 
-    return node.is_type(type_)
+    return node.type == type_
 
 
 def _failed_value_message(
