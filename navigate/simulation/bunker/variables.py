@@ -44,7 +44,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     # only the converters serving port energy demands spend in port
     for c in get_port_converters(vessel):
         for f in fuels_per_converter[c]:
-            for p in range(route.get_number_of_ports()):
+            for p in range(len(route.ports)):
                 add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
 
     for p in route.get_tank_stops():

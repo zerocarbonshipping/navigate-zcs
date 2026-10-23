@@ -43,7 +43,7 @@ def update_bunkered_equals_spent_constraints(
     model = alg.model
 
     legs = route.get_legs()
-    stops = range(route.get_number_of_ports())
+    stops = range(len(route.ports))
     port_converters = get_port_converters(vessel)
 
     for f, converters in vessel.converters_per_fuel.items():

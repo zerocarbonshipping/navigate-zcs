@@ -43,7 +43,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     port_converters = get_port_converters(vessel)
 
     legs = route.get_legs()
-    stops = range(route.get_number_of_ports())
+    stops = range(len(route.ports))
 
     for c, converter in get_converters(vessel).items():
         if not converter.is_dual_fuel():
