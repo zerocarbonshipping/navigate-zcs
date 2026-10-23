@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The Emission node: a species emitted by fuel use, weighted into CO2 equivalents."""
+"""Define the Emission node, an emitted species weighted into CO2 equivalents."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 class Emission(Node):
-    """An emitted species and the global warming potential it is weighted by."""
+    """A species, its global warming potential and the fuel type whose slip emits it."""
 
     type = EMISSION
 
