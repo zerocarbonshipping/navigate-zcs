@@ -5,7 +5,7 @@
 Collect which node properties to export at the end of a simulation.
 
 navigate.output.report_writer.write_report writes the Excel/CSV files from the
-SimulationResults of a finished run. The Report node is not assigned on any other node.
+SimulationResults of a finished run. No other node refers to the Report node.
 A property token must name a result of the results class of the nodes the command
 reports on; each command checks its token as it runs.
 """
@@ -97,12 +97,12 @@ class Report(Node):
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
     def set_directory(self, directory: str) -> None:
-        """Set the directory for where to export the report."""
+        """Set the directory to export the report to."""
         self.directory = directory
 
     @deck_attribute(SECTION_DEFINE)
     def set_file_format(self, file_format: str) -> None:
-        """Set the file format for report export."""
+        """Set the file format to export the report in."""
         self.file_format = assign_id(file_format, FileFormatID)
 
     # external methods (DSL commands) --------------------------------------------------
@@ -110,14 +110,14 @@ class Report(Node):
     def add_property(
         self,
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str = "NONE",
+        accumulate: str = "NONE",
     ) -> None:
         """Record a global property to export."""
         self._add_property(
             "add_property",
-            GLOBAL_RESULTS_KEY,
             self.global_reports,
+            GLOBAL_RESULTS_KEY,
             attribute,
             reduce,
             accumulate,
@@ -128,14 +128,14 @@ class Report(Node):
         self,
         fleet_name: str,
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str = "NONE",
+        accumulate: str = "NONE",
     ) -> None:
         """Record a property of one or more fleets to export."""
         self._add_property(
             "add_fleet_property",
-            fleet_name,
             self.fleet_reports,
+            fleet_name,
             attribute,
             reduce,
             accumulate,
@@ -146,14 +146,14 @@ class Report(Node):
         self,
         levy_name: str,
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str = "NONE",
+        accumulate: str = "NONE",
     ) -> None:
         """Record a property of one or more levies to export."""
         self._add_property(
             "add_levy_property",
-            levy_name,
             self.levy_reports,
+            levy_name,
             attribute,
             reduce,
             accumulate,
@@ -164,14 +164,14 @@ class Report(Node):
         self,
         plant_name: str,
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str = "NONE",
+        accumulate: str = "NONE",
     ) -> None:
         """Record a property of one or more plants to export."""
         self._add_property(
             "add_plant_property",
-            plant_name,
             self.plant_reports,
+            plant_name,
             attribute,
             reduce,
             accumulate,
@@ -182,14 +182,14 @@ class Report(Node):
         self,
         port_name: str,
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str = "NONE",
+        accumulate: str = "NONE",
     ) -> None:
         """Record a property of one or more ports to export."""
         self._add_property(
             "add_port_property",
-            port_name,
             self.port_reports,
+            port_name,
             attribute,
             reduce,
             accumulate,
@@ -200,14 +200,14 @@ class Report(Node):
         self,
         producer_name: str,
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str = "NONE",
+        accumulate: str = "NONE",
     ) -> None:
         """Record a property of one or more producers to export."""
         self._add_property(
             "add_producer_property",
-            producer_name,
             self.producer_reports,
+            producer_name,
             attribute,
             reduce,
             accumulate,
@@ -218,14 +218,14 @@ class Report(Node):
         self,
         regulation_name: str,
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str = "NONE",
+        accumulate: str = "NONE",
     ) -> None:
         """Record a property of one or more regulations to export."""
         self._add_property(
             "add_regulation_property",
-            regulation_name,
             self.regulation_reports,
+            regulation_name,
             attribute,
             reduce,
             accumulate,
@@ -236,14 +236,14 @@ class Report(Node):
         self,
         vessel_name: str,
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str = "NONE",
+        accumulate: str = "NONE",
     ) -> None:
         """Record a property of one or more vessels to export."""
         self._add_property(
             "add_vessel_property",
-            vessel_name,
             self.vessel_reports,
+            vessel_name,
             attribute,
             reduce,
             accumulate,
@@ -253,26 +253,16 @@ class Report(Node):
     @staticmethod
     def _add_property(
         command: str,
+        reports: dict[str, NodeReport],
         node_name: str,
-        assignment_dict: dict[str, NodeReport],
         attribute: str,
-        reduce: str | None = None,
-        accumulate: str | None = None,
+        reduce: str,
+        accumulate: str,
     ) -> None:
         check_report_property(command, attribute)
 
-        internal_reduce = ReportReduceID.NONE
-        internal_accumulate = ReportAccumulationID.NONE
+        reduction = assign_id(reduce, ReportReduceID)
+        accumulation = assign_id(accumulate, ReportAccumulationID)
 
-        if reduce is not None:
-            internal_reduce = assign_id(reduce, ReportReduceID)
-
-        if accumulate is not None:
-            internal_accumulate = assign_id(accumulate, ReportAccumulationID)
-
-        if node_name not in assignment_dict:
-            assignment_dict[node_name] = NodeReport()
-
-        assignment_dict[node_name].add_property(
-            attribute, internal_reduce, internal_accumulate
-        )
+        report = reports.setdefault(node_name, NodeReport())
+        report.add_property(attribute, reduction, accumulation)
