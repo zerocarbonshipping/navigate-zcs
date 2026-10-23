@@ -38,15 +38,15 @@ class Process(Node):
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
     def set_feeds(self, feeds: Feedstock | Process | list[Feedstock | Process]) -> None:
-        """Set the feedstocks and processes whose output feed the process."""
+        """Set the feedstocks and processes whose outputs feed the process."""
         self.feeds = assign_reference_list(feeds, (FEEDSTOCK, PROCESS), unique=True)
 
     @deck_attribute()
     def set_conversions(
-        self, conversion: ForecastArgument | list[ForecastArgument]
+        self, conversions: ForecastArgument | list[ForecastArgument]
     ) -> None:
         """Set the conversion factors of the feeds into fuel."""
-        entries: list[ForecastArgument] = as_list(conversion)
+        entries: list[ForecastArgument] = as_list(conversions)
         self.conversions = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
@@ -57,6 +57,6 @@ class Process(Node):
     def check_consistency(self) -> None:
         if len(self.feeds) != len(self.conversions):
             raise ValueError(
-                f"The number of feeds ({len(self.feeds)}) and conversions"
+                f"{self}: The length of Feeds ({len(self.feeds)}) and Conversions"
                 f" ({len(self.conversions)}) must correspond."
             )
