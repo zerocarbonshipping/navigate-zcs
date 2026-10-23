@@ -306,7 +306,7 @@ class HighsModel:
         Nothing is written where HiGHS vouched for no IIS, or for an empty one.
         HiGHS writes LP format only to a path with the ``.lp`` extension, so the IIS
         is written to one in a temporary directory and moved to the path. A file
-        HiGHS cannot write is logged as a warning.
+        HiGHS or the file system cannot write is logged as a warning.
         """
         if self._iis_model is None:
             return
@@ -315,11 +315,16 @@ class HighsModel:
         iis_highs.setOptionValue("output_flag", False)
         iis_highs.passModel(self._iis_model)
 
-        with tempfile.TemporaryDirectory() as directory:
-            lp_path = Path(directory) / "iis.lp"
-            status = iis_highs.writeModel(str(lp_path))
-            if status != HighsStatus.kError:
-                shutil.move(lp_path, path)
+        # a failing file system counts as a failed write, so the infeasibility
+        # error still follows
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                lp_path = Path(directory) / "iis.lp"
+                status = iis_highs.writeModel(str(lp_path))
+                if status != HighsStatus.kError:
+                    shutil.move(lp_path, path)
+        except OSError:
+            status = HighsStatus.kError
 
         _warn_if_unwritten(status, path)
 
