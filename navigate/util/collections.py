@@ -10,13 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Collection,
-        Hashable,
-        Iterable,
-        Mapping,
-        Sequence,
-    )
+    from collections.abc import Collection, Hashable, Iterable, Mapping, Sequence
 
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
@@ -98,12 +92,12 @@ def define_index_map[T: Hashable](objects: Sequence[T]) -> dict[T, list[int]]:
 
 def add_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
     """
-    Merge dicts together, adding the values if keys are duplicate across multiple dicts.
+    Merge dicts, adding the values of keys they share.
 
     Parameters
     ----------
     dicts
-        A number of dicts with similar or unique keys.
+        Dicts to merge.
 
     Returns
     -------
@@ -113,8 +107,8 @@ def add_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
     """
     total: dict[K, FloatLike] = {}
 
-    for other in dicts:
-        for key, value in other.items():
+    for dict_ in dicts:
+        for key, value in dict_.items():
             total[key] = total.get(key, 0.0) + value
 
     return total
@@ -137,8 +131,8 @@ def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
     if not dict_:
         return False
 
-    representative = next(iter(dict_))
-    return not isinstance(representative, tuple)
+    first_key = next(iter(dict_))
+    return not isinstance(first_key, tuple)
 
 
 def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
@@ -158,8 +152,8 @@ def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
     if not dict_:
         return False
 
-    representative = next(iter(dict_))
-    return isinstance(representative, tuple) and len(representative) == 2
+    first_key = next(iter(dict_))
+    return isinstance(first_key, tuple) and len(first_key) == 2
 
 
 def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
@@ -234,13 +228,12 @@ def sum_by_first_key[K1: Hashable, K2: Hashable](
     dict[K1, FloatArray]
         Dict keyed by the first tuple element, summed over the second.
     """
-    primary_keys = unique_list([key for (key, _) in result])
-    return {
-        key: sum_dict_results(
-            {k2: value for (k1, k2), value in result.items() if k1 == key}
-        )
-        for key in primary_keys
-    }
+    groups: dict[K1, dict[K2, FloatArray]] = {}
+
+    for (first, second), value in result.items():
+        groups.setdefault(first, {})[second] = value
+
+    return {key: sum_dict_results(group) for key, group in groups.items()}
 
 
 def sum_by_second_key[K1: Hashable, K2: Hashable](
@@ -259,13 +252,12 @@ def sum_by_second_key[K1: Hashable, K2: Hashable](
     dict[K2, FloatArray]
         Dict keyed by the second tuple element, summed over the first.
     """
-    secondary_keys = unique_list([key for (_, key) in result])
-    return {
-        key: sum_dict_results(
-            {k1: value for (k1, k2), value in result.items() if k2 == key}
-        )
-        for key in secondary_keys
-    }
+    groups: dict[K2, dict[K1, FloatArray]] = {}
+
+    for (first, second), value in result.items():
+        groups.setdefault(second, {})[first] = value
+
+    return {key: sum_dict_results(group) for key, group in groups.items()}
 
 
 def slice_list(
