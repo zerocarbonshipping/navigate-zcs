@@ -249,9 +249,11 @@ class Expression:
 
         # inclusive bounds only clamp, so the check is skipped where both are
         if bounds.exclusive:
-            bounds.check_exclusive(
-                evaluated, f"{self._holder}: Expression <{self.text}>"
-            )
+            violation = bounds.exclusive_violation(evaluated)
+
+            if violation is not None:
+                owner = f"{self._holder}: Expression <{self.text}>"
+                raise ValueError(f"{owner}: {violation}")
 
         # numpy's stubs type np.clip over a float or an array as an array,
         # though a float comes back as an np.float64, a float

@@ -248,7 +248,10 @@ class _Calculator:
 
         # inclusive bounds only clamp, so the check is skipped where both are
         if bounds.exclusive:
-            bounds.check_exclusive(value, self)
+            violation = bounds.exclusive_violation(value)
+
+            if violation is not None:
+                raise ValueError(f"{self}: {violation}")
 
         return np.maximum(np.minimum(value, bounds.upper), bounds.lower)
 
