@@ -36,6 +36,7 @@ type _UnaryOperator = Callable[[FloatLike], FloatLike]
 type _BinaryOperator = Callable[[FloatLike, FloatLike], FloatLike]
 
 
+# mypy cannot match the generic stubs of operator.pos and operator.neg to _UnaryOperator
 def _positive(value: FloatLike) -> FloatLike:
     return +value
 
@@ -52,7 +53,6 @@ BINARY_OPERATORS: dict[str, _BinaryOperator] = {
     "/": operator.truediv,
     "**": operator.pow,
 }
-
 UNARY_OPERATORS: dict[str, _UnaryOperator] = {
     "+": _positive,
     "-": _negative,
@@ -63,16 +63,16 @@ UNARY_OPERATORS: dict[str, _UnaryOperator] = {
 type NodeKey = tuple[str, str]
 
 # the calculators an expression's references evaluate through, by node key
-type _Bound = Mapping[NodeKey, Calculator]
+type _Calculators = Mapping[NodeKey, Calculator]
 
 
 class Evaluable(Protocol):
     """Node of the evaluator tree an expression is built from."""
 
     def evaluate(
-        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
+        self, calculators: _Calculators, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
-        """Evaluate the node, reading references through the node getters."""
+        """Evaluate the node, reading each reference through its calculator."""
         ...
 
 
@@ -83,7 +83,7 @@ class Constant:
     value: float
 
     def evaluate(
-        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
+        self, calculators: _Calculators, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
         """Return the literal."""
         return self.value
@@ -115,10 +115,10 @@ class NodeReference:
         return f'{self.type}("{self.name}")'
 
     def evaluate(
-        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
+        self, calculators: _Calculators, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
         """Evaluate the referenced node at the inputs."""
-        return bound[self.key].get(x, y)
+        return calculators[self.key].get(x, y)
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,10 +129,10 @@ class UnaryOperation:
     operand: Evaluable
 
     def evaluate(
-        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
+        self, calculators: _Calculators, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
         """Apply the sign to the evaluated operand."""
-        return UNARY_OPERATORS[self.symbol](self.operand.evaluate(bound, x, y))
+        return UNARY_OPERATORS[self.symbol](self.operand.evaluate(calculators, x, y))
 
 
 @dataclass(frozen=True, slots=True)
@@ -144,12 +144,12 @@ class BinaryOperation:
     right: Evaluable
 
     def evaluate(
-        self, bound: _Bound, x: FloatLike | None, y: FloatLike | None
+        self, calculators: _Calculators, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
         """Apply the operator to the evaluated operands."""
-        return BINARY_OPERATORS[self.symbol](
-            self.left.evaluate(bound, x, y), self.right.evaluate(bound, x, y)
-        )
+        left = self.left.evaluate(calculators, x, y)
+        right = self.right.evaluate(calculators, x, y)
+        return BINARY_OPERATORS[self.symbol](left, right)
 
 
 def node_references(tree: Evaluable) -> Iterator[NodeReference]:
@@ -199,7 +199,7 @@ class Expression:
         holder: Node | _GeneralNode,
     ) -> None:
         self.text: str = text
-        self.node_references: dict[NodeKey, Calculator] = {}
+        self.calculators: dict[NodeKey, Calculator] = {}
         self.internal_bounds: Bounds = Bounds()
 
         self._tree: Evaluable = tree
@@ -244,13 +244,12 @@ class Expression:
             If the value, or any entry of it, is at or beyond an exclusive
             internal bound.
         """
-        evaluated = self._tree.evaluate(self.node_references, x, y)
+        evaluated = self._tree.evaluate(self.calculators, x, y)
         bounds = self.internal_bounds
 
         # inclusive bounds only clamp, so the check is skipped where both are
         if bounds.exclusive:
             violation = bounds.exclusive_violation(evaluated)
-
             if violation is not None:
                 owner = f"{self._holder}: Expression <{self.text}>"
                 raise ValueError(f"{owner}: {violation}")
@@ -314,38 +313,21 @@ class Expression:
         Check the referenced nodes against the types the attribute accepts.
 
         Runs once the setter holding the expression has declared the types it
-        accepts; it binds the references the evaluator reads.
+        accepts; it binds the calculators the evaluator reads.
         """
-        references = list(node_references(self._tree))
-        if not references:
-            return
+        for reference in node_references(self._tree):
+            if self._allowed_types is None:
+                raise ValueError(
+                    f"{self._holder}: Expression <{self.text}> does not allow node"
+                    " references."
+                )
 
-        if self._allowed_types is None:
-            raise ValueError(
-                f"{self._holder}: Expression <{self.text}> does not allow node"
-                " references."
-            )
+            node = self._nodes[reference.key]
 
-        for reference in references:
-            if reference.type not in self._allowed_types:
+            if reference.type not in self._allowed_types or not is_calculator(node):
                 raise ValueError(
                     f"{self._holder}: Expression <{self.text}> references"
                     f" unacceptable type {reference.type}."
                 )
 
-        self.node_references = {
-            reference.key: self._as_calculator(self._nodes[reference.key])
-            for reference in references
-        }
-
-    def _as_calculator(self, reference: Node) -> Calculator:
-        # only a setter accepting a calculator type takes an expression with
-        # references (assign_value), so the type check has already refused any
-        # other node
-        if not is_calculator(reference):
-            raise ValueError(
-                f"{self._holder}: Expression <{self.text}> references {reference},"
-                " which is not a Curve, Forecast, Surface, Timetable or Variable."
-            )
-
-        return reference
+            self.calculators[reference.key] = node
