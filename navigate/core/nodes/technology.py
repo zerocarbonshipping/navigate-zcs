@@ -29,12 +29,6 @@ if TYPE_CHECKING:
         ScalarInput,
     )
 
-PROPULSION, ELECTRICAL, HEAT = (
-    EnergyDemandID.PROPULSION,
-    EnergyDemandID.ELECTRICAL,
-    EnergyDemandID.HEAT,
-)
-
 
 class Technology(_Machinery):
     """An energy saving, external power or power transfer installable on a vessel."""
@@ -47,7 +41,6 @@ class Technology(_Machinery):
         # external variables -----------------------------------------------------------
         self.shore_power_capacity: ScalarInput = Scalar(0.0)
 
-        # energy efficiency
         self.energy_saving: dict[EnergyDemandID, ScalarInput] = {
             d: Scalar(0.0) for d in EnergyDemandID
         }
@@ -55,7 +48,6 @@ class Technology(_Machinery):
             d: Scalar(0.0) for d in EnergyDemandID
         }
 
-        # external power
         self.power_transfer: dict[tuple[EnergyDemandID, EnergyDemandID], CurveInput] = {
             (src, dst): Scalar(0.0) for src in EnergyDemandID for dst in EnergyDemandID
         }
