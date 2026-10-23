@@ -37,24 +37,24 @@ class Surface(Node, _Table2D):
         Node.__init__(self, name)
         _Table2D.__init__(self)
 
-        # used for temporary storage of the table during deck parsing
-        self._temporary_table: tuple[FloatArray, FloatArray, FloatArray] | None = None
+        # the table read from the deck, pending until it is built
+        self._pending_table: tuple[FloatArray, FloatArray, FloatArray] | None = None
 
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x-, y- and z-values the surface interpolates in."""
         x, y, z = build_table_2d(table)
         check_table2d_input(x, y, z)
-        self._temporary_table = (x, y, z)
+        self._pending_table = (x, y, z)
 
     def build_table(self) -> None:
         """Build the pending table with the interpolation and extrapolation set."""
-        if self._temporary_table is None:
+        if self._pending_table is None:
             return
 
-        x, y, z = self._temporary_table
+        x, y, z = self._pending_table
         self._set_table(x, y, z)
-        self._temporary_table = None
+        self._pending_table = None
 
     def check_consistency(self) -> None:
         if self.extrapolate == ExtrapolateID.FLAT and self._outside is None:
@@ -65,8 +65,9 @@ class Surface(Node, _Table2D):
         if self.extrapolate != ExtrapolateID.FLAT and self._outside is not None:
             logger.warning(
                 "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
-                " to LINEAR.",
+                " to %s.",
                 self,
+                self.extrapolate.name,
             )
 
     def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike:

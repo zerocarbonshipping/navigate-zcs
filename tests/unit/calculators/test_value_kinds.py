@@ -125,7 +125,7 @@ def test_forecast_reads_the_value_of_the_current_step():
     # 16 over days 0 -> 100: 16 * 50 / 100 = 8 on day 50
     forecast = Forecast("f")
     forecast.set_table(TableData(rows=[[0.0, 0.0], [100.0, 16.0]]))
-    forecast.replace_reference_table(np.datetime64("2026-01-01"))
+    forecast.build_table(np.datetime64("2026-01-01"))
     forecast.precalculate(50.0)
 
     levy = Levy("l")

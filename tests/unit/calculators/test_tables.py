@@ -59,7 +59,7 @@ def test_dated_forecast_is_rebased_to_the_start_date():
             ]
         )
     )
-    forecast.replace_reference_table(np.datetime64("2025-12-02"))
+    forecast.build_table(np.datetime64("2025-12-02"))
 
     # 2 Dec 2025 -> 1 Jan 2026 is 30 days, so the rows sit at day 30 and 395
     np.testing.assert_allclose(forecast.x, [30.0, 395.0])
@@ -74,7 +74,7 @@ def test_dated_forecast_is_rebased_to_the_start_date():
 def test_forecast_get_without_input_reads_the_precalculated_step():
     forecast = Forecast("f")
     forecast.set_table(TableData(rows=[[0.0, 0.0], [100.0, 50.0]]))
-    forecast.replace_reference_table(np.datetime64("2026-01-01"))
+    forecast.build_table(np.datetime64("2026-01-01"))
 
     # nothing is cached before the first step
     assert np.isnan(forecast.get())
@@ -94,7 +94,7 @@ def test_timetable_reads_the_current_time():
     timetable.set_table(
         TableData(rows=[[0.0, 1.0], [0.0, 0.0, 10.0], [100.0, 100.0, 110.0]])
     )
-    timetable.replace_reference_table(np.datetime64("2026-01-01"))
+    timetable.build_table(np.datetime64("2026-01-01"))
 
     with pytest.raises(ValueError, match="requires a time, unset before the first"):
         timetable.get(y=0.5)

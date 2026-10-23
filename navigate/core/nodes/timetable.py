@@ -40,49 +40,47 @@ class Timetable(Node, _Table2D):
         Node.__init__(self, name)
         _Table2D.__init__(self)
 
-        # temporarily stored variables at current time-step
+        # None until the first time-step sets the time
         self._current_time: float | None = None
 
-        # used for temporary storage of tables during deck parsing
-        self._temporary_table: (
+        # the table read from the deck, pending until it is built
+        self._pending_table: (
             tuple[FloatArray | DateArray, FloatArray, FloatArray] | None
         ) = None
 
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x-, y- and z-values the timetable interpolates in."""
-        x, y, z = build_table_2d_dated(table)
-        self._temporary_table = (x, y, z)
+        self._pending_table = build_table_2d_dated(table)
 
-    def replace_reference_table(self, reference: np.datetime64) -> None:
-        if self._temporary_table is None:
+    def build_table(self, start_date: np.datetime64) -> None:
+        """Build the pending table, its dates counted in days from the start date."""
+        if self._pending_table is None:
             return
 
-        x, y, z = self._temporary_table
+        x, y, z = self._pending_table
 
         if is_date_array(x):
-            x = timedelta_to_days(x - reference)
+            x = timedelta_to_days(x - start_date)
 
         check_table2d_input(x, y, z)
 
         self._set_table(x, y, z)
-        self._temporary_table = None
+        self._pending_table = None
 
     def check_consistency(self) -> None:
-        if self.extrapolate == ExtrapolateID.FLAT:
-            if self._outside is None:
-                raise ValueError(
-                    f"{self}: 'Outside' must be defined when 'Extrapolate' is set to"
-                    " FLAT."
-                )
+        if self.extrapolate == ExtrapolateID.FLAT and self._outside is None:
+            raise ValueError(
+                f"{self}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
+            )
 
-        else:
-            if self._outside is not None:
-                logger.warning(
-                    "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
-                    " to LINEAR.",
-                    self,
-                )
+        if self.extrapolate != ExtrapolateID.FLAT and self._outside is not None:
+            logger.warning(
+                "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
+                " to %s.",
+                self,
+                self.extrapolate.name,
+            )
 
     def set_current_time(self, time: float) -> None:
         """
@@ -128,11 +126,11 @@ class Timetable(Node, _Table2D):
         ValueError
             If ``y`` is None, or if ``x`` is None before the first time-step.
         """
-        if x is None:
-            x = self._current_time
-
         if y is None:
             raise ValueError(f"{self}: Evaluating a Timetable requires an input 'y'.")
+
+        if x is None:
+            x = self._current_time
 
         if x is None:
             raise ValueError(
