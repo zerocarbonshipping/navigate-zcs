@@ -231,6 +231,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   not found: '...'`, `argument PATH: a directory, not a file: '...'`, `argument
   PATH: must have a '.nav' extension: '...'` and `argument -d/--data-dir:
   folder not found: '...'`.
+- The error for a `Process` whose `Feeds` and `Conversions` differ in length
+  names the process and reads `The length of Feeds (n) and Conversions (m)
+  must correspond.`
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`
