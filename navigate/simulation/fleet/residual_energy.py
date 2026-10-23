@@ -168,14 +168,14 @@ def _calculate_residuals(
     residuals: dict[EnergyDemandID, FloatArray] = {}
 
     for energy_id, raw_demand in raw_demands.items():
-        saving = package.compound_savings[energy_id]
-        power = package.compound_powers[energy_id]
+        saving = package.energy_saving[energy_id]
+        power = package.external_power[energy_id]
 
         net_demand = raw_demand * (1.0 - saving)
         external_energy = _power_to_energy(power, times)
         residuals[energy_id] = np.maximum(net_demand - external_energy, 0.0)
 
-    if not package.includes_transfer:
+    if not package.transfers_power:
         return residuals
 
     return _subtract_transfers(vessel, package, times, residuals)

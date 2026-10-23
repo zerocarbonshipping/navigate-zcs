@@ -101,8 +101,8 @@ def _calculate_combined_effects(package: TechnologyPackage) -> None:
         if transferring:
             transfer_curves[pair] = transferring
 
-    package.compound_savings = savings
-    package.compound_powers = powers
+    package.energy_saving = savings
+    package.external_power = powers
     package.transfer_curves = transfer_curves
     package.shore_power_capacity = math.fsum(capacities)
 
