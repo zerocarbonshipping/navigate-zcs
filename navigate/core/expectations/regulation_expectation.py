@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
-from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.initial_values import EMPTY_FLOAT
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -39,7 +39,7 @@ class RegulationExpectation(_PolicyExpectation):
         self._shore_power_spend_coefficient: dict[tuple[str, str], FloatArray] = {}
 
         self._flexibility_cost: FloatArray = EMPTY_FLOAT
-        self._belief_flexibility_cost: FloatArray = EMPTY_NAN
+        self._belief_flexibility_cost: FloatArray = EMPTY_FLOAT
         self._vessel_net_flexibility_units: dict[str, FloatArray] = {}
         self._remedial_cost: FloatArray = EMPTY_FLOAT
 
@@ -73,7 +73,7 @@ class RegulationExpectation(_PolicyExpectation):
         # the regulation allows no adjustment, and in the shared slot under INDIVIDUAL
         # or of a compliant FLEXIBLE regulation
         self._adjusted_vessel_threshold: dict[str, FloatArray] = {}
-        self._adjusted_shared_threshold: FloatArray = EMPTY_NAN
+        self._adjusted_shared_threshold: FloatArray = EMPTY_FLOAT
 
     def initialize(
         self,
