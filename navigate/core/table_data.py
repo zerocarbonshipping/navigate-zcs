@@ -10,12 +10,14 @@ x-array for a numeric table, and the consumer dispatches on the dtype.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.util.types_ import DateArray, FloatArray
 
 type Cell = float | np.datetime64
@@ -25,7 +27,7 @@ type Cell = float | np.datetime64
 class TableData:
     """A table as the deck writes it: rows of numbers and dates."""
 
-    rows: list[list[Cell]] = field(default_factory=list)
+    rows: list[list[Cell]]
 
 
 def build_table_1d(table: TableData) -> tuple[FloatArray, FloatArray]:
@@ -45,8 +47,7 @@ def build_table_1d(table: TableData) -> tuple[FloatArray, FloatArray]:
         The y-column.
     """
     x, y = _table_1d_columns(table, allow_date=False)
-
-    return np.array(x, dtype=np.float64), np.array(y, dtype=np.float64)
+    return _float_array(x), _float_array(y)
 
 
 def build_table_1d_dated(table: TableData) -> tuple[FloatArray | DateArray, FloatArray]:
@@ -66,8 +67,7 @@ def build_table_1d_dated(table: TableData) -> tuple[FloatArray | DateArray, Floa
         The y-column.
     """
     x, y = _table_1d_columns(table, allow_date=True)
-
-    return _x_array(x), np.array(y, dtype=np.float64)
+    return _x_array(x), _float_array(y)
 
 
 def build_table_2d(table: TableData) -> tuple[FloatArray, FloatArray, FloatArray]:
@@ -89,12 +89,7 @@ def build_table_2d(table: TableData) -> tuple[FloatArray, FloatArray, FloatArray
         The value cells, one row per x.
     """
     x, y, z = _table_2d_columns(table, allow_date=False)
-
-    return (
-        np.array(x, dtype=np.float64),
-        np.array(y, dtype=np.float64),
-        np.array(z, dtype=np.float64),
-    )
+    return _float_array(x), _float_array(y), _float_array(z)
 
 
 def build_table_2d_dated(
@@ -118,12 +113,7 @@ def build_table_2d_dated(
         The value cells, one row per x.
     """
     x, y, z = _table_2d_columns(table, allow_date=True)
-
-    return (
-        _x_array(x),
-        np.array(y, dtype=np.float64),
-        np.array(z, dtype=np.float64),
-    )
+    return _x_array(x), _float_array(y), _float_array(z)
 
 
 def _table_1d_columns(
@@ -143,7 +133,7 @@ def _table_1d_columns(
         x_cell, y_cell = row
 
         x.append(_read_x(x_cell, allow_date, x_error))
-        y.extend(_read_numbers([y_cell], y_error))
+        y.append(_read_number(y_cell, y_error))
 
     return x, y
 
@@ -155,51 +145,46 @@ def _table_2d_columns(
     if not table.rows:
         return [], [], []
 
+    header_error = "Header row must contain only numbers, got '{cell}'."
+    row_error = "Error in table row, input must be numbers."
+
     header, *data = table.rows
-    y = _read_numbers(header, "Header row must contain only numbers, got '{cell}'.")
+    y = _read_numbers(header, header_error)
 
     x: list[Cell] = []
     z: list[list[float]] = []
 
     for row in data:
-        x_value, values = _table_2d_row(row, allow_date)
-
-        if len(values) != len(y):
+        if len(row) != len(y) + 1:
             raise ValueError("All rows in the table must have equal length.")
 
-        x.append(x_value)
-        z.append(values)
+        x_cell, *value_cells = row
+
+        x.append(_read_x(x_cell, allow_date, row_error))
+        z.append(_read_numbers(value_cells, row_error))
 
     return x, y, z
 
 
-def _table_2d_row(row: list[Cell], allow_date: bool) -> tuple[Cell, list[float]]:
-    """Read one data row of a 2D table, the first cell of which carries x."""
-    error = "Error in table row, input must be numbers."
-    x_cell, *value_cells = row
-
-    return _read_x(x_cell, allow_date, error), _read_numbers(value_cells, error)
-
-
 def _read_x(cell: Cell, allow_date: bool, error: str) -> Cell:
     """Read an x-cell, a number or, where allowed, a date."""
-    if isinstance(cell, float) or allow_date:
+    if allow_date:
         return cell
 
-    raise ValueError(error)
+    return _read_number(cell, error)
 
 
 def _read_numbers(cells: list[Cell], error: str) -> list[float]:
     """Read cells that must all be numbers."""
-    values = []
+    return [_read_number(cell, error) for cell in cells]
 
-    for cell in cells:
-        if not isinstance(cell, float):
-            raise ValueError(error.format(cell=cell))
 
-        values.append(cell)
+def _read_number(cell: Cell, error: str) -> float:
+    """Read a cell that must be a number."""
+    if not isinstance(cell, float):
+        raise ValueError(error.format(cell=cell))
 
-    return values
+    return cell
 
 
 def _x_array(x: list[Cell]) -> FloatArray | DateArray:
@@ -207,9 +192,14 @@ def _x_array(x: list[Cell]) -> FloatArray | DateArray:
     is_date = [isinstance(value, np.datetime64) for value in x]
 
     if not any(is_date):
-        return np.array(x, dtype=np.float64)
+        return _float_array(x)
 
     if not all(is_date):
         raise ValueError("All 'x' values in table must be consistently number or date.")
 
     return np.array(x, dtype=np.dtype("datetime64[D]"))
+
+
+def _float_array(cells: Sequence[Cell] | Sequence[Sequence[float]]) -> FloatArray:
+    """Turn cells into a float array."""
+    return np.array(cells, dtype=np.float64)
