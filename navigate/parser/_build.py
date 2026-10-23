@@ -269,7 +269,7 @@ class Builder:
 
         for table in dated:
             try:
-                table.replace_reference_table(start_date)
+                table.build_table(start_date)
             except ValueError as e:
                 raise DeckError(f"{table}: {e!s}") from None
 

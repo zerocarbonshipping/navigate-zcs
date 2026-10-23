@@ -431,6 +431,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The order of the attributes in a `Curve` or `Surface` no longer matters;
   settings after `Table` were ignored. The default methane GWP and
   `technology_uptake` curves now extrapolate flat outside their tables (#273).
+- The warning that `Outside` is ignored on a `Surface` or `Timetable` names the
+  `Extrapolate` setting in force; it said `LINEAR` also for `FALSE` (#762).
 - The `RemedialUnits` and `LevyUnits` report columns sum over the vessels at
   fleet and global scope, where they were zero.
 - Setting `Active = FALSE` on a `Regulation` in `EVENTS` no longer stops the
