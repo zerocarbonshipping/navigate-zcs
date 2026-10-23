@@ -74,8 +74,6 @@ class Producer(Node):
         # initial conditions
         self.initial_capacity: list[ScalarInput] = []
         self.initial_age_distribution: list[CurveTableInput] = []
-
-        # existing pipeline
         self.existing_pipelines: dict[str, Forecast | None] = {}
 
         # constraints
@@ -83,12 +81,10 @@ class Producer(Node):
         self.feed_constraints: dict[str, ForecastInput | None] = {}
         self.jump_start_fraction: ScalarInput = Scalar(0.1)
         self.maximum_ramp_up: ForecastInput = Scalar(1.0)
+        self.allow_plant: dict[str, bool] = {}
 
         # export
         self.export_distribution: dict[str, ForecastInput] = {}
-
-        # boolean
-        self.allow_plant: dict[str, bool] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: ProducerExpectation = ProducerExpectation()
@@ -102,8 +98,8 @@ class Producer(Node):
         self.fuels: dict[str, Fuel] = {}
 
         # dynamic variables
-        self.current_uptake: FloatArray = np.empty(0)
-        self.current_utilization: float = 0.0
+        self.current_uptake: FloatArray
+        self.current_utilization: float
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -200,14 +196,12 @@ class Producer(Node):
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command(SECTION_DEFINE)
-    def set_existing_pipeline(
-        self, plant_name: str, existing_pipeline: Forecast
-    ) -> None:
+    def set_existing_pipeline(self, plant_name: str, value: Forecast) -> None:
         """Set the existing pipeline of a plant."""
         write_matching_keys(
             plant_name,
             assign_value(
-                existing_pipeline,
+                value,
                 allow_scalar=False,
                 type_=FORECAST,
                 lower=0.0,
@@ -217,24 +211,19 @@ class Producer(Node):
         )
 
     @deck_command()
-    def set_allow_plant(self, plant_name: str, allow_plant: str) -> None:
+    def set_allow_plant(self, plant_name: str, value: str) -> None:
         """Set whether a plant may be built."""
         write_matching_keys(
-            plant_name,
-            assign_boolean(allow_plant),
-            self.allow_plant,
-            allow_empty=True,
+            plant_name, assign_boolean(value), self.allow_plant, allow_empty=True
         )
 
     @deck_command()
-    def set_feed_constraint(
-        self, feed_name: str, feed_constraint: ForecastArgument
-    ) -> None:
+    def set_feed_constraint(self, feed_name: str, value: ForecastArgument) -> None:
         """Set the constraint on a feed (feedstock or process) available."""
         write_matching_keys(
             feed_name,
             assign_value(
-                as_scalar(feed_constraint),
+                as_scalar(value),
                 type_=(FORECAST, VARIABLE),
                 lower=0.0,
                 allow_infinite=True,
@@ -243,14 +232,12 @@ class Producer(Node):
         )
 
     @deck_command()
-    def set_export_distribution(
-        self, port_name: str, export_distribution: ForecastArgument
-    ) -> None:
+    def set_export_distribution(self, port_name: str, value: ForecastArgument) -> None:
         """Set the weight with which the fuel production is exported to a port."""
         write_matching_keys(
             port_name,
             assign_value(
-                as_scalar(export_distribution),
+                as_scalar(value),
                 type_=(FORECAST, VARIABLE),
                 lower=0.0,
                 upper=1.0,
@@ -260,7 +247,6 @@ class Producer(Node):
 
     # internal methods -----------------------------------------------------------------
     def apply_defaults(self) -> None:
-
         if not self.initial_capacity:
             self.initial_capacity = [Scalar(0.0) for _ in self.plants]
 
@@ -268,18 +254,17 @@ class Producer(Node):
             self.initial_age_distribution = [Scalar(0.0) for _ in self.plants]
 
     def check_consistency(self) -> None:
-
         if len(self.plants) != len(self.initial_capacity):
             raise ValueError(
-                f"{self}: The length of Plants ({len(self.plants)}) and InitialCapacity"
-                f" ({len(self.initial_capacity)}) must correspond."
+                f"{self}: The length of Plants ({len(self.plants)}) and "
+                f"InitialCapacity ({len(self.initial_capacity)}) must correspond."
             )
 
         if len(self.plants) != len(self.initial_age_distribution):
             raise ValueError(
-                f"{self}: The length of Plants ({len(self.plants)}) and"
-                f" InitialAgeDistribution"
-                f" ({len(self.initial_age_distribution)}) must correspond."
+                f"{self}: The length of Plants ({len(self.plants)}) and "
+                f"InitialAgeDistribution ({len(self.initial_age_distribution)}) "
+                "must correspond."
             )
 
         distributions = self.initial_age_distribution
@@ -316,21 +301,10 @@ class Producer(Node):
         ports: dict[str, Port],
         processes: dict[str, Process],
     ) -> None:
-        """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
-
-        Parameters
-        ----------
-        feedstocks
-            All feedstocks in the simulation.
-        ports
-            All ports in the simulation.
-        processes
-            All processes in the simulation.
-        """
+        """Initialize dependent dictionaries so command calls can use wildcards."""
+        # a None feed constraint is read as unlimited, and a None pipeline means the
+        # plant has no committed pipeline
         for feed_name in itertools.chain(feedstocks, processes):
-            # stays None when unset: ProducerExpectation reads a missing constraint as
-            # unlimited
             self.feed_constraints.setdefault(feed_name, None)
 
         for port_name in ports:
@@ -339,8 +313,6 @@ class Producer(Node):
         for plant in self.plants:
             name = plant.name
             self.allow_plant.setdefault(name, True)
-            # stays None when unset: a None entry means the plant has no committed
-            # pipeline
             self.existing_pipelines.setdefault(name, None)
 
     def initialize_expectation(
@@ -351,9 +323,7 @@ class Producer(Node):
         ports: dict[str, Port],
         processes: dict[str, Process],
     ) -> None:
-
         plant_names = [plant.name for plant in self.plants]
-
         self.expectation.initialize(
             length, plant_names, feedstocks, fuels, ports, processes
         )
