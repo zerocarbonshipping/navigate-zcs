@@ -35,8 +35,8 @@ class _Table1D(_Calculator):
         self.x: FloatArray
         self.y: FloatArray
         self._table: interp1d
-        self._fill_values: tuple[NumberInput, NumberInput] | None = None
-        self._is_convex: bool = False  # set with the table
+        self._fill_values: tuple[NumberInput, NumberInput] | None
+        self._is_convex: bool
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
@@ -104,16 +104,16 @@ class _Table1D(_Calculator):
         return np.interp(y, yp, self.x)
 
     def _check_interpolate_extrapolate_consistency(self) -> None:
-        if (self._interpolate in (Interpolate1DID.PREVIOUS, Interpolate1DID.NEXT)) and (
-            self.extrapolate == ExtrapolateID.LINEAR
-        ):
+        is_step = self._interpolate in (Interpolate1DID.PREVIOUS, Interpolate1DID.NEXT)
+
+        if is_step and self.extrapolate == ExtrapolateID.LINEAR:
             raise ValueError(
                 "'Extrapolate' must not be LINEAR when 'Interpolate' is"
                 f" {self._interpolate.name}. This can lead to non-numeric"
                 " extrapolations yielding erroneous results."
             )
 
-    def _get_interpolate_internal(self) -> str:
+    def _interp1d_kind(self) -> str:
         match self._interpolate:
             case Interpolate1DID.LINEAR:
                 return "linear"
@@ -130,10 +130,7 @@ class _Table1D(_Calculator):
             case Interpolate1DID.NEAREST_UP:
                 return "nearest-up"
 
-    def _get_bounds_error_internal(self) -> bool:
-        return self.extrapolate == ExtrapolateID.FALSE
-
-    def _get_extrapolate_internal(self) -> float | str | None:
+    def _interp1d_fill_value(self) -> float | str | None:
         match self.extrapolate:
             case ExtrapolateID.FLAT:
                 # a placeholder: 'calculate' fills in the flat values
@@ -146,7 +143,7 @@ class _Table1D(_Calculator):
                 # out-of-range lookups raise, so no fill value is needed
                 return None
 
-    def _get_fill_values_internal(self) -> tuple[NumberInput, NumberInput] | None:
+    def _flat_fill_values(self) -> tuple[NumberInput, NumberInput] | None:
         if self.extrapolate != ExtrapolateID.FLAT:
             return None
 
@@ -186,11 +183,8 @@ class _Table1D(_Calculator):
         FloatLike
             Table lookup with the flat values filled in, in the shape of ``x``.
         """
-        filled = np.where(
-            x < self.x[0],
-            evaluate_number(below),
-            np.where(x > self.x[-1], evaluate_number(above), table_value),
-        )
+        filled = np.where(x < self.x[0], evaluate_number(below), table_value)
+        filled = np.where(x > self.x[-1], evaluate_number(above), filled)
 
         # np.where answers a scalar input with a 0-d array
         return filled if isinstance(x, np.ndarray) else float(filled)
@@ -202,14 +196,14 @@ class _Table1D(_Calculator):
         self.y = y
 
         self._is_convex = self._test_convexity(x, y)
-        self._fill_values = self._get_fill_values_internal()
+        self._fill_values = self._flat_fill_values()
 
         self._table = interp1d(
             x,
             y,
-            kind=self._get_interpolate_internal(),
-            bounds_error=self._get_bounds_error_internal(),
-            fill_value=self._get_extrapolate_internal(),
+            kind=self._interp1d_kind(),
+            bounds_error=self.extrapolate == ExtrapolateID.FALSE,
+            fill_value=self._interp1d_fill_value(),
         )
 
 
@@ -226,7 +220,7 @@ def check_table1d_input(x: FloatArray, y: FloatArray) -> None:
     x
         'x' values in table.
     y
-        'y' values in table
+        'y' values in table.
     """
     if (x.size < 2) or (y.size < 2) or (x.size != y.size):
         raise ValueError(

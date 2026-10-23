@@ -37,7 +37,7 @@ class _Table2D(_Calculator):
         self.y: FloatArray
         self._z: FloatArray
         self._table: Callable[[FloatLike, FloatLike], FloatLike]
-        self._is_convex: bool = False  # set with the table
+        self._is_convex: bool
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
@@ -116,7 +116,7 @@ class _Table2D(_Calculator):
 
         return np.array(x)
 
-    def _get_interpolate_internal(self) -> str:
+    def _interpn_method(self) -> str:
         match self._interpolate:
             case Interpolate2DID.LINEAR:
                 return "linear"
@@ -124,10 +124,7 @@ class _Table2D(_Calculator):
             case Interpolate2DID.NEAREST:
                 return "nearest"
 
-    def _get_bounds_error_internal(self) -> bool:
-        return self.extrapolate == ExtrapolateID.FALSE
-
-    def _get_extrapolate_internal(self) -> NumberInput | None:
+    def _interpn_fill_value(self) -> NumberInput | None:
         match self.extrapolate:
             case ExtrapolateID.FLAT:
                 return self._outside
@@ -147,9 +144,9 @@ class _Table2D(_Calculator):
         # guaranteed to be convex in the x-direction
         self._is_convex = all(self._test_convexity(x, z[:, i]) for i, _ in enumerate(y))
 
-        method = self._get_interpolate_internal()
-        bounds_error = self._get_bounds_error_internal()
-        fill_number = self._get_extrapolate_internal()
+        method = self._interpn_method()
+        bounds_error = self.extrapolate == ExtrapolateID.FALSE
+        fill_number = self._interpn_fill_value()
 
         # copy.deepcopy leaves a function as it is, so a deep copy of a built table
         # shares this closure with its source: its x/y/z arrays and its fill value. The
@@ -211,7 +208,7 @@ def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
     x
         'x' values in table.
     y
-        'y' values in table
+        'y' values in table.
     z
         Array of array with z-values.
     """
