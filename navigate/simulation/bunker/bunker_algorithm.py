@@ -390,7 +390,7 @@ class BunkerAlgorithm:
         self.active_regulations = {}
 
         for key, value in self.regulations.items():
-            if value.is_active():
+            if value.active:
                 self.active_regulations[key] = value
 
     def _update_vessel(self, vessel: Vessel, multiplier: FloatLike) -> None:

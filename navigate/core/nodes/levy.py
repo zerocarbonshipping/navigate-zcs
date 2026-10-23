@@ -24,7 +24,6 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.results import LevyResults
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.vessel import Vessel
     from navigate.core.results.results_context import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import DateArray, FloatArray
@@ -39,6 +38,7 @@ class Levy(_Policy):
         super().__init__(name)
 
         # external variables -----------------------------------------------------------
+        self.scheme: LevySchemeID
         self.level: ForecastInput = Scalar(0.0)
         self.lower_threshold: ForecastInput = Scalar(0.0)
         self.upper_threshold: ForecastInput | None = None
@@ -75,17 +75,6 @@ class Levy(_Policy):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
-        """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
-
-        Parameters
-        ----------
-        vessels
-            All vessels in the simulation.
-        """
-        self._initialize_policy_dependencies(vessels)
-
     def initialize_expectation(self, length: int) -> None:
         self.expectation.initialize(length, [e.name for e in self.emissions])
 
@@ -101,7 +90,7 @@ class Levy(_Policy):
         # coefficient
         if self.upper_threshold is None:
             return
-        if not self.is_active():
+        if not self.active:
             return
         if self.scheme == LevySchemeID.SUBSIDY:
             return
