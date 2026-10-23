@@ -20,7 +20,7 @@ from navigate.simulation.cohort import (
 from navigate.simulation.economics.decision import calculate_two_axis_uptake
 from navigate.simulation.economics.metric import calculate_age_levelized_cost
 from navigate.simulation.fuel.feed import calculate_constrained_uptakes
-from navigate.util import YEAR, calculate_inertia, divide_nonzero
+from navigate.util import YEAR, calculate_step_inertia, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -160,7 +160,7 @@ def _calculate_inertia_increments(
     if development <= 0.0:
         return np.zeros(len(producer.plants))
 
-    decay = calculate_inertia(producer.inertia.get(), time_step)
+    decay = calculate_step_inertia(producer.inertia.get(), time_step)
     allowed = [producer.allow_plant[plant.name] for plant in producer.plants]
     uptake = np.where(allowed, producer.current_uptake * decay, 0.0)
 
