@@ -74,12 +74,10 @@ class Plant(Node):
         # internal variables -----------------------------------------------------------
         self.feed_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
         self.fuel_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
+        self.producer_assignment: str | None = None
 
         self.expectation: PlantExpectation = PlantExpectation()
         self.results: PlantResults = PlantResults()
-
-        # cross-check variables
-        self.producer_assignment: str | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -186,29 +184,60 @@ class Plant(Node):
 
     # internal methods -----------------------------------------------------------------
     def apply_command_defaults(self) -> None:
-        # the deliveries are the resolved form of the command dictionaries, so
-        # they are rebuilt here, on every pass a command can have reassigned a
-        # transport or a distance
-        self.feed_deliveries = self._pair_deliveries(
-            self.feed_transport, self.feed_distance
-        )
-        self.fuel_deliveries = self._pair_deliveries(
-            self.fuel_transport, self.fuel_distance
-        )
+        self.feed_deliveries = self._deliveries(self.feed_transport, self.feed_distance)
+        self.fuel_deliveries = self._deliveries(self.fuel_transport, self.fuel_distance)
 
     def check_consistency(self) -> None:
-
         if self.fuel.liquid_market:
             raise ValueError(
                 f"{self}: Unable to assign {self.fuel} to attribute 'Fuel' as it"
                 " belongs to a liquid market ('LiquidMarket = TRUE')."
             )
 
-        self._require_transport_where_distance(self.feed_transport, self.feed_distance)
-        self._require_transport_where_distance(self.fuel_transport, self.fuel_distance)
+        self._check_distances_have_transport(self.feed_transport, self.feed_distance)
+        self._check_distances_have_transport(self.fuel_transport, self.fuel_distance)
+
+    def initialize_dependencies(
+        self,
+        feedstocks: dict[str, Feedstock],
+        ports: dict[str, Port],
+        processes: dict[str, Process],
+    ) -> None:
+        """
+        Initialize dependent dictionaries to allow wildcarding during command calls.
+
+        Parameters
+        ----------
+        feedstocks
+            All feedstocks in the simulation.
+        ports
+            All ports in the simulation.
+        processes
+            All processes in the simulation.
+        """
+        for feed_name in [*feedstocks, *processes]:
+            self.feed_transport.setdefault(feed_name, None)
+            self.feed_distance.setdefault(feed_name, None)
+
+        for port_name in ports:
+            self.fuel_transport.setdefault(port_name, None)
+            self.fuel_distance.setdefault(port_name, None)
+
+    def initialize_expectation(
+        self,
+        length: int,
+        emissions: dict[str, Emission],
+        feedstocks: dict[str, Feedstock],
+        ports: dict[str, Port],
+        processes: dict[str, Process],
+    ) -> None:
+        self.expectation.initialize(length, emissions, feedstocks, ports, processes)
+
+    def initialize_results(self, context: ResultsContext) -> None:
+        self.results.initialize(context)
 
     @staticmethod
-    def _pair_deliveries(
+    def _deliveries(
         transports: dict[str, Transport | None],
         distances: dict[str, ForecastInput | None],
     ) -> dict[str, tuple[Transport, ForecastInput] | None]:
@@ -229,62 +258,18 @@ class Plant(Node):
 
         return deliveries
 
-    def _require_transport_where_distance(
+    def _check_distances_have_transport(
         self,
         transports: dict[str, Transport | None],
         distances: dict[str, ForecastInput | None],
     ) -> None:
         """Raise where a distance is assigned but no transport carries it."""
         for name, transport in transports.items():
-            if (transport is None) and (distances[name] is not None):
+            if transport is None and distances[name] is not None:
                 raise ValueError(
                     f"{self}: Unable to assign a transport distance to '{name}' as no"
                     " transport is assigned."
                 )
-
-    def initialize_dependencies(
-        self,
-        feedstocks: dict[str, Feedstock],
-        ports: dict[str, Port],
-        processes: dict[str, Process],
-    ) -> None:
-        """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
-
-        Parameters
-        ----------
-        feedstocks
-            All feedstocks in the simulation.
-        ports
-            All ports in the simulation.
-        processes
-            All processes in the simulation.
-        """
-        for feedstock_name in feedstocks:
-            self.feed_transport.setdefault(feedstock_name, None)
-            self.feed_distance.setdefault(feedstock_name, None)
-
-        for process_name in processes:
-            self.feed_transport.setdefault(process_name, None)
-            self.feed_distance.setdefault(process_name, None)
-
-        for port_name in ports:
-            self.fuel_transport.setdefault(port_name, None)
-            self.fuel_distance.setdefault(port_name, None)
-
-    def initialize_expectation(
-        self,
-        length: int,
-        emissions: dict[str, Emission],
-        feedstocks: dict[str, Feedstock],
-        ports: dict[str, Port],
-        processes: dict[str, Process],
-    ) -> None:
-
-        self.expectation.initialize(length, emissions, feedstocks, ports, processes)
-
-    def initialize_results(self, context: ResultsContext) -> None:
-        self.results.initialize(context)
 
     def set_producer_assignment(self, producer_name: str) -> None:
         """Record the producer building this plant, raising if another already does."""
