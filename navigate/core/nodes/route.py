@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from itertools import pairwise
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -64,7 +65,7 @@ class Route(Node):
         self.utilizations: dict[tuple[str, str], CurveForecastInput] = {}
         self.distances: dict[tuple[str, str], Scalar | Expression | None] = {}
         self.port_durations: dict[tuple[str, str], ForecastInput | None] = {}
-        self.voyage_distribution: dict[tuple[str, str], ScalarInput | None] = {}
+        self.voyage_shares: dict[tuple[str, str], ScalarInput | None] = {}
 
         # per port, keyed by its name
         self.port_calls: dict[str, ForecastInput] = {}
@@ -110,8 +111,8 @@ class Route(Node):
         """Set the speed, or the distribution of speeds, sailed on a leg."""
         value: CurveInput
 
-        # a Curve's y is the share of the leg's sea time sailed at its x, the speed
         if isinstance(speed, Curve):
+            # a Curve's y is the share of the leg's sea time sailed at its x, the speed
             value = assign_value(speed, type_=CURVE, lower=0.0, upper=1.0)
         else:
             # CURVE lets an expression referencing a Curve through the reference
@@ -177,15 +178,15 @@ class Route(Node):
 
     @deck_command()
     def set_voyage_distribution(
-        self, port_name_from: str, port_name_to: str, fraction: ScalarArgument
+        self, port_name_from: str, port_name_to: str, share: ScalarArgument
     ) -> None:
         """Set the share of the sea miles sailed on a leg."""
         self._check_route_type(RouteTypeID.TRAMP)
 
         self._write_legs(
             (port_name_from, port_name_to),
-            assign_value(as_scalar(fraction), type_=VARIABLE, lower=0.0, upper=1.0),
-            self.voyage_distribution,
+            assign_value(as_scalar(share), type_=VARIABLE, lower=0.0, upper=1.0),
+            self.voyage_shares,
         )
 
     @deck_command()
@@ -209,7 +210,6 @@ class Route(Node):
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-
         if self.route_type == RouteTypeID.TRAMP and self.time_at_sea is None:
             raise UnassignedAttributeError(str(self), "TimeAtSea")
 
@@ -218,7 +218,7 @@ class Route(Node):
         self._check_legs_assigned("set_speed", self.speeds)
         self._check_legs_assigned("set_distance", self.distances)
         self._check_legs_assigned("set_port_duration", self.port_durations)
-        self._check_legs_assigned("set_voyage_distribution", self.voyage_distribution)
+        self._check_legs_assigned("set_voyage_distribution", self.voyage_shares)
 
     def apply_defaults(self) -> None:
         # the expectations are sized by the sailing conditions once DEFINE is read,
@@ -231,19 +231,18 @@ class Route(Node):
         self.leg_utilizations = _in_seeded_order(self.utilizations)
         self.leg_distances = _in_seeded_order(self.distances)
         self.leg_port_durations = _in_seeded_order(self.port_durations)
-        self.leg_voyage_shares = _in_seeded_order(self.voyage_distribution)
+        self.leg_voyage_shares = _in_seeded_order(self.voyage_shares)
 
     def check_consistency(self) -> None:
-
         if self.route_type == RouteTypeID.LINER:
             self._check_liner()
 
         elif self.route_type == RouteTypeID.TRAMP:
             self._check_tramp()
 
-        legs = zip(
-            self.get_leg_keys(), self.leg_speeds, self.leg_utilizations, strict=True
-        )
+        keys = self.get_leg_keys()
+        legs = zip(keys, self.leg_speeds, self.leg_utilizations, strict=True)
+
         for key, speed, utilization in legs:
             self._check_speed(key, speed)
             self._check_utilization(key, speed, utilization)
@@ -253,38 +252,40 @@ class Route(Node):
     def initialize_dependencies(self) -> None:
         """Initialize dependent dictionaries so command calls can use wildcards."""
         # stays None when unset: check_requirements names each leg left unassigned
-        for key in self.get_leg_keys():
+        keys = self.get_leg_keys()
+
+        for key in keys:
             self.speeds.setdefault(key, None)
             self.utilizations.setdefault(key, Scalar(1.0))
 
-            if self.route_type == RouteTypeID.LINER:
+        if self.route_type == RouteTypeID.LINER:
+            for key in keys:
                 self.distances.setdefault(key, None)
                 self.port_durations.setdefault(key, None)
 
-            elif self.route_type == RouteTypeID.TRAMP:
-                self.voyage_distribution.setdefault(key, None)
+        elif self.route_type == RouteTypeID.TRAMP:
+            for key in keys:
+                self.voyage_shares.setdefault(key, None)
 
-        if self.route_type == RouteTypeID.TRAMP:
             for port in self.ports:
                 self.port_calls.setdefault(port.name, Scalar(1.0))
 
     def _write_legs[V](
-        self, key: tuple[str, str], value: V, inputs: dict[tuple[str, str], V]
+        self, pattern: tuple[str, str], value: V, inputs: dict[tuple[str, str], V]
     ) -> None:
         """Write a value to every leg of the route a pair of port names matches."""
         # the pair is matched as a whole against the legs initialize_dependencies
         # seeds, so a wildcard in one part never creates a pair that is no leg
-        pattern_from, pattern_to = key
-        legs = [
-            (port_from, port_to)
-            for port_from, port_to in inputs
-            if matching_keys(pattern_from, [port_from])
-            and matching_keys(pattern_to, [port_to])
-        ]
+        pattern_from, pattern_to = pattern
+        legs = []
+
+        for origin, destination in inputs:
+            if _matches(pattern_from, origin) and _matches(pattern_to, destination):
+                legs.append((origin, destination))
 
         if not legs:
             raise ValueError(
-                f"is given {_name_leg(key)}, which matches no leg of {self}"
+                f"is given {_name_leg(pattern)}, which matches no leg of {self}"
             )
 
         # every matched leg holds the same object: a Scalar answers a getter and
@@ -307,9 +308,9 @@ class Route(Node):
         missing = [key for key, value in inputs.items() if value is None]
 
         if missing:
+            legs = ", ".join(_name_leg(key) for key in missing)
             raise DeckInsufficientError(
-                f"{self}: '{command}' is unassigned for the legs"
-                f" {', '.join(_name_leg(key) for key in missing)}."
+                f"{self}: '{command}' is unassigned for the legs {legs}."
             )
 
     def _check_liner(self) -> None:
@@ -320,15 +321,12 @@ class Route(Node):
                 f" only {len(self.ports)} were given."
             )
 
-        # the same port may not be placed in sequence
-        for p in range(len(self.ports) - 1):
-            if self.ports[p] is self.ports[p + 1]:
+        for port, next_port in pairwise(self.ports):
+            if port is next_port:
                 raise ValueError(
-                    f"{self}: Unable to place {self.ports[p]} after itself in the"
-                    " sequence."
+                    f"{self}: Unable to place {port} after itself in the sequence."
                 )
 
-        # the set is assumed periodical so check first/last are not in sequence
         if self.ports[0] is self.ports[-1]:
             raise ValueError(
                 f"{self}: The set of ports is assumed to wrap around for a"
@@ -416,10 +414,9 @@ class Route(Node):
 
     def _check_conditions_per_leg(self) -> None:
         """Raise where an event changes the number of sailing conditions on a leg."""
+        keys = self.get_leg_keys()
         conditions = _count_conditions(self.leg_speeds)
-        legs = zip(
-            self.get_leg_keys(), conditions, self.conditions_per_leg, strict=True
-        )
+        legs = zip(keys, conditions, self.conditions_per_leg, strict=True)
 
         for key, count, count_define in legs:
             if count != count_define:
@@ -428,9 +425,6 @@ class Route(Node):
                     f" sailing conditions, but had {count_define} once DEFINE was"
                     " read; the number of sailing conditions on a leg is fixed."
                 )
-
-    def get_number_of_ports(self) -> int:
-        return len(self.ports)
 
     def get_legs(self) -> tuple[tuple[int, int], ...]:
         """
@@ -444,7 +438,7 @@ class Route(Node):
             Consecutive stops, the last leg returning to the first, for a LINER;
             every ordered pair of ports, origin-major, for a TRAMP.
         """
-        n_ports = self.get_number_of_ports()
+        n_ports = len(self.ports)
 
         if self.route_type == RouteTypeID.LINER:
             return tuple((i, (i + 1) % n_ports) for i in range(n_ports))
@@ -495,7 +489,7 @@ class Route(Node):
             to carry fuel along.
         """
         if self.route_type == RouteTypeID.LINER:
-            return tuple(range(self.get_number_of_ports()))
+            return tuple(range(len(self.ports)))
 
         return ()
 
@@ -510,7 +504,7 @@ class Route(Node):
             of a TRAMP.
         """
         if self.route_type == RouteTypeID.LINER:
-            return tuple((i, i + 1) for i in range(self.get_number_of_ports() - 1))
+            return tuple((i, i + 1) for i in range(len(self.ports) - 1))
 
         return ()
 
@@ -549,6 +543,25 @@ def _count_conditions(speeds: tuple[CurveInput, ...]) -> tuple[int, ...]:
         Number of sailing conditions on each leg.
     """
     return tuple(len(speed.x) if isinstance(speed, Curve) else 1 for speed in speeds)
+
+
+def _matches(pattern: str, name: str) -> bool:
+    """
+    Check whether a name matches a pattern that may hold wildcards.
+
+    Parameters
+    ----------
+    pattern
+        Name or wildcard pattern.
+    name
+        Name to test.
+
+    Returns
+    -------
+    bool
+        Whether the pattern matches the name.
+    """
+    return bool(matching_keys(pattern, [name]))
 
 
 def _name_leg(key: tuple[str, str]) -> str:

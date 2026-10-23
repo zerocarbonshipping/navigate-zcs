@@ -145,7 +145,7 @@ class VesselExpectation(_Expectation):
         port_names = [port.name for port in route.ports]
         n_condition = len(route.get_conditions())
         n_leg = len(route.get_legs())
-        n_port = route.get_number_of_ports()
+        n_port = len(route.ports)
 
         # voyage
         self._voyages = self._default_array()

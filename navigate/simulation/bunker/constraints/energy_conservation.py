@@ -48,7 +48,7 @@ def update_energy_conservation_constraints(
     route = vessel.route
 
     legs = route.get_legs()
-    stops = range(route.get_number_of_ports())
+    stops = range(len(route.ports))
 
     demands_sea = expectation.get_energy_sea_leg(idx=alg.idx)
     demands_port = expectation.get_energy_port(idx=alg.idx)

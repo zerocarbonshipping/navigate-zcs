@@ -280,7 +280,7 @@ def _calculate_liner_port_days(route: Route) -> FloatArray:
     """
     destinations = [destination for _, destination in route.get_legs()]
 
-    port_days = np.zeros(route.get_number_of_ports())
+    port_days = np.zeros(len(route.ports))
     port_days[destinations] = to_numpy(route.leg_port_durations)
 
     return port_days
