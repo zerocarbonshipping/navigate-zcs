@@ -13,7 +13,9 @@ rather than 'float', because the setter wraps a bare number through
 'as_scalar' before storing. The argument kind ('*Argument') is what the
 setter is handed, before that wrap: the same set with 'float' in place of
 'Scalar'. The comment above each pair gives the 'type_' argument that spells
-the set at the boundary.
+the set at the boundary. Every pair but the Curve table one carries
+'Expression', as 'assign_value' accepts an expression wherever a setter takes
+a number.
 """
 
 from __future__ import annotations
@@ -31,15 +33,6 @@ if TYPE_CHECKING:
 
 # the node classes 'CALCULATOR_TYPES' names
 type Calculator = Curve | Forecast | Surface | Timetable | Variable
-
-# setters passing type_ CURVE with allow_expression False, which read their
-# Curves as tables rather than evaluate them, so take no Variable or Expression
-type CurveTableInput = Scalar | Curve
-type CurveTableArgument = float | Curve
-
-# 'Expression' is a member of every alias below: 'assign_value' accepts an
-# expression wherever the setter accepts scalars or a calculator type, and
-# every alias here spells such a setter.
 
 # setters passing type_ VARIABLE
 type ScalarInput = Scalar | Variable | Expression
@@ -65,7 +58,11 @@ type SurfaceArgument = float | Curve | Surface | Variable | Expression
 type TimetableInput = Scalar | Forecast | Timetable | Variable | Expression
 type TimetableArgument = float | Forecast | Timetable | Variable | Expression
 
-# the argument kind of plain-number setters, which pass no type_ and take no
-# calculator; a setter that stores its number unwrapped holds it as this kind
-# too
+# setters passing no type_, which take no calculator and store the number
+# unwrapped, so the one kind is both argument and storage
 type NumberInput = float | Expression
+
+# setters passing type_ CURVE with allow_expression False: they read the
+# Curve as a table, so take neither a Variable nor an Expression
+type CurveTableInput = Scalar | Curve
+type CurveTableArgument = float | Curve
