@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Internal type vocabulary: numpy array aliases.
+Internal type vocabulary: numpy array aliases and the unions over them.
 
 Dependency-free; `navigate/core/types_.py` holds the aliases built over
 core classes.
@@ -16,10 +16,12 @@ import numpy.typing as npt
 type BoolArray = npt.NDArray[np.bool_]
 type DateArray = npt.NDArray[np.datetime64]
 type FloatArray = npt.NDArray[np.float64]
+type TimedeltaArray = npt.NDArray[np.timedelta64]
+
 type FloatLike = float | FloatArray
-type Index = int | np.signedinteger | slice | IntArray
+
 # index-producing numpy operations (searchsorted and friends) reveal
 # width-parametrized signed integers, which only the unparametrized
 # signedinteger accepts
 type IntArray = npt.NDArray[np.signedinteger]
-type TimedeltaArray = npt.NDArray[np.timedelta64]
+type Index = int | np.signedinteger | slice | IntArray
