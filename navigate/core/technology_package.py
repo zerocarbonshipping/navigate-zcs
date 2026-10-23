@@ -20,17 +20,17 @@ class TechnologyPackage:
     """
     Represent a bundle of technologies with their combined effects.
 
-    The combined effects derive from the technologies and are refreshed every
-    time-step, as technology properties may depend on time. The cost flows are held
-    apart, per amortization horizon, in ``PackageCostFlows``.
+    The combined effects derive from the technologies and are set by
+    ``update_packages`` every time-step, as technology properties may depend on time.
+    The cost flows are held apart, per amortization horizon, in ``PackageCostFlows``.
 
     Parameters
     ----------
     technologies
         Technologies in the package.
-    compound_savings
+    energy_saving
         Combined energy-saving fraction per energy demand type.
-    compound_powers
+    external_power
         Summed external power per energy demand type, MW.
     transfer_curves
         Power-transfer curves per (source, destination) pair with any transfer.
@@ -39,20 +39,20 @@ class TechnologyPackage:
     """
 
     technologies: list[Technology]
-    compound_savings: dict[EnergyDemandID, float] = field(default_factory=dict)
-    compound_powers: dict[EnergyDemandID, float] = field(default_factory=dict)
+    energy_saving: dict[EnergyDemandID, float] = field(init=False)
+    external_power: dict[EnergyDemandID, float] = field(init=False)
     transfer_curves: dict[tuple[EnergyDemandID, EnergyDemandID], list[CurveInput]] = (
-        field(default_factory=dict)
+        field(init=False)
     )
-    shore_power_capacity: float = 0.0
+    shore_power_capacity: float = field(init=False)
 
     @property
     def is_empty(self) -> bool:
         """Whether the package holds no technology."""
-        return len(self.technologies) == 0
+        return not self.technologies
 
     @property
-    def includes_transfer(self) -> bool:
+    def transfers_power(self) -> bool:
         """Whether any technology transfers power between energy demand types."""
         return bool(self.transfer_curves)
 
@@ -74,5 +74,5 @@ class PackageCostFlows:
         Cost flow of each package, from empty to full, per horizon in years, USD/year.
     """
 
-    time: float = 0.0
+    time: float = field(init=False)
     by_horizon: dict[float, list[FloatArray]] = field(default_factory=dict)
