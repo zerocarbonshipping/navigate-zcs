@@ -51,7 +51,6 @@ VESSEL = "Vessel"
 BUNKER_OPTIONS = "BunkerOptions"
 MODEL_DEFINITION = "ModelDefinition"
 
-
 CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
 # the node type(s) an attribute accepts
@@ -59,85 +58,25 @@ type AcceptedNodeTypes = str | tuple[str, ...]
 
 
 def is_calculator(node: Node) -> TypeIs[Calculator]:
-    """
-    Check whether the node is a calculator, narrowing its static type.
-
-    Parameters
-    ----------
-    node
-        Node whose type tag is tested.
-
-    Returns
-    -------
-    TypeIs[Calculator]
-        True if the node is one of the calculator types.
-    """
+    """Check whether the node is a calculator, narrowing its static type."""
     return node.type in CALCULATOR_TYPES
 
 
 def is_feedstock(node: Node) -> TypeIs[Feedstock]:
-    """
-    Check whether the node is a Feedstock, narrowing its static type.
-
-    Parameters
-    ----------
-    node
-        Node whose type tag is tested.
-
-    Returns
-    -------
-    TypeIs[Feedstock]
-        True if the node is a Feedstock.
-    """
+    """Check whether the node is a Feedstock, narrowing its static type."""
     return node.type == FEEDSTOCK
 
 
 def is_process(node: Node) -> TypeIs[Process]:
-    """
-    Check whether the node is a Process, narrowing its static type.
-
-    Parameters
-    ----------
-    node
-        Node whose type tag is tested.
-
-    Returns
-    -------
-    TypeIs[Process]
-        True if the node is a Process.
-    """
+    """Check whether the node is a Process, narrowing its static type."""
     return node.type == PROCESS
 
 
 def is_surface(node: Node) -> TypeIs[Surface]:
-    """
-    Check whether the node is a Surface, narrowing its static type.
-
-    Parameters
-    ----------
-    node
-        Node whose type tag is tested.
-
-    Returns
-    -------
-    TypeIs[Surface]
-        True if the node is a Surface.
-    """
+    """Check whether the node is a Surface, narrowing its static type."""
     return node.type == SURFACE
 
 
 def is_variable(node: Node) -> TypeIs[Variable]:
-    """
-    Check whether the node is a Variable, narrowing its static type.
-
-    Parameters
-    ----------
-    node
-        Node whose type tag is tested.
-
-    Returns
-    -------
-    TypeIs[Variable]
-        True if the node is a Variable.
-    """
+    """Check whether the node is a Variable, narrowing its static type."""
     return node.type == VARIABLE
