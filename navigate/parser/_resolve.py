@@ -25,6 +25,7 @@ from navigate.parser._lark_parser import Assignment, item_references
 from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
+    from navigate.exceptions import DeckError
     from navigate.parser._collect import Collector, Declaration, EventBlock, Key
 
 # an EVENTS block with the declarations its name matches
@@ -55,23 +56,28 @@ def resolve(collector: Collector) -> list[BoundEvent]:
 
     for block in collector.events:
         targets = matching(collector.declarations, block.node_type, block.pattern)
+        if not targets:
+            raise _unmatched_error(block)
 
-        if targets:
-            for key in targets:
-                check_no_self_reference(key, block.body)
-            bound.append((block, targets))
-        elif name_contains_wildcards(block.pattern):
-            raise block.source.error(
-                f"No node of type '{block.node_type}' matches the wildcard "
-                f"expression '{block.pattern}'."
-            )
-        else:
-            raise block.source.error(
-                f'{block.node_type}("{block.pattern}") is not defined; the EVENTS '
-                "section cannot define new nodes."
-            )
+        for key in targets:
+            check_no_self_reference(key, block.body)
+        bound.append((block, targets))
 
     return bound
+
+
+def _unmatched_error(block: EventBlock) -> DeckError:
+    """Build the error for a block whose name matches no declaration."""
+    if name_contains_wildcards(block.pattern):
+        return block.source.error(
+            f"No node of type '{block.node_type}' matches the wildcard "
+            f"expression '{block.pattern}'."
+        )
+
+    return block.source.error(
+        f'{block.node_type}("{block.pattern}") is not defined; the EVENTS '
+        "section cannot define new nodes."
+    )
 
 
 def check_pinned_calculators(
@@ -92,7 +98,35 @@ def check_pinned_calculators(
         The declarations the simulation holds, after the prune.
     events
         The events the prune kept, each with its kept targets.
+
+    Raises
+    ------
+    DeckError
+        If an event assigns an attribute of a calculator a DEFINE-only input
+        holds.
     """
+    pinned = _pinned_calculators(collector, kept)
+
+    for block, targets in events:
+        assignments = [item for item in block.body if isinstance(item, Assignment)]
+        pinned_targets = [target for target in targets if target in pinned]
+        if not assignments or not pinned_targets:
+            continue
+
+        assignment = assignments[0]
+        target = pinned_targets[0]
+        calculator = collector.declarations[target]
+        holder, held_in = pinned[target]
+        raise assignment.source.error(
+            f"{calculator} does not allow setting attribute '{assignment.attribute}' "
+            f"in 'EVENTS', as {holder} holds it in '{held_in}', which is DEFINE-only."
+        )
+
+
+def _pinned_calculators(
+    collector: Collector, kept: list[Key]
+) -> dict[Key, tuple[Declaration, str]]:
+    """Map each calculator a kept DEFINE-only input holds to its holder and input."""
     pinned: dict[Key, tuple[Declaration, str]] = {}
     kept_keys = set(kept)
 
@@ -111,19 +145,4 @@ def check_pinned_calculators(
                 for target in matching(kept_keys, reference.type, reference.name):
                     pinned.setdefault(target, (declaration, item.name))
 
-    for block, targets in events:
-        assignments = [item for item in block.body if isinstance(item, Assignment)]
-        if not assignments:
-            continue
-
-        for target in targets:
-            if target not in pinned:
-                continue
-
-            holder, label = pinned[target]
-            item = assignments[0]
-            raise item.source.error(
-                f'{target[0]}("{target[1]}") does not allow setting attribute '
-                f"'{item.attribute}' in 'EVENTS', as {holder} holds it in '{label}', "
-                "which is DEFINE-only."
-            )
+    return pinned
