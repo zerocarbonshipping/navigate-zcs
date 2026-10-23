@@ -82,11 +82,8 @@ class Fuel(Node):
     @deck_command(SECTION_DEFINE)
     def set_ttw(self, emission_name: str, ttw: ScalarArgument) -> None:
         """Set the TTW emission factor of the fuel for an emission."""
-        write_matching_keys(
-            emission_name,
-            assign_value(as_scalar(ttw), type_=VARIABLE, lower=0.0),
-            self.ttw,
-        )
+        value_ = assign_value(as_scalar(ttw), type_=VARIABLE, lower=0.0)
+        write_matching_keys(emission_name, value_, self.ttw)
 
     # internal methods -----------------------------------------------------------------
     def initialize_dependencies(self, emissions: dict[str, Emission]) -> None:
