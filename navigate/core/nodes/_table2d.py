@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
-from scipy.interpolate import interpn
+from scipy.interpolate import RegularGridInterpolator
 
 from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribute
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
@@ -14,8 +14,6 @@ from navigate.core.nodes._calculator import _Calculator, evaluate_number
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from navigate.core.types_ import NumberInput
     from navigate.util import FloatArray, FloatLike
 
@@ -35,8 +33,8 @@ class _Table2D(_Calculator):
         # internal variables -----------------------------------------------------------
         self.x: FloatArray
         self.y: FloatArray
-        self._z: FloatArray
-        self._table: Callable[[FloatLike, FloatLike], FloatLike]
+        self._table: RegularGridInterpolator
+        self._fill_value: NumberInput | None
         self._is_convex: bool
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -69,54 +67,54 @@ class _Table2D(_Calculator):
     def calculate(self, x: FloatLike, y: FloatLike) -> FloatLike: ...
 
     def calculate(self, x: FloatLike, y: FloatLike) -> FloatLike:
-        return self._transform(self._table(x, y), x, y)
+        # RegularGridInterpolator is untyped; it answers in the broadcast shape of x
+        # and y, as a 0-d array for two scalars, which '_transform' unwraps
+        table_value: FloatLike = self._table((x, y))
+
+        if self._fill_value is not None:
+            table_value = self._fill_flat(x, y, table_value, self._fill_value)
+
+        return self._transform(table_value, x, y)
 
     def reverse_lookup(
         self, z: FloatLike, y: FloatArray | None = None
     ) -> FloatArray | None:
-        if y is None:
-            y = self.y
-
-        return self._reverse_lookup_x(y, z)
-
-    def _reverse_lookup_x(self, y: FloatArray, z: FloatLike) -> FloatArray | None:
         """
-        Perform a reverse lookup in the table defined by (xp, yp, zp).
+        Perform a reverse lookup in the node's table for the x-values closest to 'z'.
 
-        Finds the x-value closest to 'z' along a z-slice defined by y.
-
-        This lookup is only applicable to strictly increasing functions such as
+        Each x-value is looked up along the z-slice of the table at one 'y'. This
+        lookup is only applicable to strictly increasing functions such as
         exponential functions.
 
         Parameters
         ----------
-        y
-            Values along which to calculate z-slices.
         z
-            z-values to reverse calculate x-values for.
+            Value to find the corresponding x-values for.
+        y
+            Values to look up a z-slice at, the table's own y-values by default.
 
         Returns
         -------
-        np.ndarray | None
-            Interpolated 'x' value corresponding to the given 'z' along a z-slice
-            defined by 'y', or `None` when a z-slice is not strictly increasing.
+        FloatArray | None
+            Interpolated 'x' value for each 'y', or `None` when a z-slice is not
+            strictly increasing.
         """
-        x: list[FloatLike] = []
+        if y is None:
+            y = self.y
 
-        for yp in y:
-            # extract a z-slice for the given y
-            zp = self.calculate(self.x, yp)
+        x_values: list[FloatLike] = []
+
+        for y_value in y:
+            zp = self.calculate(self.x, y_value)
 
             if not is_strictly_increasing(zp):
                 return None
 
-            # then reverse calculate along
-            # the x-axis using the z-slice
-            x.append(np.interp(z, zp, self.x))
+            x_values.append(np.interp(z, zp, self.x))
 
-        return np.array(x)
+        return np.array(x_values)
 
-    def _interpn_method(self) -> str:
+    def _interpolator_method(self) -> str:
         match self._interpolate:
             case Interpolate2DID.LINEAR:
                 return "linear"
@@ -124,74 +122,79 @@ class _Table2D(_Calculator):
             case Interpolate2DID.NEAREST:
                 return "nearest"
 
-    def _interpn_fill_value(self) -> NumberInput | None:
+    def _interpolator_fill_value(self) -> float | None:
         match self.extrapolate:
             case ExtrapolateID.FLAT:
-                return self._outside
+                # a placeholder: 'calculate' fills in the flat value
+                return np.nan
 
             case ExtrapolateID.LINEAR | ExtrapolateID.FALSE:
-                # interpn extrapolates linearly without a fill value, and raises
-                # before reading one when extrapolation is not allowed
+                # the interpolator extrapolates linearly without a fill value, and
+                # raises before reading one when extrapolation is not allowed
                 return None
+
+    def _flat_fill_value(self) -> NumberInput | None:
+        if self.extrapolate != ExtrapolateID.FLAT:
+            return None
+
+        return self._outside
+
+    def _fill_flat(
+        self,
+        x: FloatLike,
+        y: FloatLike,
+        table_value: FloatLike,
+        outside: NumberInput,
+    ) -> FloatArray:
+        """
+        Replace the lookups outside the table with the flat extrapolation value.
+
+        The value is evaluated here rather than handed to RegularGridInterpolator
+        when the table is built: an expression may read a node whose value changes
+        during the run, such as a Forecast, which holds the value of the current
+        time step.
+
+        Parameters
+        ----------
+        x
+            First input the table was looked up at.
+        y
+            Second input the table was looked up at.
+        table_value
+            Table lookup at ``x`` and ``y``, undefined outside the table.
+        outside
+            Flat extrapolation value outside the table.
+
+        Returns
+        -------
+        FloatArray
+            Table lookup with the flat value filled in, in the broadcast shape of
+            ``x`` and ``y``.
+        """
+        outside_x = (x < self.x[0]) | (x > self.x[-1])
+        outside_y = (y < self.y[0]) | (y > self.y[-1])
+        has_nan = np.isnan(x) | np.isnan(y)
+
+        # a NaN input stays NaN, as the interpolator answers it, even where the
+        # other input lies outside the table
+        is_outside = (outside_x | outside_y) & ~has_nan
+        return np.where(is_outside, evaluate_number(outside), table_value)
 
     def _set_table(self, x: FloatArray, y: FloatArray, z: FloatArray) -> None:
         self.x = x
         self.y = y
-        self._z = z
 
-        # if all linear paths in the x-direction
-        # on the surface are convex, then it is
-        # guaranteed to be convex in the x-direction
-        self._is_convex = all(self._test_convexity(x, z[:, i]) for i, _ in enumerate(y))
+        # the surface is convex in x when every slice of it at a fixed y is
+        self._is_convex = all(self._test_convexity(x, column) for column in z.T)
+        self._fill_value = self._flat_fill_value()
 
-        method = self._interpn_method()
-        bounds_error = self.extrapolate == ExtrapolateID.FALSE
-        fill_number = self._interpn_fill_value()
-
-        # copy.deepcopy leaves a function as it is, so a deep copy of a built table
-        # shares this closure with its source: its x/y/z arrays and its fill value. The
-        # DSL's Copy command can copy a node whose table is already built. This is
-        # harmless only because nothing mutates the arrays in place, and the settings
-        # captured here can only be assigned in DEFINE.
-        def interp(x_: FloatLike, y_: FloatLike) -> FloatLike:
-            x_array = np.asarray(x_)
-            y_array = np.asarray(y_)
-
-            # evaluated here rather than when the table is built: an expression
-            # may read a node whose value changes during the run, such as a
-            # Forecast, which holds the value of the current time step
-            fill_value = None if fill_number is None else evaluate_number(fill_number)
-
-            scalar_inputs = (x_array.ndim == 0) and (y_array.ndim == 0)
-
-            if scalar_inputs:
-                # xi must be (npoints, ndim) for a single point -> (1, 2)
-                xi = np.array([[x_array.item(), y_array.item()]], dtype=float)
-                value: float = interpn(
-                    (x, y),
-                    z,
-                    xi,
-                    method=method,
-                    bounds_error=bounds_error,
-                    fill_value=fill_value,
-                )[0]  # -> np.float64
-                return value
-
-            # For arrays (including scalar/array mix): broadcast + stack into (..., 2)
-            xb, yb = np.broadcast_arrays(x_array, y_array)
-            xi = np.stack([xb, yb], axis=-1)
-
-            values: FloatArray = interpn(
-                (x, y),
-                z,
-                xi,
-                method=method,
-                bounds_error=bounds_error,
-                fill_value=fill_value,
-            )
-            return values
-
-        self._table = interp
+        self._table = RegularGridInterpolator(
+            (x, y),
+            z,
+            method=self._interpolator_method(),
+            bounds_error=self.extrapolate == ExtrapolateID.FALSE,
+            fill_value=self._interpolator_fill_value(),
+        )
 
 
 def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
@@ -210,7 +213,7 @@ def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
     y
         'y' values in table.
     z
-        Array of array with z-values.
+        z-values in table, one row per 'x' and one column per 'y'.
     """
     if (x.size < 2) or (y.size < 2):
         raise ValueError(
