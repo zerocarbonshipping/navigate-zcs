@@ -104,10 +104,10 @@ class Fleet(Node):
         self.orderbooks: list[ForecastInput] = []
         self.technologies: list[Technology] = []
         self.operational_saving_sea: dict[EnergyDemandID, ForecastInput] = {
-            d: Scalar(0.0) for d in EnergyDemandID
+            demand: Scalar(0.0) for demand in EnergyDemandID
         }
         self.operational_saving_port: dict[EnergyDemandID, ForecastInput] = {
-            d: Scalar(0.0) for d in PORT_ENERGY_DEMANDS
+            demand: Scalar(0.0) for demand in PORT_ENERGY_DEMANDS
         }
         self.fuel_conversion_cost: dict[tuple[str, str], ForecastInput | None] = {}
         self.fuel_conversion_limit: dict[tuple[str, str], ForecastInput] = {}
@@ -123,15 +123,15 @@ class Fleet(Node):
         self.results: FleetResults = FleetResults()
 
         self.increments: list[list[VesselIncrement]]
-        self.current_uptake: FloatArray = np.empty(0)
-        self.fuel_conversion_expenses: FloatArray = np.empty(0)
-        self.trade: FloatArray = np.ndarray(0)
-        self.newbuild_package_uptake: list[FloatArray] = []
-        self.orders_delivered: FloatArray = np.empty(0)
-        self.orders_postponed: FloatArray = np.empty(0)
-        self.technology_packages: list[TechnologyPackage] = []
+        self.current_uptake: FloatArray
+        self.fuel_conversion_expenses: FloatArray
+        self.trade: FloatArray
+        self.newbuild_package_uptake: list[FloatArray]
+        self.orders_delivered: FloatArray
+        self.orders_postponed: FloatArray
+        self.technology_packages: list[TechnologyPackage]
         self.package_cost_flows: PackageCostFlows = PackageCostFlows()
-        self.package_to_technology_map: dict[int, int] = {}
+        self.package_to_technology_map: dict[int, int]
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -247,10 +247,14 @@ class Fleet(Node):
         )
 
     @deck_attribute()
-    def set_technology_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
+    def set_technology_cost_of_capital(
+        self, technology_cost_of_capital: ForecastArgument
+    ) -> None:
         """Set the cost of capital used for evaluating technology investments."""
         self.technology_cost_of_capital = assign_value(
-            as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(technology_cost_of_capital),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
@@ -353,153 +357,133 @@ class Fleet(Node):
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
     def set_fuel_conversion_cost(
-        self,
-        vessel_name_from: str,
-        vessel_name_to: str,
-        fuel_conversion_cost: ForecastArgument,
+        self, vessel_name_from: str, vessel_name_to: str, value: ForecastArgument
     ) -> None:
         """Set the cost of converting a vessel type to another."""
         write_matching_key_pairs(
             (vessel_name_from, vessel_name_to),
-            assign_value(
-                as_scalar(fuel_conversion_cost), type_=(FORECAST, VARIABLE), lower=0.0
-            ),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.fuel_conversion_cost,
         )
 
     @deck_command()
     def set_fuel_conversion_limit(
-        self,
-        vessel_name_from: str,
-        vessel_name_to: str,
-        fuel_conversion_limit: ForecastArgument,
+        self, vessel_name_from: str, vessel_name_to: str, value: ForecastArgument
     ) -> None:
         """Set the yearly cap on fuel conversions between two vessel types."""
         write_matching_key_pairs(
             (vessel_name_from, vessel_name_to),
             assign_value(
-                as_scalar(fuel_conversion_limit),
-                type_=(FORECAST, VARIABLE),
-                lower=0.0,
-                upper=1.0,
+                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
             self.fuel_conversion_limit,
         )
 
     @deck_command()
-    def set_allow_vessel(self, vessel_name: str, allow_vessel: str) -> None:
+    def set_allow_vessel(self, vessel_name: str, value: str) -> None:
         """Set whether a vessel type may enter the fleet."""
         write_matching_keys(
-            vessel_name,
-            assign_boolean(allow_vessel),
-            self.allow_vessel,
-            allow_empty=True,
+            vessel_name, assign_boolean(value), self.allow_vessel, allow_empty=True
         )
 
     @deck_command()
-    def set_newbuild_available(self, vessel_name: str, newbuild_available: str) -> None:
+    def set_newbuild_available(self, vessel_name: str, value: str) -> None:
         """Set whether a vessel type is available as a newbuild."""
         write_matching_keys(
             vessel_name,
-            assign_boolean(newbuild_available),
+            assign_boolean(value),
             self.newbuild_available,
             allow_empty=True,
         )
 
     @deck_command()
-    def set_conversion_available(
-        self, vessel_name: str, conversion_available: str
-    ) -> None:
+    def set_conversion_available(self, vessel_name: str, value: str) -> None:
         """Set whether a vessel type is available as a conversion target."""
         write_matching_keys(
             vessel_name,
-            assign_boolean(conversion_available),
+            assign_boolean(value),
             self.conversion_available,
             allow_empty=True,
         )
 
     @deck_command(SECTION_DEFINE)
     def set_initial_technology_share(
-        self, vessel_name: str, technology_name: str, uptake_curve: Curve | Expression
+        self, vessel_name: str, technology_name: str, value: Curve | Expression
     ) -> None:
         """Set the initial technology uptake by vessel age."""
         write_matching_key_pairs(
             (vessel_name, technology_name),
-            assign_value(
-                uptake_curve, allow_scalar=False, type_=CURVE, lower=0.0, upper=1.0
-            ),
+            assign_value(value, allow_scalar=False, type_=CURVE, lower=0.0, upper=1.0),
             self.initial_technology_share,
         )
 
     @deck_command()
-    def set_newbuild_limit(self, vessel_name: str, limit: ForecastArgument) -> None:
+    def set_newbuild_limit(self, vessel_name: str, value: ForecastArgument) -> None:
         """Set the yearly newbuild cap of a vessel type."""
         write_matching_keys(
             vessel_name,
             assign_value(
-                as_scalar(limit), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
             self.newbuild_limit,
         )
 
     @deck_command()
     def set_newbuild_technology_limit(
-        self, technology_name: str, limit: ForecastArgument
+        self, technology_name: str, value: ForecastArgument
     ) -> None:
         """Set the yearly cap on newbuild installs of a technology."""
         write_matching_keys(
             technology_name,
             assign_value(
-                as_scalar(limit), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
             self.newbuild_technology_limit,
         )
 
     @deck_command()
     def set_retrofit_technology_limit(
-        self, technology_name: str, limit: ForecastArgument
+        self, technology_name: str, value: ForecastArgument
     ) -> None:
         """Set the yearly cap on retrofits of a technology."""
         write_matching_keys(
             technology_name,
             assign_value(
-                as_scalar(limit), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
             self.retrofit_technology_limit,
         )
 
     @deck_command()
     def set_operational_saving_sea(
-        self, energy_type: str, saving: ForecastArgument
+        self, energy_type: str, value: ForecastArgument
     ) -> None:
         """Set the energy fraction saved at sea through operational measures."""
+        id_ = assign_id(energy_type, EnergyDemandID)
         value_ = assign_value(
-            as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-        id_ = assign_id(energy_type, EnergyDemandID)
         write_matching_keys(id_, value_, self.operational_saving_sea)
 
     @deck_command()
     def set_operational_saving_port(
-        self, energy_type: str, saving: ForecastArgument
+        self, energy_type: str, value: ForecastArgument
     ) -> None:
         """Set the energy fraction saved in port through operational measures."""
+        id_ = assign_member(energy_type, PORT_ENERGY_DEMANDS)
         value_ = assign_value(
-            as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-        id_ = assign_member(energy_type, PORT_ENERGY_DEMANDS)
         write_matching_keys(id_, value_, self.operational_saving_port)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-
         if self.technologies and self.technology_sensitivity is None:
             raise UnassignedAttributeError(str(self), "TechnologySensitivity")
 
     def apply_defaults(self) -> None:
-
         # without a supplied initial split, the cargo-miles are split uniformly
         if not self.initial_split:
             self.initial_split = [1.0 / len(self.vessels) for _ in self.vessels]
@@ -508,7 +492,6 @@ class Fleet(Node):
             self.initial_age_distribution = [Scalar(0.0) for _ in self.vessels]
 
     def apply_command_defaults(self) -> None:
-
         # cross-pair keys exist only after commands fill fuel_conversion_cost, so
         # their limits are seeded here rather than in initialize_dependencies
         for key, cost in self.fuel_conversion_cost.items():
@@ -516,7 +499,6 @@ class Fleet(Node):
                 self.fuel_conversion_limit.setdefault(key, Scalar(1.0))
 
     def check_consistency(self) -> None:
-
         if len(self.vessels) != len(self.initial_split):
             raise ValueError(
                 f"{self}: The length of Vessel ({len(self.vessels)}) and "
@@ -562,31 +544,27 @@ class Fleet(Node):
 
     def initialize_dependencies(self) -> None:
         """Initialize dependent dictionaries so command calls can use wildcards."""
+        # a None conversion cost marks a pair as not convertible and a None share
+        # means no initial share; the self-pair limit exists only so
+        # write_matching_key_pairs can validate cross-pair keys
         for vessel in self.vessels:
             name = vessel.name
-            # stays None when unset: a None cost marks the pair as not convertible
             self.fuel_conversion_cost.setdefault((name, name), None)
-            # placeholder self-pair so write_matching_key_pairs can validate cross-pair
-            # keys
             self.fuel_conversion_limit.setdefault((name, name), Scalar(1.0))
+            self.newbuild_limit.setdefault(name, Scalar(1.0))
             self.allow_vessel.setdefault(name, True)
             self.newbuild_available.setdefault(name, True)
             self.conversion_available.setdefault(name, True)
-            self.newbuild_limit.setdefault(name, Scalar(1.0))
 
-            for tech in self.technologies:
-                # stays None when unset: technology adoption treats a missing curve
-                # as no initial share
-                self.initial_technology_share.setdefault((name, tech.name), None)
+            for technology in self.technologies:
+                self.initial_technology_share.setdefault((name, technology.name), None)
 
-        for tech in self.technologies:
-            self.newbuild_technology_limit.setdefault(tech.name, Scalar(1.0))
-            self.retrofit_technology_limit.setdefault(tech.name, Scalar(1.0))
+        for technology in self.technologies:
+            self.newbuild_technology_limit.setdefault(technology.name, Scalar(1.0))
+            self.retrofit_technology_limit.setdefault(technology.name, Scalar(1.0))
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
-
         vessel_names = [vessel.name for vessel in self.vessels]
-
         self.expectation.initialize(length, vessel_names, fuels)
 
     def initialize_results(
@@ -595,7 +573,6 @@ class Fleet(Node):
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
-
         vessel_names = [vessel.name for vessel in self.vessels]
         technology_names = [technology.name for technology in self.technologies]
 
