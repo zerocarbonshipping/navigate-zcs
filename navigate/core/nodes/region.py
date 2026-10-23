@@ -224,38 +224,36 @@ class Region(Node):
         transports
             All transports in the simulation.
         """
+        # a None lifetime lasts the plant's life, so no replacement cycle is attached
         for process_name in processes:
             self.process_capex.setdefault(process_name, Scalar(0.0))
             self.process_opex.setdefault(process_name, Scalar(0.0))
             self.process_energy.setdefault(process_name, Scalar(0.0))
-            # stays None when unset: a process without a lifetime lives as long as
-            # its plant, so Component.attach_process_cycle attaches no replacement
-            # cycle
             self.process_lifetime.setdefault(process_name, None)
             self.process_replacement.setdefault(process_name, Scalar(0.0))
 
             for emission_name in emissions:
-                self.process_wtt.setdefault((process_name, emission_name), Scalar(0.0))
-
-        for feedstock_name in feedstocks:
-            self.feedstock_cost.setdefault(feedstock_name, Scalar(0.0))
-
-            for emission_name in emissions:
-                self.feedstock_wtt.setdefault(
-                    (feedstock_name, emission_name), Scalar(0.0)
-                )
+                key = (process_name, emission_name)
+                self.process_wtt.setdefault(key, Scalar(0.0))
 
         for source_name in sources:
             self.source_capex.setdefault(source_name, Scalar(0.0))
             self.source_opex.setdefault(source_name, Scalar(0.0))
 
             for emission_name in emissions:
-                self.source_wtt.setdefault((source_name, emission_name), Scalar(0.0))
+                key = (source_name, emission_name)
+                self.source_wtt.setdefault(key, Scalar(0.0))
+
+        for feedstock_name in feedstocks:
+            self.feedstock_cost.setdefault(feedstock_name, Scalar(0.0))
+
+            for emission_name in emissions:
+                key = (feedstock_name, emission_name)
+                self.feedstock_wtt.setdefault(key, Scalar(0.0))
 
         for transport_name in transports:
             self.transport_cost.setdefault(transport_name, Scalar(0.0))
 
             for emission_name in emissions:
-                self.transport_wtt.setdefault(
-                    (transport_name, emission_name), Scalar(0.0)
-                )
+                key = (transport_name, emission_name)
+                self.transport_wtt.setdefault(key, Scalar(0.0))
