@@ -10,7 +10,7 @@ from navigate.core.node_type import TRANSPORT
 
 
 class Transport(Node):
-    """A mode of transport that plants use to move feedstocks and fuels."""
+    """A transport mode that regions price and plants move feedstocks and fuels by."""
 
     type = TRANSPORT
 
