@@ -309,6 +309,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The `--help` text and the README no longer say `-p` silences other console
   output or that `-s` leaves Excel reports; reports keep their own format
   (#444).
+- An expression that references a `Curve`, given to a `Route` leg by `set_speed`
+  or `set_utilization`, is now refused before the run starts, with an error that
+  names the route and the leg, instead of crashing at the first time step (#727).
 - The `--help` text and the README named `auto` as the default of `--solver`;
   without the flag, the deck's `BunkerOptions` `Solver` applies.
 - A dearer vessel type no longer lowers its fuel type's newbuild share unless the
