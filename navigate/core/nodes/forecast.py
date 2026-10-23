@@ -36,8 +36,7 @@ class Forecast(Node, _Table1D):
         Node.__init__(self, name)
         _Table1D.__init__(self)
 
-        # temporarily stored variables at current time-step; nan
-        # until the first time step precalculates the value
+        # nan until the first time-step precalculates the value
         self._current_value: float = np.nan
 
         # used for temporary storage of tables during deck parsing
@@ -46,8 +45,7 @@ class Forecast(Node, _Table1D):
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x- and y-values the forecast interpolates in."""
-        x, y = build_table_1d_dated(table)
-        self._temporary_table = (x, y)
+        self._temporary_table = build_table_1d_dated(table)
 
     def replace_reference_table(self, reference: np.datetime64) -> None:
         if self._temporary_table is None:
@@ -97,7 +95,7 @@ class Forecast(Node, _Table1D):
         float or FloatArray
             Forecast value, in the shape of ``x``.
         """
-        if x is not None:
-            return self.calculate(x)
+        if x is None:
+            return self._current_value
 
-        return self._current_value
+        return self.calculate(x)
