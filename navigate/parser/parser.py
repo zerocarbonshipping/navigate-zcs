@@ -15,7 +15,6 @@ phase the others do not depend on: without it, every declaration is kept.
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -28,6 +27,8 @@ from navigate.parser._prune import prune
 from navigate.parser._resolve import check_pinned_calculators, resolve
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.node_registry import GeneralNodes, Nodes
     from navigate.parser._resolve import BoundEvent
     from navigate.util.types_ import DateArray
@@ -42,7 +43,7 @@ class Parser:
         self.dates: DateArray
 
         self._builder: Builder
-        self._events: dict[np.datetime64, list[BoundEvent]] = {}
+        self._events: dict[np.datetime64, list[BoundEvent]]
 
     def read_deck(self, path: Path, data_dir: Path | None = None) -> None:
         """
@@ -56,7 +57,7 @@ class Parser:
             Assumptions data folder.
         """
         collector = Collector(Library(data_dir))
-        collector.read_deck(Path(path).resolve())
+        collector.read_deck(path.resolve())
 
         events = resolve(collector)
         pruning = prune(collector, events)
@@ -67,8 +68,9 @@ class Parser:
         start_date = self.general_nodes.model_definition.start_date
 
         self.dates = _time_steps(collector.timeline, start_date)
-        self.nodes = self._builder.build_nodes()
         self._events = _events_by_date(pruning.events, start_date)
+
+        self.nodes = self._builder.build_nodes()
 
     def read_events(self, date: np.datetime64) -> bool:
         """
@@ -95,20 +97,20 @@ def _time_steps(
     timeline: list[np.datetime64 | None], start_date: np.datetime64
 ) -> DateArray:
     """Build the dates the simulation steps through: the start date and every Date."""
-    dates = {start_date if date is None else date for date in timeline}
+    dated = {date for date in timeline if date is not None}
 
-    before_start = sorted(date for date in dates if date < start_date)
+    before_start = sorted(date for date in dated if date < start_date)
     if before_start:
-        listed = "".join(
-            f"\t- Date '{date}' is before start date '{start_date}'\n"
-            for date in before_start
-        )
+        listed = ""
+        for date in before_start:
+            listed += f"\t- Date '{date}' is before start date '{start_date}'\n"
+
         raise DeckError(
             f"Inconsistent timeline detected:\n{listed}All defined dates must be "
             "later than the start date."
         )
 
-    return np.array(sorted({start_date, *dates}), dtype="datetime64[D]")
+    return np.array(sorted({start_date, *dated}), dtype="datetime64[D]")
 
 
 def _events_by_date(
