@@ -23,7 +23,7 @@ import numpy as np
 import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportAccumulationID, ReportReduceID
-from navigate.core.node_report import GLOBAL_RESULTS_KEY, NodeReport
+from navigate.core.node_report import GLOBAL_RESULTS_KEY
 from navigate.core.results import per_step_results
 from navigate.util import (
     dates_to_days,
@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 
     from openpyxl.worksheet.worksheet import Worksheet
 
+    from navigate.core.node_report import NodeReport, ReportProperty
     from navigate.core.nodes.report import Report
     from navigate.core.results._base_results import _BaseResults
     from navigate.output.simulation_results import SimulationResults
@@ -540,9 +541,11 @@ def _export_csv_property(
         sheet.columns.append(property_)
 
 
-def _requests_by_node(section: _Section, report_name: str) -> dict[str, NodeReport]:
+def _requests_by_node(
+    section: _Section, report_name: str
+) -> dict[str, list[ReportProperty]]:
     """Merge the section's requests per node they match, in the order first matched."""
-    requests_by_node: dict[str, NodeReport] = {}
+    requests_by_node: dict[str, list[ReportProperty]] = {}
 
     for key, requested in section.requests.items():
         node_names = matching_keys(key, section.results_by_node)
@@ -558,11 +561,8 @@ def _requests_by_node(section: _Section, report_name: str) -> dict[str, NodeRepo
             continue
 
         for node_name in node_names:
-            merged = requests_by_node.setdefault(node_name, NodeReport())
-            merged.attributes.extend(requested.attributes)
-            merged.results.extend(requested.results)
-            merged.reductions.extend(requested.reductions)
-            merged.accumulations.extend(requested.accumulations)
+            merged = requests_by_node.setdefault(node_name, [])
+            merged.extend(requested.properties.values())
 
     return requests_by_node
 
@@ -570,11 +570,11 @@ def _requests_by_node(section: _Section, report_name: str) -> dict[str, NodeRepo
 def _extract_properties(
     node_name: str,
     node_results: _BaseResults,
-    requested: NodeReport,
+    requested: list[ReportProperty],
     report_name: str,
 ) -> Iterator[tuple[str, _ReportValue]]:
     """
-    Yield (attribute, property) pairs from the node's results, reduced and accumulated.
+    Yield (label, property) pairs from the node's results, reduced and accumulated.
 
     Parameters
     ----------
@@ -583,26 +583,18 @@ def _extract_properties(
     node_results
         Results of the node to read properties from.
     requested
-        The attribute names, their result names, and the reduction and
-        accumulation to apply to each.
+        The properties requested of the node.
     report_name
         Name of the Report node, used in log messages.
 
     Yields
     ------
     tuple[str, _ReportValue]
-        Each attribute whose result could be read, with its reduced result.
+        Each label whose result could be read, with its reduced result.
     """
     per_step = per_step_results(type(node_results))
-    requests = zip(
-        requested.attributes,
-        requested.results,
-        requested.reductions,
-        requested.accumulations,
-        strict=True,
-    )
 
-    for attribute, result, reduce, accumulate in requests:
+    for label, result, reduction, accumulation in requested:
         try:
             # the parser checked every result name against the results class of
             # its command when it read the deck, and every result is a
@@ -610,21 +602,21 @@ def _extract_properties(
             property_: _ReportValue = getattr(node_results, result)
 
             if isinstance(property_, dict):
-                property_ = _reduce_dict(property_, reduce)
+                property_ = _reduce_dict(property_, reduction)
 
-            if accumulate is ReportAccumulationID.CUMULATIVE:
+            if accumulation is ReportAccumulationID.CUMULATIVE:
                 property_ = _accumulate(property_, node_results, result in per_step)
         except Exception as e:
             logger.error(
                 "Report '%s': Skipping property '%s' for node '%s': %s",
                 report_name,
-                attribute,
+                label,
                 node_name,
                 e,
             )
             continue
 
-        yield attribute, property_
+        yield label, property_
 
 
 def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportValue:

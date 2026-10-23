@@ -236,7 +236,10 @@ class TestReportProperty:
     def test_a_reported_property_resolves_to_its_result(self, read_deck):
         parser = read_deck(self._report('add_fleet_property("f", CargoMiles)'))
 
-        assert parser.nodes.reports["r"].fleet_reports["f"].results == ["cargo_miles"]
+        assert (
+            parser.nodes.reports["r"].fleet_reports["f"].properties["CargoMiles"].result
+            == "cargo_miles"
+        )
 
     # input:    | Report "r" { add_fleet_property("*", CargoMils) }
     # expected: -> DeckError at the command's define.inc line, naming

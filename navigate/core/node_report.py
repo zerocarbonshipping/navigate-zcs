@@ -10,7 +10,7 @@ GLOBAL_RESULTS_KEY.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from navigate.core.enum_ import ReportAccumulationID
 from navigate.util import attribute_to_instance_name
@@ -22,14 +22,20 @@ if TYPE_CHECKING:
 GLOBAL_RESULTS_KEY = "global"
 
 
+class ReportProperty(NamedTuple):
+    """One report property requested of a node."""
+
+    label: str
+    result: str
+    reduction: ReportReduceID
+    accumulation: ReportAccumulationID
+
+
 class NodeReport:
     """The report properties requested for one node, in the order they were added."""
 
     def __init__(self) -> None:
-        self.attributes: list[str] = []
-        self.results: list[str] = []
-        self.reductions: list[ReportReduceID] = []
-        self.accumulations: list[ReportAccumulationID] = []
+        self.properties: dict[str, ReportProperty] = {}
 
     def add_property(
         self,
@@ -57,8 +63,8 @@ class NodeReport:
         if accumulation is ReportAccumulationID.CUMULATIVE:
             label = f"Cumulative{attribute}"
 
-        if label not in self.attributes:
-            self.attributes.append(label)
-            self.results.append(attribute_to_instance_name(attribute))
-            self.reductions.append(reduction)
-            self.accumulations.append(accumulation)
+        if label in self.properties:
+            return
+
+        result = attribute_to_instance_name(attribute)
+        self.properties[label] = ReportProperty(label, result, reduction, accumulation)
