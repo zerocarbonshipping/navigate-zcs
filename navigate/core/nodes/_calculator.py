@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
@@ -64,7 +65,6 @@ class _Calculator:
     """
 
     def __init__(self) -> None:
-
         # external variables -----------------------------------------------------------
         self.addition: NumberInput = 0.0
         self.multiplier: NumberInput = 1.0
@@ -72,11 +72,7 @@ class _Calculator:
         self.upper_bound: float = np.inf
 
         # internal variables -----------------------------------------------------------
-        # internal bounds are assigned when setting
-        # attributes which have certain limits
         self._internal_bounds: Bounds = Bounds()
-
-        # applied bounds used in truncating
         self._applied_bounds: Bounds = Bounds()
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -96,7 +92,7 @@ class _Calculator:
         self.lower_bound = assign_bound(lower_bound, inclusive_upper=False)
 
         # called here in case the lower bound is changed during time-stepping
-        self._assign_applied_bounds()
+        self._update_applied_bounds()
 
     @deck_attribute()
     def set_upper_bound(self, upper_bound: float | str) -> None:
@@ -104,21 +100,9 @@ class _Calculator:
         self.upper_bound = assign_bound(upper_bound, inclusive_lower=False)
 
         # called here in case the upper bound is changed during time-stepping
-        self._assign_applied_bounds()
+        self._update_applied_bounds()
 
     # internal methods -----------------------------------------------------------------
-    @property
-    def internal_bounds(self) -> Bounds:
-        """
-        The tightest bounds any referencing attribute has imposed so far.
-
-        Returns
-        -------
-        Bounds
-            Internal lower and upper bound, each with whether it is inclusive.
-        """
-        return self._internal_bounds
-
     def set_internal_bounds(
         self,
         lower: float,
@@ -145,42 +129,40 @@ class _Calculator:
         inclusive_upper
             Whether the calculated value may equal the upper bound.
         """
-        current = self._internal_bounds
-        merged_lower, merged_inclusive_lower = current.lower, current.inclusive_lower
-        merged_upper, merged_inclusive_upper = current.upper, current.inclusive_upper
+        bounds = self._internal_bounds
 
-        if lower > current.lower:
-            if current.lower > -np.inf:
+        if lower > bounds.lower:
+            if bounds.lower > -np.inf:
                 logger.warning(
                     "%s: Internal lower bound tightened from %s to %s.",
                     self,
-                    current.lower,
+                    bounds.lower,
                     lower,
                 )
 
-            merged_lower, merged_inclusive_lower = lower, inclusive_lower
-        elif lower == current.lower:
-            merged_inclusive_lower = current.inclusive_lower and inclusive_lower
+            bounds = replace(bounds, lower=lower, inclusive_lower=inclusive_lower)
+        elif lower == bounds.lower:
+            inclusive = bounds.inclusive_lower and inclusive_lower
+            bounds = replace(bounds, inclusive_lower=inclusive)
 
-        if upper < current.upper:
-            if current.upper < np.inf:
+        if upper < bounds.upper:
+            if bounds.upper < np.inf:
                 logger.warning(
                     "%s: Internal upper bound tightened from %s to %s.",
                     self,
-                    current.upper,
+                    bounds.upper,
                     upper,
                 )
 
-            merged_upper, merged_inclusive_upper = upper, inclusive_upper
-        elif upper == current.upper:
-            merged_inclusive_upper = current.inclusive_upper and inclusive_upper
+            bounds = replace(bounds, upper=upper, inclusive_upper=inclusive_upper)
+        elif upper == bounds.upper:
+            inclusive = bounds.inclusive_upper and inclusive_upper
+            bounds = replace(bounds, inclusive_upper=inclusive)
 
-        self._internal_bounds = Bounds(
-            merged_lower, merged_upper, merged_inclusive_lower, merged_inclusive_upper
-        )
+        self._internal_bounds = bounds
 
         # called here in case internal bounds are set after the lower/upper bound
-        self._assign_applied_bounds()
+        self._update_applied_bounds()
 
     @overload
     def _transform(
@@ -249,39 +231,32 @@ class _Calculator:
         # inclusive bounds only clamp, so the check is skipped where both are
         if bounds.exclusive:
             violation = bounds.exclusive_violation(value)
-
             if violation is not None:
                 raise ValueError(f"{self}: {violation}")
 
         return np.maximum(np.minimum(value, bounds.upper), bounds.lower)
 
-    def _assign_applied_bounds(self) -> None:
+    def _update_applied_bounds(self) -> None:
         """
-        Assign concrete bounds based on an internal and external bounding logic.
+        Combine the user-defined bounds with the internal ones into the applied bounds.
 
-        This method calculates the applied lower and upper bounds by comparing the
-        user-defined bounds with internal ones. It ensures the applied bounds take
-        the minimum or maximum values based on the respective constraints. An
-        exclusive internal bound stays exclusive only while it is the one applied:
-        a public bound strictly inside it clamps inclusively.
+        An exclusive internal bound stays exclusive only while it is the one applied:
+        a user-defined bound strictly inside it clamps inclusively.
         """
         internal = self._internal_bounds
-        public_lower_applies = self.lower_bound > internal.lower
-        public_upper_applies = self.upper_bound < internal.upper
+        user_lower_applies = self.lower_bound > internal.lower
+        user_upper_applies = self.upper_bound < internal.upper
         self._applied_bounds = Bounds(
-            lower=np.maximum(self.lower_bound, internal.lower),
-            upper=np.minimum(self.upper_bound, internal.upper),
-            inclusive_lower=internal.inclusive_lower or public_lower_applies,
-            inclusive_upper=internal.inclusive_upper or public_upper_applies,
+            lower=max(self.lower_bound, internal.lower),
+            upper=min(self.upper_bound, internal.upper),
+            inclusive_lower=internal.inclusive_lower or user_lower_applies,
+            inclusive_upper=internal.inclusive_upper or user_upper_applies,
         )
 
     @staticmethod
     def _test_convexity(x: FloatArray, y: FloatArray) -> bool:
         """
         Test whether the piecewise linear function made up by (x, y) is convex.
-
-        This test is only applicable to non-strictly increasing functions such as
-        exponential functions.
 
         Parameters
         ----------
@@ -299,5 +274,5 @@ class _Calculator:
             return True
 
         dy_dx = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
-        d2y_d2x = (dy_dx[1:] - dy_dx[:-1]) / (x[2:] - x[1:-1])
-        return not np.any(np.round(d2y_d2x, ROUND_OFF) < 0.0)
+        d2y_dx2 = (dy_dx[1:] - dy_dx[:-1]) / (x[2:] - x[1:-1])
+        return not np.any(np.round(d2y_dx2, ROUND_OFF) < 0.0)
