@@ -38,8 +38,8 @@ class Timings[K]:
         self._seconds: dict[K, FloatArray] = seconds
         self._idx: int
 
-        # the seconds spent in the measurements nested in each open one
-        self._nested: list[float] = []
+        # per open measurement, innermost last, the seconds of those nested in it
+        self._nested_seconds: list[float] = []
 
     @contextmanager
     def step(self, idx: int, phase: K) -> Iterator[None]:
@@ -54,7 +54,6 @@ class Timings[K]:
             Phase the time of the step outside nested measurements is booked to.
         """
         self._idx = idx
-
         with self.measure(phase):
             yield
 
@@ -68,18 +67,18 @@ class Timings[K]:
         phase
             Phase the time is booked to.
         """
-        self._nested.append(0.0)
+        self._nested_seconds.append(0.0)
         start = time.perf_counter()
 
         try:
             yield
         finally:
             elapsed = time.perf_counter() - start
-            nested = self._nested.pop()
+            nested = self._nested_seconds.pop()
             self._seconds[phase][self._idx] += elapsed - nested
 
-            if self._nested:
-                self._nested[-1] += elapsed
+            if self._nested_seconds:
+                self._nested_seconds[-1] += elapsed
 
 
 # a type parameter bound cannot name another type parameter, so the owner's phase
