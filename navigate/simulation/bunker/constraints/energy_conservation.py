@@ -84,7 +84,7 @@ def _update_sea_rows(
         Origin and destination stop indices of each leg of the vessel's route.
     """
     v = vessel.name
-    converter = vessel.get_converter_by_energy_type(demand_type)
+    converter = vessel.get_converter(demand_type)
     c = converter.name
     energy_per_ton = _calculate_energy_per_ton(vessel, converter)
 
@@ -125,7 +125,7 @@ def _update_port_rows(
         Stop indices of the vessel's route.
     """
     v = vessel.name
-    converter = vessel.get_converter_by_energy_type(demand_type)
+    converter = vessel.get_converter(demand_type)
     c = converter.name
     energy_per_ton = _calculate_energy_per_ton(vessel, converter)
 

@@ -155,7 +155,7 @@ def _calculate_fuel_type_demand(
     demand: dict[FuelTypeID, FloatLike] = dict.fromkeys(FuelTypeID, 0.0)
 
     for energy_id, energy in energies.items():
-        converter = vessel.get_converter_by_energy_type(energy_id)
+        converter = vessel.get_converter(energy_id)
 
         # a dual-fuel converter burns all but its minimum pilot share as main fuel at
         # most, and any converter up to all of its energy as pilot fuel
