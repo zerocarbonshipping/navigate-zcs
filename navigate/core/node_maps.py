@@ -33,14 +33,12 @@ def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fue
         Every FuelTypeID as a key, mapped to the fuels of that type in input
         iteration order; a fuel type with no fuels maps to an empty list.
     """
-    # construct dict of fuels per fuel types
-    fuel_per_fuel_type: dict[FuelTypeID, list[Fuel]] = {id_: [] for id_ in FuelTypeID}
+    fuels_per_fuel_type: dict[FuelTypeID, list[Fuel]] = {id_: [] for id_ in FuelTypeID}
 
     for fuel in fuels.values():
-        fuel_type = fuel.fuel_type
-        fuel_per_fuel_type[fuel_type].append(fuel)
+        fuels_per_fuel_type[fuel.fuel_type].append(fuel)
 
-    return fuel_per_fuel_type
+    return fuels_per_fuel_type
 
 
 def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) -> None:
@@ -64,15 +62,13 @@ def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) 
     for vessel in vessels.values():
         usable_fuel_types = _usable_fuel_types(vessel)
         usable_fuels = _usable_fuels(usable_fuel_types, fuels_per_fuel_type)
-        fuels_per_converter = _fuels_per_converter(vessel, usable_fuels)
-        converters_per_fuel = _converters_per_fuel(
-            vessel, usable_fuels, fuels_per_converter
-        )
+        per_converter = _fuels_per_converter(vessel, usable_fuels)
+        per_fuel = _converters_per_fuel(vessel, usable_fuels, per_converter)
 
         vessel.usable_fuel_types = usable_fuel_types
         vessel.usable_fuels = usable_fuels
-        vessel.fuels_per_converter = fuels_per_converter
-        vessel.converters_per_fuel = converters_per_fuel
+        vessel.fuels_per_converter = per_converter
+        vessel.converters_per_fuel = per_fuel
 
 
 def _usable_fuel_types(vessel: Vessel) -> list[FuelTypeID]:
@@ -114,7 +110,6 @@ def _fuels_per_converter(
         for fuel_name, fuel in usable_fuels.items():
             if fuel.fuel_type in fuel_types:
                 burned[fuel_name] = fuel
-
         fuels_per_converter[converter.name] = burned
 
     return fuels_per_converter
