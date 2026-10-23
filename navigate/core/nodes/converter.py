@@ -108,9 +108,9 @@ class Converter(_Machinery):
     @deck_command()
     def set_slip_fraction(self, fuel_type: str, value: ScalarArgument) -> None:
         """Set the fraction of fuel mass escaping unburned for a fuel type."""
+        id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
 
-        id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
         write_matching_keys(id_, value_, self.slip_fraction)
 
     @deck_command()
@@ -118,19 +118,19 @@ class Converter(_Machinery):
         self, fuel_type: str, emission_name: str, value: ScalarArgument
     ) -> None:
         """Set a consumption-related emission for a fuel type in the converter."""
+        id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
 
-        id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
         write_matching_key_pairs((id_, emission_name), value_, self.consumption_ttw)
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
+        shared: list[str] = []
 
-        shared = [
-            fuel_type.name
-            for fuel_type in self.pilot_fuel_types
-            if fuel_type in self.main_fuel_types
-        ]
+        for fuel_type in self.pilot_fuel_types:
+            if fuel_type in self.main_fuel_types:
+                shared.append(fuel_type.name)
+
         if shared:
             raise ValueError(
                 f"{self}: No fuel type may be in both 'MainFuelTypes' and"
@@ -139,16 +139,15 @@ class Converter(_Machinery):
 
     def initialize_dependencies(self, emissions: dict[str, Emission]) -> None:
         """
-        Seed the per-fuel-type dictionaries with their defaults.
+        Initialize dependent dictionaries to allow wildcarding during command calls.
 
         Parameters
         ----------
         emissions
-            Dict of class Emission.
+            All emissions in the simulation.
         """
         for fuel_type in self.get_fuel_types():
             self.slip_fraction.setdefault(fuel_type, Scalar(0.0))
-
             for emission_name in emissions:
                 self.consumption_ttw.setdefault((fuel_type, emission_name), Scalar(0.0))
 
