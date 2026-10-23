@@ -9,6 +9,11 @@ HiGHS adapter of the bunker solver interface.
 
 from __future__ import annotations
 
+import logging
+import re
+import shutil
+import tempfile
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import highspy
@@ -25,11 +30,11 @@ from navigate.core.enum_ import SolveStatusID
 from navigate.simulation.bunker.solver import Constraint, Variable
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.simulation.bunker.solver import Sense
     from navigate.util.types_ import FloatArray
+
+logger = logging.getLogger(__name__)
 
 # the two solve strategies; interior point solutions keep the fair-share
 # iterations stable, simplex warm-starts cheaply from a saved basis
@@ -48,7 +53,7 @@ class HighsModel:
     Parameters
     ----------
     name
-        Unused; the HiGHS model stays unnamed.
+        Unused; highspy has no call to name the model.
     options
         Settings of the bunker algorithm; HiGHS chooses its method per solve and
         does not read the solver method.
@@ -82,6 +87,9 @@ class HighsModel:
         self._col_values: FloatArray
         self._row_duals: FloatArray
 
+        # the IIS of the last compute_iis, None where HiGHS vouched for none
+        self._iis_model: highspy.HighsModel | None = None
+
         # warm-start state: interior point runs when rows or columns were added
         # since the last solve, a simplex warm start from the saved basis
         # otherwise; removing only changes bounds and so does not count as growth
@@ -98,17 +106,11 @@ class HighsModel:
         self._coefficients: dict[tuple[Constraint, Variable], float] = {}
 
     def add_variable(self, name: str) -> Variable:
-        """
-        Add a non-negative continuous variable with a zero cost.
-
-        Parameters
-        ----------
-        name
-            Unused; HiGHS columns stay unnamed.
-        """
+        """Add a non-negative continuous variable with a zero cost."""
         variable = Variable(self._num_cols)
 
         self._highs.addVar(0.0, highspy.kHighsInf)
+        self._highs.passColName(variable, _lp_name(name))
         self._num_cols += 1
         self._model_grew = True
 
@@ -120,6 +122,7 @@ class HighsModel:
         lower_bound, upper_bound = _row_bounds(sense, 0.0)
 
         self._highs.addRow(lower_bound, upper_bound, 0, [], [])
+        self._highs.passRowName(constraint, _lp_name(name))
         self._model_grew = True
 
         self._row_senses.append(sense)
@@ -164,10 +167,12 @@ class HighsModel:
         """
         Remove a variable from the linear program.
 
-        The column stays in place, fixed to zero at zero cost.
+        The column stays in place, fixed to zero at zero cost. HiGHS names it after
+        its index, so a variable added later may take its name.
         """
         self._highs.changeColBounds(variable, 0.0, 0.0)
         self._highs.changeColCost(variable, 0.0)
+        self._highs.passColName(variable, f"removed_{variable}")
         self._pending_cost.pop(variable, None)
         self._pending_upper_bound.pop(variable, None)
 
@@ -175,9 +180,11 @@ class HighsModel:
         """
         Remove a constraint from the linear program.
 
-        The row stays in place with infinite bounds, so it always holds.
+        The row stays in place with infinite bounds, so it always holds. HiGHS names
+        it after its index, so a constraint added later may take its name.
         """
         self._highs.changeRowBounds(constraint, -highspy.kHighsInf, highspy.kHighsInf)
+        self._highs.passRowName(constraint, f"removed_{constraint}")
         self._pending_row_bounds.pop(constraint, None)
 
     def solve(self) -> None:
@@ -256,6 +263,8 @@ class HighsModel:
         for: a status other than ok, an invalid IIS, or a row not known to be in
         conflict, as after a time-out or on a badly scaled model.
         """
+        self._iis_model = None
+
         # after an interior point run HiGHS only narrows the IIS down to candidate
         # rows, a simplex run lets it prove the irreducible set
         self._set_strategy(_SIMPLEX)
@@ -275,11 +284,44 @@ class HighsModel:
         if any(iis.row_status_[row] != IisStatus.kIisStatusInConflict for row in rows):
             return []
 
+        # a simplex re-run that ends optimal leaves a valid IIS with nothing in it
+        if rows or iis.col_index_:
+            self._iis_model = iis.model_
+
         return [self._row_names[row] for row in sorted(rows)]
 
     def write(self, path: Path) -> None:
-        """Write the model to a file, in the format its extension names."""
-        self._highs.writeModel(str(path))
+        """
+        Write the model to a file, in the format its extension names.
+
+        A file HiGHS cannot write is logged as a warning.
+        """
+        status = self._highs.writeModel(str(path))
+        _warn_if_unwritten(status, path)
+
+    def write_iis(self, path: Path) -> None:
+        """
+        Write the IIS of the last ``compute_iis`` to a file, in LP format.
+
+        Nothing is written where HiGHS vouched for no IIS, or for an empty one.
+        HiGHS writes LP format only to a path with the ``.lp`` extension, so the IIS
+        is written to one in a temporary directory and moved to the path. A file
+        HiGHS cannot write is logged as a warning.
+        """
+        if self._iis_model is None:
+            return
+
+        iis_highs = highspy.Highs()
+        iis_highs.setOptionValue("output_flag", False)
+        iis_highs.passModel(self._iis_model)
+
+        with tempfile.TemporaryDirectory() as directory:
+            lp_path = Path(directory) / "iis.lp"
+            status = iis_highs.writeModel(str(lp_path))
+            if status != HighsStatus.kError:
+                shutil.move(lp_path, path)
+
+        _warn_if_unwritten(status, path)
 
     def _flush_pending(self) -> None:
         """Apply the deferred row-bound, cost and upper-bound changes."""
@@ -331,6 +373,23 @@ class HighsModel:
         """Set the options of a solve strategy for the next run."""
         for key, value in options.items():
             self._highs.setOptionValue(key, value)
+
+
+def _lp_name(name: str) -> str:
+    """
+    Return a name with each character an LP file cannot hold replaced by an underscore.
+
+    The HiGHS LP writer drops every row name once one holds another character, or
+    two rows share a name, and every column name likewise. The characters are those
+    of ``kLegalLpFileColRowNameChar`` in HiGHS, without its two curly quotes.
+    """
+    return re.sub(r'[^A-Za-z0-9.!"#$%&(),;?@_{}~]', "_", name)
+
+
+def _warn_if_unwritten(status: HighsStatus, path: Path) -> None:
+    """Log a warning naming a file that HiGHS returned an error for writing."""
+    if status == HighsStatus.kError:
+        logger.warning("HiGHS could not write %s.", path)
 
 
 def _row_bounds(sense: Sense, rhs: float) -> tuple[float, float]:

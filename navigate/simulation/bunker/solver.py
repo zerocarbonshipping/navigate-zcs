@@ -82,6 +82,9 @@ class Model(Protocol):
     def write(self, path: Path) -> None:
         """Write the model to a file, in the format its extension names."""
 
+    def write_iis(self, path: Path) -> None:
+        """Write the IIS of the last ``compute_iis`` to a file, in LP format."""
+
 
 def evaluate(model: Model, terms: Terms) -> float:
     """

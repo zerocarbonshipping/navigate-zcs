@@ -439,6 +439,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   as they did for one written by name.
 - A wildcard matches its other characters literally; only `*` and `?` are
   wildcards, so `a.b` no longer matches `aXb`.
+- On HiGHS, an infeasible bunkering problem writes both
+  `bunkering_infeasible.ilp` and `bunkering_infeasible.lp`, with the model's
+  own constraint and variable names instead of `r0` and `c0` (#466).
 - An `INF` entry in `InitialSplit`, or entries whose sum overflows, stop the
   deck at its line instead of yielding NaN.
 - `set_operational_saving_port` takes only `ELECTRICAL` and `HEAT`: an

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import BunkerScopeID, SolveStatusID, TimingID
+from navigate.core.enum_ import SolveStatusID, TimingID
 from navigate.exceptions import InfeasibleLPError, LPSolveError
 from navigate.util import timed
 
@@ -54,13 +54,14 @@ def check_solution(alg: BunkerAlgorithm) -> None:
     if status == SolveStatusID.OPTIMAL:
         return
 
+    scope = alg.scope.name.lower()
+
     if status == SolveStatusID.INFEASIBLE:
         iis = alg.model.compute_iis()
 
-        alg.model.write(alg.output_directory / "bunkering_infeasible.ilp")
+        alg.model.write_iis(alg.output_directory / "bunkering_infeasible.ilp")
         alg.model.write(alg.output_directory / "bunkering_infeasible.lp")
 
-        scope = "existing" if alg.scope == BunkerScopeID.EXISTING else "expected"
         message = f"Optimal bunkering was infeasible for {scope} bunkering"
 
         if iis:
@@ -78,5 +79,4 @@ def check_solution(alg: BunkerAlgorithm) -> None:
         SolveStatusID.OTHER: "the solver stopped without an optimal solution",
     }[status]
 
-    scope = alg.scope.name.lower()
     raise LPSolveError(f"Optimal bunkering failed for {scope} bunkering: {reason}.")

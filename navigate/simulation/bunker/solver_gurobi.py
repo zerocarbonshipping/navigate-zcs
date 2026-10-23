@@ -201,6 +201,14 @@ class GurobiModel:
         """Write the model to a file, in the format its extension names."""
         self._model.write(str(path))
 
+    def write_iis(self, path: Path) -> None:
+        """
+        Write the IIS of the last ``compute_iis`` to a file, in LP format.
+
+        Gurobi writes an IIS to a path with the ``.ilp`` extension.
+        """
+        self._model.write(str(path))
+
     def __del__(self) -> None:
         with contextlib.suppress(Exception):
             self._model.dispose()
