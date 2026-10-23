@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.core.enum_ import LevySchemeID, PolicyScopeID
 from navigate.util import (
-    TON_PER_GJ_TO_GRAM_PR_MJ,
+    TON_PER_GJ_TO_GRAM_PER_MJ,
     list_intersection,
     unique_list,
 )
@@ -601,7 +601,7 @@ def _apply_thresholds(
     FloatLike
         Levied part of the emission coefficient, in ton emission/ton fuel.
     """
-    intensity_to_coefficient = effective_lhv / TON_PER_GJ_TO_GRAM_PR_MJ
+    intensity_to_coefficient = effective_lhv / TON_PER_GJ_TO_GRAM_PER_MJ
     excess = coefficient - lower * intensity_to_coefficient
 
     if scheme == LevySchemeID.SUBSIDY:

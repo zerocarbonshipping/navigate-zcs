@@ -15,11 +15,8 @@ TON_TO_KG = 1e3
 
 # energy
 GJ_TO_MJ = 1e3
-MJ_TO_GJ = 1e-3
-MWH_TO_MJ = 3600.0  # mega watt hours to mega joule
-MWH_TO_GJ = MWH_TO_MJ * MJ_TO_GJ  # mega watt hours to giga joule
-MWD_TO_MJ = MWH_TO_MJ * DAY_TO_HOURS  # mega watt days to mega joule
-MWD_TO_GJ = MWD_TO_MJ * MJ_TO_GJ  # mega watt days to giga joule
+MWH_TO_GJ = 3.6
+MWD_TO_GJ = MWH_TO_GJ * DAY_TO_HOURS
 
-# multiples
-TON_PER_GJ_TO_GRAM_PR_MJ = TON_TO_GRAM / GJ_TO_MJ
+# intensity
+TON_PER_GJ_TO_GRAM_PER_MJ = TON_TO_GRAM / GJ_TO_MJ
