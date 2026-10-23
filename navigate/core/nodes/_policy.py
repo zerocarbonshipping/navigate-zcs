@@ -25,7 +25,6 @@ from navigate.core.node_type import CURVE, EMISSION, FORECAST, FUEL, PORT, VARIA
 from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
-    from navigate.core.enum_ import LevySchemeID, RegulationSchemeID
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
@@ -47,11 +46,7 @@ class _Policy(Node):
         super().__init__(name)
 
         # external variables -----------------------------------------------------------
-        # active
         self.active: bool = True
-
-        # design
-        self.scheme: LevySchemeID | RegulationSchemeID
         self.jurisdiction: list[Port] = []
 
         # emissions
@@ -100,17 +95,17 @@ class _Policy(Node):
         """Set the scope of emissions targeted by the policy."""
         self.scope = assign_id(scope, PolicyScopeID)
 
-    @deck_attribute()
-    def set_include_slip(self, include_slip: str) -> None:
-        """Set whether emissions slip is included in the policy's emissions."""
-        self.include_slip = assign_boolean(include_slip)
-
     @deck_attribute(SECTION_DEFINE)
     def set_emissions_lifetime(self, emissions_lifetime: ScalarArgument) -> None:
         """Set the emissions lifetime used in the GWP calculation of emissions."""
         self.emissions_lifetime = assign_value(
             as_scalar(emissions_lifetime), type_=VARIABLE, lower=0.0
         )
+
+    @deck_attribute()
+    def set_include_slip(self, include_slip: str) -> None:
+        """Set whether emissions slip is included in the policy's emissions."""
+        self.include_slip = assign_boolean(include_slip)
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
@@ -158,38 +153,35 @@ class _Policy(Node):
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-
         if not self.jurisdiction:
             raise UnassignedAttributeError(str(self), "Jurisdiction")
 
-    def _initialize_policy_dependencies(self, vessels: dict[str, Vessel]) -> None:
+    def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
+        """
+        Initialize dependent dictionaries to allow wildcarding during command calls.
 
-        # fuel_wtt, fuel_ttw, and global_warming_potential stay None when unset:
-        # consumers fall back to the model's own factors
-        for fuel in self.fuels:
-            fuel_name = fuel.name
-
-            for emission in self.emissions:
-                key = (fuel_name, emission.name)
-                self.fuel_wtt.setdefault(key, None)
-                self.fuel_ttw.setdefault(key, None)
-
+        Parameters
+        ----------
+        vessels
+            All vessels in the simulation.
+        """
+        # unset factors stay None, so consumers fall back to the model's own factors
         for emission in self.emissions:
             self.global_warming_potential.setdefault(emission.name, None)
+        for fuel in self.fuels:
+            for emission in self.emissions:
+                key = (fuel.name, emission.name)
+                self.fuel_wtt.setdefault(key, None)
+                self.fuel_ttw.setdefault(key, None)
 
         for vessel_name in vessels:
             self.include_vessel.setdefault(vessel_name, False)
 
-        # derived from the current routes and jurisdiction, so recomputed
-        # unconditionally every pass
+        # recomputed every pass, as routes and jurisdiction may change
         jurisdiction = set(self.jurisdiction)
         for vessel_name, vessel in vessels.items():
-            self.in_jurisdiction_vessel[vessel_name] = not jurisdiction.isdisjoint(
-                vessel.route.ports
-            )
-
-    def is_active(self) -> bool:
-        return self.active
+            in_jurisdiction = not jurisdiction.isdisjoint(vessel.route.ports)
+            self.in_jurisdiction_vessel[vessel_name] = in_jurisdiction
 
     def vessel_is_policed(self, vessel_name: str) -> bool:
         return (

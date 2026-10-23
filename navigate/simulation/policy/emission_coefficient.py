@@ -17,7 +17,6 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from navigate.core.enum_ import RegulationSchemeID
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
@@ -72,13 +71,13 @@ def calculate_policy_emission_coefficients(
         plants_by_fuel.setdefault(plant.fuel.name, []).append(plant)
 
     for regulation in regulations.values():
-        if not regulation.is_active():
+        if not regulation.active:
             continue
 
         _calculate_regulation(regulation, vessels, plants_by_fuel, times, idx)
 
     for levy in levies.values():
-        if not levy.is_active():
+        if not levy.active:
             continue
 
         _calculate_levy(levy, vessels, plants_by_fuel, times, idx)
@@ -567,7 +566,7 @@ def _calculate_levy_coefficient(
 
 def _apply_thresholds(
     coefficient: FloatLike,
-    scheme: LevySchemeID | RegulationSchemeID,
+    scheme: LevySchemeID,
     effective_lhv: FloatLike,
     lower: FloatArray,
     upper: FloatArray | None,

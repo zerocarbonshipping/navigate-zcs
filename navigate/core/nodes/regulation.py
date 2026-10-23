@@ -43,6 +43,7 @@ class Regulation(_Policy):
         super().__init__(name)
 
         # external variables -----------------------------------------------------------
+        self.scheme: RegulationSchemeID
         self.measure: RegulationMeasureID
 
         self.intra_fraction: ForecastInput = Scalar(1.0)
@@ -178,7 +179,7 @@ class Regulation(_Policy):
             self.vessel_threshold.setdefault(vessel_name, None)
             self.vessel_capacity.setdefault(vessel_name, None)
 
-        self._initialize_policy_dependencies(vessels)
+        super().initialize_dependencies(vessels)
 
     def initialize_expectation(
         self, length: int, routes: dict[str, Route], vessels: dict[str, Vessel]
