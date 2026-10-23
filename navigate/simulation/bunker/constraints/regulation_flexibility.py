@@ -40,14 +40,14 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
     alg
         The algorithm instance.
     """
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
     rows = alg.regulation_threshold_flexibility
 
     for r, rhs in alg.regulation_total_rhs_flexibility.items():
         constraint = get_constraint(
             alg, rows, r, "<=", "regulation_threshold_flexibility"
         )
-        constraint.rhs = rhs
+        model.set_rhs(constraint, rhs)
 
         regulation = alg.regulations[r]
 
@@ -65,6 +65,6 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
                 alg.regulation_energy_terms[(r, v)] = energy
 
             for variable, weight in terms:
-                change_coefficient(constraint, variable, weight * multiplier)
+                model.set_coefficient(constraint, variable, weight * multiplier)
 
-        change_coefficient(constraint, alg.remedial_factor_flexibility[r], -1.0)
+        model.set_coefficient(constraint, alg.remedial_factor_flexibility[r], -1.0)

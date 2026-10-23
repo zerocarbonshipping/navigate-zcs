@@ -184,7 +184,7 @@ Information is provided in four levels, namely:
 `INFO` stands for information and refers to general information such as which solver backend is used or that plot rendering finished:
 
 ```
-14:29:15 [INFO] navigate.simulation.bunker.solver: Gurobi not available -- using HiGHS solver backend.
+14:29:15 [INFO] navigate.simulation.bunker.solver_backend: Gurobi not available -- using HiGHS solver backend.
 14:29:16 [INFO] navigate.simulation.bunker.bunker_algorithm: Fair-share bunkering convergence status: Successful.
 14:29:47 [INFO] navigate.output.plots.render: Plots generated successfully.
 ```

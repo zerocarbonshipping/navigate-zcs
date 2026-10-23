@@ -2,209 +2,100 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Solver facade of the bunker algorithm: Gurobi when licensed, HiGHS otherwise.
+Solver interface of the bunker algorithm.
 
-Whether gurobipy is installed and licensed is checked at import;
-``set_solver_preference()`` picks the backend before any model is created.
-Models and linear expressions are created through ``create_model()`` and
-``create_linear_expression()``, which dispatch on the active backend. mypy.ini
-skips gurobipy's bundled stubs (see ``[mypy-gurobipy.*]``), so the HiGHS
-classes, whose interface the Gurobi objects share, are the one static contract
-both backends are checked against; they are imported for annotations only,
-never instantiated or checked against at runtime.
-
-Usage:
-    import navigate.simulation.bunker.solver as gp
-
-    model = gp.create_model("existing")
+The bunker builds, solves and reads its linear program through ``Model``. The HiGHS
+and Gurobi adapters implement it; ``solver_backend`` chooses between them.
 """
 
 from __future__ import annotations
 
-import contextlib
-import logging
-from typing import TYPE_CHECKING, Literal
-
-from navigate.core.enum_ import SolverBackendID
-from navigate.simulation.bunker import solver_highs as _highs
+from typing import TYPE_CHECKING, Literal, NewType, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from pathlib import Path
 
-    from navigate.simulation.bunker.solver_highs import Constr as Constr
-    from navigate.simulation.bunker.solver_highs import LinExpr as LinExpr
-    from navigate.simulation.bunker.solver_highs import Model as Model
-    from navigate.simulation.bunker.solver_highs import Var as Var
+    from navigate.core.enum_ import SolveStatusID
 
-logger = logging.getLogger(__name__)
+# a column or row of a model, read and written only through that model
+Variable = NewType("Variable", int)
+Constraint = NewType("Constraint", int)
 
-_GUROBI_AVAILABLE = False
+type Sense = Literal["==", "<=", ">="]
 
-try:
-    import gurobipy as _grb
-
-    # gurobipy installs without a license, and starting an environment is the
-    # only reliable license check; an empty environment keeps the banner off
-    # stdout
-    _test_env = _grb.Env(empty=True)
-    _test_env.setParam("OutputFlag", 0)
-    _test_env.start()
-    _test_env.dispose()
-    del _test_env
-    _GUROBI_AVAILABLE = True
-
-except Exception:
-    # gurobipy is missing or unlicensed
-    pass
+# a linear expression: each variable with its coefficient
+type Terms = list[tuple[Variable, float]]
 
 
-if _GUROBI_AVAILABLE:
+class Model(Protocol):
+    """A linear program the bunker builds incrementally, solves and reads."""
 
-    class _GurobiModel(_grb.Model):
-        """A gurobipy model with model-level ConstrName and IISConstr lists."""
+    def add_variable(self, name: str) -> Variable:
+        """Add a non-negative continuous variable with a zero cost."""
 
-        def __init__(self, name: str) -> None:
-            self._gurobi_env: _grb.Env = _grb.Env(empty=True)
-            self._gurobi_env.setParam("OutputFlag", 0)
-            self._gurobi_env.start()
-            super().__init__(name, env=self._gurobi_env)
+    def add_constraint(self, sense: Sense, name: str) -> Constraint:
+        """Add an empty constraint, ``0 <sense> 0``."""
 
-        @property
-        def ConstrName(self) -> list[str]:
-            """Name of each constraint, in model order."""
-            return [c.ConstrName for c in self.getConstrs()]
+    def set_coefficient(
+        self, constraint: Constraint, variable: Variable, value: float
+    ) -> None:
+        """Set the coefficient of a variable in a constraint."""
 
-        @property
-        def IISConstr(self) -> list[bool]:
-            """Whether each constraint is in the IIS, in model order."""
-            return [bool(c.IISConstr) for c in self.getConstrs()]
+    def set_rhs(self, constraint: Constraint, value: float) -> None:
+        """Set the right-hand side of a constraint."""
 
-        def __del__(self) -> None:
-            with contextlib.suppress(Exception):
-                super().__del__()
-            with contextlib.suppress(Exception):
-                self._gurobi_env.dispose()
+    def set_cost(self, variable: Variable, value: float) -> None:
+        """Set the objective coefficient of a variable."""
 
+    def set_upper_bound(self, variable: Variable, value: float) -> None:
+        """Set the upper bound of a variable."""
 
-# constraint senses, spelled as gurobipy spells them for both backends
-EQUAL = _highs.EQUAL
-LESS_EQUAL = _highs.LESS_EQUAL
-GREATER_EQUAL = _highs.GREATER_EQUAL
+    def remove_variable(self, variable: Variable) -> None:
+        """Remove a variable from the linear program."""
 
-# bound by _configure(); the values differ per backend
-_active_backend: Literal["gurobi", "highs"]
-CONTINUOUS: str
-OPTIMAL: int
-INFEASIBLE: int
-INF_OR_UNBD: int
+    def remove_constraint(self, constraint: Constraint) -> None:
+        """Remove a constraint from the linear program."""
 
+    def solve(self) -> None:
+        """Solve the linear program."""
 
-def _configure(preference: SolverBackendID) -> None:
-    """Bind the module-level solver names to the backend *preference* selects."""
-    global CONTINUOUS, OPTIMAL, INFEASIBLE, INF_OR_UNBD
-    global _active_backend
+    def set_dual_reductions(self, enabled: bool) -> None:
+        """Switch the dual reductions of presolve on or off."""
 
-    use_gurobi = False
+    @property
+    def status(self) -> SolveStatusID:
+        """Status of the last solve."""
 
-    if preference == SolverBackendID.HIGHS:
-        logger.info("HiGHS solver backend selected by user preference.")
+    def value(self, variable: Variable) -> float:
+        """Return the value of a variable at the last solution."""
 
-    elif preference == SolverBackendID.GUROBI:
-        if _GUROBI_AVAILABLE:
-            use_gurobi = True
-            logger.info("Gurobi solver backend selected by user preference.")
-        else:
-            logger.warning(
-                "Gurobi preferred but not available -- falling back to HiGHS solver "
-                "backend."
-            )
+    def dual(self, constraint: Constraint) -> float:
+        """Return the dual value of a constraint at the last solution."""
 
-    else:
-        # automatic
-        if _GUROBI_AVAILABLE:
-            use_gurobi = True
-            logger.info("Gurobi license verified -- using Gurobi solver backend.")
-        else:
-            logger.info("Gurobi not available -- using HiGHS solver backend.")
+    def rhs(self, constraint: Constraint) -> float:
+        """Return the right-hand side of a constraint."""
 
-    if use_gurobi:
-        CONTINUOUS = _grb.GRB.CONTINUOUS
-        OPTIMAL = _grb.GRB.OPTIMAL
-        INFEASIBLE = _grb.GRB.INFEASIBLE
-        INF_OR_UNBD = _grb.GRB.INF_OR_UNBD
-        _active_backend = "gurobi"
-    else:
-        CONTINUOUS = _highs.CONTINUOUS
-        OPTIMAL = _highs.OPTIMAL
-        INFEASIBLE = _highs.INFEASIBLE
-        INF_OR_UNBD = _highs.INF_OR_UNBD
-        _active_backend = "highs"
+    def compute_iis(self) -> list[str]:
+        """Return the names of the constraints in an irreducible infeasible subset."""
+
+    def write(self, path: Path) -> None:
+        """Write the model to a file, in the format its extension names."""
 
 
-def set_solver_preference(preference: SolverBackendID) -> None:
+def evaluate(model: Model, terms: Terms) -> float:
     """
-    Reconfigure the solver backend.
-
-    Must be called **before** any ``Model`` objects are created.
+    Evaluate a sum of variable-coefficient terms at the last solution.
 
     Parameters
     ----------
-    preference
-        AUTOMATIC (default), GUROBI, or HIGHS.
-    """
-    _configure(preference)
-
-
-def create_model(name: str) -> Model:
-    """
-    Create an empty LP model on the active backend.
-
-    Parameters
-    ----------
-    name
-        Name of the model.
+    model
+        The model the variables belong to.
+    terms
+        Each variable with its coefficient.
 
     Returns
     -------
-    Model
-        The new model.
+    float
+        The sum of the coefficient-value products.
     """
-    if _active_backend == "gurobi":
-        return _GurobiModel(name)
-
-    return _highs.Model(name)
-
-
-def create_linear_expression(
-    coefficients: Sequence[float] | None = None,
-    variables: Sequence[Var] | None = None,
-) -> LinExpr:
-    """
-    Create a linear expression on the active backend.
-
-    Without coefficients and variables the expression is empty.
-
-    Parameters
-    ----------
-    coefficients
-        Coefficient of each term.
-    variables
-        Variable of each term, aligned with ``coefficients``.
-
-    Returns
-    -------
-    LinExpr
-        The sum of the coefficient-variable products.
-    """
-    if _active_backend == "gurobi":
-        if coefficients is None or variables is None:
-            expression: LinExpr = _grb.LinExpr()
-        else:
-            expression = _grb.LinExpr(coefficients, variables)
-        return expression
-
-    return _highs.LinExpr(coefficients, variables)
-
-
-# automatic detection holds until a deck sets a preference
-_configure(SolverBackendID.AUTOMATIC)
+    return sum(coefficient * model.value(variable) for variable, coefficient in terms)

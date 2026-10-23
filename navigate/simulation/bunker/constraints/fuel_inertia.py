@@ -44,7 +44,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
         return
 
     v = vessel.name
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     # a change in the vessel's energy demand since the last time-step scales the
     # floor by the ratio, downwards only: a vessel whose fuel consumption grew
@@ -83,8 +83,8 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
                 alg, alg.fuel_inertia, key, ">=", "fuel_inertia"
             )
 
-            constraint.rhs = floor
-            change_coefficient(constraint, alg.bunker[v, p, f], 1.0)
+            model.set_rhs(constraint, floor)
+            model.set_coefficient(constraint, alg.bunker[v, p, f], 1.0)
 
 
 def _get_previous_bunker_mass(

@@ -42,17 +42,17 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
 
     rows = alg.tank_capacity
     mass_tank = alg.mass_tank
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     for p in stops:
         for tank in tanks:
             t = tank.name
             key = (v, p, t)
             constraint = get_constraint(alg, rows, key, "<=", "tank_capacity")
-            constraint.rhs = tank.size.get()
+            model.set_rhs(constraint, tank.size.get())
 
             for f, coefficient in volume_per_ton[t].items():
-                change_coefficient(constraint, mass_tank[v, p, f], coefficient)
+                model.set_coefficient(constraint, mass_tank[v, p, f], coefficient)
 
 
 def _calculate_volume_per_ton(alg: BunkerAlgorithm, tank: Tank) -> dict[str, float]:

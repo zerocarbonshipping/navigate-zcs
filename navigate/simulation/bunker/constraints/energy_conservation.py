@@ -90,15 +90,15 @@ def _update_sea_rows(
 
     rows = alg.energy_conservation_sea
     spend_sea = alg.spend_sea
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     for leg, (i, e) in enumerate(legs):
         key = (v, i, e, demand_type)
         constraint = get_constraint(alg, rows, key, "==", "energy_conservation_at_sea")
-        constraint.rhs = float(demand[leg])
+        model.set_rhs(constraint, float(demand[leg]))
 
         for f, coefficient in energy_per_ton.items():
-            change_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
+            model.set_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
 
 
 def _update_port_rows(
@@ -132,18 +132,18 @@ def _update_port_rows(
     rows = alg.energy_conservation_port
     spend_port = alg.spend_port
     shore_power = alg.shore_power
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     for p in stops:
         key = (v, p, demand_type)
         constraint = get_constraint(alg, rows, key, "==", "energy_conservation_in_port")
-        constraint.rhs = float(demand[p])
+        model.set_rhs(constraint, float(demand[p]))
 
         for f, coefficient in energy_per_ton.items():
-            change_coefficient(constraint, spend_port[v, c, f, p], coefficient)
+            model.set_coefficient(constraint, spend_port[v, c, f, p], coefficient)
 
         if demand_type == EnergyDemandID.ELECTRICAL and (v, p) in shore_power:
-            change_coefficient(constraint, shore_power[v, p], 1.0)
+            model.set_coefficient(constraint, shore_power[v, p], 1.0)
 
 
 def _calculate_energy_per_ton(vessel: Vessel, converter: Converter) -> dict[str, float]:

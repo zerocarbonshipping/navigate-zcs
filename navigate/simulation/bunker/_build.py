@@ -10,25 +10,21 @@ later builds.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
-
-import navigate.simulation.bunker.solver as gp
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import EnergyDemandID
+    from navigate.simulation.bunker import solver
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 # the key of an LP element within its family: a single name, or the node names,
 # route indices and energy demand type the element spans
 type _ElementKey = str | tuple[str | int | EnergyDemandID, ...]
 
-# the model's spelling of each sense get_constraint accepts
-_MODEL_SENSES = {"==": gp.EQUAL, "<=": gp.LESS_EQUAL, ">=": gp.GREATER_EQUAL}
-
 
 def add_variable[K: _ElementKey](
     alg: BunkerAlgorithm,
-    container: dict[K, gp.Var],
+    container: dict[K, solver.Variable],
     key: K,
     name: str,
 ) -> None:
@@ -50,22 +46,22 @@ def add_variable[K: _ElementKey](
     if key in container:
         return
 
-    container[key] = alg.model.addVar(vtype=gp.CONTINUOUS, name=_full_name(name, key))
+    container[key] = alg.model.add_variable(_full_name(name, key))
 
 
 def get_constraint[K: _ElementKey](
     alg: BunkerAlgorithm,
-    container: dict[K, gp.Constr],
+    container: dict[K, solver.Constraint],
     key: K,
-    sense: Literal["==", "<=", ">="],
+    sense: solver.Sense,
     name: str,
-) -> gp.Constr:
+) -> solver.Constraint:
     """
     Return the constraint stored under a key, creating an empty one if absent.
 
     A new constraint starts as ``0 <sense> 0``; the caller must set its rhs (where it is
-    not the fixed zero) and re-apply every coefficient via ``model.chgCoeff`` on every
-    build, new or reused -- re-applying is what lets a variable created after the
+    not the fixed zero) and re-apply every coefficient via ``model.set_coefficient`` on
+    every build, new or reused -- re-applying is what lets a variable created after the
     constraint (e.g. a fuel that later becomes bunkerable at a port) join the row.
     A variable that leaves the row must be written at zero, not skipped.
 
@@ -85,21 +81,13 @@ def get_constraint[K: _ElementKey](
 
     Returns
     -------
-    gp.Constr
+    solver.Constraint
         The existing or newly created constraint.
     """
     if key in container:
         return container[key]
 
-    if sense not in _MODEL_SENSES:
-        raise ValueError(f"Unknown constraint sense '{sense}'.")
-
-    constraint = alg.model.addLConstr(
-        gp.create_linear_expression(),
-        _MODEL_SENSES[sense],
-        0.0,
-        name=_full_name(name, key),
-    )
+    constraint = alg.model.add_constraint(sense, _full_name(name, key))
     container[key] = constraint
     return constraint
 

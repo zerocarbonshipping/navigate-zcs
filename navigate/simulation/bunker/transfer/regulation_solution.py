@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.simulation.bunker import solver
+
 if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
@@ -29,19 +31,19 @@ def transfer_regulation_solution(alg: BunkerAlgorithm) -> None:
 
     for r, v in alg.regulation_emission_terms:
         expectation = alg.regulations[r].expectation
-        emissions = alg.regulation_emission_terms[r, v].getValue()
-        energy = alg.regulation_energy_terms[r, v].getValue()
+        emissions = solver.evaluate(alg.model, alg.regulation_emission_terms[r, v])
+        energy = solver.evaluate(alg.model, alg.regulation_energy_terms[r, v])
 
         expectation.set_vessel_emissions(idx, v, emissions)
         expectation.set_vessel_energy(idx, v, energy)
 
     for (r, v), remedial_factor in alg.remedial_factor_individual.items():
         expectation = alg.regulations[r].expectation
-        expectation.set_vessel_remedial_units(idx, v, remedial_factor.X)
+        expectation.set_vessel_remedial_units(idx, v, alg.model.value(remedial_factor))
 
     for r, remedial_factor in alg.remedial_factor_flexibility.items():
         expectation = alg.regulations[r].expectation
         constraint = alg.regulation_threshold_flexibility[r]
 
-        expectation.set_pooled_remedial_units(idx, remedial_factor.X)
-        expectation.set_pooled_shadow_price(idx, -constraint.Pi)
+        expectation.set_pooled_remedial_units(idx, alg.model.value(remedial_factor))
+        expectation.set_pooled_shadow_price(idx, -alg.model.dual(constraint))

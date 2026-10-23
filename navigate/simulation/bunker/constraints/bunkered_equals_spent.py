@@ -40,7 +40,7 @@ def update_bunkered_equals_spent_constraints(
     """
     v = vessel.name
     route = vessel.route
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     legs = route.get_legs()
     stops = range(route.get_number_of_ports())
@@ -56,12 +56,12 @@ def update_bunkered_equals_spent_constraints(
 
         for p in stops:
             if (v, p, f) in alg.bunker:
-                change_coefficient(constraint, alg.bunker[v, p, f], 1.0)
+                model.set_coefficient(constraint, alg.bunker[v, p, f], 1.0)
 
         for c in converters:
             for i, e in legs:
-                change_coefficient(constraint, alg.spend_sea[v, c, f, i, e], -1.0)
+                model.set_coefficient(constraint, alg.spend_sea[v, c, f, i, e], -1.0)
 
         for c in converters_in_port:
             for p in stops:
-                change_coefficient(constraint, alg.spend_port[v, c, f, p], -1.0)
+                model.set_coefficient(constraint, alg.spend_port[v, c, f, p], -1.0)

@@ -36,16 +36,16 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     for (v, i, e, energy_id), constraint in alg.energy_conservation_sea.items():
         expectation = alg.vessels[v].expectation
         leg = leg_positions[v][i, e]
-        pi = constraint.Pi / alg.multipliers[v]
-        rhs = constraint.RHS
+        pi = alg.model.dual(constraint) / alg.multipliers[v]
+        rhs = alg.model.rhs(constraint)
 
         expectation.set_energy_conservation_pi_sea(idx, energy_id, leg, pi)
         expectation.set_energy_conservation_rhs_sea(idx, energy_id, leg, rhs)
 
     for (v, p, energy_id), constraint in alg.energy_conservation_port.items():
         expectation = alg.vessels[v].expectation
-        pi = constraint.Pi / alg.multipliers[v]
-        rhs = constraint.RHS
+        pi = alg.model.dual(constraint) / alg.multipliers[v]
+        rhs = alg.model.rhs(constraint)
 
         expectation.set_energy_conservation_pi_port(idx, energy_id, p, pi)
         expectation.set_energy_conservation_rhs_port(idx, energy_id, p, rhs)

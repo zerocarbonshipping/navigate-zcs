@@ -52,7 +52,7 @@ def _update_bunker_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
             total_price = price + levy_cost
 
-            alg.bunker[v, p, f].Obj = multiplier * total_price
+            alg.model.set_cost(alg.bunker[v, p, f], multiplier * total_price)
 
             # a zero or negative price on available supply is typically unintended
             if is_existing and total_price <= TOLERANCE:
@@ -81,8 +81,8 @@ def _update_shore_power(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         shore_power = alg.shore_power[v, p]
         cost = float(port.expectation.get_shore_power_cost(alg.idx))
 
-        shore_power.UB = float(limits[p])
-        shore_power.Obj = multiplier * cost
+        alg.model.set_upper_bound(shore_power, float(limits[p]))
+        alg.model.set_cost(shore_power, multiplier * cost)
 
 
 def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
@@ -96,8 +96,9 @@ def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
     """
     for r, v in alg.regulation_rhs_individual:
         cost = alg.regulations[r].expectation.get_remedial_cost(alg.idx)
-        alg.remedial_factor_individual[r, v].Obj = alg.multipliers[v] * cost
+        remedial_factor = alg.remedial_factor_individual[r, v]
+        alg.model.set_cost(remedial_factor, alg.multipliers[v] * cost)
 
     for r in alg.regulation_total_rhs_flexibility:
         cost = alg.regulations[r].expectation.get_remedial_cost(alg.idx)
-        alg.remedial_factor_flexibility[r].Obj = cost
+        alg.model.set_cost(alg.remedial_factor_flexibility[r], cost)

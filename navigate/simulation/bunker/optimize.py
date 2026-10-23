@@ -7,8 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import navigate.simulation.bunker.solver as gp
-from navigate.core.enum_ import BunkerScopeID, TimingID
+from navigate.core.enum_ import BunkerScopeID, SolveStatusID, TimingID
 from navigate.exceptions import InfeasibleLPError
 from navigate.util import timed
 
@@ -26,7 +25,7 @@ def optimize(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-    alg.model.optimize()
+    alg.model.solve()
     check_solution(alg)
 
 
@@ -54,23 +53,18 @@ def check_solution(alg: BunkerAlgorithm) -> None:
         If the model is infeasible.
     """
     # dual reductions go back on after a solve that switched them off
-    alg.model.Params.DualReductions = 1
+    alg.model.set_dual_reductions(True)
 
-    status = alg.model.Status
+    status = alg.model.status
 
-    if status == gp.OPTIMAL:
+    if status == SolveStatusID.OPTIMAL:
         return
 
-    if status == gp.INFEASIBLE:
-        alg.model.computeIIS()
-        iis = [
-            alg.model.ConstrName[i]
-            for i, infeasible in enumerate(alg.model.IISConstr)
-            if infeasible
-        ]
+    if status == SolveStatusID.INFEASIBLE:
+        iis = alg.model.compute_iis()
 
-        alg.model.write(str(alg.output_directory / "bunkering_infeasible.ilp"))
-        alg.model.write(str(alg.output_directory / "bunkering_infeasible.lp"))
+        alg.model.write(alg.output_directory / "bunkering_infeasible.ilp")
+        alg.model.write(alg.output_directory / "bunkering_infeasible.lp")
 
         scope = "existing" if alg.scope == BunkerScopeID.EXISTING else "expected"
         raise InfeasibleLPError(
@@ -78,6 +72,6 @@ def check_solution(alg: BunkerAlgorithm) -> None:
             f" due to the IIS limiting constraint: {', '.join(iis)}."
         )
 
-    if status == gp.INF_OR_UNBD:
-        alg.model.Params.DualReductions = 0
+    if status == SolveStatusID.INFEASIBLE_OR_UNBOUNDED:
+        alg.model.set_dual_reductions(False)
         optimize(alg)

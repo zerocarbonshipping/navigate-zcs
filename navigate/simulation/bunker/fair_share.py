@@ -51,7 +51,7 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> bool:
     alg.fair_share_convergence_statistics = {"Non-zero (%)": [], "Norm": [], "Max": []}
 
     for iteration in range(1, alg.options.fair_share_maximum_iterations + 1):
-        previous = {key: bunker.X for key, bunker in alg.bunker.items()}
+        previous = {key: alg.model.value(bunker) for key, bunker in alg.bunker.items()}
 
         update_fair_share_allocation(alg, previous, released)
         update_fair_share_constraints(alg)
@@ -166,7 +166,7 @@ def update_fair_share_allocation(
         multiplier = alg.multipliers[v]
 
         in_use = alg.allocation_fuel[key] > tol
-        binding = abs(alg.fair_share_fuel[key].Pi) > tol
+        binding = abs(alg.model.dual(alg.fair_share_fuel[key])) > tol
 
         if key not in released and in_use and binding:
             fair_share = _get_fair_share(alg, vessel, port_name, f)
@@ -223,7 +223,7 @@ def _calculate_bunker_change(
         Absolute change, in tons, in the key order of the bunker variables.
     """
     previous_bunker = [previous[key] for key in alg.bunker]
-    bunker = [variable.X for variable in alg.bunker.values()]
+    bunker = [alg.model.value(bunker) for bunker in alg.bunker.values()]
 
     return np.abs(np.subtract(bunker, previous_bunker, dtype=np.float64))
 

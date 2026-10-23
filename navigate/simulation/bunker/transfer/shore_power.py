@@ -38,7 +38,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
     idx = alg.idx
 
     for (v, p), shore_power in alg.shore_power.items():
-        energy = shore_power.X
+        energy = alg.model.value(shore_power)
         if energy < alg.options.solution_tolerance:
             continue
 
@@ -62,7 +62,7 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
     idx = alg.idx
 
     for (v, p), shore_power in alg.shore_power.items():
-        energy = shore_power.X
+        energy = alg.model.value(shore_power)
         if energy < alg.options.solution_tolerance:
             continue
 

@@ -18,7 +18,7 @@ from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.core.results import GlobalResults, ResultsContext
 from navigate.exceptions import DeckError
 from navigate.simulation.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
-from navigate.simulation.bunker.solver import set_solver_preference
+from navigate.simulation.bunker.solver_backend import select_backend
 from navigate.simulation.fleet import (
     approximate_missing_technology,
     assign_vessels_to_fleets,
@@ -95,6 +95,7 @@ from navigate.util import YEAR, Timings, dates_to_days, timed
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from navigate.core.enum_ import SolverBackendID
     from navigate.core.node_registry import GeneralNodes, Nodes
     from navigate.core.nodes.fuel import Fuel
     from navigate.util.types_ import DateArray, FloatArray
@@ -178,7 +179,7 @@ class Simulation:
         self._initialize_expectations()
         self._initialize_results()
         self.timings = Timings(self.global_results.computational_time)
-        self._initialize_bunker_models()
+        self._initialize_bunkers()
 
     def step(self, inputs_changed: bool) -> None:
         """
@@ -309,14 +310,15 @@ class Simulation:
         for vessel in nodes.vessels.values():
             vessel.initialize_results(context, regulation_names, levy_names)
 
-    def _initialize_bunker_models(self) -> None:
-        # the solver backend is chosen before any model is created
-        set_solver_preference(self.general_nodes.bunker_options.solver)
+    def _initialize_bunkers(self) -> None:
+        backend = select_backend(self.general_nodes.bunker_options.solver)
 
-        self._bunker_existing = self._create_bunker_model(BunkerScopeID.EXISTING)
-        self._bunker_expected = self._create_bunker_model(BunkerScopeID.EXPECTED)
+        self._bunker_existing = self._create_bunker(BunkerScopeID.EXISTING, backend)
+        self._bunker_expected = self._create_bunker(BunkerScopeID.EXPECTED, backend)
 
-    def _create_bunker_model(self, scope: BunkerScopeID) -> BunkerAlgorithm:
+    def _create_bunker(
+        self, scope: BunkerScopeID, backend: SolverBackendID
+    ) -> BunkerAlgorithm:
         return BunkerAlgorithm(
             self.nodes.emissions,
             self.nodes.fleets,
@@ -324,6 +326,7 @@ class Simulation:
             self.nodes.ports,
             self.nodes.regulations,
             self.general_nodes.bunker_options,
+            backend,
             scope,
             output_directory=self._output_directory,
             timings=self.timings,

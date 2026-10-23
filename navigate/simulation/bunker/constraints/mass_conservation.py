@@ -64,7 +64,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     bunker = alg.bunker
     spend_sea = alg.spend_sea
     spend_port = alg.spend_port
-    change_coefficient = alg.model.chgCoeff
+    model = alg.model
 
     for f, converters in vessel.converters_per_fuel.items():
         converters_in_port = [c for c in converters if c in port_converters]
@@ -73,18 +73,18 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
             key = (v, p, f)
             constraint = get_constraint(alg, rows, key, "==", "mass_conservation")
 
-            change_coefficient(constraint, mass_tank[v, p, f], voyages)
+            model.set_coefficient(constraint, mass_tank[v, p, f], voyages)
 
             if route.ports[p].is_bunkering_allowed(f):
-                change_coefficient(constraint, bunker[v, p, f], -1.0)
+                model.set_coefficient(constraint, bunker[v, p, f], -1.0)
 
             for c in converters_in_port:
-                change_coefficient(constraint, spend_port[v, c, f, p], 1.0)
+                model.set_coefficient(constraint, spend_port[v, c, f, p], 1.0)
 
             # no tank leg reaches the first tank stop, whose tank starts empty
             if p in previous:
                 i = previous[p]
-                change_coefficient(constraint, mass_tank[v, i, f], -voyages)
+                model.set_coefficient(constraint, mass_tank[v, i, f], -voyages)
 
                 for c in converters:
-                    change_coefficient(constraint, spend_sea[v, c, f, i, p], 1.0)
+                    model.set_coefficient(constraint, spend_sea[v, c, f, i, p], 1.0)
