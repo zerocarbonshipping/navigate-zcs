@@ -126,7 +126,7 @@ def update_regulation_flexibility_beliefs(
 
             net_units = expectation.get_vessel_net_flexibility_units(vessel_name)
             expenses = net_units[idx:] * belief[idx:]
-            vessel.expectation.add_flexibility_expenses_path(idx, expenses)
+            vessel.expectation.add_flexibility_expenses(idx, expenses)
 
 
 def _clear_flexibility_market(
