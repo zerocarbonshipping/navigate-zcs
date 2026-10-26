@@ -17,11 +17,11 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray, FloatLike, Index
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class RegulationExpectation(_PolicyExpectation):
-    """Coefficients, thresholds, costs, fractions, measures, allowances, LP results."""
+    """The inputs a regulation gives the bunkering LP and the results it gets back."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -43,11 +43,11 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_net_flexibility_units: dict[str, FloatArray] = {}
         self._remedial_cost: FloatArray = EMPTY_FLOAT
 
+        # fractions keyed by port_name and by (departure, arrival) port_name
         self._port_fraction: dict[str, FloatArray] = {}
-        # keyed by (departure port_name, arrival port_name)
         self._leg_fraction: dict[tuple[str, str], FloatArray] = {}
 
-        # vessel thresholds in the regulation's unit, kg emission/GJ under INTENSITY
+        # per vessel; threshold in the regulation's unit, kg emission/GJ under INTENSITY
         self._vessel_threshold: dict[str, FloatArray] = {}
         self._vessel_capacity: dict[str, FloatArray] = {}
         self._vessel_measure: dict[str, FloatArray] = {}
@@ -85,13 +85,6 @@ class RegulationExpectation(_PolicyExpectation):
         self._initialize_expectation(length)
         self._initialize_policy_expectation(emission_names)
 
-        self._flexibility_cost = self._default_array()
-        # NaN until the first belief update: the flexibility cost is a shadow
-        # price, legitimately zero wherever the constraint does not bind
-        self._belief_flexibility_cost = self._default_array(default=np.nan)
-        self._vessel_net_flexibility_units = self._default_dict_array(vessels)
-        self._remedial_cost = self._default_array()
-
         port_names = [port.name for route in routes.values() for port in route.ports]
         legs = [leg for route in routes.values() for leg in route.get_leg_keys()]
 
@@ -101,6 +94,13 @@ class RegulationExpectation(_PolicyExpectation):
 
         self._shore_power_emission_coefficient = self._default_dict_array(port_names)
         self._shore_power_spend_coefficient = self._default_dict_array(vessel_ports)
+
+        # the belief is NaN until its first update: the flexibility cost is a shadow
+        # price, legitimately zero wherever the constraint does not bind
+        self._flexibility_cost = self._default_array()
+        self._belief_flexibility_cost = self._default_array(default=np.nan)
+        self._vessel_net_flexibility_units = self._default_dict_array(vessels)
+        self._remedial_cost = self._default_array()
 
         self._port_fraction = self._default_dict_array(port_names)
         self._leg_fraction = self._default_dict_array(legs)
@@ -122,10 +122,8 @@ class RegulationExpectation(_PolicyExpectation):
         self._adjusted_shared_threshold = self._default_array(default=np.nan)
 
     def reset_expected_bunkering(self) -> None:
-        self._flexibility_cost[:] = 0.0
-
-        for units in self._vessel_net_flexibility_units.values():
-            units[:] = 0.0
+        self._flexibility_cost = self._default_array()
+        self._reset_dict_array(self._vessel_net_flexibility_units)
 
     def set_emission_coefficient(
         self, idx: int, key: tuple[str, str, str], coefficient: FloatLike
@@ -276,7 +274,13 @@ class RegulationExpectation(_PolicyExpectation):
         fraction: float = self._port_fraction[port_name][idx]
         return fraction
 
-    def get_leg_fraction(self, leg: tuple[str, str], idx: Index) -> FloatLike:
+    @overload
+    def get_leg_fraction(self, leg: tuple[str, str], idx: int) -> float: ...
+
+    @overload
+    def get_leg_fraction(self, leg: tuple[str, str], idx: slice) -> FloatArray: ...
+
+    def get_leg_fraction(self, leg: tuple[str, str], idx: int | slice) -> FloatLike:
         return self._leg_fraction[leg][idx]
 
     @overload
