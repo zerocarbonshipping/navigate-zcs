@@ -70,7 +70,7 @@ class _Policy(Node):
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
     def set_active(self, active: str) -> None:
-        """Set the flag for whether the policy is active."""
+        """Set whether the policy is active."""
         self.active = assign_boolean(active)
 
     @deck_attribute(SECTION_DEFINE)
@@ -158,7 +158,7 @@ class _Policy(Node):
 
     def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
+        Initialize dependent dictionaries to allow wildcarding in command calls.
 
         Parameters
         ----------

@@ -94,7 +94,7 @@ class Timetable(Node, _Table2D):
 
     def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
-        Return the timetable value at (x, y), with x defaulting to the current time.
+        Return the interpolated table value at (x, y), x defaulting to the current time.
 
         Parameters
         ----------
@@ -106,8 +106,8 @@ class Timetable(Node, _Table2D):
 
         Returns
         -------
-        float or FloatArray
-            Response variable, in the shape of the inputs.
+        FloatLike
+            Response variable, in the broadcast shape of ``x`` and ``y``.
 
         Raises
         ------

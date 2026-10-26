@@ -275,7 +275,18 @@ class Producer(Node):
         ports: dict[str, Port],
         processes: dict[str, Process],
     ) -> None:
-        """Initialize dependent dictionaries so command calls can use wildcards."""
+        """
+        Initialize dependent dictionaries to allow wildcarding in command calls.
+
+        Parameters
+        ----------
+        feedstocks
+            All feedstocks in the simulation.
+        ports
+            All ports in the simulation.
+        processes
+            All processes in the simulation.
+        """
         # a None pipeline means the plant has no committed pipeline, and a None feed
         # constraint is read as unlimited
         for plant in self.plants:

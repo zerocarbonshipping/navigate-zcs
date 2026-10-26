@@ -139,7 +139,7 @@ class Converter(_Machinery):
 
     def initialize_dependencies(self, emissions: dict[str, Emission]) -> None:
         """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
+        Initialize dependent dictionaries to allow wildcarding in command calls.
 
         Parameters
         ----------

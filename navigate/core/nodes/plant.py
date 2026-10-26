@@ -204,7 +204,7 @@ class Plant(Node):
         processes: dict[str, Process],
     ) -> None:
         """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
+        Initialize dependent dictionaries to allow wildcarding in command calls.
 
         Parameters
         ----------

@@ -234,7 +234,7 @@ class Expression:
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             Expression value, clipped to the internal bounds and broadcast to
             the shape of the input.
 

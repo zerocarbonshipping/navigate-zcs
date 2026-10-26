@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the table base shared by the Surface and Timetable nodes."""
+
 from __future__ import annotations
 
 import logging
@@ -22,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class _Table2D(_Calculator):
+    """The two-input table lookup common to the Surface and Timetable nodes."""
+
     def __init__(self) -> None:
         _Calculator.__init__(self)
 

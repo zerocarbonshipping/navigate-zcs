@@ -58,14 +58,13 @@ class Variable(Node, _Calculator):
         Parameters
         ----------
         x
-            Dummy first input matching the calculator getters; an array sets
-            the output shape.
+            Ignored but for its shape; an array sets the output shape.
         y
-            Dummy second input matching the calculator getters.
+            Ignored; it exists because expressions call every getter with two inputs.
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             The bounded value, or an array of it in the shape of ``x``.
         """
         value = self._transform(self._evaluate_number(self.value))

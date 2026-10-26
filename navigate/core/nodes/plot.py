@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Collect which plots to render and where.
+Define the Plot node, the plots a run renders and where.
 
 navigate.output.plots.render.generate_plots renders them from the SimulationResults
 of a finished run. The Plot node is not assigned on any other node.
@@ -16,7 +16,7 @@ from navigate.core.node_type import PLOT
 
 
 class Plot(Node):
-    """Hold the plot selection and output directory of a run."""
+    """A plot selection: the plots a run renders and the directory they go to."""
 
     type = PLOT
 

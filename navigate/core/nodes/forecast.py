@@ -92,11 +92,11 @@ class Forecast(Node, _Table1D):
             Time passed since start date to recalculate at, in days; the cached
             value is returned when None.
         y
-            Dummy input variable for calculations with getters of 2 input.
+            Ignored; it exists because expressions call every getter with two inputs.
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             Forecast value, in the shape of ``x``.
         """
         if x is None:

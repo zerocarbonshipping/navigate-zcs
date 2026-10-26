@@ -515,7 +515,7 @@ class Fleet(Node):
                 check_forecast_is_cumulative(self, "Orderbook", orderbook)
 
     def initialize_dependencies(self) -> None:
-        """Initialize dependent dictionaries so command calls can use wildcards."""
+        """Initialize dependent dictionaries to allow wildcarding in command calls."""
         # a None conversion cost marks a pair as not convertible and a None share
         # means no initial share; the self-pair limit exists only so
         # write_matching_key_pairs can validate cross-pair keys

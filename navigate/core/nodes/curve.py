@@ -71,11 +71,11 @@ class Curve(Node, _Table1D):
             Input variable. None, which an expression passes on when it is
             evaluated without input, is rejected.
         y
-            Dummy input variable for calculations with getters of 2 input.
+            Ignored; it exists because expressions call every getter with two inputs.
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             Response variable, in the shape of ``x``.
 
         Raises

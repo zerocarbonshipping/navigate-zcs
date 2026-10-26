@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
 
 class Route(Node):
-    """The ports a vessel calls at and the legs and sailing conditions between them."""
+    """A route: its ports, and the legs and sailing conditions between them."""
 
     type = ROUTE
 
@@ -250,7 +250,7 @@ class Route(Node):
         self._check_conditions_per_leg()
 
     def initialize_dependencies(self) -> None:
-        """Initialize dependent dictionaries so command calls can use wildcards."""
+        """Initialize dependent dictionaries to allow wildcarding in command calls."""
         # stays None when unset: check_requirements names each leg left unassigned
         keys = self.get_leg_keys()
 

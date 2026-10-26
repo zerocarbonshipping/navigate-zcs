@@ -161,7 +161,7 @@ class Regulation(_Policy):
 
     def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
+        Initialize dependent dictionaries to allow wildcarding in command calls.
 
         Parameters
         ----------

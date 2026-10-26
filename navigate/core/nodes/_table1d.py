@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the table base shared by the Curve and Forecast nodes."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, overload
@@ -19,6 +21,8 @@ if TYPE_CHECKING:
 
 
 class _Table1D(_Calculator):
+    """The one-input table lookup common to the Curve and Forecast nodes."""
+
     def __init__(self) -> None:
         _Calculator.__init__(self)
 

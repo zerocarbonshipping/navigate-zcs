@@ -69,7 +69,7 @@ class Surface(Node, _Table2D):
 
     def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike:
         """
-        Return the interpolated surface value at (x, y).
+        Return the interpolated table value at (x, y).
 
         Parameters
         ----------
@@ -77,11 +77,12 @@ class Surface(Node, _Table2D):
             First input variable. None, which an expression passes on when it
             is evaluated without input, is rejected.
         y
-            Second input variable, rejected when None like ``x``.
+            Second input variable. None, which an expression passes on when it
+            is evaluated without input, is rejected.
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             Response variable, in the broadcast shape of ``x`` and ``y``.
 
         Raises

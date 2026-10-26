@@ -175,7 +175,7 @@ class Port(Node):
         self, emissions: dict[str, Emission], fuels: dict[str, Fuel]
     ) -> None:
         """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
+        Initialize dependent dictionaries to allow wildcarding in command calls.
 
         Parameters
         ----------
