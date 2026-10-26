@@ -65,7 +65,7 @@ def result(unit: str, *, per_step: bool = False) -> Any:
     return field(init=False, metadata={_RESULT: ResultSpec(unit, per_step)})
 
 
-def _results(cls: type[_BaseResults]) -> dict[str, ResultSpec]:
+def _result_specs(cls: type[_BaseResults]) -> dict[str, ResultSpec]:
     return {f.name: f.metadata[_RESULT] for f in fields(cls) if _RESULT in f.metadata}
 
 
@@ -84,7 +84,7 @@ def result_units(cls: type[_BaseResults]) -> dict[str, str]:
         Unit per result name, inherited results included, as the results file
         labels it.
     """
-    return {name: spec.unit for name, spec in _results(cls).items()}
+    return {name: spec.unit for name, spec in _result_specs(cls).items()}
 
 
 def result_names(cls: type[_BaseResults]) -> frozenset[str]:
@@ -101,7 +101,7 @@ def result_names(cls: type[_BaseResults]) -> frozenset[str]:
     frozenset[str]
         Result names, inherited results included.
     """
-    return frozenset(_results(cls))
+    return frozenset(_result_specs(cls))
 
 
 def per_step_results(cls: type[_BaseResults]) -> frozenset[str]:
@@ -118,7 +118,7 @@ def per_step_results(cls: type[_BaseResults]) -> frozenset[str]:
     frozenset[str]
         Result names; the results file writes these per year.
     """
-    return frozenset(name for name, spec in _results(cls).items() if spec.per_step)
+    return frozenset(name for name, spec in _result_specs(cls).items() if spec.per_step)
 
 
 def accumulate(
@@ -154,36 +154,26 @@ class _BaseResults:
     def _initialize_base(self, context: ResultsContext) -> None:
         self.context = context
 
-    def _default_array(self, default: float | None = None) -> FloatArray:
-        if default is None:
-            return np.zeros(self.context.timeline.shape)
+    def _default_array(self, default: float = 0.0) -> FloatArray:
         return np.full(self.context.timeline.shape, default, dtype=np.float64)
 
-    def _default_bool_array(self, default: bool) -> BoolArray:
-        return np.full(self.context.timeline.shape, default, dtype=bool)
+    def _default_bool_array(self) -> BoolArray:
+        return np.zeros(self.context.timeline.shape, dtype=bool)
 
     def _default_dict[K](
-        self, keys: Iterable[K], default: float | None = None
+        self, keys: Iterable[K], default: float = 0.0
     ) -> dict[K, FloatArray]:
         return {key: self._default_array(default) for key in keys}
 
-    def _default_bool_dict[K](
-        self, keys: Iterable[K], default: bool
-    ) -> dict[K, BoolArray]:
-        return {key: self._default_bool_array(default) for key in keys}
+    def _default_bool_dict[K](self, keys: Iterable[K]) -> dict[K, BoolArray]:
+        return {key: self._default_bool_array() for key in keys}
 
     def _default_tuple_dict[K1, K2](
-        self,
-        keys1: Iterable[K1],
-        keys2: Iterable[K2],
-        default: float | None = None,
+        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float = 0.0
     ) -> dict[tuple[K1, K2], FloatArray]:
         return self._default_dict(itertools.product(keys1, keys2), default)
 
     def _default_nested_dict[K1, K2](
-        self,
-        keys1: Iterable[K1],
-        keys2: Iterable[K2],
-        default: float | None = None,
+        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float = 0.0
     ) -> dict[K1, dict[K2, FloatArray]]:
         return {key: self._default_dict(keys2, default) for key in keys1}

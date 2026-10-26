@@ -42,7 +42,7 @@ class PortResults(_FuelInfrastructureResults):
         self._initialize_base(context)
         self._initialize_fuel_infrastructure()
 
-        self.bunkering_allowed = self._default_bool_dict(context.fuels, default=False)
+        self.bunkering_allowed = self._default_bool_dict(context.fuels)
 
         self.bunker_price = self._default_dict(context.fuels)
         self.bunker_wtt = self._default_tuple_dict(context.fuels, context.emissions)
