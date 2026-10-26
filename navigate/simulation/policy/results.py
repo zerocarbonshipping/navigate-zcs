@@ -20,7 +20,7 @@ def record_regulation_results(regulation: Regulation, idx: int) -> None:
     Parameters
     ----------
     regulation
-        The regulation instance.
+        Regulation whose remedial cost and policed-vessel thresholds are recorded.
     idx
         Current time-step index.
     """

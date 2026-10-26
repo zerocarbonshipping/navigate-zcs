@@ -60,7 +60,7 @@ def calculate_policy_emission_coefficients(
     plants
         All plants in the simulation.
     timeline
-        Simulation timeline.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
@@ -100,14 +100,14 @@ def _calculate_regulation(
     Parameters
     ----------
     regulation
-        Regulation to calculate.
+        Regulation whose factors, coefficients and thresholds are calculated.
     vessels
         All vessels in the simulation.
     plants_by_fuel
         Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
         absent.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
     idx
         Current time-step index.
     """
@@ -142,14 +142,14 @@ def _calculate_regulation_wtt(
     Parameters
     ----------
     regulation
-        Regulation to calculate the factors for.
+        Regulation whose WTT emission factors are calculated.
     vessels
         All vessels in the simulation.
     plants_by_fuel
         Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
         absent.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
     idx
         Current time-step index.
     """
@@ -188,11 +188,11 @@ def _calculate_regulation_ttw(
     Parameters
     ----------
     regulation
-        Regulation to calculate the factors for.
+        Regulation whose TTW emission factors are calculated.
     vessels
         All vessels in the simulation.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
     idx
         Current time-step index.
     """
@@ -227,7 +227,7 @@ def _calculate_regulation_emission_coefficients(
     Parameters
     ----------
     regulation
-        Regulation to calculate emission coefficients for.
+        Regulation whose emission coefficients are calculated.
     vessels
         All vessels in the simulation.
     idx
@@ -261,7 +261,7 @@ def _calculate_regulation_coefficient(
     Parameters
     ----------
     regulation
-        Regulation to calculate the emission coefficient for.
+        Regulation whose emission coefficient is calculated.
     key
         Names of the vessel, the converter and the fuel the coefficient is stored under.
     idx
@@ -270,7 +270,7 @@ def _calculate_regulation_coefficient(
     Returns
     -------
     FloatLike
-        Emission coefficient, in ton emissions per ton fuel, from idx onward.
+        Emission coefficient from `idx` onward, in ton emission/ton fuel.
     """
     vessel_name, converter_name, fuel_name = key
     coefficient = 0.0
@@ -292,7 +292,7 @@ def _calculate_regulation_shore_power_coefficients(
     Parameters
     ----------
     regulation
-        Regulation to calculate the coefficients for.
+        Regulation whose shore-power emission coefficients are calculated.
     vessels
         All vessels in the simulation.
     idx
@@ -323,9 +323,9 @@ def _calculate_regulation_vessel_thresholds(
     Parameters
     ----------
     regulation
-        Regulation to calculate the thresholds for.
+        Regulation whose vessel thresholds are calculated.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
     idx
         Current time-step index.
     """
@@ -358,14 +358,14 @@ def _calculate_levy(
     Parameters
     ----------
     levy
-        Levy to calculate.
+        Levy whose emission factors and costs are calculated.
     vessels
         All vessels in the simulation.
     plants_by_fuel
         Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
         absent.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
     idx
         Current time-step index.
     """
@@ -396,12 +396,12 @@ def _calculate_levy_wtt(
     Parameters
     ----------
     levy
-        Levy to calculate the factors for.
+        Levy whose WTT emission factors are calculated.
     plants_by_fuel
         Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
         absent.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
     idx
         Current time-step index.
     """
@@ -438,11 +438,11 @@ def _calculate_levy_ttw(
     Parameters
     ----------
     levy
-        Levy to calculate the factors for.
+        Levy whose TTW emission factors are calculated.
     vessels
         All vessels in the simulation.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
     idx
         Current time-step index.
     """
@@ -481,11 +481,11 @@ def _calculate_levy_costs(
     Parameters
     ----------
     levy
-        Levy to calculate costs for.
+        Levy whose costs are calculated.
     vessels
         All vessels in the simulation.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
     idx
         Current time-step index.
     """
@@ -543,7 +543,7 @@ def _calculate_levy_coefficient(
     Parameters
     ----------
     levy
-        Levy to calculate the emission coefficient for.
+        Levy whose emission coefficient is calculated.
     key
         Names of the vessel, the port and the fuel the cost is stored under.
     idx
@@ -552,7 +552,7 @@ def _calculate_levy_coefficient(
     Returns
     -------
     FloatLike
-        Emission coefficient, in ton emissions per ton fuel, from idx onward.
+        Emission coefficient from `idx` onward, in ton emission/ton fuel.
     """
     vessel_name, port_name, fuel_name = key
     coefficient = 0.0
@@ -590,11 +590,10 @@ def _apply_thresholds(
     effective_lhv
         Effective lower heating value of the fuel on the vessel, in GJ/ton fuel.
     lower
-        Lower emission factor threshold, evaluated from the current time-step onward,
-        in kg emissions/GJ.
+        Lower emission factor threshold over the remaining timeline, in kg emission/GJ.
     upper
-        Upper emission factor threshold, evaluated from the current time-step onward,
-        in kg emissions/GJ; None where the levy has no upper threshold.
+        Upper emission factor threshold over the remaining timeline, in kg emission/GJ;
+        None where the levy has no upper threshold.
 
     Returns
     -------
@@ -629,13 +628,13 @@ def _average_wtt_over_route(
     Parameters
     ----------
     ports
-        Ports on the vessel's route, each listed once.
+        Ports on the vessel's route whose estimates are averaged, each listed once.
     fuel
-        Fuel being spent.
+        Fuel whose WTT emissions are estimated.
     emission
-        Emission.
+        Emission the estimate is for.
     plants
-        Plants producing the fuel.
+        Plants producing the fuel, whose WTT the port estimates read.
     idx
         Current time-step index.
 
@@ -676,7 +675,7 @@ def _converter_ttw(
     regulation
         Regulation the TTW is read for; where it leaves out slip, the slip TTW is zero.
     vessel
-        Vessel the converter is on board.
+        Vessel whose converter TTW is read.
     key
         Names of the vessel, the converter, the fuel and the emission the factors are
         stored under; the vessel's own TTW is keyed by all but the first.
@@ -709,7 +708,7 @@ def _mean_ttw(
     levy
         Levy the TTW is read for; where it leaves out slip, the slip TTW is zero.
     vessel
-        Vessel on which the fuel is spent.
+        Vessel whose mean TTW is read.
     key
         Names of the vessel, the fuel and the emission the factors are stored under;
         the vessel's own TTW is keyed by all but the first.
@@ -741,17 +740,17 @@ def _evaluate_supplied(
     Parameters
     ----------
     policy
-        Policy whose fuels and emissions are evaluated.
+        Policy whose supplied factors are evaluated.
     supplied
-        The policy's `fuel_wtt` or `fuel_ttw`, keyed by fuel and emission name.
+        Policy's `fuel_wtt` or `fuel_ttw`, keyed by fuel and emission name.
     times
-        Simulation timeline from the current time step onward.
+        Remaining timeline, in days.
 
     Returns
     -------
     dict[tuple[str, str], FloatArray | None]
-        Supplied factor from the current time step onward, keyed by fuel and emission
-        name; None where the policy supplies none.
+        Supplied factor over the remaining timeline, in ton emission/ton fuel, keyed by
+        fuel and emission name; None where the policy supplies none.
     """
     evaluated = {}
 
@@ -778,7 +777,7 @@ def _calculate_emission_factor(
     Parameters
     ----------
     policy
-        Policy to calculate the emission factor for.
+        Policy whose emission factor is calculated.
     key_wtt
         Key of the WTT factor in the policy's expectation.
     key_ttw
@@ -789,7 +788,7 @@ def _calculate_emission_factor(
     Returns
     -------
     FloatLike
-        Emission factor, in ton emissions per ton fuel.
+        Emission factor from `idx` onward, in ton emission/ton fuel.
     """
     expectation = policy.expectation
     forward = np.s_[idx:]
@@ -812,16 +811,16 @@ def _apply_gwp(
     Parameters
     ----------
     emission_factor
-        Emission factor.
+        Emission factor, in ton emission/ton fuel, or ton emission/GJ for shore power.
     policy
-        The policy whose expectation supplies the GWP.
+        Policy whose GWP weighs the factor.
     emission
-        Emission being converted.
+        Emission whose GWP is applied.
 
     Returns
     -------
     FloatLike
-        GWP-weighted emission factor.
+        GWP-weighted emission factor, in the unit of `emission_factor`.
     """
     gwp = policy.expectation.get_global_warming_potential(emission.name)
 
@@ -835,7 +834,7 @@ def _target_fuels(policy: Levy | Regulation, vessel: Vessel) -> list[Fuel]:
     Parameters
     ----------
     policy
-        The policy whose targeted fuels are filtered.
+        Policy whose targeted fuels are filtered.
     vessel
         Vessel whose usable fuels the targeted fuels are filtered by.
 
@@ -895,13 +894,13 @@ def _estimate_port_wtt(
     Parameters
     ----------
     port
-        Port at which the fuel is bunkered.
+        Port at which the fuel's WTT emissions are estimated.
     fuel
-        Fuel being bunkered.
+        Fuel whose WTT emissions are estimated.
     emission
-        Emission.
+        Emission the estimate is for.
     plants
-        Plants producing the fuel.
+        Plants producing the fuel, whose production and delivery WTT are averaged.
     idx
         Current time-step index.
 

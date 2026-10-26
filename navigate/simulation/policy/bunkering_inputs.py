@@ -100,7 +100,7 @@ def calculate_vessel_spend_coefficients(
     regulation
         Regulation whose constraints weigh the spend.
     vessel
-        Vessel spending the fuel and shore power.
+        Vessel whose spend coefficients are calculated.
     threshold
         Threshold the spend is netted against at the steps of `idx`.
     idx
