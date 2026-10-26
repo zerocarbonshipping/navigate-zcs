@@ -71,23 +71,31 @@ class ResultsContext:
         ResultsContext
             The context all results of the run are initialized with.
         """
-        # a heating value read without an input, and a warming potential read at a
-        # single lifetime, are one number, while the getters' return types also
-        # cover the array an array input produces
+        lower_heating_value: dict[str, float] = {}
+        fuel_type: dict[str, FuelTypeID] = {}
+        liquid_market_fuels: set[str] = set()
+
+        # read without an input, a heating value is one number, not an array
+        for name, fuel in fuels.items():
+            lower_heating_value[name] = float(fuel.lower_heating_value.get())
+            fuel_type[name] = fuel.fuel_type
+
+            if fuel.liquid_market:
+                liquid_market_fuels.add(name)
+
+        global_warming_potential: dict[str, float] = {}
+
+        # read at one lifetime, a warming potential is one number, not an array
+        for name, emission in emissions.items():
+            potential = emission.global_warming_potential.get(emissions_lifetime)
+            global_warming_potential[name] = float(potential)
+
         return cls(
             timeline=timeline,
-            lower_heating_value={
-                name: float(fuel.lower_heating_value.get())
-                for name, fuel in fuels.items()
-            },
-            fuel_type={name: fuel.fuel_type for name, fuel in fuels.items()},
-            liquid_market_fuels=frozenset(
-                name for name, fuel in fuels.items() if fuel.liquid_market
-            ),
-            global_warming_potential={
-                name: float(emission.global_warming_potential.get(emissions_lifetime))
-                for name, emission in emissions.items()
-            },
+            lower_heating_value=lower_heating_value,
+            fuel_type=fuel_type,
+            liquid_market_fuels=frozenset(liquid_market_fuels),
+            global_warming_potential=global_warming_potential,
         )
 
     @property
@@ -114,10 +122,13 @@ class ResultsContext:
         dict[str, FloatArray]
             Energy per fuel, GJ.
         """
-        return {
-            fuel_name: fuel_mass * self.lower_heating_value[fuel_name]
-            for fuel_name, fuel_mass in mass.items()
-        }
+        heating_value = self.lower_heating_value
+        energy: dict[str, FloatArray] = {}
+
+        for fuel_name, fuel_mass in mass.items():
+            energy[fuel_name] = fuel_mass * heating_value[fuel_name]
+
+        return energy
 
     def fuel_type_energy(
         self, mass: dict[str, FloatArray]
@@ -137,8 +148,8 @@ class ResultsContext:
         """
         energy = {fuel_type: np.zeros(self.timeline.shape) for fuel_type in FuelTypeID}
 
-        for fuel_name, fuel_type in self.fuel_type.items():
-            energy[fuel_type] += mass[fuel_name] * self.lower_heating_value[fuel_name]
+        for fuel_name, fuel_energy in self.energy(mass).items():
+            energy[self.fuel_type[fuel_name]] += fuel_energy
 
         return energy
 
@@ -158,11 +169,13 @@ class ResultsContext:
         dict[tuple[str, str], FloatArray]
             The CO2-equivalents under the same keys.
         """
-        return {
-            (fuel_name, emission_name): emission
-            * self.global_warming_potential[emission_name]
-            for (fuel_name, emission_name), emission in emissions.items()
-        }
+        potential = self.global_warming_potential
+        equivalents: dict[tuple[str, str], FloatArray] = {}
+
+        for (fuel_name, emission_name), emission in emissions.items():
+            equivalents[fuel_name, emission_name] = emission * potential[emission_name]
+
+        return equivalents
 
     def equivalent_by_emission(
         self, emissions: dict[str, FloatArray]
@@ -180,7 +193,10 @@ class ResultsContext:
         dict[str, FloatArray]
             The CO2-equivalents under the same keys.
         """
-        return {
-            emission_name: emission * self.global_warming_potential[emission_name]
-            for emission_name, emission in emissions.items()
-        }
+        potential = self.global_warming_potential
+        equivalents: dict[str, FloatArray] = {}
+
+        for emission_name, emission in emissions.items():
+            equivalents[emission_name] = emission * potential[emission_name]
+
+        return equivalents
