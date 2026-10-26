@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""PlantResults, the output storage the Plant node reports its results from."""
+"""PlantResults, the output storage of the Plant node."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ class PlantResults(BaseResults):
 
     def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the plant results' storage arrays and lookups.
+        Allocate the plant results' storage.
 
         Parameters
         ----------

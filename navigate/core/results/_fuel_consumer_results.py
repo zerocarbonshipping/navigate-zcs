@@ -103,18 +103,6 @@ class _FuelConsumerResults(BaseResults):
     def _initialize_fuel_consumer(
         self, regulation_names: Sequence[str], levy_names: Sequence[str]
     ) -> None:
-        """
-        Initialize what the simulation writes to the fuel consumer results.
-
-        The results computed from it are written in post-processing.
-
-        Parameters
-        ----------
-        regulation_names
-            Names of all regulations in the simulation.
-        levy_names
-            Names of all levies in the simulation.
-        """
         fuels = self.context.fuels
         emissions = self.context.emissions
 

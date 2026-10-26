@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""PortResults, the output storage the Port node reports its results from."""
+"""PortResults, the output storage of the Port node."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ class PortResults(_FuelInfrastructureResults):
 
     def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the port results' storage arrays.
+        Allocate the port results' storage.
 
         Parameters
         ----------

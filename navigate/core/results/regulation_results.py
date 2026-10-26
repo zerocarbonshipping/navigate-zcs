@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""RegulationResults, the output storage the Regulation node reports from."""
+"""RegulationResults, the output storage of the Regulation node."""
 
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ class RegulationResults(BaseResults):
 
     def initialize(self, context: ResultsContext, vessel_names: Sequence[str]) -> None:
         """
-        Initialize the regulation results' storage arrays.
+        Allocate the regulation results' storage.
 
         Parameters
         ----------

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The results layer that sums vessels into a fleet or the whole model."""
+"""The results layer for the vessel aggregates: the fleet and global results."""
 
 from __future__ import annotations
 

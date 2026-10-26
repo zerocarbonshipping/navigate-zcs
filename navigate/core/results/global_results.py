@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""GlobalResults, the model-wide output storage the simulation fills."""
+"""GlobalResults, the output storage of the whole model."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ class GlobalResults(
         levy_names: Sequence[str],
     ) -> None:
         """
-        Initialize the global results' storage arrays and lookups.
+        Allocate the global results' storage.
 
         Parameters
         ----------

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""FleetResults, the output storage the Fleet node reports its results from."""
+"""FleetResults, the output storage of the Fleet node."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ class FleetResults(_VesselAggregateResults, _TransportResults):
         levy_names: Sequence[str],
     ) -> None:
         """
-        Initialize the fleet results' storage arrays and lookups.
+        Allocate the fleet results' storage.
 
         Parameters
         ----------

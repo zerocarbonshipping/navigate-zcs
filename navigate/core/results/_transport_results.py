@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The results layer for the transport work: the vessel and fleet results."""
+"""The results layer for the cargo carriers: the vessel and fleet results."""
 
 from __future__ import annotations
 

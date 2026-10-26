@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""LevyResults, the output storage the Levy node reports its results from."""
+"""LevyResults, the output storage of the Levy node."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class LevyResults(BaseResults):
 
     def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the levy results' storage arrays.
+        Allocate the levy results' storage.
 
         Parameters
         ----------

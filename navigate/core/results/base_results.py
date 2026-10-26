@@ -152,7 +152,7 @@ def accumulate(
 
 @dataclass(eq=False, repr=False)
 class BaseResults:
-    """The run's context and the storage allocation all results share."""
+    """Storage the simulation writes; post-processing assigns the computed results."""
 
     context: ResultsContext = field(init=False)
 

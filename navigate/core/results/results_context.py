@@ -28,7 +28,7 @@ class ResultsContext:
     timeline
         Simulation timeline, in years.
     lower_heating_value
-        Lower heating value per fuel, GJ/ton; its keys are the fuels of the run.
+        Lower heating value per fuel, in GJ/t; its keys are the fuels of the run.
     fuel_type
         Fuel type per fuel.
     liquid_market_fuels
@@ -110,17 +110,17 @@ class ResultsContext:
 
     def calculate_energy(self, mass: dict[str, FloatArray]) -> dict[str, FloatArray]:
         """
-        Convert fuel masses to their energy, GJ, at the fuels' heating values.
+        Convert fuel masses to their energy at the fuels' heating values.
 
         Parameters
         ----------
         mass
-            Mass per fuel, t.
+            Mass per fuel, in t.
 
         Returns
         -------
         dict[str, FloatArray]
-            Energy per fuel, GJ.
+            Energy per fuel, in GJ.
         """
         heating_value = self.lower_heating_value
         energy: dict[str, FloatArray] = {}
@@ -139,12 +139,12 @@ class ResultsContext:
         Parameters
         ----------
         mass
-            Mass per fuel of the run, t.
+            Mass per fuel of the run, in t.
 
         Returns
         -------
         dict[FuelTypeID, FloatArray]
-            Energy per fuel type, GJ; 0 for a type no fuel of the run has.
+            Energy per fuel type, in GJ; 0 for a type no fuel of the run has.
         """
         energy = {fuel_type: np.zeros(self.timeline.shape) for fuel_type in FuelTypeID}
 
