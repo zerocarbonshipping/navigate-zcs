@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""_GeneralNode, the base class of the general nodes the parser builds from a deck."""
 
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ class _GeneralNode:
 
     # the general node keyword; each general node class sets its own
     type: ClassVar[str]
-    # the deck attributes the class's marked setters declare; no commands
+    # the deck attributes the marked setters declare; general nodes have no commands
     deck_attributes: ClassVar[dict[str, DeckEntry]] = {}
     deck_commands: ClassVar[dict[str, DeckEntry]] = {}
 
@@ -26,4 +27,4 @@ class _GeneralNode:
         cls.deck_attributes, cls.deck_commands = collect_deck_entries(cls)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}"
+        return self.type
