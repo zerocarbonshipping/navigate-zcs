@@ -154,7 +154,7 @@ class _RetrofitProposal:
     @property
     def eligible_count(self) -> float:
         """Number of vessels able to make this jump."""
-        return float(self.increment.multiplier) * self.eligible_share
+        return self.increment.multiplier * self.eligible_share
 
     def first_adopting_step(self, technology_idx: int) -> int:
         """
@@ -566,7 +566,7 @@ def reconcile_newbuild_technology_caps(
             if count <= 0.0:
                 continue
 
-            contributions.append(_CapContribution(uptake, i + 1, float(count)))
+            contributions.append(_CapContribution(uptake, i + 1, count))
 
         _scale_tails_to_cap(contributions, cap)
 

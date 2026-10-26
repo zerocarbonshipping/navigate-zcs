@@ -169,7 +169,7 @@ def _calculate_package_weights(
         uptake = zip(packages, increment.package_uptake, strict=True)
 
         for package, share in uptake:
-            weights[package] += increment.multiplier * float(share)
+            weights[package] += increment.multiplier * share
 
     return {package: weight for package, weight in weights.items() if weight > 0.0}
 
@@ -386,7 +386,7 @@ def _accumulate_weighted(
     """
     for energy_id in totals:
         energy = np.asarray(energies[energy_id], dtype=float)
-        totals[energy_id] += multiplier * float(np.sum(energy))
+        totals[energy_id] += multiplier * np.sum(energy)
 
 
 def _divide_per_key(

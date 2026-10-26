@@ -176,7 +176,7 @@ def _transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
 
             total = 0.0
             for increment in increments:
-                adopting_share = float(np.sum(increment.package_uptake[adopting]))
+                adopting_share = np.sum(increment.package_uptake[adopting])
                 total += increment.multiplier * adopting_share
 
             average = float(divide_nonzero(total, multipliers_total))

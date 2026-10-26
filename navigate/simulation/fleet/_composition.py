@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray, Index
+    from navigate.util.types_ import FloatArray
 
 
 def get_trade_capacity(fleet: Fleet, idx: int) -> float:
@@ -92,7 +92,7 @@ def get_multiplier(fleet: Fleet, vessel_idx: int) -> float:
     return sum(increment.multiplier for increment in fleet.increments[vessel_idx])
 
 
-def extract_cargo_miles(vessels: list[Vessel], idx: Index) -> FloatArray:
+def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> FloatArray:
     """
     Extract each vessel's cargo-miles at a time-step or over a slice of the timeline.
 

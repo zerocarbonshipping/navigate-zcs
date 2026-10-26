@@ -86,8 +86,8 @@ def calculate_orderbook_newbuilds(
     fleet.orders_delivered -= excess
     fleet.orders_postponed += excess
 
-    attempted = float(np.sum(delivery))
-    delivered = float(np.sum(capped))
+    attempted = np.sum(delivery)
+    delivered = np.sum(capped)
     _log_deferral(fleet, "orderbook deliveries", "newbuild limit", delivered, attempted)
 
     return capped, np.dot(capped, cargo_miles), np.maximum(cap_count - capped, 0.0)
@@ -275,8 +275,8 @@ def _calculate_delivery(
     share = min(trade_gap / trade, 1.0)
     delivery = share * orders
 
-    attempted = float(np.sum(orders))
-    delivered = float(np.sum(delivery))
+    attempted = np.sum(orders)
+    delivered = np.sum(delivery)
     reason = "insufficient trade gap"
     _log_deferral(fleet, "orderbook deliveries", reason, delivered, attempted)
 
@@ -321,8 +321,8 @@ def _calculate_inertia_newbuilds(
     over = newbuilds > cap_count + TOLERANCE
     capped = np.where(over, cap_count, newbuilds)
 
-    attempted = float(np.sum(newbuilds))
-    delivered = float(np.sum(capped))
+    attempted = np.sum(newbuilds)
+    delivered = np.sum(capped)
     _log_deferral(fleet, "inertia newbuilds", "newbuild limit", delivered, attempted)
 
     return capped, np.maximum(cap_count - capped, 0.0)
