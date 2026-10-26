@@ -32,5 +32,4 @@ class LevyResults(_BaseResults):
             Timeline, fuels and emissions of the run.
         """
         self._initialize_base(context)
-
         self.collected = self._default_array()
