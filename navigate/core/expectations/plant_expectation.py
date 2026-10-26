@@ -90,9 +90,9 @@ class PlantExpectation(_Expectation):
         self._expected_production_cost = self._default_array()
         self._expected_production_wtt = self._default_dict_array(emissions)
 
-        self._demand_newbuilds = self._default_float()
-        self._inter_fuel_metric = self._default_float()
-        self._intra_fuel_metric = self._default_float()
+        self._demand_newbuilds = 0.0
+        self._inter_fuel_metric = 0.0
+        self._intra_fuel_metric = 0.0
 
     def reset_additive_properties(self, idx: int) -> None:
         # the steps before idx keep the feed masses of the plants decided then
