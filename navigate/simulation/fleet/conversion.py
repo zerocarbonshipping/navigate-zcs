@@ -28,7 +28,11 @@ from navigate.simulation.cohort import find_insertion_index
 from navigate.simulation.economics.decision import calculate_asset_shares
 from navigate.simulation.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.simulation.economics.metric import calculate_net_present_value
-from navigate.simulation.fleet._composition import get_multipliers, is_retrofit_cycle
+from navigate.simulation.fleet._composition import (
+    get_multipliers,
+    get_total_multiplier,
+    is_retrofit_cycle,
+)
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -308,7 +312,7 @@ def _reconcile_fuel_conversion_caps(
         Current time-step size, in days.
     """
     # counted before the newbuilds, which are inserted later in the same time-step
-    existing_total = sum(get_multipliers(fleet))
+    existing_total = get_total_multiplier(fleet)
     dt_years = time_step / YEAR
 
     pair_proposed: dict[tuple[str, str], float] = {}

@@ -11,10 +11,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID
-from navigate.simulation.fleet._composition import (
-    extract_cargo_miles_timeline,
-    get_multiplier,
-)
+from navigate.simulation.fleet._composition import extract_cargo_miles, get_multiplier
+from navigate.simulation.fleet._newbuild import is_newbuild_allowed
 from navigate.util import YEAR, divide_nonzero
 
 if TYPE_CHECKING:
@@ -200,7 +198,7 @@ def calculate_fleet_evolution_expectation(
     existing = _existing_multipliers(fleet, years_ahead)
 
     # the multipliers become cargo-miles to take the speed expectations into account
-    cargo_miles = np.array(extract_cargo_miles_timeline(fleet.vessels, forward))
+    cargo_miles = extract_cargo_miles(fleet.vessels, forward)
     existing_trade = existing * cargo_miles
     gap = fleet.trade[forward] - np.sum(existing_trade, axis=0)
 
@@ -218,10 +216,9 @@ def calculate_fleet_evolution_expectation(
     # start guarantees it while barely moving the fair shares of fuel
     # TODO: make assignable?
     jump_start = 1e-3 * np.sum(existing + newbuild, axis=0)
-    for v, vessel in enumerate(fleet.vessels):
-        if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]:
-            absent = existing[v] + newbuild[v] == 0.0
-            newbuild[v, absent] = jump_start[absent]
+    for v in np.flatnonzero(is_newbuild_allowed(fleet)):
+        absent = existing[v] + newbuild[v] == 0.0
+        newbuild[v, absent] = jump_start[absent]
 
     # the expected newbuilds need no scrapping of their own beyond the vessel
     # lifetime: the vessels replacing them are expected to follow the same

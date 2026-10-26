@@ -13,7 +13,7 @@ from navigate.core import Expression, Scalar
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.core.node_type import is_surface, is_variable
 from navigate.exceptions import PowerCapacityError
-from navigate.util import MWD_TO_GJ, TOLERANCE
+from navigate.util import TOLERANCE, energy_to_power, power_to_energy
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -362,12 +362,12 @@ def _find_overloads(
     overloads = []
 
     for label, energy, time in zip(labels, energies, times, strict=True):
-        deliverable = power_capacity * time * MWD_TO_GJ
+        deliverable = power_to_energy(power_capacity, time)
 
         if energy - deliverable <= TOLERANCE * max(1.0, deliverable):
             continue
 
-        implied_power = energy / (time * MWD_TO_GJ) if time > 0.0 else np.inf
+        implied_power = energy_to_power(energy, time) if time > 0.0 else np.inf
         overloads.append(
             f"  {demand_name} demand on {label} requires "
             f"{implied_power:.2f} MW but {converter} has "

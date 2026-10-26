@@ -60,7 +60,7 @@ def calculate_orderbook_newbuilds(
     if not fleet.orderbooks:
         return np.zeros(len(fleet.vessels)), 0.0, cap_count
 
-    allowed = _is_newbuild_allowed(fleet)
+    allowed = is_newbuild_allowed(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx=idx)
 
     # the orders postponed earlier are delivered first
@@ -117,7 +117,7 @@ def calculate_modelled_newbuilds(
     float
         Delivered capacity, in cargo-miles/year.
     """
-    allowed = _is_newbuild_allowed(fleet)
+    allowed = is_newbuild_allowed(fleet)
     vessels = list(itertools.compress(fleet.vessels, allowed))
     cargo_miles = extract_cargo_miles(vessels, idx)
 
@@ -191,6 +191,29 @@ def add_newbuilds(
         cohorts.append(increment)
 
 
+def is_newbuild_allowed(fleet: Fleet) -> BoolArray:
+    """
+    Mark the vessel types the fleet allows and that are available as newbuilds.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose vessel types are marked.
+
+    Returns
+    -------
+    BoolArray
+        Whether each vessel type can be added as a newbuild.
+    """
+    allowed = np.zeros(len(fleet.vessels), dtype=bool)
+
+    for v, vessel in enumerate(fleet.vessels):
+        name = vessel.name
+        allowed[v] = fleet.allow_vessel[name] and fleet.newbuild_available[name]
+
+    return allowed
+
+
 def update_current_uptake(fleet: Fleet, increments: FloatArray, idx: int) -> None:
     """
     Update the fleet's uptake shares from this time-step's newbuilds.
@@ -216,29 +239,6 @@ def update_current_uptake(fleet: Fleet, increments: FloatArray, idx: int) -> Non
 
     shares = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))
     fleet.expectation.set_uptakes(idx, shares)
-
-
-def _is_newbuild_allowed(fleet: Fleet) -> BoolArray:
-    """
-    Mark the vessel types the fleet allows and that are available as newbuilds.
-
-    Parameters
-    ----------
-    fleet
-        Fleet whose vessel types are marked.
-
-    Returns
-    -------
-    BoolArray
-        Whether each vessel type can be added as a newbuild.
-    """
-    allowed = np.zeros(len(fleet.vessels), dtype=bool)
-
-    for v, vessel in enumerate(fleet.vessels):
-        name = vessel.name
-        allowed[v] = fleet.allow_vessel[name] and fleet.newbuild_available[name]
-
-    return allowed
 
 
 def _calculate_delivery(

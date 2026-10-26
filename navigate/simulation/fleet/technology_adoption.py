@@ -34,7 +34,11 @@ from navigate.simulation.economics.flows import (
     timeline_to_yearly,
     trim_flow_to_lifetime,
 )
-from navigate.simulation.fleet._composition import get_multipliers, is_retrofit_cycle
+from navigate.simulation.fleet._composition import (
+    get_multipliers,
+    get_total_multiplier,
+    is_retrofit_cycle,
+)
 from navigate.simulation.fleet._marginal_saving import (
     calculate_marginal_technology_saving,
 )
@@ -248,7 +252,7 @@ def perform_technology_installation(
 
     # the fleet count before newbuilds is the denominator of both the retrofit and the
     # newbuild technology caps
-    multipliers_total = float(sum(get_multipliers(fleet)))
+    multipliers_total = get_total_multiplier(fleet)
     sensitivity = technology_sensitivity.get()
 
     proposals = []

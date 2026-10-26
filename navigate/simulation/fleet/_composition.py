@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, Index
 
 
 def get_trade_capacity(fleet: Fleet, idx: int) -> float:
@@ -55,6 +55,24 @@ def get_multipliers(fleet: Fleet) -> list[float]:
     return [get_multiplier(fleet, v) for v in range(len(fleet.increments))]
 
 
+def get_total_multiplier(fleet: Fleet) -> float:
+    """
+    Return the number of vessels in the fleet.
+
+    Parameters
+    ----------
+    fleet
+        Fleet holding the vessels.
+
+    Returns
+    -------
+    float
+        Number of vessels of all types.
+    """
+    # the builtin sum is compensated on floats, unlike np.sum
+    return float(sum(get_multipliers(fleet)))
+
+
 def get_multiplier(fleet: Fleet, vessel_idx: int) -> float:
     """
     Return the number of vessels of one type in the fleet.
@@ -74,42 +92,24 @@ def get_multiplier(fleet: Fleet, vessel_idx: int) -> float:
     return sum(inc.multiplier for inc in fleet.increments[vessel_idx])
 
 
-def extract_cargo_miles(vessels: list[Vessel], idx: int) -> FloatArray:
+def extract_cargo_miles(vessels: list[Vessel], idx: Index) -> FloatArray:
     """
-    Extract each vessel's cargo-miles at a single time-step index.
+    Extract each vessel's cargo-miles at a time-step or over a slice of the timeline.
 
     Parameters
     ----------
     vessels
         Vessels to extract cargo-miles for.
     idx
-        Time-step index.
+        Time-step index or slice.
 
     Returns
     -------
     FloatArray
-        Cargo-miles of one vessel of each type, cargo-miles/year.
+        Cargo-miles of one vessel of each type, in cargo-miles/year: one per vessel
+        for a time-step, one row per vessel for a slice.
     """
     return np.array([vessel.expectation.get_cargo_miles(idx) for vessel in vessels])
-
-
-def extract_cargo_miles_timeline(vessels: list[Vessel], idx: slice) -> list[FloatArray]:
-    """
-    Extract each vessel's cargo-miles across a slice of the timeline.
-
-    Parameters
-    ----------
-    vessels
-        Vessels to extract cargo-miles for.
-    idx
-        Timeline slice.
-
-    Returns
-    -------
-    list[FloatArray]
-        Cargo-miles of one vessel of each type over the slice, cargo-miles/year.
-    """
-    return [np.asarray(vessel.expectation.get_cargo_miles(idx)) for vessel in vessels]
 
 
 def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -> bool:

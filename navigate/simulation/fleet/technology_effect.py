@@ -15,7 +15,10 @@ import numpy as np
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.simulation.fleet._composition import get_multiplier
-from navigate.simulation.fleet._residual_energy import calculate_residual_energy
+from navigate.simulation.fleet._residual_energy import (
+    calculate_residual_energy,
+    scale_per_key,
+)
 from navigate.simulation.fleet._trip import bind_conditions_to_legs, sum_energy_per_leg
 from navigate.simulation.fleet.operation import transfer_operational_savings
 from navigate.util import divide_nonzero, sum_per_key
@@ -93,8 +96,8 @@ def _calculate_operational_energy(
     remaining_sea = {key: 1.0 - value for key, value in saving_sea.items()}
     remaining_port = {key: 1.0 - value for key, value in saving_port.items()}
 
-    sea = _scale_per_key(raw_sea, remaining_sea)
-    port = _scale_per_key(raw_port, remaining_port)
+    sea = scale_per_key(raw_sea, remaining_sea)
+    port = scale_per_key(raw_port, remaining_port)
 
     return sea, port
 
@@ -134,11 +137,11 @@ def _transfer_operational_energy(
     totals_sea = sum_per_key(sea)
     totals_port = sum_per_key(port)
 
-    for key, values in results.operational_energy_sea.items():
-        values[idx] = totals_sea[key]
+    for key, value in totals_sea.items():
+        results.operational_energy_sea[key][idx] = value
 
-    for key, values in results.operational_energy_port.items():
-        values[idx] = totals_port[key]
+    for key, value in totals_port.items():
+        results.operational_energy_port[key][idx] = value
 
 
 def _calculate_package_weights(
@@ -278,11 +281,11 @@ def _transfer_residual_energy(
     totals_sea = sum_per_key(sea)
     totals_port = sum_per_key(port)
 
-    for key, values in results.energy_sea.items():
-        values[idx] = totals_sea[key]
+    for key, value in totals_sea.items():
+        results.energy_sea[key][idx] = value
 
-    for key, values in results.energy_port.items():
-        values[idx] = totals_port[key]
+    for key, value in totals_port.items():
+        results.energy_port[key][idx] = value
 
 
 def approximate_missing_technology(fleets: dict[str, Fleet], idx: int) -> None:
@@ -447,36 +450,7 @@ def _calculate_approximation(
     operational_sea = expectation.get_operational_energy_sea_condition(idx=idx)
     operational_port = expectation.get_operational_energy_port(idx=idx)
 
-    sea = _scale_per_key(operational_sea, ratio_sea)
-    port = _scale_per_key(operational_port, ratio_port)
+    sea = scale_per_key(operational_sea, ratio_sea)
+    port = scale_per_key(operational_port, ratio_port)
 
     return sea, port
-
-
-def _scale_per_key(
-    energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
-    factors: Mapping[EnergyDemandID, float],
-) -> dict[EnergyDemandID, FloatArray]:
-    """
-    Scale the energy of each demand type by its factor.
-
-    Parameters
-    ----------
-    energies
-        Energy per energy demand type, one value per condition or port call, in
-        GJ/year.
-    factors
-        Factor per energy demand type, fraction.
-
-    Returns
-    -------
-    dict[EnergyDemandID, FloatArray]
-        Scaled energy per energy demand type, one value per condition or port call,
-        in GJ/year.
-    """
-    scaled: dict[EnergyDemandID, FloatArray] = {}
-
-    for energy_id, energy in energies.items():
-        scaled[energy_id] = np.asarray(energy, dtype=float) * factors[energy_id]
-
-    return scaled

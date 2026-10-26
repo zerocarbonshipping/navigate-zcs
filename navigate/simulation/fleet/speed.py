@@ -18,6 +18,7 @@ from navigate.simulation.fleet._marginal_saving import calculate_marginal_speed_
 from navigate.simulation.fleet._residual_energy import (
     calculate_energy_savings,
     calculate_net_energy,
+    scale_per_key,
 )
 from navigate.simulation.fleet._trip import ReferenceTrip, derive_reference_trip
 from navigate.simulation.fleet.charter import calculate_fuel_and_policy_expenses
@@ -34,9 +35,6 @@ from navigate.simulation.fleet.power import (
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
@@ -175,14 +173,17 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
     fractions_sea = expectation.get_operational_saving_fraction_sea()
     fractions_port = expectation.get_operational_saving_fraction_port()
 
+    remaining_sea = {key: 1.0 - value for key, value in fractions_sea.items()}
+    remaining_port = {key: 1.0 - value for key, value in fractions_port.items()}
+
     def objective(mu: float) -> float:
         speeds = _mean_to_speeds(mu, deltas_ref, speeds_min, speeds_max)
         operations = calculate_operations(vessel, trip, speeds)
 
         # the operational savings (JIT, weather routing, etc.) apply to the freshly
         # computed energy, before the technology savings
-        energy_sea = _apply_operational_savings(operations.energy_sea, fractions_sea)
-        energy_port = _apply_operational_savings(operations.energy_port, fractions_port)
+        energy_sea = scale_per_key(operations.energy_sea, remaining_sea)
+        energy_port = scale_per_key(operations.energy_port, remaining_port)
 
         # the current technology uptake is applied, as the saving is measured from
         # the energy of the expected bunkering; the proportional savings are an
@@ -332,35 +333,6 @@ def _finalize_vessel_speed(
     results.optimal_speed[idx] = np.average(speeds_optimal, weights=distribution)
     results.lowest_speed[idx] = np.min(speeds_actual[sailed])
     results.highest_speed[idx] = np.max(speeds_actual[sailed])
-
-
-def _apply_operational_savings(
-    energies: Mapping[EnergyDemandID, FloatArray],
-    fractions: Mapping[EnergyDemandID, float],
-) -> dict[EnergyDemandID, list[float]]:
-    """
-    Reduce the energy demand of each step by its type's operational saving.
-
-    Parameters
-    ----------
-    energies
-        Energy demand per energy demand type and step, in GJ/year.
-    fractions
-        Operational saving per energy demand type, fraction.
-
-    Returns
-    -------
-    dict[EnergyDemandID, list[float]]
-        Energy demand net of the operational savings per energy demand type and
-        step, in GJ/year.
-    """
-    reduced: dict[EnergyDemandID, list[float]] = {}
-
-    for demand, steps in energies.items():
-        factor = 1.0 - fractions[demand]
-        reduced[demand] = [energy * factor for energy in steps]
-
-    return reduced
 
 
 def _mean_to_speeds(

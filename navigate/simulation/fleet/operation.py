@@ -31,13 +31,19 @@ from navigate.core.enum_ import EnergyDemandID
 from navigate.core.wrap import to_floats
 from navigate.simulation.fleet._trip import derive_reference_trip, sum_per_leg
 from navigate.simulation.fleet.power import calculate_technical_speed_limits
-from navigate.util import HOUR_TO_DAYS, MWD_TO_GJ, YEAR, divide_nonzero, sum_per_key
+from navigate.util import (
+    HOUR_TO_DAYS,
+    YEAR,
+    divide_nonzero,
+    power_to_energy,
+    sum_per_key,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.fleet._trip import ReferenceTrip
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray
 
 
 @dataclass(init=False)
@@ -302,9 +308,9 @@ def _calculate_energy_sea(
     load_heat = vessel.heat_load_at_sea.get(speeds, utilizations)
 
     operations.energy_sea = {
-        EnergyDemandID.PROPULSION: _load_to_energy(load_propulsion, times_sea),
-        EnergyDemandID.ELECTRICAL: _load_to_energy(load_electrical, times_sea),
-        EnergyDemandID.HEAT: _load_to_energy(load_heat, times_sea),
+        EnergyDemandID.PROPULSION: power_to_energy(load_propulsion, times_sea),
+        EnergyDemandID.ELECTRICAL: power_to_energy(load_electrical, times_sea),
+        EnergyDemandID.HEAT: power_to_energy(load_heat, times_sea),
     }
 
 
@@ -325,25 +331,6 @@ def _calculate_energy_port(operations: Operations, vessel: Vessel) -> None:
     load_heat = vessel.heat_load_in_port.get()
 
     operations.energy_port = {
-        EnergyDemandID.ELECTRICAL: _load_to_energy(load_electrical, times_port),
-        EnergyDemandID.HEAT: _load_to_energy(load_heat, times_port),
+        EnergyDemandID.ELECTRICAL: power_to_energy(load_electrical, times_port),
+        EnergyDemandID.HEAT: power_to_energy(load_heat, times_port),
     }
-
-
-def _load_to_energy(load: FloatLike, time: FloatArray) -> FloatArray:
-    """
-    Calculate the energy required to operate at a given load for a given duration.
-
-    Parameters
-    ----------
-    load
-        Load level of the engine, in MW.
-    time
-        Time spent at the load level, in days.
-
-    Returns
-    -------
-    FloatArray
-        Energy required at the load level over the time, in GJ.
-    """
-    return load * time * MWD_TO_GJ

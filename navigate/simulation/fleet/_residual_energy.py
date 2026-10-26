@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import MWD_TO_GJ, divide_nonzero
+from navigate.util import divide_nonzero, energy_to_power, power_to_energy
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -69,7 +69,7 @@ def calculate_residual_energy(
 
 
 def calculate_net_energy(
-    raw_energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    raw_energies: Mapping[EnergyDemandID, FloatArray],
     savings: Mapping[EnergyDemandID, Sequence[FloatLike]],
 ) -> dict[EnergyDemandID, list[FloatLike]]:
     """
@@ -94,6 +94,35 @@ def calculate_net_energy(
         net_energies[energy_id] = [(1.0 - saving) * energy for energy, saving in steps]
 
     return net_energies
+
+
+def scale_per_key(
+    energies: Mapping[EnergyDemandID, Sequence[FloatLike] | FloatArray],
+    factors: Mapping[EnergyDemandID, float],
+) -> dict[EnergyDemandID, FloatArray]:
+    """
+    Scale the energy of each demand type by its factor.
+
+    Parameters
+    ----------
+    energies
+        Energy per energy demand type, one value per condition or port call, in
+        GJ/year.
+    factors
+        Factor per energy demand type, fraction.
+
+    Returns
+    -------
+    dict[EnergyDemandID, FloatArray]
+        Scaled energy per energy demand type, one value per condition or port call,
+        in GJ/year.
+    """
+    scaled: dict[EnergyDemandID, FloatArray] = {}
+
+    for energy_id, energy in energies.items():
+        scaled[energy_id] = np.asarray(energy, dtype=float) * factors[energy_id]
+
+    return scaled
 
 
 def calculate_energy_savings(
@@ -172,7 +201,7 @@ def _calculate_residuals(
         power = package.external_power[energy_id]
 
         net_demand = raw_demand * (1.0 - saving)
-        external_energy = _power_to_energy(power, times)
+        external_energy = power_to_energy(power, times)
         residuals[energy_id] = np.maximum(net_demand - external_energy, 0.0)
 
     if not package.transfers_power:
@@ -218,10 +247,10 @@ def _subtract_transfers(
         if source_id not in residuals or sink_id not in residuals:
             continue
 
-        residual_power = _energy_to_power(residuals[source_id], times)
+        residual_power = energy_to_power(residuals[source_id], times)
         load = _calculate_converter_load(vessel, source_id, residual_power)
         transfer_power = _calculate_power_transfer(curves, load)
-        transferred[sink_id] += _power_to_energy(transfer_power, times)
+        transferred[sink_id] += power_to_energy(transfer_power, times)
 
     remaining: dict[EnergyDemandID, FloatArray] = {}
 
@@ -258,13 +287,3 @@ def _calculate_power_transfer(curves: list[CurveInput], load: FloatArray) -> Flo
     """
     powers = np.array([curve.get(load) for curve in curves])
     return np.sum(powers, axis=0, dtype=float)
-
-
-def _power_to_energy(power: FloatLike, duration: FloatArray) -> FloatArray:
-    """Convert a power, MW, over a duration, days, to energy, GJ."""
-    return power * duration * MWD_TO_GJ
-
-
-def _energy_to_power(energy: FloatArray, duration: FloatArray) -> FloatArray:
-    """Convert an energy, GJ, over a duration, days, to power, MW, zero without time."""
-    return divide_nonzero(energy, duration * MWD_TO_GJ)

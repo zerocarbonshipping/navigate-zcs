@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import EnergyDemandID
-from navigate.util import MWD_TO_GJ
+from navigate.util import power_to_energy
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -65,7 +65,7 @@ def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatLike]:
 
     for port, time, demand in zip(vessel.route.ports, times, demands, strict=True):
         share = port.expectation.get_shore_power_connection_share(forward)
-        deliverable = capacity * time * MWD_TO_GJ
+        deliverable = power_to_energy(capacity, time)
         limits.append(share * np.minimum(deliverable, demand))
 
     return limits
