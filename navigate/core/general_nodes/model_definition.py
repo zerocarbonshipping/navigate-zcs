@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Define the ModelDefinition general node, the start date and GWP horizon of a run."""
+"""Define the ModelDefinition general node, the start date and emission lifetime."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import SECTION_DEFINE, deck_attribute
-from navigate.core.assign import assign_date, assign_value
+from navigate.core import SECTION_DEFINE, assign_date, assign_value, deck_attribute
 from navigate.core.general_nodes._general_node import _GeneralNode
 from navigate.core.node_type import MODEL_DEFINITION
 
