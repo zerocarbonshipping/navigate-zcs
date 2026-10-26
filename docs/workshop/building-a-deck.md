@@ -57,6 +57,11 @@ commands for you.
   `python -m navigate` run from the repository root always uses this repository's
   code; the shorter `navigate` command may point to another copy. Do not install
   or upgrade any package without asking first.
+- A run that stays on one time step for several minutes has usually stalled in the
+  solver (a known HiGHS problem on some decks), not failed on the deck. Stop it and
+  run it once more with the environment variable `PYTHONHASHSEED=0` (PowerShell:
+  `$env:PYTHONHASHSEED=0`); if it stalls again on the same step, report the step
+  rather than change the deck to get past it.
 - If you cannot run terminal commands, give the exact command, wait for the
   person to paste back the end of the output, and fix whatever it reports.
 - A run writes a `.log` file next to the `.nav`. The end of the `.log` has a "Log
@@ -88,7 +93,9 @@ commands for you.
 Build the deck in the new folder the prompt names, under `simulations/user/`, with
 the `.nav` file named after the folder and its `.inc` files in `includes/`. If that
 folder already exists, add `_2` to the name (then `_3`, ...), name the `.nav` after
-the folder you actually use, and say which one it is. Write nothing outside that folder: do not change, move or delete any file
+the folder you actually use, and say which one it is. When the prompt names the
+decks itself (for example two decks to compare, each with its own name), use its
+names instead. Write nothing outside that folder: do not change, move or delete any file
 already in the repository.
 
 ## Numbers
@@ -142,7 +149,9 @@ a comment where it appears, and listed in the `.nav` header.
   library sets those in `assumptions/modules/installation/default_plant.inc` by
   wildcards on its own plant names. Set all three on every plant yourself, as that
   file does for the kind and region; a plant without a cost of capital is silently
-  financed at 0 %.
+  financed at 0 %. The regional plants (`plant_*_europe` and the like) are not
+  files either: that file makes them with `Copy Plant` lines, so write the same
+  Copy in your deck.
 - A ROUND_TRIP route has no time-at-sea setting: the year is sailing plus the
   port stays, so the share of the year at sea follows from the distances, speeds
   and port durations. Route distances, like BunkerLogistics, take plain numbers

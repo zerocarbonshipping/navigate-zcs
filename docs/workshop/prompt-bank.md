@@ -27,12 +27,12 @@ One line per prompt, Session 5's included. A new entry adds its line here.
 |---|---|---|---|---|---|---|
 | Session 5, example 1: Rebuild Session 1's case | Which fuels do owners choose on one long trade under EU policy? | One long trade: Chile to Rotterdam | 300 Panamax bulk carriers | EU ETS and FuelEU on half the voyage | One run: the fuel choice under policy | 2026-10-19 |
 | Session 5, example 2: Rebuild Session 2's reference scenario | What does the world fleet burn to 2050 under a global fuel standard? | The world | The library's whole fleet | EU ETS, FuelEU, global fuel standard | One run: no comparison | 2026-10-19 |
-| Session 5, example 3: One trade, two ports | What does the model do on one trade when nothing pushes it? | One trade: Saudi Arabia to China | 200 Suezmax tankers | None | Nothing: the fuel choice on cost alone | ran first time; criteria not checked |
+| Session 5, example 3: One trade, two ports | What does the model do on one trade when nothing pushes it? | One trade: Saudi Arabia to China | 200 Suezmax tankers | None | Nothing: the fuel choice on cost alone | 2026-10-26, through the start-up prompt |
 | Inland waterways in Germany: what a national CO2 price does (prompt: Session 5, example 4) | Does a national CO2 price move owners to drop-in fuels or new engines? | One river trade in Germany | 300 Rhine cargo vessels | National CO2 price (a copied EU ETS Regulation) | A price: with and without it | 2026-10-16 |
 | Session 5, example 5: Two fleets, one market | How much do the owners' efficiency choices matter on the same trade? | One trade of your choice | Two fleets of one class | Your choice | Technology: with and without it | ran first time; criteria not checked |
 | EU short-sea feeders: what EU ETS and FuelEU make the owners do | How do owners comply with EU ETS and FuelEU, and at what cost? | One trade, both ports in the EU: Rotterdam to Gothenburg | 1,500 TEU feeders | EU ETS and FuelEU on the whole voyage | A policy: with and without it | 2026-10-19 |
 | Green finance: do cheaper loans bring zero-emission ships forward? | Do cheaper loans bring zero-emission ships forward? | One trade: Tubarão to Rotterdam | Panamax ore carriers | EU ETS and FuelEU on half the voyage, in both runs | Finance: cheaper cost of capital for ammonia and methanol ships | 2026-10-19 |
-| A global study: the cost of waiting | What does starting a global fuel standard late cost? | The world | The library's whole fleet | Global fuel standard, EU ETS, FuelEU | Timing: the standard on time vs delayed | ran first time; criteria not checked |
+| A global study: the cost of waiting | What does starting a global fuel standard late cost? | The world | The library's whole fleet | Global fuel standard, EU ETS, FuelEU | Timing: the standard on time vs delayed | 2026-10-26 |
 | The world fleet, simplified: the global picture at a size you can iterate on | What does a cut-down world fleet do under EU policy? | The world, two or three classes | Library fleets | EU ETS and FuelEU | One run: no comparison | ran first time; criteria not checked |
 
 ## What "it works" means here
@@ -96,6 +96,7 @@ found the traps now written in `building-a-deck.md`. Both builds found that at 6
 to 150 USD/t the owners pay the price rather than switch fuel, and order a few
 more LNG ships; the drop-in fuels need roughly 440 USD/t (biodiesel) to 800-1,100
 USD/t (e-diesel). Treat that as a property of the placeholders, not of the Rhine.
+2026-10-26, as the model a start-up prompt chose for a different case (Norwegian coastal cargo ships and ferries under Norway's CO2 tax): the chain built and ran cold with no warnings, and found the same: biofuels need roughly 440 USD/t, and the owners pay the tax, order a few more LNG ships and slow down.
 
 **The prompt** is Session 5's example 4, "Inland waterways in Germany", in
 `docs/workshop/05-build-your-own-case.ipynb`.
@@ -219,6 +220,7 @@ case (US Gulf grain to Rotterdam, 1.5 points). Both builds found that cheaper
 loans add a few ammonia and methanol ships (about 6 to 10 by 2050) but bring
 nothing forward, and cut emissions by 1 to 2 %: the gap is the fuel's cost, not
 the ship's finance. Treat that as a property of the placeholders.
+2026-10-26, as the model a start-up prompt chose for a different case (Tubarão to Qingdao, no regulation): the chain built and ran cold with no warnings. Cheaper finance brought about 7 more ammonia and 7 more methanol ships by 2050, all burning pilot oil: without a policy, finance alone moves the orders, not the fuel.
 
 ````text
 You are helping me build a simulation study for Navigate, the shipping
@@ -315,8 +317,11 @@ mid-regulation reference scenario on the coarse grid of
 the yearly reference scenarios of Session 2.
 
 **Tested:** 2026-10-06, as what was then Session 5's fourth example: built cold, it ran
-without errors on the first attempt. It has not yet been checked against the
-criteria above the way the other entries were.
+without errors on the first attempt. 2026-10-26, built cold again with a five-year
+delay and checked against the criteria above: both decks ran with only the
+library's expected warnings, and the delay added about 1,560 Mt CO2e over
+2026-2050 (+6 %), still 20 Mt a year more in 2050. The two decks share one
+`plots/` folder, so compare them from their reports.
 
 ````text
 You are helping me run a global study with Navigate, the shipping
