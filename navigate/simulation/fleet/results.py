@@ -11,7 +11,8 @@ import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.simulation.cohort import find_origin_index
-from navigate.simulation.fleet.composition import get_multiplier
+from navigate.simulation.fleet._composition import get_multiplier
+from navigate.simulation.fleet._package import get_technologies_by_capex
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import YEAR, divide_nonzero, interpolate_yearly_flow
 
@@ -155,21 +156,24 @@ def _transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     results = fleet.results
+    technologies = get_technologies_by_capex(fleet.technology_packages)
 
     for v, vessel in enumerate(fleet.vessels):
         increments = fleet.increments[v]
         newbuild_package_uptake = fleet.newbuild_package_uptake[v]
         multipliers_total = get_multiplier(fleet, v)
 
-        for p, t in fleet.package_to_technology_map.items():
-            # a package holds the technologies of every package before it, so a
-            # technology's uptake is that of the package adding it and all after
-            key = (vessel.name, fleet.technologies[t].name)
-            newbuild_uptake = np.sum(newbuild_package_uptake[p:])
+        for i, technology in enumerate(technologies):
+            # package i + 1 is the first to hold technology i, as the packages are
+            # cumulative, so the technology's uptake is that of every package from it
+            key = (vessel.name, technology.name)
+            adopting = np.s_[i + 1 :]
+            newbuild_uptake = np.sum(newbuild_package_uptake[adopting])
 
             total = 0.0
-            for inc in increments:
-                total += inc.multiplier * float(np.sum(inc.package_uptake[p:]))
+            for increment in increments:
+                adopting_share = float(np.sum(increment.package_uptake[adopting]))
+                total += increment.multiplier * adopting_share
 
             average = float(divide_nonzero(total, multipliers_total))
 

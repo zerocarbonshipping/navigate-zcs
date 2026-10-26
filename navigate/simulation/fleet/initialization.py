@@ -12,13 +12,13 @@ import numpy as np
 
 from navigate.core.increment import VesselIncrement
 from navigate.simulation.cohort import split_by_age
-from navigate.simulation.fleet.composition import extract_cargo_miles, get_multipliers
-from navigate.simulation.fleet.expectation import calculate_fleet_evolution_expectation
-from navigate.simulation.fleet.package import (
+from navigate.simulation.fleet._composition import extract_cargo_miles, get_multipliers
+from navigate.simulation.fleet._package import (
     build_technology_packages,
     calculate_package_charter_rates,
     update_packages,
 )
+from navigate.simulation.fleet.expectation import calculate_fleet_evolution_expectation
 from navigate.simulation.fleet.technology_adoption import (
     transfer_technology_charter_rate,
 )
@@ -81,9 +81,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     # build the technology packages and anchor their cost flows at the start;
     # this must precede seeding the initial technology uptake, which levelizes
     # the cost flows into the carried technology charter rate
-    fleet.technology_packages, fleet.package_to_technology_map = (
-        build_technology_packages(fleet.technologies)
-    )
+    fleet.technology_packages = build_technology_packages(fleet.technologies)
     update_packages(fleet.technology_packages, fleet.package_cost_flows, timeline[idx])
 
     n_packages = fleet.get_number_of_packages()

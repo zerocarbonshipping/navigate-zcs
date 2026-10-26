@@ -28,7 +28,7 @@ from navigate.simulation.cohort import find_insertion_index
 from navigate.simulation.economics.decision import calculate_asset_shares
 from navigate.simulation.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.simulation.economics.metric import calculate_net_present_value
-from navigate.simulation.fleet.composition import get_multipliers
+from navigate.simulation.fleet._composition import get_multipliers, is_retrofit_cycle
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -355,33 +355,6 @@ def _apply_fuel_conversions(
 
     _apply_from_side(fleet, proposals, increments, timeline, idx)
     _apply_to_side(proposals, increments)
-
-
-def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -> bool:
-    """
-    Return whether an increment is at a retrofit cycle.
-
-    It is when its age lies within one time-step past a multiple of the retrofit
-    frequency, and it is older than one time-step. The age and time-step are compared
-    at two decimals.
-
-    Parameters
-    ----------
-    age
-        Age of the increment, in years.
-    retrofit_frequency
-        Interval between retrofit opportunities, in years.
-    time_step
-        Time-step size, in years.
-
-    Returns
-    -------
-    bool
-        Whether the increment is at a retrofit cycle.
-    """
-    age = round(age, 2)
-    time_step = round(time_step, 2)
-    return age > time_step and age % retrofit_frequency < time_step
 
 
 def _eligible_cohorts(

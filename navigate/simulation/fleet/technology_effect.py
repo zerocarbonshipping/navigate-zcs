@@ -14,10 +14,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
-from navigate.simulation.fleet.composition import get_multiplier
+from navigate.simulation.fleet._composition import get_multiplier
+from navigate.simulation.fleet._residual_energy import calculate_residual_energy
+from navigate.simulation.fleet._trip import bind_conditions_to_legs, sum_energy_per_leg
 from navigate.simulation.fleet.operation import transfer_operational_savings
-from navigate.simulation.fleet.residual_energy import calculate_residual_energy
-from navigate.simulation.fleet.trip import bind_conditions_to_legs, sum_energy_per_leg
 from navigate.util import divide_nonzero, sum_per_key
 
 if TYPE_CHECKING:

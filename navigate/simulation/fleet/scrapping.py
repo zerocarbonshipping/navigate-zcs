@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.cohort import calculate_share_below, extends_past
-from navigate.simulation.fleet.composition import (
+from navigate.simulation.fleet._composition import (
     extract_cargo_miles,
     get_trade_capacity,
 )

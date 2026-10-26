@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.fleet.residual_energy import calculate_residual_energy
-from navigate.simulation.fleet.trip import sum_energy_per_leg
+from navigate.simulation.fleet._residual_energy import calculate_residual_energy
+from navigate.simulation.fleet._trip import sum_energy_per_leg
 from navigate.util.collections import slice_dict_list
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.technology_package import TechnologyPackage
-    from navigate.simulation.fleet.trip import ConditionLegs
+    from navigate.simulation.fleet._trip import ConditionLegs
     from navigate.util.types_ import FloatArray, FloatLike
 
 

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID
-from navigate.simulation.fleet.composition import (
+from navigate.simulation.fleet._composition import (
     extract_cargo_miles_timeline,
     get_multiplier,
 )

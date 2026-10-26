@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Vessel counts per type in the fleet's increments and the trade they can carry."""
+"""The fleet's increments: vessel counts, retrofit cycles and the trade they carry."""
 
 from __future__ import annotations
 
@@ -110,6 +110,33 @@ def extract_cargo_miles_timeline(vessels: list[Vessel], idx: slice) -> list[Floa
         Cargo-miles of one vessel of each type over the slice, cargo-miles/year.
     """
     return [np.asarray(vessel.expectation.get_cargo_miles(idx)) for vessel in vessels]
+
+
+def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -> bool:
+    """
+    Return whether an increment is at a retrofit cycle.
+
+    It is when its age lies within one time-step past a multiple of the retrofit
+    frequency, and it is older than one time-step. The age and time-step are compared
+    at two decimals.
+
+    Parameters
+    ----------
+    age
+        Age of the increment, in years.
+    retrofit_frequency
+        Interval between retrofit opportunities, in years.
+    time_step
+        Time-step size, in years.
+
+    Returns
+    -------
+    bool
+        Whether the increment is at a retrofit cycle.
+    """
+    age = round(age, 2)
+    time_step = round(time_step, 2)
+    return age > time_step and age % retrofit_frequency < time_step
 
 
 def consolidate_increments(fleet: Fleet) -> None:

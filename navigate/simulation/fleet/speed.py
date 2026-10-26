@@ -13,9 +13,14 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
+from navigate.simulation.fleet._composition import get_multipliers
+from navigate.simulation.fleet._marginal_saving import calculate_marginal_speed_saving
+from navigate.simulation.fleet._residual_energy import (
+    calculate_energy_savings,
+    calculate_net_energy,
+)
+from navigate.simulation.fleet._trip import ReferenceTrip, derive_reference_trip
 from navigate.simulation.fleet.charter import calculate_fuel_and_policy_expenses
-from navigate.simulation.fleet.composition import get_multipliers
-from navigate.simulation.fleet.marginal_saving import calculate_marginal_speed_saving
 from navigate.simulation.fleet.operation import (
     calculate_operations,
     transfer_operational_savings,
@@ -26,11 +31,6 @@ from navigate.simulation.fleet.power import (
     calculate_technical_speed_limits,
     loads_are_convex,
 )
-from navigate.simulation.fleet.residual_energy import (
-    calculate_energy_savings,
-    calculate_net_energy,
-)
-from navigate.simulation.fleet.trip import ReferenceTrip, derive_reference_trip
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class SpeedResult:
+class _SpeedResult:
     """
     One vessel's individually optimized speed, before the fleet aligns it.
 
@@ -115,7 +115,7 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
         _finalize_vessel_speed(result, mu_target, maximum_change, idx)
 
 
-def _optimize_vessel_speed(vessel: Vessel, idx: int) -> SpeedResult:
+def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
     """
     Calculate a vessel's individually optimal mean speed.
 
@@ -132,7 +132,7 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> SpeedResult:
 
     Returns
     -------
-    SpeedResult
+    _SpeedResult
         Intermediate optimization result.
     """
     trip = derive_reference_trip(vessel.route)
@@ -207,7 +207,7 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> SpeedResult:
             vessel,
         )
 
-    return SpeedResult(
+    return _SpeedResult(
         vessel=vessel,
         trip=trip,
         mu_route=mu_route,
@@ -220,7 +220,7 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> SpeedResult:
     )
 
 
-def _anchor_speed(result: SpeedResult) -> float:
+def _anchor_speed(result: _SpeedResult) -> float:
     """
     Anchor a vessel's optimal mean speed to the mean of its route's reference speeds.
 
@@ -288,7 +288,7 @@ def _align_speeds(fleet: Fleet, mu_values: list[float]) -> list[float]:
 
 
 def _finalize_vessel_speed(
-    result: SpeedResult, mu_target: float, maximum_change: float, idx: int
+    result: _SpeedResult, mu_target: float, maximum_change: float, idx: int
 ) -> None:
     """
     Move a vessel's mean speed towards the target, transfer its results, store results.

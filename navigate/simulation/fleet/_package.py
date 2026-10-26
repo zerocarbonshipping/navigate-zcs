@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 def build_technology_packages(
     technologies: list[Technology],
-) -> tuple[list[TechnologyPackage], dict[int, int]]:
+) -> list[TechnologyPackage]:
     """
     Sort technologies by CAPEX and organize them into cumulative packages.
 
@@ -50,18 +50,28 @@ def build_technology_packages(
     Returns
     -------
     list[TechnologyPackage]
-        Technology packages from empty to full.
-    dict[int, int]
-        Map from a package index to the index, in ``technologies``, of the technology
-        that package adds.
+        Technology packages from empty to full: package ``i + 1`` is the first to hold
+        technology ``i`` of the CAPEX order.
     """
-    order = sorted(range(len(technologies)), key=lambda t: technologies[t].capex.get())
-    ordered = [technologies[t] for t in order]
+    ordered = sorted(technologies, key=lambda technology: technology.capex.get())
+    return [TechnologyPackage(ordered[:i]) for i in range(len(ordered) + 1)]
 
-    packages = [TechnologyPackage(ordered[:i]) for i in range(len(ordered) + 1)]
-    package_to_technology_map = dict(enumerate(order, start=1))
 
-    return packages, package_to_technology_map
+def get_technologies_by_capex(packages: list[TechnologyPackage]) -> list[Technology]:
+    """
+    Return the technologies in CAPEX order, the order the packages add them in.
+
+    Parameters
+    ----------
+    packages
+        All technology packages, from empty to full.
+
+    Returns
+    -------
+    list[Technology]
+        Technologies of the full package, cheapest first.
+    """
+    return packages[-1].technologies
 
 
 def _calculate_combined_effects(package: TechnologyPackage) -> None:

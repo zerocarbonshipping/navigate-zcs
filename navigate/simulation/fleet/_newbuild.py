@@ -15,8 +15,8 @@ from navigate.core.enum_ import UtilityID
 from navigate.core.increment import VesselIncrement
 from navigate.core.wrap import to_numpy
 from navigate.simulation.economics.decision import calculate_two_axis_uptake
-from navigate.simulation.fleet.composition import extract_cargo_miles
-from navigate.simulation.fleet.package import calculate_package_charter_rates
+from navigate.simulation.fleet._composition import extract_cargo_miles
+from navigate.simulation.fleet._package import calculate_package_charter_rates
 from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:

@@ -4,7 +4,7 @@
 """
 Operational profile of a vessel: its reference trip sailed at given speeds for a year.
 
-The reference trip (`trip.py`) gives each leg's miles, each stop's port days and the
+The reference trip (`_trip.py`) gives each leg's miles, each stop's port days and the
 sailing conditions on each leg. At given speeds the sea days of one voyage follow from
 the leg miles, the port days stay fixed, and the voyages per year are the year over
 one voyage's days. Every annual time, distance, cargo-mile and energy is a voyage's
@@ -29,14 +29,14 @@ import numpy as np
 
 from navigate.core.enum_ import EnergyDemandID
 from navigate.core.wrap import to_floats
+from navigate.simulation.fleet._trip import derive_reference_trip, sum_per_leg
 from navigate.simulation.fleet.power import calculate_technical_speed_limits
-from navigate.simulation.fleet.trip import derive_reference_trip, sum_per_leg
 from navigate.util import HOUR_TO_DAYS, MWD_TO_GJ, YEAR, divide_nonzero, sum_per_key
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
-    from navigate.simulation.fleet.trip import ReferenceTrip
+    from navigate.simulation.fleet._trip import ReferenceTrip
     from navigate.util.types_ import FloatArray, FloatLike
 
 

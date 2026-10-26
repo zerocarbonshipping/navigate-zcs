@@ -14,12 +14,12 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.fleet.composition import (
+from navigate.simulation.fleet._composition import (
     consolidate_increments,
     get_multipliers,
     get_trade_capacity,
 )
-from navigate.simulation.fleet.newbuild import (
+from navigate.simulation.fleet._newbuild import (
     add_newbuilds,
     calculate_modelled_newbuilds,
     calculate_orderbook_newbuilds,

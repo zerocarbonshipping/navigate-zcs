@@ -21,7 +21,8 @@ step, and `driver/` runs it from a read deck to its output.
     (what the domain publishes to later phases and other domains),
     `results.py` (the results written at each time step) and
     `post_process.py` (the results computed from those after the run); every
-    other file is named for a domain concept.
+    other file is named for a domain concept, with a leading underscore where
+    nothing outside the package imports it.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/cohort.py` — vintage-stock accounting over the asset
     cohorts of both domains.

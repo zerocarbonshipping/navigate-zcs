@@ -34,19 +34,19 @@ from navigate.simulation.economics.flows import (
     timeline_to_yearly,
     trim_flow_to_lifetime,
 )
-from navigate.simulation.fleet.composition import get_multipliers
-from navigate.simulation.fleet.conversion import is_retrofit_cycle
-from navigate.simulation.fleet.marginal_saving import (
+from navigate.simulation.fleet._composition import get_multipliers, is_retrofit_cycle
+from navigate.simulation.fleet._marginal_saving import (
     calculate_marginal_technology_saving,
 )
-from navigate.simulation.fleet.package import (
+from navigate.simulation.fleet._package import (
     calculate_newbuild_npv,
     calculate_retrofit_charter_rates,
     calculate_retrofit_npv,
     get_package_cost_flows,
+    get_technologies_by_capex,
     update_packages,
 )
-from navigate.simulation.fleet.trip import bind_conditions_to_legs
+from navigate.simulation.fleet._trip import bind_conditions_to_legs
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
@@ -54,7 +54,6 @@ if TYPE_CHECKING:
 
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
-    from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.technology_package import TechnologyPackage
     from navigate.core.types_ import ForecastInput
@@ -599,7 +598,7 @@ def _technology_caps(
     if multipliers_total <= 0.0:
         return
 
-    technologies = _get_sorted_technologies(fleet)
+    technologies = get_technologies_by_capex(fleet.technology_packages)
     budget = multipliers_total * (time_step / YEAR)
 
     for i in reversed(range(len(technologies))):
@@ -694,7 +693,7 @@ def _transfer_retrofit_uptake(
     if not proposals:
         return
 
-    technologies = _get_sorted_technologies(fleet)
+    technologies = get_technologies_by_capex(fleet.technology_packages)
     counts = np.zeros((len(fleet.vessels), len(technologies)))
 
     # `_apply_retrofits` only reads `choices`, so the reconciled tail sums are intact
@@ -715,14 +714,6 @@ def _transfer_retrofit_uptake(
     for v, vessel in enumerate(fleet.vessels):
         for i, technology in enumerate(technologies):
             uptake[vessel.name, technology.name][idx] = shares[v, i]
-
-
-def _get_sorted_technologies(fleet: Fleet) -> list[Technology]:
-    """Return the fleet's technologies in CAPEX order, none before its packages."""
-    if not fleet.technology_packages:
-        return []
-
-    return fleet.technology_packages[-1].technologies
 
 
 def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:

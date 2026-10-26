@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import SurfaceInput
-    from navigate.simulation.fleet.trip import ReferenceTrip
+    from navigate.simulation.fleet._trip import ReferenceTrip
     from navigate.util.types_ import FloatArray, FloatLike
 
 
@@ -164,10 +164,10 @@ def verify_power_capacity(vessels: list[Vessel], idx: int) -> None:
         can deliver.
     """
     for vessel in vessels:
-        verify_vessel_power_capacity(vessel, idx)
+        _verify_vessel_power_capacity(vessel, idx)
 
 
-def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
+def _verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     """
     Verify that installed converter power covers every energy demand of a vessel.
 
