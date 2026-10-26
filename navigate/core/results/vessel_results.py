@@ -10,9 +10,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import result
 from navigate.core.results._fuel_consumer_results import _FuelConsumerResults
 from navigate.core.results._transport_results import _TransportResults
+from navigate.core.results.base_results import result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -67,7 +67,8 @@ class VesselResults(_FuelConsumerResults, _TransportResults):
         levy_names
             Names of all levies in the simulation.
         """
-        self._initialize_base(context)
+        self.context = context
+
         self._initialize_fuel_consumer(regulation_names, levy_names)
         self._initialize_transport()
 

@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
-from navigate.core.results._base_results import _BaseResults, accumulate, result
+from navigate.core.results.base_results import BaseResults, accumulate, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class _FuelConsumerResults(_BaseResults):
+class _FuelConsumerResults(BaseResults):
     """Energy demand, fuel burnt, emissions and fuel expenses of a fuel consumer."""
 
     # raw energy demand

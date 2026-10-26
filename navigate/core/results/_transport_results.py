@@ -10,14 +10,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import _BaseResults, result
+from navigate.core.results.base_results import BaseResults, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class _TransportResults(_BaseResults):
+class _TransportResults(BaseResults):
     """Transport work, speeds and freight rate of a vessel or a fleet."""
 
     cargo_miles: FloatArray = result("cargo-miles/year")

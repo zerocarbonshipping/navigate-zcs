@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import _BaseResults, accumulate, result
+from navigate.core.results.base_results import BaseResults, accumulate, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class _FuelProducerResults(_BaseResults):
+class _FuelProducerResults(BaseResults):
     """Fuel produced, and feed used and available per feedstock and process."""
 
     # the mass is written, the energy computed from it

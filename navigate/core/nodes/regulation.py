@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.results.results_context import ResultsContext
+    from navigate.core.results import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
 
 logger = logging.getLogger(__name__)

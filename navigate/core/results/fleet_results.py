@@ -5,13 +5,12 @@
 
 from __future__ import annotations
 
-import itertools
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.results._base_results import result
 from navigate.core.results._transport_results import _TransportResults
 from navigate.core.results._vessel_aggregate_results import _VesselAggregateResults
+from navigate.core.results.base_results import result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -65,7 +64,8 @@ class FleetResults(_VesselAggregateResults, _TransportResults):
         levy_names
             Names of all levies in the simulation.
         """
-        self._initialize_base(context)
+        self.context = context
+
         self._initialize_fuel_consumer(regulation_names, levy_names)
         self._initialize_vessel_aggregate()
         self._initialize_transport()
@@ -77,7 +77,12 @@ class FleetResults(_VesselAggregateResults, _TransportResults):
         self.newbuilds = self._default_dict(vessel_names)
         self.fuel_conversions = self._default_tuple_dict(vessel_names, vessel_names)
 
-        vessel_technologies = list(itertools.product(vessel_names, technology_names))
-        self.technology_uptake = self._default_dict(vessel_technologies)
-        self.newbuild_technology_uptake = self._default_dict(vessel_technologies)
-        self.retrofit_technology_uptake = self._default_dict(vessel_technologies)
+        self.technology_uptake = self._default_tuple_dict(
+            vessel_names, technology_names
+        )
+        self.newbuild_technology_uptake = self._default_tuple_dict(
+            vessel_names, technology_names
+        )
+        self.retrofit_technology_uptake = self._default_tuple_dict(
+            vessel_names, technology_names
+        )

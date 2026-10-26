@@ -108,7 +108,7 @@ class ResultsContext:
         """Name the emissions of the run."""
         return list(self.global_warming_potential)
 
-    def energy(self, mass: dict[str, FloatArray]) -> dict[str, FloatArray]:
+    def calculate_energy(self, mass: dict[str, FloatArray]) -> dict[str, FloatArray]:
         """
         Convert fuel masses to their energy, GJ, at the fuels' heating values.
 
@@ -130,7 +130,7 @@ class ResultsContext:
 
         return energy
 
-    def fuel_type_energy(
+    def calculate_fuel_type_energy(
         self, mass: dict[str, FloatArray]
     ) -> dict[FuelTypeID, FloatArray]:
         """
@@ -148,16 +148,16 @@ class ResultsContext:
         """
         energy = {fuel_type: np.zeros(self.timeline.shape) for fuel_type in FuelTypeID}
 
-        for fuel_name, fuel_energy in self.energy(mass).items():
+        for fuel_name, fuel_energy in self.calculate_energy(mass).items():
             energy[self.fuel_type[fuel_name]] += fuel_energy
 
         return energy
 
-    def equivalent(
+    def calculate_equivalent(
         self, emissions: dict[tuple[str, str], FloatArray]
     ) -> dict[tuple[str, str], FloatArray]:
         """
-        Weigh emissions by their global warming potential into CO2-equivalents.
+        Weigh emissions keyed by fuel and emission into CO2-equivalents.
 
         Parameters
         ----------
@@ -177,11 +177,11 @@ class ResultsContext:
 
         return equivalents
 
-    def equivalent_by_emission(
+    def calculate_emission_equivalent(
         self, emissions: dict[str, FloatArray]
     ) -> dict[str, FloatArray]:
         """
-        Weigh emissions by their global warming potential into CO2-equivalents.
+        Weigh emissions keyed by emission alone into CO2-equivalents.
 
         Parameters
         ----------

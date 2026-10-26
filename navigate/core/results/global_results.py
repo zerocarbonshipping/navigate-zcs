@@ -9,12 +9,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import TimingID
-from navigate.core.results._base_results import result
 from navigate.core.results._fuel_infrastructure_results import (
     _FuelInfrastructureResults,
 )
 from navigate.core.results._plant_aggregate_results import _PlantAggregateResults
 from navigate.core.results._vessel_aggregate_results import _VesselAggregateResults
+from navigate.core.results.base_results import result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -55,7 +55,8 @@ class GlobalResults(
         levy_names
             Names of all levies in the simulation.
         """
-        self._initialize_base(context)
+        self.context = context
+
         self._initialize_fuel_consumer(regulation_names, levy_names)
         self._initialize_fuel_producer(feedstock_names, process_names)
         self._initialize_fuel_infrastructure()

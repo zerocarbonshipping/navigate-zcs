@@ -30,8 +30,10 @@ def complete_port_results(results: PortResults) -> None:
     results
         Port results, written for the whole run.
     """
+    context = results.context
+
     _complete_fuel_infrastructure(results)
-    results.equivalent_bunker_wtt = results.context.equivalent(results.bunker_wtt)
+    results.equivalent_bunker_wtt = context.calculate_equivalent(results.bunker_wtt)
 
 
 def complete_plant_results(results: PlantResults) -> None:
@@ -45,8 +47,8 @@ def complete_plant_results(results: PlantResults) -> None:
     """
     context = results.context
 
-    investment = context.equivalent_by_emission(results.investment_wtt)
-    instantaneous = context.equivalent_by_emission(results.instantaneous_wtt)
+    investment = context.calculate_emission_equivalent(results.investment_wtt)
+    instantaneous = context.calculate_emission_equivalent(results.instantaneous_wtt)
 
     results.equivalent_investment_wtt = investment
     results.equivalent_instantaneous_wtt = instantaneous
@@ -80,13 +82,18 @@ def complete_global_fuel_results(results: GlobalResults) -> None:
 def _complete_fuel_infrastructure(results: PortResults | GlobalResults) -> None:
     context = results.context
 
-    results.bunker_energy = context.energy(results.bunker_mass)
-    results.bunker_supply_energy = context.energy(results.bunker_supply_mass)
-    results.bunkering_limit_energy = context.energy(results.bunkering_limit_mass)
+    bunker = context.calculate_energy(results.bunker_mass)
+    supply = context.calculate_energy(results.bunker_supply_mass)
+    limit = context.calculate_energy(results.bunkering_limit_mass)
+
+    results.bunker_energy = bunker
+    results.bunker_supply_energy = supply
+    results.bunkering_limit_energy = limit
 
 
 def _complete_fuel_producer(results: ProducerResults | GlobalResults) -> None:
     context = results.context
+    mass = results.production_mass
 
-    results.production_energy = context.energy(results.production_mass)
-    results.production_type_energy = context.fuel_type_energy(results.production_mass)
+    results.production_energy = context.calculate_energy(mass)
+    results.production_type_energy = context.calculate_fuel_type_energy(mass)

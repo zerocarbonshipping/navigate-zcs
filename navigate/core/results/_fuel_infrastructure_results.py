@@ -10,14 +10,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import _BaseResults, accumulate, result
+from navigate.core.results.base_results import BaseResults, accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
-class _FuelInfrastructureResults(_BaseResults):
+class _FuelInfrastructureResults(BaseResults):
     """Fuel bunkered, supplied and permitted by capacity at a bunkering location."""
 
     # the masses are written, the energies computed from them
@@ -38,7 +38,7 @@ class _FuelInfrastructureResults(_BaseResults):
 
         # liquid-market supply is recorded only where a finite bunkering limit bounds it
         for fuel_name in self.context.liquid_market_fuels:
-            self.bunker_supply_mass[fuel_name] = self._default_array(np.nan)
+            self.bunker_supply_mass[fuel_name] = self._default_array(default=np.nan)
 
     def add_fuel_infrastructure_results(
         self, results: _FuelInfrastructureResults

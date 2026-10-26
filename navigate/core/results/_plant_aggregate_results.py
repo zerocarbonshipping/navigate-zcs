@@ -8,8 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.results._base_results import accumulate, result
 from navigate.core.results._fuel_producer_results import _FuelProducerResults
+from navigate.core.results.base_results import accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray

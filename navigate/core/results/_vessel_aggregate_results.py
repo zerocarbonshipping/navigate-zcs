@@ -9,8 +9,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.results._base_results import accumulate, result
 from navigate.core.results._fuel_consumer_results import _FuelConsumerResults
+from navigate.core.results.base_results import accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray

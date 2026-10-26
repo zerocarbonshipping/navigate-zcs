@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
-    from navigate.core.results.results_context import ResultsContext
+    from navigate.core.results import ResultsContext
     from navigate.core.types_ import (
         CurveTableArgument,
         CurveTableInput,

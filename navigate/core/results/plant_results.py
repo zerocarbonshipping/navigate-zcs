@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import _BaseResults, result
+from navigate.core.results.base_results import BaseResults, result
 
 if TYPE_CHECKING:
     from navigate.core.results.results_context import ResultsContext
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class PlantResults(_BaseResults):
+class PlantResults(BaseResults):
     """Production cost and well-to-tank emissions of the fuel one plant makes."""
 
     # cost of the fuel produced
@@ -42,7 +42,7 @@ class PlantResults(_BaseResults):
         context
             Timeline, fuels and emissions of the run.
         """
-        self._initialize_base(context)
+        self.context = context
 
         self.investment_cost = self._default_array(default=np.nan)
         self.instantaneous_cost = self._default_array(default=np.nan)

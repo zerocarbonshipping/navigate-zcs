@@ -5,7 +5,8 @@
 
 from __future__ import annotations
 
-from navigate.core.results._base_results import (
+from navigate.core.results.base_results import (
+    BaseResults,
     per_step_results,
     result_names,
     result_units,

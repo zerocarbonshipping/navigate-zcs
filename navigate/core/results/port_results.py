@@ -8,10 +8,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.results._base_results import result
 from navigate.core.results._fuel_infrastructure_results import (
     _FuelInfrastructureResults,
 )
+from navigate.core.results.base_results import result
 
 if TYPE_CHECKING:
     from navigate.core.results.results_context import ResultsContext
@@ -39,7 +39,8 @@ class PortResults(_FuelInfrastructureResults):
         context
             Timeline, fuels and emissions of the run.
         """
-        self._initialize_base(context)
+        self.context = context
+
         self._initialize_fuel_infrastructure()
 
         self.bunkering_allowed = self._default_bool_dict(context.fuels)

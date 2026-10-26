@@ -1,7 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""_BaseResults, the context all results are sized by, and the result marker."""
+"""
+BaseResults, the result marker, and the functions that read and add results.
+
+BaseResults types any results object in the Report node (core/nodes/report.py) and
+the output writers.
+"""
 
 from __future__ import annotations
 
@@ -65,11 +70,11 @@ def result(unit: str, *, per_step: bool = False) -> Any:
     return field(init=False, metadata={_RESULT: ResultSpec(unit, per_step)})
 
 
-def _result_specs(cls: type[_BaseResults]) -> dict[str, ResultSpec]:
+def _result_specs(cls: type[BaseResults]) -> dict[str, ResultSpec]:
     return {f.name: f.metadata[_RESULT] for f in fields(cls) if _RESULT in f.metadata}
 
 
-def result_units(cls: type[_BaseResults]) -> dict[str, str]:
+def result_units(cls: type[BaseResults]) -> dict[str, str]:
     """
     Map every result of a results class to its unit.
 
@@ -87,7 +92,7 @@ def result_units(cls: type[_BaseResults]) -> dict[str, str]:
     return {name: spec.unit for name, spec in _result_specs(cls).items()}
 
 
-def result_names(cls: type[_BaseResults]) -> frozenset[str]:
+def result_names(cls: type[BaseResults]) -> frozenset[str]:
     """
     Name every result of a results class.
 
@@ -104,7 +109,7 @@ def result_names(cls: type[_BaseResults]) -> frozenset[str]:
     return frozenset(_result_specs(cls))
 
 
-def per_step_results(cls: type[_BaseResults]) -> frozenset[str]:
+def per_step_results(cls: type[BaseResults]) -> frozenset[str]:
     """
     Name the results of a results class that count what happened in each step.
 
@@ -146,13 +151,10 @@ def accumulate(
 
 
 @dataclass(eq=False, repr=False)
-class _BaseResults:
+class BaseResults:
     """The run's context and the storage allocation all results share."""
 
     context: ResultsContext = field(init=False)
-
-    def _initialize_base(self, context: ResultsContext) -> None:
-        self.context = context
 
     def _default_array(self, default: float = 0.0) -> FloatArray:
         return np.full(self.context.timeline.shape, default, dtype=np.float64)
