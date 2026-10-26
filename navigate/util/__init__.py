@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from navigate.util.collections import (
     add_dicts,
-    define_index_map,
+    index_map,
     is_single_dict,
     is_tuple_dict,
     list_intersection,
@@ -22,7 +22,7 @@ from navigate.util.collections import (
     slice_list,
     sum_by_first_key,
     sum_by_second_key,
-    sum_dict_results,
+    sum_nonempty_values,
     sum_per_key,
     sum_values,
     unique_list,
@@ -50,8 +50,8 @@ from navigate.util.numeric import (
     calculate_step_inertia,
     derive_smoothing_alpha,
     divide_nonzero,
-    find_nearest,
     find_nearest_index,
+    find_nearest_indices,
     interpolate_yearly_flow,
     is_nondecreasing,
     is_strictly_increasing,

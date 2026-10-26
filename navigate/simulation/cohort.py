@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.nodes.curve import Curve
-from navigate.util import find_nearest, find_nearest_index
+from navigate.util import find_nearest_index, find_nearest_indices
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -176,4 +176,4 @@ def find_origin_indexes(
     IntArray
         Time-step indexes, one per age.
     """
-    return find_nearest(years, current_year - ages)
+    return find_nearest_indices(years, current_year - ages)

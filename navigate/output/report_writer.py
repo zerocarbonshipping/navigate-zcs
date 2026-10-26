@@ -34,7 +34,7 @@ from navigate.util import (
     step_lengths,
     sum_by_first_key,
     sum_by_second_key,
-    sum_dict_results,
+    sum_nonempty_values,
 )
 
 if TYPE_CHECKING:
@@ -650,7 +650,7 @@ def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportVa
 
     if is_single_dict(property_):
         if reduce in (ReportReduceID.FIRST, ReportReduceID.BOTH):
-            return sum_dict_results(property_)
+            return sum_nonempty_values(property_)
 
         return property_
 
@@ -662,7 +662,7 @@ def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportVa
             return sum_by_first_key(property_)
 
         if reduce is ReportReduceID.BOTH:
-            return sum_dict_results(property_)
+            return sum_nonempty_values(property_)
 
     return property_
 

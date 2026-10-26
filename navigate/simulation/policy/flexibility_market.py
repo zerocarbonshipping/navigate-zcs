@@ -113,7 +113,7 @@ def update_regulation_flexibility_beliefs(
         expectation = regulation.expectation
         horizon = regulation.flexibility_horizon.get()
 
-        alpha = derive_smoothing_alpha(idx, horizon, timeline)
+        alpha = derive_smoothing_alpha(horizon, timeline, idx)
         raw_cost = expectation.get_flexibility_cost()
         belief = expectation.get_belief_flexibility_cost()
         update_belief_path(raw_cost, belief, alpha, idx)

@@ -50,8 +50,8 @@ def update_vessel_scarcity_beliefs(
         technology_horizon = fleet.technology_horizon.get()
         speed_horizon = fleet.speed_horizon.get()
 
-        alpha_technology = derive_smoothing_alpha(idx, technology_horizon, timeline)
-        alpha_speed = derive_smoothing_alpha(idx, speed_horizon, timeline)
+        alpha_technology = derive_smoothing_alpha(technology_horizon, timeline, idx)
+        alpha_speed = derive_smoothing_alpha(speed_horizon, timeline, idx)
 
         for vessel in fleet.vessels:
             expectation = vessel.expectation

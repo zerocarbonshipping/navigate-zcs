@@ -20,7 +20,7 @@ from navigate.simulation.bunker._constraints.fuel_inertia import (
     update_fuel_inertia_constraints,
 )
 from navigate.simulation.bunker._optimize import optimize
-from navigate.util import define_index_map
+from navigate.util import index_map
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -152,7 +152,7 @@ def _update_fair_share_allocation(
 
     for v, vessel in alg.vessels.items():
         port_names = [port.name for port in vessel.route.ports]
-        stops_per_port[v] = define_index_map(port_names)
+        stops_per_port[v] = index_map(port_names)
 
     # per (vessel, port name, fuel): the fair share of a bounded vessel, and the fuel
     # an unbounded vessel bunkered at the port
