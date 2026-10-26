@@ -10,7 +10,10 @@ from typing import TYPE_CHECKING, NamedTuple
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
-from navigate.simulation.policy.compliance import calculate_vessel_account
+from navigate.simulation.policy._policed import (
+    calculate_vessel_account,
+    select_policed,
+)
 from navigate.util import derive_smoothing_alpha, divide_nonzero, update_belief_path
 
 if TYPE_CHECKING:
@@ -120,10 +123,7 @@ def update_regulation_flexibility_beliefs(
         belief = expectation.get_belief_flexibility_cost()
         update_belief_path(raw_cost, belief, alpha, idx)
 
-        for vessel_name, vessel in vessels.items():
-            if not regulation.vessel_is_policed(vessel_name):
-                continue
-
+        for vessel_name, vessel in select_policed(regulation, vessels).items():
             net_units = expectation.get_vessel_net_flexibility_units(vessel_name)
             expenses = net_units[idx:] * belief[idx:]
             vessel.expectation.add_flexibility_expenses(idx, expenses)
@@ -142,10 +142,7 @@ def _clear_flexibility_market(
     balances: dict[str, tuple[float, float]] = {}
     total_non_compliance = 0.0
     total_surplus = 0.0
-    for vessel_name, multiplier in multipliers.items():
-        if not regulation.vessel_is_policed(vessel_name):
-            continue
-
+    for vessel_name, multiplier in select_policed(regulation, multipliers).items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
         non_compliance = max(account.emissions - account.allowance, 0.0)
         surplus = max(account.allowance - account.emissions, 0.0)

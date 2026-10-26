@@ -10,11 +10,15 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
+from navigate.simulation.policy._policed import (
+    calculate_achieved_measure,
+    normalize_by_measure,
+    select_policed,
+)
 from navigate.simulation.policy.bunkering_inputs import (
     calculate_vessel_allowance,
     calculate_vessel_spend_coefficients,
 )
-from navigate.util import TON_TO_KG, divide_nonzero
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -69,12 +73,7 @@ def calculate_adjusted_regulation_thresholds(
         if not regulation.active:
             continue
 
-        policed: dict[str, float] = {}
-
-        for vessel_name, multiplier in multipliers.items():
-            if regulation.vessel_is_policed(vessel_name):
-                policed[vessel_name] = multiplier
-
+        policed = select_policed(regulation, multipliers)
         vessel_names = policed.keys()
 
         if not regulation.allow_threshold_adjustment:
@@ -122,10 +121,9 @@ def _calculate_individual(
             continue
 
         emissions = expectation.get_vessel_emissions(vessel_name, idx)
-        energy = expectation.get_vessel_energy(vessel_name, idx)
-        measure = expectation.get_vessel_measure(vessel_name, idx)
+        measure = calculate_achieved_measure(regulation, vessel_name, idx)
 
-        threshold = _adjusted_threshold(regulation, emissions, energy, measure)
+        threshold = _calculate_adjusted_threshold(regulation, emissions, measure)
         expectation.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
 
         _calculate_adjusted_bunkering_inputs(regulation, vessels[vessel_name], idx)
@@ -157,23 +155,20 @@ def _calculate_flexible(
         return False
 
     total_emissions = 0.0
-    total_energy = 0.0
     total_measure = 0.0
 
     for vessel_name, multiplier in policed_multipliers.items():
         emissions = expectation.get_vessel_emissions(vessel_name, idx)
-        energy = expectation.get_vessel_energy(vessel_name, idx)
-        measure = expectation.get_vessel_measure(vessel_name, idx)
+        measure = calculate_achieved_measure(regulation, vessel_name, idx)
 
         total_emissions += emissions * multiplier
-        total_energy += energy * multiplier
         total_measure += measure * multiplier
 
-        threshold = _adjusted_threshold(regulation, emissions, energy, measure)
+        threshold = _calculate_adjusted_threshold(regulation, emissions, measure)
         expectation.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
 
-    shared_threshold = _adjusted_threshold(
-        regulation, total_emissions, total_energy, total_measure
+    shared_threshold = _calculate_adjusted_threshold(
+        regulation, total_emissions, total_measure
     )
     expectation.set_adjusted_shared_threshold(idx, shared_threshold)
 
@@ -206,33 +201,25 @@ def _calculate_adjusted_bunkering_inputs(
     calculate_vessel_spend_coefficients(regulation, vessel, threshold, idx)
 
 
-def _adjusted_threshold(
-    regulation: Regulation, emissions: float, energy: float, measure: float
+def _calculate_adjusted_threshold(
+    regulation: Regulation, emissions: float, measure: float
 ) -> float:
     """
-    Return the threshold the achieved emissions meet, with the tolerance margin.
+    Calculate the threshold the achieved emissions meet, with the tolerance margin.
 
     Parameters
     ----------
     regulation
-        Regulation whose measure the threshold is expressed in.
+        Regulation whose measure the threshold is stated per.
     emissions
-        Emissions, tons.
-    energy
-        Energy spent, GJ; read for the INTENSITY measure only.
+        Achieved emissions of a vessel or the pool, in tons.
     measure
-        Transport measure; read for the TRANSPORT and TRANSPORT_NOMINAL measures only.
+        Achieved measure of the same vessel or pool.
 
     Returns
     -------
     float
         Adjusted threshold, in the unit of the regulation's threshold.
     """
-    if regulation.measure == RegulationMeasureID.ABSOLUTE:
-        achieved = emissions
-    elif regulation.measure == RegulationMeasureID.INTENSITY:
-        achieved = np.float64(divide_nonzero(emissions, energy / TON_TO_KG))
-    else:
-        achieved = np.float64(divide_nonzero(emissions, measure))
-
+    achieved = normalize_by_measure(regulation, emissions, measure)
     return achieved * (1.0 + _THRESHOLD_TOLERANCE)

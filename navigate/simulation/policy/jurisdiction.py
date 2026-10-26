@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import RegulationMeasureID
+from navigate.simulation.policy._policed import select_policed
 from navigate.util import TON_TO_GRAM
 
 if TYPE_CHECKING:
@@ -95,10 +96,7 @@ def calculate_regulation_measures(
         if not regulation.active:
             continue
 
-        for vessel_name, vessel in vessels.items():
-            if not regulation.vessel_is_policed(vessel_name):
-                continue
-
+        for vessel_name, vessel in select_policed(regulation, vessels).items():
             measure = _calculate_vessel_measure(regulation, vessel, times, forward)
             regulation.expectation.set_vessel_measure(idx, vessel_name, measure)
 

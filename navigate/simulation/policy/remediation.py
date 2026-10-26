@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
+from navigate.simulation.policy._policed import select_policed
 
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
@@ -63,10 +64,7 @@ def _calculate_regulation_remedial_expenses(
     expectation = regulation.expectation
     remedial_cost = expectation.get_remedial_cost(idx)
 
-    for vessel_name, multiplier in multipliers.items():
-        if not regulation.vessel_is_policed(vessel_name):
-            continue
-
+    for vessel_name, multiplier in select_policed(regulation, multipliers).items():
         vessel = vessels[vessel_name]
 
         remedial_units = expectation.get_vessel_remedial_units(vessel_name, idx)
