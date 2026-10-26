@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from navigate.core.increment import PlantIncrement
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray, FloatLike, IntArray
+    from navigate.util.types_ import FloatArray, IntArray
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ def calculate_constrained_uptakes(
     development: float,
     limits: FloatArray,
     idx: int,
-    additional_consumption: dict[str, FloatLike] | None = None,
+    additional_consumption: dict[str, float] | None = None,
 ) -> FloatArray:
     """
     Constrain uptake shares iteratively to respect feed availability.
@@ -364,7 +364,7 @@ def _calculate_feed_limits(
     development: float,
     uptakes: FloatArray,
     idx: int,
-    additional_consumption: dict[str, FloatLike],
+    additional_consumption: dict[str, float],
 ) -> FloatArray:
     """
     Calculate feed-based uptake limits for a single iteration.

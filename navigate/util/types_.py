@@ -24,4 +24,8 @@ type FloatLike = float | FloatArray
 # width-parametrized signed integers, which only the unparametrized
 # signedinteger accepts
 type IntArray = npt.NDArray[np.signedinteger]
-type Index = int | np.signedinteger | slice | IntArray
+
+# a time index selects one time-step or several
+type Step = int | np.signedinteger
+type Steps = slice | IntArray
+type Index = Step | Steps

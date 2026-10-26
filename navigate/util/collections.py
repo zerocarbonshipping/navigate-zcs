@@ -5,14 +5,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Hashable, Iterable, Mapping, Sequence
 
-    from navigate.util.types_ import FloatArray, FloatLike, Index
+    from navigate.util.types_ import FloatArray, FloatLike, Index, Step, Steps
 
 
 def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:
@@ -259,7 +259,42 @@ def sum_by_second_key[K1, K2](
     return {key: sum_nonempty_values(group) for key, group in groups.items()}
 
 
-def slice_list(arrays: Sequence[FloatArray], idx: Index) -> list[FloatLike]:
+@overload
+def slice_array(array: FloatArray, idx: Step) -> float: ...
+
+
+@overload
+def slice_array(array: FloatArray, idx: Steps) -> FloatArray: ...
+
+
+def slice_array(array: FloatArray, idx: Index) -> FloatLike:
+    """
+    Read an array at one time-step or several, typed by the kind of index.
+
+    Parameters
+    ----------
+    array
+        Array to slice.
+    idx
+        One time-step, or several.
+
+    Returns
+    -------
+    FloatLike
+        The value at the time-step, or the array over the time-steps.
+    """
+    return array[idx]
+
+
+@overload
+def slice_list(arrays: Sequence[FloatArray], idx: Step) -> list[float]: ...
+
+
+@overload
+def slice_list(arrays: Sequence[FloatArray], idx: Steps) -> list[FloatArray]: ...
+
+
+def slice_list(arrays: Sequence[FloatArray], idx: Index) -> Sequence[FloatLike]:
     """
     Slice each array in a list.
 
@@ -268,17 +303,25 @@ def slice_list(arrays: Sequence[FloatArray], idx: Index) -> list[FloatLike]:
     arrays
         Arrays to slice.
     idx
-        Time-step index(es) or slice.
+        One time-step, or several.
 
     Returns
     -------
-    list[FloatLike]
+    Sequence[FloatLike]
         Sliced arrays, in order.
     """
     return [array[idx] for array in arrays]
 
 
-def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Index) -> dict[K, FloatLike]:
+@overload
+def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Step) -> dict[K, float]: ...
+
+
+@overload
+def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Steps) -> dict[K, FloatArray]: ...
+
+
+def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Index) -> Mapping[K, FloatLike]:
     """
     Slice each array in a dict.
 
@@ -287,19 +330,31 @@ def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Index) -> dict[K, FloatLik
     dict_
         Arrays to slice.
     idx
-        Time-step index(es) or slice.
+        One time-step, or several.
 
     Returns
     -------
-    dict[K, FloatLike]
+    Mapping[K, FloatLike]
         Sliced arrays, by key.
     """
     return {key: value[idx] for key, value in dict_.items()}
 
 
+@overload
+def slice_dict_list[K](
+    dict_: Mapping[K, Sequence[FloatArray]], idx: Step
+) -> dict[K, list[float]]: ...
+
+
+@overload
+def slice_dict_list[K](
+    dict_: Mapping[K, Sequence[FloatArray]], idx: Steps
+) -> dict[K, list[FloatArray]]: ...
+
+
 def slice_dict_list[K](
     dict_: Mapping[K, Sequence[FloatArray]], idx: Index
-) -> dict[K, list[FloatLike]]:
+) -> Mapping[K, Sequence[FloatLike]]:
     """
     Slice each array in each list of a dict of lists.
 
@@ -308,11 +363,11 @@ def slice_dict_list[K](
     dict_
         Lists of arrays to slice.
     idx
-        Time-step index(es) or slice.
+        One time-step, or several.
 
     Returns
     -------
-    dict[K, list[FloatLike]]
+    Mapping[K, Sequence[FloatLike]]
         Sliced lists of arrays, by key.
     """
     return {key: slice_list(value, idx) for key, value in dict_.items()}

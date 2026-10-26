@@ -30,7 +30,7 @@ from navigate.util import YEAR, calculate_step_inertia, divide_nonzero
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray
 
 
 def perform_pipeline_delivery(producer: Producer) -> None:
@@ -376,7 +376,7 @@ def _calculate_evaluation_timeline(
 
 
 def _calculate_intra_fuel_metric(
-    plant: Plant, export_distribution: dict[str, FloatLike], idx: int
+    plant: Plant, export_distribution: dict[str, float], idx: int
 ) -> None:
     """
     Calculate the business-case metric used to choose a plant within a fuel pathway.

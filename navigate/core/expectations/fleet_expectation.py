@@ -5,11 +5,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_dict
+from navigate.util import slice_array, slice_dict
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -49,7 +49,7 @@ class FleetExpectation(_Expectation):
         self._reset_dict_float(self._fuel_type_supply)
 
     def set_multiplier(
-        self, idx: int, vessel_name: str, scope: BunkerScopeID, multiplier: FloatLike
+        self, idx: int, vessel_name: str, scope: BunkerScopeID, multiplier: FloatArray
     ) -> None:
         self._multipliers[vessel_name, scope][idx:] = multiplier
 
@@ -65,12 +65,22 @@ class FleetExpectation(_Expectation):
     def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float) -> None:
         self._fuel_type_supply[fuel_type] += supply
 
+    @overload
+    def get_multiplier(
+        self, vessel_name: str, scope: BunkerScopeID, idx: int
+    ) -> float: ...
+
+    @overload
+    def get_multiplier(
+        self, vessel_name: str, scope: BunkerScopeID, idx: slice
+    ) -> FloatArray: ...
+
     def get_multiplier(
         self, vessel_name: str, scope: BunkerScopeID, idx: Index
     ) -> FloatLike:
-        return self._multipliers[vessel_name, scope][idx]
+        return slice_array(self._multipliers[vessel_name, scope], idx)
 
-    def get_fuel_demand(self, idx: Index) -> dict[str, FloatLike]:
+    def get_fuel_demand(self, idx: slice) -> dict[str, FloatArray]:
         return slice_dict(self._fuel_demand, idx)
 
     def get_uptakes(self, idx: int) -> FloatArray:

@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.util.types_ import FloatLike
 
 
 def update_energy_conservation_constraints(
@@ -64,7 +63,7 @@ def _update_sea_rows(
     alg: BunkerAlgorithm,
     vessel: Vessel,
     demand_type: EnergyDemandID,
-    demand: list[FloatLike],
+    demand: list[float],
     legs: tuple[tuple[int, int], ...],
 ) -> None:
     """
@@ -105,7 +104,7 @@ def _update_port_rows(
     alg: BunkerAlgorithm,
     vessel: Vessel,
     demand_type: EnergyDemandID,
-    demand: list[FloatLike],
+    demand: list[float],
     stops: range,
 ) -> None:
     """

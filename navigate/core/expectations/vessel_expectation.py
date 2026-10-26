@@ -5,17 +5,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_dict_list, slice_list
+from navigate.util import slice_array, slice_dict_list, slice_list
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterable, Mapping
-    from typing import SupportsIndex
+    from collections.abc import Collection, Iterable, Mapping, Sequence
 
     from navigate.core.nodes.route import Route
     from navigate.util.types_ import FloatArray, FloatLike, Index
@@ -288,17 +287,17 @@ class VesselExpectation(_Expectation):
     def reset_allocation_fuel_existing(self) -> None:
         self._reset_dict_float(self._allocation_fuel_existing)
 
-    def set_voyages(self, idx: int, voyages: FloatLike) -> None:
+    def set_voyages(self, idx: int, voyages: float) -> None:
         self._voyages[idx:] = voyages
 
-    def set_cargo_miles(self, idx: int, cargo_miles: FloatLike) -> None:
+    def set_cargo_miles(self, idx: int, cargo_miles: float) -> None:
         self._cargo_miles[idx:] = cargo_miles
 
-    def set_cargo_miles_leg(self, idx: int, cargo_miles: Iterable[FloatLike]) -> None:
+    def set_cargo_miles_leg(self, idx: int, cargo_miles: Iterable[float]) -> None:
         _set_forward(self._cargo_miles_leg, idx, cargo_miles)
 
     def set_cargo_miles_leg_nominal(
-        self, idx: int, cargo_miles: Iterable[FloatLike]
+        self, idx: int, cargo_miles: Iterable[float]
     ) -> None:
         _set_forward(self._cargo_miles_leg_nominal, idx, cargo_miles)
 
@@ -311,28 +310,28 @@ class VesselExpectation(_Expectation):
     def set_speed_anchor_optimal(self, speed: float) -> None:
         self._speed_anchor_optimal = speed
 
-    def set_speeds_condition(self, idx: int, speeds: Iterable[FloatLike]) -> None:
+    def set_speeds_condition(self, idx: int, speeds: Iterable[float]) -> None:
         for i, speed in enumerate(speeds):
             self._speeds_condition[i][idx] = speed
 
-    def set_time_sea_condition(self, idx: int, times: Iterable[FloatLike]) -> None:
+    def set_time_sea_condition(self, idx: int, times: Iterable[float]) -> None:
         _set_forward(self._time_sea_condition, idx, times)
 
-    def set_time_port(self, idx: int, times: Iterable[FloatLike]) -> None:
+    def set_time_port(self, idx: int, times: Iterable[float]) -> None:
         _set_forward(self._time_port, idx, times)
 
     def set_raw_energy_sea_condition(
-        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[FloatLike]]
+        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[float]]
     ) -> None:
         _set_forward_per_key(self._raw_energy_sea_condition, idx, energy)
 
     def set_raw_energy_port(
-        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[FloatLike]]
+        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[float]]
     ) -> None:
         _set_forward_per_key(self._raw_energy_port, idx, energy)
 
     def set_operational_energy_sea_condition(
-        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[FloatLike]]
+        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[float]]
     ) -> None:
         _set_forward_per_key(self._operational_energy_sea_condition, idx, energy)
 
@@ -342,7 +341,7 @@ class VesselExpectation(_Expectation):
         _set_forward_per_key(self._operational_energy_sea_leg, idx, energy)
 
     def set_operational_energy_port(
-        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[FloatLike]]
+        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[float]]
     ) -> None:
         _set_forward_per_key(self._operational_energy_port, idx, energy)
 
@@ -357,7 +356,7 @@ class VesselExpectation(_Expectation):
         self._operational_saving_fraction_port.update(fractions)
 
     def set_energy_sea_condition(
-        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[FloatLike]]
+        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[float]]
     ) -> None:
         _set_forward_per_key(self._energy_sea_condition, idx, energy)
 
@@ -367,7 +366,7 @@ class VesselExpectation(_Expectation):
         _set_forward_per_key(self._energy_sea_leg, idx, energy)
 
     def set_energy_port(
-        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[FloatLike]]
+        self, idx: int, energy: Mapping[EnergyDemandID, Iterable[float]]
     ) -> None:
         _set_forward_per_key(self._energy_port, idx, energy)
 
@@ -442,7 +441,7 @@ class VesselExpectation(_Expectation):
         self._fair_share_fuel_existing[port_name, fuel_name] = share
 
     def set_fair_share_fuel_expected(
-        self, idx: int, port_name: str, fuel_name: str, share: FloatLike
+        self, idx: int, port_name: str, fuel_name: str, share: FloatArray
     ) -> None:
         self._fair_share_fuel_expected[port_name, fuel_name][idx:] = share
 
@@ -460,13 +459,15 @@ class VesselExpectation(_Expectation):
     def add_remedial_expenses(self, idx: int, expenses: float) -> None:
         self._remedial_expenses[idx] += expenses
 
-    def add_flexibility_expenses(self, idx: int, expenses: FloatLike) -> None:
+    def add_flexibility_expenses(self, idx: int, expenses: FloatArray) -> None:
         self._flexibility_expenses[idx:] += expenses
 
     def set_shore_power_capacity(self, idx: int, capacity: float) -> None:
         self._shore_power_capacity[idx:] = capacity
 
-    def set_shore_power_limit_port(self, idx: int, limits: Iterable[FloatLike]) -> None:
+    def set_shore_power_limit_port(
+        self, idx: int, limits: Iterable[FloatArray]
+    ) -> None:
         _set_forward(self._shore_power_limit_port, idx, limits)
 
     def set_fuel_cost_flow(self, flow: FloatArray) -> None:
@@ -490,16 +491,22 @@ class VesselExpectation(_Expectation):
     def set_tied_capital(self, idx: int, capital: FloatArray) -> None:
         self._tied_capital[idx] = capital
 
-    def get_voyages(self, idx: Index) -> FloatLike:
-        return self._voyages[idx]
+    def get_voyages(self, idx: int) -> float:
+        return slice_array(self._voyages, idx)
+
+    @overload
+    def get_cargo_miles(self, idx: int) -> float: ...
+
+    @overload
+    def get_cargo_miles(self, idx: slice = ...) -> FloatArray: ...
 
     def get_cargo_miles(self, idx: Index = np.s_[:]) -> FloatLike:
-        return self._cargo_miles[idx]
+        return slice_array(self._cargo_miles, idx)
 
-    def get_cargo_miles_leg(self, idx: Index) -> list[FloatLike]:
+    def get_cargo_miles_leg(self, idx: slice) -> list[FloatArray]:
         return slice_list(self._cargo_miles_leg, idx)
 
-    def get_cargo_miles_leg_nominal(self, idx: Index) -> list[FloatLike]:
+    def get_cargo_miles_leg_nominal(self, idx: slice) -> list[FloatArray]:
         return slice_list(self._cargo_miles_leg_nominal, idx)
 
     def get_speed_mean(self) -> float:
@@ -511,36 +518,68 @@ class VesselExpectation(_Expectation):
     def get_speed_anchor_optimal(self) -> float:
         return self._speed_anchor_optimal
 
-    def get_speeds_condition(self, idx: Index) -> list[FloatLike]:
+    def get_speeds_condition(self, idx: int) -> list[float]:
         return slice_list(self._speeds_condition, idx)
 
-    def get_time_sea_condition(self, idx: Index) -> list[FloatLike]:
+    @overload
+    def get_time_sea_condition(self, idx: int) -> list[float]: ...
+
+    @overload
+    def get_time_sea_condition(self, idx: slice) -> list[FloatArray]: ...
+
+    def get_time_sea_condition(self, idx: Index) -> Sequence[FloatLike]:
         return slice_list(self._time_sea_condition, idx)
 
-    def get_time_port(self, idx: Index) -> list[FloatLike]:
+    @overload
+    def get_time_port(self, idx: int) -> list[float]: ...
+
+    @overload
+    def get_time_port(self, idx: slice) -> list[FloatArray]: ...
+
+    def get_time_port(self, idx: Index) -> Sequence[FloatLike]:
         return slice_list(self._time_port, idx)
 
     def get_raw_energy_sea_condition(
-        self, idx: Index
-    ) -> dict[EnergyDemandID, list[FloatLike]]:
+        self, idx: int
+    ) -> dict[EnergyDemandID, list[float]]:
         return slice_dict_list(self._raw_energy_sea_condition, idx)
 
-    def get_raw_energy_port(self, idx: Index) -> dict[EnergyDemandID, list[FloatLike]]:
+    def get_raw_energy_port(self, idx: int) -> dict[EnergyDemandID, list[float]]:
         return slice_dict_list(self._raw_energy_port, idx)
+
+    @overload
+    def get_operational_energy_sea_condition(
+        self, idx: int
+    ) -> dict[EnergyDemandID, list[float]]: ...
+
+    @overload
+    def get_operational_energy_sea_condition(
+        self, idx: slice
+    ) -> dict[EnergyDemandID, list[FloatArray]]: ...
 
     def get_operational_energy_sea_condition(
         self, idx: Index
-    ) -> dict[EnergyDemandID, list[FloatLike]]:
+    ) -> Mapping[EnergyDemandID, Sequence[FloatLike]]:
         return slice_dict_list(self._operational_energy_sea_condition, idx)
 
     def get_operational_energy_sea_leg(
-        self, idx: Index
-    ) -> dict[EnergyDemandID, list[FloatLike]]:
+        self, idx: slice
+    ) -> dict[EnergyDemandID, list[FloatArray]]:
         return slice_dict_list(self._operational_energy_sea_leg, idx)
+
+    @overload
+    def get_operational_energy_port(
+        self, idx: int
+    ) -> dict[EnergyDemandID, list[float]]: ...
+
+    @overload
+    def get_operational_energy_port(
+        self, idx: slice
+    ) -> dict[EnergyDemandID, list[FloatArray]]: ...
 
     def get_operational_energy_port(
         self, idx: Index
-    ) -> dict[EnergyDemandID, list[FloatLike]]:
+    ) -> Mapping[EnergyDemandID, Sequence[FloatLike]]:
         return slice_dict_list(self._operational_energy_port, idx)
 
     def get_operational_saving_fraction_sea(self) -> dict[EnergyDemandID, float]:
@@ -549,15 +588,21 @@ class VesselExpectation(_Expectation):
     def get_operational_saving_fraction_port(self) -> dict[EnergyDemandID, float]:
         return self._operational_saving_fraction_port
 
-    def get_energy_sea_condition(
-        self, idx: Index
-    ) -> dict[EnergyDemandID, list[FloatLike]]:
+    def get_energy_sea_condition(self, idx: int) -> dict[EnergyDemandID, list[float]]:
         return slice_dict_list(self._energy_sea_condition, idx)
 
-    def get_energy_sea_leg(self, idx: Index) -> dict[EnergyDemandID, list[FloatLike]]:
+    def get_energy_sea_leg(self, idx: int) -> dict[EnergyDemandID, list[float]]:
         return slice_dict_list(self._energy_sea_leg, idx)
 
-    def get_energy_port(self, idx: Index) -> dict[EnergyDemandID, list[FloatLike]]:
+    @overload
+    def get_energy_port(self, idx: int) -> dict[EnergyDemandID, list[float]]: ...
+
+    @overload
+    def get_energy_port(self, idx: slice) -> dict[EnergyDemandID, list[FloatArray]]: ...
+
+    def get_energy_port(
+        self, idx: Index
+    ) -> Mapping[EnergyDemandID, Sequence[FloatLike]]:
         return slice_dict_list(self._energy_port, idx)
 
     def get_energy_conservation_pi_sea(self) -> dict[EnergyDemandID, list[FloatArray]]:
@@ -608,10 +653,20 @@ class VesselExpectation(_Expectation):
     def get_mean_ttw_slip(self, fuel_name: str, emission_name: str) -> float:
         return self._mean_ttw_slip[fuel_name, emission_name]
 
+    @overload
+    def get_bunker_mass_expected(
+        self, port_name: str, fuel_name: str, idx: int
+    ) -> float: ...
+
+    @overload
+    def get_bunker_mass_expected(
+        self, port_name: str, fuel_name: str, idx: slice
+    ) -> FloatArray: ...
+
     def get_bunker_mass_expected(
         self, port_name: str, fuel_name: str, idx: Index
     ) -> FloatLike:
-        return self._bunker_mass_expected[port_name, fuel_name][idx]
+        return slice_array(self._bunker_mass_expected[port_name, fuel_name], idx)
 
     def get_bunker_mass_existing(self, port_name: str, fuel_name: str) -> float:
         return self._bunker_mass_existing[port_name, fuel_name]
@@ -619,64 +674,87 @@ class VesselExpectation(_Expectation):
     def get_spend_energy(self, converter_name: str) -> float:
         return self._spend_energy[converter_name]
 
+    @overload
+    def get_potential_fuel_type_demand(
+        self, port_name: str, fuel_type: FuelTypeID, idx: int
+    ) -> float: ...
+
+    @overload
+    def get_potential_fuel_type_demand(
+        self, port_name: str, fuel_type: FuelTypeID, idx: slice
+    ) -> FloatArray: ...
+
     def get_potential_fuel_type_demand(
         self, port_name: str, fuel_type: FuelTypeID, idx: Index
     ) -> FloatLike:
-        return self._potential_fuel_type_demand[port_name, fuel_type][idx]
+        return slice_array(self._potential_fuel_type_demand[port_name, fuel_type], idx)
 
     def get_fair_share_fuel_existing(self, port_name: str, fuel_name: str) -> float:
         return self._fair_share_fuel_existing[port_name, fuel_name]
 
     def get_fair_share_fuel_expected(
-        self, port_name: str, fuel_name: str, idx: Index
-    ) -> FloatLike:
-        return self._fair_share_fuel_expected[port_name, fuel_name][idx]
+        self, port_name: str, fuel_name: str, idx: int
+    ) -> float:
+        return slice_array(self._fair_share_fuel_expected[port_name, fuel_name], idx)
 
     def get_allocation_fuel_existing(self, port_name: str, fuel_name: str) -> float:
         return self._allocation_fuel_existing[port_name, fuel_name]
 
-    def get_total_energy(self, idx: Index) -> FloatLike:
-        return self._total_energy[idx]
+    def get_total_energy(self, idx: int) -> float:
+        return slice_array(self._total_energy, idx)
+
+    @overload
+    def get_fuel_expenses(self, idx: int) -> float: ...
+
+    @overload
+    def get_fuel_expenses(self, idx: slice) -> FloatArray: ...
 
     def get_fuel_expenses(self, idx: Index) -> FloatLike:
-        return self._fuel_expenses[idx]
+        return slice_array(self._fuel_expenses, idx)
+
+    @overload
+    def get_remedial_expenses(self, idx: int) -> float: ...
+
+    @overload
+    def get_remedial_expenses(self, idx: slice) -> FloatArray: ...
 
     def get_remedial_expenses(self, idx: Index) -> FloatLike:
-        return self._remedial_expenses[idx]
+        return slice_array(self._remedial_expenses, idx)
+
+    @overload
+    def get_flexibility_expenses(self, idx: int) -> float: ...
+
+    @overload
+    def get_flexibility_expenses(self, idx: slice) -> FloatArray: ...
 
     def get_flexibility_expenses(self, idx: Index) -> FloatLike:
-        return self._flexibility_expenses[idx]
+        return slice_array(self._flexibility_expenses, idx)
 
-    def get_shore_power_capacity(self, idx: Index) -> FloatLike:
-        return self._shore_power_capacity[idx]
+    def get_shore_power_capacity(self, idx: slice) -> FloatArray:
+        return slice_array(self._shore_power_capacity, idx)
 
-    def get_shore_power_limit_port(self, idx: Index) -> list[FloatLike]:
+    def get_shore_power_limit_port(self, idx: int) -> list[float]:
         return slice_list(self._shore_power_limit_port, idx)
 
     def get_fuel_cost_flow(self) -> FloatArray:
         return self._fuel_cost_flow
 
     def get_asset_charter_npv(self, idx: int) -> float:
-        npv: float = self._asset_charter_npv[idx]
-        return npv
+        return slice_array(self._asset_charter_npv, idx)
 
     def get_capex_npv(self, idx: int) -> float:
-        npv: float = self._capex_npv[idx]
-        return npv
+        return slice_array(self._capex_npv, idx)
 
     def get_asset_charter_rate(self, idx: int) -> float:
-        rate: float = self._asset_charter_rate[idx]
-        return rate
+        return slice_array(self._asset_charter_rate, idx)
 
     def get_freight_rate(self, idx: int) -> float:
-        rate: float = self._freight_rate[idx]
-        return rate
+        return slice_array(self._freight_rate, idx)
 
     def get_technology_charter_rate(self, idx: int) -> float:
-        rate: float = self._technology_charter_rate[idx]
-        return rate
+        return slice_array(self._technology_charter_rate, idx)
 
-    def get_tied_capital(self, idx: SupportsIndex) -> FloatArray:
+    def get_tied_capital(self, idx: int) -> FloatArray:
         return self._tied_capital[idx]
 
 

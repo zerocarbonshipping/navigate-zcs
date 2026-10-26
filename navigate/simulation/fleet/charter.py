@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.tank import Tank
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray, FloatLike, Index
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> None:
@@ -125,7 +125,15 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     vessel.results.investment_freight_rate[idx] = freight_rate
 
 
-def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: Index) -> FloatLike:
+@overload
+def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: int) -> float: ...
+
+
+@overload
+def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: slice) -> FloatArray: ...
+
+
+def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: int | slice) -> FloatLike:
     """
     Calculate a vessel's expected fuel expenses plus its policy expenses.
 

@@ -5,15 +5,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_dict
+from navigate.util import slice_array, slice_dict
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Collection, Mapping
 
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
@@ -69,7 +69,7 @@ class ProducerExpectation(_Expectation):
         self._reset_dict_float(self._pipeline_feed)
 
     def set_export_distribution(
-        self, idx: int, port_name: str, distribution: FloatLike
+        self, idx: int, port_name: str, distribution: FloatArray
     ) -> None:
         self._export_distribution[port_name][idx:] = distribution
 
@@ -96,16 +96,22 @@ class ProducerExpectation(_Expectation):
         self._fair_share_demand[fuel_name][idx:] = demand
 
     def set_guaranteed_production(
-        self, idx: int, plant_name: str, production: FloatLike
+        self, idx: int, plant_name: str, production: FloatArray
     ) -> None:
         self._guaranteed_production[plant_name][idx:] = production
 
     def set_expected_production(
-        self, idx: int, plant_name: str, production: FloatLike
+        self, idx: int, plant_name: str, production: FloatArray
     ) -> None:
         self._expected_production[plant_name][idx:] = production
 
-    def get_export_distribution(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
+    @overload
+    def get_export_distribution(self, idx: int) -> dict[str, float]: ...
+
+    @overload
+    def get_export_distribution(self, idx: slice) -> dict[str, FloatArray]: ...
+
+    def get_export_distribution(self, idx: Index) -> Mapping[str, FloatLike]:
         return slice_dict(self._export_distribution, idx)
 
     def get_plant_feed_consumption(self, plant_name: str, feed_name: str) -> float:
@@ -117,8 +123,8 @@ class ProducerExpectation(_Expectation):
     def get_pipeline_feed(self, feed_name: str) -> float:
         return self._pipeline_feed[feed_name]
 
-    def get_feed_gap(self, feed_name: str, idx: Index = np.s_[:]) -> FloatLike:
-        return self._feed_gap[feed_name][idx]
+    def get_feed_gap(self, feed_name: str, idx: int) -> float:
+        return slice_array(self._feed_gap[feed_name], idx)
 
     def get_development_potential(self, fuel_name: str) -> float:
         return self._development_potential[fuel_name]
@@ -126,12 +132,8 @@ class ProducerExpectation(_Expectation):
     def get_fair_share_demand(self) -> dict[str, FloatArray]:
         return self._fair_share_demand
 
-    def get_guaranteed_production(
-        self, plant_name: str, idx: Index = np.s_[:]
-    ) -> FloatLike:
-        return self._guaranteed_production[plant_name][idx]
+    def get_guaranteed_production(self, plant_name: str, idx: slice) -> FloatArray:
+        return slice_array(self._guaranteed_production[plant_name], idx)
 
-    def get_expected_production(
-        self, plant_name: str, idx: Index = np.s_[:]
-    ) -> FloatLike:
-        return self._expected_production[plant_name][idx]
+    def get_expected_production(self, plant_name: str, idx: slice) -> FloatArray:
+        return slice_array(self._expected_production[plant_name], idx)
