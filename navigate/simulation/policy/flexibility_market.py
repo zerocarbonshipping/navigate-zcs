@@ -8,10 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, NamedTuple
 
 from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
-from navigate.simulation.policy._policed import (
-    calculate_vessel_account,
-    select_policed,
-)
+from navigate.simulation.policy._policed import calculate_vessel_account, select_policed
 from navigate.util import derive_smoothing_alpha, divide_nonzero, update_belief_path
 
 if TYPE_CHECKING:
@@ -172,7 +169,7 @@ def _clear_flexibility_market(
 
     # every vessel's non-compliance splits into remedial and flexibility units by the
     # same fraction
-    vessel_units: dict[str, _Units] = {}
+    vessel_units = {}
     for vessel_name, (non_compliance, surplus) in balances.items():
         remedial = non_compliance * remedial_fraction
         flexibility = non_compliance * (1.0 - remedial_fraction)
@@ -188,27 +185,25 @@ def _record_market(
     """Write a cleared flexibility market to the results."""
     results = regulation.results
     total = market.total
-    remedial_cost = market.remedial_cost
-    flexibility_cost = market.flexibility_cost
 
-    remedial_expenses = total.remedial * remedial_cost
-    flexibility_expenses = total.flexibility * flexibility_cost
-    surplus_revenue = total.surplus * flexibility_cost
+    total_remedial_expenses = total.remedial * market.remedial_cost
+    total_flexibility_expenses = total.flexibility * market.flexibility_cost
+    total_surplus_revenue = total.surplus * market.flexibility_cost
 
     results.remedial_units[idx] += total.remedial
-    results.remedial_expenses[idx] += remedial_expenses
-    results.flexibility_cost[idx] = flexibility_cost
+    results.remedial_expenses[idx] += total_remedial_expenses
+    results.flexibility_cost[idx] = market.flexibility_cost
     results.flexibility_units[idx] = total.flexibility
-    results.flexibility_expenses[idx] = flexibility_expenses
+    results.flexibility_expenses[idx] = total_flexibility_expenses
     results.surplus_units[idx] = total.surplus
-    results.surplus_revenue[idx] = surplus_revenue
+    results.surplus_revenue[idx] = total_surplus_revenue
 
     for vessel_name, units in market.vessels.items():
         vessel = vessels[vessel_name]
 
-        remedial_expenses = units.remedial * remedial_cost
-        flexibility_expenses = units.flexibility * flexibility_cost
-        surplus_revenue = units.surplus * flexibility_cost
+        remedial_expenses = units.remedial * market.remedial_cost
+        flexibility_expenses = units.flexibility * market.flexibility_cost
+        surplus_revenue = units.surplus * market.flexibility_cost
 
         vessel.results.remedial_units[regulation.name][idx] += units.remedial
         vessel.results.remedial_expenses[idx] += remedial_expenses

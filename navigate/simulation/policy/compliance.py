@@ -37,7 +37,7 @@ def calculate_regulation_compliance(
         Multiplier of each vessel in the existing bunkering LP, in the LP's order,
         which the sums over the vessels follow.
     idx
-        Current time-step index.
+        Time-step index of the bunkering LP.
     """
     for regulation in regulations.values():
         if not regulation.active:
@@ -64,7 +64,8 @@ def _record_compliance(
         total_measure += multiplier * account.measure
         total_allowance += multiplier * account.allowance
 
-        # a vessel with no port in the jurisdiction has a zero measure
+        # a vessel that spent no energy under INTENSITY, or has no regulated cargo
+        # miles under a transport measure, has a zero measure
         if account.measure <= 0.0:
             continue
 
@@ -78,9 +79,9 @@ def _record_compliance(
 
     # shared compliance and threshold only make sense for absolute emissions and
     # energy intensity: transport-based intensities need not share a unit
-    if regulation.measure not in (
-        RegulationMeasureID.ABSOLUTE,
-        RegulationMeasureID.INTENSITY,
+    if regulation.measure in (
+        RegulationMeasureID.TRANSPORT,
+        RegulationMeasureID.TRANSPORT_NOMINAL,
     ):
         return
 

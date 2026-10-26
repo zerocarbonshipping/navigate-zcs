@@ -10,11 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import LevySchemeID, PolicyScopeID
-from navigate.util import (
-    TON_PER_GJ_TO_GRAM_PER_MJ,
-    list_intersection,
-    unique_list,
-)
+from navigate.util import TON_PER_GJ_TO_GRAM_PER_MJ, list_intersection, unique_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -163,7 +159,7 @@ def _calculate_regulation_wtt(
 
         ports = unique_list(vessel.route.ports)
 
-        for fuel in _target_fuels(regulation, vessel):
+        for fuel in _select_target_fuels(regulation, vessel):
             plants = plants_by_fuel.get(fuel.name, [])
 
             for emission in regulation.emissions:
@@ -200,13 +196,13 @@ def _calculate_regulation_ttw(
     supplied = _evaluate_supplied(regulation, regulation.fuel_ttw, times)
 
     for vessel_name, vessel in vessels.items():
-        for converter_name, fuel in _target_converter_fuels(regulation, vessel):
+        for converter_name, fuel in _pair_target_converter_fuels(regulation, vessel):
             for emission in regulation.emissions:
                 key = (vessel_name, converter_name, fuel.name, emission.name)
                 ttw = supplied[(fuel.name, emission.name)]
 
                 if ttw is None:
-                    consumption, slip = _converter_ttw(regulation, vessel, key)
+                    consumption, slip = _get_converter_ttw(regulation, vessel, key)
                 else:
                     # TODO: change if deciding to split input
                     consumption, slip = ttw, 0.0
@@ -236,7 +232,7 @@ def _calculate_regulation_emission_coefficients(
     expectation = regulation.expectation
 
     for vessel_name, vessel in vessels.items():
-        for converter_name, fuel in _target_converter_fuels(regulation, vessel):
+        for converter_name, fuel in _pair_target_converter_fuels(regulation, vessel):
             key = (vessel_name, converter_name, fuel.name)
             coefficient = _calculate_regulation_coefficient(regulation, key, idx)
 
@@ -450,13 +446,13 @@ def _calculate_levy_ttw(
     supplied = _evaluate_supplied(levy, levy.fuel_ttw, times)
 
     for vessel_name, vessel in vessels.items():
-        for fuel in _target_fuels(levy, vessel):
+        for fuel in _select_target_fuels(levy, vessel):
             for emission in levy.emissions:
                 key = (vessel_name, fuel.name, emission.name)
                 ttw = supplied[(fuel.name, emission.name)]
 
                 if ttw is None:
-                    consumption, slip = _mean_ttw(levy, vessel, key)
+                    consumption, slip = _get_mean_ttw(levy, vessel, key)
                 else:
                     # TODO: change if deciding to split input
                     consumption, slip = ttw, 0.0
@@ -502,9 +498,9 @@ def _calculate_levy_costs(
         if not ports:
             continue
 
-        policed = levy.vessel_is_policed(vessel_name)
+        is_policed = levy.vessel_is_policed(vessel_name)
 
-        for fuel in _target_fuels(levy, vessel):
+        for fuel in _select_target_fuels(levy, vessel):
             lhv = vessel.expectation.get_mean_effective_lhv(fuel.name)
 
             for port in ports:
@@ -515,7 +511,7 @@ def _calculate_levy_costs(
 
                 # zero rather than unwritten: an event can stop the levy policing
                 # the vessel, and the cost written while it did would remain
-                if not policed:
+                if not is_policed:
                     expectation.set_cost(idx, key, 0.0)
                     continue
 
@@ -664,7 +660,7 @@ def _average_wtt_over_route(
     return np.stack(estimates).mean(axis=0)
 
 
-def _converter_ttw(
+def _get_converter_ttw(
     regulation: Regulation, vessel: Vessel, key: tuple[str, str, str, str]
 ) -> tuple[float, float]:
     """
@@ -694,7 +690,7 @@ def _converter_ttw(
     return consumption, slip
 
 
-def _mean_ttw(
+def _get_mean_ttw(
     levy: Levy, vessel: Vessel, key: tuple[str, str, str]
 ) -> tuple[float, float]:
     """
@@ -765,14 +761,12 @@ def _evaluate_supplied(
 
 def _calculate_emission_factor(
     policy: Levy | Regulation,
-    key_wtt: tuple[str, ...],
+    key_wtt: tuple[str, str, str],
     key_ttw: tuple[str, ...],
     idx: int,
 ) -> FloatLike:
     """
     Calculate the emission factor from pre-defined WTT and TTW emission factors.
-
-    Used for both levies and regulations.
 
     Parameters
     ----------
@@ -827,7 +821,7 @@ def _apply_gwp(
     return emission_factor * gwp
 
 
-def _target_fuels(policy: Levy | Regulation, vessel: Vessel) -> list[Fuel]:
+def _select_target_fuels(policy: Levy | Regulation, vessel: Vessel) -> list[Fuel]:
     """
     Filter the policy's targeted fuels down to those usable by a vessel.
 
@@ -846,7 +840,7 @@ def _target_fuels(policy: Levy | Regulation, vessel: Vessel) -> list[Fuel]:
     return [fuel for fuel in policy.fuels if fuel.name in vessel.usable_fuels]
 
 
-def _target_converter_fuels(
+def _pair_target_converter_fuels(
     regulation: Regulation, vessel: Vessel
 ) -> list[tuple[str, Fuel]]:
     """

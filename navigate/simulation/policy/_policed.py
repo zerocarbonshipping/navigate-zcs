@@ -33,7 +33,7 @@ def select_policed[T](regulation: Regulation, items: dict[str, T]) -> dict[str, 
     regulation
         Regulation whose policed vessels are selected.
     items
-        Entries keyed by vessel name, in the order the sums over the vessels follow.
+        Entries keyed by vessel name.
 
     Returns
     -------
@@ -78,16 +78,40 @@ def calculate_vessel_account(
 
     emissions = expectation.get_vessel_emissions(vessel_name, idx)
     measure = calculate_achieved_measure(regulation, vessel_name, idx)
-
-    if regulation.scheme == RegulationSchemeID.FLEXIBLE:
-        threshold = expectation.get_adjusted_shared_threshold(idx)
-    else:
-        threshold = expectation.get_adjusted_vessel_threshold(vessel_name, idx)
+    threshold = get_adjusted_threshold(regulation, vessel_name, idx)
 
     if np.isnan(threshold):
         threshold = expectation.get_vessel_threshold(vessel_name, idx)
 
     return VesselAccount(emissions, measure, threshold * measure)
+
+
+def get_adjusted_threshold(regulation: Regulation, vessel_name: str, idx: int) -> float:
+    """
+    Get the adjusted threshold a policed vessel is held to at a time step.
+
+    Under FLEXIBLE, every vessel is held to the shared adjusted threshold.
+
+    Parameters
+    ----------
+    regulation
+        Regulation policing the vessel.
+    vessel_name
+        Name of the vessel, which entered the bunkering LP.
+    idx
+        Time-step index of the bunkering LP.
+
+    Returns
+    -------
+    float
+        Adjusted threshold of the vessel; NaN where the regulation adjusted none.
+    """
+    expectation = regulation.expectation
+
+    if regulation.scheme == RegulationSchemeID.FLEXIBLE:
+        return expectation.get_adjusted_shared_threshold(idx)
+
+    return expectation.get_adjusted_vessel_threshold(vessel_name, idx)
 
 
 def calculate_achieved_measure(
@@ -141,6 +165,7 @@ def normalize_by_measure(regulation: Regulation, value: float, measure: float) -
     if regulation.measure == RegulationMeasureID.ABSOLUTE:
         return value
 
-    # the measure is zero for a vessel that spent no energy or has no port in the
-    # jurisdiction, and for a pool without policed vessels
+    # the measure is zero for a vessel that spent no energy under INTENSITY or has no
+    # regulated cargo miles under a transport measure, and for a pool without policed
+    # vessels
     return float(divide_nonzero(value, measure))
