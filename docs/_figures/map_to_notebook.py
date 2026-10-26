@@ -55,9 +55,10 @@ WORKSHOP = HERE.parent / "workshop"
 MAPS = {
     "example_4": {
         "stem": "example_4_map",
-        # Session 1 introduces the case, Sessions 3 and 4 open with the same map
+        # Session 1 introduces the case, Sessions 3 and 4 open with the same map,
+        # and Session 5 shows it with example 1, the prompt that rebuilds it
         "notebooks": ["01-run-a-simple-case.ipynb", "03-how-the-case-is-built.ipynb",
-                      "04-how-navigate-solves-it.ipynb"],
+                      "04-how-navigate-solves-it.ipynb", "05-build-your-own-case.ipynb"],
         "alt": ("Map of the Chile to Rotterdam copper trade: the two bunker "
                 "ports, a fleet of ships on the voyage via the Panama Canal, "
                 "and the fuel production sites in Patagonia and southern "
@@ -67,8 +68,8 @@ MAPS = {
     },
     "reference_scenario": {
         "stem": "reference_scenario_map",
-        # Session 2 opens with this map
-        "notebooks": ["02-run-a-global-case.ipynb"],
+        # Session 2 opens with this map; Session 5 shows it with example 2
+        "notebooks": ["02-run-a-global-case.ipynb", "05-build-your-own-case.ipynb"],
         "alt": ("Map of the Navigate reference scenario: five fuel-supply "
                 "regions shaded by their 2050 electricity cost, with Europe "
                 "ringed as the EU ETS and FuelEU jurisdiction"),

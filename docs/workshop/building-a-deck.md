@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC-BY-4.0
 # Building a deck with an AI assistant
 
 This page is written for the AI assistant that builds a Navigate deck from one of
-the prompts of [Session 5](05-build-your-own-case.ipynb), and for the person
+the prompts of [Session 5](05-build-your-own-case.ipynb) or of the prompt bank, and for the person
 checking its work. The prompt gives the case; this page gives what every case
 shares: how Navigate works, where the deck goes, where its numbers may come from,
 and what to report. Read all of it before writing any file. Where the prompt and

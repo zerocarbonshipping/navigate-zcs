@@ -11,9 +11,29 @@ entry closest to your case, change what differs, and give it to your assistant.
 The rules every deck shares are in [Building a deck with an AI
 assistant](building-a-deck.md); the prompts here only describe their case.
 
-[Session 5](05-build-your-own-case.ipynb) has four more: one trade between two
-ports, inland shipping on the Rhine (its test notes are below), two fleets in
-one market, and the world fleet cut down.
+[Session 5](05-build-your-own-case.ipynb) shows new users five examples, with
+their prompts: Sessions 1 and 2 rebuilt, one trade between two ports, inland
+shipping on the Rhine (its test notes are below) and two fleets in one market.
+This bank is the larger set, not displayed on the site: it holds every tested
+prompt, so that assistants can start from the closest one and the prompts can
+be improved as more people build decks. The start-up prompt of Session 5 reads
+the index below.
+
+## Index
+
+One line per prompt, Session 5's included. A new entry adds its line here.
+
+| Entry | The question it answers | Scale | Ships | Policy | Tested |
+|---|---|---|---|---|---|
+| Session 5, example 1: Rebuild Session 1's case | Which fuels do owners choose on one long trade under EU policy? | One trade, two ports | 300 Panamax bulk carriers | EU ETS and FuelEU on half the voyage | yes |
+| Session 5, example 2: Rebuild Session 2's reference scenario | What does the world fleet burn to 2050 under a global fuel standard? | The world | The library's whole fleet | EU ETS, FuelEU, global fuel standard | yes |
+| Session 5, example 3: One trade, two ports | What does the model do on one trade when nothing pushes it? | One trade, two ports | 200 Suezmax tankers | None | yes |
+| Inland waterways in Germany (prompt: Session 5, example 4) | Does a national CO2 price move owners to drop-in fuels or new engines? | One river trade | 300 Rhine cargo vessels | National CO2 price | 2026-10-16 |
+| Session 5, example 5: Two fleets, one market | How much do the owners' efficiency choices matter on the same trade? | One trade of your choice | Two fleets of one class | Your choice | yes |
+| EU short-sea feeders | How do owners comply with EU ETS and FuelEU, and at what cost? | One trade, both ports in the EU | 1,500 TEU feeders | EU ETS and FuelEU | 2026-10-19 |
+| Green finance | Do cheaper loans bring zero-emission ships forward? | One trade | Panamax ore carriers | Cheaper cost of capital | 2026-10-19 |
+| A global study: the cost of waiting | What does starting a global fuel standard late cost? | The world | The library's whole fleet | Global fuel standard, delayed | ran; criteria not checked |
+| The world fleet, simplified | What does a cut-down world fleet do under EU policy? | The world, two or three classes | Library fleets | EU ETS and FuelEU | ran; criteria not checked |
 
 ## What "it works" means here
 
@@ -76,7 +96,7 @@ to 150 USD/t the owners pay the price rather than switch fuel, and order a few
 more LNG ships; the drop-in fuels need roughly 440 USD/t (biodiesel) to 800-1,100
 USD/t (e-diesel). Treat that as a property of the placeholders, not of the Rhine.
 
-**The prompt** is Session 5's example 2, "Inland waterways in Germany", in
+**The prompt** is Session 5's example 4, "Inland waterways in Germany", in
 `docs/workshop/05-build-your-own-case.ipynb`.
 
 ### EU short-sea feeders: what EU ETS and FuelEU make the owners do
@@ -358,4 +378,69 @@ Then, from each report, give me side by side:
   whether the delayed run catches up with the reference by 2050.
 Say plainly that these are coarse-grid runs: compare them with each other, not
 with the yearly reference scenarios.
+````
+
+### The world fleet, simplified: the global picture at a size you can iterate on
+
+**The study.** No geography here: the Center's reference scenarios model twenty-three vessel classes on the library's own global operating profiles, and the only "places" are two abstract ports that exist so the EU measures know what they cover. This prompt keeps two or three classes of your choice, imported whole from the library with their own fleets, orderbooks and technologies, against the library's full fuel-supply chain in five regions and under EU ETS and FuelEU. Expect several minutes per run.
+
+**What comes from the library.** Everything: the deck is almost entirely `Load`
+statements, and each class is imported whole, with its own vessels, age
+distribution, orderbook, technologies and retrofit costs.
+
+**What is INVENTED.** Nothing. Which two or three classes to keep is the user's
+choice.
+
+**Limits.** Fewer fleets than the library's twenty-three (building-a-deck.md says
+what that means for DefaultConverterAvailable), and EU ETS and FuelEU only: no
+global fuel standard.
+
+**Tested:** as Session 5's fourth example (added 2026-09-25): built cold, it ran
+without errors on the first attempt. It has not yet been checked against the
+criteria above the way the other entries were. Moved here from Session 5 on
+2026-10-26.
+
+````text
+You are helping me build a simulation deck for Navigate, the shipping
+decarbonisation model. Write the files yourself; do not only
+describe them.
+
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+THE DECK
+A new folder, simulations/user/[YOUR FOLDER NAME]/.
+
+THE CASE
+A cut-down version of the Center's reference scenarios. No route, no map, no real
+ports - I want the global picture, not a trade.
+simulations/scenarios/basecase_mid_regulation/ is the full reference scenario
+this case cuts down.
+
+- Fleets: [TWO OR THREE CLASSES, e.g. tanker_127k_dwt and bulk_carrier_80k_dwt],
+  imported whole from the library (Import Fleet "..."), so each brings its own
+  vessels, age distribution, orderbook, technologies and retrofit costs
+- Geography: none of your own. Load DefaultVoyage for the per-class operating
+  profiles and DefaultPort for the two abstract ports the library uses.
+- Fuels and production: load the library's whole chain - DefaultEmission,
+  DefaultFeedstock, DefaultFuel, DefaultProducer, DefaultPlant, DefaultRegion,
+  DefaultSource, DefaultTransport
+- Regulation: EU ETS and FuelEU at their library settings (DefaultRegulation)
+- Also load what every library deck needs, as building-a-deck.md lists it.
+
+NUMBERS
+Everything comes from the library by construction here, because the deck is
+almost entirely Load statements. If you find yourself writing a number, stop and
+tell me why the library has none.
+
+DECK RULES
+This deck has fewer than the library's twenty-three fleets: follow what
+building-a-deck.md says about DefaultConverterAvailable.
+
+BEFORE YOU TELL ME IT WORKS
+Expect a run of five to ten minutes, not seconds. Tell me the fuel mix at both
+ends of the horizon, from the report.
 ````

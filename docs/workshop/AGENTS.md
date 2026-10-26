@@ -106,8 +106,15 @@ listed in the `.nav` header.
 
 ## Prompts
 
-The start-up prompt and the full prompts in Sessions 1, 2 and 5 are tested as a
-chain, cold, by an assistant that sees only the prompt text:
+Session 5 shows new users a few examples, each with its prompts; its examples 1
+and 2 rebuild Sessions 1 and 2. `prompt-bank.md` is the larger set, not on the
+site: every tested prompt, kept so that assistants start from the closest one and
+the prompts improve as more people build decks. Session 5's start-up prompt reads
+both. A new tested prompt goes into the bank with its line in the bank's index;
+it goes into Session 5 only when the authors ask, with a line in its table.
+
+The start-up prompt and the full prompts of Session 5 and the bank are tested as
+a chain, cold, by an assistant that sees only the prompt text:
 
 1. the start-up prompt, carried through: it writes a full prompt, and a fresh
    assistant builds and runs it;
