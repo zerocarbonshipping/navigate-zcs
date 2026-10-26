@@ -65,7 +65,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         for levy in port.imposed_levies:
             cost = levy.expectation.get_cost((v, port.name, f), idx)
             collected = cost * mass
-            level = np.float64(levy.expectation.get_level(idx))
+            level = levy.expectation.get_level(idx)
 
             levy.results.collected[idx] += collected * multiplier
             results.levy_expenses[f][idx] += collected
