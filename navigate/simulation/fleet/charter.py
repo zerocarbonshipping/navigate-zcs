@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.economics.flows import (
+from navigate.simulation.economics import (
     Component,
     add_capex,
     add_fixed_opex,
     add_variable_opex,
     build_cargo_flow,
+    calculate_net_present_value,
 )
-from navigate.simulation.economics.metric import calculate_net_present_value
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter

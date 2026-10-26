@@ -29,9 +29,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import UtilityID
-from navigate.simulation.economics.decision import calculate_asset_shares
-from navigate.simulation.economics.flows import (
+from navigate.simulation.economics import (
     build_year_starts,
+    calculate_asset_shares,
     trim_flow_to_lifetime,
 )
 from navigate.simulation.fleet._composition import (

@@ -21,7 +21,6 @@ from navigate.simulation.economics.flows import (
     build_production_flow,
     build_year_starts,
     expand_to_flow,
-    get_age_flow,
     get_flow_size,
     trim_flow_to_lifetime,
 )

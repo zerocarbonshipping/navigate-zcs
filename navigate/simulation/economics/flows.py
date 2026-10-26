@@ -391,25 +391,6 @@ def build_operating_flows(
     return year_starts, overlap / YEAR
 
 
-def get_age_flow(lead_time: float, lifetime: float) -> FloatArray:
-    """
-    Return a vector of ones sized for an asset's yearly flow, to levelize by age.
-
-    Parameters
-    ----------
-    lead_time
-        Lead time for constructing the asset, in years.
-    lifetime
-        Lifetime of the asset, in years.
-
-    Returns
-    -------
-    FloatArray
-        A vector of ones.
-    """
-    return np.ones(get_flow_size(lead_time, lifetime))
-
-
 def get_flow_size(lead_time: float, lifetime: float) -> int:
     """
     Get the number of yearly bins needed to hold an asset's construction and operation.

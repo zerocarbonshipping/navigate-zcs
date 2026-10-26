@@ -7,8 +7,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.simulation.economics.flows import build_operating_flows
-from navigate.simulation.economics.metric import calculate_levelized_cost
+from navigate.simulation.economics import (
+    build_operating_flows,
+    calculate_levelized_cost,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission

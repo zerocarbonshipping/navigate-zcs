@@ -19,8 +19,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS
-from navigate.simulation.economics.flows import build_operating_flows
-from navigate.simulation.economics.metric import calculate_net_present_value
+from navigate.simulation.economics import (
+    build_operating_flows,
+    calculate_net_present_value,
+)
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import TOLERANCE, divide_nonzero, sum_values
 

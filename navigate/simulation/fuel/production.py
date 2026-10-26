@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import SourceDependencyID
 from navigate.core.node_type import is_feedstock, is_process
-from navigate.simulation.economics.flows import (
+from navigate.simulation.economics import (
     Component,
     add_capex,
     add_fixed_opex,
@@ -17,8 +17,8 @@ from navigate.simulation.economics.flows import (
     add_variable_opex,
     add_variable_wtt,
     build_production_flow,
+    calculate_levelized_cost,
 )
-from navigate.simulation.economics.metric import calculate_levelized_cost
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
