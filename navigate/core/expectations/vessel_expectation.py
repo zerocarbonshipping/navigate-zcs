@@ -156,9 +156,9 @@ class VesselExpectation(_Expectation):
         self._cargo_miles_leg_nominal = self._default_list_array(n_leg)
 
         # speeds
-        self._speed_mean = self._default_float(default=np.nan)
-        self._speed_anchor_reference = self._default_float(default=np.nan)
-        self._speed_anchor_optimal = self._default_float(default=np.nan)
+        self._speed_mean = np.nan
+        self._speed_anchor_reference = np.nan
+        self._speed_anchor_optimal = np.nan
         self._speeds_condition = self._default_list_array(n_condition)
 
         # durations

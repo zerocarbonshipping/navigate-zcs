@@ -20,7 +20,6 @@ class _Expectation:
     """Timeline length and the default-valued storage an expectation allocates."""
 
     def __init__(self) -> None:
-
         self._length: int = 0
 
     def _initialize_expectation(self, length: int) -> None:
@@ -29,61 +28,43 @@ class _Expectation:
     def get_shape(self, start: int = 0) -> tuple[int]:
         return (self._length - start,)
 
-    def _default_float(self, default: float | None = None) -> float:
-
-        if default is None:
-            return 0.0
-
-        return default
-
-    def _default_array(self, default: float | None = None) -> FloatArray:
-
-        if default is None:
-            return np.zeros(self.get_shape())
-
+    def _default_array(self, default: float = 0.0) -> FloatArray:
         return np.full(self.get_shape(), default, dtype=np.float64)
 
-    def _default_2d_array(self, n: int, default: float | None = None) -> FloatArray:
-        shape = (n, self._length)
+    def _default_2d_array(self, count: int, default: float = 0.0) -> FloatArray:
+        return np.full((count, self._length), default, dtype=np.float64)
 
-        if default is None:
-            return np.zeros(shape)
-
-        return np.full(shape, default, dtype=np.float64)
-
-    def _default_list_array(
-        self, n: int, default: float | None = None
-    ) -> list[FloatArray]:
-        return [self._default_array(default) for _ in range(n)]
+    def _default_list_array(self, count: int, default: float = 0.0) -> list[FloatArray]:
+        return [self._default_array(default) for _ in range(count)]
 
     def _default_dict_float[K](
-        self, keys: Iterable[K], default: float | None = None
+        self, keys: Iterable[K], default: float = 0.0
     ) -> dict[K, float]:
-        return {key: self._default_float(default) for key in keys}
+        return dict.fromkeys(keys, default)
 
     def _default_dict_array[K](
-        self, keys: Iterable[K], default: float | None = None
+        self, keys: Iterable[K], default: float = 0.0
     ) -> dict[K, FloatArray]:
         return {key: self._default_array(default) for key in keys}
 
     def _default_tuple_dict_float[K1, K2](
-        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float | None = None
+        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float = 0.0
     ) -> dict[tuple[K1, K2], float]:
         return self._default_dict_float(itertools.product(keys1, keys2), default)
 
     def _default_tuple_dict_array[K1, K2](
-        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float | None = None
+        self, keys1: Iterable[K1], keys2: Iterable[K2], default: float = 0.0
     ) -> dict[tuple[K1, K2], FloatArray]:
         return self._default_dict_array(itertools.product(keys1, keys2), default)
 
     def _default_dict_list_array[K](
-        self, keys: Iterable[K], length: int, default: float | None = None
+        self, keys: Iterable[K], count: int, default: float = 0.0
     ) -> dict[K, list[FloatArray]]:
-        return {key: self._default_list_array(length, default) for key in keys}
+        return {key: self._default_list_array(count, default) for key in keys}
 
     def _reset_dict_float[K](self, dict_: dict[K, float]) -> None:
         for key in dict_:
-            dict_[key] = self._default_float()
+            dict_[key] = 0.0
 
     def _reset_dict_array[K](self, dict_: dict[K, FloatArray]) -> None:
         for key in dict_:
@@ -94,4 +75,4 @@ class _Expectation:
     ) -> None:
         forward = np.s_[idx:]
         for array in dict_.values():
-            array[forward] = self._default_array()[forward]
+            array[forward] = 0.0
