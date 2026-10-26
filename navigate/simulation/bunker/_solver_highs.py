@@ -60,11 +60,11 @@ class HighsModel:
     """
 
     def __init__(self, name: str, options: BunkerOptions) -> None:
-        tolerance = float(options.solution_tolerance)
+        tolerance = options.solution_tolerance
 
         self._highs: highspy.Highs = highspy.Highs()
         self._highs.setOptionValue("output_flag", False)
-        self._highs.setOptionValue("threads", int(options.threads))
+        self._highs.setOptionValue("threads", options.threads)
         self._highs.setOptionValue("primal_feasibility_tolerance", tolerance)
         self._highs.setOptionValue("dual_feasibility_tolerance", tolerance)
 
@@ -136,7 +136,6 @@ class HighsModel:
     ) -> None:
         """Set the coefficient of a variable in a constraint."""
         key = (constraint, variable)
-        value = float(value)
         if self._coefficients.get(key) == value:
             return
 
@@ -145,7 +144,6 @@ class HighsModel:
 
     def set_rhs(self, constraint: Constraint, value: float) -> None:
         """Set the right-hand side of a constraint."""
-        value = float(value)
         sense = self._row_senses[constraint]
 
         self._row_rhs[constraint] = value
@@ -153,7 +151,7 @@ class HighsModel:
 
     def set_cost(self, variable: Variable, value: float) -> None:
         """Set the objective coefficient of a variable."""
-        self._pending_cost[variable] = float(value)
+        self._pending_cost[variable] = value
 
     def set_upper_bound(self, variable: Variable, value: float) -> None:
         """
@@ -161,7 +159,7 @@ class HighsModel:
 
         The lower bound stays zero.
         """
-        self._pending_upper_bound[variable] = float(value)
+        self._pending_upper_bound[variable] = value
 
     def remove_variable(self, variable: Variable) -> None:
         """

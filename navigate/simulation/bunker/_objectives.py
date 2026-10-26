@@ -20,20 +20,20 @@ logger = logging.getLogger(__name__)
 
 def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
-    Update the objective coefficients of one vessel, and its shore-power bounds.
+    Update the objective coefficients of a vessel's variables.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     vessel
-        Vessel for which objective is updated.
+        Vessel whose objective coefficients are updated.
     """
-    _update_bunker_objectives(alg, vessel)
-    _update_shore_power(alg, vessel)
+    _update_bunker_costs(alg, vessel)
+    _update_shore_power_costs(alg, vessel)
 
 
-def _update_bunker_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
+def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """Set each bunker variable's cost: the multiplier times the price plus levies."""
     v = vessel.name
     multiplier = alg.multipliers[v]
@@ -68,21 +68,17 @@ def _update_bunker_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                     )
 
 
-def _update_shore_power(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """Set the cost and upper bound of each shore-power variable of the vessel."""
+def _update_shore_power_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
+    """Set each shore-power variable's cost: the multiplier times the energy cost."""
     v = vessel.name
     multiplier = alg.multipliers[v]
-    limits = vessel.expectation.get_shore_power_limit_port(alg.idx)
 
     for p, port in enumerate(vessel.route.ports):
         if (v, p) not in alg.shore_power:
             continue
 
-        shore_power = alg.shore_power[v, p]
         cost = float(port.expectation.get_shore_power_cost(alg.idx))
-
-        alg.model.set_upper_bound(shore_power, float(limits[p]))
-        alg.model.set_cost(shore_power, multiplier * cost)
+        alg.model.set_cost(alg.shore_power[v, p], multiplier * cost)
 
 
 def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
@@ -99,6 +95,6 @@ def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
         remedial_factor = alg.remedial_factor_individual[r, v]
         alg.model.set_cost(remedial_factor, alg.multipliers[v] * cost)
 
-    for r in alg.regulation_total_rhs_flexibility:
+    for r in alg.regulation_rhs_flexibility:
         cost = alg.regulations[r].expectation.get_remedial_cost(alg.idx)
         alg.model.set_cost(alg.remedial_factor_flexibility[r], cost)

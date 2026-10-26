@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the constraints that dual-fuel converters burn their minimum pilot-fuel share."""
+"""Update the constraints that dual-fuel converters burn their minimum pilot fuel."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import get_constraint
-from navigate.simulation.bunker._indices import get_converters, get_port_converters
+from navigate.simulation.bunker._indices import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     r"""
-    Add the constraints that dual-fuel converters burn enough pilot fuel.
+    Update the constraints that dual-fuel converters burn enough pilot fuel.
 
     For each dual-fuel converter c and leg (i, e), and analogously per port p
     with the port spend y (vessel index omitted):
@@ -37,18 +37,19 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     alg
         The algorithm instance.
     vessel
-        Vessel for which constraints are added.
+        Vessel whose constraints are updated.
     """
     route = vessel.route
     port_converters = get_port_converters(vessel)
 
     legs = route.get_legs()
-    stops = range(len(route.ports))
+    stops = route.get_stops()
 
-    for c, converter in get_converters(vessel).items():
+    for converter in vessel.get_converters():
         if not converter.is_dual_fuel():
             continue
 
+        c = converter.name
         coefficients = _calculate_pilot_coefficients(vessel, converter)
         _update_sea_rows(alg, vessel, c, coefficients, legs)
 
@@ -72,7 +73,7 @@ def _update_sea_rows(
     alg
         The algorithm instance.
     vessel
-        Vessel whose rows are updated.
+        Vessel whose constraints are updated.
     c
         Converter name.
     coefficients
@@ -87,7 +88,7 @@ def _update_sea_rows(
 
     for i, e in legs:
         key = (v, c, i, e)
-        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_at_sea")
+        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_sea")
 
         for f, coefficient in coefficients.items():
             model.set_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
@@ -108,7 +109,7 @@ def _update_port_rows(
     alg
         The algorithm instance.
     vessel
-        Vessel whose rows are updated.
+        Vessel whose constraints are updated.
     c
         Converter name.
     coefficients
@@ -123,7 +124,7 @@ def _update_port_rows(
 
     for p in stops:
         key = (v, c, p)
-        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_in_port")
+        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_port")
 
         for f, coefficient in coefficients.items():
             model.set_coefficient(constraint, spend_port[v, c, f, p], coefficient)

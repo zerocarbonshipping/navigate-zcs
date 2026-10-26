@@ -478,6 +478,18 @@ class Route(Node):
             for entry in range(n_conditions)
         )
 
+    def get_stops(self) -> range:
+        """
+        Return the index of each stop of the route.
+
+        Returns
+        -------
+        range
+            One index per entry of the route's ports, so a port called twice is two
+            stops.
+        """
+        return range(len(self.ports))
+
     def get_tank_stops(self) -> tuple[int, ...]:
         """
         Return the stops at which the bunkering tracks the fuel held in the tank.
@@ -489,7 +501,7 @@ class Route(Node):
             to carry fuel along.
         """
         if self.route_type == RouteTypeID.LINER:
-            return tuple(range(len(self.ports)))
+            return tuple(self.get_stops())
 
         return ()
 

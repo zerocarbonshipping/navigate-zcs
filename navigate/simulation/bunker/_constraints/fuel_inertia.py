@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the constraints flooring a vessel's bunkering at its previous, decayed level."""
+"""Update the constraints flooring bunkering at the vessel's previous, decayed level."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     r"""
-    Add constraints enforcing a floor on bunkered fuel carried from the previous step.
+    Update the constraints that floor bunkering at its previous, decayed level.
 
     For each port q and usable fuel f the port may bunker (vessel index omitted):
 
@@ -38,13 +38,12 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     alg
         The algorithm instance.
     vessel
-        Vessel for which constraints are updated.
+        Vessel whose constraints are updated.
     """
     if alg.idx == 0:
         return
 
     v = vessel.name
-    model = alg.model
 
     # a change in the vessel's energy demand since the last time-step scales the
     # floor by the ratio, downwards only: a vessel whose fuel consumption grew
@@ -56,10 +55,14 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     # the floor is scaled by the change in vessel multipliers, so that only the
     # vessels that actually bunkered previously are affected
     expectation = alg.fleets[vessel.fleet_assignment].expectation
-    multiplier_old = np.float64(expectation.get_multiplier(v, alg.scope, alg.idx - 1))
+    multiplier_old = float(expectation.get_multiplier(v, alg.scope, alg.idx - 1))
     multiplier_scaling = min(multiplier_old / alg.multipliers[v], 1.0)
 
     scaling = multiplier_scaling * energy_scaling
+
+    rows = alg.fuel_inertia
+    bunker = alg.bunker
+    model = alg.model
 
     for f in vessel.usable_fuels:
         for p, port in enumerate(vessel.route.ports):
@@ -79,19 +82,17 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
             else:
                 floor = 0.0
 
-            constraint = get_constraint(
-                alg, alg.fuel_inertia, key, ">=", "fuel_inertia"
-            )
+            constraint = get_constraint(alg, rows, key, ">=", "fuel_inertia")
 
             model.set_rhs(constraint, floor)
-            model.set_coefficient(constraint, alg.bunker[v, p, f], 1.0)
+            model.set_coefficient(constraint, bunker[v, p, f], 1.0)
 
 
 def _get_previous_bunker_mass(
     alg: BunkerAlgorithm, vessel: Vessel, port_name: str, fuel_name: str
-) -> np.float64:
+) -> float:
     """
-    Get the fuel mass the previous step bunkered at the port.
+    Get the fuel mass the previous time-step bunkered at the port.
 
     Later expected steps continue from the expected solution; the existing scope and
     the first expected step continue from what the existing solution actually
@@ -100,15 +101,19 @@ def _get_previous_bunker_mass(
     expectation = vessel.expectation
 
     if alg.scope == BunkerScopeID.EXPECTED and alg.idx > alg.current_idx:
-        return np.float64(
-            expectation.get_bunker_mass_expected(port_name, fuel_name, alg.idx - 1)
-        )
+        mass = expectation.get_bunker_mass_expected(port_name, fuel_name, alg.idx - 1)
+        return float(mass)
 
-    return np.float64(expectation.get_bunker_mass_existing(port_name, fuel_name))
+    return expectation.get_bunker_mass_existing(port_name, fuel_name)
 
 
 def _calculate_total_demand(vessel: Vessel, idx: int) -> np.float64:
-    """Sum a vessel's energy demand over every leg and port of its route, in GJ/year."""
+    """
+    Sum a vessel's energy demand over every leg and port of its route, in GJ/year.
+
+    The sum stays a numpy float, so a ratio over a vessel without demand gives inf or
+    nan instead of raising.
+    """
     expectation = vessel.expectation
 
     energy_sea = expectation.get_energy_sea_leg(idx)

@@ -1,67 +1,53 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Look up the converters and port indices the LP is keyed by."""
+"""Look up the port converters and the time-steps that index the bunkering LP."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.util import define_index_map
+import numpy as np
+
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, BunkerScopeID
+from navigate.util import unique_list
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.converter import Converter
-    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
 
 
-def get_converters(vessel: Vessel) -> dict[str, Converter]:
+def get_port_converters(vessel: Vessel) -> list[str]:
     """
-    Return the three converters of a vessel, keyed by name.
+    Return the names of the converters serving port energy demands.
 
     Parameters
     ----------
     vessel
-        Vessel whose converters are returned.
+        Vessel whose port converters are named.
 
     Returns
     -------
-    dict[str, Converter]
-        The propulsion, electrical, and heat converters keyed by name.
+    list[str]
+        The electrical and heat converter names, each once.
     """
-    return {converter.name: converter for converter in vessel.get_converters()}
+    converters = map(vessel.get_converter, PORT_ENERGY_DEMANDS)
+    return unique_list(converter.name for converter in converters)
 
 
-def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
+def get_scope_steps(idx: int, scope: BunkerScopeID) -> int | slice:
     """
-    Return the two converters serving port energy demands, keyed by name.
+    Return the time-steps a bunkering scope reads.
 
     Parameters
     ----------
-    vessel
-        Vessel whose port converters are returned.
+    idx
+        Time-step index at which the bunkering is initiated.
+    scope
+        Whether the steps are read for existing or for expected bunkering.
 
     Returns
     -------
-    dict[str, Converter]
-        The electrical and heat converters keyed by name.
+    int | slice
+        The time-step itself if existing, or every step from it if expected.
     """
-    converters = (vessel.electrical_converter, vessel.heat_converter)
-    return {converter.name: converter for converter in converters}
-
-
-def get_port_name_to_indices(route: Route) -> dict[str, list[int]]:
-    """
-    Return the port indices of a route, keyed by port name.
-
-    Parameters
-    ----------
-    route
-        Route whose ports are indexed.
-
-    Returns
-    -------
-    dict[str, list[int]]
-        A name maps to multiple indices when a route calls the same port more than once.
-    """
-    return define_index_map([port.name for port in route.ports])
+    return idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]

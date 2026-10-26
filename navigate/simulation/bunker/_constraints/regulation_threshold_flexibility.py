@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the fleet-pooled threshold constraints of FLEXIBLE-scheme regulations."""
+"""Update the fleet-pooled threshold constraints of FLEXIBLE-scheme regulations."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.core.enum_ import RegulationSchemeID
 from navigate.simulation.bunker._build import get_constraint
 from navigate.simulation.bunker._constraints._regulation_terms import (
     calculate_regulation_terms,
@@ -16,18 +17,18 @@ if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
-def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) -> None:
+def update_regulation_threshold_flexibility_constraints(alg: BunkerAlgorithm) -> None:
     r"""
-    Add the fleet-pooled threshold constraint of each FLEXIBLE-scheme regulation.
+    Update the constraints that hold the policed vessels to a FLEXIBLE pooled threshold.
 
     For each regulation r:
 
         \sum_{v policed} M_v E_{r,v} - w_r <= R_r
 
     where E is a vessel's T of calculate_regulation_terms (see
-    regulation_individual), M the number of vessels it represents, w the remedial
-    units bought for the pool, and R the pooled threshold bound
-    (update_regulation_flexibility_rhs). Vessels over their individual target are
+    regulation_threshold_individual), M the number of vessels it represents, w the
+    remedial units bought for the pool, and R the pooled threshold bound
+    (update_regulation_rhs_flexibility). Vessels over their individual target are
     balanced by vessels under it; only the pooled excess is priced through the
     remedial variable.
 
@@ -40,10 +41,11 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
     alg
         The algorithm instance.
     """
-    model = alg.model
     rows = alg.regulation_threshold_flexibility
+    remedial_factor_flexibility = alg.remedial_factor_flexibility
+    model = alg.model
 
-    for r, rhs in alg.regulation_total_rhs_flexibility.items():
+    for r, rhs in alg.regulation_rhs_flexibility.items():
         constraint = get_constraint(
             alg, rows, r, "<=", "regulation_threshold_flexibility"
         )
@@ -61,10 +63,36 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
 
             # kept for transferring the regulation solution after the solve
             if is_policed:
-                alg.regulation_emission_terms[(r, v)] = emissions
-                alg.regulation_energy_terms[(r, v)] = energy
+                alg.regulation_emission_terms[r, v] = emissions
+                alg.regulation_energy_terms[r, v] = energy
 
             for variable, weight in terms:
                 model.set_coefficient(constraint, variable, weight * multiplier)
 
-        model.set_coefficient(constraint, alg.remedial_factor_flexibility[r], -1.0)
+        model.set_coefficient(constraint, remedial_factor_flexibility[r], -1.0)
+
+
+def update_regulation_rhs_flexibility(alg: BunkerAlgorithm) -> None:
+    """
+    Update the pooled right-hand sides of FLEXIBLE regulations.
+
+    The pool sums the allowances of the policed vessels, weighted by multipliers.
+
+    Parameters
+    ----------
+    alg
+        The algorithm instance.
+    """
+    for r, regulation in alg.active_regulations.items():
+        if regulation.scheme != RegulationSchemeID.FLEXIBLE:
+            continue
+
+        rhs = 0.0
+        for v in alg.vessels:
+            if not regulation.vessel_is_policed(v):
+                continue
+
+            allowance = regulation.expectation.get_vessel_allowance(v, alg.idx)
+            rhs += allowance * alg.multipliers[v]
+
+        alg.regulation_rhs_flexibility[r] = rhs

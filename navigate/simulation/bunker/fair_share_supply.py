@@ -7,9 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
+from navigate.simulation.bunker._indices import get_scope_steps
 from navigate.util import divide_nonzero, unique_list
 
 if TYPE_CHECKING:
@@ -54,7 +53,7 @@ def _calculate_port_demand(
     fleets: dict[str, Fleet], idx: int, scope: BunkerScopeID
 ) -> dict[tuple[str, FuelTypeID], FloatLike]:
     """Calculate each port's potential demand per fuel type, summed over its vessels."""
-    horizon = _horizon(idx, scope)
+    horizon = get_scope_steps(idx, scope)
     port_demand: dict[tuple[str, FuelTypeID], FloatLike] = {}
 
     for fleet in fleets.values():
@@ -81,7 +80,7 @@ def _calculate_vessel_fair_shares(
 ) -> None:
     """Calculate the vessel's fair share of each port's supply of the given fuels."""
     expectation = vessel.expectation
-    horizon = _horizon(idx, scope)
+    horizon = get_scope_steps(idx, scope)
 
     for port in vessel.route.ports:
         for name, fuel in fuels.items():
@@ -92,15 +91,10 @@ def _calculate_vessel_fair_shares(
             demand = expectation.get_potential_fuel_type_demand(*key, horizon)
             share = divide_nonzero(demand, port_demand[key])
 
-            # existing bunkering evaluates a single time step, where the shares are
+            # existing bunkering evaluates a single time-step, where the shares are
             # zero-dimensional arrays
             if scope == BunkerScopeID.EXISTING:
-                share = np.float64(share)
+                share = float(share)
                 expectation.set_fair_share_fuel_existing(port.name, name, share)
             else:
                 expectation.set_fair_share_fuel_expected(idx, port.name, name, share)
-
-
-def _horizon(idx: int, scope: BunkerScopeID) -> int | slice:
-    """Return the steps a scope reads: the current one, or the rest if expected."""
-    return idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]

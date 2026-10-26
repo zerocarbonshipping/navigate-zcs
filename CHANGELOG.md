@@ -208,7 +208,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     `navigate.driver.run`, the initialization and post-processing headings
     under `navigate.simulation.time_stepping`;
   - the model's modules log under `navigate.simulation.<domain>.<module>`,
-    such as `navigate.simulation.bunker.solver`.
+    such as `navigate.simulation.bunker.bunker_algorithm`.
 - A path written with `./` or a doubled `/` in an `Include` or a report
   `Directory` now appears normalised in error and log messages, such as
   `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
@@ -450,6 +450,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - On HiGHS, an infeasible bunkering problem writes both
   `bunkering_infeasible.ilp` and `bunkering_infeasible.lp`, with the model's
   own constraint and variable names instead of `r0` and `c0` (#466).
+- The bunkering constraints at sea and in port are named
+  `energy_conservation_sea`, `energy_conservation_port`, `pilot_fuel_sea` and
+  `pilot_fuel_port` instead of `..._at_sea` and `..._in_port`, in the
+  infeasible-bunkering error message and in `bunkering_infeasible.ilp`/`.lp`.
 - An `INF` entry in `InitialSplit`, or entries whose sum overflows, stop the
   deck at its line instead of yielding NaN.
 - `set_operational_saving_port` takes only `ELECTRICAL` and `HEAT`: an

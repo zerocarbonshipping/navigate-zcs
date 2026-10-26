@@ -1,13 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Build the regulated expressions and right-hand sides of regulation constraints."""
+"""Calculate the regulated terms of a vessel in the regulation threshold constraints."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
-import navigate.core.enum_ as enum_
 from navigate.simulation.bunker._indices import get_port_converters
 
 if TYPE_CHECKING:
@@ -161,50 +160,3 @@ def _calculate_weights(
             weights[c, f] = _Weights(spend, emission, lhv(c, f))
 
     return weights
-
-
-def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
-    """
-    Update the per-vessel right-hand sides of INDIVIDUAL regulations.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    """
-    for r, regulation in alg.active_regulations.items():
-        if regulation.scheme != enum_.RegulationSchemeID.INDIVIDUAL:
-            continue
-
-        for v in alg.vessels:
-            if not regulation.vessel_is_policed(v):
-                continue
-
-            allowance = regulation.expectation.get_vessel_allowance(v, alg.idx)
-            alg.regulation_rhs_individual[r, v] = allowance
-
-
-def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
-    """
-    Update the pooled right-hand sides of FLEXIBLE regulations.
-
-    The pool sums the allowances of the policed vessels, weighted by multipliers.
-
-    Parameters
-    ----------
-    alg
-        The algorithm instance.
-    """
-    for r, regulation in alg.active_regulations.items():
-        if regulation.scheme != enum_.RegulationSchemeID.FLEXIBLE:
-            continue
-
-        rhs = 0.0
-        for v in alg.vessels:
-            if not regulation.vessel_is_policed(v):
-                continue
-
-            allowance = regulation.expectation.get_vessel_allowance(v, alg.idx)
-            rhs += allowance * alg.multipliers[v]
-
-        alg.regulation_total_rhs_flexibility[r] = rhs

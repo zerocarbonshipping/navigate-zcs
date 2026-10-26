@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the constraints balancing tank fuel mass from tank stop to tank stop."""
+"""Update the constraints balancing tank fuel mass from tank stop to tank stop."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     r"""
-    Add the constraints balancing the fuel mass in tanks from tank stop to tank stop.
+    Update the constraints that balance tank fuel mass from tank stop to tank stop.
 
     The tank legs of a route chain its tank stops 0, ..., N-1 in order. For each
     usable fuel f and tank stop p > 0 (vessel index omitted):
@@ -49,7 +49,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     alg
         The algorithm instance.
     vessel
-        Vessel for which constraints are updated.
+        Vessel whose constraints are updated.
     """
     v = vessel.name
     route = vessel.route

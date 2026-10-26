@@ -18,8 +18,10 @@ if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 # the key of an LP element within its family: a single name, or the node names,
-# route indices and energy demand type the element spans
+# route indices and energy demand type the element spans, led by the vessel name
+# where the element is a vessel's
 type _ElementKey = str | tuple[str | int | EnergyDemandID, ...]
+type VesselKey = tuple[str, *tuple[str | int | EnergyDemandID, ...]]
 
 
 def add_variable[K: _ElementKey](
