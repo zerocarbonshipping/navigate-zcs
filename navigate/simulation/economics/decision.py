@@ -299,7 +299,7 @@ def _calculate_limited_shares(
     limits = np.clip(limits, 0.0, 1.0)
 
     # infeasible: even saturating every option cannot reach a unit total
-    total_limit = float(np.sum(limits))
+    total_limit = np.sum(limits)
     if total_limit < 1.0 - _SHARE_TOLERANCE:
         message = (
             f"sum of limits ({total_limit:.4f}) is below 1; allocation is infeasible "
@@ -349,8 +349,8 @@ def _calculate_redistributed_shares(
         saturated |= over
 
         free = ~saturated
-        total_saturated = float(np.sum(shares[saturated]))
-        total_free = float(np.sum(shares[free]))
+        total_saturated = np.sum(shares[saturated])
+        total_free = np.sum(shares[free])
 
         if total_free <= 0.0:
             break
@@ -633,7 +633,7 @@ def _solve_group_shares[T: Hashable](
     # no group's utility exceeds that of its best member on the inter axis, so at the
     # lower scale the groups take at most half the total
     max_utilities = [group.max_utility for group in groups]
-    lower = -float(np.logaddexp.reduce(max_utilities)) - math.log(2.0)
+    lower = -np.logaddexp.reduce(max_utilities) - math.log(2.0)
 
     # from the upper scale on, every group takes its cap
     cap_scales = []
@@ -671,7 +671,7 @@ class _LimitedGroup:
         self.inter: _Axis = group_inter
         self.intra_shares: FloatArray = intra_shares
         self.max_utility: float = max_utility
-        self.cap: float = min(float(np.sum(self.limits)), 1.0)
+        self.cap: float = min(np.sum(self.limits), 1.0)
 
     def calculate_fill_caps(self, share: float) -> FloatArray:
         """

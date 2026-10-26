@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Yearly cost, WTT and operating flows of assets, and the Component that holds them."""
+"""
+Yearly cost, WTT and operating flows of assets, and the Component that holds them.
+
+Component is used by the fleet's charter and package costs and by fuel production.
+"""
 
 from __future__ import annotations
 
@@ -36,11 +40,11 @@ class Component:
     Parameters
     ----------
     lead_time
-        Asset lead time, in years.
+        Lead time of the asset, in years.
     lifetime
-        Asset lifetime, in years.
+        Lifetime of the asset, in years.
     time_initial
-        Time of investment decision since the start of the simulation, in days.
+        Time of the investment decision, in days.
     emissions
         Names of the emissions to allocate a WTT flow for.
     """
@@ -328,8 +332,7 @@ def build_cargo_flow(
         Cargo-miles per calendar year over the horizon `lead_time + lifetime`.
     """
     rate = np.interp(component.year_starts, timeline, cargo)
-    flow: FloatArray = rate * component.operating_flow
-    return flow
+    return rate * component.operating_flow
 
 
 def build_year_starts(
@@ -386,9 +389,9 @@ def build_operating_flows(
 
     time_commence = _future_time(time_initial, lead_time)
     time_end = _future_time(time_initial, year_starts.size)
-    overlap = _overlap_year_bins(year_starts, time_commence, time_end)
+    operating_flow = _overlap_year_bins(year_starts, time_commence, time_end) / YEAR
 
-    return year_starts, overlap / YEAR
+    return year_starts, operating_flow
 
 
 def get_flow_size(lead_time: float, lifetime: float) -> int:
@@ -401,7 +404,7 @@ def get_flow_size(lead_time: float, lifetime: float) -> int:
     Parameters
     ----------
     lead_time
-        Lead time for constructing the asset, in years.
+        Lead time of the asset, in years.
     lifetime
         Lifetime of the asset, in years.
 
@@ -442,7 +445,7 @@ def expand_to_flow(lifetime: float, value: float) -> FloatArray:
     Parameters
     ----------
     lifetime
-        Lifetime of an asset, in years.
+        Lifetime of the asset, in years.
     value
         Yearly value of operations.
 
@@ -498,26 +501,26 @@ def _future_time(time: float, years: float) -> float:
     return time + years * YEAR
 
 
-def _overlap_year_bins(times: FloatArray, a: float, b: float) -> FloatArray:
+def _overlap_year_bins(year_starts: FloatArray, start: float, end: float) -> FloatArray:
     """
-    Vectorized overlap between [a, b) and each calendar bin [t_i, t_i + YEAR).
+    Calculate the overlap of the interval [start, end) with each calendar-year bin.
 
     Parameters
     ----------
-    times
-        Year-start times, in days (monotonic).
-    a
-        Interval start, in days.
-    b
-        Interval end, in days (exclusive).
+    year_starts
+        Start time of each year, in days.
+    start
+        Start of the interval, in days.
+    end
+        End of the interval, exclusive, in days.
 
     Returns
     -------
     FloatArray
-        Overlap length per bin, in days (same length as `times`).
+        Overlap with each year, in days.
     """
-    left = np.maximum(times, a)
-    right = np.minimum(times + YEAR, b)
+    left = np.maximum(year_starts, start)
+    right = np.minimum(year_starts + YEAR, end)
     overlap: FloatArray = np.clip(right - left, 0.0, YEAR)
     return overlap
 
