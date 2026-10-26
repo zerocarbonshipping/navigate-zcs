@@ -49,7 +49,7 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
 
     capex_flow = component.capex_flow
     cost_flow = component.get_cost_flow()
-    operating_flow = component.constant_overlap
+    operating_flow = component.operating_flow
 
     # reference for non-dimensionalizing technology and conversion investment NPVs
     capex_npv = calculate_net_present_value(capex_flow, discount_rate)
@@ -102,7 +102,7 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     cargo_miles = np.asarray(expectation.get_cargo_miles())
 
     fuel_cost_flow = component.get_cost_flow()
-    operating_flow = component.constant_overlap
+    operating_flow = component.operating_flow
     cargo_flow = build_cargo_flow(component, cargo_miles, timeline)
 
     fuel_npv = calculate_net_present_value(fuel_cost_flow, discount_rate)

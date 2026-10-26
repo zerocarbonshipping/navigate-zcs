@@ -133,18 +133,18 @@ def _calculate_delivery_cost(
     for t, time in enumerate(timeline[idx:], start=idx):
         lead_time = float(expectation.get_lead_time(t))
         lifetime = float(expectation.get_lifetime(t))
-        year_flow, overlap = build_operating_flows(time, lead_time, lifetime)
+        year_starts, operating_flow = build_operating_flows(lead_time, lifetime, time)
         discount_rate = plant.cost_of_capital.get(time)
 
         for port_name, (transport, distance) in deliveries.items():
             key = (region.name, transport.name, t, lead_time, lifetime)
             if key not in cost_rates:
                 rate = region.transport_cost[transport.name]
-                cost_rates[key] = rate.get(year_flow)
+                cost_rates[key] = rate.get(year_starts)
 
-            cost_flow = cost_rates[key] * distance.get(year_flow) * overlap
-            levelized_cost = calculate_levelized_cost(cost_flow, overlap, discount_rate)
-            expectation.set_levelized_delivery_cost(t, port_name, levelized_cost)
+            cost_flow = cost_rates[key] * distance.get(year_starts) * operating_flow
+            cost = calculate_levelized_cost(cost_flow, operating_flow, discount_rate)
+            expectation.set_levelized_delivery_cost(t, port_name, cost)
 
 
 def _calculate_delivery_wtt(

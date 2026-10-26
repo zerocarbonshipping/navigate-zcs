@@ -206,7 +206,7 @@ def _add_process_tree(
         elif is_process(feed):
             # a subprocess gets its own component, since its lifetime and
             # replacement cycle differ from those of its parent
-            emission_names = component.wtt_flow.keys()
+            emission_names = component.wtt_flows.keys()
             child = _build_component(plant, feed, emission_names, time_initial, idx)
             _add_process_tree(child, plant, feed, feed_conversion, idx)
             component.add_component(child)
@@ -454,6 +454,6 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     # reduction, e.g. in source or transport emissions as other sectors decarbonize,
     # can only be accounted for once it materializes.
     production_commence = production_flow[commence_idx]
-    for emission, wtt_flow in component.wtt_flow.items():
+    for emission, wtt_flow in component.wtt_flows.items():
         wtt = wtt_flow[commence_idx] / production_commence
         expectation.set_production_wtt(idx, emission, wtt)
