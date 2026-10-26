@@ -309,10 +309,11 @@ says how Navigate works, how to run a deck and read its results, and the rules
 every deck follows. This prompt gives the case.
 
 ABOUT THESE DECKS
-- simulations/scenarios/ holds the Center's reference scenarios. The one in
-  simulations/scenarios/workshop_whatif/ is the mid-regulation scenario on a coarse
-  time grid (2026, 2027, 2030, then every four years to 2050), so that one run
-  takes a few minutes instead of about twenty-five.
+- simulations/scenarios/ holds the Center's reference scenarios. The ones in
+  simulations/scenarios/workshop_whatif/ are the no-, mid- and strong-regulation
+  scenarios on a coarse time grid (2026, 2027, 2030, then every four years to
+  2050), so that one run takes a few minutes instead of about twenty-five. This study uses the
+  mid-regulation one.
 - The reference decks load DefaultReport already, so every run writes the
   report. Its "Global" sheet has one row per time step.
 

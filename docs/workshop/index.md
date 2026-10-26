@@ -33,7 +33,7 @@ To understand the details behind Navigate you can also check our [Tutorials](../
 
 Every session here except [Session 5](05-build-your-own-case.ipynb) opens with an **Open in Colab** badge. Click it and the notebook runs in your browser: no installation, nothing on your laptop. You need a free Google account to use it.
 
-For Session 5 you will need to install Navigate on your own machine.
+For Session 5 you will need to install Navigate on your own machine: follow the [installation steps in the README](https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation), or the more detailed [Getting started](https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html) tutorial.
 
 Note for Colab: a session is discarded after a period of
 inactivity. If cells suddenly start failing on imports or missing files, re-run the cells at the top.
@@ -54,6 +54,7 @@ jupyter lab
 
 The last command opens Jupyter in your browser. From there, open
 `docs/workshop/` and start with the first notebook. No Google account is involved at any point.
+If a step fails, see the [installation steps in the README](https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation), or the more detailed [Getting started](https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html) tutorial.
 
 ## Disclaimer
 
