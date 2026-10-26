@@ -13,7 +13,7 @@ from navigate.core import Expression, Scalar
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.core.node_type import is_surface, is_variable
 from navigate.exceptions import PowerCapacityError
-from navigate.util import MWD_TO_GJ, TOLERANCE
+from navigate.util import TOLERANCE, energy_to_power, power_to_energy
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import SurfaceInput
-    from navigate.simulation.fleet.trip import ReferenceTrip
+    from navigate.simulation.fleet._trip import ReferenceTrip
     from navigate.util.types_ import FloatArray, FloatLike
 
 
@@ -40,16 +40,16 @@ def calculate_mean_speed_bounds(
     Parameters
     ----------
     speeds_min
-        Minimum speed per sailed condition, knots.
+        Minimum speed per sailed condition, in knots.
     speeds_max
-        Maximum speed per sailed condition, knots.
+        Maximum speed per sailed condition, in knots.
     speeds
-        Speed per sailed condition, knots.
+        Speed per sailed condition, in knots.
 
     Returns
     -------
     tuple[float, float]
-        Minimum and maximum mean speed achievable by the vessel, knots.
+        Minimum and maximum mean speed achievable by the vessel, in knots.
     """
     low = np.min(speeds_min)
     high = np.max(speeds_max)
@@ -81,7 +81,7 @@ def calculate_technical_speed_limits(
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Minimum and maximum speed per condition, knots.
+        Minimum and maximum speed per condition, in knots.
     """
     load = vessel.propulsion_load
 
@@ -164,10 +164,10 @@ def verify_power_capacity(vessels: list[Vessel], idx: int) -> None:
         can deliver.
     """
     for vessel in vessels:
-        verify_vessel_power_capacity(vessel, idx)
+        _verify_vessel_power_capacity(vessel, idx)
 
 
-def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
+def _verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     """
     Verify that installed converter power covers every energy demand of a vessel.
 
@@ -194,8 +194,8 @@ def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
 
     times_sea = [float(time) for time in expectation.get_time_sea_condition(idx)]
     times_port = [float(time) for time in expectation.get_time_port(idx)]
-    energies_sea = expectation.get_energy_sea_condition(idx=idx)
-    energies_port = expectation.get_energy_port(idx=idx)
+    energies_sea = expectation.get_energy_sea_condition(idx)
+    energies_port = expectation.get_energy_port(idx)
 
     labels_sea = _name_conditions(vessel.route)
     labels_port = [f"port {port}" for port in vessel.route.ports]
@@ -232,7 +232,7 @@ def get_total_power_capacity(vessel: Vessel) -> float:
     Returns
     -------
     float
-        Total installed power across the converters, MW.
+        Total installed power across the converters, in MW.
     """
     return sum(converter.power_capacity.get() for converter in vessel.get_converters())
 
@@ -268,14 +268,14 @@ def _calculate_speed_at_power(
     load
         Propulsion load of the vessel.
     power
-        Minimum or maximum power of the converter, MW.
+        Minimum or maximum power of the converter, in MW.
     trip
         Reference trip holding the capacity utilizations.
 
     Returns
     -------
     FloatLike | None
-        The speed at which the power is reached, knots, one per capacity utilization
+        The speed at which the power is reached, in knots, one per capacity utilization
         for a surface, or `None` when the load is not strictly increasing.
     """
     if is_surface(load):
@@ -293,12 +293,12 @@ def _expand_speed_to_conditions(trip: ReferenceTrip, speed: FloatLike) -> FloatA
     trip
         Reference trip holding the sailing conditions.
     speed
-        One speed for every condition, or one speed per condition, knots.
+        One speed for every condition, or one speed per condition, in knots.
 
     Returns
     -------
     FloatArray
-        Speed per condition, knots.
+        Speed per condition, in knots.
     """
     return np.full(len(trip.speeds), speed, dtype=float)
 
@@ -346,9 +346,9 @@ def _find_overloads(
     demand_type
         Energy demand type being verified.
     energies
-        Energy demand per step, GJ/year.
+        Energy demand per step, in GJ/year.
     times
-        Time spent on each step, days/year.
+        Time spent on each step, in days/year.
     labels
         Name of each step, used in the overload messages.
 
@@ -362,12 +362,12 @@ def _find_overloads(
     overloads = []
 
     for label, energy, time in zip(labels, energies, times, strict=True):
-        deliverable = power_capacity * time * MWD_TO_GJ
+        deliverable = power_to_energy(power_capacity, time)
 
         if energy - deliverable <= TOLERANCE * max(1.0, deliverable):
             continue
 
-        implied_power = energy / (time * MWD_TO_GJ) if time > 0.0 else np.inf
+        implied_power = energy_to_power(energy, time) if time > 0.0 else np.inf
         overloads.append(
             f"  {demand_name} demand on {label} requires "
             f"{implied_power:.2f} MW but {converter} has "

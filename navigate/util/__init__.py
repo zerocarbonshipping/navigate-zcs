@@ -76,4 +76,6 @@ from navigate.util.units import (
     TON_PER_GJ_TO_GRAM_PER_MJ,
     TON_TO_GRAM,
     TON_TO_KG,
+    energy_to_power,
+    power_to_energy,
 )

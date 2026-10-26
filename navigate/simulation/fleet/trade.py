@@ -14,12 +14,12 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.fleet.composition import (
+from navigate.simulation.fleet._composition import (
     consolidate_increments,
-    get_multipliers,
+    get_total_multiplier,
     get_trade_capacity,
 )
-from navigate.simulation.fleet.newbuild import (
+from navigate.simulation.fleet._newbuild import (
     add_newbuilds,
     calculate_modelled_newbuilds,
     calculate_orderbook_newbuilds,
@@ -61,9 +61,10 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     trade_gap = trade - get_trade_capacity(fleet, idx)
 
     # each vessel type's newbuild budget; the fleet count stands in for yard capacity
-    multipliers_total = float(sum(get_multipliers(fleet)))
+    dt = time_step / YEAR
+    multipliers_total = get_total_multiplier(fleet)
     limit_share = np.array([fleet.newbuild_limit[v.name].get() for v in fleet.vessels])
-    cap_count = limit_share * multipliers_total * (time_step / YEAR)
+    cap_count = limit_share * multipliers_total * dt
 
     newbuilds, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
         fleet, trade_gap, cap_count, idx

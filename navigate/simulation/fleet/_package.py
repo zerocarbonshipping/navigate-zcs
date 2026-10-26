@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 def build_technology_packages(
     technologies: list[Technology],
-) -> tuple[list[TechnologyPackage], dict[int, int]]:
+) -> list[TechnologyPackage]:
     """
     Sort technologies by CAPEX and organize them into cumulative packages.
 
@@ -50,18 +50,28 @@ def build_technology_packages(
     Returns
     -------
     list[TechnologyPackage]
-        Technology packages from empty to full.
-    dict[int, int]
-        Map from a package index to the index, in ``technologies``, of the technology
-        that package adds.
+        Technology packages from empty to full: package ``i + 1`` is the first to hold
+        technology ``i`` of the CAPEX order.
     """
-    order = sorted(range(len(technologies)), key=lambda t: technologies[t].capex.get())
-    ordered = [technologies[t] for t in order]
+    ordered = sorted(technologies, key=lambda technology: technology.capex.get())
+    return [TechnologyPackage(ordered[:i]) for i in range(len(ordered) + 1)]
 
-    packages = [TechnologyPackage(ordered[:i]) for i in range(len(ordered) + 1)]
-    package_to_technology_map = dict(enumerate(order, start=1))
 
-    return packages, package_to_technology_map
+def get_technologies_by_capex(packages: list[TechnologyPackage]) -> list[Technology]:
+    """
+    Return the technologies in CAPEX order, the order the packages add them in.
+
+    Parameters
+    ----------
+    packages
+        All technology packages, from empty to full.
+
+    Returns
+    -------
+    list[Technology]
+        Technologies of the full package, cheapest first.
+    """
+    return packages[-1].technologies
 
 
 def _calculate_combined_effects(package: TechnologyPackage) -> None:
@@ -125,7 +135,7 @@ def update_packages(
     package_cost_flows
         Package cost flows; the flows of the previous decision time are dropped.
     time
-        Investment decision time, days.
+        Investment decision time, in days.
     """
     package_cost_flows.time = time
     package_cost_flows.by_horizon.clear()
@@ -155,12 +165,12 @@ def get_package_cost_flows(
     package_cost_flows
         Package cost flows of the current decision time.
     horizon
-        Time the installation serves, years.
+        Time the installation serves, in years.
 
     Returns
     -------
     list[FloatArray]
-        Cost flow of each package, USD/year; zero for the empty package.
+        Cost flow of each package, in USD/year; zero for the empty package.
     """
     key = round(horizon, ROUND_OFF)
     flows = package_cost_flows.by_horizon.get(key)
@@ -212,16 +222,16 @@ def calculate_newbuild_npv(
     Parameters
     ----------
     package_savings
-        Yearly saving flow of each package over the vessel lifetime, USD/year.
+        Yearly saving flow of each package over the vessel lifetime, in USD/year.
     cost_flows
-        Cost flow of each package over the vessel lifetime, USD/year.
+        Cost flow of each package over the vessel lifetime, in USD/year.
     discount_rate
         Discount rate of the investment, fraction.
 
     Returns
     -------
     FloatArray
-        NPV of each package, USD; zero for the empty package.
+        NPV of each package, in USD; zero for the empty package.
     """
     npv = np.zeros(len(package_savings))
 
@@ -251,18 +261,18 @@ def calculate_retrofit_npv(
     package_idx
         Package the vessels currently sit at.
     package_savings
-        Yearly saving flow of each package, USD/year.
+        Yearly saving flow of each package, in USD/year.
     cost_flows
-        Cost flow of each package over the remaining lifetime, USD/year.
+        Cost flow of each package over the remaining lifetime, in USD/year.
     remaining
-        Remaining vessel lifetime, years.
+        Remaining vessel lifetime, in years.
     discount_rate
         Discount rate of the investment, fraction.
 
     Returns
     -------
     FloatArray
-        NPV of each retrofit step, USD; zero for the stay option.
+        NPV of each retrofit step, in USD; zero for the stay option.
     """
     savings_flow = trim_flow_to_lifetime(package_savings[package_idx], remaining)
     n_steps = len(package_savings) - package_idx
@@ -294,16 +304,16 @@ def calculate_retrofit_charter_rates(
     package_idx
         Package the vessels currently sit at.
     cost_flows
-        Cost flow of each package over the remaining lifetime, USD/year.
+        Cost flow of each package over the remaining lifetime, in USD/year.
     remaining
-        Remaining vessel lifetime, years.
+        Remaining vessel lifetime, in years.
     discount_rate
         Discount rate of the levelization, fraction.
 
     Returns
     -------
     FloatArray
-        Constant yearly charge of each retrofit step, USD/year; zero for the stay
+        Constant yearly charge of each retrofit step, in USD/year; zero for the stay
         option.
     """
     n_steps = len(cost_flows) - package_idx
@@ -339,7 +349,7 @@ def calculate_package_charter_rates(
     Returns
     -------
     FloatArray
-        Constant yearly charge per package, USD/year.
+        Constant yearly charge per package, in USD/year.
     """
     lifetime = vessel.lifetime.get()
     discount_rate = vessel.cost_of_capital.get()
@@ -367,15 +377,15 @@ def _levelize_package_cost(
         Yearly technology cost flow (CAPEX, OPEX, and replacements) over the horizon,
         from the install time.
     horizon
-        Time the installation serves, years: the vessel lifetime for a newbuild install,
-        the remaining vessel lifetime for a retrofit.
+        Time the installation serves, in years: the vessel lifetime for a newbuild
+        install, the remaining vessel lifetime for a retrofit.
     discount_rate
         Discount rate of the levelization, fraction.
 
     Returns
     -------
     float
-        Constant yearly charge in USD/year.
+        Constant yearly charge, in USD/year.
     """
     # the leveling flow prorates the final partial year as the cost flow does, so
     # the charge is recovered over exactly the horizon

@@ -40,7 +40,7 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     vessel
         Vessel whose asset charter metrics are calculated.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
@@ -89,7 +89,7 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     vessel
         Vessel whose cargo charter metrics are calculated.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
@@ -164,7 +164,7 @@ def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
     vessel
         Vessel whose asset cost flow is built.
     time_initial
-        Time at which the vessel is ordered, days.
+        Time at which the vessel is ordered, in days.
 
     Returns
     -------
@@ -173,8 +173,8 @@ def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
     """
     component = _initialize_vessel_component(vessel, time_initial)
 
-    add_capex(component=component, capex=vessel.capex.get)
-    add_fixed_opex(component=component, opex=vessel.opex.get)
+    add_capex(component, vessel.capex.get)
+    add_fixed_opex(component, vessel.opex.get)
 
     for converter in vessel.get_converters():
         capacity = converter.power_capacity.get()
@@ -196,7 +196,7 @@ def _initialize_vessel_component(vessel: Vessel, time_initial: float) -> Compone
     vessel
         Vessel whose lead time and lifetime set the flow horizon.
     time_initial
-        Time at which the vessel is ordered, days.
+        Time at which the vessel is ordered, in days.
 
     Returns
     -------
@@ -241,8 +241,8 @@ def _add_machinery_cost(
     def opex(time: float) -> float:
         return machinery.opex.get(time) * scale
 
-    add_capex(component=subcomponent, capex=capex)
-    add_fixed_opex(component=subcomponent, opex=opex)
+    add_capex(subcomponent, capex)
+    add_fixed_opex(subcomponent, opex)
     component.add_component(subcomponent)
 
 
@@ -259,7 +259,7 @@ def _build_fuel_component(vessel: Vessel, timeline: FloatArray, idx: int) -> Com
     vessel
         Vessel providing the expected fuel and policy expenses.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
 
@@ -280,6 +280,6 @@ def _build_fuel_component(vessel: Vessel, timeline: FloatArray, idx: int) -> Com
     def price(time: FloatArray) -> FloatArray:
         return np.interp(time, times, expenses)
 
-    add_variable_opex(component=component, metric=metric, price=price)
+    add_variable_opex(component, metric, price)
 
     return component

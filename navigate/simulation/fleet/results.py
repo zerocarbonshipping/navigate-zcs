@@ -11,7 +11,8 @@ import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.simulation.cohort import find_origin_index
-from navigate.simulation.fleet.composition import get_multiplier
+from navigate.simulation.fleet._composition import get_multiplier
+from navigate.simulation.fleet._package import get_technologies_by_capex
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import YEAR, divide_nonzero, interpolate_yearly_flow
 
@@ -32,7 +33,7 @@ def record_fleet_results(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose results are recorded.
     timeline
         Simulation timeline, in days.
     idx
@@ -56,7 +57,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose increment expenses are transferred.
     timeline
         Simulation timeline, in days.
     idx
@@ -66,22 +67,25 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     years = timeline / YEAR
     current_year = years[idx]
 
-    for v, vessel in enumerate(fleet.vessels):
+    for vessel, increments in zip(fleet.vessels, fleet.increments, strict=True):
         expectation = vessel.expectation
 
-        for inc in fleet.increments[v]:
+        for increment in increments:
+            age = increment.age
+            multiplier = increment.multiplier
+
             # the increment bears the costs of a vessel that entered the fleet
             # 'age' years ago
-            origin = find_origin_index(years, current_year, inc.age)
+            origin = find_origin_index(years, current_year, age)
             tied_capital_flow = expectation.get_tied_capital(origin)
 
             asset_charter_rate = expectation.get_asset_charter_rate(origin)
-            tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
-            technology_charter_rate = inc.technology_charter_rate
+            tied_capital = interpolate_yearly_flow(tied_capital_flow, age)
+            technology_charter_rate = increment.technology_charter_rate
 
-            results.vessel_expenses[idx] += asset_charter_rate * inc.multiplier
-            results.vessel_tied_capital[idx] += tied_capital * inc.multiplier
-            results.technology_expenses[idx] += technology_charter_rate * inc.multiplier
+            results.vessel_expenses[idx] += asset_charter_rate * multiplier
+            results.vessel_tied_capital[idx] += tied_capital * multiplier
+            results.technology_expenses[idx] += technology_charter_rate * multiplier
 
 
 def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
@@ -94,7 +98,7 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose weighted age is transferred.
     idx
         Current time-step index.
     """
@@ -105,7 +109,8 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         fuel_type = vessel.primary_fuel_type
         power = get_total_power_capacity(vessel)
 
-        numerator = sum(inc.age * inc.multiplier for inc in increments) * power
+        vessel_ages = [increment.age * increment.multiplier for increment in increments]
+        numerator = sum(vessel_ages) * power
         denominator = get_multiplier(fleet, v) * power
 
         results.weighted_age_numerator[fuel_type][idx] += numerator
@@ -119,7 +124,7 @@ def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-type capacity is transferred.
     idx
         Current time-step index.
     """
@@ -135,7 +140,7 @@ def _transfer_existing_vessels(fleet: Fleet, idx: int) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose vessel counts are transferred.
     idx
         Current time-step index.
     """
@@ -155,21 +160,24 @@ def _transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     results = fleet.results
+    technologies = get_technologies_by_capex(fleet.technology_packages)
 
     for v, vessel in enumerate(fleet.vessels):
         increments = fleet.increments[v]
         newbuild_package_uptake = fleet.newbuild_package_uptake[v]
         multipliers_total = get_multiplier(fleet, v)
 
-        for p, t in fleet.package_to_technology_map.items():
-            # a package holds the technologies of every package before it, so a
-            # technology's uptake is that of the package adding it and all after
-            key = (vessel.name, fleet.technologies[t].name)
-            newbuild_uptake = np.sum(newbuild_package_uptake[p:])
+        for i, technology in enumerate(technologies):
+            # package i + 1 is the first to hold technology i, as the packages are
+            # cumulative, so the technology's uptake is that of every package from it
+            key = (vessel.name, technology.name)
+            adopting = np.s_[i + 1 :]
+            newbuild_uptake = np.sum(newbuild_package_uptake[adopting])
 
             total = 0.0
-            for inc in increments:
-                total += inc.multiplier * float(np.sum(inc.package_uptake[p:]))
+            for increment in increments:
+                adopting_share = np.sum(increment.package_uptake[adopting])
+                total += increment.multiplier * adopting_share
 
             average = float(divide_nonzero(total, multipliers_total))
 
@@ -184,7 +192,7 @@ def record_vessel_results(vessel: Vessel, idx: int) -> None:
     Parameters
     ----------
     vessel
-        Vessel instance.
+        Vessel whose lifetime and lead time are written.
     idx
         Current time-step index.
     """

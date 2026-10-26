@@ -131,7 +131,6 @@ class Fleet(Node):
         self.orders_postponed: FloatArray
         self.technology_packages: list[TechnologyPackage]
         self.package_cost_flows: PackageCostFlows = PackageCostFlows()
-        self.package_to_technology_map: dict[int, int]
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)

@@ -12,13 +12,13 @@ import numpy as np
 
 from navigate.core.increment import VesselIncrement
 from navigate.simulation.cohort import split_by_age
-from navigate.simulation.fleet.composition import extract_cargo_miles, get_multipliers
-from navigate.simulation.fleet.expectation import calculate_fleet_evolution_expectation
-from navigate.simulation.fleet.package import (
+from navigate.simulation.fleet._composition import extract_cargo_miles, get_multipliers
+from navigate.simulation.fleet._package import (
     build_technology_packages,
     calculate_package_charter_rates,
     update_packages,
 )
+from navigate.simulation.fleet.expectation import calculate_fleet_evolution_expectation
 from navigate.simulation.fleet.technology_adoption import (
     transfer_technology_charter_rate,
 )
@@ -44,7 +44,7 @@ def assign_vessels_to_fleets(fleets: Iterable[Fleet]) -> None:
     Parameters
     ----------
     fleets
-        All fleets of the simulation.
+        All fleets in the simulation.
 
     Raises
     ------
@@ -74,16 +74,14 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to initialize.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     """
     idx = 0
 
     # build the technology packages and anchor their cost flows at the start;
     # this must precede seeding the initial technology uptake, which levelizes
     # the cost flows into the carried technology charter rate
-    fleet.technology_packages, fleet.package_to_technology_map = (
-        build_technology_packages(fleet.technologies)
-    )
+    fleet.technology_packages = build_technology_packages(fleet.technologies)
     update_packages(fleet.technology_packages, fleet.package_cost_flows, timeline[idx])
 
     n_packages = fleet.get_number_of_packages()
@@ -248,11 +246,11 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int) -> None:
         packages, fleet.package_cost_flows, vessel
     )
 
-    for inc in fleet.increments[vessel_idx]:
-        shares = _get_initial_shares(fleet, vessel, inc.age)
+    for increment in fleet.increments[vessel_idx]:
+        shares = _get_initial_shares(fleet, vessel, increment.age)
         package_mix, truncated = _calculate_package_mix(technologies, packages, shares)
-        inc.package_uptake = package_mix
-        inc.technology_charter_rate = float(np.dot(package_mix, package_rates))
+        increment.package_uptake = package_mix
+        increment.technology_charter_rate = float(np.dot(package_mix, package_rates))
 
         if truncated:
             truncation_count += 1
@@ -351,7 +349,7 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to define the trade for.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     """
     idx = 0
     multipliers = get_multipliers(fleet)

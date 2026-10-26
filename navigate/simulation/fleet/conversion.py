@@ -28,7 +28,11 @@ from navigate.simulation.cohort import find_insertion_index
 from navigate.simulation.economics.decision import calculate_asset_shares
 from navigate.simulation.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.simulation.economics.metric import calculate_net_present_value
-from navigate.simulation.fleet.composition import get_multipliers
+from navigate.simulation.fleet._composition import (
+    get_multipliers,
+    get_total_multiplier,
+    is_retrofit_cycle,
+)
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -308,8 +312,8 @@ def _reconcile_fuel_conversion_caps(
         Current time-step size, in days.
     """
     # counted before the newbuilds, which are inserted later in the same time-step
-    existing_total = sum(get_multipliers(fleet))
-    dt_years = time_step / YEAR
+    existing_total = get_total_multiplier(fleet)
+    dt = time_step / YEAR
 
     pair_proposed: dict[tuple[str, str], float] = {}
     for proposal, name_to, candidate in _proposed_conversions(proposals):
@@ -319,7 +323,7 @@ def _reconcile_fuel_conversion_caps(
     pair_scale = {}
     for pair, proposed in pair_proposed.items():
         limit = fleet.fuel_conversion_limit[pair].get()
-        pair_cap = limit * dt_years * existing_total
+        pair_cap = limit * dt * existing_total
         if proposed > pair_cap:
             pair_scale[pair] = pair_cap / proposed
 
@@ -357,33 +361,6 @@ def _apply_fuel_conversions(
     _apply_to_side(proposals, increments)
 
 
-def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -> bool:
-    """
-    Return whether an increment is at a retrofit cycle.
-
-    It is when its age lies within one time-step past a multiple of the retrofit
-    frequency, and it is older than one time-step. The age and time-step are compared
-    at two decimals.
-
-    Parameters
-    ----------
-    age
-        Age of the increment, in years.
-    retrofit_frequency
-        Interval between retrofit opportunities, in years.
-    time_step
-        Time-step size, in years.
-
-    Returns
-    -------
-    bool
-        Whether the increment is at a retrofit cycle.
-    """
-    age = round(age, 2)
-    time_step = round(time_step, 2)
-    return age > time_step and age % retrofit_frequency < time_step
-
-
 def _eligible_cohorts(
     fleet: Fleet, time_step: float, idx: int
 ) -> Iterator[_ConversionCohort]:
@@ -410,7 +387,7 @@ def _eligible_cohorts(
     """
     retrofit_frequency = fleet.retrofit_frequency.get()
     minimum_age = fleet.fuel_conversion_minimum_age.get()
-    dt_years = time_step / YEAR
+    dt = time_step / YEAR
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
 
@@ -423,7 +400,7 @@ def _eligible_cohorts(
         # target-fuel supply binds, younger cohorts with longer remaining lifetimes
         # claim the working supply excess first
         for increment_idx, increment in reversed(list(enumerate(increments))):
-            if not is_retrofit_cycle(increment.age, retrofit_frequency, dt_years):
+            if not is_retrofit_cycle(increment.age, retrofit_frequency, dt):
                 continue
 
             mean_age = round(increment.age + increment.age_span / 2.0, ROUND_OFF)
@@ -825,7 +802,7 @@ def calculate_fuel_type_balance(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-type capacity and supply are calculated.
     fuels
         All fuels in the simulation.
     idx
@@ -851,7 +828,7 @@ def _calculate_fuel_type_capacity(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-type capacity is added.
     """
     for vessel, multiplier in _vessels_in_service(fleet):
         for converter in vessel.get_converters():
@@ -886,7 +863,7 @@ def _calculate_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-type supply is added.
     fuels
         All fuels in the simulation.
     idx
