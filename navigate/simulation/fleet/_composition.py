@@ -89,7 +89,7 @@ def get_multiplier(fleet: Fleet, vessel_idx: int) -> float:
     float
         Number of vessels of the type.
     """
-    return sum(inc.multiplier for inc in fleet.increments[vessel_idx])
+    return sum(increment.multiplier for increment in fleet.increments[vessel_idx])
 
 
 def extract_cargo_miles(vessels: list[Vessel], idx: Index) -> FloatArray:
@@ -160,7 +160,7 @@ def consolidate_increments(fleet: Fleet) -> None:
         consolidated: list[VesselIncrement] = []
 
         for cohort in cohorts.values():
-            if sum(inc.multiplier for inc in cohort) >= 1e-3:
+            if sum(increment.multiplier for increment in cohort) >= 1e-3:
                 consolidated.append(_merge(cohort))
 
         fleet.increments[v] = consolidated
@@ -186,9 +186,9 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     if len(cohort) == 1:
         return survivor
 
-    weights = [inc.multiplier for inc in cohort]
-    uptakes = [inc.package_uptake for inc in cohort]
-    charter_rates = [inc.technology_charter_rate for inc in cohort]
+    weights = [increment.multiplier for increment in cohort]
+    uptakes = [increment.package_uptake for increment in cohort]
+    charter_rates = [increment.technology_charter_rate for increment in cohort]
 
     survivor.multiplier = sum(weights)
     survivor.package_uptake = np.average(uptakes, axis=0, weights=weights)

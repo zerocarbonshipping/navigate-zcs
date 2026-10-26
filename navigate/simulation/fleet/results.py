@@ -67,22 +67,25 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     years = timeline / YEAR
     current_year = years[idx]
 
-    for v, vessel in enumerate(fleet.vessels):
+    for vessel, increments in zip(fleet.vessels, fleet.increments, strict=True):
         expectation = vessel.expectation
 
-        for inc in fleet.increments[v]:
+        for increment in increments:
+            age = increment.age
+            multiplier = increment.multiplier
+
             # the increment bears the costs of a vessel that entered the fleet
             # 'age' years ago
-            origin = find_origin_index(years, current_year, inc.age)
+            origin = find_origin_index(years, current_year, age)
             tied_capital_flow = expectation.get_tied_capital(origin)
 
             asset_charter_rate = expectation.get_asset_charter_rate(origin)
-            tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
-            technology_charter_rate = inc.technology_charter_rate
+            tied_capital = interpolate_yearly_flow(tied_capital_flow, age)
+            technology_charter_rate = increment.technology_charter_rate
 
-            results.vessel_expenses[idx] += asset_charter_rate * inc.multiplier
-            results.vessel_tied_capital[idx] += tied_capital * inc.multiplier
-            results.technology_expenses[idx] += technology_charter_rate * inc.multiplier
+            results.vessel_expenses[idx] += asset_charter_rate * multiplier
+            results.vessel_tied_capital[idx] += tied_capital * multiplier
+            results.technology_expenses[idx] += technology_charter_rate * multiplier
 
 
 def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
@@ -106,7 +109,8 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         fuel_type = vessel.primary_fuel_type
         power = get_total_power_capacity(vessel)
 
-        numerator = sum(inc.age * inc.multiplier for inc in increments) * power
+        cohort_ages = [increment.age * increment.multiplier for increment in increments]
+        numerator = sum(cohort_ages) * power
         denominator = get_multiplier(fleet, v) * power
 
         results.weighted_age_numerator[fuel_type][idx] += numerator

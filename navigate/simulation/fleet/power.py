@@ -194,8 +194,8 @@ def _verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
 
     times_sea = [float(time) for time in expectation.get_time_sea_condition(idx)]
     times_port = [float(time) for time in expectation.get_time_port(idx)]
-    energies_sea = expectation.get_energy_sea_condition(idx=idx)
-    energies_port = expectation.get_energy_port(idx=idx)
+    energies_sea = expectation.get_energy_sea_condition(idx)
+    energies_port = expectation.get_energy_port(idx)
 
     labels_sea = _name_conditions(vessel.route)
     labels_port = [f"port {port}" for port in vessel.route.ports]

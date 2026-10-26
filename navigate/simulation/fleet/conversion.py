@@ -313,7 +313,7 @@ def _reconcile_fuel_conversion_caps(
     """
     # counted before the newbuilds, which are inserted later in the same time-step
     existing_total = get_total_multiplier(fleet)
-    dt_years = time_step / YEAR
+    dt = time_step / YEAR
 
     pair_proposed: dict[tuple[str, str], float] = {}
     for proposal, name_to, candidate in _proposed_conversions(proposals):
@@ -323,7 +323,7 @@ def _reconcile_fuel_conversion_caps(
     pair_scale = {}
     for pair, proposed in pair_proposed.items():
         limit = fleet.fuel_conversion_limit[pair].get()
-        pair_cap = limit * dt_years * existing_total
+        pair_cap = limit * dt * existing_total
         if proposed > pair_cap:
             pair_scale[pair] = pair_cap / proposed
 
@@ -387,7 +387,7 @@ def _eligible_cohorts(
     """
     retrofit_frequency = fleet.retrofit_frequency.get()
     minimum_age = fleet.fuel_conversion_minimum_age.get()
-    dt_years = time_step / YEAR
+    dt = time_step / YEAR
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
 
@@ -400,7 +400,7 @@ def _eligible_cohorts(
         # target-fuel supply binds, younger cohorts with longer remaining lifetimes
         # claim the working supply excess first
         for increment_idx, increment in reversed(list(enumerate(increments))):
-            if not is_retrofit_cycle(increment.age, retrofit_frequency, dt_years):
+            if not is_retrofit_cycle(increment.age, retrofit_frequency, dt):
                 continue
 
             mean_age = round(increment.age + increment.age_span / 2.0, ROUND_OFF)

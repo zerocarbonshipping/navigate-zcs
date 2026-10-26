@@ -87,8 +87,8 @@ def _calculate_operational_energy(
     """
     expectation = vessel.expectation
 
-    raw_sea = expectation.get_raw_energy_sea_condition(idx=idx)
-    raw_port = expectation.get_raw_energy_port(idx=idx)
+    raw_sea = expectation.get_raw_energy_sea_condition(idx)
+    raw_port = expectation.get_raw_energy_port(idx)
 
     saving_sea = expectation.get_operational_saving_fraction_sea()
     saving_port = expectation.get_operational_saving_fraction_port()
@@ -447,8 +447,8 @@ def _calculate_approximation(
     """
     expectation = vessel.expectation
 
-    operational_sea = expectation.get_operational_energy_sea_condition(idx=idx)
-    operational_port = expectation.get_operational_energy_port(idx=idx)
+    operational_sea = expectation.get_operational_energy_sea_condition(idx)
+    operational_port = expectation.get_operational_energy_port(idx)
 
     sea = scale_per_key(operational_sea, ratio_sea)
     port = scale_per_key(operational_port, ratio_port)

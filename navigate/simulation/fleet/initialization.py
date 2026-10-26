@@ -246,11 +246,11 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int) -> None:
         packages, fleet.package_cost_flows, vessel
     )
 
-    for inc in fleet.increments[vessel_idx]:
-        shares = _get_initial_shares(fleet, vessel, inc.age)
+    for increment in fleet.increments[vessel_idx]:
+        shares = _get_initial_shares(fleet, vessel, increment.age)
         package_mix, truncated = _calculate_package_mix(technologies, packages, shares)
-        inc.package_uptake = package_mix
-        inc.technology_charter_rate = float(np.dot(package_mix, package_rates))
+        increment.package_uptake = package_mix
+        increment.technology_charter_rate = float(np.dot(package_mix, package_rates))
 
         if truncated:
             truncation_count += 1

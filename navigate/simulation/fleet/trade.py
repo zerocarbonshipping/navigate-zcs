@@ -61,9 +61,10 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     trade_gap = trade - get_trade_capacity(fleet, idx)
 
     # each vessel type's newbuild budget; the fleet count stands in for yard capacity
+    dt = time_step / YEAR
     multipliers_total = get_total_multiplier(fleet)
     limit_share = np.array([fleet.newbuild_limit[v.name].get() for v in fleet.vessels])
-    cap_count = limit_share * multipliers_total * (time_step / YEAR)
+    cap_count = limit_share * multipliers_total * dt
 
     newbuilds, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
         fleet, trade_gap, cap_count, idx

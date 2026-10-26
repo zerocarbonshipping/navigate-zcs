@@ -532,7 +532,7 @@ def _reconcile_retrofit_technology_caps(
 
 
 def reconcile_newbuild_technology_caps(
-    fleet: Fleet, increments: FloatArray, time_step: float, multipliers_total: float
+    fleet: Fleet, newbuilds: FloatArray, time_step: float, multipliers_total: float
 ) -> None:
     """
     Scale `fleet.newbuild_package_uptake` to the per-technology caps.
@@ -547,7 +547,7 @@ def reconcile_newbuild_technology_caps(
     ----------
     fleet
         Fleet whose newbuild caps are enforced.
-    increments
+    newbuilds
         Newbuilds of each vessel type this time-step, number of vessels; they weight
         each vessel's contribution to the cap aggregate.
     time_step
@@ -562,7 +562,7 @@ def reconcile_newbuild_technology_caps(
     # package i + 1 is the first to hold technology i, as the packages are cumulative
     for i, cap in caps:
         contributions = []
-        for uptake, count in zip(uptakes, increments, strict=True):
+        for uptake, count in zip(uptakes, newbuilds, strict=True):
             if count <= 0.0:
                 continue
 
@@ -602,8 +602,9 @@ def _technology_caps(
     if multipliers_total <= 0.0:
         return
 
+    dt = time_step / YEAR
     technologies = get_technologies_by_capex(fleet.technology_packages)
-    budget = multipliers_total * (time_step / YEAR)
+    budget = multipliers_total * dt
 
     for i in reversed(range(len(technologies))):
         yield i, limits[technologies[i].name].get() * budget
