@@ -37,7 +37,7 @@ class _FuelInfrastructureResults(_BaseResults):
         self.bunkering_limit_mass = self._default_dict(fuels, default=np.nan)
         self.bunker_supply_mass = {
             fuel_name: self._default_array(
-                np.nan if fuel_name in liquid_market else None
+                np.nan if fuel_name in liquid_market else 0.0
             )
             for fuel_name in fuels
         }

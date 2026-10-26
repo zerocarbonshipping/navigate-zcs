@@ -102,8 +102,8 @@ class VesselResults(_FuelConsumerResults):
 
         self.technology_cost = self._default_array()
 
-        self.in_fleet = self._default_bool_array(default=False)
-        self.cost_is_calculated = self._default_bool_array(default=False)
+        self.in_fleet = self._default_bool_array()
+        self.cost_is_calculated = self._default_bool_array()
 
         # investment metrics
         self.asset_charter_rate = self._default_array(np.nan)
