@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the vessel and regulation variables of the LP that do not exist yet."""
+"""Add the vessel and regulation variables of the LP, and set their bounds."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import add_variable
-from navigate.simulation.bunker.utils import get_port_converters
+from navigate.simulation.bunker._indices import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -17,18 +17,19 @@ if TYPE_CHECKING:
 
 def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
-    Add the LP variables of a vessel that do not exist yet.
+    Add the LP variables of a vessel that do not exist yet, and bound its shore power.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     vessel
-        Vessel for which variables are added.
+        Vessel whose variables are updated.
     """
     v = vessel.name
     route = vessel.route
     legs = route.get_legs()
+    stops = route.get_stops()
     fuels_per_converter = vessel.fuels_per_converter
 
     for p, port in enumerate(route.ports):
@@ -44,7 +45,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     # only the converters serving port energy demands spend in port
     for c in get_port_converters(vessel):
         for f in fuels_per_converter[c]:
-            for p in range(len(route.ports)):
+            for p in stops:
                 add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
 
     for p in route.get_tank_stops():
@@ -56,6 +57,10 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     for p, limit in enumerate(shore_power_limits):
         if limit > 0.0:
             add_variable(alg, alg.shore_power, (v, p), "shore_power")
+
+        # a connection whose limit fell to zero keeps its variable, bounded at zero
+        if (v, p) in alg.shore_power:
+            alg.model.set_upper_bound(alg.shore_power[v, p], float(limit))
 
 
 def update_regulation_variables(alg: BunkerAlgorithm) -> None:
@@ -73,5 +78,5 @@ def update_regulation_variables(alg: BunkerAlgorithm) -> None:
     for key in alg.regulation_rhs_individual:
         add_variable(alg, individual, key, "remedial_factor_individual")
 
-    for key in alg.regulation_total_rhs_flexibility:
+    for key in alg.regulation_rhs_flexibility:
         add_variable(alg, flexibility, key, "remedial_factor_flexibility")

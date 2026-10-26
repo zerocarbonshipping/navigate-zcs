@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.enum_ import BunkerScopeID
 
 if TYPE_CHECKING:
@@ -37,6 +35,10 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
     """Write the bunkered mass, expenses, WTT emissions and levies to the results."""
     idx = alg.idx
 
+    # every vessel in the LP restarts its bunker mass from zero, as it is added up below
+    for vessel in alg.vessels.values():
+        vessel.expectation.reset_bunker_mass_existing()
+
     for (v, p, f), bunker in alg.bunker.items():
         mass = alg.model.value(bunker)
         if mass < alg.options.solution_tolerance:
@@ -47,7 +49,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         results = vessel.results
         multiplier = alg.multipliers[v]
 
-        price = np.float64(port.expectation.get_bunker_price(f, idx))
+        price = float(port.expectation.get_bunker_price(f, idx))
         expenses = price * mass
 
         # kept for the inertia floor of the next time-step
@@ -59,7 +61,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         port.results.bunker_mass[f][idx] += multiplier * mass
 
         for emission_name in alg.emissions:
-            wtt = np.float64(port.expectation.get_bunker_wtt(f, emission_name, idx))
+            wtt = float(port.expectation.get_bunker_wtt(f, emission_name, idx))
             results.wtt[f, emission_name][idx] += wtt * mass
 
         for levy in port.imposed_levies:
@@ -87,7 +89,7 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
         port = vessel.route.ports[p]
 
         energy = alg.fuels[f].lower_heating_value.get() * mass
-        price = np.float64(port.expectation.get_bunker_price(f, idx))
+        price = float(port.expectation.get_bunker_price(f, idx))
         expenses = price * mass
 
         vessel.expectation.add_total_energy(idx, energy)

@@ -208,7 +208,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     `navigate.driver.run`, the initialization and post-processing headings
     under `navigate.simulation.time_stepping`;
   - the model's modules log under `navigate.simulation.<domain>.<module>`,
-    such as `navigate.simulation.bunker.solver`.
+    such as `navigate.simulation.bunker.bunker_algorithm`.
 - A path written with `./` or a doubled `/` in an `Include` or a report
   `Directory` now appears normalised in error and log messages, such as
   `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
@@ -218,6 +218,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - With the HiGHS solver, runs with an `INDIVIDUAL` or `FLEXIBLE` `Regulation`
   are several times faster. Results change where the bunkering optimum is not
   unique, by up to several percent late in a long run (#32).
+- The bunkering constraints at sea and in port are named
+  `energy_conservation_sea`, `energy_conservation_port`, `pilot_fuel_sea` and
+  `pilot_fuel_port` instead of `..._at_sea` and `..._in_port`, in the
+  infeasible-bunkering error message and in `bunkering_infeasible.ilp`/`.lp`.
 - The report property `FuelTypeDemand` is now `FuelTypeCapacity`, and the
   `fuel_type_supply_demand` plot labels that line "Fleet capacity" instead of
   "Demand" (#522).

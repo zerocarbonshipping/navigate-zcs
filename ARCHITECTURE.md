@@ -26,7 +26,9 @@ step, and `driver/` runs it from a read deck to its output.
   - `simulation/economics/` — valuation and choice used by both domains.
   - `simulation/cohort.py` — vintage-stock accounting over the asset
     cohorts of both domains.
-  - `simulation/bunker/` — the per-time-step bunkering LP.
+  - `simulation/bunker/` — the per-time-step bunkering LP; a module or
+    subpackage has a leading underscore where nothing outside the package
+    imports it.
   - `simulation/policy/` — policy expectations, emission coefficients, levy
     costs, the regulation inputs of the bunkering LP and their threshold
     adjustment, regulation compliance and remedial expenses, and the

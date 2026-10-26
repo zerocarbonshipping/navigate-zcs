@@ -15,13 +15,13 @@ import contextlib
 from typing import TYPE_CHECKING, Any
 
 from navigate.core.enum_ import SolveStatusID
-from navigate.simulation.bunker.solver import Constraint, Variable
+from navigate.simulation.bunker._solver import Constraint, Variable
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from navigate.core.general_nodes.bunker_options import BunkerOptions
-    from navigate.simulation.bunker.solver import Sense
+    from navigate.simulation.bunker._solver import Sense
 
 try:
     import gurobipy as grb

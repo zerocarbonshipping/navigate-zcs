@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the constraints that fuel spend and shore power cover each energy demand."""
+"""Update the constraints that fuel spend and shore power cover each energy demand."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def update_energy_conservation_constraints(
     alg: BunkerAlgorithm, vessel: Vessel
 ) -> None:
     r"""
-    Add the constraints that converter fuel spend covers each energy demand.
+    Update the constraints that converter fuel spend covers each energy demand.
 
     Each energy demand is served by its own converter c: propulsion, electrical,
     and heat at sea; electrical and heat in port. For each demand d and leg (i, e)
@@ -32,8 +32,8 @@ def update_energy_conservation_constraints(
         + s_p [d = electrical] = E_{d,p}
 
     where \eta is the converter efficiency, \lambda the effective lower heating
-    value in GJ/t, x and y the annual fuel mass spend at sea and in port, s the
-    annual shore power in GJ, and E the annual energy demand in GJ. Converts fuel
+    value in GJ/t, x and y the fuel mass spent at sea and in port in tons/year, s
+    the shore power in GJ/year, and E the energy demand in GJ/year. Converts fuel
     mass to delivered energy and pins it to the demand; shore power substitutes
     fuel for the electrical demand in port.
 
@@ -42,13 +42,13 @@ def update_energy_conservation_constraints(
     alg
         The algorithm instance.
     vessel
-        Vessel for which constraints are updated.
+        Vessel whose constraints are updated.
     """
     expectation = vessel.expectation
     route = vessel.route
 
     legs = route.get_legs()
-    stops = range(len(route.ports))
+    stops = route.get_stops()
 
     demands_sea = expectation.get_energy_sea_leg(idx=alg.idx)
     demands_port = expectation.get_energy_port(idx=alg.idx)
@@ -68,18 +68,18 @@ def _update_sea_rows(
     legs: tuple[tuple[int, int], ...],
 ) -> None:
     """
-    Create or update the sea energy-conservation rows of one energy demand.
+    Update the sea energy-conservation rows of one energy demand.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     vessel
-        Vessel whose rows are updated.
+        Vessel whose constraints are updated.
     demand_type
         Energy demand the rows conserve.
     demand
-        Sea energy demand per leg, in GJ.
+        Sea energy demand per leg, in GJ/year.
     legs
         Origin and destination stop indices of each leg of the vessel's route.
     """
@@ -94,7 +94,7 @@ def _update_sea_rows(
 
     for leg, (i, e) in enumerate(legs):
         key = (v, i, e, demand_type)
-        constraint = get_constraint(alg, rows, key, "==", "energy_conservation_at_sea")
+        constraint = get_constraint(alg, rows, key, "==", "energy_conservation_sea")
         model.set_rhs(constraint, float(demand[leg]))
 
         for f, coefficient in energy_per_ton.items():
@@ -109,18 +109,18 @@ def _update_port_rows(
     stops: range,
 ) -> None:
     """
-    Create or update the port energy-conservation rows of one energy demand.
+    Update the port energy-conservation rows of one energy demand.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     vessel
-        Vessel whose rows are updated.
+        Vessel whose constraints are updated.
     demand_type
         Energy demand the rows conserve.
     demand
-        Port energy demand per stop, in GJ.
+        Port energy demand per stop, in GJ/year.
     stops
         Stop indices of the vessel's route.
     """
@@ -136,7 +136,7 @@ def _update_port_rows(
 
     for p in stops:
         key = (v, p, demand_type)
-        constraint = get_constraint(alg, rows, key, "==", "energy_conservation_in_port")
+        constraint = get_constraint(alg, rows, key, "==", "energy_conservation_port")
         model.set_rhs(constraint, float(demand[p]))
 
         for f, coefficient in energy_per_ton.items():

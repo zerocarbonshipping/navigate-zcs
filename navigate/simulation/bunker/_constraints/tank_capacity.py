@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the constraints that the fuel stored in each tank fits its volume."""
+"""Update the constraints that the fuel stored in each tank fits its volume."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     r"""
-    Add the constraints that the fuel stored in each tank fits its volume.
+    Update the constraints that the fuel stored in each tank fits its volume.
 
     For each tank stop p and tank t (vessel index omitted):
 
@@ -32,11 +32,11 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     alg
         The algorithm instance.
     vessel
-        Vessel for which constraints are updated.
+        Vessel whose constraints are updated.
     """
     v = vessel.name
     tanks = vessel.tanks
-    stops = vessel.route.get_tank_stops()
+    tank_stops = vessel.route.get_tank_stops()
 
     volume_per_ton = {tank.name: _calculate_volume_per_ton(alg, tank) for tank in tanks}
 
@@ -44,7 +44,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     mass_tank = alg.mass_tank
     model = alg.model
 
-    for p in stops:
+    for p in tank_stops:
         for tank in tanks:
             t = tank.name
             key = (v, p, t)

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Choosing the solver backend and building models on it."""
+"""Choose the solver backend and build models on it."""
 
 from __future__ import annotations
 
@@ -9,12 +9,12 @@ import logging
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import SolverBackendID
-from navigate.simulation.bunker.solver_gurobi import GurobiModel, is_gurobi_licensed
-from navigate.simulation.bunker.solver_highs import HighsModel
+from navigate.simulation.bunker._solver_gurobi import GurobiModel, is_gurobi_licensed
+from navigate.simulation.bunker._solver_highs import HighsModel
 
 if TYPE_CHECKING:
     from navigate.core.general_nodes.bunker_options import BunkerOptions
-    from navigate.simulation.bunker.solver import Model
+    from navigate.simulation.bunker._solver import Model
 
 logger = logging.getLogger(__name__)
 

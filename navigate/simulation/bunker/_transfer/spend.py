@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Transfer the fuel spend at sea and in port to the vessel results."""
+"""Transfer the fuel spend at sea and in port to the vessel expectations and results."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 def transfer_spend(alg: BunkerAlgorithm) -> None:
     """
-    Transfer the fuel spend solution to the vessel expectations and results.
+    Transfer the fuel spend at sea and in port to the vessel expectations and results.
 
     Parameters
     ----------
@@ -25,11 +25,16 @@ def transfer_spend(alg: BunkerAlgorithm) -> None:
     if alg.scope != BunkerScopeID.EXISTING:
         return
 
-    for (v, c, f, _port_start, _port_end), variable in alg.spend_sea.items():
-        _transfer_spend(alg, v, c, f, alg.model.value(variable))
+    # every fleet vessel restarts its spent energy from zero, also one out of the LP
+    for fleet in alg.fleets.values():
+        for vessel in fleet.vessels:
+            vessel.expectation.reset_spend_energy()
 
-    for (v, c, f, _p), variable in alg.spend_port.items():
-        _transfer_spend(alg, v, c, f, alg.model.value(variable))
+    for (v, c, f, _, _), spend_sea in alg.spend_sea.items():
+        _transfer_spend(alg, v, c, f, alg.model.value(spend_sea))
+
+    for (v, c, f, _), spend_port in alg.spend_port.items():
+        _transfer_spend(alg, v, c, f, alg.model.value(spend_port))
 
 
 def _transfer_spend(alg: BunkerAlgorithm, v: str, c: str, f: str, spend: float) -> None:
@@ -45,9 +50,9 @@ def _transfer_spend(alg: BunkerAlgorithm, v: str, c: str, f: str, spend: float) 
     expectation.add_spend_energy(c, spend_energy)
 
     # the recorded emissions always count the slip, whatever a policy counts
-    for e in alg.emissions:
-        ttw_consumption = expectation.get_ttw_consumption(c, f, e)
-        ttw_slip = expectation.get_ttw_slip(c, f, e)
+    for emission_name in alg.emissions:
+        ttw_consumption = expectation.get_ttw_consumption(c, f, emission_name)
+        ttw_slip = expectation.get_ttw_slip(c, f, emission_name)
 
         ttw_emissions = (ttw_consumption + ttw_slip) * spend
-        vessel.results.ttw[f, e][alg.idx] += ttw_emissions
+        vessel.results.ttw[f, emission_name][alg.idx] += ttw_emissions

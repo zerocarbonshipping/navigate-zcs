@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the constraints that the fuel spent on a leg is on board when it starts."""
+"""Update the constraints that the fuel spent on a leg is on board when it starts."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def update_mass_sufficient_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     r"""
-    Add the constraints that fuel spent on a leg is on board when the leg starts.
+    Update the constraints that fuel spent on a leg is on board when the leg starts.
 
     For each usable fuel f and tank stop i (vessel index omitted):
 
@@ -32,19 +32,19 @@ def update_mass_sufficient_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
     alg
         The algorithm instance.
     vessel
-        Vessel for which constraints are updated.
+        Vessel whose constraints are updated.
     """
     v = vessel.name
     route = vessel.route
     voyages = float(vessel.expectation.get_voyages(alg.idx))
 
+    tank_stops = route.get_tank_stops()
+    tank_departures = [(i, e) for i, e in route.get_legs() if i in tank_stops]
+
     rows = alg.mass_sufficient
     mass_tank = alg.mass_tank
     spend_sea = alg.spend_sea
     model = alg.model
-
-    tank_stops = route.get_tank_stops()
-    tank_departures = [(i, e) for i, e in route.get_legs() if i in tank_stops]
 
     for f, converters in vessel.converters_per_fuel.items():
         for i, e in tank_departures:

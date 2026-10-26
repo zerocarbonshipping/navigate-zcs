@@ -27,11 +27,11 @@ from highspy import (
 )
 
 from navigate.core.enum_ import SolveStatusID
-from navigate.simulation.bunker.solver import Constraint, Variable
+from navigate.simulation.bunker._solver import Constraint, Variable
 
 if TYPE_CHECKING:
     from navigate.core.general_nodes.bunker_options import BunkerOptions
-    from navigate.simulation.bunker.solver import Sense
+    from navigate.simulation.bunker._solver import Sense
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
@@ -60,11 +60,11 @@ class HighsModel:
     """
 
     def __init__(self, name: str, options: BunkerOptions) -> None:
-        tolerance = float(options.solution_tolerance)
+        tolerance = options.solution_tolerance
 
         self._highs: highspy.Highs = highspy.Highs()
         self._highs.setOptionValue("output_flag", False)
-        self._highs.setOptionValue("threads", int(options.threads))
+        self._highs.setOptionValue("threads", options.threads)
         self._highs.setOptionValue("primal_feasibility_tolerance", tolerance)
         self._highs.setOptionValue("dual_feasibility_tolerance", tolerance)
 
@@ -136,7 +136,6 @@ class HighsModel:
     ) -> None:
         """Set the coefficient of a variable in a constraint."""
         key = (constraint, variable)
-        value = float(value)
         if self._coefficients.get(key) == value:
             return
 
@@ -145,7 +144,6 @@ class HighsModel:
 
     def set_rhs(self, constraint: Constraint, value: float) -> None:
         """Set the right-hand side of a constraint."""
-        value = float(value)
         sense = self._row_senses[constraint]
 
         self._row_rhs[constraint] = value
@@ -153,7 +151,7 @@ class HighsModel:
 
     def set_cost(self, variable: Variable, value: float) -> None:
         """Set the objective coefficient of a variable."""
-        self._pending_cost[variable] = float(value)
+        self._pending_cost[variable] = value
 
     def set_upper_bound(self, variable: Variable, value: float) -> None:
         """
@@ -161,7 +159,7 @@ class HighsModel:
 
         The lower bound stays zero.
         """
-        self._pending_upper_bound[variable] = float(value)
+        self._pending_upper_bound[variable] = value
 
     def remove_variable(self, variable: Variable) -> None:
         """
@@ -335,21 +333,21 @@ class HighsModel:
         self._pending_row_bounds.clear()
 
         if self._pending_cost:
-            indices = np.array(list(self._pending_cost), dtype=np.int32)
-            costs = np.array(list(self._pending_cost.values()), dtype=np.float64)
-            self._highs.changeColsCost(len(indices), indices, costs)
-            self._pending_cost.clear()
+            pending = self._pending_cost
+            count = len(pending)
+            indices = np.array(list(pending), dtype=np.int32)
+            costs = np.array(list(pending.values()), dtype=np.float64)
+            self._highs.changeColsCost(count, indices, costs)
+            pending.clear()
 
         if self._pending_upper_bound:
-            indices = np.array(list(self._pending_upper_bound), dtype=np.int32)
-            lower_bounds = np.zeros(len(indices), dtype=np.float64)
-            upper_bounds = np.array(
-                list(self._pending_upper_bound.values()), dtype=np.float64
-            )
-            self._highs.changeColsBounds(
-                len(indices), indices, lower_bounds, upper_bounds
-            )
-            self._pending_upper_bound.clear()
+            pending = self._pending_upper_bound
+            count = len(pending)
+            indices = np.array(list(pending), dtype=np.int32)
+            lower_bounds = np.zeros(count, dtype=np.float64)
+            upper_bounds = np.array(list(pending.values()), dtype=np.float64)
+            self._highs.changeColsBounds(count, indices, lower_bounds, upper_bounds)
+            pending.clear()
 
     def _set_warm_start_basis(self) -> None:
         """Set the saved basis, extended to the model's size, to start the next run."""

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.simulation.bunker import solver
+from navigate.simulation.bunker._solver import evaluate
 
 if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
@@ -31,8 +31,8 @@ def transfer_regulation_solution(alg: BunkerAlgorithm) -> None:
 
     for r, v in alg.regulation_emission_terms:
         expectation = alg.regulations[r].expectation
-        emissions = solver.evaluate(alg.model, alg.regulation_emission_terms[r, v])
-        energy = solver.evaluate(alg.model, alg.regulation_energy_terms[r, v])
+        emissions = evaluate(alg.model, alg.regulation_emission_terms[r, v])
+        energy = evaluate(alg.model, alg.regulation_energy_terms[r, v])
 
         expectation.set_vessel_emissions(idx, v, emissions)
         expectation.set_vessel_energy(idx, v, energy)

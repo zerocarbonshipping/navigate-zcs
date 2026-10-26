@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.enum_ import BunkerScopeID
 
 if TYPE_CHECKING:
@@ -44,17 +42,18 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
 
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
+        expectation = port.expectation
         results = vessel.results
 
-        cost = np.float64(port.expectation.get_shore_power_cost(idx))
+        cost = float(expectation.get_shore_power_cost(idx))
         expenses = cost * energy
 
         results.shore_power_energy[idx] += energy
         results.shore_power_expenses[idx] += expenses
 
-        for e in alg.emissions:
-            wtw = np.float64(port.expectation.get_shore_power_emission_factor(e, idx))
-            results.shore_power_emission[e][idx] += wtw * energy
+        for emission_name in alg.emissions:
+            wtw = float(expectation.get_shore_power_emission_factor(emission_name, idx))
+            results.shore_power_emission[emission_name][idx] += wtw * energy
 
 
 def _transfer_expected(alg: BunkerAlgorithm) -> None:
@@ -69,7 +68,7 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
 
-        cost = np.float64(port.expectation.get_shore_power_cost(idx))
+        cost = float(port.expectation.get_shore_power_cost(idx))
         expenses = cost * energy
 
         vessel.expectation.add_total_energy(idx, energy)

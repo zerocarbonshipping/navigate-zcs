@@ -26,10 +26,10 @@ def optimize(alg: BunkerAlgorithm) -> None:
         The algorithm instance.
     """
     alg.model.solve()
-    check_solution(alg)
+    _check_solution(alg)
 
 
-def check_solution(alg: BunkerAlgorithm) -> None:
+def _check_solution(alg: BunkerAlgorithm) -> None:
     """
     Check that the last solve of the LP model found an optimal solution.
 
