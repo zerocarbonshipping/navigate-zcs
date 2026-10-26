@@ -143,4 +143,4 @@ def normalize_by_measure(regulation: Regulation, value: float, measure: float) -
 
     # the measure is zero for a vessel that spent no energy or has no port in the
     # jurisdiction, and for a pool without policed vessels
-    return np.float64(divide_nonzero(value, measure))
+    return float(divide_nonzero(value, measure))

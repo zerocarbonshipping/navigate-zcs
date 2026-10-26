@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
-import numpy as np
-
 from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
 from navigate.simulation.policy._policed import (
     calculate_vessel_account,
@@ -139,7 +137,7 @@ def _clear_flexibility_market(
     shadow_price = expectation.get_pooled_shadow_price(idx)
 
     # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance
-    balances: dict[str, tuple[float, float]] = {}
+    balances = {}
     total_non_compliance = 0.0
     total_surplus = 0.0
     for vessel_name, multiplier in select_policed(regulation, multipliers).items():
@@ -157,8 +155,8 @@ def _clear_flexibility_market(
     # the share of the non-compliance remediated rather than covered by flexibility
     # units, capped at one against the numerical instability of vessels with a low
     # multiplier (the jump-start fraction)
-    ratio = divide_nonzero(total_remedial, total_non_compliance, default=1.0)
-    remedial_fraction = min(1.0, np.float64(ratio))
+    ratio = float(divide_nonzero(total_remedial, total_non_compliance, default=1.0))
+    remedial_fraction = min(1.0, ratio)
 
     # the surplus may exceed the flexibility units when the surplus-generating fuels
     # pay off without the remuneration (e.g., through subsidies), an over-compliance
@@ -167,8 +165,8 @@ def _clear_flexibility_market(
     if total_surplus > total_flexibility > 0.0:
         # the cost falls linearly from the threshold to the zero line, ignoring
         # negative emissions
-        cost_scaling = divide_nonzero(total_flexibility, total_surplus)
-        flexibility_cost = shadow_price * np.float64(cost_scaling)
+        cost_scaling = float(divide_nonzero(total_flexibility, total_surplus))
+        flexibility_cost = shadow_price * cost_scaling
     else:
         flexibility_cost = shadow_price
 

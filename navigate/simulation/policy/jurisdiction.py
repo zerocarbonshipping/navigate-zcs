@@ -174,7 +174,7 @@ def _calculate_transport_measure(
     expectation = regulation.expectation
     legs = vessel.route.get_leg_keys()
 
-    regulated_cargo_miles: FloatLike = 0.0
+    regulated_cargo_miles = 0.0
     for leg, cargo_miles_leg in zip(legs, cargo_miles, strict=True):
         fraction = expectation.get_leg_fraction(leg, forward)
         regulated_cargo_miles += fraction * cargo_miles_leg

@@ -273,7 +273,7 @@ def _calculate_regulation_coefficient(
         Emission coefficient, in ton emissions per ton fuel, from idx onward.
     """
     vessel_name, converter_name, fuel_name = key
-    coefficient: FloatLike = 0.0
+    coefficient = 0.0
 
     for emission in regulation.emissions:
         key_wtt = (vessel_name, fuel_name, emission.name)
@@ -306,7 +306,7 @@ def _calculate_regulation_shore_power_coefficients(
     for port in unique_list(route_ports):
         get_emission_factor = port.expectation.get_shore_power_emission_factor
 
-        coefficient: FloatLike = 0.0
+        coefficient = 0.0
         for emission in regulation.emissions:
             factor = get_emission_factor(emission.name, forward)
             coefficient += _apply_gwp(factor, regulation, emission)
@@ -555,7 +555,7 @@ def _calculate_levy_coefficient(
         Emission coefficient, in ton emissions per ton fuel, from idx onward.
     """
     vessel_name, port_name, fuel_name = key
-    coefficient: FloatLike = 0.0
+    coefficient = 0.0
 
     for emission in levy.emissions:
         key_wtt = (port_name, fuel_name, emission.name)
@@ -568,7 +568,7 @@ def _calculate_levy_coefficient(
 def _apply_thresholds(
     coefficient: FloatLike,
     scheme: LevySchemeID,
-    effective_lhv: FloatLike,
+    effective_lhv: float,
     lower: FloatArray,
     upper: FloatArray | None,
 ) -> FloatLike:
@@ -644,7 +644,7 @@ def _average_wtt_over_route(
     FloatLike
         Approximate WTT from `idx` onward, in ton emission/ton fuel.
     """
-    estimates: list[FloatLike] = []
+    estimates = []
     for port in ports:
         if not port.bunkering_allowed[fuel.name]:
             continue
@@ -753,7 +753,7 @@ def _evaluate_supplied(
         Supplied factor from the current time step onward, keyed by fuel and emission
         name; None where the policy supplies none.
     """
-    evaluated: dict[tuple[str, str], FloatArray | None] = {}
+    evaluated = {}
 
     for fuel in policy.fuels:
         for emission in policy.emissions:
@@ -866,7 +866,7 @@ def _target_converter_fuels(
         Each converter name with each targeted fuel it burns, converter by
         converter, the fuels in the regulation's order.
     """
-    pairs: list[tuple[str, Fuel]] = []
+    pairs = []
 
     for converter_name, burned in vessel.fuels_per_converter.items():
         for fuel in regulation.fuels:
@@ -919,7 +919,7 @@ def _estimate_port_wtt(
     if not plants:
         return np.full(port.expectation.get_shape(idx), np.nan)
 
-    estimates: list[FloatLike] = []
+    estimates = []
     for plant in plants:
         expectation = plant.expectation
         production = expectation.get_production_wtt(emission.name, forward)
