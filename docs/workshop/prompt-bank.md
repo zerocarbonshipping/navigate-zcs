@@ -10,6 +10,8 @@ assistant with no other instructions and checking the deck it built. Pick the
 entry closest to your case, change what differs, and give it to your assistant.
 The rules every deck shares are in [Building a deck with an AI
 assistant](building-a-deck.md); the prompts here only describe their case.
+Every entry models a market segment owned by many companies, in hundreds of
+ships or a share of a library class, never one company's fleet or a single ship.
 
 [Session 5](05-build-your-own-case.ipynb) shows new users five examples, with
 their prompts: Sessions 1 and 2 rebuilt, one trade between two ports, inland
@@ -34,6 +36,8 @@ One line per prompt, Session 5's included. A new entry adds its line here.
 | Green finance: do cheaper loans bring zero-emission ships forward? | Do cheaper loans bring zero-emission ships forward? | One trade: Tubarão to Rotterdam | Panamax ore carriers | EU ETS and FuelEU on half the voyage, in both runs | Finance: cheaper cost of capital for ammonia and methanol ships | 2026-10-19 |
 | A global study: the cost of waiting | What does starting a global fuel standard late cost? | The world | The library's whole fleet | Global fuel standard, EU ETS, FuelEU | Timing: the standard on time vs delayed | 2026-10-26 |
 | The world fleet, simplified: the global picture at a size you can iterate on | What does a cut-down world fleet do under EU policy? | The world, two or three classes | Library fleets | EU ETS and FuelEU | One run: no comparison | ran first time; criteria not checked |
+| Coastal shipping in Norway: two ship classes under a national CO2 tax | Does a national CO2 tax move owners to biofuels or to new ships? | One coastal trade: Bergen to Tromsø | 100 general cargo ships and 50 ferries | National CO2 tax (a copied EU ETS Regulation) | A price: with and without it; two classes on one trade | 2026-10-26 |
+| LNG carriers from Qatar to Japan: which fuel wins on cost alone | Which fuel wins on cost alone on a gas-carrier trade? | One trade: Ras Laffan to Futtsu | 100 gas carriers | None | Nothing: the fuel choice on cost alone | 2026-10-26 |
 
 ## What "it works" means here
 
@@ -449,4 +453,282 @@ building-a-deck.md says about DefaultConverterAvailable.
 BEFORE YOU TELL ME IT WORKS
 Expect a run of five to ten minutes, not seconds. Tell me the fuel mix at both
 ends of the horizon, from the report.
+````
+
+### Coastal shipping in Norway: two ship classes under a national CO2 tax
+
+**The study.** Coastal cargo ships and ferries between Bergen and Tromsø, 2026 to
+2050, owned by many companies, run twice: without policy, and with Norway's CO2
+tax on domestic shipping, built as a copy of the library's EU ETS regulation on
+the two ports. The question is whether the tax moves the owners to biofuels in
+the ships they have, or to new ships. It is the inland Germany entry with
+seagoing library classes, and with two classes on one trade, each on its own
+Route node.
+
+**What comes from the library.** Both ship classes (general cargo and ferry: their
+designs, age profiles, operating profiles and trade growth), the fuels and their
+prices, the European fuel production, and the EU ETS regulation the tax copies.
+
+**What is INVENTED.** The fleet size and its split (100 cargo ships, 50 ferries),
+the sea distance, the bunker logistics, the feedstock share and the tax path
+(100 USD/t CO2 in 2026, 200 from 2030).
+
+**Limits.** The ships and their operating patterns are the library's world
+averages for the class, not Norwegian coastal vessels. The library has no
+battery-electric ships, which much of Norway's ferry fleet is moving to. Neither
+class can be converted to another fuel in the library.
+
+**Tested:** 2026-10-26. Written by Session 5's start-up prompt from a short case
+(the model it chose was inland Germany), then built cold and unedited: both
+decks ran with no warnings and passed the checks above. Biofuels need roughly
+440 USD/t; at 200 USD/t the owners pay the tax, order slightly more LNG ships,
+and the cargo ships slow down, which gives most of the 4.5 % cut in emissions.
+Treat that as a property of the placeholders.
+
+````text
+You are helping me build a simulation study for Navigate, the shipping
+decarbonisation model. Write the files yourself; do not only
+describe them.
+
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+THE DECKS
+A new folder, simulations/user/norway_coastal/ (if it is taken, use
+norway_coastal_2, and so on, and tell me which). Do not change any existing file.
+It holds two decks that differ in one Include line only:
+- reference.nav: no policy at all
+- co2_tax.nav: the same, plus includes/co2_tax.inc
+(Two decks, so these two names replace building-a-deck.md's rule of naming the
+.nav after the folder.)
+
+THE CASE
+Norwegian coastal shipping between Bergen and Tromsø, 2026 to 2050, yearly steps.
+The question is whether Norway's CO2 tax on domestic shipping moves the owners to
+biofuels in the ships they have, or to new ships.
+- Fleets: two Fleet nodes, both owned by many companies, both nearly all on fuel
+  oil at the start:
+  - coastal cargo ships: the library's general cargo class (Fleet file
+    general_cargo.inc), with its own split of ship designs and age profile;
+  - ferries: the library's ferry class (Fleet file ferry.inc), with its own split
+    of ship designs and age profile.
+  Build both with Copy Vessel, as building-a-deck.md describes. The designs that
+  can be ordered are oil, LNG and methanol, for both classes. Leave out the
+  general cargo ammonia design to keep the deck small (and its InitialSplit and
+  age-distribution entries with it; its initial share is 0 in the library). The
+  library's Fleet files for these two classes have no set_fuel_conversion_cost
+  lines, so no ship can be converted to another fuel: say so in the .nav header
+  rather than inventing conversion costs. Keep each class's library TradeGrowth,
+  and its AllowSpeedManagement as the library sets it (FALSE for ferries, TRUE
+  for general cargo); check ActualSpeed as building-a-deck.md says.
+- Trade: one ROUND_TRIP between your own ports bergen and tromso, cargo carried
+  both ways. Each class sails it on its own Route node (the two classes have
+  different speeds and port times), with the same ports and distances.
+- Fuels: fuel oil and LNG at their library prices; biodiesel (FAME), which burns
+  in the oil engines; bio-methane, which burns in the LNG engines; bio-methanol
+  and e-methanol, which burn in the methanol engines. All the alternative fuels
+  are made in Europe (the library's "europe" region).
+- Policy: none in reference.nav. EU ETS and FuelEU Maritime are not part of this
+  study: do not load DefaultRegulation in either deck. co2_tax.nav adds Norway's
+  CO2 tax on domestic shipping as a copy of the library's EU ETS regulation:
+  Copy Regulation "eu_ets" to "co2_tax_norway", with its Jurisdiction set to the
+  two ports (so it covers the whole voyage) and its RemedialCost set to the tax
+  path below. Keep the rest of it: it already counts biofuels and e-fuels as zero
+  CO2. It names fuels this case does not otherwise use (e-diesel, e-methane,
+  blue and e-ammonia), so import those too, in both decks, or it will not parse.
+  building-a-deck.md says why this is a Regulation and not a Levy. The price
+  Forecast and the Regulation need different names.
+
+HOW TO BUILD IT
+Build the rest as building-a-deck.md describes for a deck on named ports: the
+two Fleet nodes, the two ROUND_TRIP routes with speeds and time in port from
+each class's operational profile, the ports, the bunker logistics, the European
+production region and the plants and producers, with the shares of the library's
+feedstock ceilings given below. Leave out the library's orderbooks for both
+classes: they are sized for the world fleet.
+
+From the operational profiles (copy these with a comment naming the file, and
+show the arithmetic as example_4's route.inc does):
+- operational_profile_ferry.inc: 14 kn, capacity utilisation 0.75 on both legs,
+  TimeAtSea 0.5 over 50 port calls a year, so 0.5 x 365 / 50 = 3.65 days per call;
+- operational_profile_general_cargo.inc: 11.2 kn, capacity utilisation 0.5 on
+  both legs, TimeAtSea 0.548 over 20 port calls a year, so
+  0.452 x 365 / 20 = 8.25 days per call.
+Say in a comment that these are world-average patterns for the class, not
+Norwegian coastal service.
+
+For the producers, use the library's European plants for FAME, bio-methane,
+bio-methanol and e-methanol, and set Region, Source and CostOfCapital on every
+plant as building-a-deck.md says.
+
+NUMBERS
+Everything not listed here comes from the library, by name. These are
+placeholders, INVENTED for this case: mark each one where it appears, list them
+all in both .nav headers, and keep them in one file, includes/placeholders.inc,
+as Variables and Forecasts, so I can replace them in one place. The route
+distance and the bunker logistics take plain numbers only: write those in their
+own files, marked INVENTED, and list them in placeholders.inc as comments.
+- Fleet: 150 ships in 2026, a segment owned by many companies: 100 general cargo
+  ships and 50 ferries
+- Route: 650 nm each way between Bergen and Tromsø
+- Bunker logistics: 300 nm from the European plants to bergen and 800 nm to
+  tromso, 0.03 USD per ton per nm
+- Feedstock: this trade's share of the library's shipping share, 0.0004 of the
+  used cooking oil, the biogas, the gasifiable biomass and the biogenic CO2
+  (about this fleet's share of world shipping's energy, as building-a-deck.md
+  explains; check it against the fleet's first-year energy in the report and
+  tell me if it is off by more than a factor of two, but do not change it)
+- CO2 tax: 100 USD per t CO2 in 2026, rising linearly to 200 USD in 2030, then
+  flat at 200 USD to 2050
+
+RESULTS PER FLEET
+DefaultReport gives totals for both fleets together. Add your own Report node,
+as building-a-deck.md describes, with per fleet ConsumedEnergy by fuel,
+ExistingVessels per vessel, TotalEquivalentWTW and RegulationExpenses; and, in
+co2_tax.inc, the tax's own RemedialExpenses, FlexibilityExpenses and
+SurplusRevenue.
+
+BEFORE YOU TELL ME IT WORKS
+Run both decks one after the other and report on each as building-a-deck.md
+says. Then, from the two reports, give me side by side, for each fleet and for
+both together:
+- the share of energy by fuel in 2026, 2030, 2040 and 2050;
+- the well-to-wake emissions in 2026 and 2050, and summed over 2026-2050;
+- the ships of each design in 2050 (oil, LNG, methanol), and the newbuilds of
+  each design over the period;
+- what the CO2 tax cost the owners in 2030 and 2050.
+Say plainly what the tax changed: biofuel burnt in the ships the owners already
+have (FAME in oil ships, bio-methane in LNG ships), new LNG or methanol ships,
+both, or nothing; and whether new methanol ships actually burn methanol rather
+than their pilot oil. If the biofuels never compete, work out from the bunker
+prices roughly what CO2 price they would need. Remind me which inputs are
+placeholders, and that the ships are the library's world-average general cargo
+ship and ferry, not Norwegian coastal vessels.
+````
+
+### LNG carriers from Qatar to Japan: which fuel wins on cost alone
+
+**The study.** LNG carriers from Ras Laffan to Futtsu (Tokyo Bay), 2026 to 2050,
+owned by many companies, with no regulation: every fuel choice is made on cost
+alone, with fuels made in the Middle East. The question is which fuel wins by
+2050. It is the "one trade, two ports" example (Session 5, example C) for a gas
+carrier, whose fleet already burns LNG at the start.
+
+**What comes from the library.** The gas-carrier class (its four designs, age
+profile and operating profile), the fuels and their prices, and the Middle East
+fuel production.
+
+**What is INVENTED.** The fleet size, the sea distance, the bunker logistics and
+the feedstock share.
+
+**Limits.** The library's gas carrier is a 100,000 m3 ship, not a 174,000 m3 LNG
+carrier, and Navigate has no boil-off gas: the ships buy LNG at the port like any
+fuel. The class cannot be converted to another fuel in the library.
+
+**Tested:** 2026-10-26. Written by Session 5's start-up prompt from a short case
+(the model it chose was Session 5's example C), then built cold and unedited: it
+ran with no warnings and passed the checks above. Nothing switched: the cheapest
+alternative, blue ammonia, costs about 2.6 times LNG in 2050. Methanol and
+ammonia ships are still ordered, and burn only their pilot oil, so the oil share
+of energy rises; read the switch from ConsumedEnergy, not from ship counts.
+
+````text
+You are helping me build a simulation deck for Navigate, the shipping
+decarbonisation model. Write the files yourself; do not only
+describe them.
+
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+THE DECK
+A new folder, simulations/user/gulf_japan_lng/ (if it is taken, use
+gulf_japan_lng_2, and so on), with the .nav
+file named after the folder and its .inc files in includes/. Do not change any
+existing file.
+
+THE CASE
+LNG carriers on one trade, 2026 to 2050, yearly steps, no regulation at all:
+every fuel choice is made on cost alone. The question: which fuel wins on cost
+by 2050?
+- Fleet: the library's gas carrier class, gas_carrier_100k_cbm, with its four
+  designs (oil, LNG, methanol, ammonia), built with Copy Vessel as
+  building-a-deck.md describes. Keep the library's ship as it is (capacity,
+  power, price, lifetime); do not resize it to a 174,000 m3 LNG carrier.
+  All four designs can be ordered.
+- Starting fleet: 100 ships in 2026, a segment owned by many companies, with the
+  library's InitialSplit and InitialAgeDistribution for this class (about two
+  thirds LNG-fuelled, one third oil). Leave out the library's orderbook: it is
+  sized for the world fleet.
+- Trade: Ras Laffan (Qatar) to Futtsu (Tokyo Bay, Japan), laden out, ballast
+  home.
+- Fuels: fuel oil and LNG at their library prices, as global commodities
+  (LiquidMarketFuels); bio-methane, e-methane, blue ammonia, e-ammonia and
+  e-methanol made in the Middle East (the library's "middle_east" region), with
+  the library's middle_east plants.
+- Regulation: none. Do not load DefaultRegulation and write no Regulation or
+  Levy. That is the point of the case.
+
+HOW TO BUILD IT
+- A trade of its own between two named ports: build the Fleet node with Copy
+  Vessel, a ROUND_TRIP route between your own ports ras_laffan and futtsu, the
+  ports, the bunker logistics, the middle_east region and the producers as
+  building-a-deck.md describes, with this case's own values. Restate in your
+  own region file the Region "*" lines (feedstock and process costs) that your
+  plants use, from assumptions/modules/installation/default_region.inc.
+- Route: the class's operational profile
+  (assumptions/defaults/installation/Route/operational_profile_gas_carrier_100k_cbm.inc)
+  has one speed, 16.6 kn, so use it both ways; CapacityUtilizations 1.0 laden
+  out and 0.0 in ballast home. Port days per call from the profile: TimeAtSea
+  0.684 over 24 + 6 = 30 calls a year, (1 - 0.684) x 365 / 30 = 3.8 days; show
+  the arithmetic in a comment.
+- Retrofits: the library's Fleet file for this class has no
+  set_fuel_conversion_cost lines, so the ships cannot be converted; say so in
+  the .nav header rather than inventing conversion costs.
+- Plants: set Region, Source and CostOfCapital on every plant yourself, as
+  default_plant.inc does for middle_east (Source "grid" for bio and blue,
+  "renewable" for electro; cost_of_capital_plant_bio/blue/electro_middle_east).
+- Energy-efficiency technologies are optional here: leave them out.
+- Do not load DefaultConverterAvailable (fewer than the library's 23 fleets):
+  say in the .nav header that every design is orderable from year one.
+- Add Load DefaultReport, and a Report of your own with
+  add_plant_property("*", InvestmentIntensityCost), so we can see how far the
+  fuels that are not built are from competing.
+
+NUMBERS
+The library covers this vessel class - use its own values, by name:
+    assumptions/defaults/installation/Fleet/gas_carrier_100k_cbm.inc
+    assumptions/defaults/installation/Route/operational_profile_gas_carrier_100k_cbm.inc
+Take structure from simulations/examples/example_4/ and none of its numbers.
+These are placeholders, INVENTED for this case: mark each one where it appears,
+list them all in the .nav header, and keep them in includes/placeholders.inc
+(the plain numbers in their own files, listed there as comments).
+- Fleet: 100 ships in 2026 (INVENTED: about 4 % of the library's 2,553 gas
+  carriers; the number is mine, the library's is the whole world fleet)
+- Route: 6,500 nm each way, Ras Laffan to Futtsu via the Strait of Malacca
+- Bunker logistics: 200 nm from the Middle East plants to ras_laffan and
+  6,500 nm to futtsu, 0.02 USD per ton per nm
+- Feedstock: this trade's share of the library's shipping share, 0.006 of the
+  biogenic CO2 (e-methanol, e-methane) and of the biogas feedstock
+  (bio-methane): about this fleet's share of world shipping's energy, as
+  building-a-deck.md explains. Check it against the first-year energy in the
+  report and tell me if it is off by more than a factor of two; do not change
+  it to make a fuel appear.
+
+BEFORE YOU TELL ME IT WORKS
+Run it and report as building-a-deck.md says. Then, from the report, give me:
+- the share of energy by fuel in 2026, 2030, 2040 and 2050;
+- the ships of each design in 2050, and the newbuilds of each design over the
+  period;
+- the fleet's well-to-wake emissions in 2026 and 2050;
+- for the alternative fuels not burnt, their levelised cost per GJ in 2050
+  (InvestmentIntensityCost) next to the bunker price of LNG.
+Say plainly which fuel wins on cost by 2050, and whether anything actually
+switched (judge it from ConsumedEnergy, not ship counts). Remind me which
+inputs are placeholders.
 ````

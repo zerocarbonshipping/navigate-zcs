@@ -106,6 +106,12 @@ literal. Where the library itself stores a plain number (the fuel-conversion cos
 in a Fleet file, the time at sea in a Route file), copy it with a comment naming
 the file it came from.
 
+A fleet is a market segment owned by many companies: hundreds of ships, or a
+share of a library class, never one company's fleet or a single ship. Navigate
+decides for the segment as a whole, in fractions of ships, so a case about one
+owner's few ships is outside what it answers: say so, and model the segment
+those ships belong to.
+
 Take structure from the example decks and none of their numbers: they hold values
 that exist nowhere in the library, and in the file they look exactly as
 authoritative as a library reference.
