@@ -13,7 +13,8 @@ import numpy as np
 from navigate.core.results._base_results import _BaseResults, result
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.vessel import Vessel
+    from collections.abc import Sequence
+
     from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import FloatArray
 
@@ -57,7 +58,7 @@ class RegulationResults(_BaseResults):
     flexibility_expenses: FloatArray = result("USD/year")
     remedial_expenses: FloatArray = result("USD/year")
 
-    def initialize(self, context: ResultsContext, vessels: dict[str, Vessel]) -> None:
+    def initialize(self, context: ResultsContext, vessel_names: Sequence[str]) -> None:
         """
         Initialize the regulation results' storage arrays.
 
@@ -65,26 +66,29 @@ class RegulationResults(_BaseResults):
         ----------
         context
             Timeline, fuels and emissions of the run.
-        vessels
-            All vessels in the simulation.
+        vessel_names
+            Names of all vessels in the simulation.
         """
         self._initialize_base(context)
 
-        self.flexibility_cost = self._default_array(default=np.nan)
         self.remedial_cost = self._default_array(default=np.nan)
+        self.flexibility_cost = self._default_array(default=np.nan)
 
-        self.vessel_threshold = self._default_dict(vessels, default=np.nan)
+        self.vessel_threshold = self._default_dict(vessel_names, default=np.nan)
         self.shared_threshold = self._default_array(default=np.nan)
 
-        self.adjusted_vessel_threshold = self._default_dict(vessels, default=np.nan)
+        self.adjusted_vessel_threshold = self._default_dict(
+            vessel_names, default=np.nan
+        )
         self.adjusted_shared_threshold = self._default_array(default=np.nan)
 
-        self.vessel_allowance = self._default_dict(vessels, default=np.nan)
+        self.vessel_allowance = self._default_dict(vessel_names, default=np.nan)
         self.shared_allowance = self._default_array(default=np.nan)
 
-        self.vessel_compliance = self._default_dict(vessels, default=np.nan)
+        self.vessel_compliance = self._default_dict(vessel_names, default=np.nan)
         self.shared_compliance = self._default_array(default=np.nan)
-        self.vessel_units = self._default_dict(vessels, default=np.nan)
+
+        self.vessel_units = self._default_dict(vessel_names, default=np.nan)
         self.shared_units = self._default_array(default=np.nan)
 
         self.surplus_units = self._default_array()

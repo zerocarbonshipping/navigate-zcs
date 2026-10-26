@@ -26,6 +26,8 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.results import RegulationResults
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.results.results_context import ResultsContext
@@ -181,6 +183,6 @@ class Regulation(_Policy):
         self.expectation.initialize(length, emission_names, routes, vessels)
 
     def initialize_results(
-        self, context: ResultsContext, vessels: dict[str, Vessel]
+        self, context: ResultsContext, vessel_names: Sequence[str]
     ) -> None:
-        self.results.initialize(context, vessels)
+        self.results.initialize(context, vessel_names)
