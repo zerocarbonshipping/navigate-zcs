@@ -133,8 +133,10 @@ def _calculate_delivery_cost(
     # the lifetime, discount rate and cost flow may change over time, so the
     # levelized cost of delivery is calculated per time step
     for t, time in enumerate(timeline[idx:], start=idx):
+        # Python floats, as they key the cost rates and the flow sizing rounds them
         lead_time = float(expectation.get_lead_time(t))
         lifetime = float(expectation.get_lifetime(t))
+
         year_starts, operating_flow = build_operating_flows(lead_time, lifetime, time)
         discount_rate = plant.cost_of_capital.get(time)
 

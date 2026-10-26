@@ -45,14 +45,14 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         expectation = port.expectation
         results = vessel.results
 
-        cost = float(expectation.get_shore_power_cost(idx))
+        cost = expectation.get_shore_power_cost(idx)
         expenses = cost * energy
 
         results.shore_power_energy[idx] += energy
         results.shore_power_expenses[idx] += expenses
 
         for emission_name in alg.emissions:
-            wtw = float(expectation.get_shore_power_emission_factor(emission_name, idx))
+            wtw = expectation.get_shore_power_emission_factor(emission_name, idx)
             results.shore_power_emission[emission_name][idx] += wtw * energy
 
 
@@ -68,7 +68,7 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
 
-        cost = float(port.expectation.get_shore_power_cost(idx))
+        cost = port.expectation.get_shore_power_cost(idx)
         expenses = cost * energy
 
         vessel.expectation.add_total_energy(idx, energy)

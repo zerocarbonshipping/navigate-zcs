@@ -194,6 +194,8 @@ def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
             continue
 
         for plant in producer.plants:
+            # Python floats, as the consumption divides the feed gaps into development
+            # potentials, which a builtin sum() adds up
             production = float(plant.expectation.get_production(idx))
             conversion = float(plant.expectation.get_feed_conversion(feed_name, idx))
             consumption = production * conversion
@@ -399,8 +401,8 @@ def _calculate_feed_limits(
         if constraint is None:
             continue
 
-        gap = float(expectation.get_feed_gap(feed_name, idx))
-        additional = float(additional_consumption.get(feed_name, 0.0))
+        gap = expectation.get_feed_gap(feed_name, idx)
+        additional = additional_consumption.get(feed_name, 0.0)
         spend = calculate_feed_spend(producer, feed_name, newbuilds)
         scaling = max((gap - additional) / spend, 0.0) if spend > 0.0 else 1.0
 

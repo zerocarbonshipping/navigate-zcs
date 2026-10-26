@@ -94,7 +94,7 @@ def _initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         if key in alg.allocation_fuel:
             continue
 
-        supply = float(port.expectation.get_bunker_supply(f, alg.idx))
+        supply = port.expectation.get_bunker_supply(f, alg.idx)
         alg.allocation_fuel[key] = _get_fair_share(alg, vessel, port_name, f) * supply
 
 
@@ -188,7 +188,7 @@ def _update_fair_share_allocation(
         port = alg.ports[port_name]
         port_fuel = (port_name, f)
 
-        supply = float(port.expectation.get_bunker_supply(f, alg.idx))
+        supply = port.expectation.get_bunker_supply(f, alg.idx)
         remaining = supply - consumed.get(port_fuel, 0.0)
         total = shares[port_fuel]
 

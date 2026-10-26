@@ -192,8 +192,8 @@ def _verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     """
     expectation = vessel.expectation
 
-    times_sea = [float(time) for time in expectation.get_time_sea_condition(idx)]
-    times_port = [float(time) for time in expectation.get_time_port(idx)]
+    times_sea = expectation.get_time_sea_condition(idx)
+    times_port = expectation.get_time_port(idx)
     energies_sea = expectation.get_energy_sea_condition(idx)
     energies_port = expectation.get_energy_port(idx)
 
@@ -210,7 +210,7 @@ def _verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     for energies, times, labels, demand_types in domains:
         for demand_type in demand_types:
             converter = vessel.get_converter(demand_type)
-            demands = [float(energy) for energy in energies[demand_type]]
+            demands = energies[demand_type]
             overloads += _find_overloads(converter, demand_type, demands, times, labels)
 
     if overloads:

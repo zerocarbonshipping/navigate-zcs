@@ -94,7 +94,7 @@ def _update_sea_rows(
     for leg, (i, e) in enumerate(legs):
         key = (v, i, e, demand_type)
         constraint = get_constraint(alg, rows, key, "==", "energy_conservation_sea")
-        model.set_rhs(constraint, float(demand[leg]))
+        model.set_rhs(constraint, demand[leg])
 
         for f, coefficient in energy_per_ton.items():
             model.set_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
@@ -136,7 +136,7 @@ def _update_port_rows(
     for p in stops:
         key = (v, p, demand_type)
         constraint = get_constraint(alg, rows, key, "==", "energy_conservation_port")
-        model.set_rhs(constraint, float(demand[p]))
+        model.set_rhs(constraint, demand[p])
 
         for f, coefficient in energy_per_ton.items():
             model.set_coefficient(constraint, spend_port[v, c, f, p], coefficient)

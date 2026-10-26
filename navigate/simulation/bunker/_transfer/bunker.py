@@ -49,7 +49,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         results = vessel.results
         multiplier = alg.multipliers[v]
 
-        price = float(port.expectation.get_bunker_price(f, idx))
+        price = port.expectation.get_bunker_price(f, idx)
         expenses = price * mass
 
         # kept for the inertia floor of the next time-step
@@ -61,7 +61,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         port.results.bunker_mass[f][idx] += multiplier * mass
 
         for emission_name in alg.emissions:
-            wtt = float(port.expectation.get_bunker_wtt(f, emission_name, idx))
+            wtt = port.expectation.get_bunker_wtt(f, emission_name, idx)
             results.wtt[f, emission_name][idx] += wtt * mass
 
         for levy in port.imposed_levies:
@@ -89,7 +89,7 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
         port = vessel.route.ports[p]
 
         energy = alg.fuels[f].lower_heating_value.get() * mass
-        price = float(port.expectation.get_bunker_price(f, idx))
+        price = port.expectation.get_bunker_price(f, idx)
         expenses = price * mass
 
         vessel.expectation.add_total_energy(idx, energy)

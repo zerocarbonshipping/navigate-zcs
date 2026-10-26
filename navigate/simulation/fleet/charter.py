@@ -99,7 +99,7 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     expectation = vessel.expectation
     asset_charter_npv = expectation.get_asset_charter_npv(idx)
     technology_rate = expectation.get_technology_charter_rate(idx)
-    cargo_miles = np.asarray(expectation.get_cargo_miles())
+    cargo_miles = expectation.get_cargo_miles()
 
     fuel_cost_flow = component.get_cost_flow()
     operating_flow = component.operating_flow

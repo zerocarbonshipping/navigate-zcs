@@ -398,8 +398,8 @@ def _calculate_intra_fuel_metric(
 
     for port_name, export in export_distribution.items():
         delivery_cost = expectation.get_levelized_delivery_cost(port_name, idx)
-        delivered_cost = float(production_cost + delivery_cost)
-        metric += float(export) * delivered_cost
+        delivered_cost = production_cost + delivery_cost
+        metric += export * delivered_cost
 
     expectation.set_intra_fuel_metric(metric)
 

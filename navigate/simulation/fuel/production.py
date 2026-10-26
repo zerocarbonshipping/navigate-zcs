@@ -146,6 +146,7 @@ def _build_component(
     Component
         Component with zeroed flows.
     """
+    # Python floats, as the flow sizing rounds them and numpy's round() can differ
     lead_time = float(plant.expectation.get_lead_time(idx))
     lifetime = float(plant.expectation.get_lifetime(idx))
 
@@ -185,8 +186,8 @@ def _add_process_tree(
     expectation = plant.expectation
     time_initial = component.time_initial
 
-    size = float(expectation.get_size(idx))
-    production = float(expectation.get_production(idx))
+    size = expectation.get_size(idx)
+    production = expectation.get_production(idx)
 
     expectation.add_feed_conversion(idx, process.name, conversion)
 
@@ -437,7 +438,7 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     expectation = plant.expectation
     commence_idx = component.get_commence_index()
 
-    production = float(expectation.get_production(idx))
+    production = expectation.get_production(idx)
     production_flow = build_production_flow(component, production)
 
     cost_flow = component.get_cost_flow()
