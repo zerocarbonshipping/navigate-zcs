@@ -42,7 +42,7 @@ from navigate.util import attribute_to_setter
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from navigate.core.general_nodes._general_node import _GeneralNode
+    from navigate.core.general_nodes.general_node import GeneralNode
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.surface import Surface
@@ -64,7 +64,7 @@ type MaterializedValue = (
     | list[MaterializedValue]
 )
 
-type Holder = Node | _GeneralNode
+type Holder = Node | GeneralNode
 
 # a node and the body items to apply to it
 type Target = tuple[Node, list[BodyItem]]

@@ -499,16 +499,23 @@ def deck_entry(node_type: str, item: BodyItem, section: SectionID) -> DeckEntry:
         At the item's line, where the node type has no such attribute or
         command, or does not allow it in the section.
     """
-    general = node_type in GENERAL_NODE_CLASS
-    cls = GENERAL_NODE_CLASS[node_type] if general else NODE_CLASS[node_type]
-    subject = f"'{node_type}'" if general else f"Nodes of type '{node_type}'"
+    if node_type in GENERAL_NODE_CLASS:
+        if not isinstance(item, Assignment):
+            raise item.source.error(f"'{node_type}' does not support commands.")
 
-    if isinstance(item, Assignment):
-        entries, kind, verb = cls.deck_attributes, "attribute", "setting attribute"
-    elif general:
-        raise item.source.error(f"'{node_type}' does not support commands.")
+        subject = f"'{node_type}'"
+        entries = GENERAL_NODE_CLASS[node_type].deck_attributes
+        kind, verb = "attribute", "setting attribute"
     else:
-        entries, kind, verb = cls.deck_commands, "command", "use of command"
+        node_class = NODE_CLASS[node_type]
+        subject = f"Nodes of type '{node_type}'"
+
+        if isinstance(item, Assignment):
+            entries = node_class.deck_attributes
+            kind, verb = "attribute", "setting attribute"
+        else:
+            entries = node_class.deck_commands
+            kind, verb = "command", "use of command"
 
     if item.name not in entries:
         raise item.source.error(f"{subject} has no {kind} '{item.name}'.")

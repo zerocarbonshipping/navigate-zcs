@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Define the BunkerOptions general node, the settings of the bunker algorithm."""
+"""Define the BunkerOptions general node, the solver and fair-share settings."""
 
 from __future__ import annotations
 
@@ -13,12 +13,12 @@ from navigate.core import (
     deck_attribute,
 )
 from navigate.core.enum_ import SolverBackendID, SolverMethodID
-from navigate.core.general_nodes._general_node import _GeneralNode
+from navigate.core.general_nodes.general_node import GeneralNode
 from navigate.core.node_type import BUNKER_OPTIONS
 
 
-class BunkerOptions(_GeneralNode):
-    """Hold the solver settings of the bunker algorithm."""
+class BunkerOptions(GeneralNode):
+    """Hold the settings of the LP solver and of the fair-share iteration."""
 
     type = BUNKER_OPTIONS
 
@@ -38,38 +38,38 @@ class BunkerOptions(_GeneralNode):
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
     def set_solver(self, solver: str) -> None:
-        """Set the solver backend of the bunker algorithm."""
+        """Set the solver backend."""
         self.solver = assign_id(solver, SolverBackendID)
 
     @deck_attribute(SECTION_DEFINE)
     def set_solver_method(self, solver_method: str) -> None:
-        """Set the LP solver method of the bunker algorithm."""
+        """Set the LP solver method."""
         self.solver_method = assign_id(solver_method, SolverMethodID)
 
     @deck_attribute(SECTION_DEFINE)
     def set_solution_tolerance(self, solution_tolerance: float) -> None:
-        """Set the solution tolerance of the bunker algorithm."""
+        """Set the solution tolerance."""
         self.solution_tolerance = assign_value(
             solution_tolerance, lower=0.0, inclusive_lower=False, allow_expression=False
         )
 
     @deck_attribute(SECTION_DEFINE)
     def set_threads(self, threads: float) -> None:
-        """Set the number of threads used by the LP solver in the bunker algorithm."""
+        """Set the number of threads of the LP solver."""
         self.threads = assign_integer(threads, lower=0)
 
     @deck_attribute(SECTION_DEFINE)
     def set_fair_share_maximum_iterations(
         self, fair_share_maximum_iterations: float
     ) -> None:
-        """Set the maximum iterations of the fair-share sequential LP."""
+        """Set the maximum number of fair-share iterations."""
         self.fair_share_maximum_iterations = assign_integer(
             fair_share_maximum_iterations, lower=1
         )
 
     @deck_attribute(SECTION_DEFINE)
     def set_fair_share_tolerance(self, fair_share_tolerance: float) -> None:
-        """Set the fair-share tolerance of the bunker algorithm."""
+        """Set the fair-share tolerance."""
         self.fair_share_tolerance = assign_value(
             fair_share_tolerance,
             lower=0.0,

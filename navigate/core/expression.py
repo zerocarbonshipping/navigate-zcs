@@ -26,7 +26,7 @@ from navigate.util import name_contains_wildcards
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Mapping
 
-    from navigate.core.general_nodes._general_node import _GeneralNode
+    from navigate.core.general_nodes.general_node import GeneralNode
     from navigate.core.node import Node
     from navigate.core.node_type import AcceptedNodeTypes
     from navigate.core.types_ import Calculator
@@ -196,7 +196,7 @@ class Expression:
         text: str,
         tree: Evaluable,
         nodes: Mapping[NodeKey, Node],
-        holder: Node | _GeneralNode,
+        holder: Node | GeneralNode,
     ) -> None:
         self.text: str = text
         self.calculators: dict[NodeKey, Calculator] = {}
@@ -204,7 +204,7 @@ class Expression:
 
         self._tree: Evaluable = tree
         self._nodes: Mapping[NodeKey, Node] = nodes
-        self._holder: Node | _GeneralNode = holder
+        self._holder: Node | GeneralNode = holder
         self._allowed_types: tuple[str, ...] | None = None
 
     def __repr__(self) -> str:

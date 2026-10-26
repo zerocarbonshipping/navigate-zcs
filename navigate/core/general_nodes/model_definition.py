@@ -8,14 +8,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core import SECTION_DEFINE, assign_date, assign_value, deck_attribute
-from navigate.core.general_nodes._general_node import _GeneralNode
+from navigate.core.general_nodes.general_node import GeneralNode
 from navigate.core.node_type import MODEL_DEFINITION
 
 if TYPE_CHECKING:
     import numpy as np
 
 
-class ModelDefinition(_GeneralNode):
+class ModelDefinition(GeneralNode):
     """Hold the simulation start date and the emission lifetime used for GWP."""
 
     type = MODEL_DEFINITION
@@ -35,7 +35,7 @@ class ModelDefinition(_GeneralNode):
 
     @deck_attribute(SECTION_DEFINE)
     def set_emissions_lifetime(self, emissions_lifetime: float) -> None:
-        """Set the emission lifetime used to calculate GWP."""
+        """Set the emission lifetime used for GWP."""
         self.emissions_lifetime = assign_value(
             emissions_lifetime, lower=0.0, allow_expression=False
         )

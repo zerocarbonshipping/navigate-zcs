@@ -39,7 +39,7 @@ from navigate.core.nodes.vessel import Vessel
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from navigate.core.general_nodes._general_node import _GeneralNode
+    from navigate.core.general_nodes.general_node import GeneralNode
     from navigate.core.node import Node
 
 
@@ -131,4 +131,4 @@ def _classes_by_type(registry: type[Nodes | GeneralNodes]) -> dict[str, Any]:
 
 # the class of each node type and general node, read off the field metadata
 NODE_CLASS: dict[str, type[Node]] = _classes_by_type(Nodes)
-GENERAL_NODE_CLASS: dict[str, type[_GeneralNode]] = _classes_by_type(GeneralNodes)
+GENERAL_NODE_CLASS: dict[str, type[GeneralNode]] = _classes_by_type(GeneralNodes)
