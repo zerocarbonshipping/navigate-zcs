@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
-from navigate.core.initial_values import EMPTY_FLOAT
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -35,45 +34,45 @@ class RegulationExpectation(_PolicyExpectation):
         # in ton emission/GJ, the emission coefficient keyed by port_name and the
         # spend coefficient by (vessel_name, port_name), adjusted at a bunkering LP's
         # own step as the fuel spend coefficients are
-        self._shore_power_emission_coefficient: dict[str, FloatArray] = {}
-        self._shore_power_spend_coefficient: dict[tuple[str, str], FloatArray] = {}
+        self._shore_power_emission_coefficient: dict[str, FloatArray]
+        self._shore_power_spend_coefficient: dict[tuple[str, str], FloatArray]
 
-        self._flexibility_cost: FloatArray = EMPTY_FLOAT
-        self._belief_flexibility_cost: FloatArray = EMPTY_FLOAT
-        self._vessel_net_flexibility_units: dict[str, FloatArray] = {}
-        self._remedial_cost: FloatArray = EMPTY_FLOAT
+        self._flexibility_cost: FloatArray
+        self._belief_flexibility_cost: FloatArray
+        self._vessel_net_flexibility_units: dict[str, FloatArray]
+        self._remedial_cost: FloatArray
 
         # fractions keyed by port_name and by (departure, arrival) port_name
-        self._port_fraction: dict[str, FloatArray] = {}
-        self._leg_fraction: dict[tuple[str, str], FloatArray] = {}
+        self._port_fraction: dict[str, FloatArray]
+        self._leg_fraction: dict[tuple[str, str], FloatArray]
 
         # per vessel; threshold in the regulation's unit, kg emission/GJ under INTENSITY
-        self._vessel_threshold: dict[str, FloatArray] = {}
-        self._vessel_capacity: dict[str, FloatArray] = {}
-        self._vessel_measure: dict[str, FloatArray] = {}
+        self._vessel_threshold: dict[str, FloatArray]
+        self._vessel_capacity: dict[str, FloatArray]
+        self._vessel_measure: dict[str, FloatArray]
 
         # threshold times measure, in tons emission; zero under INTENSITY, whose
         # threshold enters the spend coefficients instead; once threshold adjustment
         # has run, a bunkering LP's own step holds the adjusted allowances
-        self._vessel_allowance: dict[str, FloatArray] = {}
+        self._vessel_allowance: dict[str, FloatArray]
 
         # the results of the bunkering LP of each time step: per policed vessel the
         # regulated emissions, in tons, the energy, in GJ, and under INDIVIDUAL the
         # remedial units; under FLEXIBLE the pooled remedial units and the shadow
         # price of the pooled threshold
-        self._vessel_emissions: dict[str, FloatArray] = {}
-        self._vessel_energy: dict[str, FloatArray] = {}
-        self._vessel_remedial_units: dict[str, FloatArray] = {}
-        self._pooled_remedial_units: FloatArray = EMPTY_FLOAT
-        self._pooled_shadow_price: FloatArray = EMPTY_FLOAT
+        self._vessel_emissions: dict[str, FloatArray]
+        self._vessel_energy: dict[str, FloatArray]
+        self._vessel_remedial_units: dict[str, FloatArray]
+        self._pooled_remedial_units: FloatArray
+        self._pooled_shadow_price: FloatArray
 
         # the thresholds adjusted to the compliance achievable, written by the
         # threshold adjustment after the first solve of each bunkering LP; a compliant
         # vessel of an adjustable regulation holds its original threshold. NaN where
         # the regulation allows no adjustment, and in the shared slot under INDIVIDUAL
         # or of a compliant FLEXIBLE regulation
-        self._adjusted_vessel_threshold: dict[str, FloatArray] = {}
-        self._adjusted_shared_threshold: FloatArray = EMPTY_FLOAT
+        self._adjusted_vessel_threshold: dict[str, FloatArray]
+        self._adjusted_shared_threshold: FloatArray
 
     def initialize(
         self,

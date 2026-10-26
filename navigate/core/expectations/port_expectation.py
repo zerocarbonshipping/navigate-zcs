@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.core.initial_values import EMPTY_FLOAT
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -24,19 +23,19 @@ class PortExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._handling_cost: dict[str, FloatArray] = {}
-        self._bunkering_limit: dict[str, FloatArray] = {}
+        self._handling_cost: dict[str, FloatArray]
+        self._bunkering_limit: dict[str, FloatArray]
 
-        self._bunker_price_overwrite: dict[str, FloatArray] = {}
-        self._bunker_wtt_overwrite: dict[tuple[str, str], FloatArray] = {}
+        self._bunker_price_overwrite: dict[str, FloatArray]
+        self._bunker_wtt_overwrite: dict[tuple[str, str], FloatArray]
 
-        self._bunker_supply: dict[str, FloatArray] = {}
-        self._bunker_price: dict[str, FloatArray] = {}
-        self._bunker_wtt: dict[tuple[str, str], FloatArray] = {}
+        self._bunker_supply: dict[str, FloatArray]
+        self._bunker_price: dict[str, FloatArray]
+        self._bunker_wtt: dict[tuple[str, str], FloatArray]
 
-        self._shore_power_cost: FloatArray = EMPTY_FLOAT
-        self._shore_power_connection_share: FloatArray = EMPTY_FLOAT
-        self._shore_power_emission_factor: dict[str, FloatArray] = {}
+        self._shore_power_cost: FloatArray
+        self._shore_power_connection_share: FloatArray
+        self._shore_power_emission_factor: dict[str, FloatArray]
 
     def initialize(
         self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]

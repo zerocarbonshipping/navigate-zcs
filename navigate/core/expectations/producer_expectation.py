@@ -26,18 +26,18 @@ class ProducerExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._export_distribution: dict[str, FloatArray] = {}
+        self._export_distribution: dict[str, FloatArray]
 
-        self._plant_feed_consumption: dict[tuple[str, str], float] = {}
-        self._existing_feed: dict[str, float] = {}
-        self._pipeline_feed: dict[str, float] = {}
-        self._feed_gap: dict[str, FloatArray] = {}
+        self._plant_feed_consumption: dict[tuple[str, str], float]
+        self._existing_feed: dict[str, float]
+        self._pipeline_feed: dict[str, float]
+        self._feed_gap: dict[str, FloatArray]
 
-        self._development_potential: dict[str, float] = {}
-        self._fair_share_demand: dict[str, FloatArray] = {}
+        self._development_potential: dict[str, float]
+        self._fair_share_demand: dict[str, FloatArray]
 
-        self._guaranteed_production: dict[str, FloatArray] = {}
-        self._expected_production: dict[str, FloatArray] = {}
+        self._guaranteed_production: dict[str, FloatArray]
+        self._expected_production: dict[str, FloatArray]
 
     def initialize(
         self,

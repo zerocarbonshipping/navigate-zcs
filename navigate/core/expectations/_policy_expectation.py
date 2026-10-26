@@ -21,7 +21,7 @@ class _PolicyExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._global_warming_potential: dict[str, float] = {}
+        self._global_warming_potential: dict[str, float]
 
         # levy key:       (port_name, fuel_name, emission_name)
         # regulation key: (vessel_name, fuel_name, emission_name)
