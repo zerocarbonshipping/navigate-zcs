@@ -16,7 +16,7 @@ from navigate.simulation.fuel.expectation import (
     calculate_producer_evolution_expectation,
 )
 from navigate.simulation.fuel.feed import calculate_feed_availability
-from navigate.util import YEAR, divide_nonzero
+from navigate.util import YEAR, divide_nonzero, step_lengths
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -216,7 +216,7 @@ def _build_plant_pipeline(
     counts = added[is_delivery] / capacity
 
     # the first increment is assumed to have entered over a year
-    spans = np.insert(np.diff(deliveries), 0, 1.0)
+    spans = step_lengths(deliveries)
 
     # the pipeline holds negative ages, as its plants are not yet delivered, each
     # decided one lead time before its delivery

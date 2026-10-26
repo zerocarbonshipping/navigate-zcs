@@ -19,7 +19,7 @@ from navigate.util import is_date_array, timedelta_to_days
 if TYPE_CHECKING:
     import numpy as np
 
-    from navigate.util import DateArray, FloatArray, FloatLike
+    from navigate.util.types_ import DateArray, FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 

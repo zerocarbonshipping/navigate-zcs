@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 import logging
 from datetime import UTC, datetime
-from enum import Enum
 from importlib.metadata import PackageNotFoundError, version
 from typing import TYPE_CHECKING, Any, NamedTuple
 
@@ -22,10 +21,11 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from navigate.core.results import per_step_results, result_names, result_units
-from navigate.util import TOLERANCE, dates_to_years, step_lengths
+from navigate.util import TOLERANCE, dates_to_years, key_name, step_lengths
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from enum import Enum
     from pathlib import Path
 
     from navigate.core.results._base_results import _BaseResults
@@ -221,7 +221,7 @@ def _label(key: str | Enum | None) -> str | None:
     if key is None:
         return None
 
-    return key.name if isinstance(key, Enum) else str(key)
+    return key_name(key)
 
 
 def _metadata(results: SimulationResults, deck_name: str) -> dict[str, Any]:

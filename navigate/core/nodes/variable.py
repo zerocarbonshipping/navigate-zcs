@@ -16,7 +16,7 @@ from navigate.core.nodes._calculator import _Calculator, evaluate_number
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
-    from navigate.util import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class Variable(Node, _Calculator):

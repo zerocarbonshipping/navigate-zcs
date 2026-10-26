@@ -11,7 +11,7 @@ from navigate.core.dsl import collect_deck_entries
 
 if TYPE_CHECKING:
     from navigate.core.dsl import DeckEntry
-    from navigate.util import DateArray, FloatArray
+    from navigate.util.types_ import DateArray, FloatArray
 
 
 class Node:

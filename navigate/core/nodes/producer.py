@@ -51,7 +51,7 @@ if TYPE_CHECKING:
         ScalarArgument,
         ScalarInput,
     )
-    from navigate.util import FloatArray
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 

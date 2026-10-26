@@ -4,7 +4,8 @@
 """
 Domain-agnostic helpers.
 
-Collections, dates, naming, numerics, timings, types and units.
+Collections, dates, naming, numerics, timings and units; the type aliases are
+imported from ``navigate.util.types_`` directly.
 """
 
 from __future__ import annotations
@@ -58,20 +59,8 @@ from navigate.util.numeric import (
     update_belief_path,
 )
 from navigate.util.timings import Timings, timed
-from navigate.util.types_ import (
-    BoolArray,
-    DateArray,
-    FloatArray,
-    FloatLike,
-    Index,
-    IntArray,
-    TimedeltaArray,
-)
 from navigate.util.units import (
-    DAY_TO_HOURS,
-    GJ_TO_MJ,
     HOUR_TO_DAYS,
-    MWD_TO_GJ,
     MWH_TO_GJ,
     TON_PER_GJ_TO_GRAM_PER_MJ,
     TON_TO_GRAM,
