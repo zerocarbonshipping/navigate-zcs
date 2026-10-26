@@ -43,9 +43,10 @@ class PlantResults(BaseResults):
             Timeline, fuels and emissions of the run.
         """
         self.context = context
+        emissions = context.emissions
 
         self.investment_cost = self._default_array(default=np.nan)
         self.instantaneous_cost = self._default_array(default=np.nan)
 
-        self.investment_wtt = self._default_dict(context.emissions, default=np.nan)
-        self.instantaneous_wtt = self._default_dict(context.emissions, default=np.nan)
+        self.investment_wtt = self._default_dict(emissions, default=np.nan)
+        self.instantaneous_wtt = self._default_dict(emissions, default=np.nan)

@@ -138,7 +138,7 @@ class _FuelConsumerResults(BaseResults):
         self, results: _FuelConsumerResults, multiplier: FloatLike = 1.0
     ) -> None:
         """
-        Add what was written to another fuel consumer's results into this one.
+        Add another fuel consumer's results into this one.
 
         Parameters
         ----------

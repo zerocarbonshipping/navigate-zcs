@@ -58,9 +58,9 @@ class GlobalResults(
         self.context = context
 
         self._initialize_fuel_consumer(regulation_names, levy_names)
-        self._initialize_fuel_producer(feedstock_names, process_names)
-        self._initialize_fuel_infrastructure()
         self._initialize_vessel_aggregate()
+        self._initialize_fuel_producer(feedstock_names, process_names)
         self._initialize_plant_aggregate()
+        self._initialize_fuel_infrastructure()
 
         self.computational_time = self._default_dict(TimingID)

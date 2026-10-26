@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class _FuelInfrastructureResults(BaseResults):
     """Fuel bunkered, supplied and permitted by capacity at a bunkering location."""
 
-    # the masses are written, the energies computed from them
+    # each mass is written, its energy computed from it
     bunker_mass: dict[str, FloatArray] = result("t/year")
     bunker_supply_mass: dict[str, FloatArray] = result("t/year")
     bunkering_limit_mass: dict[str, FloatArray] = result("t/year")
