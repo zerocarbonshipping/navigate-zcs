@@ -43,11 +43,11 @@ def calculate_regulation_compliance(
         if not regulation.active:
             continue
 
-        _calculate_compliance_results(regulation, multipliers, idx)
+        _record_compliance(regulation, multipliers, idx)
         _record_adjusted_thresholds(regulation, multipliers, idx)
 
 
-def _calculate_compliance_results(
+def _record_compliance(
     regulation: Regulation, multipliers: dict[str, float], idx: int
 ) -> None:
     """Write the vessel and shared compliance, allowance and units to the results."""

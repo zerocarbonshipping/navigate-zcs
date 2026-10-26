@@ -77,7 +77,7 @@ def calculate_flexibility_markets(
         market = _clear_flexibility_market(regulation, multipliers, idx)
 
         if scope == BunkerScopeID.EXISTING:
-            _calculate_market_results(regulation, vessels, market, idx)
+            _record_market(regulation, vessels, market, idx)
         else:
             _calculate_market_expectations(regulation, vessels, market, idx)
 
@@ -184,10 +184,10 @@ def _clear_flexibility_market(
     return _Market(remedial_cost, flexibility_cost, total, vessel_units)
 
 
-def _calculate_market_results(
+def _record_market(
     regulation: Regulation, vessels: dict[str, Vessel], market: _Market, idx: int
 ) -> None:
-    """Record a cleared flexibility market in the results."""
+    """Write a cleared flexibility market to the results."""
     results = regulation.results
     total = market.total
     remedial_cost = market.remedial_cost
@@ -221,7 +221,7 @@ def _calculate_market_results(
 def _calculate_market_expectations(
     regulation: Regulation, vessels: dict[str, Vessel], market: _Market, idx: int
 ) -> None:
-    """Record a cleared flexibility market in the expectations."""
+    """Write a cleared flexibility market to the expectations."""
     expectation = regulation.expectation
     expectation.set_flexibility_cost(idx, market.flexibility_cost)
 

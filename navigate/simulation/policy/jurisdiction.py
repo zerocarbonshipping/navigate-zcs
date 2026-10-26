@@ -90,7 +90,7 @@ def calculate_regulation_measures(
         Current time-step index.
     """
     forward = np.s_[idx:]
-    times = timeline[forward]
+    times = timeline[idx:]
 
     for regulation in regulations.values():
         if not regulation.active:

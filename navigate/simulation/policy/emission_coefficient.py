@@ -491,8 +491,9 @@ def _calculate_levy_costs(
     """
     expectation = levy.expectation
     scheme = levy.scheme
+    forward = np.s_[idx:]
 
-    level = expectation.get_level(np.s_[idx:])
+    level = expectation.get_level(forward)
     lower = levy.lower_threshold.get(times)
     upper = None if levy.upper_threshold is None else levy.upper_threshold.get(times)
 
