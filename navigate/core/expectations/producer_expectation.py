@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 class ProducerExpectation(_Expectation):
-    """Feedstock use, fair-share demand and production paths of a single producer."""
+    """Export shares, feed use, fair-share demand and production paths of a producer."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -34,7 +34,6 @@ class ProducerExpectation(_Expectation):
         self._feed_gap: dict[str, FloatArray] = {}
 
         self._development_potential: dict[str, float] = {}
-
         self._fair_share_demand: dict[str, FloatArray] = {}
 
         self._guaranteed_production: dict[str, FloatArray] = {}
@@ -62,14 +61,12 @@ class ProducerExpectation(_Expectation):
         self._feed_gap = self._default_dict_array(feeds, default=np.inf)
 
         self._development_potential = self._default_dict_float(fuels)
-
         self._fair_share_demand = self._default_dict_array(fuels)
 
         self._guaranteed_production = self._default_dict_array(plant_names)
         self._expected_production = self._default_dict_array(plant_names)
 
     def reset_additive_properties(self) -> None:
-
         self._reset_dict_float(self._existing_feed)
         self._reset_dict_float(self._pipeline_feed)
 
@@ -77,6 +74,11 @@ class ProducerExpectation(_Expectation):
         self, idx: int, port_name: str, export_distribution: FloatLike
     ) -> None:
         self._export_distribution[port_name][idx:] = export_distribution
+
+    def set_plant_feed_consumption(
+        self, plant_name: str, feed_name: str, consumption: float
+    ) -> None:
+        self._plant_feed_consumption[(plant_name, feed_name)] = consumption
 
     def add_existing_feed(self, feed_name: str, existing_feed: float) -> None:
         self._existing_feed[feed_name] += existing_feed
@@ -86,11 +88,6 @@ class ProducerExpectation(_Expectation):
 
     def set_feed_gap(self, idx: int, feed_name: str, feed_gap: FloatLike) -> None:
         self._feed_gap[feed_name][idx:] = feed_gap
-
-    def set_plant_feed_consumption(
-        self, plant_name: str, feed_name: str, consumption: float
-    ) -> None:
-        self._plant_feed_consumption[(plant_name, feed_name)] = consumption
 
     def set_development_potential(
         self, fuel_name: str, development_potential: float
