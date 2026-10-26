@@ -25,9 +25,12 @@ import numpy as np
 from navigate.core.enum_ import FuelTypeID, UtilityID
 from navigate.core.increment import VesselIncrement
 from navigate.simulation.cohort import find_insertion_index
-from navigate.simulation.economics.decision import calculate_asset_shares
-from navigate.simulation.economics.flows import expand_to_flow, trim_flow_to_lifetime
-from navigate.simulation.economics.metric import calculate_net_present_value
+from navigate.simulation.economics import (
+    calculate_asset_shares,
+    calculate_net_present_value,
+    expand_to_flow,
+    trim_flow_to_lifetime,
+)
 from navigate.simulation.fleet._composition import (
     get_multipliers,
     get_total_multiplier,

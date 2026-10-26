@@ -29,9 +29,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import UtilityID
-from navigate.simulation.economics.decision import calculate_asset_shares
-from navigate.simulation.economics.flows import (
-    timeline_to_yearly,
+from navigate.simulation.economics import (
+    build_year_starts,
+    calculate_asset_shares,
     trim_flow_to_lifetime,
 )
 from navigate.simulation.fleet._composition import (
@@ -349,13 +349,14 @@ def _calculate_packages_saving(
     forward = np.s_[idx:]
     legs = bind_conditions_to_legs(vessel.route)
 
+    time = timeline[idx]
     times = timeline[forward]
-    yearly_times = timeline_to_yearly(vessel, idx, timeline)
+    year_starts = build_year_starts(lead_time=0.0, lifetime=lifetime, time_initial=time)
 
     savings = []
     for package in packages:
         saving = calculate_marginal_technology_saving(vessel, legs, package, forward)
-        yearly_saving = np.interp(yearly_times, times, saving)
+        yearly_saving = np.interp(year_starts, times, saving)
         savings.append(trim_flow_to_lifetime(yearly_saving, lifetime))
 
     return savings

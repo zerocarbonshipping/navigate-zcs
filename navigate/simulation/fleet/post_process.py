@@ -19,8 +19,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS
-from navigate.simulation.economics.flows import build_operating_flows
-from navigate.simulation.economics.metric import calculate_net_present_value
+from navigate.simulation.economics import (
+    build_operating_flows,
+    calculate_net_present_value,
+)
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import TOLERANCE, divide_nonzero, sum_values
 
@@ -577,16 +579,16 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
     """
     results = vessel.results
     cargo_miles = vessel.expectation.get_cargo_miles()
-    operating_expenses = _sum_operating_expenses(vessel)
+    expenses = _sum_operating_expenses(vessel)
 
     for idx, time in enumerate(timeline):
         lifetime = results.lifetime[idx]
         lead_time = results.lead_time[idx]
-        year_flow, overlap = build_operating_flows(time, lead_time, lifetime)
+        year_starts, operating_flow = build_operating_flows(lead_time, lifetime, time)
 
         # the cost needs bunkering data over the lead time and the lifetime, which a
         # vessel that left the fleet lacks, as the bunkering algorithm no longer ran it
-        if not np.all(results.in_fleet[idx : idx + overlap.size]):
+        if not np.all(results.in_fleet[idx : idx + operating_flow.size]):
             logger.debug(
                 "%s: Unable to post-process fuel related costs at time %s days.",
                 vessel,
@@ -599,12 +601,12 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
         asset_charter_npv = vessel.expectation.get_asset_charter_npv(idx)
 
         # costs and cargo resampled onto the operating years, zero during the lead time
-        operating_cost = np.interp(year_flow, timeline, operating_expenses) * overlap
-        cargo = np.interp(year_flow, timeline, cargo_miles) * overlap
+        operating_cost = np.interp(year_starts, timeline, expenses) * operating_flow
+        cargo = np.interp(year_starts, timeline, cargo_miles) * operating_flow
 
         operating_cost_npv = calculate_net_present_value(operating_cost, discount)
         cargo_npv = calculate_net_present_value(cargo, discount)
-        years_npv = calculate_net_present_value(overlap, discount)
+        years_npv = calculate_net_present_value(operating_flow, discount)
         cost_npv = asset_charter_npv + operating_cost_npv
 
         results.cargo_charter_rate[idx] = cost_npv / years_npv

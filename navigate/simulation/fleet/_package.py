@@ -14,17 +14,15 @@ import numpy as np
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandID
 from navigate.core.technology_package import TechnologyPackage
-from navigate.simulation.economics.flows import (
+from navigate.simulation.economics import (
     Component,
     add_capex,
     add_fixed_opex,
+    calculate_levelized_cost,
+    calculate_net_present_value,
     expand_to_flow,
     get_flow_size,
     trim_flow_to_lifetime,
-)
-from navigate.simulation.economics.metric import (
-    calculate_levelized_cost,
-    calculate_net_present_value,
 )
 from navigate.util import ROUND_OFF
 

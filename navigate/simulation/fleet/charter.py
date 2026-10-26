@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.economics.flows import (
+from navigate.simulation.economics import (
     Component,
     add_capex,
     add_fixed_opex,
     add_variable_opex,
     build_cargo_flow,
+    calculate_net_present_value,
 )
-from navigate.simulation.economics.metric import calculate_net_present_value
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -49,7 +49,7 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
 
     capex_flow = component.capex_flow
     cost_flow = component.get_cost_flow()
-    operating_flow = component.constant_overlap
+    operating_flow = component.operating_flow
 
     # reference for non-dimensionalizing technology and conversion investment NPVs
     capex_npv = calculate_net_present_value(capex_flow, discount_rate)
@@ -102,7 +102,7 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     cargo_miles = np.asarray(expectation.get_cargo_miles())
 
     fuel_cost_flow = component.get_cost_flow()
-    operating_flow = component.constant_overlap
+    operating_flow = component.operating_flow
     cargo_flow = build_cargo_flow(component, cargo_miles, timeline)
 
     fuel_npv = calculate_net_present_value(fuel_cost_flow, discount_rate)
