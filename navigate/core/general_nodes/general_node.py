@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class GeneralNode:
-    """Base class of the general nodes: one per deck, declared without a name."""
+    """Base class of the general nodes: at most one per deck, declared unnamed."""
 
     # the general node keyword; each general node class sets its own
     type: ClassVar[str]

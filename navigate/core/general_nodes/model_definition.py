@@ -35,7 +35,7 @@ class ModelDefinition(GeneralNode):
 
     @deck_attribute(SECTION_DEFINE)
     def set_emissions_lifetime(self, emissions_lifetime: float) -> None:
-        """Set the emission lifetime used to calculate GWP."""
+        """Set the emission lifetime used for GWP."""
         self.emissions_lifetime = assign_value(
             emissions_lifetime, lower=0.0, allow_expression=False
         )
