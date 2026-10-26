@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
-from navigate.util import slice_array
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -229,10 +228,11 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
         if key not in self._emission_coefficient:
             return 0.0
 
-        return slice_array(self._emission_coefficient[key], idx)
+        return self._emission_coefficient[key][idx]
 
     def get_spend_coefficient(self, key: tuple[str, str, str], idx: int) -> float:
-        return slice_array(self._spend_coefficient[key], idx)
+        coefficient: float = self._spend_coefficient[key][idx]
+        return coefficient
 
     @overload
     def get_shore_power_emission_coefficient(
@@ -247,12 +247,13 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
     def get_shore_power_emission_coefficient(
         self, port_name: str, idx: Index
     ) -> FloatLike:
-        return slice_array(self._shore_power_emission_coefficient[port_name], idx)
+        return self._shore_power_emission_coefficient[port_name][idx]
 
     def get_shore_power_spend_coefficient(
         self, key: tuple[str, str], idx: int
     ) -> float:
-        return slice_array(self._shore_power_spend_coefficient[key], idx)
+        coefficient: float = self._shore_power_spend_coefficient[key][idx]
+        return coefficient
 
     def get_flexibility_cost(self) -> FloatArray:
         return self._flexibility_cost
@@ -264,10 +265,12 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
         return self._vessel_net_flexibility_units[vessel_name]
 
     def get_remedial_cost(self, idx: int) -> float:
-        return slice_array(self._remedial_cost, idx)
+        cost: float = self._remedial_cost[idx]
+        return cost
 
     def get_port_fraction(self, port_name: str, idx: int) -> float:
-        return slice_array(self._port_fraction[port_name], idx)
+        fraction: float = self._port_fraction[port_name][idx]
+        return fraction
 
     @overload
     def get_leg_fraction(self, leg: tuple[str, str], idx: int) -> float: ...
@@ -276,7 +279,7 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
     def get_leg_fraction(self, leg: tuple[str, str], idx: slice) -> FloatArray: ...
 
     def get_leg_fraction(self, leg: tuple[str, str], idx: Index) -> FloatLike:
-        return slice_array(self._leg_fraction[leg], idx)
+        return self._leg_fraction[leg][idx]
 
     @overload
     def get_vessel_threshold(self, vessel_name: str, idx: int) -> float: ...
@@ -285,10 +288,10 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
     def get_vessel_threshold(self, vessel_name: str, idx: slice) -> FloatArray: ...
 
     def get_vessel_threshold(self, vessel_name: str, idx: Index) -> FloatLike:
-        return slice_array(self._vessel_threshold[vessel_name], idx)
+        return self._vessel_threshold[vessel_name][idx]
 
     def get_vessel_capacity(self, vessel_name: str, idx: slice) -> FloatArray:
-        return slice_array(self._vessel_capacity[vessel_name], idx)
+        return self._vessel_capacity[vessel_name][idx]
 
     @overload
     def get_vessel_measure(self, vessel_name: str, idx: int) -> float: ...
@@ -297,28 +300,36 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
     def get_vessel_measure(self, vessel_name: str, idx: slice) -> FloatArray: ...
 
     def get_vessel_measure(self, vessel_name: str, idx: Index) -> FloatLike:
-        return slice_array(self._vessel_measure[vessel_name], idx)
+        return self._vessel_measure[vessel_name][idx]
 
     def get_vessel_allowance(self, vessel_name: str, idx: int) -> float:
-        return slice_array(self._vessel_allowance[vessel_name], idx)
+        allowance: float = self._vessel_allowance[vessel_name][idx]
+        return allowance
 
     def get_vessel_emissions(self, vessel_name: str, idx: int) -> float:
-        return slice_array(self._vessel_emissions[vessel_name], idx)
+        emissions: float = self._vessel_emissions[vessel_name][idx]
+        return emissions
 
     def get_vessel_energy(self, vessel_name: str, idx: int) -> float:
-        return slice_array(self._vessel_energy[vessel_name], idx)
+        energy: float = self._vessel_energy[vessel_name][idx]
+        return energy
 
     def get_vessel_remedial_units(self, vessel_name: str, idx: int) -> float:
-        return slice_array(self._vessel_remedial_units[vessel_name], idx)
+        units: float = self._vessel_remedial_units[vessel_name][idx]
+        return units
 
     def get_pooled_remedial_units(self, idx: int) -> float:
-        return slice_array(self._pooled_remedial_units, idx)
+        units: float = self._pooled_remedial_units[idx]
+        return units
 
     def get_pooled_shadow_price(self, idx: int) -> float:
-        return slice_array(self._pooled_shadow_price, idx)
+        price: float = self._pooled_shadow_price[idx]
+        return price
 
     def get_adjusted_vessel_threshold(self, vessel_name: str, idx: int) -> float:
-        return slice_array(self._adjusted_vessel_threshold[vessel_name], idx)
+        threshold: float = self._adjusted_vessel_threshold[vessel_name][idx]
+        return threshold
 
     def get_adjusted_shared_threshold(self, idx: int) -> float:
-        return slice_array(self._adjusted_shared_threshold, idx)
+        threshold: float = self._adjusted_shared_threshold[idx]
+        return threshold

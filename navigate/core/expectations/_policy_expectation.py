@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_array
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -60,16 +59,16 @@ class _PolicyExpectation[TtwKey: tuple[str, ...]](_Expectation):
         if key not in self._wtt:
             return 0.0
 
-        return slice_array(self._wtt[key], idx)
+        return self._wtt[key][idx]
 
     def get_ttw_consumption(self, key: TtwKey, idx: slice) -> FloatLike:
         if key not in self._ttw_consumption:
             return 0.0
 
-        return slice_array(self._ttw_consumption[key], idx)
+        return self._ttw_consumption[key][idx]
 
     def get_ttw_slip(self, key: TtwKey, idx: slice) -> FloatLike:
         if key not in self._ttw_slip:
             return 0.0
 
-        return slice_array(self._ttw_slip[key], idx)
+        return self._ttw_slip[key][idx]

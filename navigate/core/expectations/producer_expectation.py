@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_array, slice_dict
+from navigate.util import slice_dict
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
@@ -124,7 +124,8 @@ class ProducerExpectation(_Expectation):
         return self._pipeline_feed[feed_name]
 
     def get_feed_gap(self, feed_name: str, idx: int) -> float:
-        return slice_array(self._feed_gap[feed_name], idx)
+        gap: float = self._feed_gap[feed_name][idx]
+        return gap
 
     def get_development_potential(self, fuel_name: str) -> float:
         return self._development_potential[fuel_name]
@@ -133,7 +134,7 @@ class ProducerExpectation(_Expectation):
         return self._fair_share_demand
 
     def get_guaranteed_production(self, plant_name: str, idx: slice) -> FloatArray:
-        return slice_array(self._guaranteed_production[plant_name], idx)
+        return self._guaranteed_production[plant_name][idx]
 
     def get_expected_production(self, plant_name: str, idx: slice) -> FloatArray:
-        return slice_array(self._expected_production[plant_name], idx)
+        return self._expected_production[plant_name][idx]

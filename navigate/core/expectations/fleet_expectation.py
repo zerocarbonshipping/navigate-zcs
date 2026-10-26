@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, overload
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_array, slice_dict
+from navigate.util import slice_dict
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -78,7 +78,7 @@ class FleetExpectation(_Expectation):
     def get_multiplier(
         self, vessel_name: str, scope: BunkerScopeID, idx: Index
     ) -> FloatLike:
-        return slice_array(self._multipliers[vessel_name, scope], idx)
+        return self._multipliers[vessel_name, scope][idx]
 
     def get_fuel_demand(self, idx: slice) -> dict[str, FloatArray]:
         return slice_dict(self._fuel_demand, idx)

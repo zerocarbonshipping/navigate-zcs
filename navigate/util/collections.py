@@ -260,33 +260,6 @@ def sum_by_second_key[K1, K2](
 
 
 @overload
-def slice_array(array: FloatArray, idx: Step) -> float: ...
-
-
-@overload
-def slice_array(array: FloatArray, idx: Steps) -> FloatArray: ...
-
-
-def slice_array(array: FloatArray, idx: Index) -> FloatLike:
-    """
-    Read an array at one time-step or several, typed by the kind of index.
-
-    Parameters
-    ----------
-    array
-        Array to slice.
-    idx
-        One time-step, or several.
-
-    Returns
-    -------
-    FloatLike
-        The value at the time-step, or the array over the time-steps.
-    """
-    return array[idx]
-
-
-@overload
 def slice_list(arrays: Sequence[FloatArray], idx: Step) -> list[float]: ...
 
 

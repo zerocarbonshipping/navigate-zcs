@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, overload
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_array, slice_dict
+from navigate.util import slice_dict
 
 if TYPE_CHECKING:
     from collections.abc import Collection, KeysView, Mapping
@@ -139,13 +139,16 @@ class PlantExpectation(_Expectation):
         self._intra_fuel_metric = metric
 
     def get_lifetime(self, idx: int) -> float:
-        return slice_array(self._lifetime, idx)
+        lifetime: float = self._lifetime[idx]
+        return lifetime
 
     def get_lead_time(self, idx: int) -> float:
-        return slice_array(self._lead_time, idx)
+        lead_time: float = self._lead_time[idx]
+        return lead_time
 
     def get_size(self, idx: int) -> float:
-        return slice_array(self._size, idx)
+        size: float = self._size[idx]
+        return size
 
     @overload
     def get_production(self, idx: Step) -> float: ...
@@ -154,10 +157,11 @@ class PlantExpectation(_Expectation):
     def get_production(self, idx: IntArray) -> FloatArray: ...
 
     def get_production(self, idx: Index) -> FloatLike:
-        return slice_array(self._production, idx)
+        return self._production[idx]
 
     def get_feed_conversion(self, feed_name: str, idx: Step) -> float:
-        return slice_array(self._feed_conversion[feed_name], idx)
+        conversion: float = self._feed_conversion[feed_name][idx]
+        return conversion
 
     @overload
     def get_feed_conversions(self, idx: Step) -> dict[str, float]: ...
@@ -169,7 +173,8 @@ class PlantExpectation(_Expectation):
         return slice_dict(self._feed_conversion, idx)
 
     def get_levelized_production_cost(self, idx: Step) -> float:
-        return slice_array(self._levelized_production_cost, idx)
+        cost: float = self._levelized_production_cost[idx]
+        return cost
 
     @overload
     def get_levelized_delivery_cost(self, port_name: str, idx: int) -> float: ...
@@ -178,7 +183,7 @@ class PlantExpectation(_Expectation):
     def get_levelized_delivery_cost(self, port_name: str, idx: slice) -> FloatArray: ...
 
     def get_levelized_delivery_cost(self, port_name: str, idx: Index) -> FloatLike:
-        return slice_array(self._levelized_delivery_cost[port_name], idx)
+        return self._levelized_delivery_cost[port_name][idx]
 
     def get_tied_capital(self, idx: int) -> FloatArray:
         return self._tied_capital[idx]
@@ -193,18 +198,18 @@ class PlantExpectation(_Expectation):
     def get_production_wtt(self, emission_name: str, idx: slice) -> FloatArray: ...
 
     def get_production_wtt(self, emission_name: str, idx: Index) -> FloatLike:
-        return slice_array(self._production_wtt[emission_name], idx)
+        return self._production_wtt[emission_name][idx]
 
     def get_delivery_wtt(
         self, port_name: str, emission_name: str, idx: slice
     ) -> FloatArray:
-        return slice_array(self._delivery_wtt[port_name, emission_name], idx)
+        return self._delivery_wtt[port_name, emission_name][idx]
 
     def get_expected_production_cost(self, idx: slice) -> FloatArray:
-        return slice_array(self._expected_production_cost, idx)
+        return self._expected_production_cost[idx]
 
     def get_expected_production_wtt(self, emission_name: str, idx: slice) -> FloatArray:
-        return slice_array(self._expected_production_wtt[emission_name], idx)
+        return self._expected_production_wtt[emission_name][idx]
 
     def get_demand_newbuilds(self) -> float:
         return self._demand_newbuilds

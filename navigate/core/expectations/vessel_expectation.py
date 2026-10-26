@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_array, slice_dict_list, slice_list
+from navigate.util import slice_dict_list, slice_list
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Iterable, Mapping, Sequence
@@ -492,7 +492,8 @@ class VesselExpectation(_Expectation):
         self._tied_capital[idx] = capital
 
     def get_voyages(self, idx: int) -> float:
-        return slice_array(self._voyages, idx)
+        voyages: float = self._voyages[idx]
+        return voyages
 
     @overload
     def get_cargo_miles(self, idx: int) -> float: ...
@@ -501,7 +502,7 @@ class VesselExpectation(_Expectation):
     def get_cargo_miles(self, idx: slice = ...) -> FloatArray: ...
 
     def get_cargo_miles(self, idx: Index = np.s_[:]) -> FloatLike:
-        return slice_array(self._cargo_miles, idx)
+        return self._cargo_miles[idx]
 
     def get_cargo_miles_leg(self, idx: slice) -> list[FloatArray]:
         return slice_list(self._cargo_miles_leg, idx)
@@ -666,7 +667,7 @@ class VesselExpectation(_Expectation):
     def get_bunker_mass_expected(
         self, port_name: str, fuel_name: str, idx: Index
     ) -> FloatLike:
-        return slice_array(self._bunker_mass_expected[port_name, fuel_name], idx)
+        return self._bunker_mass_expected[port_name, fuel_name][idx]
 
     def get_bunker_mass_existing(self, port_name: str, fuel_name: str) -> float:
         return self._bunker_mass_existing[port_name, fuel_name]
@@ -687,7 +688,7 @@ class VesselExpectation(_Expectation):
     def get_potential_fuel_type_demand(
         self, port_name: str, fuel_type: FuelTypeID, idx: Index
     ) -> FloatLike:
-        return slice_array(self._potential_fuel_type_demand[port_name, fuel_type], idx)
+        return self._potential_fuel_type_demand[port_name, fuel_type][idx]
 
     def get_fair_share_fuel_existing(self, port_name: str, fuel_name: str) -> float:
         return self._fair_share_fuel_existing[port_name, fuel_name]
@@ -695,13 +696,15 @@ class VesselExpectation(_Expectation):
     def get_fair_share_fuel_expected(
         self, port_name: str, fuel_name: str, idx: int
     ) -> float:
-        return slice_array(self._fair_share_fuel_expected[port_name, fuel_name], idx)
+        share: float = self._fair_share_fuel_expected[port_name, fuel_name][idx]
+        return share
 
     def get_allocation_fuel_existing(self, port_name: str, fuel_name: str) -> float:
         return self._allocation_fuel_existing[port_name, fuel_name]
 
     def get_total_energy(self, idx: int) -> float:
-        return slice_array(self._total_energy, idx)
+        energy: float = self._total_energy[idx]
+        return energy
 
     @overload
     def get_fuel_expenses(self, idx: int) -> float: ...
@@ -710,7 +713,7 @@ class VesselExpectation(_Expectation):
     def get_fuel_expenses(self, idx: slice) -> FloatArray: ...
 
     def get_fuel_expenses(self, idx: Index) -> FloatLike:
-        return slice_array(self._fuel_expenses, idx)
+        return self._fuel_expenses[idx]
 
     @overload
     def get_remedial_expenses(self, idx: int) -> float: ...
@@ -719,7 +722,7 @@ class VesselExpectation(_Expectation):
     def get_remedial_expenses(self, idx: slice) -> FloatArray: ...
 
     def get_remedial_expenses(self, idx: Index) -> FloatLike:
-        return slice_array(self._remedial_expenses, idx)
+        return self._remedial_expenses[idx]
 
     @overload
     def get_flexibility_expenses(self, idx: int) -> float: ...
@@ -728,10 +731,10 @@ class VesselExpectation(_Expectation):
     def get_flexibility_expenses(self, idx: slice) -> FloatArray: ...
 
     def get_flexibility_expenses(self, idx: Index) -> FloatLike:
-        return slice_array(self._flexibility_expenses, idx)
+        return self._flexibility_expenses[idx]
 
     def get_shore_power_capacity(self, idx: slice) -> FloatArray:
-        return slice_array(self._shore_power_capacity, idx)
+        return self._shore_power_capacity[idx]
 
     def get_shore_power_limit_port(self, idx: int) -> list[float]:
         return slice_list(self._shore_power_limit_port, idx)
@@ -740,19 +743,24 @@ class VesselExpectation(_Expectation):
         return self._fuel_cost_flow
 
     def get_asset_charter_npv(self, idx: int) -> float:
-        return slice_array(self._asset_charter_npv, idx)
+        npv: float = self._asset_charter_npv[idx]
+        return npv
 
     def get_capex_npv(self, idx: int) -> float:
-        return slice_array(self._capex_npv, idx)
+        npv: float = self._capex_npv[idx]
+        return npv
 
     def get_asset_charter_rate(self, idx: int) -> float:
-        return slice_array(self._asset_charter_rate, idx)
+        rate: float = self._asset_charter_rate[idx]
+        return rate
 
     def get_freight_rate(self, idx: int) -> float:
-        return slice_array(self._freight_rate, idx)
+        rate: float = self._freight_rate[idx]
+        return rate
 
     def get_technology_charter_rate(self, idx: int) -> float:
-        return slice_array(self._technology_charter_rate, idx)
+        rate: float = self._technology_charter_rate[idx]
+        return rate
 
     def get_tied_capital(self, idx: int) -> FloatArray:
         return self._tied_capital[idx]

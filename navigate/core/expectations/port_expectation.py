@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_array
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -100,21 +99,22 @@ class PortExpectation(_Expectation):
         self._shore_power_emission_factor[emission_name][idx:] = factor
 
     def get_handling_cost(self, fuel_name: str, idx: slice) -> FloatArray:
-        return slice_array(self._handling_cost[fuel_name], idx)
+        return self._handling_cost[fuel_name][idx]
 
     def get_bunkering_limit(self, fuel_name: str, idx: slice) -> FloatArray:
-        return slice_array(self._bunkering_limit[fuel_name], idx)
+        return self._bunkering_limit[fuel_name][idx]
 
     def get_bunker_price_overwrite(self, fuel_name: str, idx: slice) -> FloatArray:
-        return slice_array(self._bunker_price_overwrite[fuel_name], idx)
+        return self._bunker_price_overwrite[fuel_name][idx]
 
     def get_bunker_wtt_overwrite(
         self, fuel_name: str, emission_name: str, idx: slice
     ) -> FloatArray:
-        return slice_array(self._bunker_wtt_overwrite[fuel_name, emission_name], idx)
+        return self._bunker_wtt_overwrite[fuel_name, emission_name][idx]
 
     def get_bunker_supply(self, fuel_name: str, idx: int) -> float:
-        return slice_array(self._bunker_supply[fuel_name], idx)
+        supply: float = self._bunker_supply[fuel_name][idx]
+        return supply
 
     @overload
     def get_bunker_price(self, fuel_name: str, idx: int) -> float: ...
@@ -123,16 +123,18 @@ class PortExpectation(_Expectation):
     def get_bunker_price(self, fuel_name: str, idx: slice) -> FloatArray: ...
 
     def get_bunker_price(self, fuel_name: str, idx: Index) -> FloatLike:
-        return slice_array(self._bunker_price[fuel_name], idx)
+        return self._bunker_price[fuel_name][idx]
 
     def get_bunker_wtt(self, fuel_name: str, emission_name: str, idx: int) -> float:
-        return slice_array(self._bunker_wtt[fuel_name, emission_name], idx)
+        wtt: float = self._bunker_wtt[fuel_name, emission_name][idx]
+        return wtt
 
     def get_shore_power_cost(self, idx: int) -> float:
-        return slice_array(self._shore_power_cost, idx)
+        cost: float = self._shore_power_cost[idx]
+        return cost
 
     def get_shore_power_connection_share(self, idx: slice) -> FloatArray:
-        return slice_array(self._shore_power_connection_share, idx)
+        return self._shore_power_connection_share[idx]
 
     @overload
     def get_shore_power_emission_factor(
@@ -147,4 +149,4 @@ class PortExpectation(_Expectation):
     def get_shore_power_emission_factor(
         self, emission_name: str, idx: Index
     ) -> FloatLike:
-        return slice_array(self._shore_power_emission_factor[emission_name], idx)
+        return self._shore_power_emission_factor[emission_name][idx]

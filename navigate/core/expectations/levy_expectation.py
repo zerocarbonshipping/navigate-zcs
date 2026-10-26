@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, overload
 
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
-from navigate.util import slice_array
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -47,10 +46,11 @@ class LevyExpectation(_PolicyExpectation[tuple[str, str, str]]):
     def get_level(self, idx: slice) -> FloatArray: ...
 
     def get_level(self, idx: Index) -> FloatLike:
-        return slice_array(self._level, idx)
+        return self._level[idx]
 
     def get_cost(self, key: tuple[str, str, str], idx: int) -> float:
         if key not in self._cost:
             return 0.0
 
-        return slice_array(self._cost[key], idx)
+        cost: float = self._cost[key][idx]
+        return cost

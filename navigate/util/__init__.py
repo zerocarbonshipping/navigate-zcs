@@ -17,7 +17,6 @@ from navigate.util.collections import (
     is_tuple_dict,
     is_unique,
     list_intersection,
-    slice_array,
     slice_dict,
     slice_dict_list,
     slice_list,
