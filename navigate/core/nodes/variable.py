@@ -13,7 +13,6 @@ from navigate.core import assign_value, deck_attribute
 from navigate.core.node import Node
 from navigate.core.node_type import VARIABLE
 from navigate.core.nodes._calculator import _Calculator, evaluate_number
-from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
@@ -36,20 +35,16 @@ class Variable(Node, _Calculator):
         Node.__init__(self, name)
         _Calculator.__init__(self)
 
-        # internal variables -----------------------------------------------------------
-        self._value: NumberInput | None = None
+        # external variables -----------------------------------------------------------
+        self.value: NumberInput
 
     # external methods (DSL attributes) ------------------------------------------------
-    @deck_attribute()
+    @deck_attribute(required=True)
     def set_value(self, value: NumberInput) -> None:
         """Set the value of the variable."""
-        self._value = assign_value(value, allow_infinite=True)
+        self.value = assign_value(value, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-        if self._value is None:
-            raise UnassignedAttributeError(str(self), "Value")
-
     @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
 
@@ -58,7 +53,7 @@ class Variable(Node, _Calculator):
 
     def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
-        Return the variable value with the multiplier, addition, and truncation.
+        Return the bounded value, broadcast to the shape of an array input.
 
         Parameters
         ----------
@@ -66,19 +61,14 @@ class Variable(Node, _Calculator):
             Dummy first input matching the calculator getters; an array sets
             the output shape.
         y
-            Dummy input variable for calculations with getters of 2 input.
+            Dummy second input matching the calculator getters.
 
         Returns
         -------
         float or FloatArray
-            Response variable, or an array of it in the shape of ``x``.
+            The bounded value, or an array of it in the shape of ``x``.
         """
-        # unset only on a variable read before check_requirements has run
-        if self._value is None:
-            raise UnassignedAttributeError(str(self), "Value")
-
-        # the inputs are dummies, so every expression is evaluated without them
-        value = self._transform(evaluate_number(self._value))
+        value = self._transform(evaluate_number(self.value))
 
         # broadcasting is what keeps a Variable substitutable for a calculator
         # node, whose getter answers an array input with an array

@@ -34,10 +34,14 @@ TABLE_1D = "Table = [\n        0, 1;\n        1, 1;\n    ]"
 
 # (node type, name, body items); every non-root node hangs off a root:
 # Fleet -> Vessel -> Converter, Route/Port, Tank, Surface;
-# Producer -> Plant -> Fuel, Process, Region -> Timetable, Source;
+# Producer -> Plant -> Fuel -> Variable, Process, Region -> Timetable, Source;
 # Emission -> Curve; Levy -> Forecast
 BASE = [
-    ("Fuel", "f", ["FuelType = OIL", "LowerHeatingValue = 40", "MassDensity = 900"]),
+    (
+        "Fuel",
+        "f",
+        ["FuelType = OIL", 'LowerHeatingValue = Variable("var")', "MassDensity = 900"],
+    ),
     (
         "Converter",
         "c",
@@ -140,6 +144,7 @@ BASE = [
             "MaximumDevelopment = 1",
         ],
     ),
+    ("Variable", "var", ["Value = 40"]),
 ]
 
 NAMES = {node_type: name for node_type, name, _ in BASE}
