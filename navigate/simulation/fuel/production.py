@@ -52,7 +52,7 @@ def calculate_plant_production_expectations(
     emissions
         All emissions in the simulation.
     timeline
-        Simulation timeline, in days since the start of the simulation.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
@@ -93,7 +93,7 @@ def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) ->
     plant
         Plant whose production is calculated.
     timeline
-        Simulation timeline, in days since the start of the simulation.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
@@ -188,7 +188,7 @@ def _add_process_tree(
     size = float(expectation.get_size(idx))
     production = float(expectation.get_production(idx))
 
-    expectation.add_feed_mass(idx, process.name, conversion)
+    expectation.add_feed_conversion(idx, process.name, conversion)
 
     _add_process_flows(component, plant, process, size, production, conversion)
     _add_energy_flows(component, plant, process, production, conversion)
@@ -198,7 +198,7 @@ def _add_process_tree(
         feed_conversion = conversion * feed_ratio.get(time_initial)
 
         if is_feedstock(feed):
-            expectation.add_feed_mass(idx, feed.name, feed_conversion)
+            expectation.add_feed_conversion(idx, feed.name, feed_conversion)
 
             _add_feedstock_flows(component, plant, feed, production, feed_conversion)
             _add_transport_flows(component, plant, feed, production, feed_conversion)
@@ -254,8 +254,8 @@ def _add_process_flows(
     def opex(time: float) -> float:
         return opex_rate.get(time, scale) * output
 
-    def wtt(emission: str, time: float) -> float:
-        wtt_rate = region.process_wtt[(process.name, emission)]
+    def wtt(emission_name: str, time: float) -> float:
+        wtt_rate = region.process_wtt[(process.name, emission_name)]
         return wtt_rate.get(time) * output
 
     add_capex(component, capex)
@@ -308,8 +308,9 @@ def _add_energy_flows(
         def opex(time: float) -> float:
             return opex_locked * energy(time)
 
-        def fixed_wtt(emission: str, time: float) -> float:
-            wtt_locked = region.source_wtt[(source.name, emission)].get(time_initial)
+        def fixed_wtt(emission_name: str, time: float) -> float:
+            wtt_rate = region.source_wtt[(source.name, emission_name)]
+            wtt_locked = wtt_rate.get(time_initial)
             return wtt_locked * energy(time)
 
         add_capex(component, capex)
@@ -322,8 +323,8 @@ def _add_energy_flows(
         # at each replacement
         price = region.source_opex[source.name].get
 
-        def variable_wtt(emission: str, time: FloatArray) -> FloatArray:
-            return region.source_wtt[(source.name, emission)].get(time)
+        def variable_wtt(emission_name: str, time: FloatArray) -> FloatArray:
+            return region.source_wtt[(source.name, emission_name)].get(time)
 
         add_variable_opex(component, energy, price)
         add_variable_wtt(component, energy, variable_wtt)
@@ -364,8 +365,8 @@ def _add_feedstock_flows(
     def cost(time: FloatArray) -> FloatArray:
         return cost_rate.get(time) * production
 
-    def wtt(emission: str, time: FloatArray) -> FloatArray:
-        wtt_rate = region.feedstock_wtt[(feedstock.name, emission)]
+    def wtt(emission_name: str, time: FloatArray) -> FloatArray:
+        wtt_rate = region.feedstock_wtt[(feedstock.name, emission_name)]
         return wtt_rate.get(time) * production
 
     add_variable_opex(component, metric, cost)
@@ -412,8 +413,8 @@ def _add_transport_flows(
     def cost(time: FloatArray) -> FloatArray:
         return cost_rate.get(time) * distance.get(time) * production
 
-    def wtt(emission: str, time: FloatArray) -> FloatArray:
-        wtt_rate = region.transport_wtt[(transport.name, emission)]
+    def wtt(emission_name: str, time: FloatArray) -> FloatArray:
+        wtt_rate = region.transport_wtt[(transport.name, emission_name)]
         return wtt_rate.get(time) * distance.get(time) * production
 
     add_variable_opex(component, metric, cost)
@@ -454,6 +455,6 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     # reduction, e.g. in source or transport emissions as other sectors decarbonize,
     # can only be accounted for once it materializes.
     production_commence = production_flow[commence_idx]
-    for emission, wtt_flow in component.wtt_flows.items():
+    for emission_name, wtt_flow in component.wtt_flows.items():
         wtt = wtt_flow[commence_idx] / production_commence
-        expectation.set_production_wtt(idx, emission, wtt)
+        expectation.set_production_wtt(idx, emission_name, wtt)

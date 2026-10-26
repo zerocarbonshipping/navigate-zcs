@@ -14,6 +14,7 @@ from navigate.util import YEAR, add_dicts
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
     from navigate.util.types_ import FloatLike
 
@@ -27,15 +28,16 @@ def calculate_development_potential(
     Parameters
     ----------
     producer
-        The producer instance.
+        The producer.
     time_step
         Current time-step size, in days.
     idx
         Current time-step index.
     """
-    ramp_up = producer.maximum_ramp_up.get() * time_step / YEAR
+    dt = time_step / YEAR
+    ramp_up = producer.maximum_ramp_up.get() * dt
     utilization = min(producer.current_utilization + ramp_up, 1.0)
-    development = producer.maximum_development.get() * time_step / YEAR * utilization
+    development = producer.maximum_development.get() * dt * utilization
 
     potential = dict.fromkeys(producer.fuels, 0.0)
 
@@ -43,27 +45,27 @@ def calculate_development_potential(
         if not producer.allow_plant[plant.name]:
             continue
 
-        multipliers = _limit_by_feed(producer, plant.name, development, idx)
+        newbuilds = _calculate_feasible_newbuilds(producer, plant, development, idx)
         production = float(plant.expectation.get_production(idx))
-        potential[plant.fuel.name] += multipliers * production
+        potential[plant.fuel.name] += newbuilds * production
 
     # TODO: can easily loop over export distribution to include shares going to ports
     for key, value in potential.items():
         producer.expectation.set_development_potential(key, value)
 
 
-def _limit_by_feed(
-    producer: Producer, plant_name: str, development: float, idx: int
+def _calculate_feasible_newbuilds(
+    producer: Producer, plant: Plant, development: float, idx: int
 ) -> float:
     """
-    Limit the plants a producer can develop to those its constrained feeds can supply.
+    Calculate the plants a producer can develop that its constrained feeds can supply.
 
     Parameters
     ----------
     producer
-        The producer instance.
-    plant_name
-        Name of the plant to develop.
+        The producer.
+    plant
+        Plant type to develop.
     development
         Number of plants the ramp-up allows the producer to develop over the time step.
     idx
@@ -75,21 +77,21 @@ def _limit_by_feed(
         Number of the plants the producer can develop within its feed constraints.
     """
     expectation = producer.expectation
-    limit = development
+    newbuilds = development
 
     for feed_name, constraint in producer.feed_constraints.items():
         if constraint is None:
             continue
 
-        mass = expectation.get_plant_feed_consumption(plant_name, feed_name)
+        consumption = expectation.get_plant_feed_consumption(plant.name, feed_name)
 
-        if mass == 0.0:
+        if consumption == 0.0:
             continue
 
         gap = float(expectation.get_feed_gap(feed_name, idx))
-        limit = min(limit, gap / mass)
+        newbuilds = min(newbuilds, gap / consumption)
 
-    return limit
+    return newbuilds
 
 
 def calculate_expected_fuel_demand(
@@ -224,11 +226,12 @@ def _calculate_fair_shares(
     """
     potentials: dict[str, float] = {}
 
-    for name, producer in producers.items():
+    for producer_name, producer in producers.items():
         if not producer.can_produce(fuel_name):
             continue
 
-        potentials[name] = producer.expectation.get_development_potential(fuel_name)
+        potential = producer.expectation.get_development_potential(fuel_name)
+        potentials[producer_name] = potential
 
     total = sum(potentials.values())
 

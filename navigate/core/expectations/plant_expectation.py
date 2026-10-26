@@ -38,8 +38,8 @@ class PlantExpectation(_Expectation):
         self._size: FloatArray = EMPTY_FLOAT
         self._production: FloatArray = EMPTY_FLOAT
 
-        # feed
-        self._feed_mass: dict[str, FloatArray] = {}
+        # feed per mass of fuel
+        self._feed_conversion: dict[str, FloatArray] = {}
 
         # levelized cost
         self._levelized_production_cost: FloatArray = EMPTY_FLOAT
@@ -77,7 +77,7 @@ class PlantExpectation(_Expectation):
         self._size = self._default_array()
         self._production = self._default_array()
 
-        self._feed_mass = self._default_dict_array({**feedstocks, **processes})
+        self._feed_conversion = self._default_dict_array({**feedstocks, **processes})
 
         self._levelized_production_cost = self._default_array()
         self._levelized_delivery_cost = self._default_dict_array(ports)
@@ -95,8 +95,8 @@ class PlantExpectation(_Expectation):
         self._intra_fuel_metric = 0.0
 
     def reset_additive_properties(self, idx: int) -> None:
-        # the steps before idx keep the feed masses of the plants decided then
-        self._reset_dict_array_partial(self._feed_mass, idx=idx)
+        # the steps before idx keep the feed conversions of the plants decided then
+        self._reset_dict_array_partial(self._feed_conversion, idx=idx)
 
     def get_emissions(self) -> KeysView[str]:
         return self._production_wtt.keys()
@@ -113,9 +113,11 @@ class PlantExpectation(_Expectation):
     def set_production(self, idx: int, production: FloatLike) -> None:
         self._production[idx:] = production
 
-    def add_feed_mass(self, idx: int, feed_name: str, mass: FloatLike) -> None:
+    def add_feed_conversion(
+        self, idx: int, feed_name: str, conversion: FloatLike
+    ) -> None:
         # additive: a feed can occur several times in the process tree of idx
-        self._feed_mass[feed_name][idx] += mass
+        self._feed_conversion[feed_name][idx] += conversion
 
     def set_levelized_production_cost(self, idx: int, cost: float) -> None:
         self._levelized_production_cost[idx] = cost
@@ -165,11 +167,11 @@ class PlantExpectation(_Expectation):
     def get_production(self, idx: Index = np.s_[:]) -> FloatLike:
         return self._production[idx]
 
-    def get_feed_mass(self, feed_name: str, idx: Index = np.s_[:]) -> FloatLike:
-        return self._feed_mass[feed_name][idx]
+    def get_feed_conversion(self, feed_name: str, idx: Index = np.s_[:]) -> FloatLike:
+        return self._feed_conversion[feed_name][idx]
 
-    def get_feed_masses(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
-        return slice_dict(self._feed_mass, idx)
+    def get_feed_conversions(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
+        return slice_dict(self._feed_conversion, idx)
 
     def get_levelized_production_cost(self, idx: Index = np.s_[:]) -> FloatLike:
         return self._levelized_production_cost[idx]

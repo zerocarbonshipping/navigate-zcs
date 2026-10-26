@@ -16,9 +16,10 @@ from navigate.util import TOLERANCE, divide_nonzero
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +54,18 @@ def calculate_fuel_import_to_ports(
     fuels
         All fuels in the simulation.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
-    liquid_fuels = {f: fuel for f, fuel in fuels.items() if fuel.liquid_market}
-    production_fuels = {f: fuel for f, fuel in fuels.items() if not fuel.liquid_market}
+    liquid_fuels: dict[str, Fuel] = {}
+    production_fuels: dict[str, Fuel] = {}
+
+    for fuel_name, fuel in fuels.items():
+        if fuel.liquid_market:
+            liquid_fuels[fuel_name] = fuel
+        else:
+            production_fuels[fuel_name] = fuel
 
     _calculate_import_from_liquid_market(ports, emissions, liquid_fuels, timeline, idx)
     _calculate_import_from_producers(
@@ -89,7 +96,7 @@ def _calculate_import_from_liquid_market(
     fuels
         All fuels in the simulation which belong to a liquid market.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
@@ -98,28 +105,24 @@ def _calculate_import_from_liquid_market(
     zero_wtts = dict.fromkeys(emissions, zeros)
 
     for port in ports.values():
-        for f in fuels:
-            allowed = port.bunkering_allowed[f]
-            limit = np.asarray(port.expectation.get_bunkering_limit(f, forward))
+        expectation = port.expectation
 
-            bunker_price = _calculate_bunker_price(port, f, zeros, forward)
-            bunker_wtts = _calculate_bunker_wtts(port, f, zero_wtts, forward)
+        for fuel_name in fuels:
+            allowed = port.bunkering_allowed[fuel_name]
+            limit = np.asarray(expectation.get_bunkering_limit(fuel_name, forward))
+
+            bunker_price = _calculate_bunker_price(port, fuel_name, zeros, forward)
+            bunker_wtts = _calculate_bunker_wtts(port, fuel_name, zero_wtts, forward)
             bunker_supply = limit if allowed else zeros
 
-            port.expectation.set_bunker_price(idx, f, bunker_price)
-            port.expectation.set_bunker_supply(idx, f, bunker_supply)
-
-            for key, value in bunker_wtts.items():
-                port.expectation.set_bunker_wtt(idx, f, key, value)
+            _set_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
+            expectation.set_bunker_supply(idx, fuel_name, bunker_supply)
 
             if allowed:
-                port.results.bunker_price[f][idx] = bunker_price[0]
-
-                for key, value in bunker_wtts.items():
-                    port.results.bunker_wtt[f, key][idx] = value[0]
+                _record_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
 
             if allowed and np.isfinite(bunker_supply[0]):
-                port.results.bunker_supply_mass[f][idx] = bunker_supply[0]
+                port.results.bunker_supply_mass[fuel_name][idx] = bunker_supply[0]
 
 
 def _calculate_import_from_producers(
@@ -144,52 +147,50 @@ def _calculate_import_from_producers(
     fuels
         All fuels in the simulation which do not belong to a liquid market.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
     """
     forward = np.s_[idx:]
 
-    supplies, costs, wtts = _calculate_import_totals(
+    supplies, costs, wtt_totals = _calculate_import_totals(
         ports, producers, emissions, fuels, timeline, idx
     )
 
     # price and WTT are averaged before the supply is aligned with the bunkering
     # limits; the alignment reroutes supply equally from each plant, so keeps them
-    for f in fuels:
-        for p, port in ports.items():
-            supply = supplies[f][p]
+    for fuel_name in fuels:
+        for port_name, port in ports.items():
+            supply = supplies[fuel_name][port_name]
             supplied = supply[0] > 0.0
 
-            average_cost = divide_nonzero(costs[f][p], supply)
-            average_wtts = {e: divide_nonzero(wtts[f, e][p], supply) for e in emissions}
+            cost = divide_nonzero(costs[fuel_name][port_name], supply)
+            wtts: dict[str, FloatArray] = {}
 
-            bunker_price = _calculate_bunker_price(port, f, average_cost, forward)
-            bunker_wtts = _calculate_bunker_wtts(port, f, average_wtts, forward)
+            for emission_name in emissions:
+                total = wtt_totals[fuel_name, emission_name][port_name]
+                wtts[emission_name] = divide_nonzero(total, supply)
 
-            port.expectation.set_bunker_price(idx, f, bunker_price)
+            bunker_price = _calculate_bunker_price(port, fuel_name, cost, forward)
+            bunker_wtts = _calculate_bunker_wtts(port, fuel_name, wtts, forward)
 
-            for key, value in bunker_wtts.items():
-                port.expectation.set_bunker_wtt(idx, f, key, value)
+            _set_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
 
             if supplied:
-                port.results.bunker_price[f][idx] = bunker_price[0]
+                _record_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
 
-                for key, value in bunker_wtts.items():
-                    port.results.bunker_wtt[f, key][idx] = value[0]
+    for fuel_name in fuels:
+        imports = supplies[fuel_name]
+        aligned = _align_with_bunkering_limits(imports, ports, fuel_name, forward)
 
-    for f in fuels:
-        supplies[f] = _align_with_bunkering_limits(supplies[f], ports, f, forward)
+        # a port without a bunker price supplies nothing, so the optimizer cannot use
+        # the fuel at zero cost
+        for port_name, port in ports.items():
+            bunker_price = port.expectation.get_bunker_price(fuel_name, forward)
+            bunker_supply = np.where(bunker_price > TOLERANCE, aligned[port_name], 0.0)
 
-    # a port without a bunker price supplies nothing, so the optimizer cannot use the
-    # fuel at zero cost
-    for f in fuels:
-        for p, port in ports.items():
-            bunker_price = port.expectation.get_bunker_price(f, forward)
-            bunker_supply = np.where(bunker_price > TOLERANCE, supplies[f][p], 0.0)
-
-            port.expectation.set_bunker_supply(idx, f, bunker_supply)
-            port.results.bunker_supply_mass[f][idx] = bunker_supply[0]
+            port.expectation.set_bunker_supply(idx, fuel_name, bunker_supply)
+            port.results.bunker_supply_mass[fuel_name][idx] = bunker_supply[0]
 
 
 def _calculate_import_totals(
@@ -217,7 +218,7 @@ def _calculate_import_totals(
     fuels
         All fuels in the simulation which do not belong to a liquid market.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
 
@@ -229,65 +230,183 @@ def _calculate_import_totals(
     forward = np.s_[idx:]
     times = timeline[forward]
 
-    shares = _allowed_port_shares(ports)
+    shares = _calculate_allowed_port_shares(ports)
 
     supplies = {}
     costs = {}
     wtts = {}
 
-    for f in fuels:
-        supplies[f] = {p: np.zeros_like(times) for p in ports}
-        costs[f] = {p: np.zeros_like(times) for p in ports}
+    for fuel_name in fuels:
+        supplies[fuel_name] = _allocate_per_port(ports, times)
+        costs[fuel_name] = _allocate_per_port(ports, times)
 
-        for e in emissions:
-            wtts[f, e] = {p: np.zeros_like(times) for p in ports}
+        for emission_name in emissions:
+            wtts[fuel_name, emission_name] = _allocate_per_port(ports, times)
 
     for producer in producers.values():
         exports = producer.expectation.get_export_distribution(idx=forward)
 
         for plant in producer.plants:
-            f = plant.fuel.name
+            fuel_name = plant.fuel.name
 
-            if shares[f] == 0.0:
+            if shares[fuel_name] == 0.0:
                 logger.debug(
                     'Fuel("%s") is not allowed for bunkering in any port. Any existing '
                     "production from %s is inaccessible during bunkering.",
-                    f,
+                    fuel_name,
                     plant,
                 )
 
                 continue
 
-            expectation = plant.expectation
             production = producer.expectation.get_expected_production(
                 plant.name, forward
             )
-            production_cost = expectation.get_expected_production_cost(forward)
 
-            production_wtts = {}
-            for e in emissions:
-                production_wtts[e] = expectation.get_expected_production_wtt(e, forward)
-
-            for p, export in exports.items():
-                if not ports[p].bunkering_allowed[f]:
+            for port_name, export in exports.items():
+                if not ports[port_name].bunkering_allowed[fuel_name]:
                     continue
 
-                rerouted = export / shares[f]
+                rerouted = export / shares[fuel_name]
                 supply = production * rerouted
-                delivery_cost = expectation.get_levelized_delivery_cost(p, forward)
+                delivered_cost = _calculate_delivered_cost(plant, port_name, forward)
+                delivered_wtts = _calculate_delivered_wtts(plant, port_name, forward)
 
-                supplies[f][p] += supply
-                costs[f][p] += supply * (production_cost + delivery_cost)
+                supplies[fuel_name][port_name] += supply
+                costs[fuel_name][port_name] += supply * delivered_cost
 
-                for e in emissions:
-                    delivery_wtt = expectation.get_delivery_wtt(p, e, forward)
-                    wtts[f, e][p] += supply * (production_wtts[e] + delivery_wtt)
+                for emission_name, delivered_wtt in delivered_wtts.items():
+                    wtts[fuel_name, emission_name][port_name] += supply * delivered_wtt
 
     return _ImportTotals(supplies, costs, wtts)
 
 
+def _allocate_per_port(
+    ports: dict[str, Port], times: FloatArray
+) -> dict[str, FloatArray]:
+    """Allocate a zero value at each of the times for each port."""
+    return {port_name: np.zeros_like(times) for port_name in ports}
+
+
+def _calculate_delivered_cost(
+    plant: Plant, port_name: str, forward: slice
+) -> FloatLike:
+    """
+    Calculate the expected cost of a plant's fuel delivered to a port.
+
+    Parameters
+    ----------
+    plant
+        The plant.
+    port_name
+        Name of the port.
+    forward
+        Slice of the timeline from the current time step onwards.
+
+    Returns
+    -------
+    FloatLike
+        Production plus delivery cost, in USD/t.
+    """
+    expectation = plant.expectation
+    production_cost = expectation.get_expected_production_cost(forward)
+    delivery_cost = expectation.get_levelized_delivery_cost(port_name, forward)
+    return production_cost + delivery_cost
+
+
+def _calculate_delivered_wtts(
+    plant: Plant, port_name: str, forward: slice
+) -> dict[str, FloatLike]:
+    """
+    Calculate the expected WTT per emission of a plant's fuel delivered to a port.
+
+    Parameters
+    ----------
+    plant
+        The plant.
+    port_name
+        Name of the port.
+    forward
+        Slice of the timeline from the current time step onwards.
+
+    Returns
+    -------
+    dict[str, FloatLike]
+        Production plus delivery WTT per emission in the simulation, in t/t.
+    """
+    expectation = plant.expectation
+    wtts: dict[str, FloatLike] = {}
+
+    for emission_name in expectation.get_emissions():
+        production_wtt = expectation.get_expected_production_wtt(emission_name, forward)
+        delivery_wtt = expectation.get_delivery_wtt(port_name, emission_name, forward)
+        wtts[emission_name] = production_wtt + delivery_wtt
+
+    return wtts
+
+
+def _set_bunker_terms(
+    port: Port,
+    fuel_name: str,
+    bunker_price: FloatArray,
+    bunker_wtts: dict[str, FloatArray],
+    idx: int,
+) -> None:
+    """
+    Set the port's expected bunker price and WTT of a fuel from the time step on.
+
+    Parameters
+    ----------
+    port
+        The port.
+    fuel_name
+        Name of the fuel.
+    bunker_price
+        Bunker price, in USD/t.
+    bunker_wtts
+        Bunker WTT per emission, in t/t.
+    idx
+        Current time-step index.
+    """
+    expectation = port.expectation
+    expectation.set_bunker_price(idx, fuel_name, bunker_price)
+
+    for key, value in bunker_wtts.items():
+        expectation.set_bunker_wtt(idx, fuel_name, key, value)
+
+
+def _record_bunker_terms(
+    port: Port,
+    fuel_name: str,
+    bunker_price: FloatArray,
+    bunker_wtts: dict[str, FloatArray],
+    idx: int,
+) -> None:
+    """
+    Write the bunker price and WTT of a fuel at the time step to the port's results.
+
+    Parameters
+    ----------
+    port
+        The port.
+    fuel_name
+        Name of the fuel.
+    bunker_price
+        Bunker price from the time step on, in USD/t.
+    bunker_wtts
+        Bunker WTT per emission from the time step on, in t/t.
+    idx
+        Current time-step index.
+    """
+    results = port.results
+    results.bunker_price[fuel_name][idx] = bunker_price[0]
+
+    for key, value in bunker_wtts.items():
+        results.bunker_wtt[fuel_name, key][idx] = value[0]
+
+
 def _calculate_bunker_price(
-    port: Port, fuel_name: str, fallback: FloatArray, idx: slice
+    port: Port, fuel_name: str, fallback: FloatArray, forward: slice
 ) -> FloatArray:
     """
     Calculate the bunker price, the port's overwrite where set, plus handling cost.
@@ -300,7 +419,7 @@ def _calculate_bunker_price(
         Name of the fuel.
     fallback
         Price where the port sets no overwrite, in USD/t.
-    idx
+    forward
         Slice of the timeline from the current time step onwards.
 
     Returns
@@ -308,17 +427,17 @@ def _calculate_bunker_price(
     FloatArray
         Bunker price, in USD/t.
     """
-    overwrite = port.expectation.get_bunker_price_overwrite(fuel_name, idx)
+    overwrite = port.expectation.get_bunker_price_overwrite(fuel_name, forward)
     overwritten = port.bunker_price_overwrite[fuel_name] is not None
     price = np.asarray(overwrite) if overwritten else fallback
 
     # the overwrite getter returns a view into stored state, so the handling cost is
     # added out of place rather than onto it
-    return price + port.expectation.get_handling_cost(fuel_name, idx)
+    return price + port.expectation.get_handling_cost(fuel_name, forward)
 
 
 def _calculate_bunker_wtts(
-    port: Port, fuel_name: str, fallbacks: dict[str, FloatArray], idx: slice
+    port: Port, fuel_name: str, fallbacks: dict[str, FloatArray], forward: slice
 ) -> dict[str, FloatArray]:
     """
     Calculate the bunker WTT per emission, the port's overwrite where set.
@@ -331,7 +450,7 @@ def _calculate_bunker_wtts(
         Name of the fuel.
     fallbacks
         WTT per emission where the port sets no overwrite, in t/t.
-    idx
+    forward
         Slice of the timeline from the current time step onwards.
 
     Returns
@@ -341,15 +460,16 @@ def _calculate_bunker_wtts(
     """
     wtts = {}
 
-    for e, fallback in fallbacks.items():
-        overwrite = port.expectation.get_bunker_wtt_overwrite(fuel_name, e, idx)
-        overwritten = port.bunker_wtt_overwrite[(fuel_name, e)] is not None
-        wtts[e] = np.asarray(overwrite) if overwritten else fallback
+    for emission_name, fallback in fallbacks.items():
+        key = (fuel_name, emission_name)
+        overwrite = port.expectation.get_bunker_wtt_overwrite(*key, forward)
+        overwritten = port.bunker_wtt_overwrite[key] is not None
+        wtts[emission_name] = np.asarray(overwrite) if overwritten else fallback
 
     return wtts
 
 
-def _allowed_port_shares(ports: dict[str, Port]) -> dict[str, float]:
+def _calculate_allowed_port_shares(ports: dict[str, Port]) -> dict[str, float]:
     """
     Calculate the share of ports allowing each fuel to be bunkered.
 
@@ -369,11 +489,14 @@ def _allowed_port_shares(ports: dict[str, Port]) -> dict[str, float]:
         for fuel_name, allowed in port.bunkering_allowed.items():
             counts[fuel_name] += allowed
 
-    return {f: count / len(ports) for f, count in counts.items()}
+    return {fuel_name: count / len(ports) for fuel_name, count in counts.items()}
 
 
 def _align_with_bunkering_limits(
-    imports: dict[str, FloatArray], ports: dict[str, Port], fuel_name: str, idx: slice
+    imports: dict[str, FloatArray],
+    ports: dict[str, Port],
+    fuel_name: str,
+    forward: slice,
 ) -> dict[str, FloatArray]:
     """
     Align one fuel's import to each port with the port's bunkering limit.
@@ -391,34 +514,34 @@ def _align_with_bunkering_limits(
     Parameters
     ----------
     imports
-        Import of the fuel to each port, in t/year.
+        Import of the fuel to each port, in tons/year.
     ports
         All ports in the simulation.
     fuel_name
         Name of the fuel.
-    idx
+    forward
         Slice of the timeline from the current time step onwards.
 
     Returns
     -------
     dict[str, FloatArray]
-        Import of the fuel to each port within its bunkering limit, in t/year.
+        Import of the fuel to each port within its bunkering limit, in tons/year.
     """
     surplus = {}
     deficit = {}
     unlimited = {}
 
-    for p, port in ports.items():
-        imported = imports[p]
-        limit = port.expectation.get_bunkering_limit(fuel_name, idx)
+    for port_name, port in ports.items():
+        imported = imports[port_name]
+        limit = port.expectation.get_bunkering_limit(fuel_name, forward)
 
         has_limit = np.isfinite(limit)
         has_import = imported > 0.0
         gap = imported - limit
 
-        surplus[p] = np.where(has_limit & (gap > 0.0), gap, 0.0)
-        deficit[p] = np.where(has_limit & (gap <= 0.0) & has_import, -gap, 0.0)
-        unlimited[p] = ~has_limit & has_import
+        surplus[port_name] = np.where(has_limit & (gap > 0.0), gap, 0.0)
+        deficit[port_name] = np.where(has_limit & (gap <= 0.0) & has_import, -gap, 0.0)
+        unlimited[port_name] = ~has_limit & has_import
 
     total_surplus = np.sum(list(surplus.values()), axis=0)
     total_deficit = np.sum(list(deficit.values()), axis=0)
@@ -430,9 +553,9 @@ def _align_with_bunkering_limits(
 
     aligned = {}
 
-    for p, imported in imports.items():
-        received = divide_nonzero(deficit[p], total_deficit) * absorbed
-        spread = np.where(unlimited[p], unlimited_share, 0.0)
-        aligned[p] = imported - surplus[p] + received + spread
+    for port_name, imported in imports.items():
+        received = divide_nonzero(deficit[port_name], total_deficit) * absorbed
+        spread = np.where(unlimited[port_name], unlimited_share, 0.0)
+        aligned[port_name] = imported - surplus[port_name] + received + spread
 
     return aligned
