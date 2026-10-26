@@ -286,6 +286,7 @@ class Simulation:
         levy_names = list(nodes.levies.keys())
         process_names = list(nodes.processes.keys())
         regulation_names = list(nodes.regulations.keys())
+        vessel_names = list(nodes.vessels.keys())
 
         self.global_results.initialize(
             context, feedstock_names, process_names, regulation_names, levy_names
@@ -307,7 +308,7 @@ class Simulation:
             producer.initialize_results(context, feedstock_names, process_names)
 
         for regulation in nodes.regulations.values():
-            regulation.initialize_results(context, nodes.vessels)
+            regulation.initialize_results(context, vessel_names)
 
         for vessel in nodes.vessels.values():
             vessel.initialize_results(context, regulation_names, levy_names)
