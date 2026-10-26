@@ -17,8 +17,8 @@ Five sessions, each a notebook, in this order:
 1. `01-run-a-simple-case.ipynb`: one case, run and varied
 2. `02-run-a-global-case.ipynb`: the reference scenarios, on a coarse time grid
    with levers, then three of them year by year (25-50 minutes)
-3. `03-how-the-case-is-built.ipynb`: Session 1's case, its deck and its data
-4. `04-how-navigate-solves-it.ipynb`: the same case, solved step by step
+3. `03-how-a-navigate-model-is-built.ipynb`: Session 1's case, its deck and its data
+4. `04-how-navigate-solves.ipynb`: the same case, solved step by step
 5. `05-build-your-own-case.ipynb`: prompts for an AI assistant (local install only)
 
 `_style.py` holds the shared figure style. `index.md` is the overview page. The
@@ -106,8 +106,8 @@ listed in the `.nav` header.
 
 ## Prompts
 
-Session 5 shows new users a few examples, each with its prompts; its examples 1
-and 2 rebuild Sessions 1 and 2. `prompt-bank.md` is the larger set, not on the
+Session 5 shows new users a few examples, each with its prompts; its examples A
+and B rebuild Sessions 1 and 2. `prompt-bank.md` is the larger set, not on the
 site: every tested prompt, kept so that assistants start from the closest one and
 the prompts improve as more people build decks. Session 5's start-up prompt reads
 both. A new tested prompt goes into the bank with its line in the bank's index;

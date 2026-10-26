@@ -18,8 +18,8 @@ The aim of this section is to work through practical cases with the Navigate mod
 2. **Run a global case**: the Center's reference scenarios: how they differ, run on a coarse
    time grid to move some of the assumptions behind them (fuel prices, regulatory
    stringency, ...) and see how results change, then three of them solved year by year ([Session 2](02-run-a-global-case.ipynb))
-3. **How the case is built**: back to the example of Session 1, to see how it was built and the data behind it ([Session 3](03-how-the-case-is-built.ipynb))
-4. **How Navigate solves it**: how the model solves that example step by step, its results in detail, and how much the owners' behaviour matters ([Session 4](04-how-navigate-solves-it.ipynb))
+3. **How a Navigate model is built**: back to the example of Session 1, to see how it was built and the data behind it ([Session 3](03-how-a-navigate-model-is-built.ipynb))
+4. **How Navigate solves**: how the model solves that example step by step, its results in detail, and how much the owners' behaviour matters ([Session 4](04-how-navigate-solves.ipynb))
 5. **Build your own case with an AI assistant**: five examples, each with the prompt that builds it, and a start-up prompt that turns a description of your case into a working model ([Session 5](05-build-your-own-case.ipynb))
 
 [Session 2](02-run-a-global-case.ipynb)'s last step, the yearly runs, takes 25 to 50 minutes, so it is worth starting it in a separate Colab tab and coming back to it.
@@ -66,8 +66,8 @@ analysis. Outputs depend on the assumptions selected and should not be interpret
 
 01-run-a-simple-case
 02-run-a-global-case
-03-how-the-case-is-built
-04-how-navigate-solves-it
+03-how-a-navigate-model-is-built
+04-how-navigate-solves
 05-build-your-own-case
 references
 ```

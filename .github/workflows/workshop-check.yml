@@ -114,7 +114,7 @@ jobs:
 
       - name: Execute the workshop notebooks
         run: |
-          notebooks="01-run-a-simple-case 02-run-a-global-case 03-how-the-case-is-built 04-how-navigate-solves-it"
+          notebooks="01-run-a-simple-case 02-run-a-global-case 03-how-a-navigate-model-is-built 04-how-navigate-solves"
           FULL="${{ inputs.full }}" python - $notebooks <<'PY'
           import os, sys, nbformat
           from nbclient import NotebookClient
