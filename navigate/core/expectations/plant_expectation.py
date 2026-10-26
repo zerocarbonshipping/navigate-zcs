@@ -56,7 +56,7 @@ class PlantExpectation(_Expectation):
         self._expected_production_cost: FloatArray = EMPTY_FLOAT
         self._expected_production_wtt: dict[str, FloatArray] = {}
 
-        # decision related
+        # uptake decision
         self._demand_newbuilds: float = 0.0
         self._inter_fuel_metric: float = 0.0
         self._intra_fuel_metric: float = 0.0
@@ -113,49 +113,45 @@ class PlantExpectation(_Expectation):
     def set_production(self, idx: int, production: FloatLike) -> None:
         self._production[idx:] = production
 
-    def add_feed_mass(self, idx: int, feed_name: str, feed_mass: FloatLike) -> None:
+    def add_feed_mass(self, idx: int, feed_name: str, mass: FloatLike) -> None:
         # additive: a feed can occur several times in the process tree of idx
-        self._feed_mass[feed_name][idx] += feed_mass
+        self._feed_mass[feed_name][idx] += mass
 
-    def set_production_wtt(
-        self, idx: int, emission_name: str, production_wtt: float
-    ) -> None:
-        self._production_wtt[emission_name][idx] = production_wtt
-
-    def set_delivery_wtt(
-        self, idx: int, port_name: str, emission_name: str, delivery_wtt: FloatLike
-    ) -> None:
-        self._delivery_wtt[(port_name, emission_name)][idx:] = delivery_wtt
-
-    def set_levelized_production_cost(
-        self, idx: int, levelized_production_cost: float
-    ) -> None:
-        self._levelized_production_cost[idx] = levelized_production_cost
+    def set_levelized_production_cost(self, idx: int, cost: float) -> None:
+        self._levelized_production_cost[idx] = cost
 
     def set_levelized_delivery_cost(
-        self, idx: int, port_name: str, levelized_delivery_cost: float
+        self, idx: int, port_name: str, cost: float
     ) -> None:
-        self._levelized_delivery_cost[port_name][idx] = levelized_delivery_cost
+        self._levelized_delivery_cost[port_name][idx] = cost
 
     def set_tied_capital(self, idx: int, tied_capital: FloatArray) -> None:
         self._tied_capital[idx] = tied_capital
 
-    def set_expected_production_cost(self, idx: int, expected_cost: FloatLike) -> None:
-        self._expected_production_cost[idx:] = expected_cost
+    def set_production_wtt(self, idx: int, emission_name: str, wtt: float) -> None:
+        self._production_wtt[emission_name][idx] = wtt
+
+    def set_delivery_wtt(
+        self, idx: int, port_name: str, emission_name: str, wtt: FloatLike
+    ) -> None:
+        self._delivery_wtt[(port_name, emission_name)][idx:] = wtt
+
+    def set_expected_production_cost(self, idx: int, cost: FloatLike) -> None:
+        self._expected_production_cost[idx:] = cost
 
     def set_expected_production_wtt(
-        self, idx: int, emission_name: str, expected_wtt: FloatLike
+        self, idx: int, emission_name: str, wtt: FloatLike
     ) -> None:
-        self._expected_production_wtt[emission_name][idx:] = expected_wtt
+        self._expected_production_wtt[emission_name][idx:] = wtt
 
-    def set_demand_newbuilds(self, demand_newbuilds: float) -> None:
-        self._demand_newbuilds = demand_newbuilds
+    def set_demand_newbuilds(self, newbuilds: float) -> None:
+        self._demand_newbuilds = newbuilds
 
-    def set_inter_fuel_metric(self, inter_fuel_metric: float) -> None:
-        self._inter_fuel_metric = inter_fuel_metric
+    def set_inter_fuel_metric(self, metric: float) -> None:
+        self._inter_fuel_metric = metric
 
-    def set_intra_fuel_metric(self, intra_fuel_metric: float) -> None:
-        self._intra_fuel_metric = intra_fuel_metric
+    def set_intra_fuel_metric(self, metric: float) -> None:
+        self._intra_fuel_metric = metric
 
     def get_lifetime(self, idx: Index = np.s_[:]) -> FloatLike:
         return self._lifetime[idx]
