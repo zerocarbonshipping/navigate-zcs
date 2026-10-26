@@ -32,7 +32,7 @@ class PortResults(_FuelInfrastructureResults):
 
     def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the port results' storage arrays and lookups.
+        Initialize the port results' storage arrays.
 
         Parameters
         ----------
@@ -43,6 +43,6 @@ class PortResults(_FuelInfrastructureResults):
         self._initialize_fuel_infrastructure()
 
         self.bunkering_allowed = self._default_bool_dict(context.fuels)
-
         self.bunker_price = self._default_dict(context.fuels)
+
         self.bunker_wtt = self._default_tuple_dict(context.fuels, context.emissions)
