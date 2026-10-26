@@ -53,7 +53,7 @@ def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> lis
     keys: list[K] = []
 
     for allowed_key in allowed_keys:
-        if isinstance(allowed_key, str) and fnmatchcase(str(allowed_key), str(key)):
+        if isinstance(allowed_key, str) and fnmatchcase(str(allowed_key), key):
             keys.append(allowed_key)
 
     if not keys:

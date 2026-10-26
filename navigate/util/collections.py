@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
-def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:
+def unique_list[T](items: Iterable[T]) -> list[T]:
     """
     Create an order preserved list of unique objects in items.
 
@@ -32,7 +32,7 @@ def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:
     return list(dict.fromkeys(items))
 
 
-def list_intersection[T](items: list[T], others: list[T]) -> list[T]:
+def list_intersection[T](items: Iterable[T], others: Collection[T]) -> list[T]:
     """
     Create an order preserved list of the items also found among the others.
 
@@ -68,7 +68,7 @@ def list_is_unique(items: Collection[Hashable]) -> bool:
     return len(items) == len(set(items))
 
 
-def index_map[T: Hashable](items: Sequence[T]) -> dict[T, list[int]]:
+def index_map[T](items: Iterable[T]) -> dict[T, list[int]]:
     """
     Map each unique item to the indices at which it occurs.
 
@@ -90,7 +90,7 @@ def index_map[T: Hashable](items: Sequence[T]) -> dict[T, list[int]]:
     return indices
 
 
-def add_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
+def add_dicts[K](*dicts: Mapping[K, FloatLike]) -> dict[K, FloatLike]:
     """
     Merge dicts, adding the values of keys they share.
 
@@ -175,7 +175,7 @@ def sum_values[K](dict_: Mapping[K, FloatArray], shape: tuple[int, ...]) -> Floa
     return sum(dict_.values(), start=np.zeros(shape))
 
 
-def sum_nonempty_values[K](dict_: dict[K, FloatArray]) -> FloatArray:
+def sum_nonempty_values[K](dict_: Mapping[K, FloatArray]) -> FloatArray:
     """
     Sum a non-empty dict's arrays element-wise.
 
@@ -212,8 +212,8 @@ def sum_per_key[K](
     return {key: float(np.sum(values)) for key, values in dict_.items()}
 
 
-def sum_by_first_key[K1: Hashable, K2: Hashable](
-    dict_: dict[tuple[K1, K2], FloatArray],
+def sum_by_first_key[K1, K2](
+    dict_: Mapping[tuple[K1, K2], FloatArray],
 ) -> dict[K1, FloatArray]:
     """
     Sum a tuple dict's values over the second key, keyed by the first.
@@ -236,8 +236,8 @@ def sum_by_first_key[K1: Hashable, K2: Hashable](
     return {key: sum_nonempty_values(group) for key, group in groups.items()}
 
 
-def sum_by_second_key[K1: Hashable, K2: Hashable](
-    dict_: dict[tuple[K1, K2], FloatArray],
+def sum_by_second_key[K1, K2](
+    dict_: Mapping[tuple[K1, K2], FloatArray],
 ) -> dict[K2, FloatArray]:
     """
     Sum a tuple dict's values over the first key, keyed by the second.
@@ -260,7 +260,7 @@ def sum_by_second_key[K1: Hashable, K2: Hashable](
     return {key: sum_nonempty_values(group) for key, group in groups.items()}
 
 
-def slice_list(arrays: list[FloatArray], idx: Index) -> list[FloatLike]:
+def slice_list(arrays: Sequence[FloatArray], idx: Index) -> list[FloatLike]:
     """
     Slice each array in a list.
 
@@ -279,7 +279,7 @@ def slice_list(arrays: list[FloatArray], idx: Index) -> list[FloatLike]:
     return [array[idx] for array in arrays]
 
 
-def slice_dict[K](dict_: dict[K, FloatArray], idx: Index) -> dict[K, FloatLike]:
+def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Index) -> dict[K, FloatLike]:
     """
     Slice each array in a dict.
 
@@ -299,7 +299,7 @@ def slice_dict[K](dict_: dict[K, FloatArray], idx: Index) -> dict[K, FloatLike]:
 
 
 def slice_dict_list[K](
-    dict_: dict[K, list[FloatArray]], idx: Index
+    dict_: Mapping[K, Sequence[FloatArray]], idx: Index
 ) -> dict[K, list[FloatLike]]:
     """
     Slice each array in each list of a dict of lists.
