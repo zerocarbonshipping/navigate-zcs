@@ -14,7 +14,7 @@ import numpy as np
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import VesselIncrement
 from navigate.core.wrap import to_numpy
-from navigate.simulation.economics.decision import calculate_two_axis_uptake
+from navigate.simulation.economics import calculate_two_axis_uptake
 from navigate.simulation.fleet._composition import extract_cargo_miles
 from navigate.simulation.fleet._package import calculate_package_charter_rates
 from navigate.util import TOLERANCE, YEAR, divide_nonzero
@@ -356,8 +356,8 @@ def _calculate_modelled_uptake(
 
     return calculate_two_axis_uptake(
         group_keys=fuel_types,
-        metrics_intra=metrics,
-        metrics_inter=metrics,
+        intra_metrics=metrics,
+        inter_metrics=metrics,
         intra_utility=UtilityID.LOWER_LOG_RATIO,
         inter_utility=UtilityID.LOWER_LOG_RATIO,
         intra_odds=fleet.intra_fuel_sensitivity.get(),
