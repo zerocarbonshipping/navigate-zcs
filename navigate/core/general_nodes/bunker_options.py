@@ -13,11 +13,11 @@ from navigate.core import (
     deck_attribute,
 )
 from navigate.core.enum_ import SolverBackendID, SolverMethodID
-from navigate.core.general_nodes._general_node import _GeneralNode
+from navigate.core.general_nodes.general_node import GeneralNode
 from navigate.core.node_type import BUNKER_OPTIONS
 
 
-class BunkerOptions(_GeneralNode):
+class BunkerOptions(GeneralNode):
     """Hold the solver settings of the bunker algorithm."""
 
     type = BUNKER_OPTIONS

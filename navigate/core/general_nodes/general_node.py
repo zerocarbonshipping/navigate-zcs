@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""_GeneralNode, the base class of the general nodes the parser builds from a deck."""
+"""GeneralNode, the base class of the general nodes the parser builds from a deck."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from navigate.core.dsl import DeckEntry
 
 
-class _GeneralNode:
+class GeneralNode:
     """Base class of the general nodes: one per deck, declared without a name."""
 
     # the general node keyword; each general node class sets its own
