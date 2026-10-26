@@ -69,7 +69,6 @@ def get_total_multiplier(fleet: Fleet) -> float:
     float
         Number of vessels of all types.
     """
-    # the builtin sum is compensated on floats, unlike np.sum
     return float(sum(get_multipliers(fleet)))
 
 

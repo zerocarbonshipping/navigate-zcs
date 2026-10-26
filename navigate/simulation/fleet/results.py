@@ -109,8 +109,8 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         fuel_type = vessel.primary_fuel_type
         power = get_total_power_capacity(vessel)
 
-        cohort_ages = [increment.age * increment.multiplier for increment in increments]
-        numerator = sum(cohort_ages) * power
+        vessel_ages = [increment.age * increment.multiplier for increment in increments]
+        numerator = sum(vessel_ages) * power
         denominator = get_multiplier(fleet, v) * power
 
         results.weighted_age_numerator[fuel_type][idx] += numerator
