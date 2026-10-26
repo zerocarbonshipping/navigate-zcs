@@ -13,7 +13,7 @@ import numpy as np
 from scipy.optimize import brentq
 
 from navigate.core.enum_ import UtilityID
-from navigate.util import define_index_map
+from navigate.util import index_map
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
@@ -445,7 +445,7 @@ def calculate_two_axis_uptake[T: Hashable](
     FloatArray
         Uptake share per asset.
     """
-    groups = define_index_map(group_keys)
+    groups = index_map(group_keys)
     intra = _Axis(np.asarray(intra_metrics), intra_utility, intra_odds)
     inter = _Axis(np.asarray(inter_metrics), inter_utility, inter_odds)
 

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""List and dict helpers, including arithmetic and slicing of results."""
+"""List and dict helpers: deduplication, indexing, sums and slicing."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:
     """
-    Create an order preserved list of unique objects in items.
+    Create an order preserved list of the unique items.
 
     Parameters
     ----------
@@ -27,96 +27,72 @@ def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:
     Returns
     -------
     list[T]
-        Order preserved list of unique objects in items.
+        Order preserved list of the unique items.
     """
     return list(dict.fromkeys(items))
 
 
-def list_intersection[T](list1: list[T], list2: list[T]) -> list[T]:
+def list_intersection[T](items: Iterable[T], others: Collection[T]) -> list[T]:
     """
-    Create an order preserved list of the intersection between two lists.
+    Create an order preserved list of the items also found among the others.
 
     Parameters
     ----------
-    list1
-        List of objects.
-    list2
-        List of objects.
+    items
+        Objects to keep or drop, in the order kept.
+    others
+        Objects an item must be among to be kept.
 
     Returns
     -------
     list[T]
         Order preserved list of the intersection.
     """
-    return [item for item in list1 if item in list2]
+    return [item for item in items if item in others]
 
 
-def list_is_unique(values: Collection[Hashable]) -> bool:
+def is_unique(items: Collection[Hashable]) -> bool:
     """
-    Test whether all values are distinct.
+    Test whether all items are distinct.
 
     Parameters
     ----------
-    values
-        Values to test.
+    items
+        Objects to test.
 
     Returns
     -------
     bool
-        Whether no value occurs more than once.
+        Whether no item occurs more than once.
     """
-    return len(values) == len(set(values))
+    return len(items) == len(set(items))
 
 
-def define_index_map[T: Hashable](objects: Sequence[T]) -> dict[T, list[int]]:
+def index_map[T: Hashable](items: Iterable[T]) -> dict[T, list[int]]:
     """
-    Map each unique object to the indexes at which it occurs.
+    Map each unique item to the indices at which it occurs.
 
     Parameters
     ----------
-    objects
+    items
         Objects to index, possibly with repetitions.
 
     Returns
     -------
     dict[T, list[int]]
-        Indexes of each unique object, in first-occurrence order.
+        Indices of each unique item, in first-occurrence order.
     """
-    index_map: dict[T, list[int]] = {}
+    indices: dict[T, list[int]] = {}
 
-    for index, object_ in enumerate(objects):
-        index_map.setdefault(object_, []).append(index)
+    for index, item in enumerate(items):
+        indices.setdefault(item, []).append(index)
 
-    return index_map
-
-
-def add_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
-    """
-    Merge dicts, adding the values of keys they share.
-
-    Parameters
-    ----------
-    dicts
-        Dicts to merge.
-
-    Returns
-    -------
-    dict[K, FloatLike]
-        A single merged dict with the sum of overlapping keys; the values
-        never alias the inputs.
-    """
-    total: dict[K, FloatLike] = {}
-
-    for dict_ in dicts:
-        for key, value in dict_.items():
-            total[key] = total.get(key, 0.0) + value
-
-    return total
+    return indices
 
 
 def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
     """
-    Check whether a dict is a single dict (keyed by non-tuple keys).
+    Test whether a dict is a single dict, keyed by non-tuple keys.
 
     Parameters
     ----------
@@ -137,7 +113,7 @@ def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
 
 def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
     """
-    Check whether a dict is a tuple dict (keyed by two-element tuples).
+    Test whether a dict is a tuple dict, keyed by two-element tuples.
 
     Parameters
     ----------
@@ -156,22 +132,27 @@ def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
     return isinstance(first_key, tuple) and len(first_key) == 2
 
 
-def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
+def add_dicts[K](*dicts: Mapping[K, FloatLike]) -> dict[K, FloatLike]:
     """
-    Sum a dict's array values element-wise, adding the arrays across its keys.
+    Merge dicts, adding the values of keys they share.
 
     Parameters
     ----------
-    result
-        Result given as a non-empty dict of arrays.
+    dicts
+        Dicts to merge.
 
     Returns
     -------
-    FloatArray
-        Sum of the values.
+    dict[K, FloatLike]
+        Sum of the values under each key; no value aliases an input.
     """
-    summed: FloatArray = np.add.reduce(list(result.values()))
-    return summed
+    total: dict[K, FloatLike] = {}
+
+    for dict_ in dicts:
+        for key, value in dict_.items():
+            total[key] = total.get(key, 0.0) + value
+
+    return total
 
 
 def sum_values[K](dict_: Mapping[K, FloatArray], shape: tuple[int, ...]) -> FloatArray:
@@ -193,6 +174,24 @@ def sum_values[K](dict_: Mapping[K, FloatArray], shape: tuple[int, ...]) -> Floa
     return sum(dict_.values(), start=np.zeros(shape))
 
 
+def sum_nonempty_values[K](dict_: Mapping[K, FloatArray]) -> FloatArray:
+    """
+    Sum a non-empty dict's arrays element-wise.
+
+    Parameters
+    ----------
+    dict_
+        Arrays to sum, at least one.
+
+    Returns
+    -------
+    FloatArray
+        Sum of the arrays.
+    """
+    summed: FloatArray = np.add.reduce(list(dict_.values()))
+    return summed
+
+
 def sum_per_key[K](
     dict_: Mapping[K, FloatArray | Sequence[FloatArray]],
 ) -> dict[K, float]:
@@ -212,115 +211,108 @@ def sum_per_key[K](
     return {key: float(np.sum(values)) for key, values in dict_.items()}
 
 
-def sum_by_first_key[K1: Hashable, K2: Hashable](
-    result: dict[tuple[K1, K2], FloatArray],
+def sum_by_first_key[K1, K2](
+    dict_: Mapping[tuple[K1, K2], FloatArray],
 ) -> dict[K1, FloatArray]:
     """
     Sum a tuple dict's values over the second key, keyed by the first.
 
     Parameters
     ----------
-    result
-        Result given as a tuple dict.
+    dict_
+        Arrays to sum, keyed by pairs.
 
     Returns
     -------
     dict[K1, FloatArray]
-        Dict keyed by the first tuple element, summed over the second.
+        Sums over the second key, by the first.
     """
     groups: dict[K1, dict[K2, FloatArray]] = {}
 
-    for (first, second), value in result.items():
+    for (first, second), value in dict_.items():
         groups.setdefault(first, {})[second] = value
 
-    return {key: sum_dict_results(group) for key, group in groups.items()}
+    return {key: sum_nonempty_values(group) for key, group in groups.items()}
 
 
-def sum_by_second_key[K1: Hashable, K2: Hashable](
-    result: dict[tuple[K1, K2], FloatArray],
+def sum_by_second_key[K1, K2](
+    dict_: Mapping[tuple[K1, K2], FloatArray],
 ) -> dict[K2, FloatArray]:
     """
     Sum a tuple dict's values over the first key, keyed by the second.
 
     Parameters
     ----------
-    result
-        Result given as a tuple dict.
+    dict_
+        Arrays to sum, keyed by pairs.
 
     Returns
     -------
     dict[K2, FloatArray]
-        Dict keyed by the second tuple element, summed over the first.
+        Sums over the first key, by the second.
     """
     groups: dict[K2, dict[K1, FloatArray]] = {}
 
-    for (first, second), value in result.items():
+    for (first, second), value in dict_.items():
         groups.setdefault(second, {})[first] = value
 
-    return {key: sum_dict_results(group) for key, group in groups.items()}
+    return {key: sum_nonempty_values(group) for key, group in groups.items()}
 
 
-def slice_list(
-    result: list[FloatArray],
-    idx: Index,
-) -> list[FloatLike]:
+def slice_list(arrays: Sequence[FloatArray], idx: Index) -> list[FloatLike]:
     """
     Slice each array in a list.
 
     Parameters
     ----------
-    result
-        Result to be sliced.
+    arrays
+        Arrays to slice.
     idx
         Time-step index(es) or slice.
 
     Returns
     -------
     list[FloatLike]
-        Sliced result.
+        Sliced arrays, in order.
     """
-    return [value[idx] for value in result]
+    return [array[idx] for array in arrays]
 
 
-def slice_dict[K](
-    result: dict[K, FloatArray],
-    idx: Index,
-) -> dict[K, FloatLike]:
+def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Index) -> dict[K, FloatLike]:
     """
-    Slice each value in a dict.
+    Slice each array in a dict.
 
     Parameters
     ----------
-    result
-        Result to be sliced.
+    dict_
+        Arrays to slice.
     idx
         Time-step index(es) or slice.
 
     Returns
     -------
     dict[K, FloatLike]
-        Sliced result.
+        Sliced arrays, by key.
     """
-    return {key: value[idx] for key, value in result.items()}
+    return {key: value[idx] for key, value in dict_.items()}
 
 
 def slice_dict_list[K](
-    result: dict[K, list[FloatArray]],
-    idx: Index,
+    dict_: Mapping[K, Sequence[FloatArray]], idx: Index
 ) -> dict[K, list[FloatLike]]:
     """
     Slice each array in each list of a dict of lists.
 
     Parameters
     ----------
-    result
-        Result to be sliced.
+    dict_
+        Lists of arrays to slice.
     idx
         Time-step index(es) or slice.
 
     Returns
     -------
     dict[K, list[FloatLike]]
-        Sliced result.
+        Sliced lists of arrays, by key.
     """
-    return {key: slice_list(value, idx) for key, value in result.items()}
+    return {key: slice_list(value, idx) for key, value in dict_.items()}

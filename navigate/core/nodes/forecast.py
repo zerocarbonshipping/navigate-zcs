@@ -17,7 +17,7 @@ from navigate.core.table_data import TableData, build_table_1d_dated
 from navigate.util import is_date_array, timedelta_to_days
 
 if TYPE_CHECKING:
-    from navigate.util import DateArray, FloatArray, FloatLike
+    from navigate.util.types_ import DateArray, FloatArray, FloatLike
 
 
 class Forecast(Node, _Table1D):

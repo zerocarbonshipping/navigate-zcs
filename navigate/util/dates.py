@@ -10,12 +10,7 @@ from typing import TYPE_CHECKING, TypeIs, overload
 import numpy as np
 
 if TYPE_CHECKING:
-    from navigate.util.types_ import (
-        DateArray,
-        FloatArray,
-        FloatLike,
-        TimedeltaArray,
-    )
+    from navigate.util.types_ import DateArray, FloatArray, FloatLike, TimedeltaArray
 
 YEAR = 365.25  # calendar year in days
 
@@ -39,8 +34,12 @@ def is_date_array(values: FloatArray | DateArray) -> TypeIs[DateArray]:
 
 @overload
 def timedelta_to_days(delta: np.timedelta64) -> float: ...
+
+
 @overload
 def timedelta_to_days(delta: TimedeltaArray) -> FloatArray: ...
+
+
 def timedelta_to_days(delta: np.timedelta64 | TimedeltaArray) -> FloatLike:
     """
     Convert a timedelta to days.
@@ -65,12 +64,12 @@ def dates_to_days(dates: DateArray) -> FloatArray:
     Parameters
     ----------
     dates
-        Array of dates in numpy datetime64[D] format.
+        Array of dates in numpy ``datetime64[D]`` format.
 
     Returns
     -------
     FloatArray
-        Array of days since the first date.
+        Days since the first date.
     """
     deltas: TimedeltaArray = dates - dates[0]
     return timedelta_to_days(deltas)
@@ -83,11 +82,11 @@ def dates_to_years(dates: DateArray) -> FloatArray:
     Parameters
     ----------
     dates
-        Array of dates in numpy datetime64[D] format.
+        Array of dates in numpy ``datetime64[D]`` format.
 
     Returns
     -------
     FloatArray
-        Array of years since the first date.
+        Years since the first date.
     """
     return dates_to_days(dates) / YEAR

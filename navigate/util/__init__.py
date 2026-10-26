@@ -4,24 +4,25 @@
 """
 Domain-agnostic helpers.
 
-Collections, dates, naming, numerics, timings, types and units.
+Collections, dates, naming, numerics, timings and units; the type aliases are
+imported from ``navigate.util.types_`` directly.
 """
 
 from __future__ import annotations
 
 from navigate.util.collections import (
     add_dicts,
-    define_index_map,
+    index_map,
     is_single_dict,
     is_tuple_dict,
+    is_unique,
     list_intersection,
-    list_is_unique,
     slice_dict,
     slice_dict_list,
     slice_list,
     sum_by_first_key,
     sum_by_second_key,
-    sum_dict_results,
+    sum_nonempty_values,
     sum_per_key,
     sum_values,
     unique_list,
@@ -46,11 +47,11 @@ from navigate.util.numeric import (
     ROUND_OFF,
     TOLERANCE,
     calculate_compound_growth,
+    calculate_smoothing_alpha,
     calculate_step_inertia,
-    derive_smoothing_alpha,
     divide_nonzero,
-    find_nearest,
     find_nearest_index,
+    find_nearest_indices,
     interpolate_yearly_flow,
     is_nondecreasing,
     is_strictly_increasing,
@@ -58,20 +59,8 @@ from navigate.util.numeric import (
     update_belief_path,
 )
 from navigate.util.timings import Timings, timed
-from navigate.util.types_ import (
-    BoolArray,
-    DateArray,
-    FloatArray,
-    FloatLike,
-    Index,
-    IntArray,
-    TimedeltaArray,
-)
 from navigate.util.units import (
-    DAY_TO_HOURS,
-    GJ_TO_MJ,
-    HOUR_TO_DAYS,
-    MWD_TO_GJ,
+    HOUR_TO_DAY,
     MWH_TO_GJ,
     TON_PER_GJ_TO_GRAM_PER_MJ,
     TON_TO_GRAM,

@@ -4,8 +4,8 @@
 """
 Timings, which books the computational time of each time step to its phases.
 
-navigate.simulation measures its time steps and the methods it decorates with timed;
-the global results hold what is booked.
+``navigate.simulation`` measures its time steps and the methods it decorates with
+``timed``; the global results hold what is booked.
 """
 
 from __future__ import annotations
@@ -49,7 +49,7 @@ class Timings[K]:
         Parameters
         ----------
         idx
-            Index of the time step.
+            Current time-step index.
         phase
             Phase the time of the step outside nested measurements is booked to.
         """
@@ -103,6 +103,11 @@ def timed[T: _Timed, **P, R](
     ----------
     phase
         Phase the time is booked to.
+
+    Returns
+    -------
+    Callable[[_Method[T, P, R]], _Method[T, P, R]]
+        Decorator booking the method's time to ``phase``.
     """
 
     def decorate(method: _Method[T, P, R]) -> _Method[T, P, R]:

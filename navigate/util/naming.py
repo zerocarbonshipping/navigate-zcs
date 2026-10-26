@@ -16,25 +16,25 @@ if TYPE_CHECKING:
 
 def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     """
-    Retrieve all keys from 'allowed_keys' matching the (potential) wildcard in key.
+    Retrieve the keys in ``allowed_keys`` that ``key`` matches, raising when none does.
 
     Parameters
     ----------
     key
-        Name of node, possibly including wildcards; a non-string key is
-        returned as-is, but must be present in 'allowed_keys'.
+        A node name, possibly including wildcards, or an enum member; a non-string key
+        is returned as-is, but must be present in ``allowed_keys``.
     allowed_keys
-        Collection of allowable keys; strings whenever 'key' is a string.
+        Keys to match against; strings whenever ``key`` is a string.
 
     Returns
     -------
     list[K]
-        List of all keys matching 'key' ('key' only if no wildcards).
+        Keys matching ``key``; ``key`` alone when it holds no wildcards.
 
     Raises
     ------
     KeyError
-        If no allowed key matches 'key'.
+        If no allowed key matches ``key``.
     """
     if not isinstance(key, str):
         if key not in allowed_keys:
@@ -53,7 +53,7 @@ def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> lis
     keys: list[K] = []
 
     for allowed_key in allowed_keys:
-        if isinstance(allowed_key, str) and fnmatchcase(str(allowed_key), str(key)):
+        if isinstance(allowed_key, str) and fnmatchcase(str(allowed_key), key):
             keys.append(allowed_key)
 
     if not keys:
@@ -64,22 +64,20 @@ def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> lis
 
 def matching_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     """
-    Retrieve the keys matching the wildcard expression in 'key'.
-
-    A key matching nothing returns an empty list instead of raising.
+    List the keys in ``allowed_keys`` that ``key`` matches, none when nothing does.
 
     Parameters
     ----------
     key
-        Name of node, possibly including wildcards; a non-string key is
-        returned as-is when present in 'allowed_keys'.
+        A node name, possibly including wildcards, or an enum member; a non-string key
+        is returned as-is when present in ``allowed_keys``.
     allowed_keys
-        Collection of allowable keys; strings whenever 'key' is a string.
+        Keys to match against; strings whenever ``key`` is a string.
 
     Returns
     -------
     list[K]
-        List of all keys matching 'key'; empty when nothing matches.
+        Keys matching ``key``; empty when nothing matches.
     """
     try:
         return retrieve_keys(key, allowed_keys)
@@ -93,11 +91,6 @@ def name_contains_wildcards(name: str) -> bool:
 
     A name is a pattern when it holds ``*`` (any run of characters) or ``?`` (any one
     character); ``fnmatch`` then also reads ``[...]`` as one character of a set.
-
-    Examples
-    --------
-    - Na*
-    - Na?e
 
     Parameters
     ----------
@@ -116,8 +109,8 @@ def key_name(key: str | Enum) -> str:
     """
     Name a dictionary key the way a deck writes it.
 
-    Enum members are named so that an error carrying the key reads as the deck
-    wrote it; a KeyError renders its argument with 'repr'.
+    Enum members are named as a deck writes them, in error messages and output labels
+    alike; a ``KeyError`` would otherwise render the member with ``repr``.
 
     Parameters
     ----------
@@ -134,21 +127,21 @@ def key_name(key: str | Enum) -> str:
 
 def attribute_to_instance_name(attribute: str) -> str:
     """
-    Convert a DSL attribute name to its snake_case instance-attribute name.
+    Convert a deck attribute name to its snake_case instance-attribute name.
 
-    E.g. 'LowerHeatingValue' becomes 'lower_heating_value', matching what its setter
-    assigns. Only capitalized words are kept: any character outside an [A-Z][a-z]*
-    run is dropped.
+    ``LowerHeatingValue`` is ``lower_heating_value``, matching what its setter
+    assigns. Only capitalized words are kept: any character outside an
+    ``[A-Z][a-z]*`` run is dropped.
 
     Parameters
     ----------
     attribute
-        String read as the left-hand side of an assignment statement in the input deck.
+        Attribute name as a deck writes it.
 
     Returns
     -------
     str
-        The corresponding instance-attribute name.
+        Instance-attribute name.
     """
     words = re.findall(r"[A-Z][a-z]*", attribute)
     return "_".join(word.lower() for word in words)
@@ -158,18 +151,18 @@ def attribute_to_setter(attribute: str) -> str:
     """
     Convert a deck attribute name to the name of the setter that takes it.
 
-    The setter's name is the instance name with ``set_`` before it:
+    The setter's name is the instance-attribute name with ``set_`` before it:
     ``LowerHeatingValue`` is ``set_lower_heating_value``.
 
     Parameters
     ----------
     attribute
-        The attribute name as a deck writes it.
+        Attribute name as a deck writes it.
 
     Returns
     -------
     str
-        The setter method name.
+        Setter method name.
     """
     return f"set_{attribute_to_instance_name(attribute)}"
 
@@ -184,11 +177,11 @@ def setter_to_attribute(setter: str) -> str:
     Parameters
     ----------
     setter
-        The method name, ``set_`` followed by lowercase words joined by ``_``.
+        Setter method name, ``set_`` followed by lowercase words joined by ``_``.
 
     Returns
     -------
     str
-        The attribute name as a deck writes it.
+        Attribute name as a deck writes it.
     """
     return "".join(word.capitalize() for word in setter.removeprefix("set_").split("_"))

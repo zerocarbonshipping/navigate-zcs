@@ -19,7 +19,7 @@ import numpy as np
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.nodes.curve import Curve
 from navigate.core.wrap import to_numpy
-from navigate.util import HOUR_TO_DAYS, ROUND_OFF, YEAR, divide_nonzero
+from navigate.util import HOUR_TO_DAY, ROUND_OFF, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -312,7 +312,7 @@ def _calculate_tramp_leg_miles(
     voyage_shares = _normalize_voyage_shares(route)
 
     sea_days = time_at_sea * YEAR
-    days_per_mile = np.sum(divide_nonzero(voyage_shares, speeds_leg)) * HOUR_TO_DAYS
+    days_per_mile = np.sum(divide_nonzero(voyage_shares, speeds_leg)) * HOUR_TO_DAY
 
     return voyage_shares * sea_days / days_per_mile
 

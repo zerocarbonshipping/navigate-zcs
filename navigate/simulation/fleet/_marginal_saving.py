@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.simulation.fleet._residual_energy import calculate_residual_energy
 from navigate.simulation.fleet._trip import sum_energy_per_leg
-from navigate.util.collections import slice_dict_list
+from navigate.util import slice_dict_list
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

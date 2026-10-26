@@ -27,12 +27,7 @@ from navigate.output.plots._labels import (
     default_label,
     extract_label,
 )
-from navigate.util import (
-    TOLERANCE,
-    YEAR,
-    dates_to_days,
-    dates_to_years,
-)
+from navigate.util import TOLERANCE, YEAR, dates_to_days, dates_to_years, step_lengths
 
 if TYPE_CHECKING:
     from matplotlib.typing import ColorType
@@ -213,8 +208,5 @@ def remove_below_threshold[K](values: dict[K, FloatArray], threshold: float) -> 
 
 
 def to_cumulative(dateline: DateArray, value: FloatArray) -> FloatArray:
-    timeline = dates_to_years(dateline)
-    # the first time step has no predecessor; assume it spans 1 year
-    time_step = np.insert(np.diff(timeline), 0, 1.0)
-
-    return np.cumsum(value * time_step)
+    years = dates_to_years(dateline)
+    return np.cumsum(value * step_lengths(years))

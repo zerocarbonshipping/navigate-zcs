@@ -14,7 +14,7 @@ from navigate.core.nodes._table1d import _Table1D, check_table1d_input
 from navigate.core.table_data import TableData, build_table_1d
 
 if TYPE_CHECKING:
-    from navigate.util import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class Curve(Node, _Table1D):

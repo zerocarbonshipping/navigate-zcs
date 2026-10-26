@@ -29,11 +29,12 @@ from navigate.util import (
     dates_to_days,
     is_single_dict,
     is_tuple_dict,
+    key_name,
     matching_keys,
     step_lengths,
     sum_by_first_key,
     sum_by_second_key,
-    sum_dict_results,
+    sum_nonempty_values,
 )
 
 if TYPE_CHECKING:
@@ -649,7 +650,7 @@ def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportVa
 
     if is_single_dict(property_):
         if reduce in (ReportReduceID.FIRST, ReportReduceID.BOTH):
-            return sum_dict_results(property_)
+            return sum_nonempty_values(property_)
 
         return property_
 
@@ -661,7 +662,7 @@ def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportVa
             return sum_by_first_key(property_)
 
         if reduce is ReportReduceID.BOTH:
-            return sum_dict_results(property_)
+            return sum_nonempty_values(property_)
 
     return property_
 
@@ -670,8 +671,8 @@ def _accumulate(
     property_: _ReportValue, node_results: _BaseResults, per_step: bool
 ) -> _ReportValue:
     """Sum a reduced result over the time steps up to and including each date."""
-    # a rate covers the step ending at its date, the first a year long as in the
-    # run; a count per time step is already one step's worth
+    # a rate covers the step ending at its date; a count per time step is already
+    # one step's worth
     weight = 1.0 if per_step else step_lengths(node_results.context.timeline)
 
     if isinstance(property_, dict):
@@ -683,4 +684,4 @@ def _accumulate(
 def _key_headers(key: _ReportKey) -> list[str]:
     """Return a header per element of a result key, an enum member by its name."""
     parts = key if isinstance(key, tuple) else (key,)
-    return [part.name if isinstance(part, Enum) else part for part in parts]
+    return [key_name(part) for part in parts]

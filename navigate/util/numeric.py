@@ -1,7 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Numeric helpers: safe division, index lookup, growth, smoothing."""
+"""
+Numeric helpers.
+
+Safe division, step lengths, monotonicity tests, interpolation, index lookup, growth and
+smoothing.
+"""
 
 from __future__ import annotations
 
@@ -9,11 +14,12 @@ import math
 from typing import TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 
 from navigate.util.dates import YEAR
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
+
     from navigate.util.types_ import FloatArray, IntArray
 
 ROUND_OFF = 5  # decimals
@@ -53,21 +59,21 @@ def divide_nonzero(
     return quotients
 
 
-def step_lengths(timeline: FloatArray) -> FloatArray:
+def step_lengths(years: FloatArray) -> FloatArray:
     """
-    Length of the time step ending at each date, the first a year long as in the run.
+    Return the length of the step ending at each date, the first taken as one year.
 
     Parameters
     ----------
-    timeline
-        Dates of the simulation, in years.
+    years
+        Dates, in years.
 
     Returns
     -------
     FloatArray
-        Length of each step, in years, one per date.
+        Length of the step ending at each date, in years.
     """
-    return np.insert(np.diff(timeline), 0, 1.0)
+    return np.insert(np.diff(years), 0, 1.0)
 
 
 def is_strictly_increasing(values: FloatArray) -> bool:
@@ -123,7 +129,7 @@ def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:
     return np.interp(age, np.arange(yearly_flow.size), yearly_flow)
 
 
-def find_nearest(grid: FloatArray, queries: FloatArray) -> IntArray:
+def find_nearest_indices(grid: FloatArray, queries: FloatArray) -> IntArray:
     """
     Find the index of the grid point nearest to each query.
 
@@ -157,7 +163,7 @@ def find_nearest_index(grid: FloatArray, query: float) -> int:
     """
     Find the index of the grid point nearest to the query.
 
-    Scalar counterpart of ``find_nearest``.
+    Scalar counterpart of ``find_nearest_indices``.
 
     Parameters
     ----------
@@ -171,24 +177,24 @@ def find_nearest_index(grid: FloatArray, query: float) -> int:
     int
         Index of the nearest grid point.
     """
-    return int(find_nearest(grid, np.array([query]))[0])
+    return int(find_nearest_indices(grid, np.array([query]))[0])
 
 
-def derive_smoothing_alpha(idx: int, horizon: float, timeline: FloatArray) -> float:
+def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) -> float:
     """
-    Derive the exponential smoothing weight of a time step from a decision horizon.
+    Calculate the exponential smoothing weight of a time step from a decision horizon.
 
     A shorter horizon gives a larger alpha, a more responsive belief: with 1-year steps,
     a 5-year horizon gives alpha ~ 0.17 and a 3-year horizon alpha ~ 0.25.
 
     Parameters
     ----------
-    idx
-        Current time-step index.
     horizon
         Characteristic decision horizon, in years.
     timeline
         Dates of the simulation, in days.
+    idx
+        Current time-step index.
 
     Returns
     -------

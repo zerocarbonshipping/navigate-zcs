@@ -16,7 +16,7 @@ from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.table_data import TableData, build_table_2d
 
 if TYPE_CHECKING:
-    from navigate.util import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 

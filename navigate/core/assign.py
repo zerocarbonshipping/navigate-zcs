@@ -30,8 +30,8 @@ from navigate.core.wrap import as_list
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
+    is_unique,
     key_name,
-    list_is_unique,
     name_contains_wildcards,
     retrieve_keys,
     unique_list,
@@ -920,7 +920,7 @@ def _check_list_is_unique(entries: Collection[Hashable]) -> None:
     entries
         The entries checked, compared by equality.
     """
-    if not list_is_unique(entries):
+    if not is_unique(entries):
         raise ValueError("requires all entries in the list to be unique")
 
 

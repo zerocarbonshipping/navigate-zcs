@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, NamedTuple
 
 from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
 from navigate.simulation.policy._policed import calculate_vessel_account, select_policed
-from navigate.util import derive_smoothing_alpha, divide_nonzero, update_belief_path
+from navigate.util import calculate_smoothing_alpha, divide_nonzero, update_belief_path
 
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
@@ -113,7 +113,7 @@ def update_regulation_flexibility_beliefs(
         expectation = regulation.expectation
         horizon = regulation.flexibility_horizon.get()
 
-        alpha = derive_smoothing_alpha(idx, horizon, timeline)
+        alpha = calculate_smoothing_alpha(horizon, timeline, idx)
         raw_cost = expectation.get_flexibility_cost()
         belief = expectation.get_belief_flexibility_cost()
         update_belief_path(raw_cost, belief, alpha, idx)

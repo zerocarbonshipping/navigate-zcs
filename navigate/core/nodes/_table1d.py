@@ -15,7 +15,7 @@ from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
-    from navigate.util import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class _Table1D(_Calculator):
