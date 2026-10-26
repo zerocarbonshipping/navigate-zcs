@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from navigate.core import deck_attribute
 from navigate.core.node import Node
@@ -57,6 +57,15 @@ class Surface(Node, _Table2D):
         x, y, z = self._pending_table
         self._set_table(x, y, z)
         self._pending_table = None
+
+    @overload
+    def get(self, x: float | None, y: float | None) -> float: ...
+
+    @overload
+    def get(self, x: FloatArray, y: FloatLike | None) -> FloatArray: ...
+
+    @overload
+    def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike: ...
 
     def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike:
         """

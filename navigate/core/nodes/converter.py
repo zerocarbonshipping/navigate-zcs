@@ -108,7 +108,7 @@ class Converter(_Machinery):
     @deck_command()
     def set_slip_fraction(self, fuel_type: str, value: ScalarArgument) -> None:
         """Set the fraction of fuel mass escaping unburned for a fuel type."""
-        id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
+        id_ = assign_member(fuel_type, self.get_fuel_types())
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
 
         write_matching_keys(id_, value_, self.slip_fraction)
@@ -118,7 +118,7 @@ class Converter(_Machinery):
         self, fuel_type: str, emission_name: str, value: ScalarArgument
     ) -> None:
         """Set a consumption-related emission for a fuel type in the converter."""
-        id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
+        id_ = assign_member(fuel_type, self.get_fuel_types())
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
 
         write_matching_key_pairs((id_, emission_name), value_, self.consumption_ttw)
@@ -151,8 +151,8 @@ class Converter(_Machinery):
             for emission_name in emissions:
                 self.consumption_ttw.setdefault((fuel_type, emission_name), Scalar(0.0))
 
-    def get_fuel_types(self) -> list[FuelTypeID]:
-        return self.main_fuel_types + self.pilot_fuel_types
+    def get_fuel_types(self) -> tuple[FuelTypeID, ...]:
+        return (*self.main_fuel_types, *self.pilot_fuel_types)
 
     def is_dual_fuel(self) -> bool:
         return bool(self.pilot_fuel_types)
