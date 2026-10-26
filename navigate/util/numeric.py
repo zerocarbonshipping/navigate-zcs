@@ -1,7 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Numeric helpers: safe division, index lookup, growth, smoothing."""
+"""
+Numeric helpers.
+
+Safe division, step lengths, monotonicity tests, interpolation, index lookup, growth and
+smoothing.
+"""
 
 from __future__ import annotations
 
@@ -9,11 +14,12 @@ import math
 from typing import TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 
 from navigate.util.dates import YEAR
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
+
     from navigate.util.types_ import FloatArray, IntArray
 
 ROUND_OFF = 5  # decimals
@@ -174,9 +180,9 @@ def find_nearest_index(grid: FloatArray, query: float) -> int:
     return int(find_nearest_indices(grid, np.array([query]))[0])
 
 
-def derive_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) -> float:
+def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) -> float:
     """
-    Derive the exponential smoothing weight of a time step from a decision horizon.
+    Calculate the exponential smoothing weight of a time step from a decision horizon.
 
     A shorter horizon gives a larger alpha, a more responsive belief: with 1-year steps,
     a 5-year horizon gives alpha ~ 0.17 and a 3-year horizon alpha ~ 0.25.

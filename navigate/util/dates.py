@@ -69,7 +69,7 @@ def dates_to_days(dates: DateArray) -> FloatArray:
     Returns
     -------
     FloatArray
-        Array of days since the first date.
+        Days since the first date.
     """
     deltas: TimedeltaArray = dates - dates[0]
     return timedelta_to_days(deltas)
@@ -87,6 +87,6 @@ def dates_to_years(dates: DateArray) -> FloatArray:
     Returns
     -------
     FloatArray
-        Array of years since the first date.
+        Years since the first date.
     """
     return dates_to_days(dates) / YEAR

@@ -15,8 +15,8 @@ from navigate.util.collections import (
     index_map,
     is_single_dict,
     is_tuple_dict,
+    is_unique,
     list_intersection,
-    list_is_unique,
     slice_dict,
     slice_dict_list,
     slice_list,
@@ -47,8 +47,8 @@ from navigate.util.numeric import (
     ROUND_OFF,
     TOLERANCE,
     calculate_compound_growth,
+    calculate_smoothing_alpha,
     calculate_step_inertia,
-    derive_smoothing_alpha,
     divide_nonzero,
     find_nearest_index,
     find_nearest_indices,
@@ -60,7 +60,7 @@ from navigate.util.numeric import (
 )
 from navigate.util.timings import Timings, timed
 from navigate.util.units import (
-    HOUR_TO_DAYS,
+    HOUR_TO_DAY,
     MWH_TO_GJ,
     TON_PER_GJ_TO_GRAM_PER_MJ,
     TON_TO_GRAM,

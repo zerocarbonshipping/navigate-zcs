@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
-def unique_list[T](items: Iterable[T]) -> list[T]:
+def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:
     """
     Create an order preserved list of the unique items.
 
@@ -51,7 +51,7 @@ def list_intersection[T](items: Iterable[T], others: Collection[T]) -> list[T]:
     return [item for item in items if item in others]
 
 
-def list_is_unique(items: Collection[Hashable]) -> bool:
+def is_unique(items: Collection[Hashable]) -> bool:
     """
     Test whether all items are distinct.
 
@@ -68,7 +68,7 @@ def list_is_unique(items: Collection[Hashable]) -> bool:
     return len(items) == len(set(items))
 
 
-def index_map[T](items: Iterable[T]) -> dict[T, list[int]]:
+def index_map[T: Hashable](items: Iterable[T]) -> dict[T, list[int]]:
     """
     Map each unique item to the indices at which it occurs.
 
@@ -144,8 +144,7 @@ def add_dicts[K](*dicts: Mapping[K, FloatLike]) -> dict[K, FloatLike]:
     Returns
     -------
     dict[K, FloatLike]
-        A single merged dict with the sum of overlapping keys; the values
-        never alias the inputs.
+        Sum of the values under each key; no value aliases an input.
     """
     total: dict[K, FloatLike] = {}
 
@@ -226,7 +225,7 @@ def sum_by_first_key[K1, K2](
     Returns
     -------
     dict[K1, FloatArray]
-        Dict keyed by the first tuple element, summed over the second.
+        Sums over the second key, by the first.
     """
     groups: dict[K1, dict[K2, FloatArray]] = {}
 
@@ -250,7 +249,7 @@ def sum_by_second_key[K1, K2](
     Returns
     -------
     dict[K2, FloatArray]
-        Dict keyed by the second tuple element, summed over the first.
+        Sums over the first key, by the second.
     """
     groups: dict[K2, dict[K1, FloatArray]] = {}
 

@@ -31,7 +31,7 @@ from navigate.core.node_type import (
     VESSEL,
 )
 from navigate.core.results import VesselResults
-from navigate.util import list_is_unique
+from navigate.util import is_unique
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -222,7 +222,7 @@ class Vessel(Node):
         # downstream code sums over the converters (installed power, cost, fuel demand);
         # a shared one would double-count
         names = [converter.name for converter in self.get_converters()]
-        if not list_is_unique(names):
+        if not is_unique(names):
             raise ValueError(
                 f"{self}: 'PropulsionConverter', 'ElectricalConverter' and"
                 f" 'HeatConverter' must be three distinct converters, got {names}."

@@ -13,8 +13,8 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray, FloatLike
 
 # time
-DAY_TO_HOURS = 24.0
-HOUR_TO_DAYS = 1.0 / DAY_TO_HOURS
+DAY_TO_HOUR = 24.0
+HOUR_TO_DAY = 1.0 / DAY_TO_HOUR
 
 # mass
 TON_TO_GRAM = 1e6
@@ -23,7 +23,7 @@ TON_TO_KG = 1e3
 # energy
 GJ_TO_MJ = 1e3
 MWH_TO_GJ = 3.6
-MWD_TO_GJ = MWH_TO_GJ * DAY_TO_HOURS
+MWD_TO_GJ = MWH_TO_GJ * DAY_TO_HOUR
 
 # intensity
 TON_PER_GJ_TO_GRAM_PER_MJ = TON_TO_GRAM / GJ_TO_MJ

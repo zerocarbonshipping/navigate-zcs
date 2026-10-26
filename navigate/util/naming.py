@@ -16,20 +16,20 @@ if TYPE_CHECKING:
 
 def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     """
-    Retrieve the keys in ``allowed_keys`` that ``key`` matches, wildcards included.
+    Retrieve the keys in ``allowed_keys`` that ``key`` matches, raising when none does.
 
     Parameters
     ----------
     key
-        Name of node, possibly including wildcards; a non-string key is
-        returned as-is, but must be present in ``allowed_keys``.
+        A node name, possibly including wildcards, or an enum member; a non-string key
+        is returned as-is, but must be present in ``allowed_keys``.
     allowed_keys
-        Collection of allowable keys; strings whenever ``key`` is a string.
+        Keys to match against; strings whenever ``key`` is a string.
 
     Returns
     -------
     list[K]
-        List of all keys matching ``key`` (``key`` only if no wildcards).
+        Keys matching ``key``; ``key`` alone when it holds no wildcards.
 
     Raises
     ------
@@ -64,22 +64,20 @@ def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> lis
 
 def matching_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     """
-    Retrieve the keys in ``allowed_keys`` that ``key`` matches, wildcards included.
-
-    A key matching nothing returns an empty list instead of raising.
+    List the keys in ``allowed_keys`` that ``key`` matches, none when nothing does.
 
     Parameters
     ----------
     key
-        Name of node, possibly including wildcards; a non-string key is
-        returned as-is when present in ``allowed_keys``.
+        A node name, possibly including wildcards, or an enum member; a non-string key
+        is returned as-is when present in ``allowed_keys``.
     allowed_keys
-        Collection of allowable keys; strings whenever ``key`` is a string.
+        Keys to match against; strings whenever ``key`` is a string.
 
     Returns
     -------
     list[K]
-        List of all keys matching ``key``; empty when nothing matches.
+        Keys matching ``key``; empty when nothing matches.
     """
     try:
         return retrieve_keys(key, allowed_keys)
@@ -103,11 +101,6 @@ def name_contains_wildcards(name: str) -> bool:
     -------
     bool
         Whether the name includes wildcards.
-
-    Examples
-    --------
-    - Na*
-    - Na?e
     """
     return "*" in name or "?" in name
 
@@ -116,8 +109,8 @@ def key_name(key: str | Enum) -> str:
     """
     Name a dictionary key the way a deck writes it.
 
-    Enum members are named so that an error carrying the key reads as the deck
-    wrote it; a ``KeyError`` renders its argument with ``repr``.
+    Enum members are named as a deck writes them, in error messages and output labels
+    alike; a ``KeyError`` would otherwise render the member with ``repr``.
 
     Parameters
     ----------
@@ -158,7 +151,7 @@ def attribute_to_setter(attribute: str) -> str:
     """
     Convert a deck attribute name to the name of the setter that takes it.
 
-    The setter's name is the instance name with ``set_`` before it:
+    The setter's name is the instance-attribute name with ``set_`` before it:
     ``LowerHeatingValue`` is ``set_lower_heating_value``.
 
     Parameters
