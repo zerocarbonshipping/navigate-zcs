@@ -356,8 +356,8 @@ def _calculate_modelled_uptake(
 
     return calculate_two_axis_uptake(
         group_keys=fuel_types,
-        metrics_intra=metrics,
-        metrics_inter=metrics,
+        intra_metrics=metrics,
+        inter_metrics=metrics,
         intra_utility=UtilityID.LOWER_LOG_RATIO,
         inter_utility=UtilityID.LOWER_LOG_RATIO,
         intra_odds=fleet.intra_fuel_sensitivity.get(),

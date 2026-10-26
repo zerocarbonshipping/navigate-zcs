@@ -428,13 +428,13 @@ def _calculate_modelled_uptake(producer: Producer) -> FloatArray:
         return np.zeros(len(producer.plants))
 
     group_keys = [plant.fuel.name for plant in plants]
-    metrics_intra = [plant.expectation.get_intra_fuel_metric() for plant in plants]
-    metrics_inter = [plant.expectation.get_inter_fuel_metric() for plant in plants]
+    intra_metrics = [plant.expectation.get_intra_fuel_metric() for plant in plants]
+    inter_metrics = [plant.expectation.get_inter_fuel_metric() for plant in plants]
 
     uptake = calculate_two_axis_uptake(
         group_keys=group_keys,
-        metrics_intra=metrics_intra,
-        metrics_inter=metrics_inter,
+        intra_metrics=intra_metrics,
+        inter_metrics=inter_metrics,
         intra_utility=UtilityID.LOWER_LOG_RATIO,
         inter_utility=UtilityID.HIGHER_LOG_RATIO,
         intra_odds=producer.fuel_cost_sensitivity.get(),

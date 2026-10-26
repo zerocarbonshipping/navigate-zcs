@@ -69,19 +69,19 @@ def calculate_asset_shares(
     beta = _calculate_beta(odds, utility)
 
     if utility == UtilityID.LOWER_LOG_RATIO:
-        shares, msg = _calculate_shares_lower_log_ratio(values, beta)
+        shares, message = _calculate_shares_lower_log_ratio(values, beta)
     elif utility == UtilityID.HIGHER_LOG_RATIO:
-        shares, msg = _calculate_shares_higher_log_ratio(values, beta)
+        shares, message = _calculate_shares_higher_log_ratio(values, beta)
     else:
-        shares, msg = _calculate_shares_signed_reference(values, beta, reference)
+        shares, message = _calculate_shares_signed_reference(values, beta, reference)
 
     if limits is not None:
         limits = np.asarray(limits, dtype=np.float64)
-        shares, limit_msg = _calculate_limited_shares(shares, limits)
-        if limit_msg:
-            msg = f"{msg}; {limit_msg}" if msg else limit_msg
+        shares, limit_message = _calculate_limited_shares(shares, limits)
+        if limit_message:
+            message = f"{message}; {limit_message}" if message else limit_message
 
-    return shares, msg
+    return shares, message
 
 
 def _calculate_beta(odds: float, utility: UtilityID) -> float:
@@ -107,9 +107,9 @@ def _calculate_beta(odds: float, utility: UtilityID) -> float:
         Sensitivity coefficient beta.
     """
     if utility == UtilityID.SIGNED_REFERENCE:
-        return float(np.log(odds) / 0.05)
+        return math.log(odds) / 0.05
 
-    return float(_preference_sign(utility) * np.log(odds) / np.log(1.10))
+    return _preference_sign(utility) * math.log(odds) / math.log(1.10)
 
 
 def _preference_sign(utility: UtilityID) -> float:
@@ -174,12 +174,12 @@ def _calculate_shares_lower_log_ratio(
         Shares per alternative and a potential warning message.
     """
     if np.any(values <= 0.0):
-        msg = (
+        message = (
             "contains a non-positive value; the lower-is-better log-ratio utility is "
             "undefined, so shares were split uniformly among the alternatives at the "
             "minimum value"
         )
-        return _uniform_at_min(values), msg
+        return _uniform_at_min(values), message
 
     utilities = -beta * np.log(values / np.min(values))
     return _softmax(utilities), ""
@@ -266,8 +266,8 @@ def _calculate_shares_signed_reference(
         Shares per alternative and a potential warning message.
     """
     if (reference is None) or (reference <= 0.0):
-        msg = "has a non-positive reference value; shares were split uniformly"
-        return np.ones_like(values) / values.size, msg
+        message = "has a non-positive reference value; shares were split uniformly"
+        return np.ones_like(values) / values.size, message
 
     return _softmax(beta * values / reference), ""
 
@@ -301,11 +301,11 @@ def _calculate_limited_shares(
     # infeasible: even saturating every option cannot reach a unit total
     total_limit = float(np.sum(limits))
     if total_limit < 1.0 - _SHARE_TOLERANCE:
-        msg = (
+        message = (
             f"sum of limits ({total_limit:.4f}) is below 1; allocation is infeasible "
             "and every option has been saturated to its limit"
         )
-        return limits, msg
+        return limits, message
 
     # no effective constraint
     if not np.any(shares > limits + _SHARE_TOLERANCE):
@@ -368,7 +368,7 @@ class _Axis(NamedTuple):
     odds: float
 
     def select(self, indices: list[int]) -> _Axis:
-        """Restrict the axis to the assets at the indexes."""
+        """Restrict the axis to the assets at the indices."""
         return self._replace(metrics=self.metrics[indices])
 
     def calculate_shares(
@@ -387,8 +387,8 @@ class _Axis(NamedTuple):
 
 def calculate_two_axis_uptake[T: Hashable](
     group_keys: list[T],
-    metrics_intra: list[float],
-    metrics_inter: list[float],
+    intra_metrics: list[float],
+    inter_metrics: list[float],
     intra_utility: UtilityID,
     inter_utility: UtilityID,
     intra_odds: float,
@@ -400,12 +400,12 @@ def calculate_two_axis_uptake[T: Hashable](
     Calculate uptake shares using a two-axis discrete choice model.
 
     Assets are grouped by *group_keys* (e.g. fuel type). Across groups, inter-group
-    shares are determined from each group's metric: its *metrics_inter* weighted by
-    filling the group with its members in order of *metrics_intra*, best first. The
+    shares are determined from each group's metric: its *inter_metrics* weighted by
+    filling the group with its members in order of *intra_metrics*, best first. The
     fill only values the group; it allocates nothing. Without limits, it is the inter
     metric of the group's best member, so a group's metric does not fall when a worse
     option is added to it, nor rise when an identical one is. Within each group,
-    intra-group shares are determined from *metrics_intra*. The final per-asset share
+    intra-group shares are determined from *intra_metrics*. The final per-asset share
     is the product of the two.
 
     When *limits* is given and the unlimited choice exceeds any of them, member i of
@@ -422,9 +422,9 @@ def calculate_two_axis_uptake[T: Hashable](
     ----------
     group_keys
         Grouping key per asset (e.g. fuel type name).
-    metrics_intra
+    intra_metrics
         Evaluation metric per asset for the intra-group axis.
-    metrics_inter
+    inter_metrics
         Evaluation metric per asset for the inter-group axis.
     intra_utility
         Utility transformation for the intra-group axis.
@@ -446,18 +446,19 @@ def calculate_two_axis_uptake[T: Hashable](
         Uptake share per asset.
     """
     group_map = define_index_map(group_keys)
-    intra = _Axis(np.asarray(metrics_intra), intra_utility, intra_odds)
-    inter = _Axis(np.asarray(metrics_inter), inter_utility, inter_odds)
+    intra = _Axis(np.asarray(intra_metrics), intra_utility, intra_odds)
+    inter = _Axis(np.asarray(inter_metrics), inter_utility, inter_odds)
 
-    group_shares, inter_msg = _calculate_group_shares(group_map, intra, inter)
+    group_shares, inter_message = _calculate_group_shares(group_map, intra, inter)
     uptake, messages = _allocate_members(group_map, intra, group_shares, None)
 
     if limits is not None and np.any(uptake > limits):
-        group_shares, inter_msg = _solve_group_shares(group_map, intra, inter, limits)
+        solved = _solve_group_shares(group_map, intra, inter, limits)
+        group_shares, inter_message = solved
         uptake, messages = _allocate_members(group_map, intra, group_shares, limits)
 
-    if inter_msg:
-        logger.warning("%s: inter-group %s", context, inter_msg)
+    if inter_message:
+        logger.warning("%s: inter-group %s", context, inter_message)
 
     for message in messages:
         logger.warning("%s: %s", context, message)
@@ -474,7 +475,7 @@ def _calculate_group_shares[T: Hashable](
     Parameters
     ----------
     group_map
-        Indexes of each group's assets.
+        Indices of each group's assets.
     intra
         Intra-group axis.
     inter
@@ -544,7 +545,7 @@ def _allocate_members[T: Hashable](
     Parameters
     ----------
     group_map
-        Indexes of each group's assets.
+        Indices of each group's assets.
     intra
         Intra-group axis.
     group_shares
@@ -569,11 +570,11 @@ def _allocate_members[T: Hashable](
         else:
             bounds = limits[indices] / group_share
 
-        shares, msg = intra.select(indices).calculate_shares(bounds)
+        shares, message = intra.select(indices).calculate_shares(bounds)
         uptake[indices] = group_share * shares
 
-        if msg:
-            messages.append(f"intra-group '{group}' {msg}")
+        if message:
+            messages.append(f"intra-group '{group}' {message}")
 
     return uptake, messages
 
@@ -612,7 +613,7 @@ def _solve_group_shares[T: Hashable](
     Parameters
     ----------
     group_map
-        Indexes of each group's assets.
+        Indices of each group's assets.
     intra
         Intra-group axis.
     inter
