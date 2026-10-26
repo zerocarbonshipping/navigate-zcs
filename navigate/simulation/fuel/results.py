@@ -73,7 +73,7 @@ def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for feed_name, constraint in producer.feed_constraints.items():
+    for feed_name, constraint in producer.feed_constraint.items():
         if constraint is not None:
             producer.results.feed_constraint[feed_name][idx] = constraint.get()
 

@@ -33,9 +33,11 @@ class Curve(Node, _Table1D):
         Node.__init__(self, name)
         _Table1D.__init__(self)
 
+        # internal variables -----------------------------------------------------------
         # the table read from the deck, pending until it is built
         self._pending_table: tuple[FloatArray, FloatArray] | None = None
 
+    # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x- and y-values the curve interpolates in."""
@@ -43,6 +45,7 @@ class Curve(Node, _Table1D):
         self._check_table(x, y)
         self._pending_table = (x, y)
 
+    # internal methods -----------------------------------------------------------------
     def build_table(self) -> None:
         """Build the pending table with the interpolation and extrapolation set."""
         if self._pending_table is None:

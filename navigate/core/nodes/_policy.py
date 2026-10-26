@@ -165,6 +165,9 @@ class _Policy(Node):
         vessels
             All vessels in the simulation.
         """
+        for vessel_name in vessels:
+            self.include_vessel.setdefault(vessel_name, False)
+
         # unset factors stay None, so consumers fall back to the model's own factors
         for emission in self.emissions:
             self.global_warming_potential.setdefault(emission.name, None)
@@ -173,9 +176,6 @@ class _Policy(Node):
                 key = (fuel.name, emission.name)
                 self.fuel_wtt.setdefault(key, None)
                 self.fuel_ttw.setdefault(key, None)
-
-        for vessel_name in vessels:
-            self.include_vessel.setdefault(vessel_name, False)
 
         # recomputed every pass, as routes and jurisdiction may change
         jurisdiction = set(self.jurisdiction)

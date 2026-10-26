@@ -39,6 +39,10 @@ class Port(Node):
         super().__init__(name)
 
         # external variables -----------------------------------------------------------
+        # shore power
+        self.shore_power_cost: ForecastInput = Scalar(0.0)
+        self.shore_power_connection_share: ForecastInput = Scalar(0.0)
+
         # bunkering
         self.bunkering_allowed: dict[str, bool] = {}
         self.bunkering_limit: dict[str, ForecastInput | None] = {}
@@ -51,9 +55,7 @@ class Port(Node):
         self.bunker_price_overwrite: dict[str, ForecastInput | None] = {}
         self.bunker_wtt_overwrite: dict[tuple[str, str], ForecastInput | None] = {}
 
-        # shore power
-        self.shore_power_cost: ForecastInput = Scalar(0.0)
-        self.shore_power_connection_share: ForecastInput = Scalar(0.0)
+        # shore power emissions
         self.shore_power_emission_factor: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------

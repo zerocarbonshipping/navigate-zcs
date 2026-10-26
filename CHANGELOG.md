@@ -225,6 +225,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The report property `FuelTypeDemand` is now `FuelTypeCapacity`, and the
   `fuel_type_supply_demand` plot labels that line "Fleet capacity" instead of
   "Demand" (#522).
+- As on the other nodes, Fleet `InitialVessels` errors read "> 0.0", Converter
+  `MinimumPilotFuel` "Forecast or Variable", and Technology's `set_energy_saving`,
+  `set_external_power` and `set_power_transfer` check the energy type first.
 - The log line for inertia newbuilds held back by the newbuild limit reads
   `<fleet>: Deferred inertia newbuilds due to newbuild limit (N% delivered).`
   like the orderbook deferral lines, instead of `Inertia not fully applied

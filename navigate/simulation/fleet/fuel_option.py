@@ -79,7 +79,7 @@ def check_fuel_options(vessel: Vessel) -> None:
     tank_fuel_types: set[FuelTypeID] = set()
 
     for tank in vessel.tanks:
-        tank_fuel_types.update(tank.get_fuel_types())
+        tank_fuel_types.update(tank.fuel_types)
 
     for converter in vessel.get_converters():
         if converter.is_dual_fuel():
@@ -117,7 +117,7 @@ def _largest_tank_fuel_type(vessel: Vessel, fuel_types: list[FuelTypeID]) -> Fue
     for tank in vessel.tanks:
         size = tank.size.get()
 
-        for fuel_type in tank.get_fuel_types():
+        for fuel_type in tank.fuel_types:
             tank_sizes[fuel_type] = size
 
     stored = [fuel_type for fuel_type in fuel_types if fuel_type in tank_sizes]

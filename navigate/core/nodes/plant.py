@@ -72,12 +72,12 @@ class Plant(Node):
         self.fuel_distance: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
+        self.expectation: PlantExpectation = PlantExpectation()
+        self.results: PlantResults = PlantResults()
+
         self.feed_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
         self.fuel_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
         self.producer_assignment: str | None = None
-
-        self.expectation: PlantExpectation = PlantExpectation()
-        self.results: PlantResults = PlantResults()
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -236,6 +236,16 @@ class Plant(Node):
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)
 
+    def set_producer_assignment(self, producer_name: str) -> None:
+        """Record the producer building this plant, raising if another already does."""
+        if self.producer_assignment is not None:
+            raise ValueError(
+                f'Producer("{producer_name}"): {self} is already assigned to a'
+                f' different producer, Producer("{self.producer_assignment}").'
+            )
+
+        self.producer_assignment = producer_name
+
     @staticmethod
     def _deliveries(
         transports: dict[str, Transport | None],
@@ -270,13 +280,3 @@ class Plant(Node):
                     f"{self}: Unable to assign a transport distance to '{name}' as no"
                     " transport is assigned."
                 )
-
-    def set_producer_assignment(self, producer_name: str) -> None:
-        """Record the producer building this plant, raising if another already does."""
-        if self.producer_assignment is not None:
-            raise ValueError(
-                f'Producer("{producer_name}"): {self} is already assigned to a'
-                f' different producer, Producer("{self.producer_assignment}").'
-            )
-
-        self.producer_assignment = producer_name

@@ -24,25 +24,25 @@ class _Table1D(_Calculator):
 
         # external variables -----------------------------------------------------------
         # interpolation
-        self._interpolate: Interpolate1DID = Interpolate1DID.LINEAR
+        self.interpolate: Interpolate1DID = Interpolate1DID.LINEAR
 
         # extrapolation
         self.extrapolate: ExtrapolateID = ExtrapolateID.LINEAR
-        self._below: NumberInput | None = None
-        self._above: NumberInput | None = None
+        self.below: NumberInput | None = None
+        self.above: NumberInput | None = None
 
         # internal variables -----------------------------------------------------------
         self.x: FloatArray
         self.y: FloatArray
+        self.is_convex: bool
         self._table: interp1d
         self._fill_values: tuple[NumberInput, NumberInput] | None
-        self._is_convex: bool
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
     def set_interpolate(self, interpolate: str) -> None:
         """Set the interpolation method used within the table."""
-        self._interpolate = assign_id(interpolate, Interpolate1DID)
+        self.interpolate = assign_id(interpolate, Interpolate1DID)
 
     @deck_attribute(SECTION_DEFINE)
     def set_extrapolate(self, extrapolate: str) -> None:
@@ -52,17 +52,14 @@ class _Table1D(_Calculator):
     @deck_attribute(SECTION_DEFINE)
     def set_below(self, below: NumberInput) -> None:
         """Set the flat extrapolation value below the table."""
-        self._below = assign_value(below, allow_infinite=True)
+        self.below = assign_value(below, allow_infinite=True)
 
     @deck_attribute(SECTION_DEFINE)
     def set_above(self, above: NumberInput) -> None:
         """Set the flat extrapolation value above the table."""
-        self._above = assign_value(above, allow_infinite=True)
+        self.above = assign_value(above, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
-    def is_convex(self) -> bool:
-        return self._is_convex
-
     @overload
     def calculate(self, x: float) -> float: ...
 
@@ -104,17 +101,17 @@ class _Table1D(_Calculator):
         return np.interp(y, yp, self.x)
 
     def _check_interpolate_extrapolate_consistency(self) -> None:
-        is_step = self._interpolate in (Interpolate1DID.PREVIOUS, Interpolate1DID.NEXT)
+        is_step = self.interpolate in (Interpolate1DID.PREVIOUS, Interpolate1DID.NEXT)
 
         if is_step and self.extrapolate == ExtrapolateID.LINEAR:
             raise ValueError(
                 "'Extrapolate' must not be LINEAR when 'Interpolate' is"
-                f" {self._interpolate.name}. This can lead to non-numeric"
+                f" {self.interpolate.name}. This can lead to non-numeric"
                 " extrapolations yielding erroneous results."
             )
 
     def _interp1d_kind(self) -> str:
-        match self._interpolate:
+        match self.interpolate:
             case Interpolate1DID.LINEAR:
                 return "linear"
 
@@ -147,8 +144,8 @@ class _Table1D(_Calculator):
         if self.extrapolate != ExtrapolateID.FLAT:
             return None
 
-        below = self._below if self._below is not None else float(self.y[0])
-        above = self._above if self._above is not None else float(self.y[-1])
+        below = self.below if self.below is not None else float(self.y[0])
+        above = self.above if self.above is not None else float(self.y[-1])
 
         return below, above
 
@@ -195,7 +192,7 @@ class _Table1D(_Calculator):
         self.x = x
         self.y = y
 
-        self._is_convex = self._test_convexity(x, y)
+        self.is_convex = self._test_convexity(x, y)
         self._fill_values = self._flat_fill_values()
 
         self._table = interp1d(

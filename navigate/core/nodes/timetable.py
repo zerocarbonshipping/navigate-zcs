@@ -36,6 +36,7 @@ class Timetable(Node, _Table2D):
         Node.__init__(self, name)
         _Table2D.__init__(self)
 
+        # internal variables -----------------------------------------------------------
         # None until the first time-step sets the time
         self._current_time: float | None = None
 
@@ -44,10 +45,15 @@ class Timetable(Node, _Table2D):
             tuple[FloatArray | DateArray, FloatArray, FloatArray] | None
         ) = None
 
+    # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x-, y- and z-values the timetable interpolates in."""
         self._pending_table = build_table_2d_dated(table)
+
+    # internal methods -----------------------------------------------------------------
+    def check_consistency(self) -> None:
+        self._check_extrapolate_consistency()
 
     def build_table(self, start_date: np.datetime64) -> None:
         """Build the pending table, its dates counted in days from the start date."""
@@ -63,9 +69,6 @@ class Timetable(Node, _Table2D):
 
         self._set_table(x, y, z)
         self._pending_table = None
-
-    def check_consistency(self) -> None:
-        self._check_extrapolate_consistency()
 
     def set_current_time(self, time: float) -> None:
         """

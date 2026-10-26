@@ -196,7 +196,7 @@ def _calculate_inertia_feed_gaps(
     """
     expectation = producer.expectation
 
-    for feed_name, constraint in producer.feed_constraints.items():
+    for feed_name, constraint in producer.feed_constraint.items():
         if constraint is None:
             continue
 

@@ -70,16 +70,20 @@ class Producer(Node):
         # initial conditions
         self.initial_capacity: list[ScalarInput] = []
         self.initial_age_distribution: list[CurveTableInput] = []
-        self.existing_pipelines: dict[str, Forecast | None] = {}
 
         # constraints
         self.maximum_development: ForecastInput
-        self.feed_constraints: dict[str, ForecastInput | None] = {}
-        self.jump_start_fraction: ScalarInput = Scalar(0.1)
         self.maximum_ramp_up: ForecastInput = Scalar(1.0)
+        self.jump_start_fraction: ScalarInput = Scalar(0.1)
+
+        # per plant, keyed by its name
+        self.existing_pipeline: dict[str, Forecast | None] = {}
         self.allow_plant: dict[str, bool] = {}
 
-        # export
+        # per feed, keyed by the name of the feedstock or process
+        self.feed_constraint: dict[str, ForecastInput | None] = {}
+
+        # per port, keyed by its name
         self.export_distribution: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------
@@ -203,7 +207,7 @@ class Producer(Node):
                 lower=0.0,
                 allow_expression=False,
             ),
-            self.existing_pipelines,
+            self.existing_pipeline,
         )
 
     @deck_command()
@@ -224,7 +228,7 @@ class Producer(Node):
                 lower=0.0,
                 allow_infinite=True,
             ),
-            self.feed_constraints,
+            self.feed_constraint,
         )
 
     @deck_command()
@@ -253,7 +257,7 @@ class Producer(Node):
         plants = self.plants
         capacity = self.initial_capacity
         ages = self.initial_age_distribution
-        existing = self.existing_pipelines.values()
+        existing = self.existing_pipeline.values()
         pipelines = [pipeline for pipeline in existing if pipeline is not None]
 
         check_lengths_match(self, "Plants", plants, "InitialCapacity", capacity)
@@ -272,18 +276,18 @@ class Producer(Node):
         processes: dict[str, Process],
     ) -> None:
         """Initialize dependent dictionaries so command calls can use wildcards."""
-        # a None feed constraint is read as unlimited, and a None pipeline means the
-        # plant has no committed pipeline
+        # a None pipeline means the plant has no committed pipeline, and a None feed
+        # constraint is read as unlimited
+        for plant in self.plants:
+            name = plant.name
+            self.existing_pipeline.setdefault(name, None)
+            self.allow_plant.setdefault(name, True)
+
         for feed_name in [*feedstocks, *processes]:
-            self.feed_constraints.setdefault(feed_name, None)
+            self.feed_constraint.setdefault(feed_name, None)
 
         for port_name in ports:
             self.export_distribution.setdefault(port_name, Scalar(0.0))
-
-        for plant in self.plants:
-            name = plant.name
-            self.allow_plant.setdefault(name, True)
-            self.existing_pipelines.setdefault(name, None)
 
     def initialize_expectation(
         self,

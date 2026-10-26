@@ -61,11 +61,11 @@ class Route(Node):
         self.time_at_sea: ForecastInput | None = None
 
         # per leg, keyed by the names of the leg's origin and destination ports
-        self.speeds: dict[tuple[str, str], CurveInput | None] = {}
-        self.utilizations: dict[tuple[str, str], CurveForecastInput] = {}
-        self.distances: dict[tuple[str, str], Scalar | Expression | None] = {}
-        self.port_durations: dict[tuple[str, str], ForecastInput | None] = {}
-        self.voyage_shares: dict[tuple[str, str], ScalarInput | None] = {}
+        self.speed: dict[tuple[str, str], CurveInput | None] = {}
+        self.utilization: dict[tuple[str, str], CurveForecastInput] = {}
+        self.distance: dict[tuple[str, str], Scalar | Expression | None] = {}
+        self.port_duration: dict[tuple[str, str], ForecastInput | None] = {}
+        self.voyage_distribution: dict[tuple[str, str], ScalarInput | None] = {}
 
         # per port, keyed by its name
         self.port_calls: dict[str, ForecastInput] = {}
@@ -77,7 +77,7 @@ class Route(Node):
         self.leg_utilizations: tuple[CurveForecastInput, ...]
         self.leg_distances: tuple[Scalar | Expression, ...]
         self.leg_port_durations: tuple[ForecastInput, ...]
-        self.leg_voyage_shares: tuple[ScalarInput, ...]
+        self.leg_voyage_distributions: tuple[ScalarInput, ...]
 
         self.conditions_per_leg: tuple[int, ...]
 
@@ -124,7 +124,7 @@ class Route(Node):
                 inclusive_lower=False,
             )
 
-        self._write_legs((port_name_from, port_name_to), value, self.speeds)
+        self._write_legs((port_name_from, port_name_to), value, self.speed)
 
     @deck_command()
     def set_utilization(
@@ -145,7 +145,7 @@ class Route(Node):
                 lower=0.0,
                 upper=1.0,
             ),
-            self.utilizations,
+            self.utilization,
         )
 
     @deck_command(SECTION_DEFINE)
@@ -158,7 +158,7 @@ class Route(Node):
         self._write_legs(
             (port_name_from, port_name_to),
             assign_value(as_scalar(distance), lower=0.0, inclusive_lower=False),
-            self.distances,
+            self.distance,
         )
 
     @deck_command()
@@ -173,7 +173,7 @@ class Route(Node):
             assign_value(
                 as_scalar(port_duration), type_=(FORECAST, VARIABLE), lower=0.0
             ),
-            self.port_durations,
+            self.port_duration,
         )
 
     @deck_command()
@@ -186,7 +186,7 @@ class Route(Node):
         self._write_legs(
             (port_name_from, port_name_to),
             assign_value(as_scalar(share), type_=VARIABLE, lower=0.0, upper=1.0),
-            self.voyage_shares,
+            self.voyage_distribution,
         )
 
     @deck_command()
@@ -215,23 +215,23 @@ class Route(Node):
 
         # initialize_dependencies seeds only the legs of the inputs the route type
         # reads, and no command can unassign a leg once DEFINE is read
-        self._check_legs_assigned("set_speed", self.speeds)
-        self._check_legs_assigned("set_distance", self.distances)
-        self._check_legs_assigned("set_port_duration", self.port_durations)
-        self._check_legs_assigned("set_voyage_distribution", self.voyage_shares)
+        self._check_legs_assigned("set_speed", self.speed)
+        self._check_legs_assigned("set_distance", self.distance)
+        self._check_legs_assigned("set_port_duration", self.port_duration)
+        self._check_legs_assigned("set_voyage_distribution", self.voyage_distribution)
 
     def apply_defaults(self) -> None:
         # the expectations are sized by the sailing conditions once DEFINE is read,
         # so the number on each leg is fixed from here on
-        self.conditions_per_leg = _count_conditions(_in_seeded_order(self.speeds))
+        self.conditions_per_leg = _count_conditions(_in_seeded_order(self.speed))
 
     def apply_command_defaults(self) -> None:
         # initialize_dependencies seeds each dictionary in the order of get_legs
-        self.leg_speeds = _in_seeded_order(self.speeds)
-        self.leg_utilizations = _in_seeded_order(self.utilizations)
-        self.leg_distances = _in_seeded_order(self.distances)
-        self.leg_port_durations = _in_seeded_order(self.port_durations)
-        self.leg_voyage_shares = _in_seeded_order(self.voyage_shares)
+        self.leg_speeds = _in_seeded_order(self.speed)
+        self.leg_utilizations = _in_seeded_order(self.utilization)
+        self.leg_distances = _in_seeded_order(self.distance)
+        self.leg_port_durations = _in_seeded_order(self.port_duration)
+        self.leg_voyage_distributions = _in_seeded_order(self.voyage_distribution)
 
     def check_consistency(self) -> None:
         if self.route_type == RouteTypeID.LINER:
@@ -255,17 +255,17 @@ class Route(Node):
         keys = self.get_leg_keys()
 
         for key in keys:
-            self.speeds.setdefault(key, None)
-            self.utilizations.setdefault(key, Scalar(1.0))
+            self.speed.setdefault(key, None)
+            self.utilization.setdefault(key, Scalar(1.0))
 
         if self.route_type == RouteTypeID.LINER:
             for key in keys:
-                self.distances.setdefault(key, None)
-                self.port_durations.setdefault(key, None)
+                self.distance.setdefault(key, None)
+                self.port_duration.setdefault(key, None)
 
         elif self.route_type == RouteTypeID.TRAMP:
             for key in keys:
-                self.voyage_shares.setdefault(key, None)
+                self.voyage_distribution.setdefault(key, None)
 
             for port in self.ports:
                 self.port_calls.setdefault(port.name, Scalar(1.0))

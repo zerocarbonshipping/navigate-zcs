@@ -33,15 +33,21 @@ class Surface(Node, _Table2D):
         Node.__init__(self, name)
         _Table2D.__init__(self)
 
+        # internal variables -----------------------------------------------------------
         # the table read from the deck, pending until it is built
         self._pending_table: tuple[FloatArray, FloatArray, FloatArray] | None = None
 
+    # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x-, y- and z-values the surface interpolates in."""
         x, y, z = build_table_2d(table)
         self._check_table(x, y, z)
         self._pending_table = (x, y, z)
+
+    # internal methods -----------------------------------------------------------------
+    def check_consistency(self) -> None:
+        self._check_extrapolate_consistency()
 
     def build_table(self) -> None:
         """Build the pending table with the interpolation and extrapolation set."""
@@ -51,9 +57,6 @@ class Surface(Node, _Table2D):
         x, y, z = self._pending_table
         self._set_table(x, y, z)
         self._pending_table = None
-
-    def check_consistency(self) -> None:
-        self._check_extrapolate_consistency()
 
     def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike:
         """

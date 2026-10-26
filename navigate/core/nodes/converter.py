@@ -55,8 +55,8 @@ class Converter(_Machinery):
         self.efficiency: ScalarInput
 
         # emissions
-        self.consumption_ttw: dict[tuple[FuelTypeID, str], ScalarInput] = {}
         self.slip_fraction: dict[FuelTypeID, ScalarInput] = {}
+        self.consumption_ttw: dict[tuple[FuelTypeID, str], ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -92,7 +92,7 @@ class Converter(_Machinery):
         """Set the minimum pilot fuel fraction required to use the converter."""
         self.minimum_pilot_fuel = assign_value(
             as_scalar(minimum_pilot_fuel),
-            type_=(VARIABLE, FORECAST),
+            type_=(FORECAST, VARIABLE),
             lower=0.0,
             upper=1.0,
         )

@@ -255,7 +255,9 @@ class Vessel(Node):
         match demand_type:
             case EnergyDemandID.PROPULSION:
                 return self.propulsion_converter
+
             case EnergyDemandID.ELECTRICAL:
                 return self.electrical_converter
+
             case EnergyDemandID.HEAT:
                 return self.heat_converter

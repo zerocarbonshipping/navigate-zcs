@@ -12,6 +12,7 @@ import numpy as np
 
 from navigate.core import (
     SECTION_DEFINE,
+    Expression,
     Scalar,
     as_list,
     as_scalar,
@@ -42,7 +43,6 @@ from navigate.exceptions import UnassignedAttributeError
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from navigate.core.expression import Expression
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.fuel import Fuel
@@ -72,47 +72,48 @@ class Fleet(Node):
 
         # external variables -----------------------------------------------------------
         self.vessels: list[Vessel]
-        self.trade_growth: ForecastInput = Scalar(0.0)
-        self.fixed_scrap_rate: ForecastInput | None = None
-        self.allow_secondary_scrapping: bool = True
-        self.intra_fuel_sensitivity: ForecastInput
-        self.inter_fuel_sensitivity: ForecastInput
-        self.fuel_conversion_sensitivity: ForecastInput = Scalar(2.0)
         self.memory: ForecastInput = Scalar(0.5)
         self.inertia: ForecastInput = Scalar(0.0)
+        self.fixed_scrap_rate: ForecastInput | None = None
+        self.allow_secondary_scrapping: bool = True
+        self.trade_growth: ForecastInput = Scalar(0.0)
         self.initial_vessels: ScalarInput
-        self.allow_speed_management: bool = False
-        self.maximum_speed_change: ForecastInput = Scalar(np.inf)
-        self.speed_alignment: SpeedAlignmentID = SpeedAlignmentID.INDIVIDUAL
-        self.assume_reference_speed_optimal: bool = False
-        self.retrofit_frequency: ForecastInput = Scalar(5.0)
+        self.initial_split: list[float] = []
+        self.initial_age_distribution: list[CurveTableInput] = []
+        self.technologies: list[Technology] = []
+        self.intra_fuel_sensitivity: ForecastInput
+        self.inter_fuel_sensitivity: ForecastInput
         self.technology_sensitivity: ForecastInput | None = None
         self.technology_cost_of_capital: ForecastInput | None = None
         self.technology_horizon: ForecastInput = Scalar(3.0)
         self.speed_horizon: ForecastInput = Scalar(1.0)
+        self.retrofit_frequency: ForecastInput = Scalar(5.0)
+        self.orderbooks: list[ForecastInput] = []
+        self.allow_speed_management: bool = False
+        self.maximum_speed_change: ForecastInput = Scalar(np.inf)
+        self.speed_alignment: SpeedAlignmentID = SpeedAlignmentID.INDIVIDUAL
+        self.assume_reference_speed_optimal: bool = False
+        self.fuel_conversion_sensitivity: ForecastInput = Scalar(2.0)
         self.fuel_conversion_minimum_age: ForecastInput = Scalar(0.0)
         self.allow_technology_approximation: bool = True
-        self.initial_split: list[float] = []
-        self.initial_age_distribution: list[CurveTableInput] = []
+
+        self.fuel_conversion_cost: dict[tuple[str, str], ForecastInput | None] = {}
+        self.fuel_conversion_limit: dict[tuple[str, str], ForecastInput] = {}
+        self.allow_vessel: dict[str, bool] = {}
+        self.newbuild_available: dict[str, bool] = {}
+        self.conversion_available: dict[str, bool] = {}
+        self.newbuild_limit: dict[str, ForecastInput] = {}
         self.initial_technology_share: dict[
             tuple[str, str], Curve | Expression | None
         ] = {}
-        self.orderbooks: list[ForecastInput] = []
-        self.technologies: list[Technology] = []
+        self.newbuild_technology_limit: dict[str, ForecastInput] = {}
+        self.retrofit_technology_limit: dict[str, ForecastInput] = {}
         self.operational_saving_sea: dict[EnergyDemandID, ForecastInput] = {
             demand: Scalar(0.0) for demand in EnergyDemandID
         }
         self.operational_saving_port: dict[EnergyDemandID, ForecastInput] = {
             demand: Scalar(0.0) for demand in PORT_ENERGY_DEMANDS
         }
-        self.fuel_conversion_cost: dict[tuple[str, str], ForecastInput | None] = {}
-        self.fuel_conversion_limit: dict[tuple[str, str], ForecastInput] = {}
-        self.newbuild_limit: dict[str, ForecastInput] = {}
-        self.newbuild_technology_limit: dict[str, ForecastInput] = {}
-        self.retrofit_technology_limit: dict[str, ForecastInput] = {}
-        self.allow_vessel: dict[str, bool] = {}
-        self.newbuild_available: dict[str, bool] = {}
-        self.conversion_available: dict[str, bool] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: FleetExpectation = FleetExpectation()
@@ -174,7 +175,7 @@ class Fleet(Node):
     def set_initial_vessels(self, initial_vessels: ScalarArgument) -> None:
         """Set the initial number of vessels in the fleet."""
         self.initial_vessels = assign_value(
-            as_scalar(initial_vessels), type_=VARIABLE, lower=0, inclusive_lower=False
+            as_scalar(initial_vessels), type_=VARIABLE, lower=0.0, inclusive_lower=False
         )
 
     @deck_attribute(SECTION_DEFINE)
@@ -401,17 +402,6 @@ class Fleet(Node):
             allow_empty=True,
         )
 
-    @deck_command(SECTION_DEFINE)
-    def set_initial_technology_share(
-        self, vessel_name: str, technology_name: str, value: Curve | Expression
-    ) -> None:
-        """Set the initial technology uptake by vessel age."""
-        write_matching_key_pairs(
-            (vessel_name, technology_name),
-            assign_value(value, allow_scalar=False, type_=CURVE, lower=0.0, upper=1.0),
-            self.initial_technology_share,
-        )
-
     @deck_command()
     def set_newbuild_limit(self, vessel_name: str, value: ForecastArgument) -> None:
         """Set the yearly newbuild cap of a vessel type."""
@@ -421,6 +411,17 @@ class Fleet(Node):
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
             self.newbuild_limit,
+        )
+
+    @deck_command(SECTION_DEFINE)
+    def set_initial_technology_share(
+        self, vessel_name: str, technology_name: str, value: Curve | Expression
+    ) -> None:
+        """Set the initial technology uptake by vessel age."""
+        write_matching_key_pairs(
+            (vessel_name, technology_name),
+            assign_value(value, allow_scalar=False, type_=CURVE, lower=0.0, upper=1.0),
+            self.initial_technology_share,
         )
 
     @deck_command()
@@ -522,10 +523,10 @@ class Fleet(Node):
             name = vessel.name
             self.fuel_conversion_cost.setdefault((name, name), None)
             self.fuel_conversion_limit.setdefault((name, name), Scalar(1.0))
-            self.newbuild_limit.setdefault(name, Scalar(1.0))
             self.allow_vessel.setdefault(name, True)
             self.newbuild_available.setdefault(name, True)
             self.conversion_available.setdefault(name, True)
+            self.newbuild_limit.setdefault(name, Scalar(1.0))
 
             for technology in self.technologies:
                 self.initial_technology_share.setdefault((name, technology.name), None)

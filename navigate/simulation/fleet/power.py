@@ -326,7 +326,7 @@ def _load_is_convex(load: SurfaceInput) -> bool:
         return True
 
     # the load is a Curve or a Surface
-    return load.is_convex()
+    return load.is_convex
 
 
 def _find_overloads(

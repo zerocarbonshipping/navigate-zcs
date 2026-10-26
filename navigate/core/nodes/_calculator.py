@@ -9,9 +9,8 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
-from navigate.core import assign_bound, assign_value, deck_attribute
+from navigate.core import Expression, assign_bound, assign_value, deck_attribute
 from navigate.core.bounds import Bounds
-from navigate.core.expression import Expression
 from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:

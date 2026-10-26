@@ -142,8 +142,6 @@ class Regulation(_Policy):
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
-        super().check_consistency()
-
         for vessel_name, include_vessel in self.include_vessel.items():
             if include_vessel and self.vessel_threshold[vessel_name] is None:
                 raise ValueError(
@@ -170,11 +168,11 @@ class Regulation(_Policy):
         vessels
             All vessels in the simulation.
         """
+        super().initialize_dependencies(vessels)
+
         for vessel_name in vessels:
             self.vessel_threshold.setdefault(vessel_name, None)
             self.vessel_capacity.setdefault(vessel_name, None)
-
-        super().initialize_dependencies(vessels)
 
     def initialize_expectation(
         self, length: int, routes: dict[str, Route], vessels: dict[str, Vessel]

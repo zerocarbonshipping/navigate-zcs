@@ -27,24 +27,24 @@ class _Table2D(_Calculator):
 
         # external variables -----------------------------------------------------------
         # interpolation
-        self._interpolate: Interpolate2DID = Interpolate2DID.LINEAR
+        self.interpolate: Interpolate2DID = Interpolate2DID.LINEAR
 
         # extrapolation
         self.extrapolate: ExtrapolateID = ExtrapolateID.LINEAR
-        self._outside: NumberInput | None = None
+        self.outside: NumberInput | None = None
 
         # internal variables -----------------------------------------------------------
         self.x: FloatArray
         self.y: FloatArray
+        self.is_convex: bool
         self._table: RegularGridInterpolator
         self._fill_value: NumberInput | None
-        self._is_convex: bool
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
     def set_interpolate(self, interpolate: str) -> None:
         """Set the interpolation method used within the table."""
-        self._interpolate = assign_id(interpolate, Interpolate2DID)
+        self.interpolate = assign_id(interpolate, Interpolate2DID)
 
     @deck_attribute(SECTION_DEFINE)
     def set_extrapolate(self, extrapolate: str) -> None:
@@ -54,12 +54,9 @@ class _Table2D(_Calculator):
     @deck_attribute(SECTION_DEFINE)
     def set_outside(self, outside: NumberInput) -> None:
         """Set the flat extrapolation value used outside the table."""
-        self._outside = assign_value(outside, allow_infinite=True)
+        self.outside = assign_value(outside, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
-    def is_convex(self) -> bool:
-        return self._is_convex
-
     @overload
     def calculate(self, x: float, y: float) -> float: ...
 
@@ -118,12 +115,12 @@ class _Table2D(_Calculator):
         return np.array(x_values)
 
     def _check_extrapolate_consistency(self) -> None:
-        if self.extrapolate == ExtrapolateID.FLAT and self._outside is None:
+        if self.extrapolate == ExtrapolateID.FLAT and self.outside is None:
             raise ValueError(
                 f"{self}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
             )
 
-        if self.extrapolate != ExtrapolateID.FLAT and self._outside is not None:
+        if self.extrapolate != ExtrapolateID.FLAT and self.outside is not None:
             logger.warning(
                 "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
                 " to %s.",
@@ -132,7 +129,7 @@ class _Table2D(_Calculator):
             )
 
     def _interpolator_method(self) -> str:
-        match self._interpolate:
+        match self.interpolate:
             case Interpolate2DID.LINEAR:
                 return "linear"
 
@@ -154,7 +151,7 @@ class _Table2D(_Calculator):
         if self.extrapolate != ExtrapolateID.FLAT:
             return None
 
-        return self._outside
+        return self.outside
 
     def _fill_flat(
         self,
@@ -202,7 +199,7 @@ class _Table2D(_Calculator):
         self.y = y
 
         # the surface is convex in x when every slice of it at a fixed y is
-        self._is_convex = all(self._test_convexity(x, column) for column in z.T)
+        self.is_convex = all(self._test_convexity(x, column) for column in z.T)
         self._fill_value = self._flat_fill_value()
 
         self._table = RegularGridInterpolator(

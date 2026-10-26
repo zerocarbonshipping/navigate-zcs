@@ -36,17 +36,20 @@ class Forecast(Node, _Table1D):
         Node.__init__(self, name)
         _Table1D.__init__(self)
 
+        # internal variables -----------------------------------------------------------
         # nan until the first time-step precalculates the value
         self._current_value: float = np.nan
 
         # the table read from the deck, pending until it is built
         self._pending_table: tuple[FloatArray | DateArray, FloatArray] | None = None
 
+    # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x- and y-values the forecast interpolates in."""
         self._pending_table = build_table_1d_dated(table)
 
+    # internal methods -----------------------------------------------------------------
     def build_table(self, start_date: np.datetime64) -> None:
         """Build the pending table, its dates counted in days from the start date."""
         if self._pending_table is None:

@@ -321,7 +321,7 @@ def _calculate_newbuild_production(
     plants = producer.plants
     jump_start = producer.jump_start_fraction.get()
     profiles = np.zeros((len(plants), times.size))
-    feed_consumption = {key: np.zeros_like(times) for key in producer.feed_constraints}
+    feed_consumption = {key: np.zeros_like(times) for key in producer.feed_constraint}
 
     # without initial production the supply/demand interaction never starts, as
     # no supply is expected and thus no demand; a partially uniform uptake
