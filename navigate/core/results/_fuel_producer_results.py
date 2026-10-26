@@ -13,15 +13,15 @@ import numpy as np
 from navigate.core.results._base_results import _BaseResults, accumulate, result
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.core.enum_ import FuelTypeID
-    from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.process import Process
     from navigate.util.types_ import FloatArray
 
 
 @dataclass(eq=False, repr=False)
 class _FuelProducerResults(_BaseResults):
-    """Fuel produced, feedstock consumed and the availability limit on it."""
+    """Fuel produced, and feed used and available per feedstock and process."""
 
     # the mass is written, the energy computed from it
     production_mass: dict[str, FloatArray] = field(init=False)
@@ -32,15 +32,13 @@ class _FuelProducerResults(_BaseResults):
     feed_constraint: dict[str, FloatArray] = result("t/year")
 
     def _initialize_fuel_producer(
-        self,
-        feedstocks: dict[str, Feedstock],
-        processes: dict[str, Process],
+        self, feedstock_names: Sequence[str], process_names: Sequence[str]
     ) -> None:
         self.production_mass = self._default_dict(self.context.fuels)
 
-        feed = {**feedstocks, **processes}
-        self.feed_mass = self._default_dict(feed)
-        self.feed_constraint = self._default_dict(feed, default=np.inf)
+        feed_names = [*feedstock_names, *process_names]
+        self.feed_mass = self._default_dict(feed_names)
+        self.feed_constraint = self._default_dict(feed_names, default=np.inf)
 
     def add_fuel_producer_results(self, results: _FuelProducerResults) -> None:
         """
@@ -52,5 +50,6 @@ class _FuelProducerResults(_BaseResults):
             Producer results from another node.
         """
         accumulate(self.production_mass, results.production_mass)
+
         accumulate(self.feed_mass, results.feed_mass)
         accumulate(self.feed_constraint, results.feed_constraint)

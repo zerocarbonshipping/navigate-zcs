@@ -282,11 +282,13 @@ class Simulation:
             self.general_nodes.model_definition.emissions_lifetime,
         )
 
-        regulation_names = list(nodes.regulations.keys())
+        feedstock_names = list(nodes.feedstocks.keys())
         levy_names = list(nodes.levies.keys())
+        process_names = list(nodes.processes.keys())
+        regulation_names = list(nodes.regulations.keys())
 
         self.global_results.initialize(
-            context, nodes.feedstocks, nodes.processes, regulation_names, levy_names
+            context, feedstock_names, process_names, regulation_names, levy_names
         )
 
         for fleet in nodes.fleets.values():
@@ -302,7 +304,7 @@ class Simulation:
             port.initialize_results(context)
 
         for producer in nodes.producers.values():
-            producer.initialize_results(context, nodes.feedstocks, nodes.processes)
+            producer.initialize_results(context, feedstock_names, process_names)
 
         for regulation in nodes.regulations.values():
             regulation.initialize_results(context, nodes.vessels)
