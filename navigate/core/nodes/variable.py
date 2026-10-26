@@ -12,7 +12,7 @@ import numpy as np
 from navigate.core import assign_value, deck_attribute
 from navigate.core.node import Node
 from navigate.core.node_type import VARIABLE
-from navigate.core.nodes._calculator import _Calculator, evaluate_number
+from navigate.core.nodes._calculator import _Calculator
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
@@ -68,7 +68,7 @@ class Variable(Node, _Calculator):
         float or FloatArray
             The bounded value, or an array of it in the shape of ``x``.
         """
-        value = self._transform(evaluate_number(self.value))
+        value = self._transform(self._evaluate_number(self.value))
 
         # broadcasting is what keeps a Variable substitutable for a calculator
         # node, whose getter answers an array input with an array

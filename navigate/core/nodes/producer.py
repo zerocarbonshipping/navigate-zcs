@@ -5,11 +5,7 @@
 
 from __future__ import annotations
 
-import itertools
-import logging
 from typing import TYPE_CHECKING
-
-import numpy as np
 
 from navigate.core import (
     SECTION_DEFINE,
@@ -20,17 +16,17 @@ from navigate.core import (
     assign_list,
     assign_reference_list,
     assign_value,
-    check_curves_are_finite,
+    check_forecast_is_cumulative,
+    check_lengths_match,
+    check_tables_are_finite,
     deck_attribute,
     deck_command,
     write_matching_keys,
 )
-from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.results import ProducerResults
-from navigate.util import is_nondecreasing
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -52,8 +48,6 @@ if TYPE_CHECKING:
         ScalarInput,
     )
     from navigate.util.types_ import FloatArray
-
-logger = logging.getLogger(__name__)
 
 
 class Producer(Node):
@@ -256,46 +250,20 @@ class Producer(Node):
             self.initial_age_distribution = [Scalar(0.0) for _ in self.plants]
 
     def check_consistency(self) -> None:
-        if len(self.plants) != len(self.initial_capacity):
-            raise ValueError(
-                f"{self}: The length of Plants ({len(self.plants)}) and "
-                f"InitialCapacity ({len(self.initial_capacity)}) must correspond."
-            )
+        plants = self.plants
+        capacity = self.initial_capacity
+        ages = self.initial_age_distribution
+        existing = self.existing_pipelines.values()
+        pipelines = [pipeline for pipeline in existing if pipeline is not None]
 
-        if len(self.plants) != len(self.initial_age_distribution):
-            raise ValueError(
-                f"{self}: The length of Plants ({len(self.plants)}) and "
-                f"InitialAgeDistribution ({len(self.initial_age_distribution)}) "
-                "must correspond."
-            )
+        check_lengths_match(self, "Plants", plants, "InitialCapacity", capacity)
+        check_lengths_match(self, "Plants", plants, "InitialAgeDistribution", ages)
+        check_tables_are_finite(self, "InitialAgeDistribution", ages)
+        check_tables_are_finite(self, "Pipeline", pipelines)
 
-        distributions = self.initial_age_distribution
-        check_curves_are_finite(self, "InitialAgeDistribution", distributions)
-
-        for pipeline in self.existing_pipelines.values():
-            if pipeline is None:
-                continue
-
-            # the pipeline is read as a table, never evaluated, so no bound it
-            # is assigned under ever checks its entries
-            if not np.all(np.isfinite(pipeline.y)):
-                raise ValueError(
-                    f"{self}: Pipeline ({pipeline}) must hold finite values."
-                )
-
-            # a pipeline is the cumulative capacity committed to, in tons/day
-            if not is_nondecreasing(pipeline.y):
-                raise ValueError(
-                    f"{self}: Pipeline ({pipeline}) is not non-strictly increasing."
-                )
-
-            if pipeline.extrapolate == ExtrapolateID.LINEAR:
-                logger.warning(
-                    "%s: Pipeline (%s) allows extrapolation and may therefore "
-                    "continue past the last date.",
-                    self,
-                    pipeline,
-                )
+        # a pipeline is the cumulative capacity committed to, in tons/day
+        for pipeline in pipelines:
+            check_forecast_is_cumulative(self, "Pipeline", pipeline)
 
     def initialize_dependencies(
         self,
@@ -306,7 +274,7 @@ class Producer(Node):
         """Initialize dependent dictionaries so command calls can use wildcards."""
         # a None feed constraint is read as unlimited, and a None pipeline means the
         # plant has no committed pipeline
-        for feed_name in itertools.chain(feedstocks, processes):
+        for feed_name in [*feedstocks, *processes]:
             self.feed_constraints.setdefault(feed_name, None)
 
         for port_name in ports:

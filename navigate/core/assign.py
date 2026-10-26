@@ -13,6 +13,7 @@ and the attribute themselves.
 
 from __future__ import annotations
 
+import logging
 import math
 from enum import Enum
 from typing import TYPE_CHECKING, Protocol
@@ -20,6 +21,7 @@ from typing import TYPE_CHECKING, Protocol
 import numpy as np
 
 from navigate.core.bounds import exclusive_bound_message
+from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expression import Expression
 from navigate.core.node import Node
 from navigate.core.node_type import AcceptedNodeTypes, is_calculator
@@ -30,6 +32,7 @@ from navigate.core.wrap import as_list
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
+    is_nondecreasing,
     is_unique,
     key_name,
     name_contains_wildcards,
@@ -40,6 +43,9 @@ from navigate.util import (
 if TYPE_CHECKING:
     from collections.abc import Collection, Hashable, Iterator, Sequence, Sized
 
+    from navigate.core.nodes.forecast import Forecast
+
+logger = logging.getLogger(__name__)
 
 _BOOL_ID = {"FALSE": False, "TRUE": True}
 _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
@@ -574,15 +580,15 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     return assign_list(rescaled, lower=0.0, upper=1.0), was_rescaled
 
 
-def check_curves_are_finite(
-    node: Node, attribute: str, entries: Sequence[CurveTableInput]
+def check_tables_are_finite(
+    node: Node, attribute: str, entries: Sequence[CurveTableInput | Forecast]
 ) -> None:
     """
-    Reject a Curve among an attribute's entries that holds a non-finite value.
+    Reject a table among an attribute's entries that holds a non-finite value.
 
-    The Curves are read as tables, never evaluated, so no bound they are
-    assigned under ever checks their values; the table itself rejects a
-    non-finite x-value. A node runs this from check_consistency, as the tables
+    The Curves and Forecasts are read as tables, never evaluated, so no bound
+    they are assigned under ever checks their values; the table itself rejects
+    a non-finite x-value. A node runs this from check_consistency, as the tables
     are built only after its setters have run.
 
     Parameters
@@ -590,14 +596,15 @@ def check_curves_are_finite(
     node
         Node holding the attribute, named in the error.
     attribute
-        DSL name of the attribute, named in the error.
+        Name of the attribute, or of the tables' role on the node, named in the
+        error.
     entries
         The attribute's entries; a number among them is skipped.
 
     Raises
     ------
     ValueError
-        If a Curve holds an INF, -INF or NaN value.
+        If a table holds an INF, -INF or NaN value.
     """
     for entry in entries:
         if isinstance(entry, Scalar):
@@ -605,6 +612,77 @@ def check_curves_are_finite(
 
         if not np.all(np.isfinite(entry.y)):
             raise ValueError(f"{node}: {attribute} ({entry}) must hold finite values.")
+
+
+def check_lengths_match(
+    node: Node,
+    attribute: str,
+    entries: Sized,
+    other_attribute: str,
+    other_entries: Sized,
+) -> None:
+    """
+    Reject two attributes whose entries pair up one to one but differ in number.
+
+    Parameters
+    ----------
+    node
+        Node holding the attributes, named in the error.
+    attribute
+        DSL name of the attribute, named in the error.
+    entries
+        The attribute's entries.
+    other_attribute
+        DSL name of the attribute paired with it, named in the error.
+    other_entries
+        The paired attribute's entries.
+
+    Raises
+    ------
+    ValueError
+        If the two attributes hold a different number of entries.
+    """
+    if len(entries) != len(other_entries):
+        raise ValueError(
+            f"{node}: The length of {attribute} ({len(entries)}) and "
+            f"{other_attribute} ({len(other_entries)}) must correspond."
+        )
+
+
+def check_forecast_is_cumulative(node: Node, label: str, forecast: Forecast) -> None:
+    """
+    Reject a cumulative Forecast that decreases, and warn where it extrapolates.
+
+    A cumulative count read as a table never falls, and LINEAR extrapolation
+    lets it keep growing past its last date.
+
+    Parameters
+    ----------
+    node
+        Node holding the Forecast, named in the error.
+    label
+        Role of the Forecast on the node, such as Orderbook, named in the error.
+    forecast
+        Forecast of the cumulative count.
+
+    Raises
+    ------
+    ValueError
+        If the Forecast's values decrease anywhere.
+    """
+    if not is_nondecreasing(forecast.y):
+        raise ValueError(
+            f"{node}: {label} ({forecast}) is not non-strictly increasing."
+        )
+
+    if forecast.extrapolate == ExtrapolateID.LINEAR:
+        logger.warning(
+            "%s: %s (%s) allows extrapolation and may therefore continue past the"
+            " last date.",
+            node,
+            label,
+            forecast,
+        )
 
 
 def write_matching_keys[K: str | Enum, V](

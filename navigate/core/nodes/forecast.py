@@ -12,7 +12,7 @@ import numpy as np
 from navigate.core import deck_attribute
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST
-from navigate.core.nodes._table1d import _Table1D, check_table1d_input
+from navigate.core.nodes._table1d import _Table1D
 from navigate.core.table_data import TableData, build_table_1d_dated
 from navigate.util import is_date_array, timedelta_to_days
 
@@ -57,7 +57,7 @@ class Forecast(Node, _Table1D):
         if is_date_array(x):
             x = timedelta_to_days(x - start_date)
 
-        check_table1d_input(x, y)
+        self._check_table(x, y)
 
         self._set_table(x, y)
         self._pending_table = None

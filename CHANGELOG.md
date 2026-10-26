@@ -334,6 +334,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   of every plant, not only of the last plant with a pipeline.
 - The warning for a plant of zero capacity states the initial capacity it
   could not initialize.
+- The error for a `Fleet` whose `InitialSplit`, `InitialAgeDistribution` or
+  `Orderbooks` does not match its vessels in length names the attribute
+  `Vessels`, not `Vessel`.
 - A fleet whose vessels differ in `Lifetime` no longer stops with a
   `ValueError` once it has `Technologies`. Technology costs are amortized over
   each vessel's own lifetime, or the years left for a retrofit, so a

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
@@ -10,12 +11,14 @@ from scipy.interpolate import RegularGridInterpolator
 
 from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribute
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
-from navigate.core.nodes._calculator import _Calculator, evaluate_number
+from navigate.core.nodes._calculator import _Calculator
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
     from navigate.util.types_ import FloatArray, FloatLike
+
+logger = logging.getLogger(__name__)
 
 
 class _Table2D(_Calculator):
@@ -114,6 +117,20 @@ class _Table2D(_Calculator):
 
         return np.array(x_values)
 
+    def _check_extrapolate_consistency(self) -> None:
+        if self.extrapolate == ExtrapolateID.FLAT and self._outside is None:
+            raise ValueError(
+                f"{self}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
+            )
+
+        if self.extrapolate != ExtrapolateID.FLAT and self._outside is not None:
+            logger.warning(
+                "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
+                " to %s.",
+                self,
+                self.extrapolate.name,
+            )
+
     def _interpolator_method(self) -> str:
         match self._interpolate:
             case Interpolate2DID.LINEAR:
@@ -178,7 +195,7 @@ class _Table2D(_Calculator):
         # a NaN input stays NaN, as the interpolator answers it, even where the
         # other input lies outside the table
         is_outside = (outside_x | outside_y) & ~has_nan
-        return np.where(is_outside, evaluate_number(outside), table_value)
+        return np.where(is_outside, self._evaluate_number(outside), table_value)
 
     def _set_table(self, x: FloatArray, y: FloatArray, z: FloatArray) -> None:
         self.x = x
@@ -196,47 +213,47 @@ class _Table2D(_Calculator):
             fill_value=self._interpolator_fill_value(),
         )
 
+    @staticmethod
+    def _check_table(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
+        """
+        Validate the x, y, and z arrays used to build a 2D table.
 
-def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
-    """
-    Validate the x, y, and z arrays used to build a 2D table.
+        'x' and 'y' must each hold at least two finite values, both strictly
+        increasing, and 'z' must be a 2-D array of shape ('x'.size, 'y'.size). A 'z'
+        may be INF, and is checked by each attribute the table is assigned to when
+        it is evaluated, but never NaN, which no bound can reject.
 
-    'x' and 'y' must each hold at least two finite values, both strictly
-    increasing, and 'z' must be a 2-D array of shape ('x'.size, 'y'.size). A 'z'
-    may be INF, and is checked by each attribute the table is assigned to when
-    it is evaluated, but never NaN, which no bound can reject.
+        Parameters
+        ----------
+        x
+            'x' values in table.
+        y
+            'y' values in table.
+        z
+            z-values in table, one row per 'x' and one column per 'y'.
+        """
+        if (x.size < 2) or (y.size < 2):
+            raise ValueError(
+                f"'x' ({x.size}) and 'y' ({y.size}) must each be at least of length 2."
+            )
 
-    Parameters
-    ----------
-    x
-        'x' values in table.
-    y
-        'y' values in table.
-    z
-        z-values in table, one row per 'x' and one column per 'y'.
-    """
-    if (x.size < 2) or (y.size < 2):
-        raise ValueError(
-            f"'x' ({x.size}) and 'y' ({y.size}) must each be at least of length 2."
-        )
+        if z.shape != (x.size, y.size):
+            raise ValueError(
+                f"'z' (shape {z.shape}) must have shape ({x.size}, {y.size}), matching"
+                " the length of 'x' and 'y'."
+            )
 
-    if z.shape != (x.size, y.size):
-        raise ValueError(
-            f"'z' (shape {z.shape}) must have shape ({x.size}, {y.size}), matching"
-            " the length of 'x' and 'y'."
-        )
+        if not np.all(np.isfinite(x)):
+            raise ValueError("'x' must be finite.")
 
-    if not np.all(np.isfinite(x)):
-        raise ValueError("'x' must be finite.")
+        if not np.all(np.isfinite(y)):
+            raise ValueError("'y' must be finite.")
 
-    if not np.all(np.isfinite(y)):
-        raise ValueError("'y' must be finite.")
+        if np.any(np.isnan(z)):
+            raise ValueError("'z' must not be NaN.")
 
-    if np.any(np.isnan(z)):
-        raise ValueError("'z' must not be NaN.")
+        if not is_strictly_increasing(x):
+            raise ValueError("'x' must be strictly increasing.")
 
-    if not is_strictly_increasing(x):
-        raise ValueError("'x' must be strictly increasing.")
-
-    if not is_strictly_increasing(y):
-        raise ValueError("'y' must be strictly increasing.")
+        if not is_strictly_increasing(y):
+            raise ValueError("'y' must be strictly increasing.")

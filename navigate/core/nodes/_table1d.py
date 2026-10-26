@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 
 from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribute
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
-from navigate.core.nodes._calculator import _Calculator, evaluate_number
+from navigate.core.nodes._calculator import _Calculator
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
@@ -183,8 +183,8 @@ class _Table1D(_Calculator):
         FloatLike
             Table lookup with the flat values filled in, in the shape of ``x``.
         """
-        filled = np.where(x < self.x[0], evaluate_number(below), table_value)
-        filled = np.where(x > self.x[-1], evaluate_number(above), filled)
+        filled = np.where(x < self.x[0], self._evaluate_number(below), table_value)
+        filled = np.where(x > self.x[-1], self._evaluate_number(above), filled)
 
         # np.where answers a scalar input with a 0-d array
         return filled if isinstance(x, np.ndarray) else float(filled)
@@ -206,33 +206,33 @@ class _Table1D(_Calculator):
             fill_value=self._interp1d_fill_value(),
         )
 
+    @staticmethod
+    def _check_table(x: FloatArray, y: FloatArray) -> None:
+        """
+        Validate the x and y arrays used to build a 1D table.
 
-def check_table1d_input(x: FloatArray, y: FloatArray) -> None:
-    """
-    Validate the x and y arrays used to build a 1D table.
+        Every 'x' must be finite, as interpolating across an infinite one gives NaN.
+        A 'y' may be INF, and is checked by each attribute the table is assigned to
+        when it is evaluated, but never NaN, which no bound can reject.
 
-    Every 'x' must be finite, as interpolating across an infinite one gives NaN.
-    A 'y' may be INF, and is checked by each attribute the table is assigned to
-    when it is evaluated, but never NaN, which no bound can reject.
+        Parameters
+        ----------
+        x
+            'x' values in table.
+        y
+            'y' values in table.
+        """
+        if (x.size < 2) or (y.size < 2) or (x.size != y.size):
+            raise ValueError(
+                f"'x' ({x.size}) and 'y' ({y.size}) must be at least of length 2 and"
+                " the same size."
+            )
 
-    Parameters
-    ----------
-    x
-        'x' values in table.
-    y
-        'y' values in table.
-    """
-    if (x.size < 2) or (y.size < 2) or (x.size != y.size):
-        raise ValueError(
-            f"'x' ({x.size}) and 'y' ({y.size}) must be at least of length 2 and the"
-            " same size."
-        )
+        if not np.all(np.isfinite(x)):
+            raise ValueError("'x' must be finite.")
 
-    if not np.all(np.isfinite(x)):
-        raise ValueError("'x' must be finite.")
+        if np.any(np.isnan(y)):
+            raise ValueError("'y' must not be NaN.")
 
-    if np.any(np.isnan(y)):
-        raise ValueError("'y' must not be NaN.")
-
-    if not is_strictly_increasing(x):
-        raise ValueError("'x' must be strictly increasing.")
+        if not is_strictly_increasing(x):
+            raise ValueError("'x' must be strictly increasing.")

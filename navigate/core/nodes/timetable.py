@@ -5,14 +5,12 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, overload
 
 from navigate.core import deck_attribute
-from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
 from navigate.core.node_type import TIMETABLE
-from navigate.core.nodes._table2d import _Table2D, check_table2d_input
+from navigate.core.nodes._table2d import _Table2D
 from navigate.core.table_data import TableData, build_table_2d_dated
 from navigate.util import is_date_array, timedelta_to_days
 
@@ -20,8 +18,6 @@ if TYPE_CHECKING:
     import numpy as np
 
     from navigate.util.types_ import DateArray, FloatArray, FloatLike
-
-logger = logging.getLogger(__name__)
 
 
 class Timetable(Node, _Table2D):
@@ -63,24 +59,13 @@ class Timetable(Node, _Table2D):
         if is_date_array(x):
             x = timedelta_to_days(x - start_date)
 
-        check_table2d_input(x, y, z)
+        self._check_table(x, y, z)
 
         self._set_table(x, y, z)
         self._pending_table = None
 
     def check_consistency(self) -> None:
-        if self.extrapolate == ExtrapolateID.FLAT and self._outside is None:
-            raise ValueError(
-                f"{self}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
-            )
-
-        if self.extrapolate != ExtrapolateID.FLAT and self._outside is not None:
-            logger.warning(
-                "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
-                " to %s.",
-                self,
-                self.extrapolate.name,
-            )
+        self._check_extrapolate_consistency()
 
     def set_current_time(self, time: float) -> None:
         """

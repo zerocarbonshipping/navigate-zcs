@@ -22,18 +22,15 @@ from navigate.core import (
     assign_member,
     assign_reference_list,
     assign_value,
-    check_curves_are_finite,
+    check_forecast_is_cumulative,
+    check_lengths_match,
+    check_tables_are_finite,
     deck_attribute,
     deck_command,
     write_matching_key_pairs,
     write_matching_keys,
 )
-from navigate.core.enum_ import (
-    PORT_ENERGY_DEMANDS,
-    EnergyDemandID,
-    ExtrapolateID,
-    SpeedAlignmentID,
-)
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, SpeedAlignmentID
 from navigate.core.expectations import FleetExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
@@ -41,7 +38,6 @@ from navigate.core.nodes.forecast import Forecast
 from navigate.core.results import FleetResults
 from navigate.core.technology_package import PackageCostFlows, TechnologyPackage
 from navigate.exceptions import UnassignedAttributeError
-from navigate.util import is_nondecreasing
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -498,48 +494,24 @@ class Fleet(Node):
                 self.fuel_conversion_limit.setdefault(key, Scalar(1.0))
 
     def check_consistency(self) -> None:
-        if len(self.vessels) != len(self.initial_split):
-            raise ValueError(
-                f"{self}: The length of Vessel ({len(self.vessels)}) and "
-                f"InitialSplit ({len(self.initial_split)}) must correspond."
-            )
+        vessels = self.vessels
+        split = self.initial_split
+        ages = self.initial_age_distribution
+        orderbooks = self.orderbooks
 
-        if len(self.vessels) != len(self.initial_age_distribution):
-            raise ValueError(
-                f"{self}: The length of Vessel ({len(self.vessels)}) and "
-                f"InitialAgeDistribution ({len(self.initial_age_distribution)}) "
-                "must correspond."
-            )
+        check_lengths_match(self, "Vessels", vessels, "InitialSplit", split)
+        check_lengths_match(self, "Vessels", vessels, "InitialAgeDistribution", ages)
+        check_tables_are_finite(self, "InitialAgeDistribution", ages)
 
-        distributions = self.initial_age_distribution
-        check_curves_are_finite(self, "InitialAgeDistribution", distributions)
-
-        if not self.orderbooks:
+        if not orderbooks:
             return
 
-        if len(self.vessels) != len(self.orderbooks):
-            raise ValueError(
-                f"{self}: The length of Vessel ({len(self.vessels)}) and "
-                f"Orderbooks ({len(self.orderbooks)}) must correspond."
-            )
+        check_lengths_match(self, "Vessels", vessels, "Orderbooks", orderbooks)
 
-        for orderbook in self.orderbooks:
-            if not isinstance(orderbook, Forecast):
-                continue
-
-            # an orderbook is a cumulative count of the vessels on order
-            if not is_nondecreasing(orderbook.y):
-                raise ValueError(
-                    f"{self}: Orderbook ({orderbook}) is not non-strictly increasing."
-                )
-
-            if orderbook.extrapolate == ExtrapolateID.LINEAR:
-                logger.warning(
-                    "%s: Orderbook (%s) allows extrapolation and may therefore "
-                    "continue past the last date.",
-                    self,
-                    orderbook,
-                )
+        # an orderbook is a cumulative count of the vessels on order
+        for orderbook in orderbooks:
+            if isinstance(orderbook, Forecast):
+                check_forecast_is_cumulative(self, "Orderbook", orderbook)
 
     def initialize_dependencies(self) -> None:
         """Initialize dependent dictionaries so command calls can use wildcards."""
