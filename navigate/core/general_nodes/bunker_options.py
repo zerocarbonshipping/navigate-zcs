@@ -38,7 +38,7 @@ class BunkerOptions(_GeneralNode):
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
     def set_solver(self, solver: str) -> None:
-        """Set the solver backend for the bunker algorithm."""
+        """Set the solver backend of the bunker algorithm."""
         self.solver = assign_id(solver, SolverBackendID)
 
     @deck_attribute(SECTION_DEFINE)
@@ -50,7 +50,7 @@ class BunkerOptions(_GeneralNode):
     def set_solution_tolerance(self, solution_tolerance: float) -> None:
         """Set the solution tolerance of the bunker algorithm."""
         self.solution_tolerance = assign_value(
-            solution_tolerance, lower=0, inclusive_lower=False, allow_expression=False
+            solution_tolerance, lower=0.0, inclusive_lower=False, allow_expression=False
         )
 
     @deck_attribute(SECTION_DEFINE)
