@@ -36,8 +36,8 @@ class GlobalResults(
         context: ResultsContext,
         feedstock_names: Sequence[str],
         process_names: Sequence[str],
-        regulation_names: Sequence[str] = (),
-        levy_names: Sequence[str] = (),
+        regulation_names: Sequence[str],
+        levy_names: Sequence[str],
     ) -> None:
         """
         Initialize the global results' storage arrays and lookups.
