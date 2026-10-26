@@ -38,7 +38,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     producer
         Producer to initialize.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     """
     idx = 0
 
@@ -165,7 +165,7 @@ def _build_existing_pipeline(
     producer
         Producer whose existing pipelines are split.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
 
     Returns
     -------
@@ -189,7 +189,7 @@ def _build_plant_pipeline(
     plant_idx
         Index of the plant type in the producer.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
 
     Returns
     -------
@@ -264,7 +264,7 @@ def _define_initial_development(producer: Producer) -> None:
 
     weighted_total = np.sum(weighted_counts)
     even_share = 1.0 / weighted_counts.size
-    uptake = divide_nonzero(weighted_counts, weighted_total, default=even_share)
+    uptakes = divide_nonzero(weighted_counts, weighted_total, default=even_share)
 
     # the latest value of the development constraint is used, since the period
     # to average it back over is hard to define: the pipeline and the lead time
@@ -272,6 +272,6 @@ def _define_initial_development(producer: Producer) -> None:
     average_development = divide_nonzero(weighted_total, weight_total)
     utilization = float(divide_nonzero(average_development, maximum_development))
 
-    producer.current_uptake = uptake
+    producer.current_uptake = uptakes
     producer.current_utilization = min(utilization, 1.0)
     producer.results.development[0] = count_total

@@ -27,7 +27,7 @@ def update_plant_ages(producer: Producer, time_step: float) -> None:
     producer
         Producer whose plants are aged.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     """
     dt = time_step / YEAR
 
@@ -51,12 +51,13 @@ def perform_decommissioning(producer: Producer) -> None:
     """
     for p, plant in enumerate(producer.plants):
         lifetime = plant.lifetime.get()
-        increments = [inc for inc in producer.increments[p] if inc.age < lifetime]
+        increments = producer.increments[p]
+        running = [increment for increment in increments if increment.age < lifetime]
 
-        for increment in increments:
+        for increment in running:
             if extends_past(increment, lifetime):
-                alpha = calculate_share_below(increment, lifetime)
-                increment.multiplier *= alpha
+                share = calculate_share_below(increment, lifetime)
+                increment.multiplier *= share
                 increment.age_span = lifetime - increment.age
 
-        producer.increments[p] = increments
+        producer.increments[p] = running

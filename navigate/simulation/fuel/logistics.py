@@ -43,9 +43,9 @@ def calculate_plant_logistics_expectations(
     emissions
         All emissions in the simulation.
     timeline
-        Simulation timeline, in days since the start of the simulation.
+        Simulation timeline, in days.
     idx
-        Current time-step index in the simulation timeline.
+        Current time-step index.
     """
     # rate expectations are shared between every plant in the same region using the
     # same transport over the same window: resolve each combination once
@@ -121,9 +121,9 @@ def _calculate_delivery_cost(
     cost_rates
         Transport cost rates already resolved, filled in as new combinations occur.
     timeline
-        Simulation timeline, in days since the start of the simulation.
+        Simulation timeline, in days.
     idx
-        Current time-step index in the simulation timeline.
+        Current time-step index.
     """
     region = plant.region
     expectation = plant.expectation
@@ -171,9 +171,9 @@ def _calculate_delivery_wtt(
     wtt_rates
         Transport WTT rates already resolved, filled in as new combinations occur.
     timeline
-        Simulation timeline, in days since the start of the simulation.
+        Simulation timeline, in days.
     idx
-        Current time-step index in the simulation timeline.
+        Current time-step index.
     """
     region = plant.region
     expectation = plant.expectation

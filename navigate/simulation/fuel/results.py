@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.cohort import find_origin_index, find_origin_indexes
+from navigate.simulation.fuel.feed import calculate_feed_masses
 from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
@@ -26,7 +27,7 @@ def record_plant_results(plant: Plant, idx: int) -> None:
     Parameters
     ----------
     plant
-        The plant instance.
+        The plant.
     idx
         Current time-step index.
     """
@@ -36,9 +37,9 @@ def record_plant_results(plant: Plant, idx: int) -> None:
     cost = expectation.get_levelized_production_cost(idx)
     results.investment_cost[idx] = cost
 
-    for emission in expectation.get_emissions():
-        wtt = expectation.get_production_wtt(emission, idx)
-        results.investment_wtt[emission][idx] = wtt
+    for emission_name in expectation.get_emissions():
+        wtt = expectation.get_production_wtt(emission_name, idx)
+        results.investment_wtt[emission_name][idx] = wtt
 
 
 def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) -> None:
@@ -48,7 +49,7 @@ def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) 
     Parameters
     ----------
     producer
-        The producer instance.
+        The producer.
     timeline
         Simulation timeline, in days.
     idx
@@ -68,7 +69,7 @@ def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
     Parameters
     ----------
     producer
-        The producer instance.
+        The producer.
     idx
         Current time-step index.
     """
@@ -86,7 +87,7 @@ def _transfer_production_and_feed_mass(
     Parameters
     ----------
     producer
-        The producer instance.
+        The producer.
     timeline
         Simulation timeline, in days.
     idx
@@ -106,12 +107,12 @@ def _transfer_production_and_feed_mass(
 
         production_per_plant = plant.expectation.get_production(origins)
         production = np.sum(production_per_plant * multipliers)
+        feed_masses = calculate_feed_masses(plant, multipliers, origins)
+
         results.production_mass[plant.fuel.name][idx] += production
 
-        conversions = plant.expectation.get_feed_masses(origins)
-        for feed_name, conversion in conversions.items():
-            feed_mass = np.sum(production_per_plant * conversion * multipliers)
-            results.feed_mass[feed_name][idx] += feed_mass
+        for key, value in feed_masses.items():
+            results.feed_mass[key][idx] += value
 
 
 def _transfer_plant_tied_capital(
@@ -123,7 +124,7 @@ def _transfer_plant_tied_capital(
     Parameters
     ----------
     producer
-        The producer instance.
+        The producer.
     timeline
         Simulation timeline, in days.
     idx
@@ -150,7 +151,7 @@ def record_port_results(port: Port, idx: int) -> None:
     Parameters
     ----------
     port
-        The port instance.
+        The port.
     idx
         Current time-step index.
     """
