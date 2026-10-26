@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -39,11 +40,10 @@ class FleetResults(_VesselAggregateResults):
     technology_uptake: dict[tuple[str, str], FloatArray] = result("-")
     newbuild_technology_uptake: dict[tuple[str, str], FloatArray] = result("-")
     retrofit_technology_uptake: dict[tuple[str, str], FloatArray] = result("-")
-    # fraction of the fleet carrying a technology, per technology, weighted by
-    # vessel count
+    # fraction of the fleet carrying a technology, weighted by vessel count
     fleet_technology_uptake: dict[str, FloatArray] = result("-")
 
-    # speed
+    # speeds
     reference_speed: FloatArray = result("knots")
     minimum_speed: FloatArray = result("knots")
     maximum_speed: FloatArray = result("knots")
@@ -57,8 +57,8 @@ class FleetResults(_VesselAggregateResults):
     def initialize(
         self,
         context: ResultsContext,
-        vessel_names: list[str],
-        technology_names: list[str],
+        vessel_names: Sequence[str],
+        technology_names: Sequence[str],
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
@@ -88,18 +88,12 @@ class FleetResults(_VesselAggregateResults):
         self.existing_vessels = self._default_dict(vessel_names)
         self.scrap = self._default_dict(vessel_names)
         self.newbuilds = self._default_dict(vessel_names)
-
         self.fuel_conversions = self._default_tuple_dict(vessel_names, vessel_names)
 
-        self.technology_uptake = self._default_tuple_dict(
-            vessel_names, technology_names
-        )
-        self.newbuild_technology_uptake = self._default_tuple_dict(
-            vessel_names, technology_names
-        )
-        self.retrofit_technology_uptake = self._default_tuple_dict(
-            vessel_names, technology_names
-        )
+        vessel_technologies = list(itertools.product(vessel_names, technology_names))
+        self.technology_uptake = self._default_dict(vessel_technologies)
+        self.newbuild_technology_uptake = self._default_dict(vessel_technologies)
+        self.retrofit_technology_uptake = self._default_dict(vessel_technologies)
 
         self.reference_speed = self._default_array(default=np.nan)
         self.minimum_speed = self._default_array(default=np.nan)
