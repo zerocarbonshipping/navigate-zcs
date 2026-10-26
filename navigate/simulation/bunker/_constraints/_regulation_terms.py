@@ -51,7 +51,7 @@ def calculate_regulation_terms(
     where z is a spend or shore-power variable, \phi the regulation's jurisdiction
     fraction of its port or leg, e its emission coefficient and k its spend
     coefficient, all read from the regulation's expectation, and \lambda its
-    effective lower heating value (1 for shore power, already in GJ). T enters
+    effective lower heating value (1 for shore power, already in GJ/year). T enters
     the threshold constraints; M and Q are evaluated at the solution, for the
     regulation's compliance and flexibility market.
 

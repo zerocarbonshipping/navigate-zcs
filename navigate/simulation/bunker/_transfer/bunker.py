@@ -35,8 +35,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
     """Write the bunkered mass, expenses, WTT emissions and levies to the results."""
     idx = alg.idx
 
-    # the existing bunker masses accumulate below, and the fuel inertia constraints
-    # read them, so they restart from zero at every transfer
+    # every vessel in the LP restarts its bunker mass from zero, as it is added up below
     for vessel in alg.vessels.values():
         vessel.expectation.reset_bunker_mass_existing()
 

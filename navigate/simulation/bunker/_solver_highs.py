@@ -333,21 +333,21 @@ class HighsModel:
         self._pending_row_bounds.clear()
 
         if self._pending_cost:
-            indices = np.array(list(self._pending_cost), dtype=np.int32)
-            costs = np.array(list(self._pending_cost.values()), dtype=np.float64)
-            self._highs.changeColsCost(len(indices), indices, costs)
-            self._pending_cost.clear()
+            pending = self._pending_cost
+            count = len(pending)
+            indices = np.array(list(pending), dtype=np.int32)
+            costs = np.array(list(pending.values()), dtype=np.float64)
+            self._highs.changeColsCost(count, indices, costs)
+            pending.clear()
 
         if self._pending_upper_bound:
-            indices = np.array(list(self._pending_upper_bound), dtype=np.int32)
-            lower_bounds = np.zeros(len(indices), dtype=np.float64)
-            upper_bounds = np.array(
-                list(self._pending_upper_bound.values()), dtype=np.float64
-            )
-            self._highs.changeColsBounds(
-                len(indices), indices, lower_bounds, upper_bounds
-            )
-            self._pending_upper_bound.clear()
+            pending = self._pending_upper_bound
+            count = len(pending)
+            indices = np.array(list(pending), dtype=np.int32)
+            lower_bounds = np.zeros(count, dtype=np.float64)
+            upper_bounds = np.array(list(pending.values()), dtype=np.float64)
+            self._highs.changeColsBounds(count, indices, lower_bounds, upper_bounds)
+            pending.clear()
 
     def _set_warm_start_basis(self) -> None:
         """Set the saved basis, extended to the model's size, to start the next run."""

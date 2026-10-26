@@ -55,7 +55,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     route = vessel.route
     voyages = float(vessel.expectation.get_voyages(alg.idx))
 
-    stops = route.get_tank_stops()
+    tank_stops = route.get_tank_stops()
     previous = {e: i for i, e in route.get_tank_legs()}
     port_converters = get_port_converters(vessel)
 
@@ -69,7 +69,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     for f, converters in vessel.converters_per_fuel.items():
         converters_in_port = [c for c in converters if c in port_converters]
 
-        for p in stops:
+        for p in tank_stops:
             key = (v, p, f)
             constraint = get_constraint(alg, rows, key, "==", "mass_conservation")
 

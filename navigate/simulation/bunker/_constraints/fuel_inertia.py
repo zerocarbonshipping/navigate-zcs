@@ -92,11 +92,16 @@ def _get_previous_bunker_mass(
     alg: BunkerAlgorithm, vessel: Vessel, port_name: str, fuel_name: str
 ) -> float:
     """
-    Get the fuel mass the previous time-step bunkered at the port.
+    Return the fuel mass the previous time-step bunkered at the port.
 
     Later expected steps continue from the expected solution; the existing scope and
     the first expected step continue from what the existing solution actually
     bunkered.
+
+    Returns
+    -------
+    float
+        Fuel mass bunkered, in tons/year.
     """
     expectation = vessel.expectation
 

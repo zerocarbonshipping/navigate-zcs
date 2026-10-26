@@ -36,7 +36,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     """
     v = vessel.name
     tanks = vessel.tanks
-    stops = vessel.route.get_tank_stops()
+    tank_stops = vessel.route.get_tank_stops()
 
     volume_per_ton = {tank.name: _calculate_volume_per_ton(alg, tank) for tank in tanks}
 
@@ -44,7 +44,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     mass_tank = alg.mass_tank
     model = alg.model
 
-    for p in stops:
+    for p in tank_stops:
         for tank in tanks:
             t = tank.name
             key = (v, p, t)

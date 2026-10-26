@@ -141,7 +141,7 @@ def _update_fair_share_allocation(
     alg
         The algorithm instance.
     previous
-        Bunker solution of the previous solve, in tons.
+        Bunker solution of the previous solve, in tons/year.
     released
         Keys of the allocations released so far, extended in place.
     """
@@ -220,19 +220,19 @@ def _calculate_bunker_change(
     alg
         The algorithm instance.
     previous
-        Bunker solution of the previous solve, in tons.
+        Bunker solution of the previous solve, in tons/year.
 
     Returns
     -------
     FloatArray
-        Absolute change, in tons, in the key order of the bunker variables.
+        Absolute change, in tons/year, in the key order of the bunker variables.
     """
     current = _get_bunker_solution(alg)
 
-    bunker = list(current.values())
+    current_bunker = list(current.values())
     previous_bunker = [previous[key] for key in current]
 
-    return np.abs(np.subtract(bunker, previous_bunker, dtype=np.float64))
+    return np.abs(np.subtract(current_bunker, previous_bunker, dtype=np.float64))
 
 
 def _update_convergence_statistics(alg: BunkerAlgorithm, change: FloatArray) -> None:
@@ -244,10 +244,10 @@ def _update_convergence_statistics(alg: BunkerAlgorithm, change: FloatArray) -> 
     alg
         The algorithm instance.
     change
-        Absolute change of each bunker variable since the previous solve, in tons.
+        Absolute change of each bunker variable since the previous solve, in tons/year.
     """
     non_zero = np.count_nonzero(change >= alg.options.fair_share_tolerance)
-    non_zero_fraction = float(non_zero) / float(change.size)
+    non_zero_fraction = non_zero / change.size
 
     statistics = alg.fair_share_convergence_statistics
     statistics["Non-zero (%)"].append(int(non_zero_fraction * 100.0))
@@ -288,7 +288,7 @@ def _get_fair_share(
 
 def _get_bunker_solution(alg: BunkerAlgorithm) -> dict[tuple[str, int, str], float]:
     """
-    Get the bunker solution of the last solve.
+    Return the bunker solution of the last solve.
 
     Parameters
     ----------
@@ -298,6 +298,6 @@ def _get_bunker_solution(alg: BunkerAlgorithm) -> dict[tuple[str, int, str], flo
     Returns
     -------
     dict[tuple[str, int, str], float]
-        Fuel mass of each bunker variable, in tons, in their key order.
+        Fuel mass of each bunker variable, in tons/year, in their key order.
     """
     return {key: alg.model.value(bunker) for key, bunker in alg.bunker.items()}

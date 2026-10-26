@@ -40,10 +40,10 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         Vessel whose constraints are updated.
     """
     route = vessel.route
-    port_converters = get_port_converters(vessel)
 
     legs = route.get_legs()
     stops = route.get_stops()
+    port_converters = get_port_converters(vessel)
 
     for converter in vessel.get_converters():
         if not converter.is_dual_fuel():
@@ -66,7 +66,7 @@ def _update_sea_rows(
     legs: tuple[tuple[int, int], ...],
 ) -> None:
     """
-    Create or update the sea pilot-fuel rows of one converter.
+    Update the sea pilot-fuel rows of one converter.
 
     Parameters
     ----------
@@ -82,6 +82,7 @@ def _update_sea_rows(
         Origin and destination stop indices of each leg of the vessel's route.
     """
     v = vessel.name
+
     rows = alg.pilot_fuel_sea
     spend_sea = alg.spend_sea
     model = alg.model
@@ -102,7 +103,7 @@ def _update_port_rows(
     stops: range,
 ) -> None:
     """
-    Create or update the port pilot-fuel rows of one converter.
+    Update the port pilot-fuel rows of one converter.
 
     Parameters
     ----------
@@ -118,6 +119,7 @@ def _update_port_rows(
         Stop indices of the vessel's route.
     """
     v = vessel.name
+
     rows = alg.pilot_fuel_port
     spend_port = alg.spend_port
     model = alg.model

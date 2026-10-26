@@ -83,6 +83,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
+    from navigate.simulation.bunker._indices import ScopeSteps
     from navigate.simulation.bunker._solver import Constraint, Model, Terms, Variable
     from navigate.util import Timings
     from navigate.util.types_ import FloatLike
@@ -316,7 +317,7 @@ class BunkerAlgorithm:
 
     def get_admitted_vessels(self, current_idx: int) -> list[Vessel]:
         """
-        Get the vessels that enter at least one LP built from a time-step.
+        Return the vessels that enter at least one LP built from a time-step.
 
         Existing bunkering builds one LP, at the time-step itself; expected bunkering
         builds one for every step of the remaining horizon.
@@ -332,7 +333,7 @@ class BunkerAlgorithm:
             Vessels of every fleet with a positive multiplier in a built LP.
         """
         steps = get_scope_steps(current_idx, self.scope)
-        admitted = []
+        admitted: list[Vessel] = []
 
         for vessel, multiplier in self._vessel_multipliers(steps):
             if _is_admitted(multiplier):
@@ -341,7 +342,7 @@ class BunkerAlgorithm:
         return admitted
 
     def _vessel_multipliers(
-        self, steps: int | slice
+        self, steps: ScopeSteps
     ) -> Iterator[tuple[Vessel, FloatLike]]:
         """
         Walk every vessel of the fleets with its multiplier in this scope.

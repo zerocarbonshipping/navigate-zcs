@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Choosing the solver backend and building models on it."""
+"""Choose the solver backend and build models on it."""
 
 from __future__ import annotations
 

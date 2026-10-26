@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Transfer the fuel spend at sea and in port to the vessel results."""
+"""Transfer the fuel spend at sea and in port to the vessel expectations and results."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 def transfer_spend(alg: BunkerAlgorithm) -> None:
     """
-    Transfer the fuel spend solution to the vessel expectations and results.
+    Transfer the fuel spend at sea and in port to the vessel expectations and results.
 
     Parameters
     ----------
@@ -25,7 +25,7 @@ def transfer_spend(alg: BunkerAlgorithm) -> None:
     if alg.scope != BunkerScopeID.EXISTING:
         return
 
-    # every vessel's spent energy restarts, as a vessel out of the LP spends none
+    # every fleet vessel restarts its spent energy from zero, also one out of the LP
     for fleet in alg.fleets.values():
         for vessel in fleet.vessels:
             vessel.expectation.reset_spend_energy()

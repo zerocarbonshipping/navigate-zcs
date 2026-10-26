@@ -10,10 +10,12 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, BunkerScopeID
-from navigate.util import unique_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
+
+# the time-steps a bunkering scope reads: one, or every one from a time-step on
+type ScopeSteps = int | slice
 
 
 def get_port_converters(vessel: Vessel) -> list[str]:
@@ -28,13 +30,13 @@ def get_port_converters(vessel: Vessel) -> list[str]:
     Returns
     -------
     list[str]
-        The electrical and heat converter names, each once.
+        The electrical and heat converter names.
     """
     converters = map(vessel.get_converter, PORT_ENERGY_DEMANDS)
-    return unique_list(converter.name for converter in converters)
+    return [converter.name for converter in converters]
 
 
-def get_scope_steps(idx: int, scope: BunkerScopeID) -> int | slice:
+def get_scope_steps(idx: int, scope: BunkerScopeID) -> ScopeSteps:
     """
     Return the time-steps a bunkering scope reads.
 
@@ -47,7 +49,7 @@ def get_scope_steps(idx: int, scope: BunkerScopeID) -> int | slice:
 
     Returns
     -------
-    int | slice
+    ScopeSteps
         The time-step itself if existing, or every step from it if expected.
     """
     return idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]

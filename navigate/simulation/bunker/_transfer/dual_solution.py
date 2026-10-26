@@ -32,7 +32,7 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     idx = alg.idx
 
     # the sea rows are keyed by a leg's stops, the expectation by its route position
-    leg_positions = {}
+    leg_positions: dict[str, dict[tuple[int, int], int]] = {}
 
     for v, vessel in alg.vessels.items():
         legs = vessel.route.get_legs()
