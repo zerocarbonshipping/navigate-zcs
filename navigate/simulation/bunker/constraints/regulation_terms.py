@@ -96,7 +96,7 @@ def calculate_regulation_terms(
 
     # at sea
     for (i, e), leg in zip(route.get_legs(), route.get_leg_keys(), strict=True):
-        fraction = float(expectation.get_leg_fraction(leg, idx))
+        fraction = expectation.get_leg_fraction(leg, idx)
 
         for (c, f), weights in sea_weights.items():
             terms.append(_Term(alg.spend_sea[v, c, f, i, e], fraction, weights))
