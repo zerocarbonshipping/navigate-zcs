@@ -23,17 +23,17 @@ the index below.
 
 One line per prompt, Session 5's included. A new entry adds its line here.
 
-| Entry | The question it answers | Scale | Ships | Policy | Tested |
-|---|---|---|---|---|---|
-| Session 5, example 1: Rebuild Session 1's case | Which fuels do owners choose on one long trade under EU policy? | One trade, two ports | 300 Panamax bulk carriers | EU ETS and FuelEU on half the voyage | yes |
-| Session 5, example 2: Rebuild Session 2's reference scenario | What does the world fleet burn to 2050 under a global fuel standard? | The world | The library's whole fleet | EU ETS, FuelEU, global fuel standard | yes |
-| Session 5, example 3: One trade, two ports | What does the model do on one trade when nothing pushes it? | One trade, two ports | 200 Suezmax tankers | None | yes |
-| Inland waterways in Germany (prompt: Session 5, example 4) | Does a national CO2 price move owners to drop-in fuels or new engines? | One river trade | 300 Rhine cargo vessels | National CO2 price | 2026-10-16 |
-| Session 5, example 5: Two fleets, one market | How much do the owners' efficiency choices matter on the same trade? | One trade of your choice | Two fleets of one class | Your choice | yes |
-| EU short-sea feeders | How do owners comply with EU ETS and FuelEU, and at what cost? | One trade, both ports in the EU | 1,500 TEU feeders | EU ETS and FuelEU | 2026-10-19 |
-| Green finance | Do cheaper loans bring zero-emission ships forward? | One trade | Panamax ore carriers | Cheaper cost of capital | 2026-10-19 |
-| A global study: the cost of waiting | What does starting a global fuel standard late cost? | The world | The library's whole fleet | Global fuel standard, delayed | ran; criteria not checked |
-| The world fleet, simplified | What does a cut-down world fleet do under EU policy? | The world, two or three classes | Library fleets | EU ETS and FuelEU | ran; criteria not checked |
+| Entry | The question it answers | Scale | Ships | Policy | What the case changes | Tested |
+|---|---|---|---|---|---|---|
+| Session 5, example 1: Rebuild Session 1's case | Which fuels do owners choose on one long trade under EU policy? | One long trade: Chile to Rotterdam | 300 Panamax bulk carriers | EU ETS and FuelEU on half the voyage | One run: the fuel choice under policy | 2026-10-19 |
+| Session 5, example 2: Rebuild Session 2's reference scenario | What does the world fleet burn to 2050 under a global fuel standard? | The world | The library's whole fleet | EU ETS, FuelEU, global fuel standard | One run: no comparison | 2026-10-19 |
+| Session 5, example 3: One trade, two ports | What does the model do on one trade when nothing pushes it? | One trade: Saudi Arabia to China | 200 Suezmax tankers | None | Nothing: the fuel choice on cost alone | ran first time; criteria not checked |
+| Inland waterways in Germany: what a national CO2 price does (prompt: Session 5, example 4) | Does a national CO2 price move owners to drop-in fuels or new engines? | One river trade in Germany | 300 Rhine cargo vessels | National CO2 price (a copied EU ETS Regulation) | A price: with and without it | 2026-10-16 |
+| Session 5, example 5: Two fleets, one market | How much do the owners' efficiency choices matter on the same trade? | One trade of your choice | Two fleets of one class | Your choice | Technology: with and without it | ran first time; criteria not checked |
+| EU short-sea feeders: what EU ETS and FuelEU make the owners do | How do owners comply with EU ETS and FuelEU, and at what cost? | One trade, both ports in the EU: Rotterdam to Gothenburg | 1,500 TEU feeders | EU ETS and FuelEU on the whole voyage | A policy: with and without it | 2026-10-19 |
+| Green finance: do cheaper loans bring zero-emission ships forward? | Do cheaper loans bring zero-emission ships forward? | One trade: Tubarão to Rotterdam | Panamax ore carriers | EU ETS and FuelEU on half the voyage, in both runs | Finance: cheaper cost of capital for ammonia and methanol ships | 2026-10-19 |
+| A global study: the cost of waiting | What does starting a global fuel standard late cost? | The world | The library's whole fleet | Global fuel standard, EU ETS, FuelEU | Timing: the standard on time vs delayed | ran first time; criteria not checked |
+| The world fleet, simplified: the global picture at a size you can iterate on | What does a cut-down world fleet do under EU policy? | The world, two or three classes | Library fleets | EU ETS and FuelEU | One run: no comparison | ran first time; criteria not checked |
 
 ## What "it works" means here
 
@@ -59,7 +59,8 @@ and the entry says so up front:
   battery-electric or hydrogen fuel-cell power system.
 - **Fuels**: no HVO. Biodiesel (FAME) and e-diesel stand in for drop-in fuels.
 - **Policy**: EU ETS, FuelEU Maritime and CII only. National measures are built
-  as a `Levy` with INVENTED values.
+  with INVENTED values; a carbon price as a copy of the library's `eu_ets`
+  Regulation (building-a-deck.md says why not a `Levy`).
 - **Geography**: no distances, port handling costs or bunker transport costs.
 
 ## Entries
