@@ -36,8 +36,7 @@ class _VesselAggregateResults(_FuelConsumerResults):
     expenses: FloatArray = result("USD/year")
     vessel_tied_capital: FloatArray = result("USD")
 
-    # power-weighted average age, kept as numerator and denominator so that it
-    # aggregates
+    # power-weighted average age, kept as a summable numerator and denominator
     weighted_age_numerator: dict[FuelTypeID, FloatArray] = field(init=False)
     weighted_age_denominator: dict[FuelTypeID, FloatArray] = field(init=False)
     weighted_average_age: dict[FuelTypeID, FloatArray] = result("years")
