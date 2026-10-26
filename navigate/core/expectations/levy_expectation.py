@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
 from navigate.core.initial_values import EMPTY_FLOAT
@@ -13,7 +13,7 @@ from navigate.core.initial_values import EMPTY_FLOAT
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from navigate.util.types_ import FloatArray, FloatLike, Index
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class LevyExpectation(_PolicyExpectation):
@@ -40,13 +40,19 @@ class LevyExpectation(_PolicyExpectation):
         self._cost.setdefault(key, self._default_array())
         self._cost[key][idx:] = cost
 
-    def get_level(self, idx: Index) -> FloatLike:
+    @overload
+    def get_level(self, idx: int) -> float: ...
+
+    @overload
+    def get_level(self, idx: slice) -> FloatArray: ...
+
+    def get_level(self, idx: int | slice) -> FloatLike:
         return self._level[idx]
 
     def get_cost(self, key: tuple[str, str, str], idx: int) -> float:
 
-        if key in self._cost:
-            cost: float = self._cost[key][idx]
-            return cost
+        if key not in self._cost:
+            return 0.0
 
-        return 0.0
+        cost: float = self._cost[key][idx]
+        return cost
