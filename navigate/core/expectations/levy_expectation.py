@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, overload
 
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
-from navigate.core.initial_values import EMPTY_FLOAT
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -22,7 +21,7 @@ class LevyExpectation(_PolicyExpectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._level: FloatArray = EMPTY_FLOAT
+        self._level: FloatArray
 
         # keyed by (vessel_name, port_name, fuel_name)
         self._cost: dict[tuple[str, str, str], FloatArray] = {}

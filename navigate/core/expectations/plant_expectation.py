@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import slice_dict
 
 if TYPE_CHECKING:
@@ -31,35 +30,35 @@ class PlantExpectation(_Expectation):
         super().__init__()
 
         # durations
-        self._lifetime: FloatArray = EMPTY_FLOAT
-        self._lead_time: FloatArray = EMPTY_FLOAT
+        self._lifetime: FloatArray
+        self._lead_time: FloatArray
 
         # production
-        self._size: FloatArray = EMPTY_FLOAT
-        self._production: FloatArray = EMPTY_FLOAT
+        self._size: FloatArray
+        self._production: FloatArray
 
         # feed per mass of fuel
-        self._feed_conversion: dict[str, FloatArray] = {}
+        self._feed_conversion: dict[str, FloatArray]
 
         # levelized cost
-        self._levelized_production_cost: FloatArray = EMPTY_FLOAT
-        self._levelized_delivery_cost: dict[str, FloatArray] = {}
+        self._levelized_production_cost: FloatArray
+        self._levelized_delivery_cost: dict[str, FloatArray]
 
         # capital
-        self._tied_capital: list[FloatArray] = []
+        self._tied_capital: list[FloatArray]
 
         # emissions
-        self._production_wtt: dict[str, FloatArray] = {}
-        self._delivery_wtt: dict[tuple[str, str], FloatArray] = {}
+        self._production_wtt: dict[str, FloatArray]
+        self._delivery_wtt: dict[tuple[str, str], FloatArray]
 
         # production-weighted properties across plants
-        self._expected_production_cost: FloatArray = EMPTY_FLOAT
-        self._expected_production_wtt: dict[str, FloatArray] = {}
+        self._expected_production_cost: FloatArray
+        self._expected_production_wtt: dict[str, FloatArray]
 
         # uptake decision
-        self._demand_newbuilds: float = 0.0
-        self._inter_fuel_metric: float = 0.0
-        self._intra_fuel_metric: float = 0.0
+        self._demand_newbuilds: float
+        self._inter_fuel_metric: float
+        self._intra_fuel_metric: float
 
     def initialize(
         self,

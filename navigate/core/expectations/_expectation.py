@@ -20,7 +20,7 @@ class _Expectation:
     """Timeline length and the default-valued storage an expectation allocates."""
 
     def __init__(self) -> None:
-        self._length: int = 0
+        self._length: int
 
     def _initialize_expectation(self, length: int) -> None:
         self._length = length

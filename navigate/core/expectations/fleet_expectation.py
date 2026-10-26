@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
-from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import slice_dict
 
 if TYPE_CHECKING:
@@ -23,13 +22,13 @@ class FleetExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._multipliers: dict[tuple[str, BunkerScopeID], FloatArray] = {}
-        self._fuel_demand: dict[str, FloatArray] = {}
+        self._multipliers: dict[tuple[str, BunkerScopeID], FloatArray]
+        self._fuel_demand: dict[str, FloatArray]
 
-        self._uptakes: FloatArray = EMPTY_FLOAT
+        self._uptakes: FloatArray
 
-        self._fuel_type_capacity: dict[FuelTypeID, float] = {}
-        self._fuel_type_supply: dict[FuelTypeID, float] = {}
+        self._fuel_type_capacity: dict[FuelTypeID, float]
+        self._fuel_type_supply: dict[FuelTypeID, float]
 
     def initialize(
         self, length: int, vessel_names: list[str], fuels: dict[str, Fuel]
