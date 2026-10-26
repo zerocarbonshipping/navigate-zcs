@@ -12,14 +12,14 @@ import numpy as np
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Collection
 
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray, FloatLike
 
 
-class RegulationExpectation(_PolicyExpectation):
+class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
     """The inputs a regulation gives the bunkering LP and the results it gets back."""
 
     def __init__(self) -> None:
@@ -77,7 +77,7 @@ class RegulationExpectation(_PolicyExpectation):
     def initialize(
         self,
         length: int,
-        emission_names: Iterable[str],
+        emission_names: Collection[str],
         routes: dict[str, Route],
         vessels: dict[str, Vessel],
     ) -> None:
@@ -225,11 +225,10 @@ class RegulationExpectation(_PolicyExpectation):
     def get_emission_coefficient(
         self, key: tuple[str, str, str], idx: int | slice
     ) -> FloatLike:
+        if key not in self._emission_coefficient:
+            return 0.0
 
-        if key in self._emission_coefficient:
-            return self._emission_coefficient[key][idx]
-
-        return 0.0
+        return self._emission_coefficient[key][idx]
 
     def get_spend_coefficient(self, key: tuple[str, str, str], idx: int) -> float:
         coefficient: float = self._spend_coefficient[key][idx]

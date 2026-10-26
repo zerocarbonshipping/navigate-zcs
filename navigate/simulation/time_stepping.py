@@ -462,7 +462,7 @@ class Simulation:
         this one on, so they are cleared before each recalculation.
         """
         for plant in self.nodes.plants.values():
-            plant.expectation.reset_additive_properties(self._idx)
+            plant.expectation.reset_feed_conversion(self._idx)
             calculate_plant_production_expectations(
                 plant, self.nodes.emissions, self.timeline, self._idx
             )

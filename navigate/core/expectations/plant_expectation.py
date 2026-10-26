@@ -13,13 +13,9 @@ from navigate.core.expectations._expectation import _Expectation
 from navigate.util import slice_dict
 
 if TYPE_CHECKING:
-    from collections.abc import KeysView
+    from collections.abc import Collection, KeysView
     from typing import SupportsIndex
 
-    from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.port import Port
-    from navigate.core.nodes.process import Process
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
@@ -29,25 +25,20 @@ class PlantExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        # durations
         self._lifetime: FloatArray
         self._lead_time: FloatArray
 
-        # production
         self._size: FloatArray
         self._production: FloatArray
 
         # feed per mass of fuel
         self._feed_conversion: dict[str, FloatArray]
 
-        # levelized cost
         self._levelized_production_cost: FloatArray
         self._levelized_delivery_cost: dict[str, FloatArray]
 
-        # capital
         self._tied_capital: list[FloatArray]
 
-        # emissions
         self._production_wtt: dict[str, FloatArray]
         self._delivery_wtt: dict[tuple[str, str], FloatArray]
 
@@ -63,10 +54,10 @@ class PlantExpectation(_Expectation):
     def initialize(
         self,
         length: int,
-        emissions: dict[str, Emission],
-        feedstocks: dict[str, Feedstock],
-        ports: dict[str, Port],
-        processes: dict[str, Process],
+        emission_names: Collection[str],
+        feedstock_names: Collection[str],
+        port_names: Collection[str],
+        process_names: Collection[str],
     ) -> None:
         self._initialize_expectation(length)
 
@@ -76,29 +67,27 @@ class PlantExpectation(_Expectation):
         self._size = self._default_array()
         self._production = self._default_array()
 
-        self._feed_conversion = self._default_dict_array({**feedstocks, **processes})
+        feed_names = [*feedstock_names, *process_names]
+        self._feed_conversion = self._default_dict_array(feed_names)
 
         self._levelized_production_cost = self._default_array()
-        self._levelized_delivery_cost = self._default_dict_array(ports)
+        self._levelized_delivery_cost = self._default_dict_array(port_names)
 
         self._tied_capital = self._default_list_array(self._length)
 
-        self._production_wtt = self._default_dict_array(emissions)
-        self._delivery_wtt = self._default_tuple_dict_array(ports, emissions)
+        self._production_wtt = self._default_dict_array(emission_names)
+        self._delivery_wtt = self._default_tuple_dict_array(port_names, emission_names)
 
         self._expected_production_cost = self._default_array()
-        self._expected_production_wtt = self._default_dict_array(emissions)
+        self._expected_production_wtt = self._default_dict_array(emission_names)
 
         self._demand_newbuilds = 0.0
         self._inter_fuel_metric = 0.0
         self._intra_fuel_metric = 0.0
 
-    def reset_additive_properties(self, idx: int) -> None:
+    def reset_feed_conversion(self, idx: int) -> None:
         # the steps before idx keep the feed conversions of the plants decided then
-        self._reset_dict_array_partial(self._feed_conversion, idx=idx)
-
-    def get_emissions(self) -> KeysView[str]:
-        return self._production_wtt.keys()
+        self._reset_dict_array_partial(self._feed_conversion, idx)
 
     def set_lifetime(self, idx: int, lifetime: FloatLike) -> None:
         self._lifetime[idx:] = lifetime
@@ -126,8 +115,8 @@ class PlantExpectation(_Expectation):
     ) -> None:
         self._levelized_delivery_cost[port_name][idx] = cost
 
-    def set_tied_capital(self, idx: int, tied_capital: FloatArray) -> None:
-        self._tied_capital[idx] = tied_capital
+    def set_tied_capital(self, idx: int, capital: FloatArray) -> None:
+        self._tied_capital[idx] = capital
 
     def set_production_wtt(self, idx: int, emission_name: str, wtt: float) -> None:
         self._production_wtt[emission_name][idx] = wtt
@@ -135,7 +124,7 @@ class PlantExpectation(_Expectation):
     def set_delivery_wtt(
         self, idx: int, port_name: str, emission_name: str, wtt: FloatLike
     ) -> None:
-        self._delivery_wtt[(port_name, emission_name)][idx:] = wtt
+        self._delivery_wtt[port_name, emission_name][idx:] = wtt
 
     def set_expected_production_cost(self, idx: int, cost: FloatLike) -> None:
         self._expected_production_cost[idx:] = cost
@@ -183,6 +172,9 @@ class PlantExpectation(_Expectation):
     def get_tied_capital(self, idx: SupportsIndex) -> FloatArray:
         return self._tied_capital[idx]
 
+    def get_emissions(self) -> KeysView[str]:
+        return self._production_wtt.keys()
+
     def get_production_wtt(
         self, emission_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
@@ -191,7 +183,7 @@ class PlantExpectation(_Expectation):
     def get_delivery_wtt(
         self, port_name: str, emission_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
-        return self._delivery_wtt[(port_name, emission_name)][idx]
+        return self._delivery_wtt[port_name, emission_name][idx]
 
     def get_expected_production_cost(self, idx: Index = np.s_[:]) -> FloatLike:
         return self._expected_production_cost[idx]

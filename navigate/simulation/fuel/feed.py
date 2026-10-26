@@ -48,7 +48,7 @@ def calculate_feed_availability(
     current_year = years[idx]
 
     # the existing and pipeline feed below are summed from zero
-    producer.expectation.reset_additive_properties()
+    producer.expectation.reset_feed_totals()
 
     _calculate_plant_feed_consumption(producer, idx)
     _calculate_existing_feed(producer, years, current_year)

@@ -12,7 +12,8 @@ from navigate.core.expectations._expectation import _Expectation
 from navigate.util import slice_dict
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.fuel import Fuel
+    from collections.abc import Collection
+
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
@@ -31,17 +32,21 @@ class FleetExpectation(_Expectation):
         self._fuel_type_supply: dict[FuelTypeID, float]
 
     def initialize(
-        self, length: int, vessel_names: list[str], fuels: dict[str, Fuel]
+        self, length: int, vessel_names: Collection[str], fuel_names: Collection[str]
     ) -> None:
         self._initialize_expectation(length)
 
         self._multipliers = self._default_tuple_dict_array(vessel_names, BunkerScopeID)
-        self._fuel_demand = self._default_dict_array(fuels)
+        self._fuel_demand = self._default_dict_array(fuel_names)
 
         self._uptakes = self._default_2d_array(len(vessel_names))
 
         self._fuel_type_capacity = self._default_dict_float(FuelTypeID)
         self._fuel_type_supply = self._default_dict_float(FuelTypeID)
+
+    def reset_fuel_type_totals(self) -> None:
+        self._reset_dict_float(self._fuel_type_capacity)
+        self._reset_dict_float(self._fuel_type_supply)
 
     def set_multiplier(
         self, idx: int, vessel_name: str, scope: BunkerScopeID, multiplier: FloatLike
@@ -53,10 +58,6 @@ class FleetExpectation(_Expectation):
 
     def set_uptakes(self, idx: int, uptakes: FloatArray) -> None:
         self._uptakes[:, idx] = uptakes
-
-    def reset_fuel_type_totals(self) -> None:
-        self._reset_dict_float(self._fuel_type_capacity)
-        self._reset_dict_float(self._fuel_type_supply)
 
     def add_fuel_type_capacity(self, fuel_type: FuelTypeID, capacity: float) -> None:
         self._fuel_type_capacity[fuel_type] += capacity

@@ -50,8 +50,8 @@ def update_energy_conservation_constraints(
     legs = route.get_legs()
     stops = route.get_stops()
 
-    demands_sea = expectation.get_energy_sea_leg(idx=alg.idx)
-    demands_port = expectation.get_energy_port(idx=alg.idx)
+    demands_sea = expectation.get_energy_sea_leg(alg.idx)
+    demands_port = expectation.get_energy_port(alg.idx)
 
     for demand_type in EnergyDemandID:
         _update_sea_rows(alg, vessel, demand_type, demands_sea[demand_type], legs)

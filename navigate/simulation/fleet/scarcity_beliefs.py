@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping, Sequence
 
     from navigate.core.enum_ import EnergyDemandID
-    from navigate.core.expectations.vessel_expectation import VesselExpectation
+    from navigate.core.expectations import VesselExpectation
     from navigate.core.nodes.fleet import Fleet
     from navigate.util.types_ import FloatArray
 

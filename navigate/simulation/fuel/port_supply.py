@@ -244,7 +244,7 @@ def _calculate_import_totals(
             wtts[fuel_name, emission_name] = _allocate_per_port(ports, times)
 
     for producer in producers.values():
-        exports = producer.expectation.get_export_distribution(idx=forward)
+        exports = producer.expectation.get_export_distribution(forward)
 
         for plant in producer.plants:
             fuel_name = plant.fuel.name

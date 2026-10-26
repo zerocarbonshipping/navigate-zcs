@@ -12,8 +12,8 @@ import numpy as np
 from navigate.core.expectations._expectation import _Expectation
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.fuel import Fuel
+    from collections.abc import Collection
+
     from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
@@ -38,25 +38,27 @@ class PortExpectation(_Expectation):
         self._shore_power_emission_factor: dict[str, FloatArray]
 
     def initialize(
-        self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
+        self, length: int, fuel_names: Collection[str], emission_names: Collection[str]
     ) -> None:
         self._initialize_expectation(length)
 
-        self._handling_cost = self._default_dict_array(fuels)
-        self._bunkering_limit = self._default_dict_array(fuels, default=np.inf)
+        self._handling_cost = self._default_dict_array(fuel_names)
+        self._bunkering_limit = self._default_dict_array(fuel_names, default=np.inf)
 
-        self._bunker_price_overwrite = self._default_dict_array(fuels, default=np.nan)
+        self._bunker_price_overwrite = self._default_dict_array(
+            fuel_names, default=np.nan
+        )
         self._bunker_wtt_overwrite = self._default_tuple_dict_array(
-            fuels, emissions, default=np.nan
+            fuel_names, emission_names, default=np.nan
         )
 
-        self._bunker_supply = self._default_dict_array(fuels)
-        self._bunker_price = self._default_dict_array(fuels)
-        self._bunker_wtt = self._default_tuple_dict_array(fuels, emissions)
+        self._bunker_supply = self._default_dict_array(fuel_names)
+        self._bunker_price = self._default_dict_array(fuel_names)
+        self._bunker_wtt = self._default_tuple_dict_array(fuel_names, emission_names)
 
         self._shore_power_cost = self._default_array()
         self._shore_power_connection_share = self._default_array()
-        self._shore_power_emission_factor = self._default_dict_array(emissions)
+        self._shore_power_emission_factor = self._default_dict_array(emission_names)
 
     def set_handling_cost(self, idx: int, fuel_name: str, cost: FloatLike) -> None:
         self._handling_cost[fuel_name][idx:] = cost
@@ -72,7 +74,7 @@ class PortExpectation(_Expectation):
     def set_bunker_wtt_overwrite(
         self, idx: int, fuel_name: str, emission_name: str, overwrite: FloatLike
     ) -> None:
-        self._bunker_wtt_overwrite[(fuel_name, emission_name)][idx:] = overwrite
+        self._bunker_wtt_overwrite[fuel_name, emission_name][idx:] = overwrite
 
     def set_bunker_supply(self, idx: int, fuel_name: str, supply: FloatLike) -> None:
         self._bunker_supply[fuel_name][idx:] = supply
@@ -83,7 +85,7 @@ class PortExpectation(_Expectation):
     def set_bunker_wtt(
         self, idx: int, fuel_name: str, emission_name: str, wtt: FloatLike
     ) -> None:
-        self._bunker_wtt[(fuel_name, emission_name)][idx:] = wtt
+        self._bunker_wtt[fuel_name, emission_name][idx:] = wtt
 
     def set_shore_power_cost(self, idx: int, cost: FloatLike) -> None:
         self._shore_power_cost[idx:] = cost
@@ -110,7 +112,7 @@ class PortExpectation(_Expectation):
     def get_bunker_wtt_overwrite(
         self, fuel_name: str, emission_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
-        return self._bunker_wtt_overwrite[(fuel_name, emission_name)][idx]
+        return self._bunker_wtt_overwrite[fuel_name, emission_name][idx]
 
     def get_bunker_supply(self, fuel_name: str, idx: Index = np.s_[:]) -> FloatLike:
         return self._bunker_supply[fuel_name][idx]
@@ -121,7 +123,7 @@ class PortExpectation(_Expectation):
     def get_bunker_wtt(
         self, fuel_name: str, emission_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
-        return self._bunker_wtt[(fuel_name, emission_name)][idx]
+        return self._bunker_wtt[fuel_name, emission_name][idx]
 
     def get_shore_power_cost(self, idx: Index = np.s_[:]) -> FloatLike:
         return self._shore_power_cost[idx]

@@ -106,7 +106,7 @@ def perform_pipeline_planning(
     _calculate_inertia_feed_gaps(producer, inertia_newbuilds, idx)
     demand = _calculate_uncovered_demand(producer, inertia_newbuilds, idx)
 
-    export_distribution = producer.expectation.get_export_distribution(idx=idx)
+    export_distribution = producer.expectation.get_export_distribution(idx)
 
     for plant in producer.plants:
         _calculate_inter_fuel_metric(plant, demand, offtake_duration, timeline, idx)
