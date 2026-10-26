@@ -56,6 +56,8 @@ class Component:
         time_initial: float,
         emissions: Iterable[str] = (),
     ) -> None:
+        self.lead_time: float = lead_time
+        self.lifetime: float = lifetime
         self.size: int = get_flow_size(lead_time, lifetime)
 
         # flows
@@ -67,8 +69,6 @@ class Component:
             self.wtt_flows[emission] = np.zeros(self.size)
 
         # time context shared across methods, set by _update_time_context
-        self.lead_time: float = lead_time
-        self.lifetime: float = lifetime
         self.time_initial: float
         self.time_commence: float
         self.time_end: float
@@ -144,11 +144,11 @@ class Component:
 
     def _update_time_context(self, time_initial: float) -> None:
         """Recompute the time context from an investment time."""
-        flows = build_operating_flows(self.lead_time, self.lifetime, time_initial)
-
         self.time_initial = time_initial
         self.time_commence = _future_time(time_initial, self.lead_time)
         self.time_end = _future_time(time_initial, self.size)
+
+        flows = build_operating_flows(self.lead_time, self.lifetime, time_initial)
         self.year_starts, self.operating_flow = flows
 
 
@@ -389,7 +389,7 @@ def build_operating_flows(
 
     time_commence = _future_time(time_initial, lead_time)
     time_end = _future_time(time_initial, year_starts.size)
-    operating_flow = _overlap_year_bins(year_starts, time_commence, time_end) / YEAR
+    operating_flow = _overlap_years(year_starts, time_commence, time_end)
 
     return year_starts, operating_flow
 
@@ -469,7 +469,7 @@ def _bin_index(time: float, time_initial: float, size: int) -> int:
     time
         Absolute time, in days.
     time_initial
-        Start time of the first bin, in days.
+        Time of the investment decision, in days.
     size
         Number of calendar-year bins.
 
@@ -501,9 +501,9 @@ def _future_time(time: float, years: float) -> float:
     return time + years * YEAR
 
 
-def _overlap_year_bins(year_starts: FloatArray, start: float, end: float) -> FloatArray:
+def _overlap_years(year_starts: FloatArray, start: float, end: float) -> FloatArray:
     """
-    Calculate the overlap of the interval [start, end) with each calendar-year bin.
+    Calculate the fraction of each calendar year the interval [start, end) covers.
 
     Parameters
     ----------
@@ -517,12 +517,12 @@ def _overlap_year_bins(year_starts: FloatArray, start: float, end: float) -> Flo
     Returns
     -------
     FloatArray
-        Overlap with each year, in days.
+        Fraction of each year within the interval.
     """
     left = np.maximum(year_starts, start)
     right = np.minimum(year_starts + YEAR, end)
     overlap: FloatArray = np.clip(right - left, 0.0, YEAR)
-    return overlap
+    return overlap / YEAR
 
 
 def _calculate_replacement_times(
@@ -545,7 +545,7 @@ def _calculate_replacement_times(
     Returns
     -------
     list[float]
-        Replacement times, in days since the start of the simulation.
+        Replacement times, in days.
     """
     time_end = component.time_end
     times = []
@@ -562,7 +562,7 @@ def _calculate_staircase_segments(
     component: Component, replacement_times: list[float]
 ) -> list[tuple[float, FloatArray]]:
     """
-    Compute the anchor time and normalized overlap of each component lifetime.
+    Calculate the anchor time and normalized overlap of each component lifetime.
 
     Each segment runs from an installation to the next replacement, or to the end of
     the horizon. Its anchor time is the time at which a locked value is evaluated, and
@@ -574,7 +574,7 @@ def _calculate_staircase_segments(
     component
         Component whose time context to walk.
     replacement_times
-        Replacement times, in days since the start of the simulation.
+        Replacement times, in days.
 
     Returns
     -------
@@ -593,8 +593,8 @@ def _calculate_staircase_segments(
         if end <= start:
             continue
 
-        overlap = _overlap_year_bins(year_starts, start, end)
-        segments.append((anchor, overlap / YEAR))
+        overlap = _overlap_years(year_starts, start, end)
+        segments.append((anchor, overlap))
 
     return segments
 
@@ -623,9 +623,9 @@ def _add_initial_capex_flow(
 
     capex_t = capex(time_initial)
 
-    if time_commence > time_initial:
-        construction = _overlap_year_bins(year_starts, time_initial, time_commence)
-        deposits = capex_t * construction / (time_commence - time_initial)
+    if component.lead_time > 0.0:
+        construction = _overlap_years(year_starts, time_initial, time_commence)
+        deposits = capex_t * construction / component.lead_time
     else:
         deposits = np.zeros(component.size)
         deposits[0] = capex_t
@@ -667,13 +667,14 @@ def _add_initial_tied_capital_flow(component: Component, deposits: FloatArray) -
         lifetime_component = cycle.lifetime(component.time_initial)
 
     basis = deposits.sum()
-    basis_asset = basis * (1.0 - replaceable)
-    basis_component = basis * replaceable
     lifetime_asset = (component.time_end - component.year_starts[commence_idx]) / YEAR
 
-    depreciate = partial(_add_straight_line_depreciation, component, commence_idx)
-    depreciate(basis_asset, lifetime_asset)
-    depreciate(basis_component, lifetime_component)
+    tranches = [
+        (basis * (1.0 - replaceable), lifetime_asset),
+        (basis * replaceable, lifetime_component),
+    ]
+    for tranche, lifetime in tranches:
+        _add_straight_line_depreciation(component, commence_idx, tranche, lifetime)
 
 
 def _add_straight_line_depreciation(

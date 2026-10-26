@@ -349,8 +349,9 @@ def _calculate_packages_saving(
     forward = np.s_[idx:]
     legs = bind_conditions_to_legs(vessel.route)
 
+    time = timeline[idx]
     times = timeline[forward]
-    year_starts = build_year_starts(0.0, lifetime, timeline[idx])
+    year_starts = build_year_starts(lead_time=0.0, lifetime=lifetime, time_initial=time)
 
     savings = []
     for package in packages:

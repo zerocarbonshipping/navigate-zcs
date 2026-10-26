@@ -349,8 +349,8 @@ def _calculate_redistributed_shares(
         saturated |= over
 
         free = ~saturated
-        total_saturated = np.sum(shares[saturated])
-        total_free = np.sum(shares[free])
+        total_saturated = float(np.sum(shares[saturated]))
+        total_free = float(np.sum(shares[free]))
 
         if total_free <= 0.0:
             break
@@ -445,17 +445,16 @@ def calculate_two_axis_uptake[T: Hashable](
     FloatArray
         Uptake share per asset.
     """
-    group_map = define_index_map(group_keys)
+    groups = define_index_map(group_keys)
     intra = _Axis(np.asarray(intra_metrics), intra_utility, intra_odds)
     inter = _Axis(np.asarray(inter_metrics), inter_utility, inter_odds)
 
-    group_shares, inter_message = _calculate_group_shares(group_map, intra, inter)
-    uptake, messages = _allocate_members(group_map, intra, group_shares, None)
+    group_shares, inter_message = _calculate_group_shares(groups, intra, inter)
+    uptake, messages = _allocate_members(groups, intra, group_shares, None)
 
     if limits is not None and np.any(uptake > limits):
-        solved = _solve_group_shares(group_map, intra, inter, limits)
-        group_shares, inter_message = solved
-        uptake, messages = _allocate_members(group_map, intra, group_shares, limits)
+        group_shares, inter_message = _solve_group_shares(groups, intra, inter, limits)
+        uptake, messages = _allocate_members(groups, intra, group_shares, limits)
 
     if inter_message:
         logger.warning("%s: inter-group %s", context, inter_message)
@@ -467,14 +466,14 @@ def calculate_two_axis_uptake[T: Hashable](
 
 
 def _calculate_group_shares[T: Hashable](
-    group_map: dict[T, list[int]], intra: _Axis, inter: _Axis
+    groups: dict[T, list[int]], intra: _Axis, inter: _Axis
 ) -> tuple[FloatArray, str]:
     """
     Calculate each group's share from the inter-group choice on its unlimited metric.
 
     Parameters
     ----------
-    group_map
+    groups
         Indices of each group's assets.
     intra
         Intra-group axis.
@@ -488,7 +487,7 @@ def _calculate_group_shares[T: Hashable](
     """
     group_metrics = []
 
-    for indices in group_map.values():
+    for indices in groups.values():
         group_intra = intra.select(indices)
         group_inter = inter.select(indices)
         fill_caps = np.ones(len(indices))
@@ -534,7 +533,7 @@ def _calculate_group_metric(intra: _Axis, inter: _Axis, fill_caps: FloatArray) -
 
 
 def _allocate_members[T: Hashable](
-    group_map: dict[T, list[int]],
+    groups: dict[T, list[int]],
     intra: _Axis,
     group_shares: FloatArray,
     limits: FloatArray | None,
@@ -544,7 +543,7 @@ def _allocate_members[T: Hashable](
 
     Parameters
     ----------
-    group_map
+    groups
         Indices of each group's assets.
     intra
         Intra-group axis.
@@ -561,7 +560,7 @@ def _allocate_members[T: Hashable](
     uptake = np.zeros(len(intra.metrics))
     messages = []
 
-    for i, (group, indices) in enumerate(group_map.items()):
+    for i, (group, indices) in enumerate(groups.items()):
         group_share = group_shares[i]
 
         # a group without share gives its members none, whatever their bounds
@@ -580,7 +579,7 @@ def _allocate_members[T: Hashable](
 
 
 def _solve_group_shares[T: Hashable](
-    group_map: dict[T, list[int]],
+    groups: dict[T, list[int]],
     intra: _Axis,
     inter: _Axis,
     limits: FloatArray,
@@ -612,7 +611,7 @@ def _solve_group_shares[T: Hashable](
 
     Parameters
     ----------
-    group_map
+    groups
         Indices of each group's assets.
     intra
         Intra-group axis.
@@ -626,31 +625,31 @@ def _solve_group_shares[T: Hashable](
     tuple[FloatArray, str]
         Share of each group and a warning message (empty when no warning).
     """
-    groups = []
-    for indices in group_map.values():
-        groups.append(_LimitedGroup(indices, intra, inter, limits))
+    limited = []
+    for indices in groups.values():
+        limited.append(_LimitedGroup(indices, intra, inter, limits))
 
     # no group's utility exceeds that of its best member on the inter axis, so at the
     # lower scale the groups take at most half the total
-    max_utilities = [group.max_utility for group in groups]
+    max_utilities = [group.max_utility for group in limited]
     lower = -np.logaddexp.reduce(max_utilities) - math.log(2.0)
 
     # from the upper scale on, every group takes its cap
     cap_scales = []
-    for group in groups:
+    for group in limited:
         if group.cap > 0.0:
             cap_scales.append(math.log(group.cap) - group.calculate_utility(group.cap))
     upper = max(cap_scales, default=lower)
 
-    if _calculate_total_excess(upper, groups) <= 0.0:
+    if _calculate_total_excess(upper, limited) <= 0.0:
         log_scale = upper
     else:
         log_scale = brentq(
-            _calculate_total_excess, lower, upper, args=(groups,), **_ROOT_OPTIONS
+            _calculate_total_excess, lower, upper, args=(limited,), **_ROOT_OPTIONS
         )
 
-    shares = np.array([group.calculate_share(log_scale) for group in groups])
-    caps = np.array([group.cap for group in groups])
+    shares = np.array([group.calculate_share(log_scale) for group in limited])
+    caps = np.array([group.cap for group in limited])
 
     return _calculate_limited_shares(shares, caps)
 
@@ -671,7 +670,7 @@ class _LimitedGroup:
         self.inter: _Axis = group_inter
         self.intra_shares: FloatArray = intra_shares
         self.max_utility: float = max_utility
-        self.cap: float = min(np.sum(self.limits), 1.0)
+        self.cap: float = min(float(np.sum(self.limits)), 1.0)
 
     def calculate_fill_caps(self, share: float) -> FloatArray:
         """
