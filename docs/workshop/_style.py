@@ -10,7 +10,7 @@ and projectors, so figures use levels 1 to 8 only.
 The roles (fuels, accents, greys) start from Navigate's own palette
 (`navigate/illustrations/plots/_colors.py` and `_labels.py`) and are snapped to
 the nearest swatch, so a fuel keeps its hue and its step while the hex is the
-Center's. The charts Navigate draws itself, which notebook 4 shows, are drawn
+Center's. The charts Navigate draws itself, which notebook 3 shows, are drawn
 again in this palette by `navigate_charts()` at the end of this module.
 
 Why the two methanols are not the same colour
@@ -260,7 +260,7 @@ def cost_colour(part):
 SCEN_COLOUR = {"basecase_no_regulation": swatch("black", 5),
                "basecase_mid_regulation": swatch("blue", 7),
                "basecase_strong_regulation": swatch("blue", 8),
-               # notebooks 1-3: the deck as shipped against the reader's version of it
+               # notebooks 1, 2 and 5: the deck as shipped against the reader's version of it
                "reference": swatch("black", 4),
                "your scenario": swatch("blue", 8)}
 
@@ -273,7 +273,7 @@ def scen_colour(name):
 # Navigate's own charts
 # ---------------------------------------------------------------------------
 # Navigate draws its charts with the library's older seven-step ramps. Rather
-# than display those PNGs, notebook 4 draws the same charts again from the run's
+# than display those PNGs, notebook 3 draws the same charts again from the run's
 # solved model, with Navigate's own plotting code and these colours swapped in
 # for the duration. Its RED ramp is the Center's peach, step for step.
 _NAVIGATE_RAMPS = {"CENTER_COLORS_BLUE": "blue", "CENTER_COLORS_GREEN": "green",

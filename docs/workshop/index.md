@@ -15,14 +15,15 @@ The aim of this section is to work through practical cases with the Navigate mod
 ## What the different sessions propose
 
 1. **Run a simple case**: a made-up example to give an idea of what the model can show, and how changing input data can change the results ([Session 1](01-run-a-simple-case.ipynb))
-2. **Understand Navigate**: how the example was built, the data behind it, how the model solves it step by step, and its results in detail ([Session 2](02-understand-navigate.ipynb))
-3. **Run a global case**: the Center's mid-regulation reference
-   case on a coarse time grid; move some of the assumptions behind it (fuel
-   prices, regulatory stringency, ...) and see how results change ([Session 3](03-run-a-global-case.ipynb))
-4. **Run our reference scenarios**: pre-made assumption sets and models maintained by the Center: how the scenarios differ, and three of them solved year by year ([Session 4](04-run-our-reference-scenarios.ipynb))
-5. **Build your own case with an AI assistant**: example prompts that turn a description of your case into a working model ([Session 5](05-build-your-own-case.ipynb))
+2. **Run a global case**: the Center's reference
+   cases on a coarse time grid; move some of the assumptions behind them (fuel
+   prices, regulatory stringency, ...) and see how results change ([Session 2](02-run-a-global-case.ipynb))
+3. **Run our reference scenarios**: pre-made assumption sets and models maintained by the Center: how the scenarios differ, and three of them solved year by year ([Session 3](03-run-our-reference-scenarios.ipynb))
+4. **How the case is built**: back to the example of Session 1, to see how it was built and the data behind it ([Session 4](04-how-the-case-is-built.ipynb))
+5. **How Navigate solves it**: how the model solves that example step by step, its results in detail, and how much the owners' behaviour matters ([Session 5](05-how-navigate-solves-it.ipynb))
+6. **Build your own case with an AI assistant**: example prompts that turn a description of your case into a working model ([Session 6](06-build-your-own-case.ipynb))
 
-[Session 4](04-run-our-reference-scenarios.ipynb)'s "Run the scenarios" cell takes 25 to 50 minutes, so it is worth starting it early in a separate Colab tab and coming back to it.
+[Session 3](03-run-our-reference-scenarios.ipynb)'s "Run the scenarios" cell takes 25 to 50 minutes, so it is worth starting it early in a separate Colab tab and coming back to it.
 
 To understand the details behind Navigate you can also check our [Tutorials](../tutorials/index.md) and
 [Reference Manual](../reference_manual/index.md).
@@ -31,9 +32,9 @@ To understand the details behind Navigate you can also check our [Tutorials](../
 
 ### Option 1 (recommended): Google Colab, nothing to install
 
-Every session here except [Session 5](05-build-your-own-case.ipynb) opens with an **Open in Colab** badge. Click it and the notebook runs in your browser: no installation, nothing on your laptop. You need a free Google account to use it.
+Every session here except [Session 6](06-build-your-own-case.ipynb) opens with an **Open in Colab** badge. Click it and the notebook runs in your browser: no installation, nothing on your laptop. You need a free Google account to use it.
 
-For Session 5 you will need to install Navigate on your own machine: follow the [installation steps in the README](https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation), or the more detailed [Getting started](https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html) tutorial.
+For Session 6 you will need to install Navigate on your own machine: follow the [installation steps in the README](https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation), or the more detailed [Getting started](https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html) tutorial.
 
 Note for Colab: a session is discarded after a period of
 inactivity. If cells suddenly start failing on imports or missing files, re-run the cells at the top.
@@ -65,9 +66,10 @@ analysis. Outputs depend on the assumptions selected and should not be interpret
 :titlesonly:
 
 01-run-a-simple-case
-02-understand-navigate
-03-run-a-global-case
-04-run-our-reference-scenarios
-05-build-your-own-case
+02-run-a-global-case
+03-run-our-reference-scenarios
+04-how-the-case-is-built
+05-how-navigate-solves-it
+06-build-your-own-case
 references
 ```

@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       full:
-        description: 'Also run Session 4 (three global scenarios, about 25 minutes)'
+        description: 'Also run Session 3 (three global scenarios, about 25 minutes)'
         type: boolean
         default: false
 
@@ -114,9 +114,9 @@ jobs:
 
       - name: Execute the workshop notebooks
         run: |
-          notebooks="01-run-a-simple-case 02-understand-navigate 03-run-a-global-case"
+          notebooks="01-run-a-simple-case 02-run-a-global-case 04-how-the-case-is-built 05-how-navigate-solves-it"
           if [ "${{ inputs.full }}" = "true" ]; then
-            notebooks="$notebooks 04-run-our-reference-scenarios"
+            notebooks="$notebooks 03-run-our-reference-scenarios"
           fi
           python - $notebooks <<'PY'
           import sys, nbformat
