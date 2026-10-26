@@ -11,7 +11,7 @@ entry closest to your case, change what differs, and give it to your assistant.
 The rules every deck shares are in [Building a deck with an AI
 assistant](building-a-deck.md); the prompts here only describe their case.
 
-[Session 6](06-build-your-own-case.ipynb) has four more: one trade between two
+[Session 5](05-build-your-own-case.ipynb) has four more: one trade between two
 ports, inland shipping on the Rhine (its test notes are below), two fleets in
 one market, and the world fleet cut down.
 
@@ -69,15 +69,15 @@ battery-electric ship, which is one of the options German inland operators are
 actually weighing.
 
 **Tested:** 2026-10-16. The final prompt passed every check above on the first
-attempt, built cold and also through Session 6's start-up prompt from a different
+attempt, built cold and also through Session 5's start-up prompt from a different
 inland case (container barges from Duisburg to Frankfurt). Three earlier rounds
 found the traps now written in `building-a-deck.md`. Both builds found that at 65
 to 150 USD/t the owners pay the price rather than switch fuel, and order a few
 more LNG ships; the drop-in fuels need roughly 440 USD/t (biodiesel) to 800-1,100
 USD/t (e-diesel). Treat that as a property of the placeholders, not of the Rhine.
 
-**The prompt** is Session 6's example 2, "Inland waterways in Germany", in
-`docs/workshop/06-build-your-own-case.ipynb`.
+**The prompt** is Session 5's example 2, "Inland waterways in Germany", in
+`docs/workshop/05-build-your-own-case.ipynb`.
 
 ### EU short-sea feeders: what EU ETS and FuelEU make the owners do
 
@@ -98,7 +98,7 @@ this trade's share of the library's feedstock ceilings.
 not in Navigate.
 
 **Tested:** 2026-10-19. The final prompt passed every check above on the first
-attempt, built cold and also through Session 6's start-up prompt from a different
+attempt, built cold and also through Session 5's start-up prompt from a different
 case (Antwerp to Helsinki). One earlier round showed that a larger feedstock share
 lets a small fleet live on Europe's biomass. Both builds found the owners mostly
 pay until the mid-2030s, then comply through new methanol and ammonia ships:
@@ -193,7 +193,7 @@ ceilings.
 guarantees, grants or loan terms.
 
 **Tested:** 2026-10-19. The final prompt passed every check above on the first
-attempt, built cold and also through Session 6's start-up prompt from a different
+attempt, built cold and also through Session 5's start-up prompt from a different
 case (US Gulf grain to Rotterdam, 1.5 points). Both builds found that cheaper
 loans add a few ammonia and methanol ships (about 6 to 10 by 2050) but bring
 nothing forward, and cut emissions by 1 to 2 %: the gap is the fuel's cost, not
@@ -278,7 +278,7 @@ burn the fuel they were built for. Remind me which inputs are placeholders.
 
 **The study.** The mid-regulation reference scenario includes a global fuel standard (`gfs`): a well-to-wake intensity limit that every ship is held to worldwide, tightening from 2028 to 2050. What if it started five years late, but kept the same 2050 target? No deck to build from scratch here: the scenario is run twice, as it is and with every date before 2050 moved later, on the coarse time grid of [Session 2](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-global-case.ipynb) so each run takes a few minutes. The answer is one number worth remembering: the extra megatonnes of CO2e a delay costs, and whether the delayed run catches up by 2050. The change goes in a copy of the regulation file, so the reference scenario itself stays untouched.
 
-**How it differs from the scenarios in the repository.** The four reference scenarios in `simulations/scenarios/` differ in *how strict* the regulation is: none at all, EU ETS and FuelEU only (business as usual), or those plus a global fuel standard that is moderate (mid) or strict (strong). Both standards start in 2028. This case keeps the mid scenario exactly as it is and changes only *when* its standard starts, which none of them explores. It also runs on the coarse grid, so compare its two runs with each other, not with the yearly results of Session 3.
+**How it differs from the scenarios in the repository.** The four reference scenarios in `simulations/scenarios/` differ in *how strict* the regulation is: none at all, EU ETS and FuelEU only (business as usual), or those plus a global fuel standard that is moderate (mid) or strict (strong). Both standards start in 2028. This case keeps the mid scenario exactly as it is and changes only *when* its standard starts, which none of them explores. It also runs on the coarse grid, so compare its two runs with each other, not with the yearly results of Session 2.
 
 ![The global fuel standard's well-to-wake intensity limit from 2025 to 2050: the reference has its penalty from 2028, the delayed start from 2033, and both reach 28.0 gCO2eq/MJ in 2050](../_figures/gfs_delay_chart.png)
 
@@ -291,9 +291,9 @@ mid-regulation reference scenario on the coarse grid of
 **What is INVENTED.** Nothing but the delay itself.
 
 **Limits.** The coarse grid: compare the two runs with each other, not with
-the yearly reference scenarios of Session 3.
+the yearly reference scenarios of Session 2.
 
-**Tested:** 2026-10-06, as what was then Session 5's fourth example (now Session 6): built cold, it ran
+**Tested:** 2026-10-06, as what was then Session 5's fourth example: built cold, it ran
 without errors on the first attempt. It has not yet been checked against the
 criteria above the way the other entries were.
 

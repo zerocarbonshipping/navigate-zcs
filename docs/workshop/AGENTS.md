@@ -8,19 +8,18 @@ SPDX-License-Identifier: CC-BY-4.0
 This file is for anyone changing the workshop in `docs/workshop/`, human or coding
 agent. It states the conventions the notebooks follow and the checks a change
 needs. It does not explain Navigate: the notebooks do that. For building a deck
-from one of Session 6's prompts, see `building-a-deck.md`.
+from one of Session 5's prompts, see `building-a-deck.md`.
 
 ## What is here
 
-Six sessions, each a notebook, in this order:
+Five sessions, each a notebook, in this order:
 
 1. `01-run-a-simple-case.ipynb`: one case, run and varied
-2. `02-run-a-global-case.ipynb`: the reference scenarios on a coarse time grid
-3. `03-run-our-reference-scenarios.ipynb`: the full reference runs, about twenty
-   minutes each
-4. `04-how-the-case-is-built.ipynb`: Session 1's case, its deck and its data
-5. `05-how-navigate-solves-it.ipynb`: the same case, solved step by step
-6. `06-build-your-own-case.ipynb`: prompts for an AI assistant (local install only)
+2. `02-run-a-global-case.ipynb`: the reference scenarios, on a coarse time grid
+   with levers, then three of them year by year (25-50 minutes)
+3. `03-how-the-case-is-built.ipynb`: Session 1's case, its deck and its data
+4. `04-how-navigate-solves-it.ipynb`: the same case, solved step by step
+5. `05-build-your-own-case.ipynb`: prompts for an AI assistant (local install only)
 
 `_style.py` holds the shared figure style. `index.md` is the overview page. The
 decks the sessions run are in `simulations/examples/example_4/` and
@@ -107,7 +106,7 @@ listed in the `.nav` header.
 
 ## Prompts
 
-The start-up prompt and the full prompts in Sessions 1, 2 and 6 are tested as a
+The start-up prompt and the full prompts in Sessions 1, 2 and 5 are tested as a
 chain, cold, by an assistant that sees only the prompt text:
 
 1. the start-up prompt, carried through: it writes a full prompt, and a fresh
@@ -118,7 +117,7 @@ Check that every instruction of the start-up prompt (the new folder and its `_2`
 no change to existing files, INVENTED marking, what to report) reaches the
 generated prompt and is obeyed by the build. Keep the start-up prompt as short as
 a participant could write it, and shorten it only with a chain test showing the
-cut breaks nothing. The rules Session 6's prompts share live in
+cut breaks nothing. The rules Session 5's prompts share live in
 `building-a-deck.md`: change them there, not in each prompt, and test the chain
 again afterwards.
 

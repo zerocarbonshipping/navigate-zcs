@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC-BY-4.0
 # Building a deck with an AI assistant
 
 This page is written for the AI assistant that builds a Navigate deck from one of
-the prompts of [Session 6](06-build-your-own-case.ipynb), and for the person
+the prompts of [Session 5](05-build-your-own-case.ipynb), and for the person
 checking its work. The prompt gives the case; this page gives what every case
 shares: how Navigate works, where the deck goes, where its numbers may come from,
 and what to report. Read all of it before writing any file. Where the prompt and
@@ -16,7 +16,7 @@ this page disagree, the prompt wins.
 
 This page needs an assistant that can read files and run commands on the person's
 machine. If you can only chat, say so at once: the person needs a coding
-assistant that works in a folder (see Session 6), or must paste files and run
+assistant that works in a folder (see Session 5), or must paste files and run
 commands for you.
 
 - Navigate is the repository https://github.com/zerocarbonshipping/navigate-zcs,
