@@ -38,8 +38,7 @@ class VesselResults(_FuelConsumerResults):
     lowest_speed: FloatArray = result("knots")
     highest_speed: FloatArray = result("knots")
 
-    # investment signals: energy-weighted average of the smoothed
-    # energy-conservation duals
+    # investment signals: energy-weighted mean of the smoothed energy-conservation duals
     investment_signal_technology: FloatArray = result("USD/GJ")
     investment_signal_speed: FloatArray = result("USD/GJ")
 
@@ -87,7 +86,6 @@ class VesselResults(_FuelConsumerResults):
 
         self.cargo_miles = self._default_array()
 
-        # speeds
         self.reference_speed = self._default_array(default=np.nan)
         self.minimum_speed = self._default_array(default=np.nan)
         self.maximum_speed = self._default_array(default=np.nan)
@@ -96,17 +94,15 @@ class VesselResults(_FuelConsumerResults):
         self.lowest_speed = self._default_array(default=np.nan)
         self.highest_speed = self._default_array(default=np.nan)
 
-        # investment signals
         self.investment_signal_technology = self._default_array(default=np.nan)
         self.investment_signal_speed = self._default_array(default=np.nan)
 
         self.technology_cost = self._default_array()
 
+        self.asset_charter_rate = self._default_array(default=np.nan)
+        self.cargo_charter_rate = self._default_array(default=np.nan)
+        self.investment_freight_rate = self._default_array(default=np.nan)
+        self.instantaneous_freight_rate = self._default_array(default=np.nan)
+
         self.in_fleet = self._default_bool_array()
         self.cost_is_calculated = self._default_bool_array()
-
-        # investment metrics
-        self.asset_charter_rate = self._default_array(np.nan)
-        self.cargo_charter_rate = self._default_array(np.nan)
-        self.investment_freight_rate = self._default_array(np.nan)
-        self.instantaneous_freight_rate = self._default_array(np.nan)
