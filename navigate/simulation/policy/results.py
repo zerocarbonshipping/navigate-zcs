@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.simulation.policy._policed import select_policed
+
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
 
@@ -18,7 +20,7 @@ def record_regulation_results(regulation: Regulation, idx: int) -> None:
     Parameters
     ----------
     regulation
-        The regulation instance.
+        Regulation whose remedial cost and policed-vessel thresholds are recorded.
     idx
         Current time-step index.
     """
@@ -26,10 +28,11 @@ def record_regulation_results(regulation: Regulation, idx: int) -> None:
         return
 
     results = regulation.results
+    thresholds = select_policed(regulation, regulation.vessel_threshold)
 
     results.remedial_cost[idx] = regulation.remedial_cost.get()
 
     # check_consistency guarantees every policed vessel a threshold
-    for vessel_name, threshold in regulation.vessel_threshold.items():
-        if regulation.vessel_is_policed(vessel_name) and threshold is not None:
+    for vessel_name, threshold in thresholds.items():
+        if threshold is not None:
             results.vessel_threshold[vessel_name][idx] = threshold.get()

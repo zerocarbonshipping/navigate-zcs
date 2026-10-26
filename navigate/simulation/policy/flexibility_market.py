@@ -7,10 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
-import numpy as np
-
 from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
-from navigate.simulation.policy.compliance import calculate_vessel_account
+from navigate.simulation.policy._policed import calculate_vessel_account, select_policed
 from navigate.util import derive_smoothing_alpha, divide_nonzero, update_belief_path
 
 if TYPE_CHECKING:
@@ -74,7 +72,7 @@ def calculate_flexibility_markets(
         market = _clear_flexibility_market(regulation, multipliers, idx)
 
         if scope == BunkerScopeID.EXISTING:
-            _calculate_market_results(regulation, vessels, market, idx)
+            _record_market(regulation, vessels, market, idx)
         else:
             _calculate_market_expectations(regulation, vessels, market, idx)
 
@@ -120,10 +118,7 @@ def update_regulation_flexibility_beliefs(
         belief = expectation.get_belief_flexibility_cost()
         update_belief_path(raw_cost, belief, alpha, idx)
 
-        for vessel_name, vessel in vessels.items():
-            if not regulation.vessel_is_policed(vessel_name):
-                continue
-
+        for vessel_name, vessel in select_policed(regulation, vessels).items():
             net_units = expectation.get_vessel_net_flexibility_units(vessel_name)
             expenses = net_units[idx:] * belief[idx:]
             vessel.expectation.add_flexibility_expenses(idx, expenses)
@@ -139,13 +134,10 @@ def _clear_flexibility_market(
     shadow_price = expectation.get_pooled_shadow_price(idx)
 
     # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance
-    balances: dict[str, tuple[float, float]] = {}
+    balances = {}
     total_non_compliance = 0.0
     total_surplus = 0.0
-    for vessel_name, multiplier in multipliers.items():
-        if not regulation.vessel_is_policed(vessel_name):
-            continue
-
+    for vessel_name, multiplier in select_policed(regulation, multipliers).items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
         non_compliance = max(account.emissions - account.allowance, 0.0)
         surplus = max(account.allowance - account.emissions, 0.0)
@@ -160,8 +152,8 @@ def _clear_flexibility_market(
     # the share of the non-compliance remediated rather than covered by flexibility
     # units, capped at one against the numerical instability of vessels with a low
     # multiplier (the jump-start fraction)
-    ratio = divide_nonzero(total_remedial, total_non_compliance, default=1.0)
-    remedial_fraction = min(1.0, np.float64(ratio))
+    ratio = float(divide_nonzero(total_remedial, total_non_compliance, default=1.0))
+    remedial_fraction = min(1.0, ratio)
 
     # the surplus may exceed the flexibility units when the surplus-generating fuels
     # pay off without the remuneration (e.g., through subsidies), an over-compliance
@@ -170,14 +162,14 @@ def _clear_flexibility_market(
     if total_surplus > total_flexibility > 0.0:
         # the cost falls linearly from the threshold to the zero line, ignoring
         # negative emissions
-        cost_scaling = divide_nonzero(total_flexibility, total_surplus)
-        flexibility_cost = shadow_price * np.float64(cost_scaling)
+        cost_scaling = float(divide_nonzero(total_flexibility, total_surplus))
+        flexibility_cost = shadow_price * cost_scaling
     else:
         flexibility_cost = shadow_price
 
     # every vessel's non-compliance splits into remedial and flexibility units by the
     # same fraction
-    vessel_units: dict[str, _Units] = {}
+    vessel_units = {}
     for vessel_name, (non_compliance, surplus) in balances.items():
         remedial = non_compliance * remedial_fraction
         flexibility = non_compliance * (1.0 - remedial_fraction)
@@ -187,33 +179,31 @@ def _clear_flexibility_market(
     return _Market(remedial_cost, flexibility_cost, total, vessel_units)
 
 
-def _calculate_market_results(
+def _record_market(
     regulation: Regulation, vessels: dict[str, Vessel], market: _Market, idx: int
 ) -> None:
-    """Record a cleared flexibility market in the results."""
+    """Write a cleared flexibility market to the results."""
     results = regulation.results
     total = market.total
-    remedial_cost = market.remedial_cost
-    flexibility_cost = market.flexibility_cost
 
-    remedial_expenses = total.remedial * remedial_cost
-    flexibility_expenses = total.flexibility * flexibility_cost
-    surplus_revenue = total.surplus * flexibility_cost
+    total_remedial_expenses = total.remedial * market.remedial_cost
+    total_flexibility_expenses = total.flexibility * market.flexibility_cost
+    total_surplus_revenue = total.surplus * market.flexibility_cost
 
     results.remedial_units[idx] += total.remedial
-    results.remedial_expenses[idx] += remedial_expenses
-    results.flexibility_cost[idx] = flexibility_cost
+    results.remedial_expenses[idx] += total_remedial_expenses
+    results.flexibility_cost[idx] = market.flexibility_cost
     results.flexibility_units[idx] = total.flexibility
-    results.flexibility_expenses[idx] = flexibility_expenses
+    results.flexibility_expenses[idx] = total_flexibility_expenses
     results.surplus_units[idx] = total.surplus
-    results.surplus_revenue[idx] = surplus_revenue
+    results.surplus_revenue[idx] = total_surplus_revenue
 
     for vessel_name, units in market.vessels.items():
         vessel = vessels[vessel_name]
 
-        remedial_expenses = units.remedial * remedial_cost
-        flexibility_expenses = units.flexibility * flexibility_cost
-        surplus_revenue = units.surplus * flexibility_cost
+        remedial_expenses = units.remedial * market.remedial_cost
+        flexibility_expenses = units.flexibility * market.flexibility_cost
+        surplus_revenue = units.surplus * market.flexibility_cost
 
         vessel.results.remedial_units[regulation.name][idx] += units.remedial
         vessel.results.remedial_expenses[idx] += remedial_expenses
@@ -224,7 +214,7 @@ def _calculate_market_results(
 def _calculate_market_expectations(
     regulation: Regulation, vessels: dict[str, Vessel], market: _Market, idx: int
 ) -> None:
-    """Record a cleared flexibility market in the expectations."""
+    """Write a cleared flexibility market to the expectations."""
     expectation = regulation.expectation
     expectation.set_flexibility_cost(idx, market.flexibility_cost)
 

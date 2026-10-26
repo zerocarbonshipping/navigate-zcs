@@ -5,70 +5,19 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
-from navigate.util import TON_TO_KG, divide_nonzero
+from navigate.simulation.policy._policed import (
+    calculate_vessel_account,
+    normalize_by_measure,
+    select_policed,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
-
-
-class VesselAccount(NamedTuple):
-    """A policed vessel's regulated emissions, measure and allowance at a time step."""
-
-    emissions: float
-    measure: float
-    allowance: float
-
-
-def calculate_vessel_account(
-    regulation: Regulation, vessel_name: str, idx: int
-) -> VesselAccount:
-    """
-    Calculate a policed vessel's account from the bunkering LP of a time step.
-
-    The allowance holds the vessel to its adjusted threshold, where one was
-    adjusted, so that non-compliance and surplus are measured against the target
-    the fleet actually trades against; under FLEXIBLE, every vessel is held to the
-    shared adjusted threshold.
-
-    Parameters
-    ----------
-    regulation
-        Regulation policing the vessel.
-    vessel_name
-        Name of the vessel, which entered the bunkering LP.
-    idx
-        Time-step index of the bunkering LP.
-
-    Returns
-    -------
-    VesselAccount
-        Regulated emissions, measure and allowance of the vessel.
-    """
-    expectation = regulation.expectation
-
-    emissions = expectation.get_vessel_emissions(vessel_name, idx)
-
-    if regulation.measure == RegulationMeasureID.INTENSITY:
-        # the energy, and with it the measure, of an intensity regulation is a
-        # result of the bunkering
-        measure = expectation.get_vessel_energy(vessel_name, idx) / TON_TO_KG
-    else:
-        measure = expectation.get_vessel_measure(vessel_name, idx)
-
-    if regulation.scheme == RegulationSchemeID.FLEXIBLE:
-        threshold = expectation.get_adjusted_shared_threshold(idx)
-    else:
-        threshold = expectation.get_adjusted_vessel_threshold(vessel_name, idx)
-
-    if np.isnan(threshold):
-        threshold = expectation.get_vessel_threshold(vessel_name, idx)
-
-    return VesselAccount(emissions, measure, threshold * measure)
 
 
 def calculate_regulation_compliance(
@@ -88,17 +37,17 @@ def calculate_regulation_compliance(
         Multiplier of each vessel in the existing bunkering LP, in the LP's order,
         which the sums over the vessels follow.
     idx
-        Current time-step index.
+        Time-step index of the bunkering LP.
     """
     for regulation in regulations.values():
         if not regulation.active:
             continue
 
-        _calculate_compliance_results(regulation, multipliers, idx)
+        _record_compliance(regulation, multipliers, idx)
         _record_adjusted_thresholds(regulation, multipliers, idx)
 
 
-def _calculate_compliance_results(
+def _record_compliance(
     regulation: Regulation, multipliers: dict[str, float], idx: int
 ) -> None:
     """Write the vessel and shared compliance, allowance and units to the results."""
@@ -108,17 +57,15 @@ def _calculate_compliance_results(
     total_measure = 0.0
     total_allowance = 0.0
 
-    for vessel_name, multiplier in multipliers.items():
-        if not regulation.vessel_is_policed(vessel_name):
-            continue
-
+    for vessel_name, multiplier in select_policed(regulation, multipliers).items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
 
         total_emissions += multiplier * account.emissions
         total_measure += multiplier * account.measure
         total_allowance += multiplier * account.allowance
 
-        # a vessel with no port in the jurisdiction has a zero measure
+        # a vessel that spent no energy under INTENSITY, or has no regulated cargo
+        # miles under a transport measure, has a zero measure
         if account.measure <= 0.0:
             continue
 
@@ -132,20 +79,20 @@ def _calculate_compliance_results(
 
     # shared compliance and threshold only make sense for absolute emissions and
     # energy intensity: transport-based intensities need not share a unit
-    if regulation.measure not in (
-        RegulationMeasureID.ABSOLUTE,
-        RegulationMeasureID.INTENSITY,
+    if regulation.measure in (
+        RegulationMeasureID.TRANSPORT,
+        RegulationMeasureID.TRANSPORT_NOMINAL,
     ):
         return
 
-    compliance = _normalize_by_measure(regulation, total_emissions, total_measure)
+    compliance = normalize_by_measure(regulation, total_emissions, total_measure)
     results.shared_compliance[idx] = compliance
 
     # the fleet-level effective target of a flexible regulation: the measure-weighted
     # mean of the per-vessel thresholds, equal to the uniform value when the
     # thresholds are assigned via a wildcard
     if regulation.scheme == RegulationSchemeID.FLEXIBLE:
-        threshold = _normalize_by_measure(regulation, total_allowance, total_measure)
+        threshold = normalize_by_measure(regulation, total_allowance, total_measure)
         results.shared_threshold[idx] = threshold
 
 
@@ -161,10 +108,7 @@ def _record_adjusted_thresholds(
     expectation = regulation.expectation
     results = regulation.results
 
-    for vessel_name in multipliers:
-        if not regulation.vessel_is_policed(vessel_name):
-            continue
-
+    for vessel_name in select_policed(regulation, multipliers):
         threshold = expectation.get_adjusted_vessel_threshold(vessel_name, idx)
         if not np.isnan(threshold):
             results.adjusted_vessel_threshold[vessel_name][idx] = threshold
@@ -172,14 +116,3 @@ def _record_adjusted_thresholds(
     shared_threshold = expectation.get_adjusted_shared_threshold(idx)
     if not np.isnan(shared_threshold):
         results.adjusted_shared_threshold[idx] = shared_threshold
-
-
-def _normalize_by_measure(
-    regulation: Regulation, total: float, total_measure: float
-) -> float:
-    """Normalize a fleet aggregate by the pooled measure; ABSOLUTE passes through."""
-    if regulation.measure == RegulationMeasureID.ABSOLUTE:
-        return total
-
-    # the pooled measure is zero when no vessel is policed
-    return np.float64(divide_nonzero(total, total_measure))

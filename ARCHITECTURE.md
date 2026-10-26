@@ -30,7 +30,8 @@ step, and `driver/` runs it from a read deck to its output.
   - `simulation/policy/` — policy expectations, emission coefficients, levy
     costs, the regulation inputs of the bunkering LP and their threshold
     adjustment, regulation compliance and remedial expenses, and the
-    flexibility market and its beliefs.
+    flexibility market and its beliefs. Its files follow the layout of
+    fleet and fuel, without an `initialization.py`.
 - `core/` — the model definition only: the DSL value types and their
   semantics, the node classes (`nodes/`, one per DSL keyword), the general
   nodes (`general_nodes/`), the node maps, `expectations/`, `results/` and
