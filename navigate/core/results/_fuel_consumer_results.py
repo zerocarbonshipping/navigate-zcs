@@ -65,15 +65,16 @@ class _FuelConsumerResults(_BaseResults):
     levy_expenses: dict[str, FloatArray] = result("USD/year")
     fuel_related_expenses: dict[str, FloatArray] = result("USD/year")
     remedial_expenses: FloatArray = result("USD/year")
-    remedial_units: dict[str, FloatArray] = result("tCO2e/year")
-    # a levy unit is the levy collected over its level, so CO2-equivalent under the
-    # levy's own global warming potential
-    levy_units: dict[str, FloatArray] = result("tCO2e/year")
     flexibility_expenses: FloatArray = result("USD/year")
     surplus_revenue: FloatArray = result("USD/year")
     regulation_expenses: FloatArray = result("USD/year")
     total_fuel_expenses: FloatArray = result("USD/year")
     total_fuel_related_expenses: FloatArray = result("USD/year")
+
+    # CO2-equivalents under the policy's own global warming potential; a levy unit is
+    # the levy collected over its level
+    remedial_units: dict[str, FloatArray] = result("tCO2e/year")
+    levy_units: dict[str, FloatArray] = result("tCO2e/year")
 
     # emissions, keyed by (fuel, emission): the tons of each emission are written,
     # the CO2-equivalents computed from them; the intensities are the totals per
@@ -100,9 +101,7 @@ class _FuelConsumerResults(_BaseResults):
     shore_power_emission: dict[str, FloatArray] = result("t/year")
 
     def _initialize_fuel_consumer(
-        self,
-        regulation_names: Sequence[str] = (),
-        levy_names: Sequence[str] = (),
+        self, regulation_names: Sequence[str], levy_names: Sequence[str]
     ) -> None:
         """
         Initialize what the simulation writes to the fuel consumer results.
@@ -129,63 +128,65 @@ class _FuelConsumerResults(_BaseResults):
         self.energy_port = self._default_dict(PORT_ENERGY_DEMANDS)
 
         self.consumed_mass = self._default_dict(fuels)
-
         self.converter_mass = self._default_nested_dict(FuelTypeID, fuels)
-
-        self.wtt = self._default_tuple_dict(fuels, emissions)
-        self.ttw = self._default_tuple_dict(fuels, emissions)
 
         self.fuel_expenses = self._default_dict(fuels)
         self.levy_expenses = self._default_dict(fuels)
         self.remedial_expenses = self._default_array()
-        self.remedial_units = self._default_dict(regulation_names)
-        self.levy_units = self._default_dict(levy_names)
         self.flexibility_expenses = self._default_array()
         self.surplus_revenue = self._default_array()
+
+        self.remedial_units = self._default_dict(regulation_names)
+        self.levy_units = self._default_dict(levy_names)
+
+        self.wtt = self._default_tuple_dict(fuels, emissions)
+        self.ttw = self._default_tuple_dict(fuels, emissions)
 
         self.shore_power_energy = self._default_array()
         self.shore_power_expenses = self._default_array()
         self.shore_power_emission = self._default_dict(emissions)
 
     def add_fuel_consumer_results(
-        self,
-        results: _FuelConsumerResults,
-        multiplier: FloatLike = 1.0,
+        self, results: _FuelConsumerResults, multiplier: FloatLike = 1.0
     ) -> None:
         """
-        Add what another fuel consumer's results were written into this one.
+        Add what was written to another fuel consumer's results into this one.
 
         Parameters
         ----------
         results
             Consumer results from another node.
         multiplier
-            Multiplier applied to each additive attribute when adding; a
-            scalar, or a weight per time step.
+            Multiplier on the other results; a scalar, or a weight per time step.
         """
         accumulate(self.raw_energy_sea, results.raw_energy_sea, multiplier)
         accumulate(self.raw_energy_port, results.raw_energy_port, multiplier)
+
         accumulate(
             self.operational_energy_sea, results.operational_energy_sea, multiplier
         )
         accumulate(
-            self.operational_energy_port,
-            results.operational_energy_port,
-            multiplier,
+            self.operational_energy_port, results.operational_energy_port, multiplier
         )
+
         accumulate(self.energy_sea, results.energy_sea, multiplier)
         accumulate(self.energy_port, results.energy_port, multiplier)
+
         accumulate(self.consumed_mass, results.consumed_mass, multiplier)
         accumulate(self.converter_mass, results.converter_mass, multiplier)
-        accumulate(self.wtt, results.wtt, multiplier)
-        accumulate(self.ttw, results.ttw, multiplier)
+
         accumulate(self.fuel_expenses, results.fuel_expenses, multiplier)
         accumulate(self.levy_expenses, results.levy_expenses, multiplier)
         accumulate(self.remedial_expenses, results.remedial_expenses, multiplier)
-        accumulate(self.remedial_units, results.remedial_units, multiplier)
-        accumulate(self.levy_units, results.levy_units, multiplier)
         accumulate(self.flexibility_expenses, results.flexibility_expenses, multiplier)
         accumulate(self.surplus_revenue, results.surplus_revenue, multiplier)
+
+        accumulate(self.remedial_units, results.remedial_units, multiplier)
+        accumulate(self.levy_units, results.levy_units, multiplier)
+
+        accumulate(self.wtt, results.wtt, multiplier)
+        accumulate(self.ttw, results.ttw, multiplier)
+
         accumulate(self.shore_power_energy, results.shore_power_energy, multiplier)
         accumulate(self.shore_power_expenses, results.shore_power_expenses, multiplier)
         accumulate(self.shore_power_emission, results.shore_power_emission, multiplier)
