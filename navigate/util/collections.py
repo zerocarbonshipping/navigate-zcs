@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""List and dict helpers, including arithmetic and slicing of results."""
+"""List and dict helpers: deduplication, indexing, sums and slicing."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def unique_list[T](items: Iterable[T]) -> list[T]:
     """
-    Create an order preserved list of unique objects in items.
+    Create an order preserved list of the unique items.
 
     Parameters
     ----------
@@ -27,7 +27,7 @@ def unique_list[T](items: Iterable[T]) -> list[T]:
     Returns
     -------
     list[T]
-        Order preserved list of unique objects in items.
+        Order preserved list of the unique items.
     """
     return list(dict.fromkeys(items))
 
@@ -90,6 +90,48 @@ def index_map[T](items: Iterable[T]) -> dict[T, list[int]]:
     return indices
 
 
+def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
+    """
+    Test whether a dict is a single dict, keyed by non-tuple keys.
+
+    Parameters
+    ----------
+    dict_
+        Dict whose key kind is tested.
+
+    Returns
+    -------
+    bool
+        Whether the first key is a non-tuple; False for an empty dict.
+    """
+    if not dict_:
+        return False
+
+    first_key = next(iter(dict_))
+    return not isinstance(first_key, tuple)
+
+
+def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
+    """
+    Test whether a dict is a tuple dict, keyed by two-element tuples.
+
+    Parameters
+    ----------
+    dict_
+        Dict whose key kind is tested.
+
+    Returns
+    -------
+    bool
+        Whether the first key is a two-element tuple; False for an empty dict.
+    """
+    if not dict_:
+        return False
+
+    first_key = next(iter(dict_))
+    return isinstance(first_key, tuple) and len(first_key) == 2
+
+
 def add_dicts[K](*dicts: Mapping[K, FloatLike]) -> dict[K, FloatLike]:
     """
     Merge dicts, adding the values of keys they share.
@@ -112,48 +154,6 @@ def add_dicts[K](*dicts: Mapping[K, FloatLike]) -> dict[K, FloatLike]:
             total[key] = total.get(key, 0.0) + value
 
     return total
-
-
-def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
-    """
-    Check whether a dict is a single dict (keyed by non-tuple keys).
-
-    Parameters
-    ----------
-    dict_
-        Dict whose key kind is tested.
-
-    Returns
-    -------
-    bool
-        Whether the first key is a non-tuple; False for an empty dict.
-    """
-    if not dict_:
-        return False
-
-    first_key = next(iter(dict_))
-    return not isinstance(first_key, tuple)
-
-
-def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
-    """
-    Check whether a dict is a tuple dict (keyed by two-element tuples).
-
-    Parameters
-    ----------
-    dict_
-        Dict whose key kind is tested.
-
-    Returns
-    -------
-    bool
-        Whether the first key is a two-element tuple; False for an empty dict.
-    """
-    if not dict_:
-        return False
-
-    first_key = next(iter(dict_))
-    return isinstance(first_key, tuple) and len(first_key) == 2
 
 
 def sum_values[K](dict_: Mapping[K, FloatArray], shape: tuple[int, ...]) -> FloatArray:

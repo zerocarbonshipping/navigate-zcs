@@ -4,7 +4,7 @@
 """
 Internal type vocabulary: numpy array aliases and the unions over them.
 
-Dependency-free; `navigate/core/types_.py` holds the aliases built over
+Dependency-free; ``navigate/core/types_.py`` holds the aliases built over
 core classes.
 """
 

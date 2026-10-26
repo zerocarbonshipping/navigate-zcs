@@ -4,8 +4,8 @@
 """
 Timings, which books the computational time of each time step to its phases.
 
-navigate.simulation measures its time steps and the methods it decorates with timed;
-the global results hold what is booked.
+``navigate.simulation`` measures its time steps and the methods it decorates with
+``timed``; the global results hold what is booked.
 """
 
 from __future__ import annotations
