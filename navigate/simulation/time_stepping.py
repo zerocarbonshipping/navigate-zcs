@@ -219,7 +219,6 @@ class Simulation:
 
         for fleet in self.nodes.fleets.values():
             complete_fleet_results(fleet, self.timeline)
-            self.global_results.add_fuel_consumer_results(fleet.results)
             self.global_results.add_vessel_aggregate_results(fleet.results)
 
         for port in self.nodes.ports.values():
@@ -228,7 +227,6 @@ class Simulation:
 
         for producer in self.nodes.producers.values():
             complete_producer_results(producer.results)
-            self.global_results.add_fuel_producer_results(producer.results)
             self.global_results.add_plant_aggregate_results(producer.results)
 
         complete_global_fleet_results(self.global_results)

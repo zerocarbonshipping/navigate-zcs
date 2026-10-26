@@ -26,11 +26,13 @@ class _PlantAggregateResults(_FuelProducerResults):
 
     def add_plant_aggregate_results(self, results: _PlantAggregateResults) -> None:
         """
-        Add another plant aggregate's results into this one.
+        Add another plant aggregate's results, its fuel producer results included.
 
         Parameters
         ----------
         results
             Plant aggregate results from another node.
         """
+        self.add_fuel_producer_results(results)
+
         accumulate(self.plant_tied_capital, results.plant_tied_capital)
