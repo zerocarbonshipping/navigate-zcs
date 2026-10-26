@@ -31,16 +31,14 @@ class _FuelInfrastructureResults(_BaseResults):
 
     def _initialize_fuel_infrastructure(self) -> None:
         fuels = self.context.fuels
-        liquid_market = self.context.liquid_market_fuels
 
         self.bunker_mass = self._default_dict(fuels)
+        self.bunker_supply_mass = self._default_dict(fuels)
         self.bunkering_limit_mass = self._default_dict(fuels, default=np.nan)
-        self.bunker_supply_mass = {
-            fuel_name: self._default_array(
-                np.nan if fuel_name in liquid_market else 0.0
-            )
-            for fuel_name in fuels
-        }
+
+        # liquid-market supply is recorded only where a finite bunkering limit bounds it
+        for fuel_name in self.context.liquid_market_fuels:
+            self.bunker_supply_mass[fuel_name] = self._default_array(np.nan)
 
     def add_fuel_infrastructure_results(
         self, results: _FuelInfrastructureResults
