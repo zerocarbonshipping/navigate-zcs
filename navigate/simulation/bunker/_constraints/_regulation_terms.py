@@ -8,14 +8,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, NamedTuple
 
 import navigate.core.enum_ as enum_
-from navigate.simulation.bunker.utils import get_port_converters
+from navigate.simulation.bunker._indices import get_port_converters
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
-    from navigate.simulation.bunker import solver
+    from navigate.simulation.bunker._solver import Terms, Variable
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
@@ -30,14 +30,14 @@ class _Weights(NamedTuple):
 class _Term(NamedTuple):
     """A regulated variable with its jurisdiction fraction and weights."""
 
-    variable: solver.Variable
+    variable: Variable
     fraction: float
     weights: _Weights
 
 
 def calculate_regulation_terms(
     alg: BunkerAlgorithm, vessel: Vessel, regulation: Regulation
-) -> tuple[solver.Terms, solver.Terms, solver.Terms]:
+) -> tuple[Terms, Terms, Terms]:
     r"""
     Calculate the three regulated terms of a vessel under a regulation.
 
@@ -70,7 +70,7 @@ def calculate_regulation_terms(
 
     Returns
     -------
-    tuple[solver.Terms, solver.Terms, solver.Terms]
+    tuple[Terms, Terms, Terms]
         T as each variable with its weight, a variable appearing once as each is
         keyed by a distinct converter, fuel and port or leg; then M and Q.
     """

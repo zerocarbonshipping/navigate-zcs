@@ -27,7 +27,7 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
 
     where b is the fuel mass bunkered at route stop p and A the vessel's fair-share
     allocation of the port's supply. A constrained port supply is split between the
-    competing vessels by the fair-share fixed point (fair_share.py); this caps the
+    competing vessels by the fair-share fixed point (_fair_share.py); this caps the
     vessel at its current allocation.
 
     Parameters

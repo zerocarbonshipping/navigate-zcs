@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import get_constraint
-from navigate.simulation.bunker.utils import get_converters, get_port_converters
+from navigate.simulation.bunker._indices import get_converters, get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter

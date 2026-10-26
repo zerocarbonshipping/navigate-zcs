@@ -17,8 +17,11 @@ from navigate.core import define_vessel_fuel_maps, update_imposed_levies
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.core.results import GlobalResults, ResultsContext
 from navigate.exceptions import DeckError
-from navigate.simulation.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
-from navigate.simulation.bunker.solver_backend import select_backend
+from navigate.simulation.bunker import (
+    BunkerAlgorithm,
+    calculate_fair_share_fuel_supply,
+    select_backend,
+)
 from navigate.simulation.fleet import (
     approximate_missing_technology,
     assign_vessels_to_fleets,

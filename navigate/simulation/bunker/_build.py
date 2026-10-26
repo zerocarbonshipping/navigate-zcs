@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import EnergyDemandID
-    from navigate.simulation.bunker import solver
+    from navigate.simulation.bunker._solver import Constraint, Sense, Variable
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 # the key of an LP element within its family: a single name, or the node names,
@@ -24,7 +24,7 @@ type _ElementKey = str | tuple[str | int | EnergyDemandID, ...]
 
 def add_variable[K: _ElementKey](
     alg: BunkerAlgorithm,
-    container: dict[K, solver.Variable],
+    container: dict[K, Variable],
     key: K,
     name: str,
 ) -> None:
@@ -51,11 +51,11 @@ def add_variable[K: _ElementKey](
 
 def get_constraint[K: _ElementKey](
     alg: BunkerAlgorithm,
-    container: dict[K, solver.Constraint],
+    container: dict[K, Constraint],
     key: K,
-    sense: solver.Sense,
+    sense: Sense,
     name: str,
-) -> solver.Constraint:
+) -> Constraint:
     """
     Return the constraint stored under a key, creating an empty one if absent.
 
@@ -81,7 +81,7 @@ def get_constraint[K: _ElementKey](
 
     Returns
     -------
-    solver.Constraint
+    Constraint
         The existing or newly created constraint.
     """
     if key in container:

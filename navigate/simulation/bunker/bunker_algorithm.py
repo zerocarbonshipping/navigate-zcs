@@ -17,57 +17,59 @@ import numpy as np
 
 from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID, TimingID
-from navigate.simulation.bunker.cleanup import (
+from navigate.simulation.bunker._cleanup import (
     remove_redundant_fuels_from_ports,
     remove_redundant_regulations,
     remove_redundant_vessel,
 )
-from navigate.simulation.bunker.constraints.bunkered_equals_spent import (
-    update_bunkered_equals_spent_constraints,
-)
-from navigate.simulation.bunker.constraints.energy_conservation import (
-    update_energy_conservation_constraints,
-)
-from navigate.simulation.bunker.constraints.mass_conservation import (
-    update_mass_conservation_constraints,
-)
-from navigate.simulation.bunker.constraints.mass_sufficient import (
-    update_mass_sufficient_constraints,
-)
-from navigate.simulation.bunker.constraints.pilot_fuel import (
-    update_pilot_fuel_constraints,
-)
-from navigate.simulation.bunker.constraints.regulation_flexibility import (
-    update_flexibility_regulation_threshold_constraints,
-)
-from navigate.simulation.bunker.constraints.regulation_individual import (
-    update_individual_regulation_threshold_constraints,
-)
-from navigate.simulation.bunker.constraints.regulation_terms import (
+from navigate.simulation.bunker._constraints._regulation_terms import (
     update_regulation_flexibility_rhs,
     update_regulation_individual_rhs,
 )
-from navigate.simulation.bunker.constraints.tank_capacity import (
+from navigate.simulation.bunker._constraints.bunkered_equals_spent import (
+    update_bunkered_equals_spent_constraints,
+)
+from navigate.simulation.bunker._constraints.energy_conservation import (
+    update_energy_conservation_constraints,
+)
+from navigate.simulation.bunker._constraints.mass_conservation import (
+    update_mass_conservation_constraints,
+)
+from navigate.simulation.bunker._constraints.mass_sufficient import (
+    update_mass_sufficient_constraints,
+)
+from navigate.simulation.bunker._constraints.pilot_fuel import (
+    update_pilot_fuel_constraints,
+)
+from navigate.simulation.bunker._constraints.regulation_threshold_flexibility import (
+    update_flexibility_regulation_threshold_constraints,
+)
+from navigate.simulation.bunker._constraints.regulation_threshold_individual import (
+    update_individual_regulation_threshold_constraints,
+)
+from navigate.simulation.bunker._constraints.tank_capacity import (
     update_tank_capacity_constraints,
 )
-from navigate.simulation.bunker.fair_share import run_fair_share_solve
-from navigate.simulation.bunker.objectives import (
+from navigate.simulation.bunker._fair_share import run_fair_share_solve
+from navigate.simulation.bunker._objectives import (
     update_regulation_objectives,
     update_vessel_objectives,
 )
-from navigate.simulation.bunker.solver_backend import create_model
-from navigate.simulation.bunker.transfer.allocation_fuel import transfer_allocation_fuel
-from navigate.simulation.bunker.transfer.bunker import transfer_bunker
-from navigate.simulation.bunker.transfer.dual_solution import transfer_dual_solution
-from navigate.simulation.bunker.transfer.regulation_solution import (
+from navigate.simulation.bunker._transfer.allocation_fuel import (
+    transfer_allocation_fuel,
+)
+from navigate.simulation.bunker._transfer.bunker import transfer_bunker
+from navigate.simulation.bunker._transfer.dual_solution import transfer_dual_solution
+from navigate.simulation.bunker._transfer.regulation_solution import (
     transfer_regulation_solution,
 )
-from navigate.simulation.bunker.transfer.shore_power import transfer_shore_power
-from navigate.simulation.bunker.transfer.spend import transfer_spend
-from navigate.simulation.bunker.variables import (
+from navigate.simulation.bunker._transfer.shore_power import transfer_shore_power
+from navigate.simulation.bunker._transfer.spend import transfer_spend
+from navigate.simulation.bunker._variables import (
     update_regulation_variables,
     update_vessel_variables,
 )
+from navigate.simulation.bunker.solver_backend import create_model
 from navigate.util import timed
 
 if TYPE_CHECKING:
@@ -82,7 +84,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
-    from navigate.simulation.bunker import solver
+    from navigate.simulation.bunker._solver import Constraint, Model, Terms, Variable
     from navigate.util import Timings
     from navigate.util.types_ import FloatLike, Index
 
@@ -191,8 +193,8 @@ class BunkerAlgorithm:
         self.regulation_total_rhs_flexibility: dict[str, float]
 
         # regulation emission and energy terms per (regulation, vessel)
-        self.regulation_emission_terms: dict[tuple[str, str], solver.Terms]
-        self.regulation_energy_terms: dict[tuple[str, str], solver.Terms]
+        self.regulation_emission_terms: dict[tuple[str, str], Terms]
+        self.regulation_energy_terms: dict[tuple[str, str], Terms]
 
         # fair-share fuel properties ---------------------------------------------------
 
@@ -202,42 +204,40 @@ class BunkerAlgorithm:
 
         # primary model attributes -----------------------------------------------------
 
-        self.model: solver.Model = create_model(scope.name.lower(), backend, options)
+        self.model: Model = create_model(scope.name.lower(), backend, options)
 
         # vessel variables
-        self.bunker: dict[tuple[str, int, str], solver.Variable] = {}
-        self.spend_sea: dict[tuple[str, str, str, int, int], solver.Variable] = {}
-        self.spend_port: dict[tuple[str, str, str, int], solver.Variable] = {}
-        self.mass_tank: dict[tuple[str, int, str], solver.Variable] = {}
-        self.shore_power: dict[tuple[str, int], solver.Variable] = {}
+        self.bunker: dict[tuple[str, int, str], Variable] = {}
+        self.spend_sea: dict[tuple[str, str, str, int, int], Variable] = {}
+        self.spend_port: dict[tuple[str, str, str, int], Variable] = {}
+        self.mass_tank: dict[tuple[str, int, str], Variable] = {}
+        self.shore_power: dict[tuple[str, int], Variable] = {}
 
         # regulation variables
-        self.remedial_factor_individual: dict[tuple[str, str], solver.Variable] = {}
-        self.remedial_factor_flexibility: dict[str, solver.Variable] = {}
+        self.remedial_factor_individual: dict[tuple[str, str], Variable] = {}
+        self.remedial_factor_flexibility: dict[str, Variable] = {}
 
         # vessel constraints
         self.energy_conservation_sea: dict[
-            tuple[str, int, int, EnergyDemandID], solver.Constraint
+            tuple[str, int, int, EnergyDemandID], Constraint
         ] = {}
         self.energy_conservation_port: dict[
-            tuple[str, int, EnergyDemandID], solver.Constraint
+            tuple[str, int, EnergyDemandID], Constraint
         ] = {}
-        self.pilot_fuel_sea: dict[tuple[str, str, int, int], solver.Constraint] = {}
-        self.pilot_fuel_port: dict[tuple[str, str, int], solver.Constraint] = {}
-        self.mass_conservation: dict[tuple[str, int, str], solver.Constraint] = {}
-        self.mass_sufficient: dict[tuple[str, int, str], solver.Constraint] = {}
-        self.tank_capacity: dict[tuple[str, int, str], solver.Constraint] = {}
-        self.bunker_equals_spent: dict[tuple[str, str], solver.Constraint] = {}
-        self.fuel_inertia: dict[tuple[str, str, str], solver.Constraint] = {}
+        self.pilot_fuel_sea: dict[tuple[str, str, int, int], Constraint] = {}
+        self.pilot_fuel_port: dict[tuple[str, str, int], Constraint] = {}
+        self.mass_conservation: dict[tuple[str, int, str], Constraint] = {}
+        self.mass_sufficient: dict[tuple[str, int, str], Constraint] = {}
+        self.tank_capacity: dict[tuple[str, int, str], Constraint] = {}
+        self.bunker_equals_spent: dict[tuple[str, str], Constraint] = {}
+        self.fuel_inertia: dict[tuple[str, str, str], Constraint] = {}
 
         # regulation constraints
-        self.regulation_threshold_individual: dict[
-            tuple[str, str], solver.Constraint
-        ] = {}
-        self.regulation_threshold_flexibility: dict[str, solver.Constraint] = {}
+        self.regulation_threshold_individual: dict[tuple[str, str], Constraint] = {}
+        self.regulation_threshold_flexibility: dict[str, Constraint] = {}
 
         # fair-share constraints
-        self.fair_share_fuel: dict[tuple[str, str, str], solver.Constraint] = {}
+        self.fair_share_fuel: dict[tuple[str, str, str], Constraint] = {}
 
     @timed(TimingID.LP_BUILD)
     def build(self, current_idx: int, idx: int, time: float, time_step: float) -> None:

@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import get_constraint
-from navigate.simulation.bunker.constraints.regulation_terms import (
+from navigate.simulation.bunker._constraints._regulation_terms import (
     calculate_regulation_terms,
 )
 

@@ -12,14 +12,14 @@ import numpy as np
 from numpy.linalg import norm
 
 from navigate.core.enum_ import BunkerScopeID
-from navigate.simulation.bunker.constraints.fair_share_fuel import (
+from navigate.simulation.bunker._constraints.fair_share_fuel import (
     update_fair_share_fuel_constraints,
 )
-from navigate.simulation.bunker.constraints.fuel_inertia import (
+from navigate.simulation.bunker._constraints.fuel_inertia import (
     update_fuel_inertia_constraints,
 )
-from navigate.simulation.bunker.optimize import optimize
-from navigate.simulation.bunker.utils import get_port_name_to_indices
+from navigate.simulation.bunker._indices import get_port_name_to_indices
+from navigate.simulation.bunker._optimize import optimize
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -43,8 +43,8 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> bool:
     bool
         Whether the solution converged within the maximum number of iterations.
     """
-    initialize_fair_share_allocation(alg)
-    update_fair_share_constraints(alg)
+    _initialize_fair_share_allocation(alg)
+    _update_fair_share_constraints(alg)
     optimize(alg)
 
     released: set[tuple[str, str, str]] = set()
@@ -53,8 +53,8 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> bool:
     for iteration in range(1, alg.options.fair_share_maximum_iterations + 1):
         previous = {key: alg.model.value(bunker) for key, bunker in alg.bunker.items()}
 
-        update_fair_share_allocation(alg, previous, released)
-        update_fair_share_constraints(alg)
+        _update_fair_share_allocation(alg, previous, released)
+        _update_fair_share_constraints(alg)
         optimize(alg)
 
         change = _calculate_bunker_change(alg, previous)
@@ -68,7 +68,7 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> bool:
     return False
 
 
-def initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
+def _initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     """
     Allocate each vessel its fair share of every finite port fuel supply it may bunker.
 
@@ -100,7 +100,7 @@ def initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         alg.allocation_fuel[key] = _get_fair_share(alg, vessel, port_name, f) * supply
 
 
-def update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
+def _update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
     """
     Update the constraints for fair-share allocation of resources.
 
@@ -117,7 +117,7 @@ def update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
         update_fuel_inertia_constraints(alg, vessel)
 
 
-def update_fair_share_allocation(
+def _update_fair_share_allocation(
     alg: BunkerAlgorithm,
     previous: dict[tuple[str, int, str], float],
     released: set[tuple[str, str, str]],

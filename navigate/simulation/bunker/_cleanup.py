@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from navigate.core.enum_ import EnergyDemandID
-    from navigate.simulation.bunker import solver
+    from navigate.simulation.bunker._solver import Constraint, Variable
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
@@ -102,7 +102,7 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
 
 def _remove_vessel_elements[
     K: tuple[str, *tuple[str | int | EnergyDemandID, ...]],
-    E: (solver.Variable, solver.Constraint),
+    E: (Variable, Constraint),
 ](v: str, container: dict[K, E], remove: Callable[[E], None]) -> None:
     """
     Remove a vessel's variables or constraints from the LP model and their dict.
