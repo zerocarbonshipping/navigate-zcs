@@ -59,8 +59,8 @@ class FleetResults(_VesselAggregateResults):
         context: ResultsContext,
         vessel_names: Sequence[str],
         technology_names: Sequence[str],
-        regulation_names: Sequence[str] = (),
-        levy_names: Sequence[str] = (),
+        regulation_names: Sequence[str],
+        levy_names: Sequence[str],
     ) -> None:
         """
         Initialize the fleet results' storage arrays and lookups.

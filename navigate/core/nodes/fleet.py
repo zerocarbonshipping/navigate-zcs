@@ -570,8 +570,8 @@ class Fleet(Node):
     def initialize_results(
         self,
         context: ResultsContext,
-        regulation_names: Sequence[str] = (),
-        levy_names: Sequence[str] = (),
+        regulation_names: Sequence[str],
+        levy_names: Sequence[str],
     ) -> None:
         vessel_names = [vessel.name for vessel in self.vessels]
         technology_names = [technology.name for technology in self.technologies]

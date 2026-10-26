@@ -64,8 +64,8 @@ class VesselResults(_FuelConsumerResults):
     def initialize(
         self,
         context: ResultsContext,
-        regulation_names: Sequence[str] = (),
-        levy_names: Sequence[str] = (),
+        regulation_names: Sequence[str],
+        levy_names: Sequence[str],
     ) -> None:
         """
         Initialize the vessel results' storage arrays and lookups.
