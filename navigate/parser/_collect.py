@@ -508,7 +508,8 @@ def deck_entry(node_type: str, item: BodyItem, section: SectionID) -> DeckEntry:
     elif general:
         raise item.source.error(f"'{node_type}' does not support commands.")
     else:
-        entries, kind, verb = cls.deck_commands, "command", "use of command"
+        entries = NODE_CLASS[node_type].deck_commands
+        kind, verb = "command", "use of command"
 
     if item.name not in entries:
         raise item.source.error(f"{subject} has no {kind} '{item.name}'.")

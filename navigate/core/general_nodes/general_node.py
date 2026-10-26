@@ -18,13 +18,12 @@ class GeneralNode:
 
     # the general node keyword; each general node class sets its own
     type: ClassVar[str]
-    # the deck attributes the marked setters declare; general nodes have no commands
+    # the deck attributes the marked setters declare
     deck_attributes: ClassVar[dict[str, DeckEntry]] = {}
-    deck_commands: ClassVar[dict[str, DeckEntry]] = {}
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
-        cls.deck_attributes, cls.deck_commands = collect_deck_entries(cls)
+        cls.deck_attributes, _ = collect_deck_entries(cls)
 
     def __repr__(self) -> str:
         return self.type
