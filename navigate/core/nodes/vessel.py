@@ -68,7 +68,8 @@ class Vessel(Node):
         self.heat_load_at_sea: SurfaceInput = Scalar(0.0)
         self.heat_load_in_port: ScalarInput = Scalar(0.0)
 
-        # fuel based power
+        # machinery
+        self.fuel_type: FuelTypeID | None = None
         self.propulsion_converter: Converter
         self.electrical_converter: Converter
         self.heat_converter: Converter
@@ -79,25 +80,21 @@ class Vessel(Node):
         self.nominal_capacity: ScalarInput
 
         # base cost
-        self.capex: ForecastInput = Scalar(0.0)
-        self.opex: ForecastInput = Scalar(0.0)
         self.lifetime: ForecastInput = Scalar(25.0)
         self.lead_time: ForecastInput = Scalar(0.0)
+        self.capex: ForecastInput = Scalar(0.0)
+        self.opex: ForecastInput = Scalar(0.0)
         self.cost_of_capital: ForecastInput = Scalar(0.0)
-
-        # tag
-        self.fuel_type: FuelTypeID | None = None
 
         # internal variables -----------------------------------------------------------
         self.expectation: VesselExpectation = VesselExpectation()
         self.results: VesselResults = VesselResults()
 
-        # convenience variables
+        # set by fleet initialization
         self.primary_fuel_type: FuelTypeID
         self.fleet_assignment: str
 
         # node maps
-        self.usable_fuel_types: list[FuelTypeID]
         self.usable_fuels: dict[str, Fuel]
         self.fuels_per_converter: dict[str, dict[str, Fuel]]
         self.converters_per_fuel: dict[str, dict[str, Converter]]
@@ -146,7 +143,7 @@ class Vessel(Node):
 
     @deck_attribute(SECTION_DEFINE)
     def set_fuel_type(self, fuel_type: str) -> None:
-        """Set the primary main fuel type of the vessel."""
+        """Set the primary fuel type of the vessel."""
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -222,7 +219,6 @@ class Vessel(Node):
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
-
         # downstream code sums over the converters (installed power, cost, fuel demand);
         # a shared one would double-count
         names = [converter.name for converter in self.get_converters()]
@@ -247,16 +243,15 @@ class Vessel(Node):
     def initialize_results(
         self,
         context: ResultsContext,
-        regulation_names: Sequence[str] = (),
-        levy_names: Sequence[str] = (),
+        regulation_names: Sequence[str],
+        levy_names: Sequence[str],
     ) -> None:
-
         self.results.initialize(context, regulation_names, levy_names)
 
     def get_converters(self) -> tuple[Converter, Converter, Converter]:
         return self.propulsion_converter, self.electrical_converter, self.heat_converter
 
-    def get_converter_by_energy_type(self, demand_type: EnergyDemandID) -> Converter:
+    def get_converter(self, demand_type: EnergyDemandID) -> Converter:
         match demand_type:
             case EnergyDemandID.PROPULSION:
                 return self.propulsion_converter

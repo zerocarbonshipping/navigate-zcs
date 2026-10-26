@@ -209,7 +209,7 @@ def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
 
     for energies, times, labels, demand_types in domains:
         for demand_type in demand_types:
-            converter = vessel.get_converter_by_energy_type(demand_type)
+            converter = vessel.get_converter(demand_type)
             demands = [float(energy) for energy in energies[demand_type]]
             overloads += _find_overloads(converter, demand_type, demands, times, labels)
 
