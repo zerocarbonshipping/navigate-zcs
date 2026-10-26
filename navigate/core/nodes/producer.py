@@ -33,6 +33,8 @@ from navigate.core.results import ProducerResults
 from navigate.util import is_nondecreasing
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.core.increment import PlantIncrement
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.forecast import Forecast
@@ -331,10 +333,10 @@ class Producer(Node):
     def initialize_results(
         self,
         context: ResultsContext,
-        feedstocks: dict[str, Feedstock],
-        processes: dict[str, Process],
+        feedstock_names: Sequence[str],
+        process_names: Sequence[str],
     ) -> None:
-        self.results.initialize(context, feedstocks, processes)
+        self.results.initialize(context, feedstock_names, process_names)
 
     def can_produce(self, fuel_name: str) -> bool:
         return fuel_name in self.fuels

@@ -19,8 +19,6 @@ from navigate.core.results._vessel_aggregate_results import _VesselAggregateResu
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.process import Process
     from navigate.core.results.results_context import ResultsContext
     from navigate.util.types_ import FloatArray
 
@@ -36,8 +34,8 @@ class GlobalResults(
     def initialize(
         self,
         context: ResultsContext,
-        feedstocks: dict[str, Feedstock],
-        processes: dict[str, Process],
+        feedstock_names: Sequence[str],
+        process_names: Sequence[str],
         regulation_names: Sequence[str] = (),
         levy_names: Sequence[str] = (),
     ) -> None:
@@ -48,10 +46,10 @@ class GlobalResults(
         ----------
         context
             Timeline, fuels and emissions of the run.
-        feedstocks
-            All feedstocks in the simulation.
-        processes
-            All processes in the simulation.
+        feedstock_names
+            Names of all feedstocks in the simulation.
+        process_names
+            Names of all processes in the simulation.
         regulation_names
             Names of all regulations in the simulation.
         levy_names
@@ -59,7 +57,7 @@ class GlobalResults(
         """
         self._initialize_base(context)
         self._initialize_fuel_consumer(regulation_names, levy_names)
-        self._initialize_fuel_producer(feedstocks, processes)
+        self._initialize_fuel_producer(feedstock_names, process_names)
         self._initialize_fuel_infrastructure()
         self._initialize_vessel_aggregate()
         self._initialize_plant_aggregate()
