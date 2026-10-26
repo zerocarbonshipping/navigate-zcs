@@ -28,7 +28,7 @@ def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
     Parameters
     ----------
     fleets
-        Fleets by name; the limits of each of their vessels are calculated.
+        All fleets in the simulation.
     idx
         Current time-step index.
     """

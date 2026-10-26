@@ -161,7 +161,7 @@ def _calculate_package_weights(
     -------
     dict[TechnologyPackage, float]
         Vessels carrying each package, summed over the cohorts, for the packages
-        carried at all, number of vessels.
+        carried at all, in vessels.
     """
     weights = dict.fromkeys(packages, 0.0)
 
@@ -186,7 +186,7 @@ def _calculate_technology_effect(
         Vessel providing the operational energy demand.
     weights
         Vessels carrying each package, summed over the cohorts, for the packages
-        carried at all, number of vessels.
+        carried at all, in vessels.
     idx
         Current time-step index.
 
@@ -230,7 +230,7 @@ def _average_per_key(
     energies
         Energy per energy demand type of each package, in GJ/year.
     weights
-        Vessels carrying each package, summed over the cohorts, number of vessels.
+        Vessels carrying each package, summed over the cohorts, in vessels.
 
     Returns
     -------

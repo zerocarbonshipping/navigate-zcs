@@ -40,16 +40,16 @@ def calculate_mean_speed_bounds(
     Parameters
     ----------
     speeds_min
-        Minimum speed per sailed condition, knots.
+        Minimum speed per sailed condition, in knots.
     speeds_max
-        Maximum speed per sailed condition, knots.
+        Maximum speed per sailed condition, in knots.
     speeds
-        Speed per sailed condition, knots.
+        Speed per sailed condition, in knots.
 
     Returns
     -------
     tuple[float, float]
-        Minimum and maximum mean speed achievable by the vessel, knots.
+        Minimum and maximum mean speed achievable by the vessel, in knots.
     """
     low = np.min(speeds_min)
     high = np.max(speeds_max)
@@ -81,7 +81,7 @@ def calculate_technical_speed_limits(
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Minimum and maximum speed per condition, knots.
+        Minimum and maximum speed per condition, in knots.
     """
     load = vessel.propulsion_load
 
@@ -232,7 +232,7 @@ def get_total_power_capacity(vessel: Vessel) -> float:
     Returns
     -------
     float
-        Total installed power across the converters, MW.
+        Total installed power across the converters, in MW.
     """
     return sum(converter.power_capacity.get() for converter in vessel.get_converters())
 
@@ -268,14 +268,14 @@ def _calculate_speed_at_power(
     load
         Propulsion load of the vessel.
     power
-        Minimum or maximum power of the converter, MW.
+        Minimum or maximum power of the converter, in MW.
     trip
         Reference trip holding the capacity utilizations.
 
     Returns
     -------
     FloatLike | None
-        The speed at which the power is reached, knots, one per capacity utilization
+        The speed at which the power is reached, in knots, one per capacity utilization
         for a surface, or `None` when the load is not strictly increasing.
     """
     if is_surface(load):
@@ -293,12 +293,12 @@ def _expand_speed_to_conditions(trip: ReferenceTrip, speed: FloatLike) -> FloatA
     trip
         Reference trip holding the sailing conditions.
     speed
-        One speed for every condition, or one speed per condition, knots.
+        One speed for every condition, or one speed per condition, in knots.
 
     Returns
     -------
     FloatArray
-        Speed per condition, knots.
+        Speed per condition, in knots.
     """
     return np.full(len(trip.speeds), speed, dtype=float)
 
@@ -346,9 +346,9 @@ def _find_overloads(
     demand_type
         Energy demand type being verified.
     energies
-        Energy demand per step, GJ/year.
+        Energy demand per step, in GJ/year.
     times
-        Time spent on each step, days/year.
+        Time spent on each step, in days/year.
     labels
         Name of each step, used in the overload messages.
 

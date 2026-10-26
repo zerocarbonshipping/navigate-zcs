@@ -44,7 +44,7 @@ def assign_vessels_to_fleets(fleets: Iterable[Fleet]) -> None:
     Parameters
     ----------
     fleets
-        All fleets of the simulation.
+        All fleets in the simulation.
 
     Raises
     ------
@@ -74,7 +74,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to initialize.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     """
     idx = 0
 
@@ -349,7 +349,7 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to define the trade for.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     """
     idx = 0
     multipliers = get_multipliers(fleet)

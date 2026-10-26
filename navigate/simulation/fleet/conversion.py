@@ -802,7 +802,7 @@ def calculate_fuel_type_balance(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-type capacity and supply are calculated.
     fuels
         All fuels in the simulation.
     idx
@@ -828,7 +828,7 @@ def _calculate_fuel_type_capacity(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-type capacity is added.
     """
     for vessel, multiplier in _vessels_in_service(fleet):
         for converter in vessel.get_converters():
@@ -863,7 +863,7 @@ def _calculate_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-type supply is added.
     fuels
         All fuels in the simulation.
     idx

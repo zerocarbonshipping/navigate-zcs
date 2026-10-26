@@ -75,7 +75,7 @@ def complete_fleet_results(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet, its vessels completed.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     """
     _fold_vessels(fleet)
     _derive_fleet(fleet.results)
@@ -104,7 +104,7 @@ def _fold_vessels(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose vessel values are folded into its results.
     """
     _transfer_in_fleet_flags(fleet)
     _transfer_fuel_consumer_results(fleet)
@@ -123,7 +123,7 @@ def _transfer_in_fleet_flags(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose vessel types' presence is transferred.
     """
     existing_vessels = fleet.results.existing_vessels
 
@@ -138,7 +138,7 @@ def _transfer_fuel_consumer_results(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet receiving its vessels' emissions, energy and fuel expenses.
     """
     existing_vessels = fleet.results.existing_vessels
 
@@ -155,7 +155,7 @@ def _transfer_fuel_conversion_expenses(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel conversion expenses are transferred.
     """
     fleet.results.fuel_conversion_expenses[:] += fleet.fuel_conversion_expenses
 
@@ -167,7 +167,7 @@ def _transfer_power_totals(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose power totals are transferred.
     """
     results = fleet.results
     existing_vessels = results.existing_vessels
@@ -190,7 +190,7 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-converted power is transferred.
     """
     results = fleet.results
     vessel_map = {vessel.name: vessel for vessel in fleet.vessels}
@@ -234,7 +234,7 @@ def _aggregate_reference_speed(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose vessels' reference speeds are averaged.
     """
     results = fleet.results
     multipliers = results.existing_vessels
@@ -262,7 +262,7 @@ def _aggregate_operating_speeds(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose vessels' operating speeds are averaged.
     """
     results = fleet.results
     multipliers = results.existing_vessels
@@ -312,7 +312,7 @@ def _transfer_transport_work(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose transport work is transferred.
     """
     results = fleet.results
     multipliers = results.existing_vessels
@@ -554,9 +554,9 @@ def _calculate_fleet_rates(fleet: Fleet, timeline: FloatArray) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose charter and freight rates are calculated.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     """
     for vessel in fleet.vessels:
         _calculate_achieved_rates(vessel, timeline)
@@ -573,7 +573,7 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
     vessel
         Vessel whose rates are calculated.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     """
     results = vessel.results
     cargo_miles = vessel.expectation.get_cargo_miles()

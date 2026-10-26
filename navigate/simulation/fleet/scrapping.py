@@ -35,7 +35,7 @@ def update_vessel_ages(fleet: Fleet, time_step: float) -> None:
     fleet
         Fleet whose vessels are aged.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     """
     dt = time_step / YEAR
 
@@ -53,7 +53,7 @@ def perform_primary_scrapping(fleet: Fleet, time_step: float, idx: int) -> None:
     fleet
         Fleet whose vessels are scrapped.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     idx
         Current time-step index.
     """
@@ -72,14 +72,14 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int) -> flo
     fleet
         Fleet whose vessels are scrapped.
     trade_gap
-        Trade gap after primary scrapping, cargo-miles/year; negative.
+        Trade gap after primary scrapping, in cargo-miles/year; negative.
     idx
         Current time-step index.
 
     Returns
     -------
     float
-        Scrapped capacity, cargo-miles/year.
+        Scrapped capacity, in cargo-miles/year.
     """
     scrapped_capacity, youngest_age = _scrap_oldest(fleet, -trade_gap, idx)
 
@@ -152,7 +152,7 @@ def _scrap_past_lifetime(oldest: VesselIncrement, lifetime: float) -> float:
     oldest
         Oldest increment of a vessel type.
     lifetime
-        Vessel lifetime, years.
+        Vessel lifetime, in years.
 
     Returns
     -------
@@ -190,7 +190,7 @@ def _scrap_at_fixed_rate(
     fixed_scrap_rate
         Share of the fleet's trade scrapped per year, fraction.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     idx
         Current time-step index.
     """
@@ -224,15 +224,15 @@ def _scrap_oldest(
     fleet
         Fleet whose vessels are scrapped.
     capacity
-        Capacity to scrap, cargo-miles/year.
+        Capacity to scrap, in cargo-miles/year.
     idx
         Current time-step index.
 
     Returns
     -------
     tuple[float, float | None]
-        Scrapped capacity, cargo-miles/year, and the youngest age scrapped, years, or
-        None when nothing was scrapped in part.
+        Scrapped capacity, in cargo-miles/year, and the youngest age scrapped, in
+        years, or None when nothing was scrapped in part.
     """
     # the increments of one age are scrapped together across vessel types, so their
     # (vessel, increment) indices are grouped by the rounded age
@@ -310,7 +310,7 @@ def _scrap_in_part(
     Returns
     -------
     float | None
-        Youngest age scrapped, years.
+        Youngest age scrapped, in years.
     """
     scrap = fleet.results.scrap
     youngest_age = None

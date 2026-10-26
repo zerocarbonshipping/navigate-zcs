@@ -30,7 +30,7 @@ def get_trade_capacity(fleet: Fleet, idx: int) -> float:
     Returns
     -------
     float
-        Trade capacity of the fleet, cargo-miles/year.
+        Trade capacity of the fleet, in cargo-miles/year.
     """
     multipliers = get_multipliers(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx)

@@ -33,7 +33,7 @@ def record_fleet_results(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose results are recorded.
     timeline
         Simulation timeline, in days.
     idx
@@ -57,7 +57,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose increment expenses are transferred.
     timeline
         Simulation timeline, in days.
     idx
@@ -98,7 +98,7 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose weighted age is transferred.
     idx
         Current time-step index.
     """
@@ -124,7 +124,7 @@ def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose fuel-type capacity is transferred.
     idx
         Current time-step index.
     """
@@ -140,7 +140,7 @@ def _transfer_existing_vessels(fleet: Fleet, idx: int) -> None:
     Parameters
     ----------
     fleet
-        Fleet instance.
+        Fleet whose vessel counts are transferred.
     idx
         Current time-step index.
     """
@@ -192,7 +192,7 @@ def record_vessel_results(vessel: Vessel, idx: int) -> None:
     Parameters
     ----------
     vessel
-        Vessel instance.
+        Vessel whose lifetime and lead time are written.
     idx
         Current time-step index.
     """

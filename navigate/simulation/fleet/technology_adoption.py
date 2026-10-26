@@ -78,7 +78,7 @@ class _AdoptionBasis:
     vessel_idx
         Index of the vessel in ``fleet.vessels`` and ``fleet.increments``.
     packages_saving
-        Marginal-saving cash flow of each package, USD/year.
+        Marginal-saving cash flow of each package, in USD/year.
     discount_rate
         Discount rate of the adoption decision: the technology cost of capital,
         falling back to the vessel's, fraction.
@@ -87,7 +87,7 @@ class _AdoptionBasis:
         consistently with the freight-rate NPVs, while the adoption decision keeps
         the technology rate.
     capex_npv
-        Summed ship CAPEX NPV, USD; it non-dimensionalizes the NPVs in the DCM.
+        Summed ship CAPEX NPV, in USD; it non-dimensionalizes the NPVs in the DCM.
     sensitivity
         Odds ratio of the adoption choice.
     """
@@ -107,7 +107,7 @@ class _AdoptionBasis:
         Parameters
         ----------
         npv
-            NPV of each option, USD.
+            NPV of each option, in USD.
 
         Returns
         -------
@@ -141,7 +141,7 @@ class _RetrofitProposal:
     eligible_share
         Share of the increment at ``package_idx`` at propose time, fraction.
     annual_costs
-        Levelized charge of each retrofit step, USD/year per vessel.
+        Levelized charge of each retrofit step, in USD/year per vessel.
     """
 
     vessel_idx: int
@@ -211,7 +211,7 @@ class _CapContribution:
         First index adopting the capped technology.
     weight
         Vessels behind the vector: the eligible count of a retrofit or the newbuild
-        count, number of vessels.
+        count, in vessels.
     """
 
     shares: FloatArray
@@ -236,9 +236,9 @@ def perform_technology_installation(
     fleet
         Fleet whose vessels install technologies.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     idx
         Current time-step index.
     """
@@ -292,7 +292,7 @@ def _extract_adoption_basis(
     sensitivity
         Odds ratio of the adoption choice.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
 
@@ -336,14 +336,14 @@ def _calculate_packages_saving(
     packages
         All technology packages.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index.
 
     Returns
     -------
     list[FloatArray]
-        Saving flow of each package, USD/year.
+        Saving flow of each package, in USD/year.
     """
     lifetime = vessel.lifetime.get()
     forward = np.s_[idx:]
@@ -410,7 +410,7 @@ def _propose_retrofits(
     basis
         Per-vessel invariants of the adoption pass.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
 
     Returns
     -------
@@ -455,13 +455,13 @@ def _retrofit_cohorts(
     basis
         Per-vessel invariants of the adoption pass.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
 
     Yields
     ------
     tuple[VesselIncrement, int, list[FloatArray]]
-        Each cohort, its remaining lifetime in years, and the cost flow of each package
-        over that lifetime, USD/year.
+        Each cohort, its remaining lifetime, in years, and the cost flow of each
+        package over that lifetime, in USD/year.
     """
     packages = fleet.technology_packages
     frequency = fleet.retrofit_frequency.get()
@@ -514,7 +514,7 @@ def _reconcile_retrofit_technology_caps(
         Output of `_propose_retrofits`; each proposal's `choices` is rescaled in place
         when a technology it covers has a binding cap.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     multipliers_total
         Number of vessels in the fleet before newbuilds.
     """
@@ -548,10 +548,10 @@ def reconcile_newbuild_technology_caps(
     fleet
         Fleet whose newbuild caps are enforced.
     newbuilds
-        Newbuilds of each vessel type this time-step, number of vessels; they weight
-        each vessel's contribution to the cap aggregate.
+        Newbuilds of each vessel type this time-step, in vessels; they weight each
+        vessel's contribution to the cap aggregate.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     multipliers_total
         Number of vessels in the fleet before newbuilds.
     """
@@ -589,7 +589,7 @@ def _technology_caps(
     limits
         Yearly cap of each technology as a share of the fleet, fraction.
     time_step
-        Current time-step size, days.
+        Current time-step size, in days.
     multipliers_total
         Number of vessels in the fleet before newbuilds.
 

@@ -187,7 +187,7 @@ def calculate_fleet_evolution_expectation(
     fleet
         Fleet whose expected evolution is calculated.
     timeline
-        Simulation timeline, days.
+        Simulation timeline, in days.
     idx
         Current time-step index, where the expectation starts.
     """
