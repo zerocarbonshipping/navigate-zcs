@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""RegulationResults, the output storage the Regulation node reports from."""
+"""RegulationResults, the output storage of the Regulation node."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import _BaseResults, result
+from navigate.core.results.base_results import BaseResults, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class RegulationResults(_BaseResults):
+class RegulationResults(BaseResults):
     """Thresholds, compliance and the units traded under one regulation."""
 
     # cost of one compliance unit
@@ -60,7 +60,7 @@ class RegulationResults(_BaseResults):
 
     def initialize(self, context: ResultsContext, vessel_names: Sequence[str]) -> None:
         """
-        Initialize the regulation results' storage arrays.
+        Allocate the regulation results' storage.
 
         Parameters
         ----------
@@ -69,7 +69,7 @@ class RegulationResults(_BaseResults):
         vessel_names
             Names of all vessels in the simulation.
         """
-        self._initialize_base(context)
+        self.context = context
 
         self.remedial_cost = self._default_array(default=np.nan)
         self.flexibility_cost = self._default_array(default=np.nan)

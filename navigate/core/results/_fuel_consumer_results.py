@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
-from navigate.core.results._base_results import _BaseResults, accumulate, result
+from navigate.core.results.base_results import BaseResults, accumulate, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class _FuelConsumerResults(_BaseResults):
+class _FuelConsumerResults(BaseResults):
     """Energy demand, fuel burnt, emissions and fuel expenses of a fuel consumer."""
 
     # raw energy demand
@@ -103,18 +103,6 @@ class _FuelConsumerResults(_BaseResults):
     def _initialize_fuel_consumer(
         self, regulation_names: Sequence[str], levy_names: Sequence[str]
     ) -> None:
-        """
-        Initialize what the simulation writes to the fuel consumer results.
-
-        The results computed from it are written in post-processing.
-
-        Parameters
-        ----------
-        regulation_names
-            Names of all regulations in the simulation.
-        levy_names
-            Names of all levies in the simulation.
-        """
         fuels = self.context.fuels
         emissions = self.context.emissions
 
@@ -150,7 +138,7 @@ class _FuelConsumerResults(_BaseResults):
         self, results: _FuelConsumerResults, multiplier: FloatLike = 1.0
     ) -> None:
         """
-        Add what was written to another fuel consumer's results into this one.
+        Add another fuel consumer's results into this one.
 
         Parameters
         ----------

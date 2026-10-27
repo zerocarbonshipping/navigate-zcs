@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.core.node_registry import GeneralNodes, Nodes
-    from navigate.core.results.global_results import GlobalResults
+    from navigate.core.results import GlobalResults
     from navigate.util.types_ import DateArray
 
 

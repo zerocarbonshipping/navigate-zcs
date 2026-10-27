@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""ProducerResults, the output storage the Producer node reports results from."""
+"""ProducerResults, the output storage of the Producer node."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import result
 from navigate.core.results._plant_aggregate_results import _PlantAggregateResults
+from navigate.core.results.base_results import result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -37,7 +37,7 @@ class ProducerResults(_PlantAggregateResults):
         process_names: Sequence[str],
     ) -> None:
         """
-        Initialize the producer results' storage arrays and lookups.
+        Allocate the producer results' storage.
 
         Parameters
         ----------
@@ -48,7 +48,8 @@ class ProducerResults(_PlantAggregateResults):
         process_names
             Names of all processes in the simulation.
         """
-        self._initialize_base(context)
+        self.context = context
+
         self._initialize_fuel_producer(feedstock_names, process_names)
         self._initialize_plant_aggregate()
 

@@ -432,11 +432,11 @@ def _complete_consumption(results: _ConsumerResults) -> None:
 
     converter_energy: dict[tuple[FuelTypeID, str], FloatArray] = {}
     for vessel_fuel_type, converter_mass in results.converter_mass.items():
-        for fuel_name, energy in context.energy(converter_mass).items():
+        for fuel_name, energy in context.calculate_energy(converter_mass).items():
             converter_energy[(vessel_fuel_type, fuel_name)] = energy
 
-    results.consumed_energy = context.energy(mass)
-    results.fuel_type_energy = context.fuel_type_energy(mass)
+    results.consumed_energy = context.calculate_energy(mass)
+    results.fuel_type_energy = context.calculate_fuel_type_energy(mass)
     results.converter_energy = converter_energy
 
     fuel_energy = sum_values(results.consumed_energy, shape)
@@ -452,7 +452,7 @@ def _pilot_fuel_share(results: _ConsumerResults) -> dict[FuelTypeID, FloatArray]
     share: dict[FuelTypeID, FloatArray] = {}
 
     for vessel_fuel_type, mass in results.converter_mass.items():
-        energy = context.fuel_type_energy(mass)
+        energy = context.calculate_fuel_type_energy(mass)
         total = sum_values(energy, shape)
         share[vessel_fuel_type] = 1.0 - divide_nonzero(energy[vessel_fuel_type], total)
 
@@ -486,13 +486,13 @@ def _complete_emissions(results: _ConsumerResults) -> None:
     ttw = results.ttw
     wtw = {key: wtt[key] + ttw[key] for key in wtt}
 
-    results.equivalent_wtt = context.equivalent(wtt)
-    results.equivalent_ttw = context.equivalent(ttw)
-    results.equivalent_wtw = context.equivalent(wtw)
+    results.equivalent_wtt = context.calculate_equivalent(wtt)
+    results.equivalent_ttw = context.calculate_equivalent(ttw)
+    results.equivalent_wtw = context.calculate_equivalent(wtw)
 
     # shore power emissions are a WTW lump with no (fuel, emission) attribution, so
     # they enter the WTW total but not the per-key results
-    shore_power = context.equivalent_by_emission(results.shore_power_emission)
+    shore_power = context.calculate_emission_equivalent(results.shore_power_emission)
     total_shore_power = sum_values(shore_power, shape)
     total_wtt = sum_values(results.equivalent_wtt, shape)
     total_ttw = sum_values(results.equivalent_ttw, shape)

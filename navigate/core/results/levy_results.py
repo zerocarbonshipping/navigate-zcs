@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""LevyResults, the output storage the Levy node reports its results from."""
+"""LevyResults, the output storage of the Levy node."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.results._base_results import _BaseResults, result
+from navigate.core.results.base_results import BaseResults, result
 
 if TYPE_CHECKING:
     from navigate.core.results.results_context import ResultsContext
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class LevyResults(_BaseResults):
+class LevyResults(BaseResults):
     """Revenue one levy collected over the timeline."""
 
     # negative where the levy pays out a subsidy
@@ -24,12 +24,12 @@ class LevyResults(_BaseResults):
 
     def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the levy results' storage arrays.
+        Allocate the levy results' storage.
 
         Parameters
         ----------
         context
             Timeline, fuels and emissions of the run.
         """
-        self._initialize_base(context)
+        self.context = context
         self.collected = self._default_array()

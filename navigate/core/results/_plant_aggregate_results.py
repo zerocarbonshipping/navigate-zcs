@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The results layer that sums plant capital over a producer or the model."""
+"""The results layer for the plant aggregates: the producer and global results."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.results._base_results import accumulate, result
 from navigate.core.results._fuel_producer_results import _FuelProducerResults
+from navigate.core.results.base_results import accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
@@ -26,11 +26,13 @@ class _PlantAggregateResults(_FuelProducerResults):
 
     def add_plant_aggregate_results(self, results: _PlantAggregateResults) -> None:
         """
-        Add another plant aggregate's results into this one.
+        Add another plant aggregate's results, its fuel producer results included.
 
         Parameters
         ----------
         results
             Plant aggregate results from another node.
         """
+        self.add_fuel_producer_results(results)
+
         accumulate(self.plant_tied_capital, results.plant_tied_capital)
