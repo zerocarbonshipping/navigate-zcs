@@ -76,18 +76,18 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
     """Set the port's limits, costs, overwrites and shore-power terms."""
     expectation = port.expectation
 
-    for key, value in port.bunkering_limit.items():
+    for key, value in port.bunkering_limits.items():
         if value is not None:
             expectation.set_bunkering_limit(idx, key, value.get(times))
 
-    for key, value in port.handling_cost.items():
+    for key, value in port.handling_costs.items():
         expectation.set_handling_cost(idx, key, value.get(times))
 
-    for key, value in port.bunker_price_overwrite.items():
+    for key, value in port.bunker_price_overwrites.items():
         if value is not None:
             expectation.set_bunker_price_overwrite(idx, key, value.get(times))
 
-    for key, value in port.bunker_wtt_overwrite.items():
+    for key, value in port.bunker_wtt_overwrites.items():
         if value is not None:
             expectation.set_bunker_wtt_overwrite(idx, *key, value.get(times))
 
@@ -96,7 +96,7 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
     # convert from USD/MWh to USD/GJ, and ton/MWh to ton/GJ
     cost = port.shore_power_cost.get(times) / MWH_TO_GJ
     factors: dict[str, FloatArray] = {}
-    for key, value in port.shore_power_emission_factor.items():
+    for key, value in port.shore_power_emission_factors.items():
         factors[key] = value.get(times) / MWH_TO_GJ
 
     expectation.set_shore_power_connection_share(idx, share)

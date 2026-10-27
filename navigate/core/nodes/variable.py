@@ -12,7 +12,7 @@ import numpy as np
 from navigate.core import assign_value, deck_attribute
 from navigate.core.node import Node
 from navigate.core.node_type import VARIABLE
-from navigate.core.nodes._calculator import _Calculator, evaluate_number
+from navigate.core.nodes._calculator import _Calculator
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
@@ -46,10 +46,10 @@ class Variable(Node, _Calculator):
 
     # internal methods -----------------------------------------------------------------
     @overload
-    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
+    def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
 
     @overload
-    def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
 
     def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
@@ -58,17 +58,16 @@ class Variable(Node, _Calculator):
         Parameters
         ----------
         x
-            Dummy first input matching the calculator getters; an array sets
-            the output shape.
+            Ignored but for its shape; an array sets the output shape.
         y
-            Dummy second input matching the calculator getters.
+            Ignored; it exists because expressions call every getter with two inputs.
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             The bounded value, or an array of it in the shape of ``x``.
         """
-        value = self._transform(evaluate_number(self.value))
+        value = self._transform(self._evaluate_number(self.value))
 
         # broadcasting is what keeps a Variable substitutable for a calculator
         # node, whose getter answers an array input with an array

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Collect which node properties to export at the end of a simulation.
+Define the Report node, the node properties exported at the end of a simulation.
 
 navigate.output.report_writer.write_report writes the Excel/CSV files from the
 SimulationResults of a finished run. No other node refers to the Report node.
@@ -69,7 +69,7 @@ def check_report_property(command: str, token: str) -> None:
 
 
 class Report(Node):
-    """Hold the node properties to export and the file format to export them in."""
+    """A report: the node properties to export and the file format to export them in."""
 
     type = REPORT
 

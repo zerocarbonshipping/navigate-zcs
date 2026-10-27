@@ -83,8 +83,6 @@ class Levy(_Policy):
         self.results.initialize(context)
 
     def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
-        super().check_dynamic_consistency(times, dates)
-
         # SUBSIDY never reads the upper threshold, and an inactive levy is
         # checked from the step an event activates it
         if self.upper_threshold is None:

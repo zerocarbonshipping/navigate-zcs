@@ -80,7 +80,7 @@ class Component:
 
     def attach_process_cycle(self, region: Region, process_name: str) -> None:
         """Attach the replacement cycle of a region process that has a lifetime."""
-        lifetime = region.process_lifetime[process_name]
+        lifetime = region.process_lifetimes[process_name]
         if lifetime is None:
             return
 

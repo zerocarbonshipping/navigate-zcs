@@ -336,7 +336,7 @@ def _calculate_regulation_vessel_thresholds(
     """
     expectation = regulation.expectation
 
-    for vessel_name, threshold in regulation.vessel_threshold.items():
+    for vessel_name, threshold in regulation.vessel_thresholds.items():
         # zero rather than unwritten: an event can stop the regulation policing the
         # vessel, and the threshold written while it did would remain;
         # check_consistency guarantees every policed vessel a threshold
@@ -887,7 +887,7 @@ def _estimate_port_wtt(
     forward = np.s_[idx:]
     key = (fuel.name, emission.name)
 
-    if port.bunker_wtt_overwrite[key] is not None:
+    if port.bunker_wtt_overwrites[key] is not None:
         return port.expectation.get_bunker_wtt_overwrite(*key, forward)
 
     if not plants:

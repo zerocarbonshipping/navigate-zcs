@@ -325,7 +325,7 @@ def _reconcile_fuel_conversion_caps(
 
     pair_scale = {}
     for pair, proposed in pair_proposed.items():
-        limit = fleet.fuel_conversion_limit[pair].get()
+        limit = fleet.fuel_conversion_limits[pair].get()
         pair_cap = limit * dt * existing_total
         if proposed > pair_cap:
             pair_scale[pair] = pair_cap / proposed
@@ -449,7 +449,7 @@ def _extract_conversion_source(
         type.
     """
     targets = {}
-    for (name_from, name_to), cost in fleet.fuel_conversion_cost.items():
+    for (name_from, name_to), cost in fleet.fuel_conversion_costs.items():
         if name_from != vessel_from.name or cost is None:
             continue
 

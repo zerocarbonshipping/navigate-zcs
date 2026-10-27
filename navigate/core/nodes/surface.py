@@ -5,20 +5,16 @@
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from navigate.core import deck_attribute
-from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
 from navigate.core.node_type import SURFACE
-from navigate.core.nodes._table2d import _Table2D, check_table2d_input
+from navigate.core.nodes._table2d import _Table2D
 from navigate.core.table_data import TableData, build_table_2d
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray, FloatLike
-
-logger = logging.getLogger(__name__)
 
 
 class Surface(Node, _Table2D):
@@ -37,15 +33,21 @@ class Surface(Node, _Table2D):
         Node.__init__(self, name)
         _Table2D.__init__(self)
 
+        # internal variables -----------------------------------------------------------
         # the table read from the deck, pending until it is built
         self._pending_table: tuple[FloatArray, FloatArray, FloatArray] | None = None
 
+    # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x-, y- and z-values the surface interpolates in."""
         x, y, z = build_table_2d(table)
-        check_table2d_input(x, y, z)
+        self._check_table(x, y, z)
         self._pending_table = (x, y, z)
+
+    # internal methods -----------------------------------------------------------------
+    def check_consistency(self) -> None:
+        self._check_extrapolate_consistency()
 
     def build_table(self) -> None:
         """Build the pending table with the interpolation and extrapolation set."""
@@ -56,23 +58,18 @@ class Surface(Node, _Table2D):
         self._set_table(x, y, z)
         self._pending_table = None
 
-    def check_consistency(self) -> None:
-        if self.extrapolate == ExtrapolateID.FLAT and self._outside is None:
-            raise ValueError(
-                f"{self}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
-            )
+    @overload
+    def get(self, x: float | None, y: float | None) -> float: ...
 
-        if self.extrapolate != ExtrapolateID.FLAT and self._outside is not None:
-            logger.warning(
-                "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
-                " to %s.",
-                self,
-                self.extrapolate.name,
-            )
+    @overload
+    def get(self, x: FloatArray, y: FloatLike | None) -> FloatArray: ...
+
+    @overload
+    def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike: ...
 
     def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike:
         """
-        Return the interpolated surface value at (x, y).
+        Return the interpolated table value at (x, y).
 
         Parameters
         ----------
@@ -80,11 +77,12 @@ class Surface(Node, _Table2D):
             First input variable. None, which an expression passes on when it
             is evaluated without input, is rejected.
         y
-            Second input variable, rejected when None like ``x``.
+            Second input variable. None, which an expression passes on when it
+            is evaluated without input, is rejected.
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             Response variable, in the broadcast shape of ``x`` and ``y``.
 
         Raises

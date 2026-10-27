@@ -428,7 +428,7 @@ def _calculate_bunker_price(
         Bunker price, in USD/t.
     """
     overwrite = port.expectation.get_bunker_price_overwrite(fuel_name, forward)
-    overwritten = port.bunker_price_overwrite[fuel_name] is not None
+    overwritten = port.bunker_price_overwrites[fuel_name] is not None
     price = overwrite if overwritten else fallback
 
     # the overwrite getter returns a view into stored state, so the handling cost is
@@ -463,7 +463,7 @@ def _calculate_bunker_wtts(
     for emission_name, fallback in fallbacks.items():
         key = (fuel_name, emission_name)
         overwrite = port.expectation.get_bunker_wtt_overwrite(*key, forward)
-        overwritten = port.bunker_wtt_overwrite[key] is not None
+        overwritten = port.bunker_wtt_overwrites[key] is not None
         wtts[emission_name] = overwrite if overwritten else fallback
 
     return wtts

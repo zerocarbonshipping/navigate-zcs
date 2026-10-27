@@ -44,7 +44,3 @@ class Tank(_Machinery):
     def set_size(self, size: ScalarArgument) -> None:
         """Set the volumetric size of the tank."""
         self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
-
-    # internal methods -----------------------------------------------------------------
-    def get_fuel_types(self) -> list[FuelTypeID]:
-        return self.fuel_types

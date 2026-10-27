@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the calculator base shared by every calculator node."""
+
 from __future__ import annotations
 
 import logging
@@ -9,9 +11,8 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
-from navigate.core import assign_bound, assign_value, deck_attribute
+from navigate.core import Expression, assign_bound, assign_value, deck_attribute
 from navigate.core.bounds import Bounds
-from navigate.core.expression import Expression
 from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
@@ -19,42 +20,6 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
-
-
-@overload
-def evaluate_number(number: NumberInput) -> float: ...
-
-
-@overload
-def evaluate_number(
-    number: NumberInput, x: FloatLike | None, y: FloatLike | None = None
-) -> FloatLike: ...
-
-
-def evaluate_number(
-    number: NumberInput, x: FloatLike | None = None, y: FloatLike | None = None
-) -> FloatLike:
-    """
-    Evaluate a number a calculator attribute holds, expression or not.
-
-    Parameters
-    ----------
-    number
-        Number or deck expression the attribute holds.
-    x
-        First input variable an expression is evaluated with.
-    y
-        Second input variable an expression is evaluated with.
-
-    Returns
-    -------
-    FloatLike
-        The number, or the expression's value in the shape of the inputs.
-    """
-    if isinstance(number, Expression):
-        return number.get(x, y)
-
-    return number
 
 
 class _Calculator:
@@ -194,8 +159,8 @@ class _Calculator:
         FloatLike
             Transformed value, in the shape of ``value``.
         """
-        multiplier = evaluate_number(self.multiplier, x, y)
-        addition = evaluate_number(self.addition, x, y)
+        multiplier = self._evaluate_number(self.multiplier, x, y)
+        addition = self._evaluate_number(self.addition, x, y)
         return self._truncate(multiplier * (value + addition))
 
     @overload
@@ -252,6 +217,42 @@ class _Calculator:
             inclusive_lower=internal.inclusive_lower or user_lower_applies,
             inclusive_upper=internal.inclusive_upper or user_upper_applies,
         )
+
+    @overload
+    @staticmethod
+    def _evaluate_number(number: NumberInput) -> float: ...
+
+    @overload
+    @staticmethod
+    def _evaluate_number(
+        number: NumberInput, x: FloatLike | None, y: FloatLike | None = None
+    ) -> FloatLike: ...
+
+    @staticmethod
+    def _evaluate_number(
+        number: NumberInput, x: FloatLike | None = None, y: FloatLike | None = None
+    ) -> FloatLike:
+        """
+        Evaluate a number a calculator attribute holds, expression or not.
+
+        Parameters
+        ----------
+        number
+            Number or deck expression the attribute holds.
+        x
+            First input variable an expression is evaluated with.
+        y
+            Second input variable an expression is evaluated with.
+
+        Returns
+        -------
+        FloatLike
+            The number, or the expression's value in the shape of the inputs.
+        """
+        if isinstance(number, Expression):
+            return number.get(x, y)
+
+        return number
 
     @staticmethod
     def _test_convexity(x: FloatArray, y: FloatArray) -> bool:

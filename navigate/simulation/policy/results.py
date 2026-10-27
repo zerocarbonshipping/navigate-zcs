@@ -28,7 +28,7 @@ def record_regulation_results(regulation: Regulation, idx: int) -> None:
         return
 
     results = regulation.results
-    thresholds = select_policed(regulation, regulation.vessel_threshold)
+    thresholds = select_policed(regulation, regulation.vessel_thresholds)
 
     results.remedial_cost[idx] = regulation.remedial_cost.get()
 

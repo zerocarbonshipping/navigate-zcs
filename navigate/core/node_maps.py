@@ -75,7 +75,7 @@ def _usable_fuel_types(vessel: Vessel) -> list[FuelTypeID]:
     fuel_types: list[FuelTypeID] = []
 
     for tank in vessel.tanks:
-        fuel_types.extend(tank.get_fuel_types())
+        fuel_types.extend(tank.fuel_types)
 
     for converter in vessel.get_converters():
         fuel_types.extend(converter.get_fuel_types())

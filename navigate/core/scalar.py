@@ -30,10 +30,10 @@ class Scalar:
         return f"Scalar({self._value!s})"
 
     @overload
-    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
+    def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
 
     @overload
-    def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
 
     def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
@@ -42,14 +42,13 @@ class Scalar:
         Parameters
         ----------
         x
-            Dummy first input matching the calculator getters; an array sets
-            the output shape.
+            Ignored but for its shape; an array sets the output shape.
         y
-            Dummy second input matching the calculator getters.
+            Ignored; it exists because expressions call every getter with two inputs.
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             The wrapped number, or an array of it in the shape of ``x``.
         """
         # broadcasting is what keeps a Scalar substitutable for a calculator

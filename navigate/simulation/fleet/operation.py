@@ -217,8 +217,8 @@ def transfer_operational_savings(fleet: Fleet) -> None:
     fleet
         Fleet whose saving fractions are transferred.
     """
-    saving_sea = to_floats(fleet.operational_saving_sea)
-    saving_port = to_floats(fleet.operational_saving_port)
+    saving_sea = to_floats(fleet.operational_savings_sea)
+    saving_port = to_floats(fleet.operational_savings_port)
 
     for vessel in fleet.vessels:
         vessel.expectation.set_operational_saving_fraction_sea(saving_sea)

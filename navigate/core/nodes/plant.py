@@ -65,19 +65,19 @@ class Plant(Node):
 
         self.cost_of_capital: ForecastInput = Scalar(0.0)
 
-        self.feed_transport: dict[str, Transport | None] = {}
-        self.feed_distance: dict[str, ForecastInput | None] = {}
+        self.feed_transports: dict[str, Transport | None] = {}
+        self.feed_distances: dict[str, ForecastInput | None] = {}
 
-        self.fuel_transport: dict[str, Transport | None] = {}
-        self.fuel_distance: dict[str, ForecastInput | None] = {}
+        self.fuel_transports: dict[str, Transport | None] = {}
+        self.fuel_distances: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
+        self.expectation: PlantExpectation = PlantExpectation()
+        self.results: PlantResults = PlantResults()
+
         self.feed_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
         self.fuel_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
         self.producer_assignment: str | None = None
-
-        self.expectation: PlantExpectation = PlantExpectation()
-        self.results: PlantResults = PlantResults()
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -152,7 +152,7 @@ class Plant(Node):
         write_matching_keys(
             feed_name,
             assign_reference(value, TRANSPORT),
-            self.feed_transport,
+            self.feed_transports,
         )
 
     @deck_command()
@@ -161,7 +161,7 @@ class Plant(Node):
         write_matching_keys(
             feed_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.feed_distance,
+            self.feed_distances,
         )
 
     @deck_command()
@@ -170,7 +170,7 @@ class Plant(Node):
         write_matching_keys(
             port_name,
             assign_reference(value, TRANSPORT),
-            self.fuel_transport,
+            self.fuel_transports,
         )
 
     @deck_command()
@@ -179,13 +179,17 @@ class Plant(Node):
         write_matching_keys(
             port_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.fuel_distance,
+            self.fuel_distances,
         )
 
     # internal methods -----------------------------------------------------------------
     def apply_command_defaults(self) -> None:
-        self.feed_deliveries = self._deliveries(self.feed_transport, self.feed_distance)
-        self.fuel_deliveries = self._deliveries(self.fuel_transport, self.fuel_distance)
+        self.feed_deliveries = self._deliveries(
+            self.feed_transports, self.feed_distances
+        )
+        self.fuel_deliveries = self._deliveries(
+            self.fuel_transports, self.fuel_distances
+        )
 
     def check_consistency(self) -> None:
         if self.fuel.liquid_market:
@@ -194,8 +198,8 @@ class Plant(Node):
                 " belongs to a liquid market ('LiquidMarket = TRUE')."
             )
 
-        self._check_distances_have_transport(self.feed_transport, self.feed_distance)
-        self._check_distances_have_transport(self.fuel_transport, self.fuel_distance)
+        self._check_distances_have_transport(self.feed_transports, self.feed_distances)
+        self._check_distances_have_transport(self.fuel_transports, self.fuel_distances)
 
     def initialize_dependencies(
         self,
@@ -204,7 +208,7 @@ class Plant(Node):
         processes: dict[str, Process],
     ) -> None:
         """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
+        Initialize dependent dictionaries to allow wildcarding in command calls.
 
         Parameters
         ----------
@@ -216,12 +220,12 @@ class Plant(Node):
             All processes in the simulation.
         """
         for feed_name in [*feedstocks, *processes]:
-            self.feed_transport.setdefault(feed_name, None)
-            self.feed_distance.setdefault(feed_name, None)
+            self.feed_transports.setdefault(feed_name, None)
+            self.feed_distances.setdefault(feed_name, None)
 
         for port_name in ports:
-            self.fuel_transport.setdefault(port_name, None)
-            self.fuel_distance.setdefault(port_name, None)
+            self.fuel_transports.setdefault(port_name, None)
+            self.fuel_distances.setdefault(port_name, None)
 
     def initialize_expectation(
         self,
@@ -235,6 +239,16 @@ class Plant(Node):
 
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)
+
+    def set_producer_assignment(self, producer_name: str) -> None:
+        """Record the producer building this plant, raising if another already does."""
+        if self.producer_assignment is not None:
+            raise ValueError(
+                f'Producer("{producer_name}"): {self} is already assigned to a'
+                f' different producer, Producer("{self.producer_assignment}").'
+            )
+
+        self.producer_assignment = producer_name
 
     @staticmethod
     def _deliveries(
@@ -270,13 +284,3 @@ class Plant(Node):
                     f"{self}: Unable to assign a transport distance to '{name}' as no"
                     " transport is assigned."
                 )
-
-    def set_producer_assignment(self, producer_name: str) -> None:
-        """Record the producer building this plant, raising if another already does."""
-        if self.producer_assignment is not None:
-            raise ValueError(
-                f'Producer("{producer_name}"): {self} is already assigned to a'
-                f' different producer, Producer("{self.producer_assignment}").'
-            )
-
-        self.producer_assignment = producer_name

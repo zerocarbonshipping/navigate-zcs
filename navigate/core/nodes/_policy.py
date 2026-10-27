@@ -60,7 +60,7 @@ class _Policy(Node):
         self.include_vessel: dict[str, bool] = {}
 
         # emission factors
-        self.global_warming_potential: dict[str, CurveInput | None] = {}
+        self.global_warming_potentials: dict[str, CurveInput | None] = {}
         self.fuel_wtt: dict[tuple[str, str], ForecastInput | None] = {}
         self.fuel_ttw: dict[tuple[str, str], ForecastInput | None] = {}
 
@@ -70,7 +70,7 @@ class _Policy(Node):
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
     def set_active(self, active: str) -> None:
-        """Set the flag for whether the policy is active."""
+        """Set whether the policy is active."""
         self.active = assign_boolean(active)
 
     @deck_attribute(SECTION_DEFINE)
@@ -126,7 +126,7 @@ class _Policy(Node):
         write_matching_keys(
             emission_name,
             assign_value(as_scalar(global_warming_potential), type_=(CURVE, VARIABLE)),
-            self.global_warming_potential,
+            self.global_warming_potentials,
         )
 
     @deck_command()
@@ -158,24 +158,24 @@ class _Policy(Node):
 
     def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
+        Initialize dependent dictionaries to allow wildcarding in command calls.
 
         Parameters
         ----------
         vessels
             All vessels in the simulation.
         """
+        for vessel_name in vessels:
+            self.include_vessel.setdefault(vessel_name, False)
+
         # unset factors stay None, so consumers fall back to the model's own factors
         for emission in self.emissions:
-            self.global_warming_potential.setdefault(emission.name, None)
+            self.global_warming_potentials.setdefault(emission.name, None)
         for fuel in self.fuels:
             for emission in self.emissions:
                 key = (fuel.name, emission.name)
                 self.fuel_wtt.setdefault(key, None)
                 self.fuel_ttw.setdefault(key, None)
-
-        for vessel_name in vessels:
-            self.include_vessel.setdefault(vessel_name, False)
 
         # recomputed every pass, as routes and jurisdiction may change
         jurisdiction = set(self.jurisdiction)

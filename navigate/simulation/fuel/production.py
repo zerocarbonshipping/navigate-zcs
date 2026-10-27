@@ -358,7 +358,7 @@ def _add_feedstock_flows(
         Mass of the feedstock per mass of fuel.
     """
     region = plant.region
-    cost_rate = region.feedstock_cost[feedstock.name]
+    cost_rate = region.feedstock_costs[feedstock.name]
 
     def metric(time: float) -> float:
         return conversion
@@ -406,7 +406,7 @@ def _add_transport_flows(
 
     region = plant.region
     transport, distance = delivery
-    cost_rate = region.transport_cost[transport.name]
+    cost_rate = region.transport_costs[transport.name]
 
     def metric(time: float) -> float:
         return conversion

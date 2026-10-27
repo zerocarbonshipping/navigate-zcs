@@ -13,6 +13,7 @@ from navigate.core import (
     as_scalar,
     assign_list,
     assign_reference_list,
+    check_lengths_match,
     deck_attribute,
 )
 from navigate.core.node import Node
@@ -55,8 +56,4 @@ class Process(Node):
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
-        if len(self.feeds) != len(self.conversions):
-            raise ValueError(
-                f"{self}: The length of Feeds ({len(self.feeds)}) and Conversions"
-                f" ({len(self.conversions)}) must correspond."
-            )
+        check_lengths_match(self, "Feeds", self.feeds, "Conversions", self.conversions)

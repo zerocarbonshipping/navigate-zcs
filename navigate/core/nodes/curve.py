@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, overload
 from navigate.core import deck_attribute
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
-from navigate.core.nodes._table1d import _Table1D, check_table1d_input
+from navigate.core.nodes._table1d import _Table1D
 from navigate.core.table_data import TableData, build_table_1d
 
 if TYPE_CHECKING:
@@ -33,16 +33,19 @@ class Curve(Node, _Table1D):
         Node.__init__(self, name)
         _Table1D.__init__(self)
 
+        # internal variables -----------------------------------------------------------
         # the table read from the deck, pending until it is built
         self._pending_table: tuple[FloatArray, FloatArray] | None = None
 
+    # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
     def set_table(self, table: TableData) -> None:
         """Set the table of x- and y-values the curve interpolates in."""
         x, y = build_table_1d(table)
-        check_table1d_input(x, y)
+        self._check_table(x, y)
         self._pending_table = (x, y)
 
+    # internal methods -----------------------------------------------------------------
     def build_table(self) -> None:
         """Build the pending table with the interpolation and extrapolation set."""
         if self._pending_table is None:
@@ -53,10 +56,10 @@ class Curve(Node, _Table1D):
         self._pending_table = None
 
     @overload
-    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
+    def get(self, x: float | None, y: FloatLike | None = None) -> float: ...
 
     @overload
-    def get(self, x: float | None, y: FloatLike | None = None) -> float: ...
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
 
     def get(self, x: FloatLike | None, y: FloatLike | None = None) -> FloatLike:
         """
@@ -68,11 +71,11 @@ class Curve(Node, _Table1D):
             Input variable. None, which an expression passes on when it is
             evaluated without input, is rejected.
         y
-            Dummy input variable for calculations with getters of 2 input.
+            Ignored; it exists because expressions call every getter with two inputs.
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             Response variable, in the shape of ``x``.
 
         Raises

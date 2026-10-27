@@ -211,10 +211,10 @@ class Expression:
         return self.text
 
     @overload
-    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
+    def get(self, x: float | None = None, y: float | None = None) -> float: ...
 
     @overload
-    def get(self, x: float | None = None, y: float | None = None) -> float: ...
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
 
     @overload
     def get(
@@ -234,7 +234,7 @@ class Expression:
 
         Returns
         -------
-        float or FloatArray
+        FloatLike
             Expression value, clipped to the internal bounds and broadcast to
             the shape of the input.
 

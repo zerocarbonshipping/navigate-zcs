@@ -57,7 +57,7 @@ def calculate_fleet_expectations(
 
 def _calculate_effective_lhv(vessel: Vessel, converter: Converter, fuel: Fuel) -> None:
     """Set the fuel's heating value in the converter net of slip, in GJ/ton fuel-in."""
-    slip = converter.slip_fraction[fuel.fuel_type].get()
+    slip = converter.slip_fractions[fuel.fuel_type].get()
     effective_lhv = (1.0 - slip) * fuel.lower_heating_value.get()
 
     vessel.expectation.set_effective_lhv(converter.name, fuel.name, effective_lhv)
@@ -75,7 +75,7 @@ def _calculate_ttw(
     """
     expectation = vessel.expectation
     fuel_type = fuel.fuel_type
-    slip = converter.slip_fraction[fuel_type].get()
+    slip = converter.slip_fractions[fuel_type].get()
 
     for emission_name, emission in emissions.items():
         fuel_ttw = fuel.ttw[emission_name].get()

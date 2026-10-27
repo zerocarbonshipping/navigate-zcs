@@ -73,7 +73,7 @@ def _calculate_volume_per_ton(alg: BunkerAlgorithm, tank: Tank) -> dict[str, flo
     """
     volume_per_ton: dict[str, float] = {}
 
-    for fuel_type in tank.get_fuel_types():
+    for fuel_type in tank.fuel_types:
         for fuel in alg.fuels_per_fuel_type[fuel_type]:
             volume_per_ton[fuel.name] = 1.0 / fuel.mass_density.get()
 

@@ -273,10 +273,13 @@ class _NavTransformer(Transformer[Token, object]):
         match token.type:
             case "QUOTED_STRING":
                 return token[1:-1]
+
             case "SIGNED_NUMBER" | "NUMBER":
                 return float(token)
+
             case "DATE":
                 return self._date(token)
+
             case _:
                 return str(token)
 

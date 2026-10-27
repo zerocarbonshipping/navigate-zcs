@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the table base shared by the Surface and Timetable nodes."""
+
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
@@ -10,38 +13,42 @@ from scipy.interpolate import RegularGridInterpolator
 
 from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribute
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
-from navigate.core.nodes._calculator import _Calculator, evaluate_number
+from navigate.core.nodes._calculator import _Calculator
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
     from navigate.util.types_ import FloatArray, FloatLike
 
+logger = logging.getLogger(__name__)
+
 
 class _Table2D(_Calculator):
+    """The two-input table lookup common to the Surface and Timetable nodes."""
+
     def __init__(self) -> None:
         _Calculator.__init__(self)
 
         # external variables -----------------------------------------------------------
         # interpolation
-        self._interpolate: Interpolate2DID = Interpolate2DID.LINEAR
+        self.interpolate: Interpolate2DID = Interpolate2DID.LINEAR
 
         # extrapolation
         self.extrapolate: ExtrapolateID = ExtrapolateID.LINEAR
-        self._outside: NumberInput | None = None
+        self.outside: NumberInput | None = None
 
         # internal variables -----------------------------------------------------------
         self.x: FloatArray
         self.y: FloatArray
+        self.is_convex: bool
         self._table: RegularGridInterpolator
         self._fill_value: NumberInput | None
-        self._is_convex: bool
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
     def set_interpolate(self, interpolate: str) -> None:
         """Set the interpolation method used within the table."""
-        self._interpolate = assign_id(interpolate, Interpolate2DID)
+        self.interpolate = assign_id(interpolate, Interpolate2DID)
 
     @deck_attribute(SECTION_DEFINE)
     def set_extrapolate(self, extrapolate: str) -> None:
@@ -51,12 +58,9 @@ class _Table2D(_Calculator):
     @deck_attribute(SECTION_DEFINE)
     def set_outside(self, outside: NumberInput) -> None:
         """Set the flat extrapolation value used outside the table."""
-        self._outside = assign_value(outside, allow_infinite=True)
+        self.outside = assign_value(outside, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
-    def is_convex(self) -> bool:
-        return self._is_convex
-
     @overload
     def calculate(self, x: float, y: float) -> float: ...
 
@@ -114,8 +118,22 @@ class _Table2D(_Calculator):
 
         return np.array(x_values)
 
+    def _check_extrapolate_consistency(self) -> None:
+        if self.extrapolate == ExtrapolateID.FLAT and self.outside is None:
+            raise ValueError(
+                f"{self}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
+            )
+
+        if self.extrapolate != ExtrapolateID.FLAT and self.outside is not None:
+            logger.warning(
+                "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
+                " to %s.",
+                self,
+                self.extrapolate.name,
+            )
+
     def _interpolator_method(self) -> str:
-        match self._interpolate:
+        match self.interpolate:
             case Interpolate2DID.LINEAR:
                 return "linear"
 
@@ -137,7 +155,7 @@ class _Table2D(_Calculator):
         if self.extrapolate != ExtrapolateID.FLAT:
             return None
 
-        return self._outside
+        return self.outside
 
     def _fill_flat(
         self,
@@ -178,14 +196,14 @@ class _Table2D(_Calculator):
         # a NaN input stays NaN, as the interpolator answers it, even where the
         # other input lies outside the table
         is_outside = (outside_x | outside_y) & ~has_nan
-        return np.where(is_outside, evaluate_number(outside), table_value)
+        return np.where(is_outside, self._evaluate_number(outside), table_value)
 
     def _set_table(self, x: FloatArray, y: FloatArray, z: FloatArray) -> None:
         self.x = x
         self.y = y
 
         # the surface is convex in x when every slice of it at a fixed y is
-        self._is_convex = all(self._test_convexity(x, column) for column in z.T)
+        self.is_convex = all(self._test_convexity(x, column) for column in z.T)
         self._fill_value = self._flat_fill_value()
 
         self._table = RegularGridInterpolator(
@@ -196,47 +214,47 @@ class _Table2D(_Calculator):
             fill_value=self._interpolator_fill_value(),
         )
 
+    @staticmethod
+    def _check_table(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
+        """
+        Validate the x, y, and z arrays used to build a 2D table.
 
-def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
-    """
-    Validate the x, y, and z arrays used to build a 2D table.
+        'x' and 'y' must each hold at least two finite values, both strictly
+        increasing, and 'z' must be a 2-D array of shape ('x'.size, 'y'.size). A 'z'
+        may be INF, and is checked by each attribute the table is assigned to when
+        it is evaluated, but never NaN, which no bound can reject.
 
-    'x' and 'y' must each hold at least two finite values, both strictly
-    increasing, and 'z' must be a 2-D array of shape ('x'.size, 'y'.size). A 'z'
-    may be INF, and is checked by each attribute the table is assigned to when
-    it is evaluated, but never NaN, which no bound can reject.
+        Parameters
+        ----------
+        x
+            'x' values in table.
+        y
+            'y' values in table.
+        z
+            z-values in table, one row per 'x' and one column per 'y'.
+        """
+        if (x.size < 2) or (y.size < 2):
+            raise ValueError(
+                f"'x' ({x.size}) and 'y' ({y.size}) must each be at least of length 2."
+            )
 
-    Parameters
-    ----------
-    x
-        'x' values in table.
-    y
-        'y' values in table.
-    z
-        z-values in table, one row per 'x' and one column per 'y'.
-    """
-    if (x.size < 2) or (y.size < 2):
-        raise ValueError(
-            f"'x' ({x.size}) and 'y' ({y.size}) must each be at least of length 2."
-        )
+        if z.shape != (x.size, y.size):
+            raise ValueError(
+                f"'z' (shape {z.shape}) must have shape ({x.size}, {y.size}), matching"
+                " the length of 'x' and 'y'."
+            )
 
-    if z.shape != (x.size, y.size):
-        raise ValueError(
-            f"'z' (shape {z.shape}) must have shape ({x.size}, {y.size}), matching"
-            " the length of 'x' and 'y'."
-        )
+        if not np.all(np.isfinite(x)):
+            raise ValueError("'x' must be finite.")
 
-    if not np.all(np.isfinite(x)):
-        raise ValueError("'x' must be finite.")
+        if not np.all(np.isfinite(y)):
+            raise ValueError("'y' must be finite.")
 
-    if not np.all(np.isfinite(y)):
-        raise ValueError("'y' must be finite.")
+        if np.any(np.isnan(z)):
+            raise ValueError("'z' must not be NaN.")
 
-    if np.any(np.isnan(z)):
-        raise ValueError("'z' must not be NaN.")
+        if not is_strictly_increasing(x):
+            raise ValueError("'x' must be strictly increasing.")
 
-    if not is_strictly_increasing(x):
-        raise ValueError("'x' must be strictly increasing.")
-
-    if not is_strictly_increasing(y):
-        raise ValueError("'y' must be strictly increasing.")
+        if not is_strictly_increasing(y):
+            raise ValueError("'y' must be strictly increasing.")

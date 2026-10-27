@@ -23,7 +23,9 @@ from navigate.core.assign import (
     assign_reference,
     assign_reference_list,
     assign_value,
-    check_curves_are_finite,
+    check_forecast_is_cumulative,
+    check_lengths_match,
+    check_tables_are_finite,
     write_matching_key_pairs,
     write_matching_keys,
 )

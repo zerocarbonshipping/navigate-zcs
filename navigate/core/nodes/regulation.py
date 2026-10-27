@@ -57,8 +57,8 @@ class Regulation(_Policy):
 
         self.allow_threshold_adjustment: bool = False
 
-        self.vessel_threshold: dict[str, ForecastInput | None] = {}
-        self.vessel_capacity: dict[str, ForecastInput | None] = {}
+        self.vessel_thresholds: dict[str, ForecastInput | None] = {}
+        self.vessel_capacities: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: RegulationExpectation = RegulationExpectation()
@@ -128,7 +128,7 @@ class Regulation(_Policy):
         write_matching_keys(
             vessel_name,
             assign_value(as_scalar(threshold), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.vessel_threshold,
+            self.vessel_thresholds,
         )
 
     @deck_command()
@@ -137,15 +137,13 @@ class Regulation(_Policy):
         write_matching_keys(
             vessel_name,
             assign_value(as_scalar(capacity), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.vessel_capacity,
+            self.vessel_capacities,
         )
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
-        super().check_consistency()
-
         for vessel_name, include_vessel in self.include_vessel.items():
-            if include_vessel and self.vessel_threshold[vessel_name] is None:
+            if include_vessel and self.vessel_thresholds[vessel_name] is None:
                 raise ValueError(
                     f'{self}: Vessel("{vessel_name}") is included in the regulation but'
                     " no vessel_threshold is defined."
@@ -163,18 +161,18 @@ class Regulation(_Policy):
 
     def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
+        Initialize dependent dictionaries to allow wildcarding in command calls.
 
         Parameters
         ----------
         vessels
             All vessels in the simulation.
         """
-        for vessel_name in vessels:
-            self.vessel_threshold.setdefault(vessel_name, None)
-            self.vessel_capacity.setdefault(vessel_name, None)
-
         super().initialize_dependencies(vessels)
+
+        for vessel_name in vessels:
+            self.vessel_thresholds.setdefault(vessel_name, None)
+            self.vessel_capacities.setdefault(vessel_name, None)
 
     def initialize_expectation(
         self, length: int, routes: dict[str, Route], vessels: dict[str, Vessel]

@@ -160,6 +160,6 @@ def record_port_results(port: Port, idx: int) -> None:
     for key, value in port.bunkering_allowed.items():
         results.bunkering_allowed[key][idx] = value
 
-    for key, value in port.bunkering_limit.items():
+    for key, value in port.bunkering_limits.items():
         if value is not None:
             results.bunkering_limit_mass[key][idx] = value.get()

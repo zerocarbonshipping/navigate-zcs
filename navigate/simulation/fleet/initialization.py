@@ -212,7 +212,7 @@ def _seed_initial_uptake(fleet: Fleet) -> None:
     fleet
         Fleet whose increments are seeded.
     """
-    if all(share is None for share in fleet.initial_technology_share.values()):
+    if all(share is None for share in fleet.initial_technology_shares.values()):
         return
 
     for v in range(len(fleet.vessels)):
@@ -289,7 +289,7 @@ def _get_initial_shares(fleet: Fleet, vessel: Vessel, age: float) -> FloatArray:
     shares = np.zeros(len(fleet.technologies))
 
     for t, technology in enumerate(fleet.technologies):
-        share = fleet.initial_technology_share[(vessel.name, technology.name)]
+        share = fleet.initial_technology_shares[(vessel.name, technology.name)]
         if share is not None:
             shares[t] = share.get(age)
 
