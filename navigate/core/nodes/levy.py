@@ -24,7 +24,7 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.results import LevyResults
 
 if TYPE_CHECKING:
-    from navigate.core.results.results_context import ResultsContext
+    from navigate.core.results import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util.types_ import DateArray, FloatArray
 

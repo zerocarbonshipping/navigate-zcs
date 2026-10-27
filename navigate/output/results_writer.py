@@ -20,7 +20,12 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from navigate.core.results import per_step_results, result_names, result_units
+from navigate.core.results import (
+    BaseResults,
+    per_step_results,
+    result_names,
+    result_units,
+)
 from navigate.util import TOLERANCE, dates_to_years, key_name, step_lengths
 
 if TYPE_CHECKING:
@@ -28,7 +33,6 @@ if TYPE_CHECKING:
     from enum import Enum
     from pathlib import Path
 
-    from navigate.core.results._base_results import _BaseResults
     from navigate.output.simulation_results import SimulationResults
 
 logger = logging.getLogger(__name__)
@@ -142,7 +146,7 @@ def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
 
 def _results_by_node(
     results: SimulationResults,
-) -> Iterator[tuple[str, str, _BaseResults]]:
+) -> Iterator[tuple[str, str, BaseResults]]:
     """
     Walk the global results and every node's results of the run.
 
@@ -153,7 +157,7 @@ def _results_by_node(
 
     Yields
     ------
-    tuple[str, str, _BaseResults]
+    tuple[str, str, BaseResults]
         Node kind, node name ("" for the global results) and results.
     """
     yield GLOBAL_KIND, "", results.global_results
@@ -203,7 +207,7 @@ def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Seri
 
 
 def _results(
-    kind: str, node: str, node_results: _BaseResults
+    kind: str, node: str, node_results: BaseResults
 ) -> Iterator[tuple[str, Any]]:
     """Yield each result of a node by name, logging and skipping one that fails."""
     for name in sorted(result_names(type(node_results))):

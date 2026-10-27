@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""VesselResults, the output storage the Vessel node reports its results from."""
+"""VesselResults, the output storage of the Vessel node."""
 
 from __future__ import annotations
 
@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import result
 from navigate.core.results._fuel_consumer_results import _FuelConsumerResults
+from navigate.core.results._transport_results import _TransportResults
+from navigate.core.results.base_results import result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -21,22 +22,11 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class VesselResults(_FuelConsumerResults):
+class VesselResults(_FuelConsumerResults, _TransportResults):
     """Energy, emissions, speeds, expenses and charter rates of one vessel type."""
 
     lifetime: FloatArray = result("years")
     lead_time: FloatArray = result("years")
-
-    cargo_miles: FloatArray = result("cargo-miles/year")
-
-    # speeds
-    reference_speed: FloatArray = result("knots")
-    minimum_speed: FloatArray = result("knots")
-    maximum_speed: FloatArray = result("knots")
-    actual_speed: FloatArray = result("knots")
-    optimal_speed: FloatArray = result("knots")
-    lowest_speed: FloatArray = result("knots")
-    highest_speed: FloatArray = result("knots")
 
     # investment signals: energy-weighted mean of the smoothed energy-conservation duals
     investment_signal_technology: FloatArray = result("USD/GJ")
@@ -48,7 +38,6 @@ class VesselResults(_FuelConsumerResults):
     asset_charter_rate: FloatArray = result("USD/year")
     cargo_charter_rate: FloatArray = result("USD/year")
     investment_freight_rate: FloatArray = result("USD/cargo-mile")
-    instantaneous_freight_rate: FloatArray = result("USD/cargo-mile")
 
     # savings against the year-0 raw energy
     speed_energy_saving: FloatArray = result("-")
@@ -67,7 +56,7 @@ class VesselResults(_FuelConsumerResults):
         levy_names: Sequence[str],
     ) -> None:
         """
-        Initialize the vessel results' storage arrays and lookups.
+        Allocate the vessel results' storage.
 
         Parameters
         ----------
@@ -78,21 +67,13 @@ class VesselResults(_FuelConsumerResults):
         levy_names
             Names of all levies in the simulation.
         """
-        self._initialize_base(context)
+        self.context = context
+
         self._initialize_fuel_consumer(regulation_names, levy_names)
+        self._initialize_transport()
 
         self.lifetime = self._default_array()
         self.lead_time = self._default_array()
-
-        self.cargo_miles = self._default_array()
-
-        self.reference_speed = self._default_array(default=np.nan)
-        self.minimum_speed = self._default_array(default=np.nan)
-        self.maximum_speed = self._default_array(default=np.nan)
-        self.actual_speed = self._default_array(default=np.nan)
-        self.optimal_speed = self._default_array(default=np.nan)
-        self.lowest_speed = self._default_array(default=np.nan)
-        self.highest_speed = self._default_array(default=np.nan)
 
         self.investment_signal_technology = self._default_array(default=np.nan)
         self.investment_signal_speed = self._default_array(default=np.nan)
@@ -102,7 +83,6 @@ class VesselResults(_FuelConsumerResults):
         self.asset_charter_rate = self._default_array(default=np.nan)
         self.cargo_charter_rate = self._default_array(default=np.nan)
         self.investment_freight_rate = self._default_array(default=np.nan)
-        self.instantaneous_freight_rate = self._default_array(default=np.nan)
 
         self.in_fleet = self._default_bool_array()
         self.cost_is_calculated = self._default_bool_array()

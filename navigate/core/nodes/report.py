@@ -12,14 +12,13 @@ reports on; each command checks its token as it runs.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from navigate.core import SECTION_DEFINE, assign_id, deck_attribute, deck_command
 from navigate.core.enum_ import FileFormatID, ReportAccumulationID, ReportReduceID
 from navigate.core.node import Node
 from navigate.core.node_report import GLOBAL_RESULTS_KEY, NodeReport
 from navigate.core.node_type import REPORT
 from navigate.core.results import (
+    BaseResults,
     FleetResults,
     GlobalResults,
     LevyResults,
@@ -32,11 +31,8 @@ from navigate.core.results import (
 )
 from navigate.util import attribute_to_instance_name
 
-if TYPE_CHECKING:
-    from navigate.core.results._base_results import _BaseResults
-
 # the results class each Report command reports from
-RESULTS_CLASSES: dict[str, type[_BaseResults]] = {
+RESULTS_CLASSES: dict[str, type[BaseResults]] = {
     "add_property": GlobalResults,
     "add_fleet_property": FleetResults,
     "add_levy_property": LevyResults,

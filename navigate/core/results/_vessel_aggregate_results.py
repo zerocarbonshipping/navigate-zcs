@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The results layer that sums vessels into a fleet or the whole model."""
+"""The results layer for the vessel aggregates: the fleet and global results."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.results._base_results import accumulate, result
 from navigate.core.results._fuel_consumer_results import _FuelConsumerResults
+from navigate.core.results.base_results import accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
@@ -64,22 +64,28 @@ class _VesselAggregateResults(_FuelConsumerResults):
 
     def add_vessel_aggregate_results(self, results: _VesselAggregateResults) -> None:
         """
-        Add another vessel aggregate's results into this one.
+        Add another vessel aggregate's results, its fuel consumer results included.
 
         Parameters
         ----------
         results
             Vessel aggregate results from another node.
         """
+        self.add_fuel_consumer_results(results)
+
         accumulate(self.baseline_energy, results.baseline_energy)
+
         accumulate(self.installed_power, results.installed_power)
         accumulate(self.newbuild_power, results.newbuild_power)
         accumulate(self.scrapped_power, results.scrapped_power)
         accumulate(self.fuel_converted_power, results.fuel_converted_power)
+
         accumulate(self.vessel_expenses, results.vessel_expenses)
         accumulate(self.technology_expenses, results.technology_expenses)
         accumulate(self.fuel_conversion_expenses, results.fuel_conversion_expenses)
         accumulate(self.vessel_tied_capital, results.vessel_tied_capital)
+
         accumulate(self.weighted_age_numerator, results.weighted_age_numerator)
         accumulate(self.weighted_age_denominator, results.weighted_age_denominator)
+
         accumulate(self.fuel_type_capacity, results.fuel_type_capacity)

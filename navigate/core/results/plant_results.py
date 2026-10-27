@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""PlantResults, the output storage the Plant node reports its results from."""
+"""PlantResults, the output storage of the Plant node."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results._base_results import _BaseResults, result
+from navigate.core.results.base_results import BaseResults, result
 
 if TYPE_CHECKING:
     from navigate.core.results.results_context import ResultsContext
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=False, repr=False)
-class PlantResults(_BaseResults):
+class PlantResults(BaseResults):
     """Production cost and well-to-tank emissions of the fuel one plant makes."""
 
     # cost of the fuel produced
@@ -35,17 +35,18 @@ class PlantResults(_BaseResults):
 
     def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the plant results' storage arrays and lookups.
+        Allocate the plant results' storage.
 
         Parameters
         ----------
         context
             Timeline, fuels and emissions of the run.
         """
-        self._initialize_base(context)
+        self.context = context
+        emissions = context.emissions
 
         self.investment_cost = self._default_array(default=np.nan)
         self.instantaneous_cost = self._default_array(default=np.nan)
 
-        self.investment_wtt = self._default_dict(context.emissions, default=np.nan)
-        self.instantaneous_wtt = self._default_dict(context.emissions, default=np.nan)
+        self.investment_wtt = self._default_dict(emissions, default=np.nan)
+        self.instantaneous_wtt = self._default_dict(emissions, default=np.nan)

@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""PortResults, the output storage the Port node reports its results from."""
+"""PortResults, the output storage of the Port node."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.results._base_results import result
 from navigate.core.results._fuel_infrastructure_results import (
     _FuelInfrastructureResults,
 )
+from navigate.core.results.base_results import result
 
 if TYPE_CHECKING:
     from navigate.core.results.results_context import ResultsContext
@@ -32,17 +32,19 @@ class PortResults(_FuelInfrastructureResults):
 
     def initialize(self, context: ResultsContext) -> None:
         """
-        Initialize the port results' storage arrays.
+        Allocate the port results' storage.
 
         Parameters
         ----------
         context
             Timeline, fuels and emissions of the run.
         """
-        self._initialize_base(context)
+        self.context = context
+        fuels = context.fuels
+
         self._initialize_fuel_infrastructure()
 
-        self.bunkering_allowed = self._default_bool_dict(context.fuels)
-        self.bunker_price = self._default_dict(context.fuels)
+        self.bunkering_allowed = self._default_bool_dict(fuels)
+        self.bunker_price = self._default_dict(fuels)
 
-        self.bunker_wtt = self._default_tuple_dict(context.fuels, context.emissions)
+        self.bunker_wtt = self._default_tuple_dict(fuels, context.emissions)

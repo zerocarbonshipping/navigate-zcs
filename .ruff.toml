@@ -56,7 +56,7 @@ convention = "numpy"
 [lint.flake8-bugbear]
 # these return the dataclasses.field that declares a result or a node group
 extend-immutable-calls = [
-    "navigate.core.results._base_results.result",
+    "navigate.core.results.base_results.result",
     "navigate.core.node_registry._node_group",
 ]
 

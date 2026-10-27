@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
-    from navigate.core.results.results_context import ResultsContext
+    from navigate.core.results import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
 
 

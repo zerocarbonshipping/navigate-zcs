@@ -251,7 +251,7 @@ def _calculate_cohort_production(
     profiles = np.zeros((len(plants), times.size))
 
     for p, plant, increment, origin in _iterate_increments(plants, cohorts, years, idx):
-        production = float(plant.expectation.get_production(origin))
+        production = plant.expectation.get_production(origin)
         decision = times[0] - increment.decided * YEAR
         lifetime = plant.lifetime.get()
         lifetime_then = plant.lifetime.get(decision)
@@ -360,7 +360,7 @@ def _calculate_newbuild_production(
             # the production of a plant is locked when it is decided, not when it
             # is delivered, so it is read at time 't'
             expectation = plant.expectation
-            production = float(expectation.get_production(origin))
+            production = expectation.get_production(origin)
             added = development * constrained_uptakes[p] * production
 
             profile = _calculate_newbuild_profile(plant, added, time, time_step, times)

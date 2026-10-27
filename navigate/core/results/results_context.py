@@ -28,7 +28,7 @@ class ResultsContext:
     timeline
         Simulation timeline, in years.
     lower_heating_value
-        Lower heating value per fuel, GJ/ton; its keys are the fuels of the run.
+        Lower heating value per fuel, in GJ/t; its keys are the fuels of the run.
     fuel_type
         Fuel type per fuel.
     liquid_market_fuels
@@ -108,19 +108,19 @@ class ResultsContext:
         """Name the emissions of the run."""
         return list(self.global_warming_potential)
 
-    def energy(self, mass: dict[str, FloatArray]) -> dict[str, FloatArray]:
+    def calculate_energy(self, mass: dict[str, FloatArray]) -> dict[str, FloatArray]:
         """
-        Convert fuel masses to their energy, GJ, at the fuels' heating values.
+        Convert fuel masses to their energy at the fuels' heating values.
 
         Parameters
         ----------
         mass
-            Mass per fuel, t.
+            Mass per fuel, in t.
 
         Returns
         -------
         dict[str, FloatArray]
-            Energy per fuel, GJ.
+            Energy per fuel, in GJ.
         """
         heating_value = self.lower_heating_value
         energy: dict[str, FloatArray] = {}
@@ -130,7 +130,7 @@ class ResultsContext:
 
         return energy
 
-    def fuel_type_energy(
+    def calculate_fuel_type_energy(
         self, mass: dict[str, FloatArray]
     ) -> dict[FuelTypeID, FloatArray]:
         """
@@ -139,25 +139,25 @@ class ResultsContext:
         Parameters
         ----------
         mass
-            Mass per fuel of the run, t.
+            Mass per fuel of the run, in t.
 
         Returns
         -------
         dict[FuelTypeID, FloatArray]
-            Energy per fuel type, GJ; 0 for a type no fuel of the run has.
+            Energy per fuel type, in GJ; 0 for a type no fuel of the run has.
         """
         energy = {fuel_type: np.zeros(self.timeline.shape) for fuel_type in FuelTypeID}
 
-        for fuel_name, fuel_energy in self.energy(mass).items():
+        for fuel_name, fuel_energy in self.calculate_energy(mass).items():
             energy[self.fuel_type[fuel_name]] += fuel_energy
 
         return energy
 
-    def equivalent(
+    def calculate_equivalent(
         self, emissions: dict[tuple[str, str], FloatArray]
     ) -> dict[tuple[str, str], FloatArray]:
         """
-        Weigh emissions by their global warming potential into CO2-equivalents.
+        Weigh emissions keyed by fuel and emission into CO2-equivalents.
 
         Parameters
         ----------
@@ -177,11 +177,11 @@ class ResultsContext:
 
         return equivalents
 
-    def equivalent_by_emission(
+    def calculate_emission_equivalent(
         self, emissions: dict[str, FloatArray]
     ) -> dict[str, FloatArray]:
         """
-        Weigh emissions by their global warming potential into CO2-equivalents.
+        Weigh emissions keyed by emission alone into CO2-equivalents.
 
         Parameters
         ----------

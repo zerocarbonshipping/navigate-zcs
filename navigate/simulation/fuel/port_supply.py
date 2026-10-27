@@ -109,7 +109,7 @@ def _calculate_import_from_liquid_market(
 
         for fuel_name in fuels:
             allowed = port.bunkering_allowed[fuel_name]
-            limit = np.asarray(expectation.get_bunkering_limit(fuel_name, forward))
+            limit = expectation.get_bunkering_limit(fuel_name, forward)
 
             bunker_price = _calculate_bunker_price(port, fuel_name, zeros, forward)
             bunker_wtts = _calculate_bunker_wtts(port, fuel_name, zero_wtts, forward)
@@ -244,7 +244,7 @@ def _calculate_import_totals(
             wtts[fuel_name, emission_name] = _allocate_per_port(ports, times)
 
     for producer in producers.values():
-        exports = producer.expectation.get_export_distribution(idx=forward)
+        exports = producer.expectation.get_export_distribution(forward)
 
         for plant in producer.plants:
             fuel_name = plant.fuel.name
@@ -429,7 +429,7 @@ def _calculate_bunker_price(
     """
     overwrite = port.expectation.get_bunker_price_overwrite(fuel_name, forward)
     overwritten = port.bunker_price_overwrites[fuel_name] is not None
-    price = np.asarray(overwrite) if overwritten else fallback
+    price = overwrite if overwritten else fallback
 
     # the overwrite getter returns a view into stored state, so the handling cost is
     # added out of place rather than onto it
@@ -464,7 +464,7 @@ def _calculate_bunker_wtts(
         key = (fuel_name, emission_name)
         overwrite = port.expectation.get_bunker_wtt_overwrite(*key, forward)
         overwritten = port.bunker_wtt_overwrites[key] is not None
-        wtts[emission_name] = np.asarray(overwrite) if overwritten else fallback
+        wtts[emission_name] = overwrite if overwritten else fallback
 
     return wtts
 

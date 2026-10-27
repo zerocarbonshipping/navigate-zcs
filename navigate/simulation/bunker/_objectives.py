@@ -63,7 +63,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             if not port.bunkering_allowed[f]:
                 continue
 
-            price = float(port.expectation.get_bunker_price(f, alg.idx))
+            price = port.expectation.get_bunker_price(f, alg.idx)
 
             levy_cost = 0.0
             for levy in port.imposed_levies:
@@ -75,7 +75,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
             # a zero or negative price on available supply is typically unintended
             if is_existing and total_price <= TOLERANCE:
-                supply = float(port.expectation.get_bunker_supply(f, alg.idx))
+                supply = port.expectation.get_bunker_supply(f, alg.idx)
 
                 if supply > 0.0:
                     logger.warning(
@@ -96,5 +96,5 @@ def _update_shore_power_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         if (v, p) not in alg.shore_power:
             continue
 
-        cost = float(port.expectation.get_shore_power_cost(alg.idx))
+        cost = port.expectation.get_shore_power_cost(alg.idx)
         alg.model.set_cost(alg.shore_power[v, p], multiplier * cost)

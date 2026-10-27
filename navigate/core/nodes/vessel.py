@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.tank import Tank
-    from navigate.core.results.results_context import ResultsContext
+    from navigate.core.results import ResultsContext
     from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,

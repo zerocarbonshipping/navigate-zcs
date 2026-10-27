@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from navigate.core.increment import PlantIncrement
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray, FloatLike, IntArray
+    from navigate.util.types_ import FloatArray, IntArray
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def calculate_feed_availability(
     current_year = years[idx]
 
     # the existing and pipeline feed below are summed from zero
-    producer.expectation.reset_additive_properties()
+    producer.expectation.reset_feed_totals()
 
     _calculate_plant_feed_consumption(producer, idx)
     _calculate_existing_feed(producer, years, current_year)
@@ -62,7 +62,7 @@ def calculate_constrained_uptakes(
     development: float,
     limits: FloatArray,
     idx: int,
-    additional_consumption: dict[str, FloatLike] | None = None,
+    additional_consumption: dict[str, float] | None = None,
 ) -> FloatArray:
     """
     Constrain uptake shares iteratively to respect feed availability.
@@ -194,6 +194,8 @@ def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
             continue
 
         for plant in producer.plants:
+            # Python floats, as the consumption divides the feed gaps into development
+            # potentials, which a builtin sum() adds up
             production = float(plant.expectation.get_production(idx))
             conversion = float(plant.expectation.get_feed_conversion(feed_name, idx))
             consumption = production * conversion
@@ -364,7 +366,7 @@ def _calculate_feed_limits(
     development: float,
     uptakes: FloatArray,
     idx: int,
-    additional_consumption: dict[str, FloatLike],
+    additional_consumption: dict[str, float],
 ) -> FloatArray:
     """
     Calculate feed-based uptake limits for a single iteration.
@@ -399,8 +401,8 @@ def _calculate_feed_limits(
         if constraint is None:
             continue
 
-        gap = float(expectation.get_feed_gap(feed_name, idx))
-        additional = float(additional_consumption.get(feed_name, 0.0))
+        gap = expectation.get_feed_gap(feed_name, idx)
+        additional = additional_consumption.get(feed_name, 0.0)
         spend = calculate_feed_spend(producer, feed_name, newbuilds)
         scaling = max((gap - additional) / spend, 0.0) if spend > 0.0 else 1.0
 

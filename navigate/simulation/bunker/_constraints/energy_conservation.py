@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.util.types_ import FloatLike
 
 
 def update_energy_conservation_constraints(
@@ -50,8 +49,8 @@ def update_energy_conservation_constraints(
     legs = route.get_legs()
     stops = route.get_stops()
 
-    demands_sea = expectation.get_energy_sea_leg(idx=alg.idx)
-    demands_port = expectation.get_energy_port(idx=alg.idx)
+    demands_sea = expectation.get_energy_sea_leg(alg.idx)
+    demands_port = expectation.get_energy_port(alg.idx)
 
     for demand_type in EnergyDemandID:
         _update_sea_rows(alg, vessel, demand_type, demands_sea[demand_type], legs)
@@ -64,7 +63,7 @@ def _update_sea_rows(
     alg: BunkerAlgorithm,
     vessel: Vessel,
     demand_type: EnergyDemandID,
-    demand: list[FloatLike],
+    demand: list[float],
     legs: tuple[tuple[int, int], ...],
 ) -> None:
     """
@@ -95,7 +94,7 @@ def _update_sea_rows(
     for leg, (i, e) in enumerate(legs):
         key = (v, i, e, demand_type)
         constraint = get_constraint(alg, rows, key, "==", "energy_conservation_sea")
-        model.set_rhs(constraint, float(demand[leg]))
+        model.set_rhs(constraint, demand[leg])
 
         for f, coefficient in energy_per_ton.items():
             model.set_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
@@ -105,7 +104,7 @@ def _update_port_rows(
     alg: BunkerAlgorithm,
     vessel: Vessel,
     demand_type: EnergyDemandID,
-    demand: list[FloatLike],
+    demand: list[float],
     stops: range,
 ) -> None:
     """
@@ -137,7 +136,7 @@ def _update_port_rows(
     for p in stops:
         key = (v, p, demand_type)
         constraint = get_constraint(alg, rows, key, "==", "energy_conservation_port")
-        model.set_rhs(constraint, float(demand[p]))
+        model.set_rhs(constraint, demand[p])
 
         for f, coefficient in energy_per_ton.items():
             model.set_coefficient(constraint, spend_port[v, c, f, p], coefficient)

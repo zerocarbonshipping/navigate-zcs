@@ -30,7 +30,7 @@ from navigate.util import YEAR, calculate_step_inertia, divide_nonzero
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray
 
 
 def perform_pipeline_delivery(producer: Producer) -> None:
@@ -106,7 +106,7 @@ def perform_pipeline_planning(
     _calculate_inertia_feed_gaps(producer, inertia_newbuilds, idx)
     demand = _calculate_uncovered_demand(producer, inertia_newbuilds, idx)
 
-    export_distribution = producer.expectation.get_export_distribution(idx=idx)
+    export_distribution = producer.expectation.get_export_distribution(idx)
 
     for plant in producer.plants:
         _calculate_inter_fuel_metric(plant, demand, offtake_duration, timeline, idx)
@@ -376,7 +376,7 @@ def _calculate_evaluation_timeline(
 
 
 def _calculate_intra_fuel_metric(
-    plant: Plant, export_distribution: dict[str, FloatLike], idx: int
+    plant: Plant, export_distribution: dict[str, float], idx: int
 ) -> None:
     """
     Calculate the business-case metric used to choose a plant within a fuel pathway.
@@ -398,8 +398,8 @@ def _calculate_intra_fuel_metric(
 
     for port_name, export in export_distribution.items():
         delivery_cost = expectation.get_levelized_delivery_cost(port_name, idx)
-        delivered_cost = float(production_cost + delivery_cost)
-        metric += float(export) * delivered_cost
+        delivered_cost = production_cost + delivery_cost
+        metric += export * delivered_cost
 
     expectation.set_intra_fuel_metric(metric)
 

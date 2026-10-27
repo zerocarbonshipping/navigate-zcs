@@ -48,7 +48,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
-    from navigate.core.results.results_context import ResultsContext
+    from navigate.core.results import ResultsContext
     from navigate.core.types_ import (
         CurveTableArgument,
         CurveTableInput,

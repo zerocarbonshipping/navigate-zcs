@@ -24,7 +24,7 @@ import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportAccumulationID, ReportReduceID
 from navigate.core.node_report import GLOBAL_RESULTS_KEY
-from navigate.core.results import per_step_results
+from navigate.core.results import BaseResults, per_step_results
 from navigate.util import (
     dates_to_days,
     is_single_dict,
@@ -45,7 +45,6 @@ if TYPE_CHECKING:
 
     from navigate.core.node_report import NodeReport, ReportProperty
     from navigate.core.nodes.report import Report
-    from navigate.core.results._base_results import _BaseResults
     from navigate.output.simulation_results import SimulationResults
     from navigate.util.types_ import BoolArray, DateArray, FloatArray
 
@@ -84,7 +83,7 @@ class _Section(NamedTuple):
 
     log_name: str
     sheet_title: str
-    results_by_node: Mapping[str, _BaseResults]
+    results_by_node: Mapping[str, BaseResults]
     requests: dict[str, NodeReport]
 
 
@@ -570,7 +569,7 @@ def _requests_by_node(
 
 def _extract_properties(
     node_name: str,
-    node_results: _BaseResults,
+    node_results: BaseResults,
     requested: list[ReportProperty],
     report_name: str,
 ) -> Iterator[tuple[str, _ReportValue]]:
@@ -668,7 +667,7 @@ def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportVa
 
 
 def _accumulate(
-    property_: _ReportValue, node_results: _BaseResults, per_step: bool
+    property_: _ReportValue, node_results: BaseResults, per_step: bool
 ) -> _ReportValue:
     """Sum a reduced result over the time steps up to and including each date."""
     # a rate covers the step ending at its date; a count per time step is already

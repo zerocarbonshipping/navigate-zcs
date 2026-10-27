@@ -465,7 +465,7 @@ def _extract_conversion_source(
         vessel_from.name,
         vessel_from.primary_fuel_type,
         vessel_from.lifetime.get(),
-        float(vessel_from.expectation.get_total_energy(idx)),
+        vessel_from.expectation.get_total_energy(idx),
         vessel_from.expectation.get_fuel_cost_flow(),
         vessel_from.expectation.get_capex_npv(idx),
         targets,
@@ -904,7 +904,7 @@ def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> fl
     float
         Fuel mass counting for one vessel, in tons.
     """
-    supply = float(port.expectation.get_bunker_supply(fuel_name, idx))
+    supply = port.expectation.get_bunker_supply(fuel_name, idx)
     if not np.isfinite(supply):
         return supply
 
