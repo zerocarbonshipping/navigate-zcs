@@ -55,7 +55,7 @@ class Converter(_Machinery):
         self.efficiency: ScalarInput
 
         # emissions
-        self.slip_fraction: dict[FuelTypeID, ScalarInput] = {}
+        self.slip_fractions: dict[FuelTypeID, ScalarInput] = {}
         self.consumption_ttw: dict[tuple[FuelTypeID, str], ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -111,7 +111,7 @@ class Converter(_Machinery):
         id_ = assign_member(fuel_type, self.get_fuel_types())
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
 
-        write_matching_keys(id_, value_, self.slip_fraction)
+        write_matching_keys(id_, value_, self.slip_fractions)
 
     @deck_command()
     def set_consumption_ttw(
@@ -147,7 +147,7 @@ class Converter(_Machinery):
             All emissions in the simulation.
         """
         for fuel_type in self.get_fuel_types():
-            self.slip_fraction.setdefault(fuel_type, Scalar(0.0))
+            self.slip_fractions.setdefault(fuel_type, Scalar(0.0))
             for emission_name in emissions:
                 self.consumption_ttw.setdefault((fuel_type, emission_name), Scalar(0.0))
 

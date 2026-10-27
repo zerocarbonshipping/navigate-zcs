@@ -141,7 +141,7 @@ def _calculate_delivery_cost(
         for port_name, (transport, distance) in deliveries.items():
             key = (region.name, transport.name, t, lead_time, lifetime)
             if key not in cost_rates:
-                rate = region.transport_cost[transport.name]
+                rate = region.transport_costs[transport.name]
                 cost_rates[key] = rate.get(year_starts)
 
             cost_flow = cost_rates[key] * distance.get(year_starts) * operating_flow

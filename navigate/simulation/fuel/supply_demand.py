@@ -79,7 +79,7 @@ def _calculate_feasible_newbuilds(
     expectation = producer.expectation
     newbuilds = development
 
-    for feed_name, constraint in producer.feed_constraint.items():
+    for feed_name, constraint in producer.feed_constraints.items():
         if constraint is None:
             continue
 

@@ -45,18 +45,18 @@ class Port(Node):
 
         # bunkering
         self.bunkering_allowed: dict[str, bool] = {}
-        self.bunkering_limit: dict[str, ForecastInput | None] = {}
+        self.bunkering_limits: dict[str, ForecastInput | None] = {}
         self.bunkering_inertia: dict[str, ForecastInput] = {}
 
         # fuel handling
-        self.handling_cost: dict[str, ForecastInput] = {}
+        self.handling_costs: dict[str, ForecastInput] = {}
 
         # bunker overwrites
-        self.bunker_price_overwrite: dict[str, ForecastInput | None] = {}
-        self.bunker_wtt_overwrite: dict[tuple[str, str], ForecastInput | None] = {}
+        self.bunker_price_overwrites: dict[str, ForecastInput | None] = {}
+        self.bunker_wtt_overwrites: dict[tuple[str, str], ForecastInput | None] = {}
 
         # shore power emissions
-        self.shore_power_emission_factor: dict[str, ForecastInput] = {}
+        self.shore_power_emission_factors: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: PortExpectation = PortExpectation()
@@ -102,7 +102,7 @@ class Port(Node):
                 lower=0.0,
                 allow_infinite=True,
             ),
-            self.bunkering_limit,
+            self.bunkering_limits,
         )
 
     @deck_command()
@@ -122,7 +122,7 @@ class Port(Node):
         write_matching_keys(
             fuel_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.handling_cost,
+            self.handling_costs,
         )
 
     @deck_command()
@@ -133,7 +133,7 @@ class Port(Node):
         write_matching_keys(
             fuel_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.bunker_price_overwrite,
+            self.bunker_price_overwrites,
         )
 
     @deck_command()
@@ -144,7 +144,7 @@ class Port(Node):
         write_matching_key_pairs(
             (fuel_name, emission_name),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
-            self.bunker_wtt_overwrite,
+            self.bunker_wtt_overwrites,
         )
 
     @deck_command()
@@ -155,7 +155,7 @@ class Port(Node):
         write_matching_keys(
             emission_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.shore_power_emission_factor,
+            self.shore_power_emission_factors,
         )
 
     # internal methods -----------------------------------------------------------------
@@ -163,13 +163,13 @@ class Port(Node):
         # a liquid-market fuel has no bottom-up production chain to price it, so its
         # entry is filled; any other fuel keeps None, which is what selects the
         # bottom-up calculation
-        for fuel_name, price in self.bunker_price_overwrite.items():
+        for fuel_name, price in self.bunker_price_overwrites.items():
             if (price is None) and self.liquid_market_fuel[fuel_name]:
-                self.bunker_price_overwrite[fuel_name] = Scalar(0.0)
+                self.bunker_price_overwrites[fuel_name] = Scalar(0.0)
 
-        for (fuel_name, emission_name), wtt in self.bunker_wtt_overwrite.items():
+        for (fuel_name, emission_name), wtt in self.bunker_wtt_overwrites.items():
             if (wtt is None) and self.liquid_market_fuel[fuel_name]:
-                self.bunker_wtt_overwrite[(fuel_name, emission_name)] = Scalar(0.0)
+                self.bunker_wtt_overwrites[(fuel_name, emission_name)] = Scalar(0.0)
 
     def initialize_dependencies(
         self, emissions: dict[str, Emission], fuels: dict[str, Fuel]
@@ -187,18 +187,18 @@ class Port(Node):
         # a None limit is unlimited, a None overwrite selects the bottom-up calculation
         for fuel_name in fuels:
             self.bunkering_allowed.setdefault(fuel_name, True)
-            self.bunkering_limit.setdefault(fuel_name, None)
+            self.bunkering_limits.setdefault(fuel_name, None)
             self.bunkering_inertia.setdefault(fuel_name, Scalar(0.0))
 
-            self.handling_cost.setdefault(fuel_name, Scalar(0.0))
+            self.handling_costs.setdefault(fuel_name, Scalar(0.0))
 
-            self.bunker_price_overwrite.setdefault(fuel_name, None)
+            self.bunker_price_overwrites.setdefault(fuel_name, None)
 
             for emission_name in emissions:
-                self.bunker_wtt_overwrite.setdefault((fuel_name, emission_name), None)
+                self.bunker_wtt_overwrites.setdefault((fuel_name, emission_name), None)
 
         for emission_name in emissions:
-            self.shore_power_emission_factor.setdefault(emission_name, Scalar(0.0))
+            self.shore_power_emission_factors.setdefault(emission_name, Scalar(0.0))
 
         # derived from the current fuels, so recomputed unconditionally every pass
         self.liquid_market_fuel = {

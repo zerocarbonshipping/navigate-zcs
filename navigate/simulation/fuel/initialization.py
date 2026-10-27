@@ -198,7 +198,7 @@ def _build_plant_pipeline(
         pipeline.
     """
     plant = producer.plants[plant_idx]
-    pipeline = producer.existing_pipeline[plant.name]
+    pipeline = producer.existing_pipelines[plant.name]
 
     if pipeline is None:
         return []

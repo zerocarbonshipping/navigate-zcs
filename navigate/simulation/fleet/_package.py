@@ -85,7 +85,7 @@ def _calculate_combined_effects(package: TechnologyPackage) -> None:
         Technology package whose combined effects are calculated in place.
     """
     technologies = package.technologies
-    energy_savings = [technology.energy_saving for technology in technologies]
+    energy_savings = [technology.energy_savings for technology in technologies]
     external_powers = [technology.external_power for technology in technologies]
     capacities = [technology.shore_power_capacity.get() for technology in technologies]
 
@@ -103,7 +103,7 @@ def _calculate_combined_effects(package: TechnologyPackage) -> None:
     transfer_curves = {}
 
     for pair in itertools.product(EnergyDemandID, EnergyDemandID):
-        curves = [technology.power_transfer[pair] for technology in technologies]
+        curves = [technology.power_transfers[pair] for technology in technologies]
         transferring = [curve for curve in curves if _transfers_power(curve)]
 
         if transferring:

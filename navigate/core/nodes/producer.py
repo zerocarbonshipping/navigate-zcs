@@ -77,11 +77,11 @@ class Producer(Node):
         self.jump_start_fraction: ScalarInput = Scalar(0.1)
 
         # per plant, keyed by its name
-        self.existing_pipeline: dict[str, Forecast | None] = {}
+        self.existing_pipelines: dict[str, Forecast | None] = {}
         self.allow_plant: dict[str, bool] = {}
 
         # per feed, keyed by the name of the feedstock or process
-        self.feed_constraint: dict[str, ForecastInput | None] = {}
+        self.feed_constraints: dict[str, ForecastInput | None] = {}
 
         # per port, keyed by its name
         self.export_distribution: dict[str, ForecastInput] = {}
@@ -207,7 +207,7 @@ class Producer(Node):
                 lower=0.0,
                 allow_expression=False,
             ),
-            self.existing_pipeline,
+            self.existing_pipelines,
         )
 
     @deck_command()
@@ -228,7 +228,7 @@ class Producer(Node):
                 lower=0.0,
                 allow_infinite=True,
             ),
-            self.feed_constraint,
+            self.feed_constraints,
         )
 
     @deck_command()
@@ -257,7 +257,7 @@ class Producer(Node):
         plants = self.plants
         capacity = self.initial_capacity
         ages = self.initial_age_distribution
-        existing = self.existing_pipeline.values()
+        existing = self.existing_pipelines.values()
         pipelines = [pipeline for pipeline in existing if pipeline is not None]
 
         check_lengths_match(self, "Plants", plants, "InitialCapacity", capacity)
@@ -291,11 +291,11 @@ class Producer(Node):
         # constraint is read as unlimited
         for plant in self.plants:
             name = plant.name
-            self.existing_pipeline.setdefault(name, None)
+            self.existing_pipelines.setdefault(name, None)
             self.allow_plant.setdefault(name, True)
 
         for feed_name in [*feedstocks, *processes]:
-            self.feed_constraint.setdefault(feed_name, None)
+            self.feed_constraints.setdefault(feed_name, None)
 
         for port_name in ports:
             self.export_distribution.setdefault(port_name, Scalar(0.0))

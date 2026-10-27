@@ -189,7 +189,7 @@ def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
     """
     expectation = producer.expectation
 
-    for feed_name, constraint in producer.feed_constraint.items():
+    for feed_name, constraint in producer.feed_constraints.items():
         if constraint is None:
             continue
 
@@ -323,7 +323,7 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
     expectation = producer.expectation
     times = timeline[idx:]
 
-    for feed_name, constraint in producer.feed_constraint.items():
+    for feed_name, constraint in producer.feed_constraints.items():
         if constraint is None:
             continue
 
@@ -395,7 +395,7 @@ def _calculate_feed_limits(
     newbuilds = uptakes * development
     limits = np.ones_like(uptakes)
 
-    for feed_name, constraint in producer.feed_constraint.items():
+    for feed_name, constraint in producer.feed_constraints.items():
         if constraint is None:
             continue
 

@@ -41,14 +41,16 @@ class Technology(_Machinery):
         # external variables -----------------------------------------------------------
         self.shore_power_capacity: ScalarInput = Scalar(0.0)
 
-        self.energy_saving: dict[EnergyDemandID, ScalarInput] = {
+        self.energy_savings: dict[EnergyDemandID, ScalarInput] = {
             demand: Scalar(0.0) for demand in EnergyDemandID
         }
         self.external_power: dict[EnergyDemandID, ScalarInput] = {
             demand: Scalar(0.0) for demand in EnergyDemandID
         }
 
-        self.power_transfer: dict[tuple[EnergyDemandID, EnergyDemandID], CurveInput] = {
+        self.power_transfers: dict[
+            tuple[EnergyDemandID, EnergyDemandID], CurveInput
+        ] = {
             (source, sink): Scalar(0.0)
             for source in EnergyDemandID
             for sink in EnergyDemandID
@@ -69,7 +71,7 @@ class Technology(_Machinery):
         id_ = assign_id(energy_type, EnergyDemandID)
         value_ = assign_value(as_scalar(saving), type_=VARIABLE, lower=0.0)
 
-        write_matching_keys(id_, value_, self.energy_saving)
+        write_matching_keys(id_, value_, self.energy_savings)
 
     @deck_command()
     def set_external_power(self, energy_type: str, power: ScalarArgument) -> None:
@@ -88,4 +90,4 @@ class Technology(_Machinery):
         sink = assign_id(sink_id, EnergyDemandID)
         value_ = assign_value(as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0)
 
-        write_matching_key_pairs((source, sink), value_, self.power_transfer)
+        write_matching_key_pairs((source, sink), value_, self.power_transfers)

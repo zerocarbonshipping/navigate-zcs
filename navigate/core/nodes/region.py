@@ -45,7 +45,7 @@ class Region(Node):
         self.process_capex: dict[str, TimetableInput] = {}
         self.process_opex: dict[str, TimetableInput] = {}
         self.process_energy: dict[str, ForecastInput] = {}
-        self.process_lifetime: dict[str, ForecastInput | None] = {}
+        self.process_lifetimes: dict[str, ForecastInput | None] = {}
         self.process_replacement: dict[str, ForecastInput] = {}
         self.process_wtt: dict[tuple[str, str], ForecastInput] = {}
 
@@ -55,11 +55,11 @@ class Region(Node):
         self.source_wtt: dict[tuple[str, str], ForecastInput] = {}
 
         # feedstock
-        self.feedstock_cost: dict[str, ForecastInput] = {}
+        self.feedstock_costs: dict[str, ForecastInput] = {}
         self.feedstock_wtt: dict[tuple[str, str], ForecastInput] = {}
 
         # transport
-        self.transport_cost: dict[str, ForecastInput] = {}
+        self.transport_costs: dict[str, ForecastInput] = {}
         self.transport_wtt: dict[tuple[str, str], ForecastInput] = {}
 
     # external methods (DSL commands) --------------------------------------------------
@@ -103,7 +103,7 @@ class Region(Node):
                 lower=0.0,
                 inclusive_lower=False,
             ),
-            self.process_lifetime,
+            self.process_lifetimes,
         )
 
     @deck_command()
@@ -165,7 +165,7 @@ class Region(Node):
         write_matching_keys(
             feedstock_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.feedstock_cost,
+            self.feedstock_costs,
         )
 
     @deck_command()
@@ -185,7 +185,7 @@ class Region(Node):
         write_matching_keys(
             transport_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.transport_cost,
+            self.transport_costs,
         )
 
     @deck_command()
@@ -229,7 +229,7 @@ class Region(Node):
             self.process_capex.setdefault(process_name, Scalar(0.0))
             self.process_opex.setdefault(process_name, Scalar(0.0))
             self.process_energy.setdefault(process_name, Scalar(0.0))
-            self.process_lifetime.setdefault(process_name, None)
+            self.process_lifetimes.setdefault(process_name, None)
             self.process_replacement.setdefault(process_name, Scalar(0.0))
 
             for emission_name in emissions:
@@ -245,14 +245,14 @@ class Region(Node):
                 self.source_wtt.setdefault(key, Scalar(0.0))
 
         for feedstock_name in feedstocks:
-            self.feedstock_cost.setdefault(feedstock_name, Scalar(0.0))
+            self.feedstock_costs.setdefault(feedstock_name, Scalar(0.0))
 
             for emission_name in emissions:
                 key = (feedstock_name, emission_name)
                 self.feedstock_wtt.setdefault(key, Scalar(0.0))
 
         for transport_name in transports:
-            self.transport_cost.setdefault(transport_name, Scalar(0.0))
+            self.transport_costs.setdefault(transport_name, Scalar(0.0))
 
             for emission_name in emissions:
                 key = (transport_name, emission_name)

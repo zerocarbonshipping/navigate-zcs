@@ -97,21 +97,21 @@ class Fleet(Node):
         self.fuel_conversion_minimum_age: ForecastInput = Scalar(0.0)
         self.allow_technology_approximation: bool = True
 
-        self.fuel_conversion_cost: dict[tuple[str, str], ForecastInput | None] = {}
-        self.fuel_conversion_limit: dict[tuple[str, str], ForecastInput] = {}
+        self.fuel_conversion_costs: dict[tuple[str, str], ForecastInput | None] = {}
+        self.fuel_conversion_limits: dict[tuple[str, str], ForecastInput] = {}
         self.allow_vessel: dict[str, bool] = {}
         self.newbuild_available: dict[str, bool] = {}
         self.conversion_available: dict[str, bool] = {}
-        self.newbuild_limit: dict[str, ForecastInput] = {}
-        self.initial_technology_share: dict[
+        self.newbuild_limits: dict[str, ForecastInput] = {}
+        self.initial_technology_shares: dict[
             tuple[str, str], Curve | Expression | None
         ] = {}
-        self.newbuild_technology_limit: dict[str, ForecastInput] = {}
-        self.retrofit_technology_limit: dict[str, ForecastInput] = {}
-        self.operational_saving_sea: dict[EnergyDemandID, ForecastInput] = {
+        self.newbuild_technology_limits: dict[str, ForecastInput] = {}
+        self.retrofit_technology_limits: dict[str, ForecastInput] = {}
+        self.operational_savings_sea: dict[EnergyDemandID, ForecastInput] = {
             demand: Scalar(0.0) for demand in EnergyDemandID
         }
-        self.operational_saving_port: dict[EnergyDemandID, ForecastInput] = {
+        self.operational_savings_port: dict[EnergyDemandID, ForecastInput] = {
             demand: Scalar(0.0) for demand in PORT_ENERGY_DEMANDS
         }
 
@@ -359,7 +359,7 @@ class Fleet(Node):
         write_matching_key_pairs(
             (vessel_name_from, vessel_name_to),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
-            self.fuel_conversion_cost,
+            self.fuel_conversion_costs,
         )
 
     @deck_command()
@@ -372,7 +372,7 @@ class Fleet(Node):
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
-            self.fuel_conversion_limit,
+            self.fuel_conversion_limits,
         )
 
     @deck_command()
@@ -410,7 +410,7 @@ class Fleet(Node):
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
-            self.newbuild_limit,
+            self.newbuild_limits,
         )
 
     @deck_command(SECTION_DEFINE)
@@ -421,7 +421,7 @@ class Fleet(Node):
         write_matching_key_pairs(
             (vessel_name, technology_name),
             assign_value(value, allow_scalar=False, type_=CURVE, lower=0.0, upper=1.0),
-            self.initial_technology_share,
+            self.initial_technology_shares,
         )
 
     @deck_command()
@@ -434,7 +434,7 @@ class Fleet(Node):
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
-            self.newbuild_technology_limit,
+            self.newbuild_technology_limits,
         )
 
     @deck_command()
@@ -447,7 +447,7 @@ class Fleet(Node):
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
-            self.retrofit_technology_limit,
+            self.retrofit_technology_limits,
         )
 
     @deck_command()
@@ -460,7 +460,7 @@ class Fleet(Node):
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-        write_matching_keys(id_, value_, self.operational_saving_sea)
+        write_matching_keys(id_, value_, self.operational_savings_sea)
 
     @deck_command()
     def set_operational_saving_port(
@@ -472,7 +472,7 @@ class Fleet(Node):
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-        write_matching_keys(id_, value_, self.operational_saving_port)
+        write_matching_keys(id_, value_, self.operational_savings_port)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
@@ -488,11 +488,11 @@ class Fleet(Node):
             self.initial_age_distribution = [Scalar(0.0) for _ in self.vessels]
 
     def apply_command_defaults(self) -> None:
-        # cross-pair keys exist only after commands fill fuel_conversion_cost, so
+        # cross-pair keys exist only after commands fill fuel_conversion_costs, so
         # their limits are seeded here rather than in initialize_dependencies
-        for key, cost in self.fuel_conversion_cost.items():
+        for key, cost in self.fuel_conversion_costs.items():
             if cost is not None:
-                self.fuel_conversion_limit.setdefault(key, Scalar(1.0))
+                self.fuel_conversion_limits.setdefault(key, Scalar(1.0))
 
     def check_consistency(self) -> None:
         vessels = self.vessels
@@ -521,19 +521,19 @@ class Fleet(Node):
         # write_matching_key_pairs can validate cross-pair keys
         for vessel in self.vessels:
             name = vessel.name
-            self.fuel_conversion_cost.setdefault((name, name), None)
-            self.fuel_conversion_limit.setdefault((name, name), Scalar(1.0))
+            self.fuel_conversion_costs.setdefault((name, name), None)
+            self.fuel_conversion_limits.setdefault((name, name), Scalar(1.0))
             self.allow_vessel.setdefault(name, True)
             self.newbuild_available.setdefault(name, True)
             self.conversion_available.setdefault(name, True)
-            self.newbuild_limit.setdefault(name, Scalar(1.0))
+            self.newbuild_limits.setdefault(name, Scalar(1.0))
 
             for technology in self.technologies:
-                self.initial_technology_share.setdefault((name, technology.name), None)
+                self.initial_technology_shares.setdefault((name, technology.name), None)
 
         for technology in self.technologies:
-            self.newbuild_technology_limit.setdefault(technology.name, Scalar(1.0))
-            self.retrofit_technology_limit.setdefault(technology.name, Scalar(1.0))
+            self.newbuild_technology_limits.setdefault(technology.name, Scalar(1.0))
+            self.retrofit_technology_limits.setdefault(technology.name, Scalar(1.0))
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
         vessel_names = [vessel.name for vessel in self.vessels]
@@ -556,7 +556,7 @@ class Fleet(Node):
         return bool(self.technologies)
 
     def can_fuel_convert(self) -> bool:
-        return any(value is not None for value in self.fuel_conversion_cost.values())
+        return any(value is not None for value in self.fuel_conversion_costs.values())
 
     def get_number_of_packages(self) -> int:
         # the packages are cumulative and start from the empty one, so their count

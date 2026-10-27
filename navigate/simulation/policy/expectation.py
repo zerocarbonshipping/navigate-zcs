@@ -85,7 +85,7 @@ def _calculate_regulation_forecasts(
         RegulationMeasureID.TRANSPORT,
         RegulationMeasureID.TRANSPORT_NOMINAL,
     ):
-        for vessel_name, own_capacity in regulation.vessel_capacity.items():
+        for vessel_name, own_capacity in regulation.vessel_capacities.items():
             if own_capacity is None:
                 capacity = vessels[vessel_name].nominal_capacity.get(times)
             else:
@@ -110,7 +110,7 @@ def _calculate_global_warming_potentials(
     else:
         lifetime = policy.emissions_lifetime.get()
 
-    for emission_name, own_potential in policy.global_warming_potential.items():
+    for emission_name, own_potential in policy.global_warming_potentials.items():
         if own_potential is None:
             potential = emissions[emission_name].global_warming_potential
         else:

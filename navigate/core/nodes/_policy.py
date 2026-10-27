@@ -60,7 +60,7 @@ class _Policy(Node):
         self.include_vessel: dict[str, bool] = {}
 
         # emission factors
-        self.global_warming_potential: dict[str, CurveInput | None] = {}
+        self.global_warming_potentials: dict[str, CurveInput | None] = {}
         self.fuel_wtt: dict[tuple[str, str], ForecastInput | None] = {}
         self.fuel_ttw: dict[tuple[str, str], ForecastInput | None] = {}
 
@@ -126,7 +126,7 @@ class _Policy(Node):
         write_matching_keys(
             emission_name,
             assign_value(as_scalar(global_warming_potential), type_=(CURVE, VARIABLE)),
-            self.global_warming_potential,
+            self.global_warming_potentials,
         )
 
     @deck_command()
@@ -170,7 +170,7 @@ class _Policy(Node):
 
         # unset factors stay None, so consumers fall back to the model's own factors
         for emission in self.emissions:
-            self.global_warming_potential.setdefault(emission.name, None)
+            self.global_warming_potentials.setdefault(emission.name, None)
         for fuel in self.fuels:
             for emission in self.emissions:
                 key = (fuel.name, emission.name)

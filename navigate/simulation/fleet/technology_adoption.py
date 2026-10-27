@@ -519,7 +519,7 @@ def _reconcile_retrofit_technology_caps(
     multipliers_total
         Number of vessels in the fleet before newbuilds.
     """
-    limits = fleet.retrofit_technology_limit
+    limits = fleet.retrofit_technology_limits
     caps = _technology_caps(fleet, limits, time_step, multipliers_total)
 
     for i, cap in caps:
@@ -556,7 +556,7 @@ def reconcile_newbuild_technology_caps(
     multipliers_total
         Number of vessels in the fleet before newbuilds.
     """
-    limits = fleet.newbuild_technology_limit
+    limits = fleet.newbuild_technology_limits
     caps = _technology_caps(fleet, limits, time_step, multipliers_total)
     uptakes = fleet.newbuild_package_uptake
 

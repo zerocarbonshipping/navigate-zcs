@@ -357,7 +357,7 @@ def _normalize_voyage_shares(route: Route) -> FloatArray:
     FloatArray
         Voyage share of each leg, in the order of `Route.get_legs`.
     """
-    shares = to_numpy(route.leg_voyage_distributions)
+    shares = to_numpy(route.leg_voyage_shares)
     total = np.round(np.sum(shares), ROUND_OFF)
 
     return divide_nonzero(shares, total, default=1.0 / len(shares))
