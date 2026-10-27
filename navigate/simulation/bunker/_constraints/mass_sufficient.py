@@ -36,7 +36,7 @@ def update_mass_sufficient_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
     """
     v = vessel.name
     route = vessel.route
-    voyages = float(vessel.expectation.get_voyages(alg.idx))
+    voyages = vessel.expectation.get_voyages(alg.idx)
 
     tank_stops = route.get_tank_stops()
     tank_departures = [(i, e) for i, e in route.get_legs() if i in tank_stops]

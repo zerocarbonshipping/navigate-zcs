@@ -159,7 +159,7 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
         speeds_min[sailed], speeds_max[sailed], trip.speeds[sailed]
     )
 
-    fuel_ref = float(calculate_fuel_and_policy_expenses(vessel, idx))
+    fuel_ref = calculate_fuel_and_policy_expenses(vessel, idx)
     charter_rate = expectation.get_asset_charter_rate(idx)
 
     energy_sea_ref = expectation.get_energy_sea_condition(idx)

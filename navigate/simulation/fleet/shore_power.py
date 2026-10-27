@@ -15,7 +15,7 @@ from navigate.util import power_to_energy
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatLike
+    from navigate.util.types_ import FloatArray
 
 
 def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
@@ -38,7 +38,7 @@ def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
             vessel.expectation.set_shore_power_limit_port(idx, limits)
 
 
-def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatLike]:
+def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatArray]:
     """
     Calculate the most shore-power energy a vessel can take in each of its ports.
 
@@ -51,7 +51,7 @@ def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatLike]:
 
     Returns
     -------
-    list[FloatLike]
+    list[FloatArray]
         Shore-power limit per port over the remaining horizon, in GJ/year.
     """
     expectation = vessel.expectation

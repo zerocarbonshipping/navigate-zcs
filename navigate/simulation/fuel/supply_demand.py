@@ -46,6 +46,8 @@ def calculate_development_potential(
             continue
 
         newbuilds = _calculate_feasible_newbuilds(producer, plant, development, idx)
+
+        # a Python float, as a builtin sum() adds up the development potentials
         production = float(plant.expectation.get_production(idx))
         potential[plant.fuel.name] += newbuilds * production
 
@@ -88,6 +90,7 @@ def _calculate_feasible_newbuilds(
         if consumption == 0.0:
             continue
 
+        # a Python float, as the newbuilds reach the builtin sum() of the potentials
         gap = float(expectation.get_feed_gap(feed_name, idx))
         newbuilds = min(newbuilds, gap / consumption)
 

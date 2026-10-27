@@ -79,5 +79,5 @@ def is_fair_share_constrained(port: Port, fuel_name: str, idx: int) -> bool:
     if not port.bunkering_allowed[fuel_name]:
         return False
 
-    supply = float(port.expectation.get_bunker_supply(fuel_name, idx))
+    supply = port.expectation.get_bunker_supply(fuel_name, idx)
     return math.isfinite(supply)

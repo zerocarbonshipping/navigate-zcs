@@ -60,7 +60,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
         # a connection whose limit fell to zero keeps its variable, bounded at zero
         if (v, p) in alg.shore_power:
-            alg.model.set_upper_bound(alg.shore_power[v, p], float(limit))
+            alg.model.set_upper_bound(alg.shore_power[v, p], limit)
 
 
 def update_regulation_variables(alg: BunkerAlgorithm) -> None:

@@ -144,7 +144,7 @@ def _calculate_vessel_measure(
 def _calculate_transport_measure(
     regulation: Regulation,
     vessel: Vessel,
-    cargo_miles: list[FloatLike],
+    cargo_miles: list[FloatArray],
     times: FloatArray,
     idx: int,
 ) -> FloatArray:

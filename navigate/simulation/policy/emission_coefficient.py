@@ -269,12 +269,21 @@ def _calculate_regulation_coefficient(
         Emission coefficient from `idx` onward, in ton emission/ton fuel.
     """
     vessel_name, converter_name, fuel_name = key
+    expectation = regulation.expectation
+    forward = np.s_[idx:]
     coefficient = 0.0
 
+    # the WTT and TTW factors are adjusted for scope, slip and the like when they are
+    # calculated, so the emission factor is their plain sum
     for emission in regulation.emissions:
         key_wtt = (vessel_name, fuel_name, emission.name)
         key_ttw = (vessel_name, converter_name, fuel_name, emission.name)
-        coefficient += _calculate_emission_factor(regulation, key_wtt, key_ttw, idx)
+
+        wtt = expectation.get_wtt(key_wtt, forward)
+        ttw_consumption = expectation.get_ttw_consumption(key_ttw, forward)
+        ttw_slip = expectation.get_ttw_slip(key_ttw, forward)
+
+        coefficient += wtt + ttw_consumption + ttw_slip
 
     return coefficient
 
@@ -551,12 +560,21 @@ def _calculate_levy_coefficient(
         Emission coefficient from `idx` onward, in ton emission/ton fuel.
     """
     vessel_name, port_name, fuel_name = key
+    expectation = levy.expectation
+    forward = np.s_[idx:]
     coefficient = 0.0
 
+    # the WTT and TTW factors are adjusted for scope, slip and the like when they are
+    # calculated, so the emission factor is their plain sum
     for emission in levy.emissions:
         key_wtt = (port_name, fuel_name, emission.name)
         key_ttw = (vessel_name, fuel_name, emission.name)
-        coefficient += _calculate_emission_factor(levy, key_wtt, key_ttw, idx)
+
+        wtt = expectation.get_wtt(key_wtt, forward)
+        ttw_consumption = expectation.get_ttw_consumption(key_ttw, forward)
+        ttw_slip = expectation.get_ttw_slip(key_ttw, forward)
+
+        coefficient += wtt + ttw_consumption + ttw_slip
 
     return coefficient
 
@@ -757,43 +775,6 @@ def _evaluate_supplied(
             evaluated[key] = None if factor is None else factor.get(times)
 
     return evaluated
-
-
-def _calculate_emission_factor(
-    policy: Levy | Regulation,
-    key_wtt: tuple[str, str, str],
-    key_ttw: tuple[str, ...],
-    idx: int,
-) -> FloatLike:
-    """
-    Calculate the emission factor from pre-defined WTT and TTW emission factors.
-
-    Parameters
-    ----------
-    policy
-        Policy whose emission factor is calculated.
-    key_wtt
-        Key of the WTT factor in the policy's expectation.
-    key_ttw
-        Key of the TTW factors in the policy's expectation.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    FloatLike
-        Emission factor from `idx` onward, in ton emission/ton fuel.
-    """
-    expectation = policy.expectation
-    forward = np.s_[idx:]
-
-    wtt = expectation.get_wtt(key_wtt, forward)
-    ttw_consumption = expectation.get_ttw_consumption(key_ttw, forward)
-    ttw_slip = expectation.get_ttw_slip(key_ttw, forward)
-
-    # the WTT and TTW factors are adjusted for scope, slip and the like when they are
-    # calculated, so the emission factor is their plain sum
-    return wtt + ttw_consumption + ttw_slip
 
 
 def _apply_gwp(
