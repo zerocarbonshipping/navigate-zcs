@@ -7,69 +7,22 @@ SPDX-License-Identifier: CC-BY-4.0
 
 Navigate is a sectoral integrated assessment model for simulating the maritime industry's transition toward zero-carbon shipping. It models fleet investment decisions, fuel production, bunkering operations, and regulatory impacts over multi-decade timelines.
 
-## Disclaimer
-
-Navigate is an open-source analytical model intended for research and scenario analysis of maritime decarbonisation pathways. The model, its assumptions and any outputs are provided for illustrative and analytical purposes only.
-
-Model outputs depend on the assumptions selected by the user and should not be interpreted as forecasts, benchmarks, recommendations or commercially optimal outcomes, nor as legal, financial or investment advice.
-
-Users are responsible for selecting and adapting assumptions appropriate to their own circumstances and for exercising their own independent judgement when interpreting or relying on any model outputs.
-
-## Tutorials and Example Simulations
-
-Detailed installation guide, step-by-step tutorials and a full reference manual are available in the [documentation](https://zerocarbonshipping.github.io/navigate-zcs/). Each tutorial page offers its starting files as a download.
-Some simple example simulations can be found under `simulations/examples`
-
 ## Installation
+It is recommended that Navigate is installed within an environment such as [conda](https://continuumio-docs.readthedocs-hosted.com/miniconda/) or [venv](https://docs.python.org/3/library/venv.html).
 
-Navigate is built on Python version 3.13. You can download Navigate by cloning it to your local machine or by downloading one of the releases.
-We recommend using an environment manager such as [conda](https://www.anaconda.com/docs/getting-started/miniconda) or [venv](https://docs.python.org/3/library/venv.html) to avoid conflicts with other packages and versions.
+### Navigate + Assumptions & Simulations (Preferred)
+- Clone the repository and run `pip install .` in the directory.
+- Set the environment variable `ASSUMPTIONS_DATA_DIR` to point to the `assumptions` folder.
 
-### Setting up an environment (optional but recommended)
-```bash
-# Using venv (bundled with Python)
-python3.13 -m venv .venv
-source .venv/bin/activate
-# Using conda (https://www.anaconda.com/docs/getting-started/miniconda/install)
-conda create -n nav python=3.13 pip
-conda activate nav
-```
+### Navigate PyPI Package
+- `pip install navigate` Installs only Navigate.
 
-### Installing Navigate
 
-Install navigate using pip from within the Navigate folder after cloning the repository:
-```bash
-pip install .
-```
+#### Optional: Gurobi solver (commercial license)
+Navigate ships with the open-source [HiGHS](https://highs.dev/) solver and uses it by default — no further setup is needed. If you have a [Gurobi](https://www.gurobi.com/) license, you can install the faster Gurobi backend as an optional extra `pip install .[gurobi]`.
 
-### Optional: Gurobi solver (commercial license)
 
-Navigate ships with the open-source [HiGHS](https://highs.dev/) solver and uses it by default — no further setup is needed. If you have a [Gurobi](https://www.gurobi.com/) license, you can install the faster Gurobi backend as an optional extra:
-
-```bash
-pip install .[gurobi]
-```
-
-The default solver, `auto`, then detects the license and uses Gurobi automatically. Note that installing `gurobipy` from pip only includes a size-limited trial license that cannot solve full Navigate scenarios — without a full Gurobi license, skip this extra (or run with `--solver highs`).
-
-## Running Navigate
-
-Navigate is run from the command line using the following command:
-
-```bash
-navigate my_nav_file.nav
-```
-
-For example, to run the basecase scenario with the included assumptions:
-
-```bash
-navigate simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation.nav -d ./assumptions
-```
-
-Expect a full scenario run to take roughly 25 minutes on the bundled open-source HiGHS solver. The four reference scenarios are described in [`simulations/scenarios/README.md`](simulations/scenarios/README.md).
-
-### Arguments
-
+## Usage
 The following options are available when running Navigate. See them in the command line by typing `navigate --help`.
 
 | Flag                            | Description                                                                                                                                                                                                                                                       |
@@ -81,6 +34,22 @@ The following options are available when running Navigate. See them in the comma
 | `-l LEVEL`, `--log-level LEVEL` | Set the log level for the `.log` file. With `DEBUG`, a failed run also prints the full traceback to the console.                                                                                                                                                  |
 | `--solver {auto,gurobi,highs}`  | Solver backend. `auto` tries Gurobi then falls back to HiGHS. Without the flag, the deck's `BunkerOptions` `Solver` applies.                                                                                                                                      |
 | `-p`, `--profile`               | Profile the run, write the statistics to the file `<name>.prof` in the output folder and print the 100 functions with the highest cumulative time. A profiled run prints no warning count.                                                   |
+
+## Tutorials and Example Simulations
+
+Detailed installation guide, step-by-step tutorials and a full reference manual are available in the [documentation](https://zerocarbonshipping.github.io/navigate-zcs/). Each tutorial page offers its starting files as a download.
+Some simple example simulations can be found under `simulations/examples`
+
+
+
+## Disclaimer
+
+Navigate is an open-source analytical model intended for research and scenario analysis of maritime decarbonisation pathways. The model, its assumptions and any outputs are provided for illustrative and analytical purposes only.
+
+Model outputs depend on the assumptions selected by the user and should not be interpreted as forecasts, benchmarks, recommendations or commercially optimal outcomes, nor as legal, financial or investment advice.
+
+Users are responsible for selecting and adapting assumptions appropriate to their own circumstances and for exercising their own independent judgement when interpreting or relying on any model outputs.
+
 
 ## License
 
