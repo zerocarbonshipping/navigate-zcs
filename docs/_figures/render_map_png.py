@@ -48,6 +48,9 @@ CHROME_CANDIDATES = [
     pathlib.Path("/usr/bin/google-chrome"),
     pathlib.Path("/usr/bin/chromium"),
     pathlib.Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+    # Microsoft Edge is Chromium too, and takes the same headless flags
+    pathlib.Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
+    pathlib.Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
 ]
 
 
@@ -55,7 +58,7 @@ def find_chrome():
     for p in CHROME_CANDIDATES:
         if p.exists():
             return p
-    sys.exit("no Chrome/Chromium found; add its path to CHROME_CANDIDATES")
+    sys.exit("no Chrome, Chromium or Edge found; add its path to CHROME_CANDIDATES")
 
 
 def viewbox_size(svg_text):

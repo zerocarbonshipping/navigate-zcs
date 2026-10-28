@@ -19,7 +19,8 @@ Five sessions, each a notebook, in this order:
    with levers, then three of them year by year (25-50 minutes)
 3. `03-how-a-navigate-model-is-built.ipynb`: Session 1's case, its deck and its data
 4. `04-how-navigate-solves.ipynb`: the same case, solved step by step
-5. `05-build-your-own-case.ipynb`: prompts for an AI assistant (local install only)
+5. `05-build-your-own-case.ipynb`: building a case with an AI assistant, step by step
+   (local install only)
 
 `_style.py` holds the shared figure style. `index.md` is the overview page. The
 decks the sessions run are in `simulations/examples/example_4/` and
@@ -106,25 +107,42 @@ listed in the `.nav` header.
 
 ## Prompts
 
-Session 5 shows new users a few examples, each with its prompts; its examples A
-and B rebuild Sessions 1 and 2. `prompt-bank.md` is the larger set, not on the
-site: every tested prompt, kept so that assistants start from the closest one and
-the prompts improve as more people build decks. Session 5's start-up prompt reads
-both. A new tested prompt goes into the bank with its line in the bank's index;
-it goes into Session 5 only when the authors ask, with a line in its table.
+Session 5 teaches the process in seven steps, worked on Session 1's case, and
+shows a global and a regional case as cards. `prompt-bank.md`, not on the site,
+holds every full prompt and every variant, grouped by family, so that assistants
+start from the closest one. The start-up prompt has the assistant propose the
+family and the model, show a one-page case sheet for approval, and build from
+the case sheet and the model's full prompt. This process was chosen on
+2026-10-28 over writing a full prompt for approval: in six cold builds it was as
+accurate, with a third of the text to approve.
 
-The start-up prompt and the full prompts of Session 5 and the bank are tested as
-a chain, cold, by an assistant that sees only the prompt text:
+The bank grows from contributions. A participant's assistant ends its report with
+a prompt bank entry (building-a-deck.md says what it holds), which the participant
+pastes into an issue. Add it as a variant of its model by default, and as a full
+entry only when it needs a structure or a fix that no entry has; fold its notes
+into building-a-deck.md; promote a variant that several people build to a full
+entry. A report that says "none close" marks a family or a template the bank
+lacks.
 
-1. the start-up prompt, carried through: it writes a full prompt, and a fresh
-   assistant builds and runs it;
-2. each full prompt, run directly.
+Avoid wording that asks a model about its own prompt or reasoning ("the prompt
+you would want to be given"): it tripped a model's safety filter in testing.
 
-Check that every instruction of the start-up prompt (the new folder and its `_2`,
-no change to existing files, INVENTED marking, what to report) reaches the
-generated prompt and is obeyed by the build. Keep the start-up prompt as short as
-a participant could write it, and shorten it only with a chain test showing the
-cut breaks nothing. The rules Session 5's prompts share live in
+The start-up prompt and the bank's full prompts are tested as a chain, cold, by
+an assistant that sees only the prompt text:
+
+1. the start-up prompt, carried through to a build, on a new case of each family;
+2. each full prompt, run directly; a variant, built from its model.
+
+A template that rebuilds a deck already in the repository (the copper trade is
+`example_4`, Session 2's is in `simulations/scenarios/`) tells the assistant it
+may use that deck. To test that the prompt alone is enough, the tester's own
+instructions forbid opening it; the prompt itself does not.
+
+Check that every instruction of the start-up prompt (the family and model
+before the questions, the case sheet, the new folder and its `_2`, no change to
+existing files, INVENTED marking, the prompt bank entry) is obeyed by the build.
+Keep the start-up prompt as short as a participant could write it, and shorten
+it only with a chain test showing the cut breaks nothing. The rules Session 5's prompts share live in
 `building-a-deck.md`: change them there, not in each prompt, and test the chain
 again afterwards.
 

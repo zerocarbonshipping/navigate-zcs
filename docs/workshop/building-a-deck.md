@@ -45,8 +45,12 @@ commands for you.
   `assumptions/modules/installation/default_voyage.inc`. `Import Fleet "tanker_127k_dwt"`
   reads one node from `assumptions/defaults/installation/Fleet/tanker_127k_dwt.inc`.
 - `simulations/examples/example_1` to `example_4` are complete decks that run.
-  `simulations/scenarios/` holds the Center's reference scenarios; their `.nav`
-  files are almost entirely `Load` statements.
+  `simulations/scenarios/` holds the Center's reference scenarios, which a global
+  case starts from: the three basecases (no, mid and strong regulation) and
+  `business_as_usual`, which splits each ship class into an international and a
+  domestic fleet that sail and are covered differently. `workshop_whatif/` holds
+  coarse-grid copies that run in a few minutes. Their `.nav` files are almost
+  entirely `Load` statements.
 - Run a deck from the repository root, in the Python environment where Navigate
   was installed from this repository, with:
 
@@ -104,7 +108,11 @@ Every number must come from `assumptions/` and be referenced by name
 (`Forecast("...")`, `Curve("...")`, `Variable("...")`), never copied in as a
 literal. Where the library itself stores a plain number (the fuel-conversion costs
 in a Fleet file, the time at sea in a Route file), copy it with a comment naming
-the file it came from.
+the file it came from. The global fuel standard has no library file: its
+Regulation and Forecasts live in `simulations/scenarios/0_includes/`
+(`mid_regulation.inc`, `strong_regulation.inc`). Copy them from there, with a
+comment naming the file, and set their Jurisdiction to your own ports; they count
+as sourced, not INVENTED.
 
 A fleet is a market segment owned by many companies: hundreds of ships, or a
 share of a library class, never one company's fleet or a single ship. Navigate
@@ -128,7 +136,8 @@ a comment where it appears, and listed in the `.nav` header.
 - A deck on a trade of its own builds its Fleet node from the library's Vessel
   files with `Copy Vessel`, as `simulations/examples/example_4/includes/fleet.inc`
   does. `Import Fleet` brings the world fleet, with a world-sized fleet and
-  orderbook, which is right for a global deck and wrong for a trade.
+  orderbook, which is right for a global deck and wrong for a trade. A deck on named
+  ports takes its structure from example_4.
 - The library's operational profiles are world-average patterns between two
   abstract ports (`port_global`, `port_europe`) that exist for regulatory scope,
   not places on a map. A deck on named ports builds a ROUND_TRIP route between
@@ -151,6 +160,26 @@ a comment where it appears, and listed in the `.nav` header.
   by world shipping's, about 13,000 PJ in 2026 in the reference scenario. A
   larger share hands a small fleet the world's biomass, and the answer follows the
   feedstock rather than the question. Never raise it to make a fuel appear.
+  Estimate the first-year energy from the class's fuel use before the first run;
+  after it, check the estimate against the report and say if it is off by more
+  than a factor of two.
+- The library's biogenic CO2 pool (`carbon_dioxide_biogenic_availability`) grows to
+  350 Mt a year by 2050. Use it as it is unless the prompt says otherwise:
+  example_4 holds it flat at its 2026 value by choice. The full prompt of the
+  bank entry you take as your model counts as the prompt.
+- When the case puts fuel production in a country the library has no region for,
+  declare a Region of your own with the lines of the nearest library region,
+  marked INVENTED, and give it its own `set_distance` lines. The library makes
+  FAME in Europe only: elsewhere it is a European import, or a copy of Europe's
+  lines marked INVENTED.
+- On named ports, say what each port sells. Every fuel can be bunkered at every
+  port unless the deck says otherwise (`set_bunkering_allowed` defaults to TRUE),
+  and a region-port pair with no `set_distance` delivers at no cost (the default
+  distance is 0). Set `set_bunkering_allowed` for every fuel at every port, FALSE
+  where it may not be bunkered, and give a distance for every pair that delivers.
+- The `set_voyage_distribution` command that splits a route's work between port
+  pairs is missing from this version's reference manual. It takes two port
+  names and a share; `"*", "*", 0` first clears the default split.
 - A plant you Import or Copy brings no Region, Source or CostOfCapital: the
   library sets those in `assumptions/modules/installation/default_plant.inc` by
   wildcards on its own plant names. Set all three on every plant yourself, as that
@@ -162,6 +191,12 @@ a comment where it appears, and listed in the `.nav` header.
   port stays, so the share of the year at sea follows from the distances, speeds
   and port durations. Route distances, like BunkerLogistics, take plain numbers
   only.
+- Ships that work inside ports rather than between them (tugs, harbour ferries)
+  take a REGIONAL_TRIP route: list the ports, split the work between them with
+  `set_voyage_distribution("<port>", "<port>", share)` after
+  `set_voyage_distribution("*", "*", 0)`, and split `PortCalls` the same way.
+  Without the split every port pair gets an equal share. TimeAtSea, Speeds and
+  CapacityUtilizations come from the class's operational profile.
 - A Regulation or Levy you write covers no ship unless it says
   `set_include_vessel("*", TRUE)` (or names the vessels). The reference manual
   gives TRUE as the default, but Navigate's code uses FALSE, and nothing warns.
@@ -185,10 +220,23 @@ a comment where it appears, and listed in the `.nav` header.
   TechnologyCostOfCapital explicitly: without it, efficiency technology is
   financed at each vessel's own rate and inherits the change.
 - Node names are unique across node types: a Regulation cannot share its name
-  with the Forecast that sets its price.
+  with the Forecast that sets its price, nor a Report with the Regulation it
+  reports on (call it `report_eu_ets`, not `eu_ets`).
 - If you rename copied vessels, check that the Fleet file's
   `set_fuel_conversion_cost` wildcards still match the new names, and restate
   those lines if they do not.
+- When the case's ships fall between two library classes, take the nearest class
+  by size and say so in the header; resizing it makes its values INVENTED.
+- When the case states a change that can be read two ways ("20 % stricter":
+  deeper reductions, or a lower limit), ask which, and write the reading down in
+  a comment.
+- The workshop's coarse grid (`time_steps_coarse.inc`: 2026, 2027, 2030, then
+  every four years) has no step in 2028 or 2029, so a policy that starts or
+  changes then is never simulated. Add a `Date` for that year to every deck you
+  compare, and say so; when the decks must differ in one Include line only, keep
+  the grid instead, and say which policy dates fall between steps. A sum over a
+  coarse grid weights each step by the years until the next step, and the last
+  step by one year: say so next to the sum.
 - A deck built on the library's modules also loads what every library deck needs,
   as the reference scenarios' `.nav` files do: `DefaultModelDefinition`,
   `DefaultBunkerLogistics` (without it the first year's bunkering has no feasible
@@ -199,7 +247,11 @@ a comment where it appears, and listed in the `.nav` header.
   twenty-three fleets. It phases alternative vessel types in over time using
   wildcards like `Fleet "tug*"` that only resolve against the full set, so it
   fails to parse on a cut-down deck. Say in the `.nav` header that every vessel
-  type is therefore orderable from year one rather than phased in.
+  type is therefore orderable from year one rather than phased in. When the
+  prompt asks for the library's dates instead, write them out in an `.inc` file
+  read from EVENTS, with `Start`, `Date` and `End` and one `Fleet` block per
+  fleet of yours, copying the dates of
+  `assumptions/modules/installation/default_converter_available.inc`.
 
 ## Before you say it works
 
@@ -208,7 +260,7 @@ warning and error counts from the Log summary. Then give what the prompt asks fo
 from the report rather than from the charts, and at least the fuel mix in the
 first year and the last. Say plainly whether anything actually switched.
 
-Three things that are easy to misread:
+Things that are easy to misread:
 
 - A methanol or ammonia ship can run entirely on its oil pilot fuel, and does
   when no alternative fuel is on offer. A growing number of these ships is not a
@@ -218,12 +270,110 @@ Three things that are easy to misread:
   in your own Report is per ship: multiply by ExistingVessels before comparing it
   with the Global sheet.
 - A bunker price of 0 for a fuel at a port means there is no supply of it, not
-  that it is free. To say how far such a fuel is from competing, add
+  that it is free. So does a price far below what making the fuel costs, close
+  to the delivery cost alone, in a year before any plant produces it. To say how far such a fuel is from competing, add
   `add_plant_property("*", InvestmentIntensityCost)` to your Report: it gives
   each plant's levelised cost per GJ every year, even when none is built.
 - The investment freight rate and ActualSpeed have no value in the first time
   step; quote the second if the first is asked for. Whether any plant was built does not appear
   in DefaultReport: look at `plots/producer_development.png`.
+- The Log summary does not count a bunkering step that failed to converge: it is
+  logged as INFO, not as a warning. Search the `.log` for
+  "convergence status: Failure" and report the years it names.
+- To compare the fleet's fuel use with a published figure, report
+  `add_fleet_property("*", TotalConsumedMass)`, the fuel burnt in tonnes a year.
+
+## Then prepare the case's prompt bank entry
+
+The prompt bank grows from the cases people build. Once the decks run cleanly,
+end your report with a section headed **Prompt bank entry**, ready to paste:
+
+- the index line: the family, the question, the scale, the ships, the policy,
+  what the case changes, and "built <date>";
+- the model you took (a bank entry), or "none close" if no entry was;
+- the case sheet as approved, written as the differences from that model
+  ("Variant of <entry>, with these differences: ...");
+- the test result: exit code, warnings and errors per deck, and the first-year
+  well-to-wake intensity and energy.
+
+If no entry was close, or the deck needed a structure that none of them has, also
+write the full prompt that rebuilds the deck as it now is, in the style of the
+bank's full prompts. Tell the person that Step 7 of Session 5 says where to send
+the entry.
+
+## Then offer an explanation notebook
+
+Once the deck runs and you have reported, ask the person whether they also want
+an explanation notebook for the case. Build it only if they say yes; the deck is
+finished either way.
+
+The notebook, `explore.ipynb` in the deck's folder, opens with a picture of the
+case, then says what the case is (the ships and how many, the ports, the fuels
+that can compete, the policy and whom it covers), how to run the deck, what it
+found, and which numbers are INVENTED. Keep to this deck's facts: every number
+it quotes comes from the deck or from your run.
+
+Keep its prose to the minimum: short lists rather than paragraphs, no
+explanations of Navigate (the workshop sessions give those), and nothing the
+figures already show.
+
+The picture is drawn by a script you write in the deck's folder, for example
+`figures/make_case_map.py`, which reuses the workshop's map code in
+`docs/_figures/` rather than starting from nothing:
+
+- A deck on real ports gets a map. Import `make_gulf_asia_map.py` as a module and
+  use its basemap (`ne_110m_countries.geojson`), its label solver and its check
+  that every voyage stays at sea. Set your own window and projection, and place
+  the ports from your route and the production sites, with their delivery
+  distances, from your bunker logistics. Read `docs/_figures/README.md` first.
+- A deck without geography (`port_global`, `port_europe`) gets a schematic
+  instead: take `make_two_fleets_schematic.py` as the model, and show the fleets,
+  the fuels and where the policy applies.
+
+Colours come from `docs/workshop/_style.py`, as in every workshop figure.
+Rasterise the SVG with `render_map_png.py`, after setting
+`render_map_png.STATIC` and `render_map_png.HERE` to your `figures/` folder, so
+that nothing is written under `docs/`. It needs Chrome, Chromium or Microsoft
+Edge; if there is none, say so and leave the picture out rather than embed a broken one. Put the
+PNG in the notebook's first markdown cell as a base64 image, written as ONE
+string in the cell's `source` (the README says why), with `nbformat`.
+
+Build the rest of the notebook on the layout of Session 1,
+`docs/workshop/01-run-a-simple-case.ipynb`, or of Session 2,
+`02-run-a-global-case.ipynb`, for a global case. Copy their cells and adapt them
+to this deck, rather than writing new machinery or new kinds of figures:
+
+1. **The case**: the picture, then the description above.
+2. **Setup**: Session 1's Setup cell, which finds the repository root and holds
+   the machinery (`run_case`, `scale`, `both`, `summarise`, `plot_cases`,
+   `run_your_scenario`), pointed at this deck instead of example_4. Keep
+   Session 1's palette and figure functions from `docs/workshop/_style.py`.
+3. **Run the case and see the results**: the reference run, with Session 1's
+   figure (well-to-wake emissions, freight rate, fuel consumed by fuel) and its
+   table of results. When the case has several decks, run each one and show
+   them side by side in that same figure, as Session 2 compares its scenarios.
+4. **Change the inputs**: Session 1's lever cell, with levers for this deck: a
+   multiplier on each INVENTED value and on the inputs the case's question turns
+   on (a fuel price, a policy's level), each with the value it multiplies in a
+   comment. A lever multiplies a Forecast or a Variable, so keep the INVENTED
+   values you want as levers in Variables; plain numbers (distances, bunker
+   logistics) cannot be. Running it re-solves the case and compares it with the reference and
+   with the previous run.
+5. **Navigate's own charts**, for the reference run: drawn again in the
+   workshop palette with `navigate_charts(run_folder, out_folder)` from
+   `_style.py`, which reads the run's `plot_data.pkl`. Every run overwrites the
+   `plot_data.pkl` of its folder, the notebook's lever runs included, so copy it
+   to `runs/<deck>/plot_data.pkl` in the cell that runs each deck, before any
+   lever runs.
+
+Under each figure, write at most one sentence on what it shows, from your run's
+numbers. Keep Session 1's quieting of Navigate's log in `run_case`, or the
+library's expected warnings fill the outputs. Run the notebook from the
+repository root, and execute it once before handing it over, with
+`PYTHONUTF8=1`, so that the figures are saved in it: with `jupyter nbconvert
+--to notebook --execute --inplace`, or, if that is missing, with `nbclient` and
+the `python3` kernel.
+Check that no output shows an error, a local path or a user name.
 
 ## Improving this page
 
