@@ -441,7 +441,7 @@ SPDX-License-Identifier: CC-BY-4.0
 Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under <code class="docutils literal notranslate"><span class="pre">Navigate/assumptions/defaults/*</span></code>.</p>
 <p><strong>How does it work?</strong></p>
 <p>In the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code> from the download at the top of this page, we have prepared a <code class="docutils literal notranslate"><span class="pre">define.inc</span></code>, an <code class="docutils literal notranslate"><span class="pre">events.inc</span></code> and a <code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> file for you. The files will include prompts that tell you what to do, just like in Tutorial 1. All of the files for Tutorial 2 build on what you have already created in Tutorial 1. This means, that all nodes from the files from Tutorial 1 are already included in the files you will be working with for Tutorial 2. Edits made to accommodate the new vessel and fuel assumptions in this tutorial are specified in this guide.
-In the last section, you will produce plots and manipulate some variables. You will explore the projections on the global emissions, global fuel cost etc., for the two different fleets, taking into account emissions that are associated with the sourcing and production of the fuels, as well as the emissions from burning the fuel. We will also explore the effect of trade growth over time.</p>
+In the last section, you will look at the results in Lantern and manipulate some variables. You will explore the projections on the global emissions, global fuel cost etc., for the two different fleets, taking into account emissions that are associated with the sourcing and production of the fuels, as well as the emissions from burning the fuel. We will also explore the effect of trade growth over time.</p>
 <section id="modifying-the-define-inc-file">
 <h2>Modifying the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file<a class="headerlink" href="#modifying-the-define-inc-file" title="Link to this heading">#</a></h2>
 <p>Open the <code class="docutils literal notranslate"><span class="pre">includes</span></code> folder in the <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>-folder and open the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file.
@@ -1142,25 +1142,6 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <li><p><code class="docutils literal notranslate"><span class="pre">FuelCostSensitivity</span></code> controls the choice <em>between plants producing the same fuel</em> by their levelized cost of fuel (LCoF): a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a plant whose LCoF is 10% higher receives half the odds (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
 </ol>
 </section>
-<section id="definition-of-a-plot-node">
-<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Plot</span></code> Node<a class="headerlink" href="#definition-of-a-plot-node" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node defines which output plots Navigate produces and where they are saved. Navigate only generates plots when at least one <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node is defined.</p>
-<ol class="arabic simple">
-<li><p>Define a node <code class="docutils literal notranslate"><span class="pre">&quot;plots&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Plot</span></code>.</p></li>
-<li><p>Set the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code>. This is the subfolder, relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file, where the plots are saved. Navigate creates the folder if it does not already exist.</p></li>
-<li><p>Use the <code class="docutils literal notranslate"><span class="pre">add_plot(...)</span></code> command once per plot you want produced. In this tutorial we now also have fuel production, so in addition to the absolute emissions, the global fuel mix, and the bunker price at the port, we also produce the plant production cost.</p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
-    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
-
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"plant_production_cost"</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
 </section>
 <section id="the-events-input-file">
 <h2>The <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> input file<a class="headerlink" href="#the-events-input-file" title="Link to this heading">#</a></h2>
@@ -1204,7 +1185,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <ol class="arabic simple">
 <li><p>Use the terminal to navigate to the <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code> folder. Recall <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">path/to/folder</span></code> and <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">..</span></code></p></li>
 <li><p>Run the command <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_2.nav</span></code></p></li>
-<li><p>Look through the plots folder and interpret the results.</p></li>
+<li><p>Open the results file it wrote with <a class="reference external" href="https://github.com/zerocarbonshipping/lantern-zcs">Lantern</a>: <code class="docutils literal notranslate"><span class="pre">lantern</span> <span class="pre">tutorial_2.parquet</span></code>. Look through the plots, for example the absolute emissions, the global fuel mix, the plant production cost and the bunker price at the port, and interpret the results.</p></li>
 </ol>
 </section>
 <section id="example-solution">
@@ -1650,19 +1631,6 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="p">}</span>
 
 
-<span class="c1"># G) DEFINITION OF OUTPUT</span>
-<span class="c1"># The Plot node tells Navigate which plots to produce and where to save them.</span>
-<span class="c1"># Directory points at the "plots" subfolder; each add_plot(...) selects one plot.</span>
-
-<span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
-	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
-
-	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
-	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
-	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"plant_production_cost"</span><span class="p">)</span>
-	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
-<span class="p">}</span>
-
 <span class="c1"># END OF NAV FILE</span>
 </pre></div>
 </div>
@@ -1801,7 +1769,6 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-producer-node">Definition of a Producer Node</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-plot-node">Definition of a <code class="docutils literal notranslate"><span class="pre">Plot</span></code> Node</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-events-input-file">The <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> input file</a></li>

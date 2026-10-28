@@ -40,13 +40,11 @@ forecast
 fuel
 levy
 plant
-plot
 port
 process
 producer
 region
 regulation
-report
 route
 source
 surface

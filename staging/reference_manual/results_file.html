@@ -383,13 +383,11 @@
 <li class="toctree-l1"><a class="reference internal" href="fuel.html">Fuel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="levy.html">Levy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plant.html">Plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="plot.html">Plot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="port.html">Port</a></li>
 <li class="toctree-l1"><a class="reference internal" href="process.html">Process</a></li>
 <li class="toctree-l1"><a class="reference internal" href="producer.html">Producer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="region.html">Region</a></li>
 <li class="toctree-l1"><a class="reference internal" href="regulation.html">Regulation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="report.html">Report</a></li>
 <li class="toctree-l1"><a class="reference internal" href="route.html">Route</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source.html">Source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="surface.html">Surface</a></li>
@@ -470,7 +468,8 @@ SPDX-License-Identifier: CC-BY-4.0
 <section class="tex2jax_ignore mathjax_ignore" id="results-file">
 <h1>Results file<a class="headerlink" href="#results-file" title="Link to this heading">#</a></h1>
 <p>Every run writes its full results to one Parquet file, <code class="docutils literal notranslate"><span class="pre">&lt;deck&gt;.parquet</span></code> next to
-the deck, or to the path given with <code class="docutils literal notranslate"><span class="pre">-o</span></code>/<code class="docutils literal notranslate"><span class="pre">--results</span></code>. Open it with
+the deck. <code class="docutils literal notranslate"><span class="pre">--name</span></code> and <code class="docutils literal notranslate"><span class="pre">--output-dir</span></code> change its name and folder, and a run with
+<code class="docutils literal notranslate"><span class="pre">--set</span></code> writes it into the <code class="docutils literal notranslate"><span class="pre">parquets</span></code> subfolder of that folder. Open it with
 <a class="reference external" href="https://github.com/zerocarbonshipping/lantern-zcs">Lantern</a> to browse the
 plots, or read it with any Parquet reader, for example polars, pandas or DuckDB:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
@@ -479,12 +478,10 @@ plots, or read it with any Parquet reader, for example polars, pandas or DuckDB:
 <span class="n">emissions</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"attribute"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"total_equivalent_wtw"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"global"</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Unlike a <a class="reference internal" href="report.html"><span class="std std-doc">Report</span></a>, which writes the properties a deck asks for, the
-results file holds every result of every node that holds results: the same values
-the report properties give, and nothing else. Node inputs, such as a fleet’s
-trade target, are not in it, except the fuel and emission constants the results
-were converted with, which the <a class="reference internal" href="#metadata">metadata</a> holds. A Report remains the
-way to get a spreadsheet laid out for reading.</p>
+<p>The results file holds every result of every node that holds results, and
+nothing else. Node inputs, such as a fleet’s trade target, are not in it, except
+the fuel and emission constants the results were converted with, which the
+<a class="reference internal" href="#metadata">metadata</a> holds.</p>
 <section id="table">
 <h2>Table<a class="headerlink" href="#table" title="Link to this heading">#</a></h2>
 <p>The table is long: one row per series and date. A series whose values are all
@@ -530,15 +527,12 @@ below 1e-5 in magnitude or missing is left out.</p>
 </div>
 <p>Keys that are identifiers, such as fuel types or energy demand types, are
 written by name (<code class="docutils literal notranslate"><span class="pre">OIL</span></code>, <code class="docutils literal notranslate"><span class="pre">PROPULSION</span></code>, see <a class="reference internal" href="appendix_ids.html"><span class="std std-doc">Appendix: IDs</span></a>). The
-result names are those of the report properties in snake case: the report
-property <code class="docutils literal notranslate"><span class="pre">TotalEquivalentWtw</span></code> is the attribute <code class="docutils literal notranslate"><span class="pre">total_equivalent_wtw</span></code>.</p>
+attributes of each kind are listed under <a class="reference internal" href="#results">Results</a>.</p>
 <p>Values are per year where the unit says so. The results that count what
 happened in a time step, <code class="docutils literal notranslate"><span class="pre">newbuilds</span></code>, <code class="docutils literal notranslate"><span class="pre">scrap</span></code>, <code class="docutils literal notranslate"><span class="pre">fuel_conversions</span></code>,
 <code class="docutils literal notranslate"><span class="pre">newbuild_power</span></code>, <code class="docutils literal notranslate"><span class="pre">scrapped_power</span></code>, <code class="docutils literal notranslate"><span class="pre">fuel_converted_power</span></code>, <code class="docutils literal notranslate"><span class="pre">development</span></code> and
 <code class="docutils literal notranslate"><span class="pre">computational_time</span></code>, are divided by the length of the step in years of 365.25
-days, the first step counting as one year. The report gives them per step
-instead: with yearly time steps the two differ only by the length of the
-calendar year.</p>
+days, the first step counting as one year.</p>
 </section>
 <section id="metadata">
 <h2>Metadata<a class="headerlink" href="#metadata" title="Link to this heading">#</a></h2>
@@ -551,24 +545,27 @@ calendar year.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code></p></td>
-<td><p>Version of this layout, currently <code class="docutils literal notranslate"><span class="pre">3</span></code>. It changes when a reader has to change.</p></td>
+<td><p>Version of this layout, currently <code class="docutils literal notranslate"><span class="pre">1</span></code>. It changes when a reader has to change.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">navigate_version</span></code></p></td>
 <td><p>Navigate version that wrote the file</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">deck</span></code></p></td>
-<td><p>Name of the deck</p></td>
+<td><p>Name of the run: the deck’s file name without extension, or the name given with <code class="docutils literal notranslate"><span class="pre">--name</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">created</span></code></p></td>
 <td><p>Time the file was written, UTC, ISO 8601</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">units</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">params</span></code></p></td>
+<td><p>The <a class="reference internal" href="dsl_reference.html#placeholders"><span class="std std-ref">placeholder</span></a> values given with <code class="docutils literal notranslate"><span class="pre">--set</span></code>, as text, by name; empty without any</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">units</span></code></p></td>
 <td><p>Unit of each attribute, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;consumed_energy&quot;:</span> <span class="pre">&quot;GJ/year&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">measure</span></code> means the unit of the regulation’s measure.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">constants</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">constants</span></code></p></td>
 <td><p>The run’s constants: <code class="docutils literal notranslate"><span class="pre">lower_heating_value</span></code> per fuel, GJ/t; <code class="docutils literal notranslate"><span class="pre">fuel_type</span></code> per fuel; <code class="docutils literal notranslate"><span class="pre">liquid_market_fuels</span></code>; <code class="docutils literal notranslate"><span class="pre">global_warming_potential</span></code> per emission at <code class="docutils literal notranslate"><span class="pre">emissions_lifetime</span></code>, years</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plant_fuel</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plant_fuel</span></code></p></td>
 <td><p>The fuel each plant produces</p></td>
 </tr>
 </tbody>
@@ -578,6 +575,1102 @@ calendar year.</p>
 port’s <code class="docutils literal notranslate"><span class="pre">bunker_price</span></code> divided by <code class="docutils literal notranslate"><span class="pre">lower_heating_value</span></code> of the fuel in <code class="docutils literal notranslate"><span class="pre">key1</span></code> is
 the price in USD/GJ, and a plant’s <code class="docutils literal notranslate"><span class="pre">investment_cost</span></code> divided by the heating value
 of its <code class="docutils literal notranslate"><span class="pre">plant_fuel</span></code> is the cost in USD/GJ.</p>
+</section>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
+<p>This section lists every series a results file can hold. A series is one
+<code class="docutils literal notranslate"><span class="pre">kind</span></code>, <code class="docutils literal notranslate"><span class="pre">node</span></code>, <code class="docutils literal notranslate"><span class="pre">attribute</span></code>, <code class="docutils literal notranslate"><span class="pre">key1</span></code> and <code class="docutils literal notranslate"><span class="pre">key2</span></code>, and has a row for every date
+of the run:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">consumed</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"fleet"</span><span class="p">,</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"node"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"bulk_carrier"</span><span class="p">,</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"attribute"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"consumed_energy"</span><span class="p">,</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"key1"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"fossil_fuel_oil"</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The tables name a series by <code class="docutils literal notranslate"><span class="pre">kind.attribute</span></code>, the way Lantern’s plot catalogue
+does: <code class="docutils literal notranslate"><span class="pre">fleet.consumed_energy</span></code> stands for the series with <code class="docutils literal notranslate"><span class="pre">kind</span></code> <code class="docutils literal notranslate"><span class="pre">fleet</span></code> and
+<code class="docutils literal notranslate"><span class="pre">attribute</span></code> <code class="docutils literal notranslate"><span class="pre">consumed_energy</span></code>, one per fleet and fuel. A row that names several
+kinds describes the attribute in each of them.</p>
+<p><code class="docutils literal notranslate"><span class="pre">global</span></code> holds one series per attribute and key, with no node. Every other
+kind holds one per node of that type in the run. That means every Fleet,
+Vessel, Port, Plant, Producer, Regulation and Levy the deck uses, including
+those it loads from the assumptions library.</p>
+<p>A series is written only when some date of it holds a value of at least 1e-5
+in magnitude. The <em>Present when</em> column says what a run needs for that. If the
+run doesn’t meet it, the series is left out of the file, so filtering for it
+returns no rows. A series that is in the file can still be missing at some
+dates, as that column says.</p>
+<p>Some rules hold throughout:</p>
+<ul class="simple">
+<li><p><strong>Vessel results describe one ship.</strong> A <code class="docutils literal notranslate"><span class="pre">vessel</span></code> series is one ship of
+that type, regulation results per vessel included. The fleet sums its
+vessel types, each weighted by its <code class="docutils literal notranslate"><span class="pre">existing_vessels</span></code>, and <code class="docutils literal notranslate"><span class="pre">global</span></code> sums
+the fleets. Speeds, rates, savings, shares and intensities are not summed:
+each kind computes its own from its totals.</p></li>
+<li><p><strong>The first date sets up the run.</strong> The first time step starts the fleets
+and production and runs the bunkering. Newbuilds, scrapping, fuel
+conversions, technology installation, speed management and plant
+development start at the second date. Their counts are 0 at the first date,
+and the results they write are missing there.</p></li>
+<li><p><strong>The keys hold names.</strong> The <em>Keys</em> column names what <code class="docutils literal notranslate"><span class="pre">key1</span></code> holds and,
+after the comma, <code class="docutils literal notranslate"><span class="pre">key2</span></code>:</p>
+<ul>
+<li><p><em>fuel</em>, <em>emission</em>, <em>vessel</em>, <em>technology</em>, <em>regulation</em> and <em>levy</em> are
+node names.</p></li>
+<li><p><em>feed</em> is a Feedstock or Process name.</p></li>
+<li><p><em>fuel type</em> is a <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a>. On a vessel
+it is the vessel’s primary fuel type, so <code class="docutils literal notranslate"><span class="pre">installed_power</span></code> keyed <code class="docutils literal notranslate"><span class="pre">OIL</span></code>
+is the power of the oil-fuelled vessels.</p></li>
+<li><p><em>energy demand</em> is an
+<a class="reference internal" href="appendix_ids.html#energydemandid"><span class="std std-ref">EnergyDemandID</span></a>. In port it is only
+<code class="docutils literal notranslate"><span class="pre">ELECTRICAL</span></code> or <code class="docutils literal notranslate"><span class="pre">HEAT</span></code>.</p></li>
+<li><p><em>timing</em> is a <a class="reference internal" href="appendix_ids.html#timingid"><span class="std std-ref">TimingID</span></a>.</p></li>
+</ul>
+</li>
+</ul>
+<section id="energy-demand">
+<h3>Energy demand<a class="headerlink" href="#energy-demand" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.raw_energy_sea</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.raw_energy_sea</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.raw_energy_sea</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>energy demand</p></td>
+<td><p>Energy demand at sea before operational measures and technologies.</p></td>
+<td><p>Each demand the vessels have at sea</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.raw_energy_port</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.raw_energy_port</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.raw_energy_port</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>energy demand</p></td>
+<td><p>Energy demand in port before operational measures and technologies.</p></td>
+<td><p>Vessels with a demand in port</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.raw_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.raw_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.raw_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">raw_energy_sea</span></code> plus <code class="docutils literal notranslate"><span class="pre">raw_energy_port</span></code>.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.operational_energy_sea</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.operational_energy_sea</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.operational_energy_sea</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>energy demand</p></td>
+<td><p>Energy demand at sea after operational measures, before technologies.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">raw_energy_sea</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.operational_energy_port</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.operational_energy_port</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.operational_energy_port</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>energy demand</p></td>
+<td><p>Energy demand in port after operational measures, before technologies.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">raw_energy_port</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.operational_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.operational_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.operational_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">operational_energy_sea</span></code> plus <code class="docutils literal notranslate"><span class="pre">operational_energy_port</span></code>.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.energy_sea</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.energy_sea</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.energy_sea</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>energy demand</p></td>
+<td><p>Energy demand at sea after operational measures and technologies.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">raw_energy_sea</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.energy_port</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.energy_port</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.energy_port</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>energy demand</p></td>
+<td><p>Energy demand in port after operational measures and technologies.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">raw_energy_port</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">energy_sea</span></code> plus <code class="docutils literal notranslate"><span class="pre">energy_port</span></code>.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.baseline_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.baseline_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.baseline_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">raw_energy</span></code> at the first date, scaled by the growth of <code class="docutils literal notranslate"><span class="pre">cargo_miles</span></code> since: the energy the transport work would take at the first date’s intensity. <code class="docutils literal notranslate"><span class="pre">global</span></code> sums the fleets’.</p></td>
+<td><p>Vessels at the first date; 0 for a fleet that starts empty</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.saving</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.saving</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>energy demand</p></td>
+<td><p>1 − energy / raw energy of the demand, in port included for <code class="docutils literal notranslate"><span class="pre">ELECTRICAL</span></code> and <code class="docutils literal notranslate"><span class="pre">HEAT</span></code>.</p></td>
+<td><p>Operational measures or technologies reduce the demand</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.speed_energy_intensity_saving</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.speed_energy_intensity_saving</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.speed_energy_intensity_saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>1 − <code class="docutils literal notranslate"><span class="pre">raw_energy</span></code> / <code class="docutils literal notranslate"><span class="pre">baseline_energy</span></code>: the reduction of energy intensity from speed changes.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">raw_energy</span></code> departs from the baseline, through speed management or a changing fleet mix</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.operational_energy_intensity_saving</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.operational_energy_intensity_saving</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.operational_energy_intensity_saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>1 − <code class="docutils literal notranslate"><span class="pre">operational_energy</span></code> / <code class="docutils literal notranslate"><span class="pre">baseline_energy</span></code>: from speed and operational measures.</p></td>
+<td><p>As above, or operational measures apply</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.technology_energy_intensity_saving</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.technology_energy_intensity_saving</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.technology_energy_intensity_saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>1 − <code class="docutils literal notranslate"><span class="pre">energy</span></code> / <code class="docutils literal notranslate"><span class="pre">operational_energy</span></code>: from technologies.</p></td>
+<td><p>Technologies are installed</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.energy_intensity_saving</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.energy_intensity_saving</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.energy_intensity_saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>1 − <code class="docutils literal notranslate"><span class="pre">energy</span></code> / <code class="docutils literal notranslate"><span class="pre">baseline_energy</span></code>: from speed, operational measures and technologies.</p></td>
+<td><p>Any of the three above</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="fuel-consumption">
+<h3>Fuel consumption<a class="headerlink" href="#fuel-consumption" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.consumed_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.consumed_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.consumed_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Fuel burnt, in energy.</p></td>
+<td><p>Each fuel burnt</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_type_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_type_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.fuel_type_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel type</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">consumed_energy</span></code> summed by the fuels’ type.</p></td>
+<td><p>Each fuel type burnt</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.total_consumed_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.total_consumed_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.total_consumed_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p></p></td>
+<td><p>All fuels plus shore power.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.converter_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.converter_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.converter_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel type, fuel</p></td>
+<td><p>Fuel burnt by the vessels of a primary fuel type.</p></td>
+<td><p>Each pair burnt</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.pilot_fuel_share</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.pilot_fuel_share</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.pilot_fuel_share</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>fuel type</p></td>
+<td><p>Share of the energy the vessels of a primary fuel type burn that is a fuel of another type: their pilot fuel.</p></td>
+<td><p>Vessels burn a pilot fuel. The share is also 1 for every fuel type whose vessels burn nothing, so read it only for the fuel types in <code class="docutils literal notranslate"><span class="pre">converter_energy</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="expenses-and-compliance">
+<h3>Expenses and compliance<a class="headerlink" href="#expenses-and-compliance" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.fuel_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Bunker price times the fuel bunkered.</p></td>
+<td><p>Each fuel bunkered</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.levy_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.levy_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.levy_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Levies charged on the fuel bunkered; negative for a subsidy.</p></td>
+<td><p>A Levy charges a fuel bunkered in its Jurisdiction</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.fuel_related_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fuel_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">levy_expenses</span></code>.</p></td>
+<td><p>Each fuel bunkered</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.remedial_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.remedial_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.remedial_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Cost of the remedial units the regulations require.</p></td>
+<td><p>Vessels miss a regulation’s threshold</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.flexibility_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.flexibility_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.flexibility_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Cost of the flexibility units bought from vessels that over-comply.</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> Regulation’s vessels trade units</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.surplus_revenue</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.surplus_revenue</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.surplus_revenue</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Revenue from the surplus units sold to vessels that under-comply.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">flexibility_expenses</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.regulation_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.regulation_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.regulation_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">remedial_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">flexibility_expenses</span></code> less <code class="docutils literal notranslate"><span class="pre">surplus_revenue</span></code>.</p></td>
+<td><p>Any of the three</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.total_fuel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.total_fuel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.total_fuel_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>All fuel expenses plus shore power expenses.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.total_fuel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.total_fuel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.total_fuel_related_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">total_fuel_expenses</span></code> plus all levy expenses.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.remedial_units</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.remedial_units</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.remedial_units</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p>regulation</p></td>
+<td><p>Remedial units required, under the regulation’s global warming potentials.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">remedial_expenses</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.levy_units</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.levy_units</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.levy_units</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p>levy</p></td>
+<td><p>Emissions a levy charged: its charge over its Level.</p></td>
+<td><p>A Levy with a positive Level charges</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="emissions">
+<h3>Emissions<a class="headerlink" href="#emissions" title="Link to this heading">#</a></h3>
+<p>The CO2-equivalents use the model’s global warming potentials, which the
+<a class="reference internal" href="#metadata">metadata</a> holds.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.equivalent_wtt</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.equivalent_wtt</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.equivalent_wtt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p>fuel, emission</p></td>
+<td><p>Well-to-tank emissions of the fuel bunkered.</p></td>
+<td><p>Each fuel bunkered and emission it has</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.equivalent_ttw</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.equivalent_ttw</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.equivalent_ttw</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p>fuel, emission</p></td>
+<td><p>Tank-to-wake emissions of the fuel burnt.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">equivalent_wtt</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.equivalent_wtw</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.equivalent_wtw</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.equivalent_wtw</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p>fuel, emission</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">equivalent_wtt</span></code> plus <code class="docutils literal notranslate"><span class="pre">equivalent_ttw</span></code>.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">equivalent_wtt</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.total_equivalent_wtw</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.total_equivalent_wtw</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.total_equivalent_wtw</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p></p></td>
+<td><p>All of <code class="docutils literal notranslate"><span class="pre">equivalent_wtw</span></code> plus the shore power emissions.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.intensity_total_equivalent_wtt</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.intensity_total_equivalent_wtt</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.intensity_total_equivalent_wtt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gCO2e/MJ</span></code></p></td>
+<td><p></p></td>
+<td><p>Total well-to-tank emissions per <code class="docutils literal notranslate"><span class="pre">total_consumed_energy</span></code>.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.intensity_total_equivalent_ttw</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.intensity_total_equivalent_ttw</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.intensity_total_equivalent_ttw</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gCO2e/MJ</span></code></p></td>
+<td><p></p></td>
+<td><p>Total tank-to-wake emissions per <code class="docutils literal notranslate"><span class="pre">total_consumed_energy</span></code>.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.intensity_total_equivalent_wtw</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.intensity_total_equivalent_wtw</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.intensity_total_equivalent_wtw</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gCO2e/MJ</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">total_equivalent_wtw</span></code> per <code class="docutils literal notranslate"><span class="pre">total_consumed_energy</span></code>.</p></td>
+<td><p>Always</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="shore-power">
+<h3>Shore power<a class="headerlink" href="#shore-power" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Shore power drawn in port.</p></td>
+<td><p>Vessels call at a Port with a ShorePowerConnectionShare above 0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Cost of the shore power, at the port’s ShorePowerCost.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">shore_power_energy</span></code>, with a cost</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_emission</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_emission</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_emission</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
+<td><p>emission</p></td>
+<td><p>Emissions of the shore power, well-to-wake, one gas unweighted. Counted in <code class="docutils literal notranslate"><span class="pre">total_equivalent_wtw</span></code>, not in <code class="docutils literal notranslate"><span class="pre">equivalent_wtw</span></code>.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">shore_power_energy</span></code>, with an emission factor</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="fleet-power-and-costs">
+<h3>Fleet power and costs<a class="headerlink" href="#fleet-power-and-costs" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.installed_power</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.installed_power</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MW</span></code></p></td>
+<td><p>fuel type</p></td>
+<td><p>Installed power of the vessels.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.newbuild_power</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.newbuild_power</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MW/year</span></code></p></td>
+<td><p>fuel type</p></td>
+<td><p>Installed power of the newbuilds.</p></td>
+<td><p>Newbuilds</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.scrapped_power</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.scrapped_power</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MW/year</span></code></p></td>
+<td><p>fuel type</p></td>
+<td><p>Installed power scrapped.</p></td>
+<td><p>Scrapping</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_converted_power</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_converted_power</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MW/year</span></code></p></td>
+<td><p>fuel type, fuel type</p></td>
+<td><p>Installed power fuel converted from one type to the other.</p></td>
+<td><p>Fuel conversions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.vessel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.vessel_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Asset charter of the vessels: their acquisition cost, levelized.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.technology_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.technology_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Levelized cost of the installed technologies.</p></td>
+<td><p>Technologies are installed</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_conversion_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_conversion_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Running cost of the fuel conversions made.</p></td>
+<td><p>Fuel conversions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.vessel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.vessel_related_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">vessel_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">technology_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">fuel_conversion_expenses</span></code>.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">total_fuel_related_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">regulation_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">vessel_related_expenses</span></code>.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.vessel_tied_capital</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.vessel_tied_capital</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD</span></code></p></td>
+<td><p></p></td>
+<td><p>Capital tied up in the vessels, depreciated linearly.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.weighted_average_age</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.weighted_average_age</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">years</span></code></p></td>
+<td><p>fuel type</p></td>
+<td><p>Power-weighted average age of the vessels.</p></td>
+<td><p>Each fuel type in the fleet</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_type_capacity</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_type_capacity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel type</p></td>
+<td><p>Fuel the vessels could burn, at their minimum pilot fuel share.</p></td>
+<td><p>Each fuel type the vessels can burn</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="fleet-composition">
+<h3>Fleet composition<a class="headerlink" href="#fleet-composition" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.trade</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cargo-miles/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Trade satisfied; at the first date, the fleet’s trade.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.existing_vessels</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">vessels</span></code></p></td>
+<td><p>vessel</p></td>
+<td><p>Number of vessels of each type in the fleet.</p></td>
+<td><p>Each vessel type ever in the fleet</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.newbuilds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">vessels/year</span></code></p></td>
+<td><p>vessel</p></td>
+<td><p>Vessels built.</p></td>
+<td><p>Newbuilds</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.scrap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">vessels/year</span></code></p></td>
+<td><p>vessel</p></td>
+<td><p>Vessels scrapped, primary and secondary.</p></td>
+<td><p>Scrapping</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.fuel_conversions</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">vessels/year</span></code></p></td>
+<td><p>vessel, vessel</p></td>
+<td><p>Vessels fuel converted from one type to the other.</p></td>
+<td><p>Fuel conversions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.technology_uptake</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>vessel, technology</p></td>
+<td><p>Share of the vessels of a type carrying the technology.</p></td>
+<td><p>The fleet has Technologies</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.newbuild_technology_uptake</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>vessel, technology</p></td>
+<td><p>Share of the newbuilds of a type carrying the technology.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">technology_uptake</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.retrofit_technology_uptake</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>vessel, technology</p></td>
+<td><p>Share of the vessels of a type retrofitted with the technology.</p></td>
+<td><p>Retrofits, at the dates RetrofitFrequency allows</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.fleet_technology_uptake</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>technology</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">technology_uptake</span></code> averaged over the vessel types, weighted by <code class="docutils literal notranslate"><span class="pre">existing_vessels</span></code>.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">technology_uptake</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="transport-work-speeds-and-freight-rate">
+<h3>Transport work, speeds and freight rate<a class="headerlink" href="#transport-work-speeds-and-freight-rate" title="Link to this heading">#</a></h3>
+<p>A fleet’s speeds are its vessels’ averaged by <code class="docutils literal notranslate"><span class="pre">existing_vessels</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.cargo_miles</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.cargo_miles</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cargo-miles/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Transport work performed.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.reference_speed</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.reference_speed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">knots</span></code></p></td>
+<td><p></p></td>
+<td><p>Speed the Route sets, weighted by the time at sea.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.minimum_speed</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.minimum_speed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">knots</span></code></p></td>
+<td><p></p></td>
+<td><p>Lowest speed attainable on the route.</p></td>
+<td><p>The fleet has AllowSpeedManagement; missing at the first date</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.maximum_speed</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.maximum_speed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">knots</span></code></p></td>
+<td><p></p></td>
+<td><p>Highest speed attainable on the route.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">minimum_speed</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.actual_speed</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.actual_speed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">knots</span></code></p></td>
+<td><p></p></td>
+<td><p>Speed sailed, averaged over the route.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">minimum_speed</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.optimal_speed</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.optimal_speed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">knots</span></code></p></td>
+<td><p></p></td>
+<td><p>Speed that speed management aims for; <code class="docutils literal notranslate"><span class="pre">actual_speed</span></code> moves toward it by at most the MaximumSpeedChange.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">minimum_speed</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.lowest_speed</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.lowest_speed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">knots</span></code></p></td>
+<td><p></p></td>
+<td><p>Lowest speed sailed on the route.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">minimum_speed</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.highest_speed</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.highest_speed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">knots</span></code></p></td>
+<td><p></p></td>
+<td><p>Highest speed sailed on the route.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">minimum_speed</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.instantaneous_freight_rate</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.instantaneous_freight_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/cargo-mile</span></code></p></td>
+<td><p></p></td>
+<td><p>For a vessel: the cost of a ship ordered at the date, levelized over the cargo-miles it carries. The cost is its asset charter plus the fuel, levy, regulation and technology expenses it actually has. For a fleet: the <code class="docutils literal notranslate"><span class="pre">cargo_charter_rate</span></code> of those vessels summed over the fleet, per cargo-mile they carry.</p></td>
+<td><p>Missing where the vessel type leaves the fleet within the ship’s lead time and lifetime; for a fleet, where none of its vessel types has a rate</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="vessel">
+<h3>Vessel<a class="headerlink" href="#vessel" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.in_fleet</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>1 where the fleet holds vessels of the type, 0 elsewhere.</p></td>
+<td><p>The type is ever in the fleet</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.lifetime</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">years</span></code></p></td>
+<td><p></p></td>
+<td><p>Lifetime.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.lead_time</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">years</span></code></p></td>
+<td><p></p></td>
+<td><p>Lead time, used only in the levelized costs.</p></td>
+<td><p>The vessel has a LeadTime</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.asset_charter_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>What an operator pays the owner: the acquisition cost of a ship ordered at the date, levelized over its operating years.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.cargo_charter_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>What a cargo owner pays the operator: the asset charter rate plus the fuel, levy, regulation and technology expenses, levelized over the operating years. They are the expenses the ship actually has where <code class="docutils literal notranslate"><span class="pre">instantaneous_freight_rate</span></code> is present, and the ones expected when ordering elsewhere.</p></td>
+<td><p>Missing at the first date where <code class="docutils literal notranslate"><span class="pre">instantaneous_freight_rate</span></code> is</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.investment_freight_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/cargo-mile</span></code></p></td>
+<td><p></p></td>
+<td><p>Freight rate expected when ordering a ship at the date, which the newbuild choice weighs.</p></td>
+<td><p>Missing at the first date</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.technology_cost</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Levelized cost of the installed technologies, averaged over the fleet’s vessels of the type.</p></td>
+<td><p>Technologies are installed</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.investment_signal_technology</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/GJ</span></code></p></td>
+<td><p></p></td>
+<td><p>Energy-weighted average of the smoothed energy-conservation duals over the TechnologyHorizon: the value of a GJ saved, which drives technology installation.</p></td>
+<td><p>Missing at the first date</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.investment_signal_speed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/GJ</span></code></p></td>
+<td><p></p></td>
+<td><p>The same over the SpeedHorizon, which drives speed management.</p></td>
+<td><p>Missing at the first date</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.speed_energy_saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>1 − <code class="docutils literal notranslate"><span class="pre">raw_energy</span></code> / <code class="docutils literal notranslate"><span class="pre">raw_energy</span></code> at the first date.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">raw_energy</span></code> changes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.operational_energy_saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>1 − <code class="docutils literal notranslate"><span class="pre">operational_energy</span></code> / <code class="docutils literal notranslate"><span class="pre">raw_energy</span></code> at the first date.</p></td>
+<td><p>As above, or operational measures apply</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.technology_energy_saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>Equal to <code class="docutils literal notranslate"><span class="pre">technology_energy_intensity_saving</span></code>.</p></td>
+<td><p>Technologies are installed</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.energy_saving</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p></p></td>
+<td><p>1 − <code class="docutils literal notranslate"><span class="pre">energy</span></code> / <code class="docutils literal notranslate"><span class="pre">raw_energy</span></code> at the first date.</p></td>
+<td><p>Any of the three above</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="bunkering">
+<h3>Bunkering<a class="headerlink" href="#bunkering" title="Link to this heading">#</a></h3>
+<p>The energies are the masses times the fuel’s <code class="docutils literal notranslate"><span class="pre">lower_heating_value</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunker_mass</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunker_mass</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Fuel bunkered.</p></td>
+<td><p>Each fuel bunkered</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunker_supply_mass</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunker_supply_mass</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Fuel available for bunkering.</p></td>
+<td><p>A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, and never in <code class="docutils literal notranslate"><span class="pre">global</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunkering_limit_mass</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunkering_limit_mass</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Limit the port’s infrastructure puts on bunkering.</p></td>
+<td><p>The Port has <code class="docutils literal notranslate"><span class="pre">set_bunkering_limit</span></code> for the fuel; missing at dates without one. Never in <code class="docutils literal notranslate"><span class="pre">global</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunker_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunker_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bunker_mass</span></code> in energy.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">bunker_mass</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunker_supply_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunker_supply_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bunker_supply_mass</span></code> in energy.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">bunker_supply_mass</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunkering_limit_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunkering_limit_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bunkering_limit_mass</span></code> in energy.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">bunkering_limit_mass</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="port">
+<h3>Port<a class="headerlink" href="#port" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">port.bunkering_allowed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>1 where the port allows bunkering the fuel, 0 elsewhere.</p></td>
+<td><p>The fuel is allowed at some date</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">port.bunker_price</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/t</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Bunker price.</p></td>
+<td><p>A liquid-market fuel the port allows, or a fuel from producers that reaches the port; 0 at other dates</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">port.bunker_wtt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t/t</span></code></p></td>
+<td><p>fuel, emission</p></td>
+<td><p>Well-to-tank emissions per ton of the fuel bunkered, one gas unweighted.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">bunker_price</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">port.equivalent_bunker_wtt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/t</span></code></p></td>
+<td><p>fuel, emission</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bunker_wtt</span></code> in CO2-equivalents.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">bunker_price</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="production">
+<h3>Production<a class="headerlink" href="#production" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.production_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">producer.production_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Fuel produced.</p></td>
+<td><p>Each fuel the plants produce</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.production_type_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">producer.production_type_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
+<td><p>fuel type</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">production_energy</span></code> summed by the fuels’ type.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">production_energy</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.feed_mass</span></code><br><code class="docutils literal notranslate"><span class="pre">producer.feed_mass</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
+<td><p>feed</p></td>
+<td><p>Feed used.</p></td>
+<td><p>Plants in production use the feed</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.feed_constraint</span></code><br><code class="docutils literal notranslate"><span class="pre">producer.feed_constraint</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
+<td><p>feed</p></td>
+<td><p>Availability of the feed.</p></td>
+<td><p>The Producer has <code class="docutils literal notranslate"><span class="pre">set_feed_constraint</span></code> for the feed. Never in <code class="docutils literal notranslate"><span class="pre">global</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.plant_tied_capital</span></code><br><code class="docutils literal notranslate"><span class="pre">producer.plant_tied_capital</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD</span></code></p></td>
+<td><p></p></td>
+<td><p>Capital tied up in the plants, depreciated linearly.</p></td>
+<td><p>Plants in production</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="producer">
+<h3>Producer<a class="headerlink" href="#producer" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">producer.maximum_development</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plants/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Plants the producer can add to its pipeline, its MaximumDevelopment.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">producer.development</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plants/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Plants added to the pipeline; at the first date, the plants in the initial pipeline.</p></td>
+<td><p>Plants are developed</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">producer.fair_share_fuel_fraction</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>fuel</p></td>
+<td><p>Share of the expected shortfall of a fuel the producer is asked to supply: its share of the development potential of the producers that can make the fuel.</p></td>
+<td><p>Each fuel the producer can make, while it has potential</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="plant">
+<h3>Plant<a class="headerlink" href="#plant" title="Link to this heading">#</a></h3>
+<p>The fuel a plant makes is in the <a class="reference internal" href="#metadata">metadata</a> under <code class="docutils literal notranslate"><span class="pre">plant_fuel</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plant.investment_cost</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/t</span></code></p></td>
+<td><p></p></td>
+<td><p>Levelized production cost of a plant invested in at the date.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plant.instantaneous_cost</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/t</span></code></p></td>
+<td><p></p></td>
+<td><p>Production-weighted average cost of the plants of this type producing.</p></td>
+<td><p>Missing at dates the plant type is not expected to produce</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plant.equivalent_investment_wtt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/t</span></code></p></td>
+<td><p>emission</p></td>
+<td><p>Well-to-tank emissions per ton of fuel from a plant invested in at the date.</p></td>
+<td><p>Each emission of the fuel</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plant.equivalent_instantaneous_wtt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/t</span></code></p></td>
+<td><p>emission</p></td>
+<td><p>Production-weighted average well-to-tank emissions per ton of fuel.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">instantaneous_cost</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="regulation">
+<h3>Regulation<a class="headerlink" href="#regulation" title="Link to this heading">#</a></h3>
+<p>A regulation writes results only at dates it is Active. <code class="docutils literal notranslate"><span class="pre">measure</span></code> is the unit
+of its Measure. CO2-equivalents use its own global warming potentials.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.remedial_cost</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/tCO2e</span></code></p></td>
+<td><p></p></td>
+<td><p>Cost of a remedial unit, its RemedialCost.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.flexibility_cost</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/tCO2e</span></code></p></td>
+<td><p></p></td>
+<td><p>Price of a flexibility unit.</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.vessel_threshold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">measure</span></code></p></td>
+<td><p>vessel</p></td>
+<td><p>Threshold of each policed vessel type.</p></td>
+<td><p>Each policed vessel type with a threshold</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.shared_threshold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">measure</span></code></p></td>
+<td><p></p></td>
+<td><p>Threshold of the pool: the vessel thresholds averaged by measure.</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme with an <code class="docutils literal notranslate"><span class="pre">ABSOLUTE</span></code> or <code class="docutils literal notranslate"><span class="pre">INTENSITY</span></code> Measure</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.adjusted_vessel_threshold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">measure</span></code></p></td>
+<td><p>vessel</p></td>
+<td><p>Threshold after adjustment for non-compliance; a vessel that complies keeps its threshold.</p></td>
+<td><p>AllowThresholdAdjustment</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.adjusted_shared_threshold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">measure</span></code></p></td>
+<td><p></p></td>
+<td><p>Threshold of the pool after adjustment.</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme with AllowThresholdAdjustment; missing at dates the pool complies</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.vessel_allowance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p>vessel</p></td>
+<td><p>Emissions allowed per vessel.</p></td>
+<td><p>Policed vessel types in a fleet that call at a port of the Jurisdiction</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.shared_allowance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Emissions allowed across the policed vessels.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.vessel_compliance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">measure</span></code></p></td>
+<td><p>vessel</p></td>
+<td><p>Measure achieved per vessel.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">vessel_allowance</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.shared_compliance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">measure</span></code></p></td>
+<td><p></p></td>
+<td><p>Measure achieved across the policed vessels.</p></td>
+<td><p>An <code class="docutils literal notranslate"><span class="pre">ABSOLUTE</span></code> or <code class="docutils literal notranslate"><span class="pre">INTENSITY</span></code> Measure</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.vessel_units</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p>vessel</p></td>
+<td><p>Emissions per vessel.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">vessel_allowance</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.shared_units</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Emissions across the policed vessels.</p></td>
+<td><p>Always</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.surplus_units</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Surplus units generated.</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.flexibility_units</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Flexibility units used.</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.remedial_units</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Remedial units required.</p></td>
+<td><p>Vessels, or a <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> pool, miss the threshold</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.non_compliance_units</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">flexibility_units</span></code> plus <code class="docutils literal notranslate"><span class="pre">remedial_units</span></code>.</p></td>
+<td><p>Either of the two</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.surplus_revenue</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Revenue from the surplus units sold.</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.flexibility_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Cost of the flexibility units bought.</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.remedial_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Cost of the remedial units.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">remedial_units</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="levy">
+<h3>Levy<a class="headerlink" href="#levy" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">levy.collected</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Revenue collected; negative where the levy pays a subsidy.</p></td>
+<td><p>The Levy is Active and charges a fuel bunkered in its Jurisdiction</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="run">
+<h3>Run<a class="headerlink" href="#run" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Series</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Keys</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Present when</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.computational_time</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">s/year</span></code></p></td>
+<td><p>timing</p></td>
+<td><p>Computational time of the time step, without initialization and reading events, per phase of the step.</p></td>
+<td><p>Always</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 </section>
 </section>
 
@@ -630,6 +1723,26 @@ of its <code class="docutils literal notranslate"><span class="pre">plant_fuel</
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table">Table</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metadata">Metadata</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#energy-demand">Energy demand</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fuel-consumption">Fuel consumption</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expenses-and-compliance">Expenses and compliance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#emissions">Emissions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shore-power">Shore power</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fleet-power-and-costs">Fleet power and costs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fleet-composition">Fleet composition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transport-work-speeds-and-freight-rate">Transport work, speeds and freight rate</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vessel">Vessel</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bunkering">Bunkering</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#port">Port</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#production">Production</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#producer">Producer</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#plant">Plant</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#regulation">Regulation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#levy">Levy</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run">Run</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

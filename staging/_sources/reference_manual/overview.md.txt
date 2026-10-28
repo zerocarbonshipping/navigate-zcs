@@ -166,7 +166,7 @@ This example defines that the simulation should take yearly time-steps from "01-
 
 ## Reading the `.log` file
 
-A simulation with Navigate always produces a log file with the extension `.log`, written next to the `.nav` file with the same base name (e.g., running `basecase.nav` produces `basecase.log`). The verbosity of the log is controlled with the `-l`/`--log-level` command line option. The file includes information about how the simulation is progressing. It includes information about three main aspects:
+A simulation with Navigate always produces a log file with the extension `.log`, written next to the `.nav` file with the same base name (e.g., running `basecase.nav` produces `basecase.log`); `--name` changes the base name and `--output-dir` the folder; a run with `--set` writes it into the `logs` subfolder of that folder. The verbosity of the log is controlled with the `-l`/`--log-level` command line option. The file includes information about how the simulation is progressing. It includes information about three main aspects:
 
 1. Reading the simulation deck
 2. Initialization of the model
@@ -181,12 +181,12 @@ Information is provided in four levels, namely:
 
 `DEBUG` is the most verbose level and adds diagnostic detail that is mainly useful when investigating a problem. Running with `-l DEBUG` also prints the full Python traceback to the console if the run fails, instead of only the error message.
 
-`INFO` stands for information and refers to general information such as which solver backend is used or that plot rendering finished:
+`INFO` stands for information and refers to general information such as which solver backend is used or that the simulation finished:
 
 ```
 14:29:15 [INFO] navigate.simulation.bunker.solver_backend: Gurobi not available -- using HiGHS solver backend.
 14:29:16 [INFO] navigate.simulation.bunker.bunker_algorithm: Fair-share bunkering convergence status: Successful.
-14:29:47 [INFO] navigate.output.plots.render: Plots generated successfully.
+14:29:47 [INFO] navigate.driver.run: Simulation completed successfully, elapsed time: 0m and 32s.
 ```
 
 `WARNING` refers to information that has an impact on results. This could be if the code makes automated adjustments to the simulation deck or things that will impact the results in different ways:
@@ -205,4 +205,4 @@ If an ERROR occurs the simulation stops: the console shows the error message on 
 
 At the end of a successful run the log closes with a summary table counting the messages of each level, followed by the unique warnings with how often each was logged. When warnings were logged, the console also prints their count with a pointer to the `.log` file.
 
-Besides the log file, a run may also produce artifacts in the deck directory: plots when the deck contains a [Plot](plot.md) node, unless suppressed with the `-s`/`--suppress-plots` flag, and Excel or CSV reports when the deck contains [Report](report.md) nodes.
+Besides the log file, a run writes its [results file](results_file.md) into the deck directory, or the folder given with `--output-dir`. Open it with [Lantern](https://github.com/zerocarbonshipping/lantern-zcs) to browse the results as plots.

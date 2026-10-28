@@ -768,24 +768,6 @@ The unit of an emission factor is ton emissions/ton fuel.</p></li>
 </pre></div>
 </div>
 </section>
-<section id="definition-of-plot">
-<h3>Definition of <code class="docutils literal notranslate"><span class="pre">Plot</span></code><a class="headerlink" href="#definition-of-plot" title="Link to this heading">#</a></h3>
-<p>So far we have defined <em>what</em> to simulate. The <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node defines <em>what output</em> to produce. Navigate only generates plots when at least one <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node is defined.</p>
-<ol class="arabic simple">
-<li><p>Define a node <code class="docutils literal notranslate"><span class="pre">&quot;plots&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Plot</span></code>.</p></li>
-<li><p>Set the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code>. This is the subfolder, relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file, where the plots are saved. Navigate creates the folder if it does not already exist.</p></li>
-<li><p>Use the <code class="docutils literal notranslate"><span class="pre">add_plot(...)</span></code> command once per plot you want produced. Each takes the label of a plot. For this tutorial we produce the absolute emissions, the global fuel mix, and the bunker price at the port.</p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
-    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
-
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
 </section>
 <section id="the-events-input-file">
 <h2>The EVENTS Input File<a class="headerlink" href="#the-events-input-file" title="Link to this heading">#</a></h2>
@@ -838,9 +820,13 @@ Define annual time-steps with a reference Date.</p></li>
 </pre></div>
 </div>
 </section>
-<section id="interpret-the-plots">
-<h2>Interpret the plots<a class="headerlink" href="#interpret-the-plots" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code> folder there is a folder called <code class="docutils literal notranslate"><span class="pre">plots</span></code>. Here you can see the output of Navigate. Take a look through it and interpret the results.</p>
+<section id="interpret-the-results">
+<h2>Interpret the results<a class="headerlink" href="#interpret-the-results" title="Link to this heading">#</a></h2>
+<p>Navigate has written the results of the run to the file <code class="docutils literal notranslate"><span class="pre">tutorial_1.parquet</span></code> in the <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code> folder. Open it with <a class="reference external" href="https://github.com/zerocarbonshipping/lantern-zcs">Lantern</a>, which shows the results as plots in your browser; its README explains how to install it.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lantern</span> <span class="n">tutorial_1</span><span class="o">.</span><span class="n">parquet</span>
+</pre></div>
+</div>
+<p>Take a look through the plots, for example the absolute emissions, the global fuel mix and the bunker price at the port, and interpret the results.</p>
 </section>
 <section id="outlook">
 <h2>Outlook<a class="headerlink" href="#outlook" title="Link to this heading">#</a></h2>
@@ -849,7 +835,7 @@ Define annual time-steps with a reference Date.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file: This file includes nodes that access the navigate program. This file includes all the variables you want to investigate with your simulation.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">events.inc</span></code> file: This file contains the timesteps that you want your simulation to take.</p></li>
 </ul>
-<p>Together, the input from these three files allowed you to run a simulation in Navigate, and produce plots to compare e.g., global fuel demand and global emissions in different scenarios.</p>
+<p>Together, the input from these three files allowed you to run a simulation in Navigate, and view its results in Lantern to compare e.g., global fuel demand and global emissions in different scenarios.</p>
 <p>However, this minimalistic version of a Navigate model is of course extremely simplified so not particularly useful to make predictions. In most real-world fleets/scenarios, there are for example more than one vessel, more than one fuel, and a multitude of different routes that vessels take.</p>
 <p>That is why in the next tutorial, you will add some complexity to the files you have already worked on - for example, adding more fuels and more vessels, so you can experiment with the output you receive and understand the principles of the Navigate analysis in more depth.</p>
 </section>
@@ -998,19 +984,6 @@ Define annual time-steps with a reference Date.</p></li>
 <span class="p">}</span>
 
 
-<span class="c1"># F) DEFINITION OF OUTPUT</span>
-<span class="c1"># The Plot node tells Navigate which plots to produce and where to save them.</span>
-<span class="c1"># Directory points at the "plots" subfolder; each add_plot(...) selects one plot.</span>
-
-<span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
-	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
-
-	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
-	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
-	<span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
-<span class="p">}</span>
-
-
 <span class="c1"># END OF NAV FILE</span>
 </pre></div>
 </div>
@@ -1131,11 +1104,10 @@ Define annual time-steps with a reference Date.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-port">Definition of a <code class="docutils literal notranslate"><span class="pre">Port</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-fuel">Definition of a <code class="docutils literal notranslate"><span class="pre">Fuel</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-emission">Definition of <code class="docutils literal notranslate"><span class="pre">Emission</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-plot">Definition of <code class="docutils literal notranslate"><span class="pre">Plot</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-events-input-file">The EVENTS Input File</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpret-the-plots">Interpret the plots</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpret-the-results">Interpret the results</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outlook">Outlook</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-solution">Example solution</a></li>
 </ul>
