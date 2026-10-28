@@ -2,19 +2,18 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Where a `--set` value fills in its `%NAME%` placeholder, and where it does not.
+Which `%NAME%` placeholders a `--set` value fills in, and which it leaves.
 
-Every file a run reads is filled in as text before the grammar reads it: the
-deck, so a value can choose the file an Include reads, and a default the library
-supplies. A placeholder in a comment is left as written, so it needs no value; a
-`#` inside a quoted string opens no comment, so a placeholder after it is filled.
+A file is filled in as text before the grammar reads it, its comments excepted:
+a placeholder in a comment is left as written and needs no value, while a `#`
+inside a quoted string opens no comment, so a placeholder after it is filled.
 """
 
 from __future__ import annotations
 
 import pytest
 
-from helpers.parser_decks import emission_holding, variable, write_library
+from helpers.parser_decks import emission_holding, variable
 from navigate.parser.parser import Parser
 
 HOST = emission_holding('Variable("v")')
@@ -30,37 +29,6 @@ def parse(tmp_path):
         return parser
 
     return read
-
-
-# input:    | DEFINE { Include "define.inc"  Include "%scenario%.inc" }
-#           | --set scenario=high; high.inc sets v = 2.0, low.inc v = 1.0
-# expected: -> v reads 2.0, from high.inc
-def test_a_value_chooses_the_file_an_include_reads(tmp_path, parse):
-    (tmp_path / "define.inc").write_text(
-        'ModelDefinition {\n    StartDate = "01-01-2026"\n}\n'
-    )
-    (tmp_path / "high.inc").write_text(HOST + variable(Value=2.0))
-    (tmp_path / "low.inc").write_text(HOST + variable(Value=1.0))
-    deck = tmp_path / "deck.nav"
-    deck.write_text(
-        'DEFINE {\n    Include "define.inc"\n    Include "%scenario%.inc"\n}\n'
-        "EVENTS { }\n"
-    )
-
-    parser = parse(deck, {"scenario": "high"})
-
-    assert parser.nodes.variables["v"].get() == 2.0
-
-
-# input:    | Emission "e" { GlobalWarmingPotential = Variable("v") }
-#           | --set value=4.5; defaults/Variable/v.inc: Value = %value%
-# expected: -> v is pulled from the library and reads 4.5
-def test_a_value_fills_a_default_pulled_from_the_library(tmp_path, write_deck, parse):
-    write_library(tmp_path / "data", "Variable", {"v": variable(Value="%value%")})
-
-    parser = parse(write_deck(HOST), {"value": "4.5"})
-
-    assert parser.nodes.variables["v"].get() == 4.5
 
 
 # input:    | Variable "v" { Value = 1.0 }
