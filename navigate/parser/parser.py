@@ -27,6 +27,7 @@ from navigate.parser._prune import prune
 from navigate.parser._resolve import check_pinned_calculators, resolve
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
     from pathlib import Path
 
     from navigate.core.node_registry import GeneralNodes, Nodes
@@ -45,7 +46,12 @@ class Parser:
         self._builder: Builder
         self._events: dict[np.datetime64, list[BoundEvent]]
 
-    def read_deck(self, path: Path, data_dir: Path | None = None) -> None:
+    def read_deck(
+        self,
+        path: Path,
+        data_dir: Path | None = None,
+        params: Mapping[str, str] | None = None,
+    ) -> None:
         """
         Read and process the main .nav deck file.
 
@@ -55,8 +61,10 @@ class Parser:
             Full or relative path to the input deck file.
         data_dir
             Assumptions data folder.
+        params
+            Value of each %NAME% placeholder of the deck's files, as text.
         """
-        collector = Collector(Library(data_dir))
+        collector = Collector(Library(data_dir), params)
         collector.read_deck(path.resolve())
 
         events = resolve(collector)

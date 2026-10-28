@@ -136,8 +136,9 @@ class BunkerAlgorithm:
         Solver backend the LP model is created on, as ``select_backend()`` resolves it.
     scope
         Whether the algorithm bunkers the existing or the expected fleet.
-    output_directory
-        Directory the LP files of an infeasible model are written to.
+    infeasible_lp_file
+        File an infeasible model is written to, in LP format; its IIS is written
+        beside it with the '.ilp' extension.
     timings
         Timings the build, solve and transfer are booked to.
     """
@@ -152,7 +153,7 @@ class BunkerAlgorithm:
         options: BunkerOptions,
         backend: SolverBackendID,
         scope: BunkerScopeID,
-        output_directory: Path,
+        infeasible_lp_file: Path,
         timings: Timings[TimingID],
     ) -> None:
 
@@ -161,7 +162,7 @@ class BunkerAlgorithm:
         # miscellaneous
         self.scope: BunkerScopeID = scope
         self.options: BunkerOptions = options
-        self.output_directory: Path = output_directory
+        self.infeasible_lp_file: Path = infeasible_lp_file
         self.timings: Timings[TimingID] = timings
 
         # time

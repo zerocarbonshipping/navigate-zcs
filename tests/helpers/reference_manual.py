@@ -5,16 +5,15 @@
 Readers for the hand-written reference manual under docs/reference_manual.
 
 Used by tests/unit/docs to hold the manual's DSL surface against the parser
-registries and its report-property appendix against the results; nothing
+registries and its results file page against the results classes; nothing
 generates the manual, so the readers parse its markdown.
 """
 
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING
 
-from helpers.report_properties import RESULTS_CLASSES
 from helpers.simulation import REPO_ROOT
 from navigate.util import attribute_to_instance_name
 
@@ -34,19 +33,15 @@ NON_NODE_PAGES = frozenset(
     }
 )
 
-REPORT_PAGE = MANUAL_DIR / "report.md"
-
 _DSL_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 
-# the appendix tables carry no heading, so the lead-in sentence is the anchor
-_TABLE_ANCHOR = "The properties are applicable for the following commands:"
-_TABLE_HEADER = ("**Property name**", "**Unit**", "**Description**")
-_COMMAND_BULLET = re.compile(r"\* `(\w+)`")
+RESULTS_PAGE = MANUAL_DIR / "results_file.md"
 
-# the dash counts differ from table to table and one middle cell is empty, which
-# a zero-or-more dash run accepts while nothing else on the page passes
-_SEPARATOR_CELL = re.compile(r":?-*:?")
-_PROPERTY_TOKEN = re.compile(r"[A-Za-z][A-Za-z0-9]*")
+# a row of a results table opens with its series as `kind.attribute`, split by
+# line breaks, and their unit, in backticks
+_RESULT_ROW = re.compile(r"\| ((?:`[a-z]+\.[a-z0-9_]+`(?:<br>)?)+) \| `([^`]+)` \|")
+_SERIES = re.compile(r"`([a-z]+)\.([a-z0-9_]+)`")
+_CODE_SPAN = re.compile(r"`([^`]+)`")
 
 
 def _fence_mask(lines: list[str]) -> list[bool]:
@@ -188,258 +183,108 @@ def section_headings(node_type: str, section: str) -> set[str]:
     return headings
 
 
-class ReportPropertyRow(NamedTuple):
-    """One data row of a report-property table in the report.md appendix."""
-
-    line: int
-    token: str
-
-
-class ReportPropertyTable(NamedTuple):
-    """One report-property table, with the report commands it is listed under."""
-
-    commands: tuple[str, ...]
-    rows: tuple[ReportPropertyRow, ...]
-
-
-def _skip_blank(lines: list[str], index: int) -> int:
+def _section_lines(page: Path, section: str) -> list[str]:
     """
-    Advance past the blank lines starting at an index.
+    Collect the lines of one level-two section of a page.
+
+    Fenced code blocks are left out.
 
     Parameters
     ----------
-    lines : list[str]
-        The lines of the page, in order.
-    index : int
-        The index to start from.
-
-    Returns
-    -------
-    int :
-        The index of the first non-blank line, or the end of the page.
-    """
-    while index < len(lines) and not lines[index].strip():
-        index += 1
-
-    return index
-
-
-def _cells(line: str) -> list[str]:
-    """
-    Split a markdown table row into its stripped cells.
-
-    Parameters
-    ----------
-    line : str
-        A line opening with a table pipe.
+    page : Path
+        A manual page.
+    section : str
+        A level-two section title, e.g. ``Results``.
 
     Returns
     -------
     list[str] :
-        The cells between the outer pipes.
-    """
-    return [cell.strip() for cell in line.split("|")[1:-1]]
-
-
-def _read_commands(lines: list[str], index: int) -> tuple[tuple[str, ...], int]:
-    """
-    Read the report-command bullets a table is introduced by.
-
-    Parameters
-    ----------
-    lines : list[str]
-        The lines of report.md, in order.
-    index : int
-        The index of the line after the lead-in sentence.
-
-    Returns
-    -------
-    tuple[tuple[str, ...], int] :
-        The commands, and the index of the first line past the bullets.
+        The unfenced lines inside that section, in order.
 
     Raises
     ------
     ValueError
-        If the lead-in introduces no bullet, or names something that is not a
-        report command.
+        If the page has no such section.
     """
-    index = _skip_blank(lines, index)
-    commands = []
+    lines = page.read_text().splitlines()
+    section_lines = []
+    inside = False
+    found = False
 
-    while index < len(lines):
-        bullet = _COMMAND_BULLET.fullmatch(lines[index].strip())
-
-        if bullet is None:
-            break
-
-        commands.append(bullet.group(1))
-        index += 1
-
-    if not commands:
-        raise ValueError(
-            f"{REPORT_PAGE.name} line {index + 1}: the lead-in sentence introduces no"
-            " report-command bullet"
-        )
-
-    unregistered = [command for command in commands if command not in RESULTS_CLASSES]
-
-    if unregistered:
-        raise ValueError(
-            f"{REPORT_PAGE.name} line {index}: {unregistered} is not a report command"
-        )
-
-    return tuple(commands), index
-
-
-def _read_rows(
-    lines: list[str], index: int
-) -> tuple[tuple[ReportPropertyRow, ...], int]:
-    """
-    Read the table following the command bullets.
-
-    The header is matched in full so that an inserted column kills the parse
-    rather than silently shifting every cell index.
-
-    Parameters
-    ----------
-    lines : list[str]
-        The lines of report.md, in order.
-    index : int
-        The index of the first line past the command bullets.
-
-    Returns
-    -------
-    tuple[tuple[ReportPropertyRow, ...], int] :
-        The data rows, and the index of the first line past the table.
-
-    Raises
-    ------
-    ValueError
-        If the header, the separator or any data row is not the shape the reader
-        takes the column meaning from.
-    """
-    index = _skip_blank(lines, index)
-
-    if index >= len(lines):
-        raise ValueError(
-            f"{REPORT_PAGE.name}: a lead-in sentence is followed by no table"
-        )
-
-    header = tuple(_cells(lines[index]))
-
-    if header != _TABLE_HEADER:
-        raise ValueError(
-            f"{REPORT_PAGE.name} line {index + 1}: the header is {list(header)}, not"
-            f" {list(_TABLE_HEADER)}, so the columns no longer mean what the reader"
-            " takes them to mean"
-        )
-
-    index += 1
-    separator = _cells(lines[index])
-
-    if len(separator) != len(_TABLE_HEADER) or not all(
-        _SEPARATOR_CELL.fullmatch(cell) for cell in separator
-    ):
-        raise ValueError(
-            f"{REPORT_PAGE.name} line {index + 1}: {separator} is not a table separator"
-        )
-
-    index += 1
-    rows = []
-
-    while index < len(lines) and lines[index].startswith("|"):
-        cells = _cells(lines[index])
-
-        if len(cells) != len(_TABLE_HEADER):
-            raise ValueError(
-                f"{REPORT_PAGE.name} line {index + 1}: the row has {len(cells)} cells,"
-                f" not {len(_TABLE_HEADER)}"
-            )
-
-        if not _PROPERTY_TOKEN.fullmatch(cells[0]):
-            raise ValueError(
-                f"{REPORT_PAGE.name} line {index + 1}: '{cells[0]}' is not a property"
-                " token"
-            )
-
-        rows.append(ReportPropertyRow(index + 1, cells[0]))
-        index += 1
-
-    if not rows:
-        raise ValueError(f"{REPORT_PAGE.name} line {index + 1}: the table has no row")
-
-    return tuple(rows), index
-
-
-def report_property_tables() -> list[ReportPropertyTable]:
-    """
-    Read the property tables of the report.md appendix.
-
-    The appendix carries no headings, so each table is found from the lead-in
-    sentence naming the commands it applies to. A partial parse is worse than no
-    parse - it reads as a clean page - so the reader ends by accounting for every
-    table pipe on the page and for every report command.
-
-    Returns
-    -------
-    list[ReportPropertyTable] :
-        The tables, in page order.
-
-    Raises
-    ------
-    ValueError
-        If a lead-in produced no table, if a table pipe outside a fenced code
-        block belongs to no parsed table, or if the tables do not between them
-        cover every report command.
-    """
-    lines = REPORT_PAGE.read_text().splitlines()
-    fenced = _fence_mask(lines)
-
-    anchors = sum(
-        1
-        for line, in_fence in zip(lines, fenced, strict=True)
-        if not in_fence and line.strip() == _TABLE_ANCHOR
-    )
-
-    tables = []
-    index = 0
-
-    while index < len(lines):
-        if fenced[index] or lines[index].strip() != _TABLE_ANCHOR:
-            index += 1
+    for line, fenced in zip(lines, _fence_mask(lines), strict=True):
+        if fenced:
             continue
 
-        commands, index = _read_commands(lines, index + 1)
-        rows, index = _read_rows(lines, index)
-        tables.append(ReportPropertyTable(commands, rows))
+        if line.startswith("## "):
+            inside = line[3:].strip() == section
+            found = found or inside
 
-    if len(tables) != anchors:
-        raise ValueError(
-            f"{REPORT_PAGE.name}: {anchors} lead-in sentences produced"
-            f" {len(tables)} tables"
-        )
+        elif inside:
+            section_lines.append(line)
 
-    # a header and a separator accompany the data rows of every parsed table
-    parsed_pipes = sum(len(table.rows) + 2 for table in tables)
-    page_pipes = sum(
-        1
-        for line, in_fence in zip(lines, fenced, strict=True)
-        if not in_fence and line.startswith("|")
-    )
+    if not found:
+        raise ValueError(f"{page.name} has no '## {section}' section")
 
-    if parsed_pipes != page_pipes:
-        raise ValueError(
-            f"{REPORT_PAGE.name}: the parsed tables account for {parsed_pipes} of the"
-            f" {page_pipes} table lines on the page, so a table is introduced by"
-            " something other than the lead-in sentence the reader looks for"
-        )
+    return section_lines
 
-    covered = {command for table in tables for command in table.commands}
 
-    if covered != set(RESULTS_CLASSES):
-        raise ValueError(
-            f"{REPORT_PAGE.name}: no table lists"
-            f" {sorted(set(RESULTS_CLASSES) - covered)}"
-        )
+def results_tables() -> dict[str, dict[str, str]]:
+    """
+    Read the results the results file page lists, with their units, by kind.
+
+    The tables in the "## Results" section open each row with the series it
+    describes, as ``kind.attribute`` in backticks, e.g. ``global.installed_power``,
+    and their unit.
+
+    Returns
+    -------
+    dict[str, dict[str, str]] :
+        Unit per attribute, per kind.
+
+    Raises
+    ------
+    ValueError
+        If a series is listed twice, which would otherwise drop out unseen.
+    """
+    tables: dict[str, dict[str, str]] = {}
+
+    for line in _section_lines(RESULTS_PAGE, "Results"):
+        row = _RESULT_ROW.match(line)
+
+        if row is None:
+            continue
+
+        series, unit = row.groups()
+
+        for kind, attribute in _SERIES.findall(series):
+            listed = tables.setdefault(kind, {})
+
+            if attribute in listed:
+                raise ValueError(f"'{kind}.{attribute}' is listed twice")
+
+            listed[attribute] = unit
 
     return tables
+
+
+def kind_column_values() -> set[str]:
+    """
+    Read the kinds the results file page gives for the ``kind`` column.
+
+    Returns
+    -------
+    set[str] :
+        The code spans in the content cell of the ``kind`` row under "## Table".
+
+    Raises
+    ------
+    ValueError
+        If the section has no ``kind`` row.
+    """
+    for line in _section_lines(RESULTS_PAGE, "Table"):
+        if line.startswith("| `kind` |"):
+            content = line.split("|")[3]
+
+            return set(_CODE_SPAN.findall(content))
+
+    raise ValueError(f"{RESULTS_PAGE.name} '## Table' has no `kind` row")

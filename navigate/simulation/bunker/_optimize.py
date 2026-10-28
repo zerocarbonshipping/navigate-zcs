@@ -34,8 +34,9 @@ def _check_solution(alg: BunkerAlgorithm) -> None:
     Check that the last solve of the LP model found an optimal solution.
 
     An infeasible model raises after its IIS is computed and the model and its
-    limiting constraints are written as LP files to the output directory. Every
-    other status but optimal raises with the reason the solve ended.
+    limiting constraints are written as LP files to the algorithm's
+    infeasible_lp_file and beside it. Every other status but optimal raises with
+    the reason the solve ended.
 
     Parameters
     ----------
@@ -59,8 +60,8 @@ def _check_solution(alg: BunkerAlgorithm) -> None:
     if status == SolveStatusID.INFEASIBLE:
         iis = alg.model.compute_iis()
 
-        alg.model.write_iis(alg.output_directory / "bunkering_infeasible.ilp")
-        alg.model.write(alg.output_directory / "bunkering_infeasible.lp")
+        alg.model.write_iis(alg.infeasible_lp_file.with_suffix(".ilp"))
+        alg.model.write(alg.infeasible_lp_file)
 
         message = f"Optimal bunkering was infeasible for {scope} bunkering"
 

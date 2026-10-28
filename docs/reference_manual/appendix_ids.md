@@ -27,15 +27,6 @@ The Extrapolate ID describes the method used for extrapolating in Curves and For
 | FLAT | Extrapolate flat from the closest value in the table. |
 | LINEAR | Linear extrapolation from the last two values in the table. |
 
-## FileFormatID
-
-The FileFormat ID describes the file format used when exporting report data.
-
-| ID | Description |
-| --- | --- |
-| XLSX | Export the report as a single Excel workbook with one sheet per report table. |
-| CSV | Export the report as CSV files with one file per report table. |
-
 ## FuelTypeID
 
 The fuel type describes the type of molecule that a fuel is based on. I.e., ‘fuel type’ is not synonymous with ‘fuel’.
@@ -114,26 +105,6 @@ These IDs describe the way that a regulation will regulate emissions.
 | INDIVIDUAL | Every vessel must be compliant with the regulation and trading emission certificates from overcompliance is not possible. |
 | FLEXIBLE | Vessels may trade emission certificates between them by certain vessels being overcompliant with the regulation. |
 
-## ReportAccumulationID
-
-ReportAccumulationID selects whether a report property is reported per date or accumulated over time.
-
-| ID | Description |
-| --- | --- |
-| NONE | The property's value at each date |
-| CUMULATIVE | The property accumulated over the time steps up to and including each date, reported under its name prefixed with `Cumulative` |
-
-## ReportReduceID
-
-ReportReduceID is used for reducing tuples in the reports for easier data manipulation.
-
-| ID | Description |
-| --- | --- |
-| NONE | This means no reduction of the tuple(s) |
-| FIRST | This means reduction over the first element of the tuple(s); the resulting columns are keyed by the second element |
-| SECOND | This means reduction over the second element of the tuple(s); the resulting columns are keyed by the first element |
-| BOTH | This means reduction over both elements of the tuple(s), into a single column |
-
 ## RouteTypeID
 
 These IDs select how a route's ports form legs and how its inputs are read. They name the calculation, not the market segment: a segment that trades on liner schedules may be modelled as a `TRAMP` route. See [Route](route.md#routetype).
@@ -185,7 +156,7 @@ These IDs describe the type of dependency the electricity source has to the regi
 
 ## TimingID
 
-This ID describes the phase of a time step that its computational time is booked to in the `ComputationalTime` report property.
+This ID describes the phase of a time step that its computational time is booked to in the global `computational_time` result of the [results file](results_file.md).
 
 | ID | Description |
 | --- | --- |

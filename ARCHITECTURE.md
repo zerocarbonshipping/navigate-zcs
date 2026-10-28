@@ -42,8 +42,9 @@ step, and `driver/` runs it from a read deck to its output.
   each finish before the next starts: `_lark_parser.py` turns text into an
   AST through `grammar.lark`, the one place that knows the syntax;
   `_collect.py` collects the files into declarations (one node's body
-  items in read order) and events, checking each body item against the
-  registries as it is read, and pulls through `_library.py` the
+  items in read order) and events, each file's `%NAME%` placeholders
+  filled in by `_params.py` before it is parsed, checking each body item
+  against the registries as it is read, and pulls through `_library.py` the
   default-library file of every name the deck imports, copies, loads or
   references; `_resolve.py` binds each event to the declarations it
   targets and, once the prune is done, refuses an event changing a
@@ -57,7 +58,7 @@ step, and `driver/` runs it from a read deck to its output.
   else imports it, and without it every declaration is kept. `parser.py`
   is the facade the driver calls.
 - `output/` — turns `SimulationResults`, which the driver assembles from the
-  finished run, into the results file, the reports and the figures (`plots/`).
+  finished run, into the results file.
 - `util/` — domain-agnostic helpers.
 - `driver/` — the run: read a deck, step `Simulation`, write the output.
 - `app/` — the command line (`cli.py`) and its run log (`logs.py`), whose
@@ -120,8 +121,8 @@ class imports it under `TYPE_CHECKING`. Imports are absolute. No test
 enforces the table; review does, with type-only imports included.
 
 Each package's `__init__.py` re-exports its externally consumed entry
-points; read it first. `simulation/`, `core/nodes/`, `core/general_nodes/`
-and `output/plots/` keep it empty and importers name the module, as a
+points; read it first. `simulation/`, `core/nodes/` and `core/general_nodes/`
+keep it empty and importers name the module, as a
 re-export there would load far more than an import needs.
 
 ## Data-flow invariants
@@ -136,14 +137,14 @@ re-export there would load far more than an import needs.
   from stored values is computed in the `simulation/` package of the domain
   that reads it; where the parts of a sum are never read on their own, the
   writer stores the sum instead.
-- `results` is output for reports and plots, never a decision's input.
+- `results` is output for the results file, never a decision's input.
   Deriving one result from another is fine in post-processing and
   `Simulation._record_results`, which feed no decision; a result computed
   from others is written by the domain's `post_process` module after the run.
 - Direct attribute access (`node.some_input.get()`) is reserved for
   DSL-defined inputs and those node maps.
 - `simulation/` handles no files, console output or arguments; its one file
-  write is the bunker's infeasible-LP dump into the directory it is given.
+  write is the bunker's infeasible-LP dump to the path it is given.
 
 ## Node lifecycle
 

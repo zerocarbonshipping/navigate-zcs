@@ -29,7 +29,7 @@ from navigate.core.results import (
 from navigate.util import TOLERANCE, dates_to_years, key_name, step_lengths
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterator, Mapping
     from enum import Enum
     from pathlib import Path
 
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 1
 METADATA_KEY = b"navigate"
 
 GLOBAL_KIND = "global"
@@ -69,7 +69,12 @@ class Series(NamedTuple):
     values: np.ndarray
 
 
-def write_results(results: SimulationResults, path: Path, deck_name: str) -> Path:
+def write_results(
+    results: SimulationResults,
+    path: Path,
+    run_name: str,
+    params: Mapping[str, str],
+) -> Path:
     """
     Write every result of a finished run to a Parquet file.
 
@@ -79,15 +84,18 @@ def write_results(results: SimulationResults, path: Path, deck_name: str) -> Pat
         Results of the finished run.
     path
         File to write; its directory is created when missing.
-    deck_name
-        Name of the simulation deck, stored in the file metadata.
+    run_name
+        Name of the run, stored in the file metadata.
+    params
+        Value of each %NAME% placeholder the deck was read with, stored in the
+        file metadata.
 
     Returns
     -------
     Path
         The file written.
     """
-    table = results_table(results, deck_name)
+    table = results_table(results, run_name, params)
 
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -106,7 +114,9 @@ def write_results(results: SimulationResults, path: Path, deck_name: str) -> Pat
     return path
 
 
-def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
+def results_table(
+    results: SimulationResults, run_name: str, params: Mapping[str, str]
+) -> pa.Table:
     """
     Build the results table of a run, metadata included.
 
@@ -114,8 +124,11 @@ def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
     ----------
     results
         Results of the finished run.
-    deck_name
-        Name of the simulation deck, stored in the table metadata.
+    run_name
+        Name of the run, stored in the table metadata.
+    params
+        Value of each %NAME% placeholder the deck was read with, stored in the
+        table metadata.
 
     Returns
     -------
@@ -138,7 +151,7 @@ def results_table(results: SimulationResults, deck_name: str) -> pa.Table:
     values = np.array([entry.values for entry in series], dtype=np.float32).ravel()
     columns["value"] = pa.array(values, type=pa.float32(), from_pandas=True)
 
-    metadata = json.dumps(_metadata(results, deck_name)).encode()
+    metadata = json.dumps(_metadata(results, run_name, params)).encode()
     table = pa.table(columns, schema=SCHEMA)
 
     return table.replace_schema_metadata({METADATA_KEY: metadata})
@@ -228,17 +241,21 @@ def _label(key: str | Enum | None) -> str | None:
     return key_name(key)
 
 
-def _metadata(results: SimulationResults, deck_name: str) -> dict[str, Any]:
+def _metadata(
+    results: SimulationResults, run_name: str, params: Mapping[str, str]
+) -> dict[str, Any]:
     """
-    Describe the run: schema, provenance, units and the run's constants.
+    Describe the run: schema, provenance, placeholder values, units and constants.
 
     Parameters
     ----------
     results
         Results of the finished run, whose results name the units and hold the
         constants.
-    deck_name
-        Name of the simulation deck.
+    run_name
+        Name of the run.
+    params
+        Value of each %NAME% placeholder the deck was read with.
 
     Returns
     -------
@@ -250,8 +267,9 @@ def _metadata(results: SimulationResults, deck_name: str) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "navigate_version": _navigate_version(),
-        "deck": deck_name,
+        "deck": run_name,
         "created": datetime.now(UTC).isoformat(timespec="seconds"),
+        "params": dict(params),
         "units": _units(results),
         "constants": _constants(results),
         "plant_fuel": {plant.name: plant.fuel.name for plant in plants},

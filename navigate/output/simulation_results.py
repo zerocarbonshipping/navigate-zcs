@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True, eq=False)
 class SimulationResults:
     """
-    Hold everything a finished run hands to its results file, reports and figures.
+    Hold everything a finished run hands to its results file.
 
     Parameters
     ----------

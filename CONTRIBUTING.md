@@ -55,10 +55,10 @@ values, so that the provenance of the model inputs stays traceable.
 ### Changelog
 
 `CHANGELOG.md` records what a deck author or a reader of the output would
-notice: a DSL attribute, command, keyword, report property or plot added,
-renamed, removed or changed in meaning; a change in simulation results; a
-deck that used to run and now fails, or the reverse; the CLI and
-installation requirements; and the report, plot, console and log output. It
+notice: a DSL attribute, command, keyword or result added, renamed, removed
+or changed in meaning; a change in simulation results; a deck that used to
+run and now fails, or the reverse; the CLI and installation requirements;
+and the results file, console and log output. It
 also records bugs in any of these, including errors in the reference manual.
 The format is [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 

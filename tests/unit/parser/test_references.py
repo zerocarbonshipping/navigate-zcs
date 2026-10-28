@@ -36,7 +36,6 @@ Fuel "oil" {
     set_ttw("co2", Variable("v"))
 }
 """
-PLOT_GHOST = 'Plot "p" {\n    add_plot(Variable("ghost"))\n}\n'
 
 
 @pytest.fixture
@@ -249,40 +248,10 @@ class TestReferenceSites:
     """
     A reference is resolved wherever it is written, before any setter runs.
 
-    A command argument the setter would keep as a set member or a dictionary
-    key, or a command a library file adds to a deck node, is walked like any
-    other reference, so an undeclared name is the missing-default error.
+    A command argument, or a command a library file adds to a deck node, is
+    walked like any other reference, so an undeclared name is the
+    missing-default error.
     """
-
-    # input:    | Plot "p" { add_plot(Variable("ghost")) }   with no ghost anywhere
-    # expected: -> DeckError "...define.inc', line N: Variable("ghost") is
-    #              referenced but not found in either the deck or the default
-    #              location of Variable."
-    @pytest.mark.parametrize(
-        ("define", "reference", "node_type"),
-        [
-            # add_plot keeps its argument in a set
-            (PLOT_GHOST, 'Variable("ghost")', "Variable"),
-            # add_fleet_property keys its report dictionary by the argument
-            (
-                'Report "r" {\n    add_fleet_property(Fleet("ghost"), CargoMiles)\n}\n',
-                'Fleet("ghost")',
-                "Fleet",
-            ),
-        ],
-        ids=["plot_set", "report_dict_key"],
-    )
-    def test_a_node_where_a_name_is_expected_is_resolved(
-        self, tmp_path, read_library_deck, define, reference, node_type
-    ):
-        with pytest.raises(DeckError) as error:
-            read_library_deck(define)
-
-        line = line_of(tmp_path / "define.inc", reference)
-        assert str(error.value).endswith(
-            f"define.inc', line {line}: {reference} is referenced but not found in "
-            f"either the deck or the default location of {node_type}."
-        )
 
     # input:    | Fuel "oil" { ... set_ttw("co2", Variable("v")) }
     #           | defaults/Variable/v.inc:

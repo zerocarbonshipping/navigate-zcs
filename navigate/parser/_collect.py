@@ -46,10 +46,11 @@ from navigate.parser._lark_parser import (
     parse_deck_content,
     parse_include_content,
 )
+from navigate.parser._params import Params
 from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Collection, Mapping
     from pathlib import Path
 
     import numpy as np
@@ -147,9 +148,13 @@ class Collector:
     library
         The default library the deck's Import, Copy and Load statements and its
         references draw on.
+    params
+        Value of each %NAME% placeholder of the files, as text; None gives none.
     """
 
-    def __init__(self, library: Library) -> None:
+    def __init__(
+        self, library: Library, params: Mapping[str, str] | None = None
+    ) -> None:
         self.library: Library = library
         self.declarations: dict[Key, Declaration] = {}
         # each general node's body items, in read order
@@ -158,6 +163,7 @@ class Collector:
         # every Start (None) and Date read, each a time step of the simulation
         self.timeline: list[StepDate] = []
 
+        self._params: Params = Params(params or {})
         # names are unique across node types
         self._names: set[str] = set()
         self._origin: Origin = Origin.DECK
@@ -181,6 +187,7 @@ class Collector:
         except FileNotFoundError:
             raise FileNotFoundError(f"Unable to locate {path}.") from None
 
+        content = self._params.fill(content, str(path), deck_line=0)
         deck = parse_deck_content(content, file=str(path))
 
         for directive in deck.define:
@@ -190,6 +197,11 @@ class Collector:
             self._read_directive(directive, path.parent, SectionID.EVENTS)
 
         self._pull_references()
+
+        for name in self._params.unused():
+            logger.warning(
+                "--set %s is unused: no file of the deck has '%%%s%%'.", name, name
+            )
 
     def _read_directive(
         self, directive: Directive, directory: Path, section: SectionID
@@ -218,6 +230,7 @@ class Collector:
                 f"Include file '{path}' not found."
             ) from None
 
+        content = self._params.fill(content, str(path), deck_line)
         statements = parse_include_content(content, file=str(path), deck_line=deck_line)
 
         if section is SectionID.DEFINE:

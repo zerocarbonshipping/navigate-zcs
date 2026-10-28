@@ -224,47 +224,6 @@ class TestTableBuild:
             read_deck(define)
 
 
-class TestReportProperty:
-    """A Report property its command does not report stops the parse at its line."""
-
-    @staticmethod
-    def _report(*commands):
-        return 'Report "r" {\n' + "".join(f"    {c}\n" for c in commands) + "}\n"
-
-    # input:    | Report "r" { add_fleet_property("f", CargoMiles) }
-    # expected: -> the fleet report "f" reads the result "cargo_miles"
-    def test_a_reported_property_resolves_to_its_result(self, read_deck):
-        parser = read_deck(self._report('add_fleet_property("f", CargoMiles)'))
-
-        assert (
-            parser.nodes.reports["r"].fleet_reports["f"].properties["CargoMiles"].result
-            == "cargo_miles"
-        )
-
-    # input:    | Report "r" { add_fleet_property("*", CargoMils) }
-    # expected: -> DeckError at the command's define.inc line, naming
-    #              'add_fleet_property' and 'CargoMils'
-    @pytest.mark.parametrize(
-        ("command", "token"),
-        [
-            ("add_fleet_property", "CargoMils"),
-            # BunkerPrice is reported for ports only
-            ("add_vessel_property", "BunkerPrice"),
-        ],
-        ids=["unknown_token", "token_of_another_command"],
-    )
-    def test_an_unreported_property_is_a_deck_error_at_its_line(
-        self, tmp_path, read_deck, command, token
-    ):
-        with pytest.raises(DeckError) as raised:
-            read_deck(self._report(f'{command}("*", {token})'))
-
-        message = str(raised.value)
-        assert message.startswith(_prefix(tmp_path, "define.inc", command))
-        assert f"'{command}'" in message
-        assert f"'{token}'" in message
-
-
 # input:    | a deck with Fleet "fleet" but no Fuel
 # expected: -> DeckError "Unable to run a simulation:
 #              - No Fuels are defined."

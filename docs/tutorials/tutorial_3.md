@@ -39,19 +39,15 @@ production/
 ├── project_1/
 │   ├── 0_includes_local/
 │   ├── simulation_1/
-│   │   ├── plots/
 │   │   └── file_name_1.nav
 │   ├── simulation_2/
-│   │   ├── plots/
 │   │   └── file_name_2.nav
 │   └── ...
 ├── project_2/
 │   ├── 0_includes_local/
 │   ├── simulation_1/
-│   │   ├── plots/
 │   │   └── file_name_1.nav
 │   ├── simulation_2/
-│   │   ├── plots/
 │   │   └── file_name_2.nav
 │   └── ...
 └── ...
@@ -73,7 +69,6 @@ The `tutorial_3` folder will correspond to the `production` folder from the abov
    2. `baseline`. This folder will include the .nav file for the baseline scenario. 
    3. `scenario_170` 
    4. `scenario_100`
-4. Within each of the three folders `baseline`, `scenario_170`, and `scenario_100`: Create an empty folder called `plots`
 
 Your folder structure should now look like this:
 
@@ -83,12 +78,9 @@ tutorial_3/
 └── tutorial_3_scenarios/
     ├── 0_includes_local/
     ├── baseline/
-    │   ├── plots/
     │   └── (baseline .nav file)
     ├── scenario_170/
-    │   └── plots/
     └── scenario_100/
-        └── plots/
 ```
 
 ## Split DEFINE content into individual `.inc` files.
@@ -144,9 +136,7 @@ There are multiple different ways/logics of how you could split the content of t
 18.	`feedstock.inc`
 19.	`region.inc`
 20.	`source.inc`
-21.	`report.inc`
-22.	`plot.inc`
-23.	`time_steps_yearly.inc`
+21.	`time_steps_yearly.inc`
 
 Each section in the list represents a separate `.inc` file in the new file structure.
 
@@ -409,29 +399,6 @@ Producer "engineering_procurement_construction" {
 
 3. The decision sensitivities are now set directly on the `Producer`, so the `producer_uptake.inc` file is left empty — there are no separate uptake nodes to define.
 
-### DEFINE File: Definition of `Plot`
-
-The `Plot` node defines which output plots Navigate produces and where they are saved. Navigate only generates plots when at least one `Plot` node is defined.
-
-1. Open the file `plot.inc` in your `0_includes_global` folder.
-2. Define a node `"plots"` with the node type `Plot`.
-3. Set the `Directory` attribute to `"./plots/"`. This is the `plots` subfolder you created in each scenario folder; the path is relative to the `.nav` file being run. Navigate creates the folder if it does not already exist.
-4. Use the `add_plot(...)` command once per plot you want produced.
-
-```python
-Plot "plots" {
-    Directory = "./plots/"
-
-    add_plot("global_emission_absolute")
-    add_plot("global_fuel_consumed")
-    add_plot("plant_production_cost")
-    add_plot("port_bunker_price")
-}
-```
-
-Because the same plots are produced for every scenario, `plot.inc` lives in `0_includes_global` and is included by each scenario's `.nav` file (see the next section).
-
-
 ## Create `.nav` file for Baseline Scenario
 
 ### Recap Tutorial 2
@@ -508,9 +475,6 @@ DEFINE {
     # costs and emissions of fuels
     Include "../../0_includes_global/region.inc"
     Include "../../0_includes_global/emissions.inc"
-
-    # plots
-    Include "../../0_includes_global/plot.inc"
 }
 ```
 
@@ -613,9 +577,6 @@ DEFINE {
     Include "../../0_includes_global/region.inc"
     Include "../../0_includes_global/emissions.inc"
 
-    # plots
-    Include "../../0_includes_global/plot.inc"
-
     # testing sensitivity to lower HFO cost
     Include "../0_includes_local/scenario_100.inc"
 }
@@ -711,9 +672,6 @@ DEFINE {
     Include "../../0_includes_global/region.inc"
     Include "../../0_includes_global/emissions.inc"
 
-    # plots
-    Include "../../0_includes_global/plot.inc"
-
     # testing sensitivity to lower HFO cost
     Include "../0_includes_local/scenario_170.inc"
 }
@@ -726,46 +684,23 @@ navigate .\scenario_170.nav
 
 ## Run the scenarios and compare them with baseline
 
-Open the plot folders for the baseline, scenario 100 and scenario 170 next to each other. Review some of the plots and compare them across scenarios.
+Each run wrote its results file next to its `.nav` file. Open the three of them together in [Lantern](https://github.com/zerocarbonshipping/lantern-zcs); from the `tutorial_3_scenarios` folder run:
 
-### Making a report for further analysis in Excel
-
-If you want to extract results from Navigate into excel to create your own graph or make additional analysis you can have Navigate extract a report, including all the parameters you need.
-
-1. Open the `report.inc` from your 0_includes_global folder.
-2. Create a `Report` node named `report`, and set its `Directory` attribute to `"./plots/"` so the Excel report is saved in the same subfolder as the plots.
-3. Add the results from the simulation that you would like exported into an excel sheet, from where it can be used for analysis in other programs than Navigate. 
-   - **Port:** First, we would like to extract bunker price and WTT intensity.
-   - **Fleet:** The fleet properties extracted is the emissions and total energy consumption from the fleets.
-   - **Global:** Here properties of emissions, energy consumption, and installed engine power is extracted at a global level (so across fleets).
-
-```python
-Report "report" {	
-
-	# export the report to the same "plots" subfolder as the plots.
-	Directory = "./plots/"
-
-	# port
-	add_port_property("*", BunkerPrice)    	        # USD/t
-	add_port_property("*", EquivalentBunkerWtt, SECOND)	# ton/ton
-		
-	# fleet
-	add_fleet_property("*", EquivalentWtt, BOTH)		# ton/year
-	add_fleet_property("*", EquivalentTtw, BOTH)		# ton/year
-	add_fleet_property("*", TotalEquivalentWtw)		# ton/year
-	add_fleet_property("*", TotalConsumedEnergy)    # GJ/year
-
-	# global
-	add_property(EquivalentWtt, BOTH)				# ton/year
-	add_property(EquivalentTtw, BOTH)				# ton/year
-	add_property(TotalEquivalentWtw)				# ton/year
-	add_property(TotalConsumedEnergy)				# GJ/year
-	add_property(ConsumedEnergy)					# GJ/year
-	add_property(InstalledPower)					# MW	
-}
+```bash
+lantern baseline/baseline.parquet scenario_100/scenario_100.parquet scenario_170/scenario_170.parquet
 ```
-4. In each scenario `.nav` file (`baseline.nav`, `scenario_100.nav` and `scenario_170.nav`), inside the `DEFINE` block add the line `Include "../../0_includes_global/report.inc"`, placing it just before the `plot.inc` include. If you only add it to `baseline.nav`, the other two scenarios will run but produce no Excel report.
-5. Run the Baseline scenario in Navigate
+
+The runs are listed in the sidebar. Ctrl-click (Cmd-click on a Mac) the other runs to show them in the same plots, then review some of the plots and compare them across scenarios.
+
+### Exporting results for further analysis in Excel
+
+If you want to take results from Navigate into Excel to create your own graphs or make additional analysis, Lantern writes the rows of the results files to one CSV file, with a `run` column naming the scenario. From the `tutorial_3_scenarios` folder run:
+
+```bash
+lantern --data .
+```
+
+It writes `data.csv` in the current folder, which Excel opens. Each row holds one result of one node at one date: for example a port's `bunker_price` in USD/t, a fleet's `total_equivalent_wtw` in tCO2e/year or the global `total_consumed_energy` in GJ/year. The [results file](../reference_manual/results_file.md) page lists every result and its unit.
 
 ## Example solution
 
@@ -813,12 +748,6 @@ DEFINE {
 	# producer
 	Include "../../0_includes_global/producer.inc"
 	Include "../../0_includes_global/producer_uptake.inc"
-	
-	# report
-	Include "../../0_includes_global/report.inc"
-
-	# plots
-	Include "../../0_includes_global/plot.inc"
 }
 
 
@@ -875,12 +804,6 @@ DEFINE {
 	# producer
 	Include "../../0_includes_global/producer.inc"
 	Include "../../0_includes_global/producer_uptake.inc"
-
-	# report
-	Include "../../0_includes_global/report.inc"
-
-	# plots
-	Include "../../0_includes_global/plot.inc"
 
 
 	Include "../0_includes_local/scenario_100.inc"
@@ -939,12 +862,6 @@ DEFINE {
 	# producer
 	Include "../../0_includes_global/producer.inc"
 	Include "../../0_includes_global/producer_uptake.inc"
-
-	# report
-	Include "../../0_includes_global/report.inc"
-
-	# plots
-	Include "../../0_includes_global/plot.inc"
 
 	Include "../0_includes_local/scenario_170.inc"
 }
@@ -1283,23 +1200,6 @@ Plant "plant_ammonia_blue" {
 ```
 :::
 
-:::{dropdown} 0_includes_global/plot.inc
-```python
-# Definition of the plots produced for each scenario.
-# Directory points at the "plots" subfolder of the scenario; each add_plot(...)
-# selects one plot to produce.
-
-Plot "plots" {
-	Directory = "./plots/"
-
-	add_plot("global_emission_absolute")
-	add_plot("global_fuel_consumed")
-	add_plot("plant_production_cost")
-	add_plot("port_bunker_price")
-}
-```
-:::
-
 :::{dropdown} 0_includes_global/port.inc
 ```python
 # Definition of port
@@ -1403,40 +1303,6 @@ Region "region" {
 	set_feedstock_wtt("natural_gas", "carbon_dioxide", 0.11)
 	set_feedstock_wtt("natural_gas", "methane", 0.0073)
 	set_process_wtt("haber_bosch_ccs_integrated_blue", "carbon_dioxide", 0.180) #adding missing ccs of some carbon here
-}
-```
-:::
-
-:::{dropdown} 0_includes_global/report.inc
-```python
-# Export results to a subfolder called "plots".
-# An error is raised if no such folder is found.
-
-Report "report" {
-
-	# Export results to a subfolder called "plots".
-	# An error is raised if no such folder is found.
-	Directory = "./plots/"
-	
-		
-	# port
-	add_port_property("*", BunkerPrice)				# USD/t
-	add_port_property("*", EquivalentBunkerWtt, SECOND)	# ton/ton
-		
-	# fleet
-	add_fleet_property("*", EquivalentWtt, BOTH)		# ton/year
-	add_fleet_property("*", EquivalentTtw, BOTH)		# ton/year
-	add_fleet_property("*", TotalEquivalentWtw)		# ton/year
-	add_fleet_property("*", TotalConsumedEnergy)	# GJ/year
-
-	# global
-	add_property(EquivalentWtt, BOTH)				# ton/year
-	add_property(EquivalentTtw, BOTH)				# ton/year
-	add_property(TotalEquivalentWtw)				# ton/year
-	add_property(TotalConsumedEnergy)				# GJ/year
-	add_property(ConsumedEnergy)					# GJ/year
-	add_property(InstalledPower)					# MW
-	
 }
 ```
 :::

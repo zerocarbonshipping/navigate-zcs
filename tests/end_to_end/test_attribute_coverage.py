@@ -15,7 +15,6 @@ asserts its results; it answers "does every input still run".
 
 from __future__ import annotations
 
-import inspect
 from enum import Enum
 from pathlib import Path
 
@@ -33,8 +32,6 @@ from navigate.core.enum_ import (
     PORT_ENERGY_DEMANDS,
     EnergyDemandID,
     FuelTypeID,
-    ReportAccumulationID,
-    ReportReduceID,
 )
 from navigate.core.node_registry import GENERAL_NODE_CLASS, NODE_CLASS
 from navigate.parser._lark_parser import (
@@ -181,24 +178,11 @@ def _id_attributes() -> dict[tuple[str, str], set[str]]:
 
 def _id_command_arguments() -> dict[tuple[str, int], set[str]]:
     """Map every (command, argument index) that takes an ID to the names it accepts."""
-    domains = {
+    return {
         (command, index): {member.name for member in domain}
         for command, arguments in ENUM_COMMAND_ARGUMENTS.items()
         for index, domain in enumerate(arguments)
     }
-
-    for command in NODE_COMMAND_SECTIONS["Report"]:
-        cls = NODE_CLASS["Report"]
-        parameters = list(inspect.signature(getattr(cls, command)).parameters)
-        for argument, ids in (
-            ("reduce", ReportReduceID),
-            ("accumulate", ReportAccumulationID),
-        ):
-            # positions count deck arguments, which leave out self
-            index = parameters.index(argument) - 1
-            domains[(command, index)] = {member.name for member in ids}
-
-    return domains
 
 
 def _id_values_used() -> dict[frozenset[str], set[str]]:

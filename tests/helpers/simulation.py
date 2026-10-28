@@ -11,7 +11,6 @@ universal invariants.
 from __future__ import annotations
 
 import os
-import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -46,7 +45,7 @@ def default_assumptions_dir() -> Path:
 
 def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationResults:
     """
-    Run the deck '<sim_dir>/<sim_dir.name>.nav' without rendering its plots.
+    Run the deck '<sim_dir>/<sim_dir.name>.nav'.
 
     Parameters
     ----------
@@ -62,25 +61,7 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationRes
     nav_file = sim_dir / f"{sim_dir.name}.nav"
     assert nav_file.exists(), f"Missing {nav_file}"
 
-    return run_deck(
-        nav_file, data_dir=data_dir or default_assumptions_dir(), plots=False
-    )
-
-
-def clear_output_dir(output_dir: Path) -> None:
-    """
-    Delete a deck's report output directory before a run.
-
-    Only the coming run's files then exist: stale files from earlier runs
-    (including the report writer's locked-file retry names) must never reach
-    a consumer of the output.
-
-    Parameters
-    ----------
-    output_dir
-        The deck's report output directory.
-    """
-    shutil.rmtree(output_dir, ignore_errors=True)
+    return run_deck(nav_file, data_dir=data_dir or default_assumptions_dir())
 
 
 def check_invariants(results: SimulationResults) -> None:

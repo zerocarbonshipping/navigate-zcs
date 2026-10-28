@@ -135,8 +135,8 @@ class Simulation:
         General nodes of the deck.
     dateline
         Dates of the simulation timeline, the start date first.
-    output_directory
-        Folder the bunkering LP writes an infeasible model into.
+    infeasible_lp_file
+        File the bunkering LP writes an infeasible model to, its IIS beside it.
     """
 
     def __init__(
@@ -144,13 +144,13 @@ class Simulation:
         nodes: Nodes,
         general_nodes: GeneralNodes,
         dateline: DateArray,
-        output_directory: Path,
+        infeasible_lp_file: Path,
     ) -> None:
         check_runnable(nodes)
 
         self.nodes: Nodes = nodes
         self.general_nodes: GeneralNodes = general_nodes
-        self._output_directory: Path = output_directory
+        self._infeasible_lp_file: Path = infeasible_lp_file
 
         # the simulation's dates, and the elapsed time in days since the start date
         self.dateline: DateArray = dateline
@@ -332,7 +332,7 @@ class Simulation:
             self.general_nodes.bunker_options,
             backend,
             scope,
-            output_directory=self._output_directory,
+            infeasible_lp_file=self._infeasible_lp_file,
             timings=self.timings,
         )
 

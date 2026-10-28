@@ -63,11 +63,4 @@
 
 
 
-# E) DEFINITION OF OUTPUT (PLOTS)
-# Define a Plot node "plots" below. Use the Directory attribute to point at the
-# "plots" subfolder, and add_plot(...) for each plot you want produced (see the
-# tutorial for the plot labels to include).
-
-
-
 # END OF NAV FILE

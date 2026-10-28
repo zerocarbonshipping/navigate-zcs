@@ -62,12 +62,6 @@ DEFINE {
 
     # ---------------- DECISION PROCESESS ---------------------------
     Include "includes/decision_processes.inc"
-
-    # -----------------------EXPORT -----------------------------
-    Include "includes/report.inc"
-
-    # -------------------------- OUTPUT -----------------------------
-    Load DefaultPlot
 }
 
 EVENTS {

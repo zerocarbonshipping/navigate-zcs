@@ -19,13 +19,11 @@ from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.levy import Levy
 from navigate.core.nodes.plant import Plant
-from navigate.core.nodes.plot import Plot
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.process import Process
 from navigate.core.nodes.producer import Producer
 from navigate.core.nodes.region import Region
 from navigate.core.nodes.regulation import Regulation
-from navigate.core.nodes.report import Report
 from navigate.core.nodes.route import Route
 from navigate.core.nodes.source import Source
 from navigate.core.nodes.surface import Surface
@@ -64,13 +62,11 @@ class Nodes:
     fuels: dict[str, Fuel] = _node_group(Fuel)
     levies: dict[str, Levy] = _node_group(Levy)
     plants: dict[str, Plant] = _node_group(Plant)
-    plots: dict[str, Plot] = _node_group(Plot)
     ports: dict[str, Port] = _node_group(Port)
     processes: dict[str, Process] = _node_group(Process)
     producers: dict[str, Producer] = _node_group(Producer)
     regions: dict[str, Region] = _node_group(Region)
     regulations: dict[str, Regulation] = _node_group(Regulation)
-    reports: dict[str, Report] = _node_group(Report)
     routes: dict[str, Route] = _node_group(Route)
     sources: dict[str, Source] = _node_group(Source)
     surfaces: dict[str, Surface] = _node_group(Surface)

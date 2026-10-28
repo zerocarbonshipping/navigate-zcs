@@ -26,11 +26,6 @@ DEFINE {
 
     # calibration
     Load DefaultCalibration
-
-	# output
-    Load DefaultReport
-    Load DefaultPlot
-	Load DebugPlot
 }
 
 EVENTS {

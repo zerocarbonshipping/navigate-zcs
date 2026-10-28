@@ -42,17 +42,17 @@ class RunLog:
 
     Parameters
     ----------
-    path
-        Path to the simulation deck; the log file takes it with a '.log' suffix.
+    log_path
+        Path of the log file; its directory is created when missing.
     level
         Name of the lowest level logged, one of LOG_LEVELS.
     """
 
-    def __init__(self, path: Path, level: str) -> None:
+    def __init__(self, log_path: Path, level: str) -> None:
         if level not in LOG_LEVELS:
             raise ValueError(f"log level must be one of {LOG_LEVELS}, not {level!r}")
 
-        self._log_path: Path = path.with_suffix(".log")
+        self._log_path: Path = log_path
         self._level: str = level
         self._ledger: _WarningLedger = _WarningLedger()
 
@@ -63,6 +63,7 @@ class RunLog:
     def __enter__(self) -> Self:
         # the file opens before the root logger changes, so a file that cannot be
         # opened leaves the logging configuration as it was
+        self._log_path.parent.mkdir(parents=True, exist_ok=True)
         handler = logging.FileHandler(self._log_path, mode="w", encoding="utf-8")
 
         # propagation hands a module logger's record to the root's handlers without

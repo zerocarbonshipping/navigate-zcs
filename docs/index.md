@@ -34,8 +34,9 @@ the transition rather than a least-cost ideal.
 A simulation is described in a small domain-specific language: human-readable
 `.nav` and `.inc` files that declare nodes — vessels, fleets, routes, ports,
 fuels, plants, regulations — and a timeline of events that change them. Running a
-deck produces Excel reports and plots that trace fleet composition, fuel demand,
-emissions, and compliance costs through time.
+deck produces a results file that traces fleet composition, fuel demand,
+emissions, and compliance costs through time, to browse as plots in
+[Lantern](https://github.com/zerocarbonshipping/lantern-zcs).
 
 ## About this documentation
 
