@@ -122,29 +122,6 @@ class SpeedAlignmentID(Enum):
     AVERAGE = auto()  # use the mean optimal speed, weighted by vessel count
 
 
-class ReportReduceID(Enum):
-    """Which elements of a report property's tuple keys are reduced over."""
-
-    NONE = auto()  # no reduction
-    FIRST = auto()  # reduce over the first tuple element
-    SECOND = auto()  # reduce over the second tuple element
-    BOTH = auto()  # reduce over both tuple elements
-
-
-class ReportAccumulationID(Enum):
-    """Whether a report property is reported per date or accumulated over time."""
-
-    NONE = auto()  # the value at each date
-    CUMULATIVE = auto()  # the total over the time steps up to each date
-
-
-class FileFormatID(Enum):
-    """The file format a report is exported in."""
-
-    XLSX = auto()  # single Excel workbook, one sheet per report table
-    CSV = auto()  # one CSV file per report table
-
-
 class SolverBackendID(Enum):
     """The solver backend the bunkering linear program is solved with."""
 

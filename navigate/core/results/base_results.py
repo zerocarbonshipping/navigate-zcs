@@ -34,7 +34,7 @@ class ResultSpec(NamedTuple):
 
 def result(unit: str, *, per_step: bool = False) -> Any:
     """
-    Declare a field that holds a result: reported, plotted and written out.
+    Declare a field that holds a result, written out to the results file.
 
     A field declared with a plain ``field(init=False)`` is state the simulation
     keeps on the results, and no result.

@@ -14,6 +14,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Breaking
+- The `Plot` and `Report` nodes, the built-in plots and the
+  `-s`/`--suppress-plots` flag are removed: a run writes its log and its
+  results file, which [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
+  opens to plot the results. A deck declaring a `Plot` or `Report` node, or
+  loading the `DefaultPlot`, `DefaultReport` or `DebugPlot` module, fails at
+  that line; delete those lines. The results the report properties gave are
+  attributes of the results file, listed on its reference-manual page.
 - Every row of a `Table` ends with a `;`, and the cells of a row are separated
   by commas as in a list: `"01-01-2024", 1.0;`. A row without the `;` runs
   into the next, a syntax error at the next row's first cell. The committed
@@ -25,15 +32,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   reassignments in the deck, or by an own assumptions folder passed with `-d`.
 
 ### Added
+- `--set NAME=VALUE` fills in each `%NAME%` placeholder of the deck and its
+  files, `Include` paths included, and stores the values as `params` in the
+  results file metadata. A deck may end in `.unc` as well as `.nav`.
+- `--name` and `--output-dir` name a run's output files and place them, so
+  runs of one deck can share a folder; a run with `--set` writes its log into
+  `logs/` and its results file into `parquets/` under the output folder.
 - Results file: every run writes all its results to `<deck>.parquet` next to
-  the deck, or to the path given with `-o`/`--results`: every profile result
+  the deck: every profile result
   of the global profile and of each fleet, vessel, port, plant, producer,
   regulation and levy, one row per series and date, the values as 32-bit
   floats, with the unit of each result and the fuel and emission constants in
   the file metadata. [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
-  opens it to plot the results in the browser; the built-in plots are kept
-  for now. The layout is described on the new reference-manual page "Results
-  file".
+  opens it to plot the results in the browser. The layout is described on the
+  new reference-manual page "Results file".
 - Vessel report property `InFleet`: whether the vessel is part of its fleet.
 - Report commands take a fourth argument, `CUMULATIVE`, which reports a
   property accumulated over the time steps up to and including each date under
@@ -53,6 +65,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   requested; they used to produce no column.
 
 ### Changed
+- `-p` writes the profile to `<name>.prof`, not `profile`, and an infeasible
+  bunkering LP is written to `<name>_bunkering_infeasible.lp` and `.ilp`.
 - The deck is read in three phases - collect every file into declarations and
   events, resolve which declarations the simulation holds, build the nodes -
   instead of acting on each statement as it is read. Nothing moves in the

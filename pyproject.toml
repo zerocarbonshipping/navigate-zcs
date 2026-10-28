@@ -24,10 +24,8 @@ dependencies = [
     "highspy",
     "pandas",
     "numpy",
-    "matplotlib",
     "scipy",
     "tabulate",
-    "openpyxl",
     "pyarrow>=15",
     "lark"
 ]

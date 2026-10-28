@@ -370,24 +370,6 @@ Emission "nitrous_oxide" {
 }
 ```
 
-### Definition of `Plot`
-
-So far we have defined *what* to simulate. The `Plot` node defines *what output* to produce. Navigate only generates plots when at least one `Plot` node is defined.
-
-1. Define a node `"plots"` with the node type `Plot`.
-2. Set the `Directory` attribute to `"./plots/"`. This is the subfolder, relative to the `.nav` file, where the plots are saved. Navigate creates the folder if it does not already exist.
-3. Use the `add_plot(...)` command once per plot you want produced. Each takes the label of a plot. For this tutorial we produce the absolute emissions, the global fuel mix, and the bunker price at the port.
-
-```python
-Plot "plots" {
-    Directory = "./plots/"
-
-    add_plot("global_emission_absolute")
-    add_plot("global_fuel_consumed")
-    add_plot("port_bunker_price")
-}
-```
-
 ## The EVENTS Input File
 
 1. Open the ‘includes’ folder and within open the `events.inc` file.
@@ -441,9 +423,15 @@ Finished EVENTS, elapsed time: 0m and 5s.
 ```
 
 
-## Interpret the plots
+## Interpret the results
 
-The `tutorial_1` folder there is a folder called `plots`. Here you can see the output of Navigate. Take a look through it and interpret the results.
+Navigate has written the results of the run to the file `tutorial_1.parquet` in the `tutorial_1` folder. Open it with [Lantern](https://github.com/zerocarbonshipping/lantern-zcs), which shows the results as plots in your browser; its README explains how to install it.
+
+```
+lantern tutorial_1.parquet
+```
+
+Take a look through the plots, for example the absolute emissions, the global fuel mix and the bunker price at the port, and interpret the results.
 
 ## Outlook
 
@@ -451,7 +439,7 @@ Let’s recap. You have created two input files and a Navigate (.nav) program fi
 - `define.inc` file: This file includes nodes that access the navigate program. This file includes all the variables you want to investigate with your simulation.
 - `events.inc` file: This file contains the timesteps that you want your simulation to take.
 
-Together, the input from these three files allowed you to run a simulation in Navigate, and produce plots to compare e.g., global fuel demand and global emissions in different scenarios.
+Together, the input from these three files allowed you to run a simulation in Navigate, and view its results in Lantern to compare e.g., global fuel demand and global emissions in different scenarios.
 
 However, this minimalistic version of a Navigate model is of course extremely simplified so not particularly useful to make predictions. In most real-world fleets/scenarios, there are for example more than one vessel, more than one fuel, and a multitude of different routes that vessels take. 
 
@@ -598,19 +586,6 @@ Emission "methane" {
 
 Emission "nitrous_oxide" {
 	GlobalWarmingPotential = 273
-}
-
-
-# F) DEFINITION OF OUTPUT
-# The Plot node tells Navigate which plots to produce and where to save them.
-# Directory points at the "plots" subfolder; each add_plot(...) selects one plot.
-
-Plot "plots" {
-	Directory = "./plots/"
-
-	add_plot("global_emission_absolute")
-	add_plot("global_fuel_consumed")
-	add_plot("port_bunker_price")
 }
 
 

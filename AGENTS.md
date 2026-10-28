@@ -61,10 +61,12 @@ every change. The detail lives in the files it points to.
 - `syntax/` — editor syntax highlighting for the DSL; `syntax/vscode/` is the
   VS Code extension's source.
 
-A run writes its output next to its deck: `plots*/`, `*.xlsx`, `*.parquet`
-and `*.log`.
+A run writes its output next to its deck, or into `--output-dir`:
+`*.parquet` and `*.log`; a run with `--set` puts them into `parquets/` and
+`logs/` there.
 All of it is gitignored. Two runs of one deck at the same time overwrite
-each other's files, and the test suites run decks too.
+each other's files unless `--name` sets them apart, and the test suites run
+decks too.
 
 ## Environment and commands
 
@@ -77,8 +79,8 @@ each other's files, and the test suites run decks too.
   or it imports the primary checkout's source.
 - HiGHS is bundled and is the default solver. Gurobi is an optional extra
   that needs a commercial licence.
-- Run a deck with `navigate <deck>.nav -d ./assumptions -s`; `-s` skips the
-  plots. `ASSUMPTIONS_DATA_DIR` replaces `-d`.
+- Run a deck with `navigate <deck>.nav -d ./assumptions`;
+  `ASSUMPTIONS_DATA_DIR` replaces `-d`.
 - `make lint` runs `ruff check` and `ruff format --check` over `navigate/`
   and `tests/`, `mypy` over `navigate/` only, and `reuse lint`.
 - The test targets are `test-unit`, `test-e2e`, `test-examples` and
@@ -123,9 +125,7 @@ each other's files, and the test suites run decks too.
   reads the marks off it.
   `tests/unit/docs/test_setters_registered.py` checks that every setter
   carries a mark and `test_node_pages.py` the manual pages against the
-  marks, in both directions; the report-property appendix of
-  `docs/reference_manual/report.md` is checked against the results
-  the same way by `test_report_property_docs.py`. The coverage deck is
+  marks, in both directions. The coverage deck is
   checked against the marks by `tests/end_to_end/test_attribute_coverage.py`.
 - A change that moves simulation results explains the difference in the
   pull request and keeps `tests/end_to_end` green. A change meant to leave

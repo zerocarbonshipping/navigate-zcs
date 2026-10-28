@@ -61,9 +61,9 @@ test-all:  ## Full test suite (pytest suites + examples)
 	$(MAKE) test-examples
 
 test-examples:  ## Run simulations/examples
-	$(RUN) navigate simulations/examples/example_1/example_1.nav -d ./assumptions -s
-	$(RUN) navigate simulations/examples/example_2/example_2.nav -d ./assumptions -s
-	$(RUN) navigate simulations/examples/example_3/example_3.nav -d ./assumptions -s
+	$(RUN) navigate simulations/examples/example_1/example_1.nav -d ./assumptions
+	$(RUN) navigate simulations/examples/example_2/example_2.nav -d ./assumptions
+	$(RUN) navigate simulations/examples/example_3/example_3.nav -d ./assumptions
 
 # The base ref, by default the newest dev after a fetch, is checked out into a
 # worktree and installed into its own venv, so neither side imports the other's

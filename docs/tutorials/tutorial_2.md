@@ -25,7 +25,7 @@ Note: The specifications of alternative fuel vessels, for example, the power cap
 **How does it work?**
 
 In the folder `tutorial_2` from the download at the top of this page, we have prepared a `define.inc`, an `events.inc` and a `tutorial_2.nav` file for you. The files will include prompts that tell you what to do, just like in Tutorial 1. All of the files for Tutorial 2 build on what you have already created in Tutorial 1. This means, that all nodes from the files from Tutorial 1 are already included in the files you will be working with for Tutorial 2. Edits made to accommodate the new vessel and fuel assumptions in this tutorial are specified in this guide.
-In the last section, you will produce plots and manipulate some variables. You will explore the projections on the global emissions, global fuel cost etc., for the two different fleets, taking into account emissions that are associated with the sourcing and production of the fuels, as well as the emissions from burning the fuel. We will also explore the effect of trade growth over time.
+In the last section, you will look at the results in Lantern and manipulate some variables. You will explore the projections on the global emissions, global fuel cost etc., for the two different fleets, taking into account emissions that are associated with the sourcing and production of the fuels, as well as the emissions from burning the fuel. We will also explore the effect of trade growth over time.
 
 
 ## Modifying the `define.inc` file
@@ -673,25 +673,6 @@ Producer "engineering_procurement_construction_global" {
 4. `FuelDemandSensitivity` controls how strongly the choice *between fuel pathways* responds to expected demand: a value of `1.5` means a pathway whose expected demand is 10% higher receives 1.5x the odds (higher demand is better, so use a value above `1`). This lets the EPC scale up the fuel with the largest gap between demand and production capacity.
 5. `FuelCostSensitivity` controls the choice *between plants producing the same fuel* by their levelized cost of fuel (LCoF): a value of `0.5` means a plant whose LCoF is 10% higher receives half the odds (lower cost is better, so use a value below `1`).
 
-### Definition of a `Plot` Node
-
-The `Plot` node defines which output plots Navigate produces and where they are saved. Navigate only generates plots when at least one `Plot` node is defined.
-
-1. Define a node `"plots"` with the node type `Plot`.
-2. Set the `Directory` attribute to `"./plots/"`. This is the subfolder, relative to the `.nav` file, where the plots are saved. Navigate creates the folder if it does not already exist.
-3. Use the `add_plot(...)` command once per plot you want produced. In this tutorial we now also have fuel production, so in addition to the absolute emissions, the global fuel mix, and the bunker price at the port, we also produce the plant production cost.
-
-```python
-Plot "plots" {
-    Directory = "./plots/"
-
-    add_plot("global_emission_absolute")
-    add_plot("global_fuel_consumed")
-    add_plot("plant_production_cost")
-    add_plot("port_bunker_price")
-}
-```
-
 ## The `EVENTS` input file
 
 1. Open the ‘includes’ folder in the `tutorial_2`-folder and open the ‘events.inc’ file.
@@ -732,7 +713,7 @@ Date "01-01-2050"
 
 1. Use the terminal to navigate to the `tutorial_2` folder. Recall `cd path/to/folder` and `cd ..`
 2. Run the command `navigate tutorial_2.nav`
-3. Look through the plots folder and interpret the results.
+3. Open the results file it wrote with [Lantern](https://github.com/zerocarbonshipping/lantern-zcs): `lantern tutorial_2.parquet`. Look through the plots, for example the absolute emissions, the global fuel mix, the plant production cost and the bunker price at the port, and interpret the results.
 
 ## Example solution
 
@@ -1175,19 +1156,6 @@ Producer "engineering_procurement_construction_global" {
 	MaximumDevelopment = 10
 }
 
-
-# G) DEFINITION OF OUTPUT
-# The Plot node tells Navigate which plots to produce and where to save them.
-# Directory points at the "plots" subfolder; each add_plot(...) selects one plot.
-
-Plot "plots" {
-	Directory = "./plots/"
-
-	add_plot("global_emission_absolute")
-	add_plot("global_fuel_consumed")
-	add_plot("plant_production_cost")
-	add_plot("port_bunker_price")
-}
 
 # END OF NAV FILE
 ```

@@ -14,7 +14,6 @@ DEFINE {
 	Include "includes/nav_supply_chain.inc"
 	Include "includes/nav_fleet.inc"
 	Include "includes/nav_policy.inc"
-	Include "includes/nav_output.inc"
 }
 
 EVENTS {

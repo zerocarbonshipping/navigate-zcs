@@ -29,10 +29,8 @@ from navigate.core.node_type import (
     FLEET,
     FUEL,
     LEVY,
-    PLOT,
     PRODUCER,
     REGULATION,
-    REPORT,
 )
 from navigate.parser._collect import Origin, matching
 from navigate.parser._lark_parser import Assignment, item_references
@@ -44,7 +42,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
+ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PRODUCER, REGULATION)
 
 # the (node type, deck attribute) pairs whose references keep nothing alive
 NON_ACTIVATING = frozenset({(LEVY, "Jurisdiction"), (REGULATION, "Jurisdiction")})

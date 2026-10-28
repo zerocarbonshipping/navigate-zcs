@@ -243,11 +243,11 @@ Expressions are restricted arithmetic, not general Python. The only accepted syn
 
 ## Unreachable nodes
 
-A defined node only participates in the simulation when a chain of node references connects it to a top-level node: `Fleet`, `Producer`, `Levy`, `Regulation`, `Emission`, `Fuel`, `Report`, or `Plot`. For example, a `Converter` participates when it is assigned to a `Vessel` that is itself assigned to a `Fleet`.
+A defined node only participates in the simulation when a chain of node references connects it to a top-level node: `Fleet`, `Producer`, `Levy`, `Regulation`, `Emission`, or `Fuel`. For example, a `Converter` participates when it is assigned to a `Vessel` that is itself assigned to a `Fleet`.
 
 Once the deck is read, Navigate keeps the nodes with such a chain and no others, and logs one warning listing the nodes it declared but did not use. An unused node produces no results and its attribute values are not checked. A reference it makes is looked up in the default library like any other reference, but one found nowhere is not an error. `EVENTS` blocks targeting only unused nodes are dropped with a warning; a block naming a node the deck never declared is an error. A node referenced only from an `EVENTS` block is kept, provided the block's target is itself part of the simulation. A node used only as the source of a `Copy` is not reported — its copies carry its role.
 
-Only node references count. Plain name strings do not — neither in commands (e.g. `set_export_distribution("port_name", ...)`) nor in `Report` property requests. A command naming an unused node raises an error; a `Report` property request matching no node logs a warning at export and is skipped.
+Only node references count. Plain name strings in commands (e.g. `set_export_distribution("port_name", ...)`) do not, and a command naming an unused node raises an error.
 
 A `Port` is part of the simulation only through a `Route`'s `Ports` attribute, since only routed ports can be bunkered in. A `Levy`/`Regulation` `Jurisdiction` selects among routed ports and does not keep a port alive: a port on no route is left out even when a jurisdiction names it, and is dropped from the `Jurisdiction` list with a warning, while `Jurisdiction = Port("*")` selects the routed ports. A port named in a `Jurisdiction` must still exist in the deck or the default library. A `Jurisdiction` emptied this way fails with the unassigned-attribute error.
 
@@ -321,6 +321,28 @@ The following constructs accept wildcards:
 * **List attribute assignments.** A wildcard node reference expands to every registered node of that type whose name matches the pattern. It may be written inside the list or as the whole value of the attribute: `Fuels = [Fuel("bio_*")]` and `Fuels = Fuel("bio_*")` are equivalent. For example, `Ports = [Port("*")]` on a Route assigns every Port in the simulation, and `Fuels = Fuel("bio_*")` on a Regulation assigns every Fuel whose name begins with `bio_`. A wildcard is only valid where a list of nodes is accepted: an attribute holding a single node, such as `Route` on a Vessel, rejects it, as does a command argument — the wildcards a command accepts are the string-key form below.
 
 * **Commands with string arguments.** Wildcards in a command's string key(s) expand against the existing entries of the dictionary the command writes to. For example, `set_initial_technology_share("*", "hull_painting", Curve("..."))` applies the assignment to every existing vessel key, and `set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 13.4e6)` matches every from/to vessel pair whose names contain the substrings.
+
+## Placeholders
+
+A `%NAME%` in a deck or in any file it reads, `NAME` being letters, digits and underscores not starting with a digit, is a placeholder for a value given on the command line with `--set NAME=VALUE`. Before a file is read, each placeholder is replaced by its value as text, so a placeholder may stand anywhere the value could be written: a number, part of an expression, a table cell, the items of a list, or part of an `Include` path in the deck.
+
+```python
+DEFINE {
+    Include "policy/policy_%policy%.inc"
+}
+```
+
+```python
+Forecast "ammonia_blue_plant_capacity" {
+    Multiplier = %plant_capacity_multiplier%
+}
+
+Plant "*blue*" {
+    CostOfCapital = <Forecast("cost_of_capital_plant_blue") * %wacc_multiplier%>
+}
+```
+
+Placeholders in comments are left as written. A placeholder outside a comment without a `--set` value is an error at its file and line, and a `--set` value no file uses is logged as a warning. The values are recorded in the [results file](results_file.md#metadata). A run with `--set` is one of many of its deck, so it writes its log into the `logs` and its results file into the `parquets` subfolder of the output folder. A deck written with placeholders, as Horizon reads it, may end in `.unc` instead of `.nav`.
 
 ## Reading the node description
 

@@ -59,7 +59,7 @@
         "patterns": [
           {
             "name": "storage.type.navigate",
-            "match": "\\b(?:ModelDefinition|BunkerOptions|Date|Import|Copy|Converter|Curve|Emission|Feedstock|Fleet|Forecast|Fuel|Levy|Plant|Plot|Port|Process|Producer|Region|Regulation|Report|Route|Source|Surface|Tank|Technology|Timetable|Transport|Variable|Vessel|Table)\\b"
+            "match": "\\b(?:ModelDefinition|BunkerOptions|Date|Import|Copy|Converter|Curve|Emission|Feedstock|Fleet|Forecast|Fuel|Levy|Plant|Port|Process|Producer|Region|Regulation|Route|Source|Surface|Tank|Technology|Timetable|Transport|Variable|Vessel|Table)\\b"
           }
         ]
       }

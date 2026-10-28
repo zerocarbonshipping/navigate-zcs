@@ -97,7 +97,6 @@ def snapshot_decks(assumptions: Path, out: Path, names: list[str]) -> None:
                 deck_dir / f"{name}.nav",
                 data_dir=assumptions,
                 solver=SOLVER,
-                plots=False,
             )
             snap = snapshots.snapshot(results)
             snapshots.save(out / f"{name}.npz", snap)
