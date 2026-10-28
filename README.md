@@ -15,7 +15,7 @@ It is recommended that Navigate is installed within an environment such as [cond
 - Set the environment variable `ASSUMPTIONS_DATA_DIR` to point to the `assumptions` folder.
 
 ### Navigate PyPI Package
-- `pip install navigate` Installs only Navigate.
+- `pip install navigate-zcs` Installs only Navigate.
 
 
 #### Optional: Gurobi solver (commercial license)
