@@ -24,7 +24,8 @@ Alternatively, from a terminal:
 code --install-extension <path to the .vsix>
 ```
 
-Reload the window. `.nav` and `.inc` files will be highlighted automatically.
+Reload the window. `.nav`, `.inc` and `.unc` files, and Horizon's `.hor` study
+files, will be highlighted automatically.
 
 To edit the grammar, change the files in `syntax/vscode/`, the extension's
 source. To try a change, open a window with the extension loaded from the

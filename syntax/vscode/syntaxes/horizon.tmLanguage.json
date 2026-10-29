@@ -1,0 +1,76 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Horizon",
+    "scopeName": "source.horizon",
+    "patterns": [
+      { "include": "#comments" },
+      { "include": "#strings" },
+      { "include": "#numbers" },
+      { "include": "#keywords_control" },
+      { "include": "#keywords_types" },
+      { "include": "#constants" },
+      { "include": "#operators" }
+    ],
+    "repository": {
+      "comments": {
+        "patterns": [
+          {
+            "name": "comment.line.number-sign.horizon",
+            "match": "#.*$"
+          }
+        ]
+      },
+      "strings": {
+        "patterns": [
+          {
+            "name": "string.quoted.double.horizon",
+            "match": "\"[^\"]*\""
+          },
+          {
+            "name": "string.quoted.single.horizon",
+            "match": "'[^']*'"
+          }
+        ]
+      },
+      "numbers": {
+        "patterns": [
+          {
+            "name": "constant.numeric.horizon",
+            "match": "\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b"
+          }
+        ]
+      },
+      "operators": {
+        "patterns": [
+          {
+            "name": "keyword.operator.horizon",
+            "match": "(\\(|\\)|\\[|\\]|=)"
+          }
+        ]
+      },
+      "keywords_control": {
+        "patterns": [
+          {
+            "name": "keyword.control.horizon",
+            "match": "(?<![\\w-])(?:if|in|and|Include|Exclude)(?![\\w-])"
+          }
+        ]
+      },
+      "keywords_types": {
+        "patterns": [
+          {
+            "name": "storage.type.horizon",
+            "match": "(?<![\\w-])(?:ScenarioParameter|ContinuousParameter|DiscreteParameter|Horizon)(?![\\w-])"
+          }
+        ]
+      },
+      "constants": {
+        "patterns": [
+          {
+            "name": "constant.language.horizon",
+            "match": "(?i)(?<![\\w-])(?:LOG-TRIANGULAR|LOG-UNIFORM|TRIANGULAR|UNIFORM|DISCRETE|LHS|MC|MINIMUM|MAXIMUM|TRUE|FALSE)(?![\\w-])"
+          }
+        ]
+      }
+    }
+  }

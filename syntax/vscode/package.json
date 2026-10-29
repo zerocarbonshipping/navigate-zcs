@@ -1,7 +1,7 @@
 {
   "name": "navigate-language",
   "displayName": "Navigate Language Support",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "publisher": "zerocarbonshipping",
   "engines": { "vscode": "^1.80.0" },
   "categories": ["Programming Languages"],
@@ -12,6 +12,12 @@
         "aliases": ["Navigate", "navigate"],
         "extensions": [".nav", ".inc", ".unc"],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "horizon",
+        "aliases": ["Horizon", "horizon"],
+        "extensions": [".hor"],
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
@@ -19,6 +25,11 @@
         "language": "navigate",
         "scopeName": "source.navigate",
         "path": "./syntaxes/navigate.tmLanguage.json"
+      },
+      {
+        "language": "horizon",
+        "scopeName": "source.horizon",
+        "path": "./syntaxes/horizon.tmLanguage.json"
       }
     ]
   }
