@@ -38,6 +38,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `--name` and `--output-dir` name a run's output files and place them, so
   runs of one deck can share a folder; a run with `--set` writes its log into
   `logs/` and its results file into `parquets/` under the output folder.
+- The VS Code extension highlights `%NAME%` placeholders, also inside strings
+  but not in comments, and Horizon's `.hor` study files.
 - Results file: every run writes all its results to `<deck>.parquet` next to
   the deck: every profile result
   of the global profile and of each fleet, vessel, port, plant, producer,

@@ -5,6 +5,7 @@
     "patterns": [
       { "include": "#comments" },
       { "include": "#strings" },
+      { "include": "#placeholders" },
       { "include": "#numbers" },
       { "include": "#keywords_control" },
       { "include": "#keywords_types" },
@@ -26,8 +27,17 @@
             "begin": "\"",
             "end": "\"",
             "patterns": [
-              { "name": "constant.character.escape.navigate", "match": "\\\\." }
+              { "name": "constant.character.escape.navigate", "match": "\\\\." },
+              { "include": "#placeholders" }
             ]
+          }
+        ]
+      },
+      "placeholders": {
+        "patterns": [
+          {
+            "name": "variable.other.placeholder.navigate",
+            "match": "%[A-Za-z_][A-Za-z0-9_]*%"
           }
         ]
       },
