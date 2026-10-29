@@ -5,7 +5,8 @@ SPDX-License-Identifier: Apache-2.0
 
 # Navigate Syntax Highlighting
 
-Syntax highlighting packages for the `.nav` / `.inc` DSL in three editors.
+Syntax highlighting packages for the `.nav` / `.inc` / `.unc` DSL and Horizon's
+`.hor` study files in three editors.
 
 ## VS Code
 
@@ -43,14 +44,15 @@ JetBrains IDEs read TextMate bundles via the bundled **TextMate Bundles** plugin
 2. Click `+` and select the `syntax/pycharm/Navigate.tmbundle` directory.
 3. Click `Apply`.
 
-The bundle declares `.nav`, `.inc`, and `.unc` as its file types, so highlighting applies automatically.
+The bundle declares `.nav`, `.inc`, `.unc` and `.hor` as its file types, so highlighting applies automatically.
 
 ## Notepad++
 
-Notepad++ uses User Defined Languages (UDL). Two UDLs are provided:
+Notepad++ uses User Defined Languages (UDL). Three UDLs are provided:
 
-- `navigate_UDL.xml` / `navigate_UDL_dark.xml` — for `.nav` files.
+- `navigate_UDL.xml` / `navigate_UDL_dark.xml` — for `.nav` and `.unc` files.
 - `include_UDL.xml` / `include_UDL_dark.xml` — for `.inc` files.
+- `horizon_UDL.xml` / `horizon_UDL_dark.xml` — for Horizon's `.hor` files.
 
 Pick the light or dark variant to match your theme.
 
@@ -58,4 +60,4 @@ Pick the light or dark variant to match your theme.
 2. Click `Import...` and select the XML file(s) from `syntax/notepadpp/`.
 3. Restart Notepad++.
 
-The UDLs are pre-configured with the `.nav` and `.inc` file extensions, so files will be highlighted automatically when opened.
+The UDLs are pre-configured with their file extensions, so files will be highlighted automatically when opened.

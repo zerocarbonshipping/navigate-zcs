@@ -24,6 +24,10 @@ SPDX-License-Identifier: Apache-2.0
                 <string>comment.line.navigate</string>
             </dict>
             <dict>
+                <key>include</key>
+                <string>#placeholders</string>
+            </dict>
+            <dict>
                 <key>match</key>
                 <string>\b(DEFINE|EVENTS|Include|Load|Start|End|Date|Import|Copy|ModelDefinition|BunkerOptions|Converter|Curve|Emission|Feedstock|Fleet|Forecast|Fuel|Levy|Plant|Port|Process|Producer|Region|Regulation|Route|Source|Surface|Tank|Technology|Timetable|Transport|Variable|Vessel)\b</string>
                 <key>name</key>
@@ -60,11 +64,45 @@ SPDX-License-Identifier: Apache-2.0
                 <string>keyword.operator.assignment.navigate</string>
             </dict>
             <dict>
-                <key>match</key>
-                <string>("([^"]*)"|'([^']*)')</string>
+                <key>begin</key>
+                <string>"</string>
+                <key>end</key>
+                <string>"</string>
                 <key>name</key>
                 <string>string.quoted.navigate</string>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>include</key>
+                        <string>#placeholders</string>
+                    </dict>
+                </array>
+            </dict>
+            <dict>
+                <key>begin</key>
+                <string>'</string>
+                <key>end</key>
+                <string>'</string>
+                <key>name</key>
+                <string>string.quoted.navigate</string>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>include</key>
+                        <string>#placeholders</string>
+                    </dict>
+                </array>
             </dict>
         </array>
+        <key>repository</key>
+        <dict>
+            <key>placeholders</key>
+            <dict>
+                <key>match</key>
+                <string>%[A-Za-z_][A-Za-z0-9_]*%</string>
+                <key>name</key>
+                <string>variable.other.placeholder.navigate</string>
+            </dict>
+        </dict>
     </dict>
 </plist>
