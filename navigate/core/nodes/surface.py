@@ -48,6 +48,7 @@ class Surface(Node, _Table2D):
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
         self._check_extrapolate_consistency()
+        self._check_bounds_consistency()
 
     def build_table(self) -> None:
         """Build the pending table with the interpolation and extrapolation set."""

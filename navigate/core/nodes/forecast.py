@@ -50,6 +50,9 @@ class Forecast(Node, _Table1D):
         self._pending_table = build_table_1d_dated(table)
 
     # internal methods -----------------------------------------------------------------
+    def check_consistency(self) -> None:
+        self._check_bounds_consistency()
+
     def build_table(self, start_date: np.datetime64) -> None:
         """Build the pending table, its dates counted in days from the start date."""
         if self._pending_table is None:

@@ -46,6 +46,14 @@ class Bounds:
     inclusive_lower: bool = True
     inclusive_upper: bool = True
 
+    @property
+    def is_empty(self) -> bool:
+        """Whether no value lies within the bounds."""
+        if self.lower == self.upper:
+            return not (self.inclusive_lower and self.inclusive_upper)
+
+        return self.lower > self.upper
+
     def check(self, value: float) -> None:
         """
         Reject a value outside the bounds.

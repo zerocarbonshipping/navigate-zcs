@@ -15,6 +15,8 @@ from navigate.core._bounds import Bounds
 from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
+    from typing import Literal
+
     from navigate.core.types_ import NumberInput
     from navigate.util.types_ import FloatArray, FloatLike
 
@@ -102,6 +104,52 @@ class _Calculator:
 
         # called here in case internal bounds are set after the lower/upper bound
         self._update_applied_bounds()
+
+    def _check_bounds_consistency(self) -> None:
+        """
+        Reject applied bounds that admit no value.
+
+        The setters leave the bounds unchecked, as an event may set LowerBound and
+        UpperBound one after the other and cross them in between.
+        """
+        applied = self._applied_bounds
+
+        if not applied.is_empty:
+            return
+
+        internal = self._internal_bounds
+        lower = self._bound_source("lower", self.lower_bound > internal.lower)
+        upper = self._bound_source("upper", self.upper_bound < internal.upper)
+        inclusive = applied.inclusive_lower and applied.inclusive_upper
+        relation = "at most" if inclusive else "below"
+
+        raise ValueError(
+            f"{self}: The bounds admit no value: {lower} ({applied.lower}) must be"
+            f" {relation} {upper} ({applied.upper})."
+        )
+
+    @staticmethod
+    def _bound_source(side: Literal["lower", "upper"], from_deck: bool) -> str:
+        """
+        Name an applied bound by where it comes from, as a bound error names it.
+
+        Parameters
+        ----------
+        side
+            Which end of the bounds is named.
+        from_deck
+            Whether the deck's LowerBound or UpperBound is the one applied, rather
+            than the bound an attribute referencing the calculator requires.
+
+        Returns
+        -------
+        str
+            The attribute name, or the phrase for the referencing attribute's bound.
+        """
+        if from_deck:
+            return f"{side.capitalize()}Bound"
+
+        return f"the {side} bound an attribute referencing the node requires"
 
     @overload
     def _transform(
