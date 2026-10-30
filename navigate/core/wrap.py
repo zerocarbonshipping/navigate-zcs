@@ -74,7 +74,7 @@ def as_list[T](value: T | list[T]) -> list[T]:
     return [value]
 
 
-def to_numpy(calculators: Iterable[ForecastInput]) -> FloatArray:
+def to_array(calculators: Iterable[ForecastInput]) -> FloatArray:
     """
     Evaluate a collection of calculators into a numpy array.
 

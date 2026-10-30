@@ -20,8 +20,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from navigate.core import Expression
 from navigate.core.dsl import required_attributes
-from navigate.core.expression import Expression, NodeReference, node_references
+from navigate.core.expression import NodeReference, node_references
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
 from navigate.core.lifecycle import (

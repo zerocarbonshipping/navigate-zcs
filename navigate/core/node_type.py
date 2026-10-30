@@ -55,6 +55,31 @@ CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 type AcceptedNodeTypes = str | tuple[str, ...]
 
 
+def accepts_type(accepted: AcceptedNodeTypes | None, node_type: str) -> bool:
+    """
+    Check whether an attribute accepting the given node types accepts a node type.
+
+    Parameters
+    ----------
+    accepted
+        The node type(s) the attribute accepts; None where it accepts none.
+    node_type
+        The node type checked.
+
+    Returns
+    -------
+    bool
+        Whether the node type is among the accepted ones.
+    """
+    if accepted is None:
+        return False
+
+    if isinstance(accepted, str):
+        return node_type == accepted
+
+    return node_type in accepted
+
+
 def is_calculator(node: Node) -> TypeIs[Calculator]:
     """Check whether the node is a calculator, narrowing its static type."""
     return node.type in CALCULATOR_TYPES

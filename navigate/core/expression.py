@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Protocol, overload
 import numpy as np
 
 from navigate.core._bounds import Bounds
-from navigate.core.node_type import is_calculator
+from navigate.core.node_type import accepts_type, is_calculator
 from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
@@ -46,24 +46,24 @@ def _negative(value: FloatLike) -> FloatLike:
 
 
 # the operators an expression may use, by the symbol the deck writes them with
-BINARY_OPERATORS: dict[str, _BinaryOperator] = {
+_BINARY_OPERATORS: dict[str, _BinaryOperator] = {
     "+": operator.add,
     "-": operator.sub,
     "*": operator.mul,
     "/": operator.truediv,
     "**": operator.pow,
 }
-UNARY_OPERATORS: dict[str, _UnaryOperator] = {
+_UNARY_OPERATORS: dict[str, _UnaryOperator] = {
     "+": _positive,
     "-": _negative,
 }
 
 
 # a node named in a deck: its type and name
-type NodeKey = tuple[str, str]
+type _NodeKey = tuple[str, str]
 
 # the calculators an expression's references evaluate through, by node key
-type _Calculators = Mapping[NodeKey, Calculator]
+type _Calculators = Mapping[_NodeKey, Calculator]
 
 
 class Evaluable(Protocol):
@@ -102,7 +102,7 @@ class NodeReference:
     name: str
 
     @property
-    def key(self) -> NodeKey:
+    def key(self) -> _NodeKey:
         """The (type, name) pair the node is filed under."""
         return (self.type, self.name)
 
@@ -132,7 +132,7 @@ class UnaryOperation:
         self, calculators: _Calculators, x: FloatLike | None, y: FloatLike | None
     ) -> FloatLike:
         """Apply the sign to the evaluated operand."""
-        return UNARY_OPERATORS[self.symbol](self.operand.evaluate(calculators, x, y))
+        return _UNARY_OPERATORS[self.symbol](self.operand.evaluate(calculators, x, y))
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,7 +149,7 @@ class BinaryOperation:
         """Apply the operator to the evaluated operands."""
         left = self.left.evaluate(calculators, x, y)
         right = self.right.evaluate(calculators, x, y)
-        return BINARY_OPERATORS[self.symbol](left, right)
+        return _BINARY_OPERATORS[self.symbol](left, right)
 
 
 def node_references(tree: Evaluable) -> Iterator[NodeReference]:
@@ -195,20 +195,25 @@ class Expression:
         self,
         text: str,
         tree: Evaluable,
-        nodes: Mapping[NodeKey, Node],
+        nodes: Mapping[_NodeKey, Node],
         holder: Node | GeneralNode,
     ) -> None:
-        self.text: str = text
-        self.calculators: dict[NodeKey, Calculator] = {}
-        self.internal_bounds: Bounds = Bounds()
+        self.calculators: dict[_NodeKey, Calculator] = {}
 
+        self._text: str = text
         self._tree: Evaluable = tree
-        self._nodes: Mapping[NodeKey, Node] = nodes
+        self._nodes: Mapping[_NodeKey, Node] = nodes
         self._holder: Node | GeneralNode = holder
-        self._allowed_types: tuple[str, ...] | None = None
+        self._allowed_types: AcceptedNodeTypes | None = None
+        self._internal_bounds: Bounds = Bounds()
 
     def __repr__(self) -> str:
-        return self.text
+        return self._text
+
+    @property
+    def _owner(self) -> str:
+        """The expression as its errors name it, after the node holding it."""
+        return f"{self._holder}: Expression <{self._text}>"
 
     @overload
     def get(self, x: float | None = None, y: float | None = None) -> float: ...
@@ -247,10 +252,9 @@ class Expression:
         evaluated = self._tree.evaluate(self.calculators, x, y)
 
         try:
-            value = self.internal_bounds.clamp(evaluated)
+            value = self._internal_bounds.clamp(evaluated)
         except ValueError as error:
-            owner = f"{self._holder}: Expression <{self.text}>"
-            raise ValueError(f"{owner}: {error}") from None
+            raise ValueError(f"{self._owner}: {error}") from None
 
         # a float result is broadcast so an expression over scalars answers
         # an array input the way one over arrays does
@@ -272,9 +276,7 @@ class Expression:
         allowed_types
             Accepted node types; None where the attribute accepts no reference.
         """
-        self._allowed_types = (
-            (allowed_types,) if isinstance(allowed_types, str) else allowed_types
-        )
+        self._allowed_types = allowed_types
 
     def set_internal_bounds(self, bounds: Bounds) -> None:
         """
@@ -287,7 +289,7 @@ class Expression:
         bounds
             The bounds of the attribute holding the expression.
         """
-        self.internal_bounds = bounds
+        self._internal_bounds = bounds
 
     def check_consistency(self) -> None:
         """
@@ -298,17 +300,14 @@ class Expression:
         """
         for reference in node_references(self._tree):
             if self._allowed_types is None:
-                raise ValueError(
-                    f"{self._holder}: Expression <{self.text}> does not allow node"
-                    " references."
-                )
+                raise ValueError(f"{self._owner} does not allow node references.")
 
             node = self._nodes[reference.key]
+            accepted = accepts_type(self._allowed_types, reference.type)
 
-            if reference.type not in self._allowed_types or not is_calculator(node):
+            if not (accepted and is_calculator(node)):
                 raise ValueError(
-                    f"{self._holder}: Expression <{self.text}> references"
-                    f" unacceptable type {reference.type}."
+                    f"{self._owner} references unacceptable type {reference.type}."
                 )
 
             self.calculators[reference.key] = node

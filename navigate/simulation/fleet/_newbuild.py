@@ -13,7 +13,7 @@ import numpy as np
 
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import VesselIncrement
-from navigate.core.wrap import to_numpy
+from navigate.core.wrap import to_array
 from navigate.simulation.economics import calculate_two_axis_uptake
 from navigate.simulation.fleet._composition import extract_cargo_miles
 from navigate.simulation.fleet._package import calculate_package_charter_rates
@@ -71,7 +71,7 @@ def calculate_orderbook_newbuilds(
     trade_gap -= np.dot(delivery, cargo_miles)
 
     # new orders the trade gap leaves undelivered are postponed to the next time-step
-    cumulative = to_numpy(fleet.orderbooks)
+    cumulative = to_array(fleet.orderbooks)
     new_orders = cumulative - fleet.orders_delivered - fleet.orders_postponed
     due = np.where(allowed, new_orders, 0.0)
     new_delivery, share = _calculate_delivery(fleet, due, cargo_miles, trade_gap)
