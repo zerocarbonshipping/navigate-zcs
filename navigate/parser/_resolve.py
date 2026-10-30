@@ -20,7 +20,12 @@ from typing import TYPE_CHECKING
 from navigate.core import SECTION_DEFINE
 from navigate.core.enum_ import SectionID
 from navigate.core.node_type import CALCULATOR_TYPES
-from navigate.parser._collect import check_no_self_reference, deck_entry, matching
+from navigate.parser._collect import (
+    check_no_self_reference,
+    deck_entry,
+    matching,
+    unmatched_wildcard_error,
+)
 from navigate.parser._syntax import Assignment, item_references
 from navigate.util import name_contains_wildcards
 
@@ -69,14 +74,10 @@ def resolve(collector: Collector) -> list[BoundEvent]:
 def _unmatched_error(block: EventBlock) -> DeckError:
     """Build the error for a block whose name matches no declaration."""
     if name_contains_wildcards(block.pattern):
-        return block.source.error(
-            f"No node of type '{block.node_type}' matches the wildcard "
-            f"expression '{block.pattern}'."
-        )
+        return unmatched_wildcard_error(block.node_type, block.pattern, block.source)
 
     return block.source.error(
-        f'{block.node_type}("{block.pattern}") is not defined; the EVENTS '
-        "section cannot define new nodes."
+        f"{block} is not defined; the EVENTS section cannot define new nodes."
     )
 
 

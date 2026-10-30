@@ -36,7 +36,7 @@ from navigate.core.node_registry import NODE_CLASS, GeneralNodes, Nodes
 from navigate.core.node_type import MODEL_DEFINITION
 from navigate.core.table_data import TableData
 from navigate.exceptions import DeckError, UnassignedAttributeError
-from navigate.parser._collect import matching
+from navigate.parser._collect import matching, unmatched_wildcard_error
 from navigate.parser._syntax import Assignment, Command, ExpressionSyntax
 from navigate.util import attribute_to_setter
 
@@ -68,7 +68,7 @@ type MaterializedValue = (
 type Holder = Node | GeneralNode
 
 # a node and the body items to apply to it
-type Target = tuple[Node, list[BodyItem]]
+type NodeBody = tuple[Node, list[BodyItem]]
 
 
 class Builder:
@@ -142,7 +142,7 @@ class Builder:
         Nodes
             The node registry.
         """
-        targets: list[Target] = []
+        bodies: list[NodeBody] = []
 
         for key in self._kept:
             node_type, name = key
@@ -151,9 +151,9 @@ class Builder:
 
             self.nodes.group(node_type)[name] = node
             self._node_by_key[key] = node
-            targets.append((node, body))
+            bodies.append((node, body))
 
-        self._apply(targets, initialize)
+        self._apply(bodies, initialize)
         return self.nodes
 
     def apply_events(self, events: list[BoundEvent]) -> None:
@@ -166,34 +166,34 @@ class Builder:
             The event blocks to apply, each with the nodes it targets; empty on
             a date with no events, which only re-initializes.
         """
-        targets: list[Target] = []
+        bodies: list[NodeBody] = []
 
-        for block, keys in events:
-            for key in keys:
-                targets.append((self._node_by_key[key], block.body))
+        for block, targets in events:
+            for key in targets:
+                bodies.append((self._node_by_key[key], block.body))
 
-        self._apply(targets, reinitialize)
+        self._apply(bodies, reinitialize)
 
-    def _apply(self, targets: list[Target], sweep: Callable[[Nodes], None]) -> None:
+    def _apply(self, bodies: list[NodeBody], sweep: Callable[[Nodes], None]) -> None:
         """
         Assign, seed, command, build tables, run the lifecycle sweep, validate.
 
         The required attributes are checked before anything reads a node's
         attributes, the seeding included.
         """
-        for node, body in targets:
+        for node, body in bodies:
             for item in body:
                 if isinstance(item, Assignment):
                     self._assign(node, item)
 
         self._warn_dropped()
 
-        for node, _ in targets:
+        for node, _ in bodies:
             self._check_required(node)
 
         seed_dependencies(self.nodes)
 
-        for node, body in targets:
+        for node, body in bodies:
             for item in body:
                 if isinstance(item, Command):
                     self._run_command(node, item)
@@ -333,9 +333,7 @@ class Builder:
     ) -> list[MaterializedValue]:
         keys = matching(self._node_by_key, reference.type, reference.name)
         if not keys:
-            raise item.source.error(
-                f"Wildcard '{reference.name}' did not match any {reference.type} nodes."
-            )
+            raise unmatched_wildcard_error(reference.type, reference.name, item.source)
 
         return [self._node_by_key[key] for key in keys]
 

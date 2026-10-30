@@ -130,12 +130,12 @@ def _events_by_date(
     # two passes instead of a sort: insertion order keeps read order within
     # each pass, and the first pass puts every Start block ahead of a block
     # dated on the start date
-    for block, keys in events:
+    for block, targets in events:
         if block.date is None:
-            queue[start_date].append((block, keys))
+            queue[start_date].append((block, targets))
 
-    for block, keys in events:
+    for block, targets in events:
         if block.date is not None:
-            queue[block.date].append((block, keys))
+            queue[block.date].append((block, targets))
 
     return dict(queue)

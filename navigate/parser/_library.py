@@ -35,7 +35,7 @@ class Library:
         file_name = attribute_to_instance_name(module)
         return self._file("modules", f"{file_name}.inc")
 
-    def missing_default(
+    def missing_default_error(
         self, node_type: str, name: str, source: SourceLocation
     ) -> DeckError:
         """Build the error for a default node the library cannot supply."""
@@ -47,7 +47,7 @@ class Library:
             f"or the default location of {node_type}."
         )
 
-    def missing_module(self, module: str, source: SourceLocation) -> DeckError:
+    def missing_module_error(self, module: str, source: SourceLocation) -> DeckError:
         """Build the error for a module the library cannot supply."""
         if self._root is None:
             return _unavailable_error(f"Module '{module}'", source)

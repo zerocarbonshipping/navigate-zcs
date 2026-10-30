@@ -141,7 +141,7 @@ def _referenced(
 
             targets = matching(declarations, kind, name)
             if not targets and not reference.is_wildcard:
-                raise library.missing_default(kind, name, item.source)
+                raise library.missing_default_error(kind, name, item.source)
 
             referenced.extend(targets)
 
@@ -184,10 +184,7 @@ def _keep_events(events: list[BoundEvent], reached: set[Key]) -> list[BoundEvent
         logger.warning(
             "Dropped %s EVENTS statement(s) targeting only unused node(s):%s",
             len(dropped),
-            "".join(
-                f'\n\t- {block.node_type}("{block.pattern}") at {block.source.prefix()}'
-                for block in dropped
-            ),
+            "".join(f"\n\t- {block} at {block.source.prefix()}" for block in dropped),
         )
 
     return kept

@@ -89,7 +89,7 @@ def _prefix(tmp_path, file_name, needle, deck_line=1):
             'Emission "e" { GlobalWarmingPotential = Variable("v*") }\n'
             'Variable "w1" { Value = 1 }\n',
             "GlobalWarmingPotential",
-            "Wildcard 'v*' did not match any Variable nodes.",
+            "No node of type 'Variable' matches the wildcard expression 'v*'.",
         ),
     ],
     ids=[

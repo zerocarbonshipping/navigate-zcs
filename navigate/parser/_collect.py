@@ -56,6 +56,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from navigate.core.dsl import DeckEntry
+    from navigate.exceptions import DeckError
     from navigate.parser._library import Library
     from navigate.parser._syntax import BodyItem, Directive, Statement
 
@@ -76,6 +77,15 @@ def matching(keys: Collection[Key], node_type: str, pattern: str) -> list[Key]:
         return [key] if key in keys else []
 
     return [key for key in keys if key[0] == node_type and fnmatchcase(key[1], pattern)]
+
+
+def unmatched_wildcard_error(
+    node_type: str, pattern: str, source: SourceLocation
+) -> DeckError:
+    """Build the error for a wildcard that matches no node of its type."""
+    return source.error(
+        f"No node of type '{node_type}' matches the wildcard expression '{pattern}'."
+    )
 
 
 class Origin(Enum):
@@ -137,6 +147,9 @@ class EventBlock:
     pattern: str
     body: list[BodyItem]
     source: SourceLocation
+
+    def __repr__(self) -> str:
+        return f'{self.node_type}("{self.pattern}")'
 
 
 class Collector:
@@ -217,7 +230,7 @@ class Collector:
         location = SourceLocation(deck_line=deck_line)
         path = self.library.module_file(directive.name)
         if path is None:
-            raise self.library.missing_module(directive.name, location)
+            raise self.library.missing_module_error(directive.name, location)
 
         logger.debug("[%s] Load %s from %s", section.name, directive.name, path)
         self._read_file(path, deck_line, section)
@@ -260,15 +273,12 @@ class Collector:
 
         _check_node_type(node_type, source)
         for item in statement.body:
-            _validate_item(node_type, item, SectionID.DEFINE)
+            _check_item(node_type, item, SectionID.DEFINE)
 
         targets = matching(self.declarations, node_type, name)
         if not targets:
             if name_contains_wildcards(name):
-                raise source.error(
-                    f"No node of type '{node_type}' matches the wildcard expression "
-                    f"'{name}'."
-                )
+                raise unmatched_wildcard_error(node_type, name, source)
 
             targets = [self._new_declaration((node_type, name), source).key]
 
@@ -357,7 +367,7 @@ class Collector:
 
         _check_node_type(node_type, source)
         for item in statement.body:
-            _validate_item(node_type, item, SectionID.EVENTS)
+            _check_item(node_type, item, SectionID.EVENTS)
 
         block = EventBlock(date, node_type, statement.name, statement.body, source)
         self.events.append(block)
@@ -433,7 +443,7 @@ class Collector:
         """Pull a default node a statement names outright, raising if there is none."""
         if not self._pull_default(key, source):
             node_type, name = key
-            raise self.library.missing_default(node_type, name, source)
+            raise self.library.missing_default_error(node_type, name, source)
 
     def _read_default_file(self, path: Path, key: Key, source: SourceLocation) -> None:
         origin = self._origin
@@ -571,7 +581,7 @@ def check_no_self_reference(key: Key, body: list[BodyItem]) -> None:
             )
 
 
-def _validate_item(node_type: str, item: BodyItem, section: SectionID) -> None:
+def _check_item(node_type: str, item: BodyItem, section: SectionID) -> None:
     """Check an item's attribute or command and its references, located."""
     deck_entry(node_type, item, section)
 
