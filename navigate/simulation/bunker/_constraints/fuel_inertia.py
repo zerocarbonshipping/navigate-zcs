@@ -60,13 +60,15 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
 
     scaling = multiplier_scaling * energy_scaling
 
+    bunkerable_fuels = vessel.bunkerable_fuels
+
     rows = alg.fuel_inertia
     bunker = alg.bunker
     model = alg.model
 
     for f in vessel.usable_fuels:
         for p, port in enumerate(vessel.route.ports):
-            if not port.bunkering_allowed[f]:
+            if f not in bunkerable_fuels[p]:
                 continue
 
             key = (v, port.name, f)

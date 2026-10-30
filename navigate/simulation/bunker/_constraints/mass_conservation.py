@@ -73,7 +73,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
 
             model.set_coefficient(constraint, mass_tank[v, p, f], voyages)
 
-            if route.ports[p].bunkering_allowed[f]:
+            if f in vessel.bunkerable_fuels[p]:
                 model.set_coefficient(constraint, bunker[v, p, f], -1.0)
 
             for c in converters_in_port:

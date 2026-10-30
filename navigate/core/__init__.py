@@ -33,6 +33,7 @@ from navigate.core.dsl import SECTION_DEFINE, deck_attribute, deck_command
 from navigate.core.expression import Expression
 from navigate.core.node_maps import (
     define_vessel_fuel_maps,
+    update_bunkerable_fuels,
     update_imposed_levies,
 )
 from navigate.core.scalar import Scalar

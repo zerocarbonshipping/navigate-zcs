@@ -171,6 +171,31 @@ def _port_converters_per_fuel(
     return port_converters_per_fuel
 
 
+def update_bunkerable_fuels(vessels: dict[str, Vessel]) -> None:
+    """
+    Write on each vessel, per route stop, the usable fuels the stop's port allows.
+
+    Each stop keeps the vessel's usable-fuel order.
+
+    Parameters
+    ----------
+    vessels
+        All vessels in the simulation, keyed by name.
+    """
+    for vessel in vessels.values():
+        bunkerable_fuels: list[dict[str, Fuel]] = []
+
+        for port in vessel.route.ports:
+            allowed: dict[str, Fuel] = {}
+
+            for fuel_name, fuel in vessel.usable_fuels.items():
+                if port.bunkering_allowed[fuel_name]:
+                    allowed[fuel_name] = fuel
+            bunkerable_fuels.append(allowed)
+
+        vessel.bunkerable_fuels = bunkerable_fuels
+
+
 def update_imposed_levies(ports: dict[str, Port], levies: dict[str, Levy]) -> None:
     """
     Write on each port the active levies whose jurisdiction holds that port.

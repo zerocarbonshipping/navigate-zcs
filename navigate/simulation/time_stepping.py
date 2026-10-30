@@ -13,7 +13,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from navigate.core import define_vessel_fuel_maps, update_imposed_levies
+from navigate.core import (
+    define_vessel_fuel_maps,
+    update_bunkerable_fuels,
+    update_imposed_levies,
+)
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.core.results import GlobalResults, ResultsContext
 from navigate.exceptions import DeckError
@@ -402,6 +406,7 @@ class Simulation:
 
     def _update_node_maps(self) -> None:
         """Rewrite the node maps that events can change."""
+        update_bunkerable_fuels(self.nodes.vessels)
         update_imposed_levies(self.nodes.ports, self.nodes.levies)
 
     def _pre_assign_temporal(self) -> None:

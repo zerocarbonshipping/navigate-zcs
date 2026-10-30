@@ -44,7 +44,7 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
     model = alg.model
 
     for p, port in enumerate(vessel.route.ports):
-        for f in vessel.usable_fuels:
+        for f in vessel.bunkerable_fuels[p]:
             if not is_fair_share_constrained(port, f, alg.idx):
                 continue
 
