@@ -18,37 +18,15 @@ if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
 
 
-def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fuel]]:
-    """
-    Group all simulation fuels by fuel type.
-
-    Parameters
-    ----------
-    fuels
-        All fuels in the simulation, keyed by name.
-
-    Returns
-    -------
-    dict[FuelTypeID, list[Fuel]]
-        Every FuelTypeID as a key, mapped to the fuels of that type in input
-        iteration order; a fuel type with no fuels maps to an empty list.
-    """
-    fuels_per_fuel_type: dict[FuelTypeID, list[Fuel]] = {id_: [] for id_ in FuelTypeID}
-
-    for fuel in fuels.values():
-        fuels_per_fuel_type[fuel.fuel_type].append(fuel)
-
-    return fuels_per_fuel_type
-
-
 def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) -> None:
     """
-    Write on each vessel its usable fuel types and fuels and its converter-fuel pairs.
+    Write on each vessel its usable fuels and its tank-fuel and converter-fuel pairs.
 
     A usable fuel type is one a tank stores or a converter burns, and a usable fuel
-    is a fuel of a usable type. Each converter is paired with the usable fuels of
-    its fuel types, in usable-fuel order, and each usable fuel with the converters
-    burning it, in converter order; a fuel only a tank stores has no converter.
+    is a fuel of a usable type. Each tank is paired with the fuels of its fuel types,
+    type by type. Each converter is paired with the usable fuels of its fuel types,
+    in usable-fuel order, and each usable fuel with the converters burning it, in
+    converter order; a fuel only a tank stores has no converter.
 
     Parameters
     ----------
@@ -57,17 +35,29 @@ def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) 
     fuels
         All fuels in the simulation, keyed by name.
     """
-    fuels_per_fuel_type = get_fuels_per_fuel_type(fuels)
+    fuels_per_fuel_type = _fuels_per_fuel_type(fuels)
 
     for vessel in vessels.values():
         usable_fuel_types = _usable_fuel_types(vessel)
-        usable_fuels = _usable_fuels(usable_fuel_types, fuels_per_fuel_type)
+        usable_fuels = _fuels_of_types(usable_fuel_types, fuels_per_fuel_type)
+        per_tank = _fuels_per_tank(vessel, fuels_per_fuel_type)
         per_converter = _fuels_per_converter(vessel, usable_fuels)
         per_fuel = _converters_per_fuel(vessel, usable_fuels, per_converter)
 
         vessel.usable_fuels = usable_fuels
+        vessel.fuels_per_tank = per_tank
         vessel.fuels_per_converter = per_converter
         vessel.converters_per_fuel = per_fuel
+
+
+def _fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fuel]]:
+    """Return the fuels per fuel type in input order, every fuel type a key."""
+    fuels_per_fuel_type: dict[FuelTypeID, list[Fuel]] = {id_: [] for id_ in FuelTypeID}
+
+    for fuel in fuels.values():
+        fuels_per_fuel_type[fuel.fuel_type].append(fuel)
+
+    return fuels_per_fuel_type
 
 
 def _usable_fuel_types(vessel: Vessel) -> list[FuelTypeID]:
@@ -83,17 +73,30 @@ def _usable_fuel_types(vessel: Vessel) -> list[FuelTypeID]:
     return unique_list(fuel_types)
 
 
-def _usable_fuels(
+def _fuels_of_types(
     fuel_types: list[FuelTypeID], fuels_per_fuel_type: dict[FuelTypeID, list[Fuel]]
 ) -> dict[str, Fuel]:
     """Return the fuels of the given types, keyed by name, type by type."""
-    usable_fuels: dict[str, Fuel] = {}
+    fuels: dict[str, Fuel] = {}
 
     for fuel_type in fuel_types:
         for fuel in fuels_per_fuel_type[fuel_type]:
-            usable_fuels[fuel.name] = fuel
+            fuels[fuel.name] = fuel
 
-    return usable_fuels
+    return fuels
+
+
+def _fuels_per_tank(
+    vessel: Vessel, fuels_per_fuel_type: dict[FuelTypeID, list[Fuel]]
+) -> dict[str, dict[str, Fuel]]:
+    """Return, per tank name, the fuels of its fuel types."""
+    fuels_per_tank: dict[str, dict[str, Fuel]] = {}
+
+    for tank in vessel.tanks:
+        stored = _fuels_of_types(tank.fuel_types, fuels_per_fuel_type)
+        fuels_per_tank[tank.name] = stored
+
+    return fuels_per_tank
 
 
 def _fuels_per_converter(

@@ -96,6 +96,7 @@ class Vessel(Node):
 
         # node maps
         self.usable_fuels: dict[str, Fuel]
+        self.fuels_per_tank: dict[str, dict[str, Fuel]]
         self.fuels_per_converter: dict[str, dict[str, Fuel]]
         self.converters_per_fuel: dict[str, dict[str, Converter]]
 

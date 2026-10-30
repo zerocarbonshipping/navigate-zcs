@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.simulation.bunker._cleanup import (
     remove_redundant_fuels_from_ports,
@@ -75,7 +74,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-    from navigate.core.enum_ import EnergyDemandID, FuelTypeID, SolverBackendID
+    from navigate.core.enum_ import EnergyDemandID, SolverBackendID
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fleet import Fleet
@@ -181,9 +180,6 @@ class BunkerAlgorithm:
         # auxiliary
         self.vessels: dict[str, Vessel] = {}
         self.multipliers: dict[str, float] = {}
-        self.fuels_per_fuel_type: dict[FuelTypeID, list[Fuel]] = (
-            get_fuels_per_fuel_type(fuels)
-        )
 
         # dynamic properties updated at every time-step --------------------------------
 
