@@ -44,7 +44,29 @@ commands for you.
 - `assumptions/` is the data library. `Load DefaultVoyage` reads the module file
   `assumptions/modules/installation/default_voyage.inc`. `Import Fleet "tanker_127k_dwt"`
   reads one node from `assumptions/defaults/installation/Fleet/tanker_127k_dwt.inc`.
-- `simulations/examples/example_1` to `example_4` are complete decks that run.
+- `simulations/examples/example_1` to `example_6` are complete decks that run.
+  Each is the reference for one structure; read the one closest to your case
+  before writing a file of the same kind:
+  - `example_4`: the full template for named ports (fleet, route, ports, fuel
+    production, producer, EU policy, report), which the specific-trade prompts
+    follow;
+  - `example_1`: two fleets of two ship sizes on two connected `ROUND_TRIP`
+    routes that share a port (a mainline and its feeders), with ports that
+    bunker different fuels;
+  - `example_2`: one fleet on a `REGIONAL_TRIP` between five ports, where only
+    some ports bunker the new fuel, made far away and shipped in;
+  - `example_3`: two fleets of the same classes in one market, one fitting
+    efficiency measures and the other not;
+  - `example_5`: a region's own fleets (tugs and ferries inside ports, cargo
+    ships on a loop) and international feeders, in three decks that differ only
+    in which ships the policies cover;
+  - `example_6`: one `ROUND_TRIP` route through five ports in a fixed order, a
+    library vessel resized as a placeholder, and a national CO2 price as a copy
+    of the library's EU ETS, in two decks with and without it.
+
+  Examples 1 to 3 are a few ships each, not a market segment: unless the prompt
+  rebuilds one of them, do not copy their fleet size (and, as below, none of
+  their numbers).
   `simulations/scenarios/` holds the Center's reference scenarios, which a global
   case starts from: the three basecases (no, mid and strong regulation) and
   `business_as_usual`, which splits each ship class into an international and a
@@ -90,7 +112,10 @@ commands for you.
   out as zero. For results per fleet or per
   vessel, add your own Report node as well, with the `add_fleet_property` /
   `add_vessel_property` syntax of `simulations/examples/example_4/includes/report.inc`
-  (copy the syntax, not its list).
+  (copy the syntax, not its list). Ship counts per vessel come from
+  `add_fleet_property("<fleet>", ExistingVessels)`, one column per vessel:
+  ExistingVessels is not a vessel property, and a Report line that names a
+  property the node lacks is logged as an error.
 
 ## Where the deck goes
 
@@ -114,15 +139,25 @@ Regulation and Forecasts live in `simulations/scenarios/0_includes/`
 comment naming the file, and set their Jurisdiction to your own ports; they count
 as sourced, not INVENTED.
 
+The person may give numbers of their own, in the prompt or in answer to your
+questions, and ask for them to be used. Use those as given, in place of the
+library's, and mark each one GIVEN in a comment where it appears, with what the
+prompt calls it; list them in the `.nav` header next to the INVENTED ones. They
+are the person's to source: do not swap them for library values. If one is far
+from the library's, say so once, in the case sheet.
+
 A fleet is a market segment owned by many companies: hundreds of ships, or a
 share of a library class, never one company's fleet or a single ship. Navigate
 decides for the segment as a whole, in fractions of ships, so a case about one
 owner's few ships is outside what it answers: say so, and model the segment
-those ships belong to.
+those ships belong to. When the person asks for the few ships all the same, as
+the prompts that rebuild examples 1 to 3 do, build them, and say once that the
+results are in fractions of ships.
 
-Take structure from the example decks and none of their numbers: they hold values
-that exist nowhere in the library, and in the file they look exactly as
-authoritative as a library reference.
+Take structure from the example decks and none of their numbers, unless the
+prompt gives them as its own: they hold values that exist nowhere in the
+library, and in the file they look exactly as authoritative as a library
+reference.
 
 Anything the library genuinely lacks (a port-to-port distance, a bunker transport
 or port handling cost, the size of a fleet that is not the whole world fleet) is

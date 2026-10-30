@@ -11,22 +11,27 @@ entry closest to your case, change what differs, and give it to your assistant.
 The rules every deck shares are in [Building a deck with an AI
 assistant](building-a-deck.md); the prompts here only describe their case.
 Every entry models a market segment owned by many companies, in hundreds of
-ships or a share of a library class, never one company's fleet or a single ship.
+ships or a share of a library class, never one company's fleet or a single ship,
+except the three that rebuild examples 1 to 3: they give those decks' few ships
+and own numbers as the person's, marked GIVEN.
 
 [Session 5](05-build-your-own-case.ipynb) teaches the process on one case, Session 1's
-copper trade, and shows a global and a regional case as cards. This bank holds
-every tested prompt, not displayed on the site, so that assistants can start
-from the closest one and the prompts can be improved as more people build
-decks. The start-up prompt of Session 5 reads the index below.
+copper trade, and shows a regional and a global case as cards. This bank holds
+every tested prompt, so that assistants can start from the closest one and the
+prompts can be improved as more people build decks. The start-up prompt of
+Session 5 reads the index below. The bank itself is not a page of the site: the
+[Examples](../examples/index.md) pages show each entry, next to its case, by
+including it from the `<!-- bank:... -->` markers around it, so keep those
+markers when you edit an entry.
 
 ## Index
 
 One line per prompt, Session 5's included, grouped by family. A new entry adds
-its line here, in its family. The families are those of Session 5: specific
-routes (one trade between two or three named ports), global cases (the world fleet
-or a worldwide policy, from the library's modules), and regional cases, with a
-domestic fleet (a country's or a region's own ships under a national or
-regional policy). Each family's decks are built the same way, so look first
+its line here, in its family. The families are those of Session 5, and follow the
+shape of the deck, not its policy: a specific trade (one route, its named ports
+called in a fixed order, two or more), a regional network (several routes, or
+trips between a region's ports in no fixed order), and global cases (the world
+fleet or a worldwide policy, from the library's modules). Each family's decks are built the same way, so look first
 for an entry of the same family. An entry marked "variant" has no full prompt of its
 own: take the full prompt of the entry it names, and change what its list of
 differences says. Everything the list does not change comes from that full
@@ -34,18 +39,21 @@ prompt.
 
 | Family | Entry | The question it answers | Scale | Ships | Policy | What the case changes | Tested |
 |---|---|---|---|---|---|---|---|
-| Specific routes | Session 1's copper trade: one long trade under EU rules (worked through in Session 5) | Which fuels do owners choose on one long trade under EU policy? | One long trade: Chile to Rotterdam | 300 Panamax bulk carriers | EU ETS and FuelEU on half the voyage | One run: the fuel choice under policy | 2026-10-19 |
-| Specific routes | One trade, two ports: what the model does when nothing pushes it (variant) | What does the model do on one trade when nothing pushes it? | One trade: Saudi Arabia to China | 200 Suezmax tankers | None | Nothing: the fuel choice on cost alone | 2026-10-26, through the start-up prompt |
-| Specific routes | LNG carriers from Qatar to Japan: which fuel wins on cost alone (variant) | Which fuel wins on cost alone on a gas-carrier trade? | One trade: Ras Laffan to Futtsu | 100 gas carriers | None | Nothing: the fuel choice on cost alone | 2026-10-26 |
-| Specific routes | EU short-sea feeders: what EU ETS and FuelEU make the owners do (variant) | How do owners comply with EU ETS and FuelEU, and at what cost? | One trade, both ports in the EU: Rotterdam to Gothenburg | 1,500 TEU feeders | EU ETS and FuelEU on the whole voyage | A policy: with and without it | 2026-10-19 |
-| Specific routes | Green finance: do cheaper loans bring zero-emission ships forward? (variant) | Do cheaper loans bring zero-emission ships forward? | One trade: Tubarão to Rotterdam | Panamax ore carriers | EU ETS and FuelEU on half the voyage, in both runs | Finance: cheaper cost of capital for ammonia and methanol ships | 2026-10-19 |
-| Specific routes | Two fleets, one market: what the owners' efficiency choices are worth (variant) | How much do the owners' efficiency choices matter on the same trade? | One trade of your choice | Two fleets of one class | Your choice | Technology: with and without it | ran first time; criteria not checked |
+| Specific trade | Session 1's copper trade: one long trade under EU rules (worked through in Session 5) | Which fuels do owners choose on one long trade under EU policy? | One long trade: Chile to Rotterdam | 300 Panamax bulk carriers | EU ETS and FuelEU on half the voyage | One run: the fuel choice under policy | 2026-10-19 |
+| Specific trade | One trade, two ports: what the model does when nothing pushes it (variant) | What does the model do on one trade when nothing pushes it? | One trade: Saudi Arabia to China | 200 Suezmax tankers | None | Nothing: the fuel choice on cost alone | 2026-10-26, through the start-up prompt |
+| Specific trade | LNG carriers from Qatar to Japan: which fuel wins on cost alone (variant) | Which fuel wins on cost alone on a gas-carrier trade? | One trade: Ras Laffan to Futtsu | 100 gas carriers | None | Nothing: the fuel choice on cost alone | 2026-10-26 |
+| Specific trade | EU short-sea feeders: what EU ETS and FuelEU make the owners do (variant) | How do owners comply with EU ETS and FuelEU, and at what cost? | One trade, both ports in the EU: Rotterdam to Gothenburg | 1,500 TEU feeders | EU ETS and FuelEU on the whole voyage | A policy: with and without it | 2026-10-19 |
+| Specific trade | Green finance: do cheaper loans bring zero-emission ships forward? (variant) | Do cheaper loans bring zero-emission ships forward? | One trade: Tubarão to Rotterdam | Panamax ore carriers | EU ETS and FuelEU on half the voyage, in both runs | Finance: cheaper cost of capital for ammonia and methanol ships | 2026-10-19 |
+| Specific trade | Two fleets, one market: what the owners' efficiency choices are worth (variant) | How much do the owners' efficiency choices matter on the same trade? | One trade of your choice | Two fleets of one class | Your choice | Technology: with and without it | ran first time; criteria not checked |
+| Specific trade | Inland waterways in Germany: what a national CO2 price does | Does a national CO2 price move owners to drop-in fuels or new engines? | One river trade in Germany: five ports, Duisburg to Mannheim | 300 Rhine cargo vessels | National CO2 price (a copied EU ETS Regulation) | A price: with and without it | 2026-10-30, Sonnet and Haiku |
+| Specific trade | Coastal shipping in Norway: two ship classes under a national CO2 tax (variant) | Does a national CO2 tax move owners to biofuels or to new ships? | One coastal trade: Bergen to Tromsø | 100 general cargo ships and 50 ferries | National CO2 tax (a copied EU ETS Regulation) | A price: with and without it; two classes on one trade | 2026-10-26 |
+| Regional network | A mainline and its feeders: two ship sizes on connected routes | How do two ship sizes on connected routes choose fuels when the ports supply them unevenly? | Two connected routes: Singapore to Rotterdam, then Rotterdam, Hamburg and Aalborg | 5 mainline ships of 15,000 TEU and 50 feeders of 1,500 TEU (GIVEN) | CII, EU ETS, FuelEU, a net-zero framework (the deck's own settings) | One run: the fuel choice where ports supply unevenly | 2026-10-30, Sonnet and Haiku |
+| Regional network | Island trade in the South Pacific: biodiesel sold at two ports only | Can a regional bulk trade switch to biodiesel when only its main ports supply it? | A region: five ports in the South Pacific, no fixed order | 6 Handysize bulk carriers (GIVEN) | CII (tracked only) and a net-zero framework with the deck's own values | One run: the fuel choice when FAME is sold at two ports only | 2026-10-30, Sonnet and Haiku |
+| Regional network | Two fleets in the Baltic: what the owners' efficiency choices are worth | How much do the owners' efficiency choices matter on the same trades? | A region: four Baltic ports, two REGIONAL_TRIP routes | Two groups of owners, each 2 mid-range (47,000 DWT) and 3 coastal (7,500 DWT) tankers (GIVEN) | CII, net-zero framework, EU ETS, FuelEU (the deck's own) | Technology: eight efficiency measures, fitted by one group only | 2026-10-30, Sonnet and Haiku |
+| Regional network | Caribbean shipping under global and EU rules | How are a region's own ships affected by global and EU rules, today and if extended to them? | A region: the Caribbean | 330 regional ships and 40 feeders | Global fuel standard (two tiers), EU ETS, FuelEU | Coverage: the feeders only, then the regional ships too | 2026-10-28, built cold |
 | Global case | Session 2's reference scenario: the world fleet from the library's modules | What does the world fleet burn to 2050 under a global fuel standard? | The world | The library's whole fleet | EU ETS, FuelEU, global fuel standard | One run: no comparison | 2026-10-19 |
 | Global case | A global study: the cost of waiting (variant) | What does starting a global fuel standard late cost? | The world | The library's whole fleet | Global fuel standard, EU ETS, FuelEU | Timing: the standard on time vs delayed | 2026-10-26 |
 | Global case | The world fleet, simplified: the global picture at a size you can iterate on (variant) | What does a cut-down world fleet do under EU policy? | The world, two or three classes | Library fleets | EU ETS and FuelEU | One run: no comparison | ran first time; criteria not checked |
-| Regional case, with a domestic fleet | Inland waterways in Germany: what a national CO2 price does | Does a national CO2 price move owners to drop-in fuels or new engines? | One river trade in Germany | 300 Rhine cargo vessels | National CO2 price (a copied EU ETS Regulation) | A price: with and without it | 2026-10-16 |
-| Regional case, with a domestic fleet | Caribbean shipping under global and EU rules | How are a region's own ships affected by global and EU rules, today and if extended to them? | A region: the Caribbean | 330 regional ships and 40 feeders | Global fuel standard (two tiers), EU ETS, FuelEU | Coverage: the feeders only, then the regional ships too | 2026-10-28, built cold |
-| Regional case, with a domestic fleet | Coastal shipping in Norway: two ship classes under a national CO2 tax (variant) | Does a national CO2 tax move owners to biofuels or to new ships? | One coastal trade: Bergen to Tromsø | 100 general cargo ships and 50 ferries | National CO2 tax (a copied EU ETS Regulation) | A price: with and without it; two classes on one trade | 2026-10-26 |
 
 ## What "it works" means here
 
@@ -88,19 +96,24 @@ The workshop authors then:
 
 - add it as a variant of its model, or as a full entry when it needs a structure
   or a fix that no entry has;
+- show it on the Examples pages: a variant in a dropdown on its model's page and
+  a line on its model's card, a full entry as a new card on its family's page
+  (`docs/examples/specific-trades.md`, `regional-networks.md` or `global-cases.md`)
+  with its own page, and the family's count on `docs/examples/index.md`;
 - fold its notes into building-a-deck.md, and test the chain again;
 - promote a variant that several people build to a full entry.
 
 ## Entries
 
 ### Session 1's copper trade: one long trade under EU rules
+<!-- bank:copper -->
 
 **The study.** 300 Panamax bulk carriers (about 80,000 DWT) carry copper
 concentrate from San Antonio, Chile, to Rotterdam via the Panama Canal, 2026 to
 2050. They can switch to LNG, methanol or ammonia ships, and fit efficiency
 measures; e-fuels are made in Chile or in Europe; EU ETS and FuelEU Maritime cover
 half of the voyage. It is the case of Session 1, which Session 5 works through
-step by step, and the template of the specific-routes family.
+step by step, and the template of the specific-trade family.
 
 ![Map of the Chile to Rotterdam copper trade: the two bunker ports, a fleet of ships on the voyage via the Panama Canal, and the fuel production sites in Patagonia and southern Sweden](../_figures/example_4_map.png)
 
@@ -323,8 +336,10 @@ For comparison, the workshop's own deck for this case gives 5,935 kt in 2026,
 fuel oil, e-ammonia and LNG the three biggest fuels. Say
 how close you are, and if you are far off, what in your deck could explain it.
 ````
+<!-- /bank:copper -->
 
 ### One trade, two ports: what the model does when nothing pushes it
+<!-- bank:gulf-china -->
 
 **Variant of "Session 1's copper trade" above.** 200 Suezmax crude tankers (about 127,000
 DWT), about a tenth of the world fleet of that class and owned by many
@@ -354,8 +369,145 @@ model does when nothing pushes it.
 
 **Tested:** 2026-10-26, through Session 5's start-up prompt, when it was one of
 Session 5's examples; the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28: not yet built from the variant.
+<!-- /bank:gulf-china -->
+
+### LNG carriers from Qatar to Japan: which fuel wins on cost alone
+<!-- bank:qatar-lng -->
+
+**Variant of "Session 1's copper trade" above**, the gas-carrier counterpart of
+"One trade, two ports": its fleet already burns LNG at the start. LNG carriers from Ras Laffan to Futtsu (Tokyo
+Bay), 2026 to 2050, owned by many companies, with no regulation: every fuel
+choice is made on cost alone, with fuels made in the Middle East. The question
+is which fuel wins by 2050.
+
+**Build it from the full prompt of "Session 1's copper trade", with these differences:**
+- Folder `simulations/user/gulf_japan_lng/`, one deck.
+- Fleet: the library's `gas_carrier_100k_cbm` class as it is (do not resize it
+  to a 174,000 m3 carrier), its four designs orderable; 100 ships (INVENTED:
+  about 4 % of the library's 2,553), with the library's InitialSplit and age
+  profile (about two thirds LNG, one third oil). Leave the orderbook out. The
+  class has no `set_fuel_conversion_cost` lines: say so.
+- Route: Ras Laffan to Futtsu via the Strait of Malacca, 6,500 nm each way
+  (INVENTED), 16.6 kn both ways, 1.0 full out and empty home,
+  (1 - 0.684) x 365 / 30 = 3.8 days per call (from the operational profile).
+- Fuels: fuel oil and LNG as global commodities; bio-methane, e-methane, blue
+  ammonia, e-ammonia and e-methanol from the library's `middle_east` plants,
+  with Source "grid" for bio and blue, "renewable" for electro, and the
+  `cost_of_capital_plant_*_middle_east` forecasts.
+- No regulation: no DefaultRegulation, no Regulation or Levy. No
+  DefaultConverterAvailable: every design is orderable from year one.
+- Leave the energy-efficiency technologies out.
+- Bunker logistics: 200 nm from the plants to ras_laffan and 6,500 nm to futtsu,
+  0.02 USD per ton per nm (INVENTED). Feedstock: 0.006 of the shipping share of
+  biogenic CO2 and biogas (INVENTED).
+- Add a Report with `add_plant_property("*", InvestmentIntensityCost)`, and give
+  each unburnt fuel's 2050 cost per GJ next to the bunker price of LNG.
+
+**Limits.** The library's gas carrier is a 100,000 m3 ship, not a 174,000 m3 LNG
+carrier, and Navigate has no boil-off gas: the ships buy LNG at the port like any
+fuel.
+
+**Tested:** 2026-10-26, written by Session 5's start-up prompt from a short case,
+then built cold: it ran with no warnings. Nothing switched: the cheapest
+alternative, blue ammonia, costs about 2.6 times LNG in 2050. Methanol and
+ammonia ships are still ordered and burn only their pilot oil, so read the switch
+from ConsumedEnergy, not ship counts. The full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28: not yet built from the variant.
+<!-- /bank:qatar-lng -->
+
+### EU short-sea feeders: what EU ETS and FuelEU make the owners do
+<!-- bank:eu-feeders -->
+
+**Variant of "Session 1's copper trade" above.** Container feeder ships between Rotterdam
+and Gothenburg, 2026 to 2050, run twice: without policy, and under EU ETS and
+FuelEU Maritime at their library settings. Both ports are in the EU, so both
+instruments cover the whole voyage. The question is how the owners comply (which
+fuels, which ships) and what compliance costs them.
+
+**Build it from the full prompt of "Session 1's copper trade", with these differences:**
+- Folder `simulations/user/eu_feeder/`, two decks that differ in one Include
+  line: `no_policy.nav`, and `eu_policy.nav` with `includes/eu_policy.inc`.
+- Fleet: the library's 1,500 TEU container class, with its own split of designs,
+  age profile and fuel-conversion costs; 80 ships (INVENTED). All four designs
+  can be ordered; leave the orderbook out.
+- Route: Rotterdam to Gothenburg, 520 nm each way (INVENTED), speeds and time in
+  port from the class's operational profile.
+- Fuels: fuel oil and LNG at their library prices; FAME, bio-methanol, e-methanol
+  and e-ammonia, all made in Europe.
+- Policy: `eu_policy.inc` imports the library's `eu_ets` and `fuel_eu` (not
+  example_4's versions) with the two ports as their Jurisdiction. Do not load
+  DefaultRegulation: it also brings CII.
+- Bunker logistics: 300 nm from the European plants to each port, 0.03 USD per
+  ton per nm (INVENTED). Feedstock: 0.001 of the shipping share of used cooking
+  oil, biomass and biogenic CO2 (INVENTED).
+- Report, side by side: the energy by fuel in 2026, 2030, 2040 and 2050; WTW in
+  2026 and 2050 and summed; the ships of each design in 2050 and the conversions;
+  each regulation's cost in 2030 and 2050. Say how the owners comply: other
+  fuel, new or converted ships, or mostly paying.
+
+**Limits.** FuelEU pooling between companies and the ETS's free allowances are
+not in Navigate.
+
+**Tested:** 2026-10-19, built cold and through Session 5's start-up prompt from a
+different case (Antwerp to Helsinki). Both builds found the owners mostly pay
+until the mid-2030s, then comply through new methanol and ammonia ships: WTW over
+2026-2050 falls by 34 to 41 %. A larger feedstock share lets a small fleet live
+on Europe's biomass. the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28: not yet built from the variant.
+<!-- /bank:eu-feeders -->
+
+### Green finance: do cheaper loans bring zero-emission ships forward?
+<!-- bank:green-finance -->
+
+**Variant of "Session 1's copper trade" above.** Panamax bulk carriers carrying iron ore from Tubarão (Brazil) to
+Rotterdam, 2026 to 2050, under EU ETS and FuelEU Maritime as the library sets
+them. The voyage leaves the EU, so both cover half of it. Two runs: the library's
+cost of capital, and a green-finance case where ammonia and methanol ships borrow
+two percentage points cheaper. The question is whether cheaper finance alone
+changes when, and how many, such ships are ordered.
+
+**Build it from the full prompt of "Session 1's copper trade", with these differences:**
+- Folder `simulations/user/green_finance/`, two decks that differ in one
+  Include line only: `reference.nav`, and `green_finance.nav` with
+  `includes/green_finance.inc`.
+- Trade: Tubarão (Brazil) to Rotterdam, iron ore, laden out and in ballast back,
+  5,000 nm each way (INVENTED). Fleet: 150 ships (INVENTED) of the same 80,000 DWT
+  class, all four designs orderable, no orderbook.
+- Fuels: fuel oil and LNG at their library prices; e-ammonia and e-methanol
+  made in the Americas only (no European plants, no bio-methanol). Bunker
+  logistics: 500 nm from the plants to tubarao and 5,000 nm to rotterdam,
+  0.02 USD per ton per nm; no port handling costs (INVENTED). Feedstock: 0.002 of
+  the library's shipping share of biogenic CO2, on the library's own growing pool
+  (INVENTED).
+- Policy, in both decks: the library's EU ETS and FuelEU (Import Regulation
+  "eu_ets" and "fuel_eu"), with rotterdam as their only port. Do not load
+  DefaultRegulation: it also brings CII.
+- `green_finance.inc` sets the CostOfCapital of the ammonia and methanol ships to
+  their library value minus 0.02 (INVENTED: two percentage points), as an
+  expression of the library's Forecast or Variable and a placeholder Variable.
+  Set the Fleet's `TechnologyCostOfCapital = Variable("cost_of_capital_vessel")`
+  in both decks, or the discount reaches the efficiency technology too.
+- Keep the INVENTED values in `includes/placeholders.inc` (plain numbers in their
+  own files, listed there as comments), and list them in both .nav headers.
+- Report, instead of the template's comparison, side by side: the newbuilds of
+  each design per year and the ships of each design in 2035 and 2050; the share
+  of energy by fuel in 2026, 2035 and 2050; the well-to-wake emissions summed over
+  2026-2050; the investment freight rate of each design in 2030 and 2045. Say
+  plainly what the cheaper finance changed, and whether the new ships burn the
+  fuel they were built for.
+
+**Limits.** Navigate prices finance through the cost of capital only: no
+guarantees, grants or loan terms.
+
+**Tested:** 2026-10-19. The final prompt passed every check above on the first
+attempt, built cold and also through Session 5's start-up prompt from a different
+case (US Gulf grain to Rotterdam, 1.5 points). Both builds found that cheaper
+loans add a few ammonia and methanol ships (about 6 to 10 by 2050) but bring
+nothing forward, and cut emissions by 1 to 2 %: the gap is the fuel's cost, not
+the ship's finance. Treat that as a property of the placeholders.
+2026-10-26, as the model a start-up prompt chose for a different case (Tubarão to Qingdao, no regulation): the chain built and ran cold with no warnings. Cheaper finance brought about 7 more ammonia and 7 more methanol ships by 2050, all burning pilot oil: without a policy, finance alone moves the orders, not the fuel. the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28.
+<!-- /bank:green-finance -->
 
 ### Two fleets, one market: what the owners' efficiency choices are worth
+<!-- bank:two-fleets -->
 
 **Variant of "Session 1's copper trade" above.** No specific geography: one route that you choose, sailed by two fleets of the same vessel class in the same market, with the same costs, the same fuels and the same regulation. Fleet A's owners fit no energy-efficiency measure. Fleet B's owners fit the technologies the library offers for that class (hull coatings, propeller devices, rotor sails, air lubrication and so on). Whatever separates the two fleets by 2050 (fuel mix, emissions, freight rate, fuel and compliance bill) comes from that one difference.
 
@@ -387,8 +539,10 @@ Session 5's examples; the full prompt that passed is in the repository's history
 
 **Tested:** ran first time as a full prompt; the criteria above were not
 checked. It was one of Session 5's examples until 2026-10-28; the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28.
+<!-- /bank:two-fleets -->
 
 ### Inland waterways in Germany: what a national CO2 price does
+<!-- bank:rhine -->
 
 **The study.** Dry-cargo motor vessels on the Rhine between Duisburg and
 Mannheim, 2026 to 2050, run twice: without policy, and with a CO2 price on the
@@ -420,8 +574,14 @@ to 150 USD/t the owners pay the price rather than switch fuel, and order a few
 more LNG ships; the drop-in fuels need roughly 440 USD/t (biodiesel) to 800-1,100
 USD/t (e-diesel). Treat that as a property of the placeholders, not of the Rhine.
 2026-10-26, as the model a start-up prompt chose for a different case (Norwegian coastal cargo ships and ferries under Norway's CO2 tax): the chain built and ran cold with no warnings, and found the same: biofuels need roughly 440 USD/t, and the owners pay the tax, order a few more LNG ships and slow down.
+2026-10-30, with the route's five ports (before, it ran between Duisburg and
+Mannheim only): built cold on Sonnet and on Haiku, both decks ran with no
+warnings, and the two builds agree to the tonne. Same finding: by 2050 the price
+moves about two newbuilds to LNG and emissions by less than 0.01 %; FAME would
+need about 430 USD/t. The Sonnet build is the deck in
+`simulations/examples/example_6/`.
 
-![Map of an inland dry-cargo trade on the Rhine in Germany, from Duisburg upstream to Mannheim, with European fuel production delivering to both bunker ports](../_figures/rhine_inland_map.png)
+![Map of an inland dry-cargo trade on the Rhine in Germany, from Duisburg upstream to Mannheim with calls at Cologne, Koblenz and Mainz, and European fuel production delivering to the two ends](../_figures/rhine_inland_map.png)
 
 It was one of Session 5's examples until 2026-10-28.
 
@@ -448,14 +608,17 @@ Inland dry-cargo shipping on the Rhine within Germany, 2026 to 2050, yearly step
   owners can keep their ships, burn a drop-in fuel in them, or order ships with
   LNG or methanol engines. No ammonia ships: they are not realistic on inland
   waterways.
-- Trade: Duisburg to Mannheim, laden upstream, back in ballast.
+- Trade: one route up the Rhine with five ports called in this order, Duisburg,
+  Cologne, Koblenz, Mainz and Mannheim, then straight back to Duisburg. The ships
+  load at Duisburg and discharge part of the cargo at each call upstream; they
+  return in ballast.
 - Fuels: fuel oil and LNG at their library prices, biodiesel (FAME) and e-diesel,
   which burn in the oil engines, and e-methanol, all made in Europe.
 - Policy: none in reference.nav. EU ETS and FuelEU Maritime do not cover inland
   waterways, so do not load DefaultRegulation in either deck. co2_price.nav adds
   Germany's national CO2 price as a copy of the library's EU ETS regulation:
   Copy Regulation "eu_ets" to "co2_price_germany", with its Jurisdiction set to
-  the two ports and its RemedialCost set to the CO2 price below. Keep the rest of
+  the five ports and its RemedialCost set to the CO2 price below. Keep the rest of
   it: it already counts biofuels and e-fuels as zero CO2. It names fuels this case
   does not use (bio-methanol, bio-methane, e-methane, blue and e-ammonia), so
   import those too, in both decks, or it will not parse. building-a-deck.md says
@@ -474,8 +637,10 @@ AllowSpeedManagement = FALSE: on a river the waterway sets the speed, and with i
 on, the ships drift faster than the speeds below.
 
 Build the rest as building-a-deck.md describes for a deck on named ports: the
-Fleet node, a ROUND_TRIP route between your own ports duisburg and mannheim, the
-bunker logistics, the European production region and the producers. For the
+Fleet node, one ROUND_TRIP route through your own ports duisburg, cologne,
+koblenz, mainz and mannheim, in that order, with five legs (the last one
+mannheim back to duisburg), the ports and what each one sells, the bunker
+logistics, the European production region and the producers. For the
 producers, use the library's plants for FAME, e-diesel and e-methanol in Europe,
 with the shares of the library's feedstock ceilings given below.
 
@@ -493,12 +658,18 @@ their own files, marked INVENTED, and list them in placeholders.inc as comments.
 - Propulsion power at speed, MW: 4 kn 0.25, 6 kn 0.6, 8 kn 1.1, 9 kn 1.45
 - Auxiliary power: 0.1 MW at sea and 0.05 MW in port, with 0.2 MW generators
   (the library's are a seagoing ship's)
-- Route: 190 nm each way; 7 kn laden upstream, 8 kn in ballast downstream (speed
-  through the water; Navigate has no river current); one day in port per call
+- Route: Duisburg to Cologne 50 nm, Cologne to Koblenz 52 nm, Koblenz to Mainz
+  51 nm, Mainz to Mannheim 40 nm, Mannheim back to Duisburg 193 nm; 7 kn on the
+  four legs upstream, 8 kn on the way back (speed through the water; Navigate
+  has no river current); one day in port per call
+- Load: 1.0, 0.75, 0.5 and 0.25 full on the four legs upstream (a quarter of
+  the cargo discharged at each of Cologne, Koblenz and Mainz), 0 on the way back
+- Bunkering: fuel oil at every port; LNG, FAME, e-diesel and e-methanol at
+  duisburg and mannheim only
 - Feedstock: this fleet's share of the library's shipping share, 0.02 of the
   used cooking oil and 0.02 of the biogenic CO2
-- Bunker logistics: 400 nm from the European plants to each port, 0.03 USD per
-  ton per nm
+- Bunker logistics: 400 nm from the European plants to duisburg and to
+  mannheim, 0.03 USD per ton per nm
 - CO2 price: 65 USD per t CO2 in 2026, rising linearly to 150 USD in 2050
 
 BEFORE YOU TELL ME IT WORKS
@@ -513,8 +684,617 @@ engines, both, or nothing. If the drop-in fuels never compete, work out from the
 bunker prices roughly what CO2 price they would need. Remind me which inputs are
 placeholders.
 ````
+<!-- /bank:rhine -->
+
+### Coastal shipping in Norway: two ship classes under a national CO2 tax
+<!-- bank:norway -->
+
+**Variant of "Inland waterways in Germany" above**, with seagoing library
+classes instead of a resized vessel, and two classes on one trade. Coastal cargo
+ships and ferries between Bergen and Tromsø, 2026 to 2050, owned by many
+companies, run twice: without policy, and with Norway's CO2 tax on domestic
+shipping. The question is whether the tax moves the owners to biofuels in the
+ships they have, or to new ships.
+
+**Build it from the full prompt of "Inland waterways in Germany", with these differences:**
+- Folder `simulations/user/norway_coastal/`, two decks: `reference.nav` and
+  `co2_tax.nav` (with `includes/co2_tax.inc`).
+- Fleets: two Fleet nodes with Copy Vessel, nearly all on fuel oil at the start:
+  100 general cargo ships and 50 ferries (INVENTED), each with its library split
+  of designs, age profile and TradeGrowth. Designs oil, LNG and methanol for
+  both; leave out the general cargo ammonia design (and its split and age
+  entries; its initial share is 0). Neither class has
+  `set_fuel_conversion_cost` lines, so no ship can be converted: say so rather
+  than invent costs. Keep AllowSpeedManagement as the library sets it (FALSE for
+  ferries, TRUE for general cargo). Leave the orderbooks out.
+- Route: one ROUND_TRIP between bergen and tromso, 650 nm each way (INVENTED),
+  cargo both ways, with one Route node per class: ferries at 14 kn, 0.75 full,
+  0.5 x 365 / 50 = 3.65 days per call; general cargo at 11.2 kn, 0.5 full,
+  0.452 x 365 / 20 = 8.25 days per call (from each operational profile).
+- Fuels: fuel oil and LNG at their library prices; FAME, bio-methane,
+  bio-methanol and e-methanol, all made in Europe.
+- Policy: `co2_tax.inc` copies the library's `eu_ets` to `co2_tax_norway`, with
+  the two ports as Jurisdiction and the tax as RemedialCost: 100 USD/t CO2 in
+  2026, rising linearly to 200 in 2030, then flat (INVENTED). Import the fuels it
+  names that the case does not use (e-diesel, e-methane, blue and e-ammonia), in
+  both decks. Give the price Forecast a name of its own. No DefaultRegulation.
+- Bunker logistics: 300 nm from the European plants to bergen and 800 nm to
+  tromso, 0.03 USD per ton per nm (INVENTED). Feedstock: 0.0004 of the shipping
+  share of used cooking oil, biogas, gasifiable biomass and biogenic CO2
+  (INVENTED).
+- A Report per fleet (ConsumedEnergy by fuel, ExistingVessels per vessel,
+  TotalEquivalentWTW, RegulationExpenses), and the tax's own remedial,
+  flexibility and surplus lines in `co2_tax.inc`. Report each fleet and both
+  together; say whether new methanol ships burn methanol or their pilot oil.
+
+**Limits.** The ships and their operating patterns are the library's world
+averages for the class, not Norwegian coastal vessels. The library has no
+battery-electric ships, which much of Norway's ferry fleet is moving to.
+
+**Tested:** 2026-10-26, written by Session 5's start-up prompt from a short case
+(it took inland Germany as the model), then built cold: both decks ran with no
+warnings. Biofuels need roughly 440 USD/t; at 200 USD/t the owners pay the tax,
+order slightly more LNG ships, and the cargo ships slow down, which gives most
+of the 4.5 % cut in emissions. The full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28: not yet built from the variant.
+<!-- /bank:norway -->
+
+### A mainline and its feeders: two ship sizes on connected routes
+<!-- bank:mainline-feeders -->
+
+**The study.** The deck `simulations/examples/example_1`, rebuilt from a prompt:
+5 container ships of 15,000 TEU on a Singapore - Rotterdam mainline, and 50
+feeders of 1,500 TEU on a Rotterdam - Hamburg - Aalborg loop, 2026 to 2050,
+under CII, EU ETS, FuelEU Maritime and a net-zero framework. Both fleets can
+burn fuel oil or bio-methanol, made in Europe; Aalborg sells no bio-methanol. The
+question is how two ship sizes on connected routes choose fuels when the ports
+supply them unevenly.
+
+**What comes from the library.** The four container ship designs, the fuels, the
+bio-methanol process, its feedstock and their costs, fuel oil's price and
+upstream emissions, electricity and grid emissions in Europe, the EU ETS price
+and phase-in, FuelEU's target and default emission factors.
+
+**What is GIVEN.** Everything else is the example deck's own: the fleet sizes and
+ages, the routes, the bunker logistics, the handling costs, the plant capacity,
+the producer's feedstock ceiling, the conversion costs, the regulations' settings
+and the net-zero framework's targets and price. The prompt gives them as the
+person's numbers, so the build uses them as they are; none is a source.
+
+**Limits.** A few ships per fleet, not a market segment: Navigate decides in
+fractions of ships. The `.nav` header of example_1 says 11,000 nm; its route,
+which this prompt follows, says 8,300 nm.
+
+**Tested:** 2026-10-30, built cold on Sonnet and on Haiku: both decks ran with
+no warnings and reproduce example_1 to the tonne. The plant then gained the
+library's cost of capital (it was financed at 0 %), and the wording was fixed
+from the builders' notes; built cold again on Haiku, it reproduces the new
+deck to the tonne: 1,274,745 t CO2e in 2026, 914,092 t in 2035 and 276,588 t
+in 2050, when bio-methanol is 10.69 PJ of the 13.28 PJ burnt.
+
+````text
+You are helping me build a simulation study for Navigate, the shipping
+decarbonisation model. Write the files yourself; do not only
+describe them.
+
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+This case rebuilds the example deck simulations/examples/example_1 from this
+prompt; you may read that deck. Every number below is mine: use it as given and
+mark it GIVEN. The fleets are a few ships on purpose. You should not need to
+invent anything: if you do, tell me what was missing.
+
+THE DECK
+A new folder, simulations/user/mainline_feeders/, with mainline_feeders.nav and
+these files in includes/, included in this order: mainlines_curves.inc,
+mainlines.inc, feeders_curves.inc, feeders.inc, route.inc, ports.inc,
+bunker_logistics.inc, fuel_production.inc, regions.inc, producer.inc, then
+Load DefaultEmission, then cii.inc, eu_ets.inc, fuel_eu.inc,
+net_zero_framework.inc, decision_processes.inc, report.inc.
+DEFINE starts with Load DefaultModelDefinition and ends with Load DefaultPlot;
+EVENTS holds Load DefaultTimeStepYearly only. You may add Load DefaultReport to
+read the results. Load nothing else: no DefaultRegulation, no
+DefaultBunkerLogistics, no DefaultCalibration (decision_processes.inc holds
+the deck's own).
+
+THE CASE
+A container network, 2026 to 2050, yearly steps: mainline ships from Singapore
+to Rotterdam, and feeders from Rotterdam to Hamburg and Aalborg. Fuels: fuel oil
+and bio-methanol, made in Europe.
+
+FLEETS
+- Fleet "mainlines": Copy Vessel container_15000_teu_ice_oil to mainline_oil and
+  container_15000_teu_ice_methanol to mainline_methanol. 5 ships, split 0.8 oil,
+  0.2 methanol. Ages (Curves age_dist_mainlines_oil and
+  age_dist_mainlines_methanol, one row per age 0 to 24, 0 where not listed):
+  oil 0.25 at ages 3, 6, 9 and 12; methanol 1 at age 0.
+  set_fuel_conversion_cost("mainline_oil", "mainline_methanol", 24.3e6).
+  AllowSpeedManagement = TRUE, MaximumSpeedChange = 0.5. No TradeGrowth line.
+- Fleet "feeders": Copy Vessel container_1500_teu_ice_oil to feeder_oil and
+  container_1500_teu_ice_methanol to feeder_methanol. 50 ships, split 0.96 oil,
+  0.04 methanol. Ages (Curves age_dist_feeders_oil and
+  age_dist_feeders_methanol): oil 0.04 at every age 0 to 24; methanol 0.5 at
+  ages 0 and 2. set_fuel_conversion_cost("feeder_oil", "feeder_methanol",
+  10.3e6). AllowSpeedManagement = FALSE, MaximumSpeedChange = 0.5. No
+  TradeGrowth line.
+- Decision processes, for Fleet "*": InterFuelSensitivity 0.5,
+  IntraFuelSensitivity 0.5, FuelConversionSensitivity 2. For
+  producer_methanol_bio: FuelDemandSensitivity 1.25, FuelCostSensitivity 0.5.
+
+ROUTES (Vessel "mainline_*" and Vessel "feeder_*" each set their Route)
+- mainline_route: ROUND_TRIP, singapore - rotterdam; PortDurations 1.5, 1.0;
+  Distances 8300, 8300; Speeds 15.5, 14.2; CapacityUtilizations 0.95, 0.1.
+- feeder_route: ROUND_TRIP, rotterdam - hamburg - aalborg; PortDurations 1.5,
+  1.0, 1.0; Distances 270, 400, 800; Speeds 13.0, 12.5, 13.0;
+  CapacityUtilizations 1.0, 0.7, 0.0.
+
+PORTS
+- methanol_bio may be bunkered at singapore, rotterdam and hamburg, not at
+  aalborg; fossil_fuel_oil at every port.
+- At every port (Port "*"): fuel oil's bunker price is overwritten with
+  Forecast fossil_fuel_oil_price_global and its upstream CO2 with Forecast
+  fossil_fuel_oil_wtt_carbon_dioxide; handling cost Variable handling_cost_oil
+  = 8 and Variable handling_cost_methanol = 18 (declare both: the library has
+  neither).
+- BunkerLogistics: fossil_fuel_oil is the only liquid market fuel;
+  set_distance("*", "*", 1000); set_transport_cost("*", 0.1).
+
+FUEL PRODUCTION
+- Import Fuel fossil_fuel_oil and methanol_bio; Import Source grid; Import
+  Process methanol_synthesis_bio_gasification; Import Feedstock
+  feedstock_biomethanol_gasification; Import Transport truck.
+- Import Plant plant_methanol_bio_gasification and set its Region europe, Source
+  grid, and Capacity = Forecast methanol_bio_gasification_plant_capacity, which
+  you declare in the deck with my values, 100 in 2030 and 100 in 2050,
+  extrapolated linearly (it replaces the library's Forecast of that name), and
+  CostOfCapital = Forecast cost_of_capital_plant_bio_europe.
+- Region "europe", declared (not imported), with three lines: source opex of
+  grid = electricity_cost_europe_mid; feedstock cost of
+  feedstock_biomethanol_gasification = feedstock_biomethanol_gasification_cost;
+  source WTT CO2 of grid = grid_emissions_europe.
+- Region "*": truck transport cost 0, truck CO2 = truck_emissions;
+  methanol_synthesis_bio_gasification capex, opex and energy from the Forecasts
+  of the same name with _capex, _opex, _energy; its process CO2 =
+  -Variable carbon_dioxide_per_methanol.
+- Producer "producer_methanol_bio": that one plant, MaximumDevelopment 1, feed
+  constraint on feedstock_biomethanol_gasification = Forecast
+  feedstock_biomethanol_gasification_constraint, which you declare (the library
+  has none): 0.03e6 in 2025, 0.15e6 in
+  2030, 0.90e6 in 2035, 1.14e6 in 2040, 1.26e6 in 2045, 1.38e6 in 2050,
+  extrapolated linearly.
+
+POLICY (each Regulation written in full, not copied from the library; each has
+Fuels = Fuel("*") and set_include_vessel("*", TRUE))
+- cii: TRANSPORT_NOMINAL, INDIVIDUAL, TTW, IncludeSlip FALSE, CO2 only, all four
+  ports, RemedialCost 0 (it only tracks compliance). TTW CO2 3.114 for
+  fossil_fuel_oil and 0.3 for methanol_bio. Thresholds: Forecast
+  cii_target_reduction (1.0 in 2019, 0.99, 0.98, 0.97, 0.95, 0.93, 0.91, 0.89,
+  0.87, 0.85, 0.83, 0.81 in 2030, one per year on 1 January, flat after),
+  copied to cii_target_container_1500_teu (Multiplier 14.93) for feeder_* and
+  to cii_target_container_15000_teu (Multiplier 5.66) for mainline_*. Vessel
+  capacity 22000 for feeder_* and 160000 for mainline_*.
+- eu_ets: ABSOLUTE, INDIVIDUAL, TTW, IncludeSlip FALSE; CO2, methane, N2O;
+  IntraFraction 1, InterFraction 0.5, ExtraFraction 0; rotterdam, hamburg,
+  aalborg; RemedialCost = eu_ets_carbon_credit_price x eu_ets_maritime_phase_in;
+  set_vessel_threshold("*", 0.); GWP 1, 28, 265. TTW factors: fuel oil CO2 =
+  Variable eu_default_diesel_carbon_dioxide; fuel oil and methanol_bio methane =
+  eu_default_diesel_ice_methane x Forecast eu_ets_ghg_phase_in, N2O =
+  eu_default_diesel_ice_nitrous_oxide x eu_ets_ghg_phase_in; methanol_bio CO2 0.
+- fuel_eu: INTENSITY, FLEXIBLE, WTW, IncludeSlip FALSE; CO2, methane, N2O;
+  fractions 1, 0.5, 0; rotterdam, hamburg, aalborg; RemedialCost = Variable
+  fuel_eu_remedial_cost; SharedThreshold = Forecast fuel_eu_target_reduction;
+  GWP 1, 25, 298. Fuel oil: WTT "*" 0, then WTT CO2 =
+  fuel_eu_default_wtt_fossil_fuel_oil; TTW CO2 = eu_default_diesel_carbon_dioxide,
+  methane = eu_default_diesel_ice_methane, N2O =
+  eu_default_diesel_ice_nitrous_oxide. methanol_bio: WTT "*" 0, then WTT CO2 =
+  fuel_eu_default_wtt_methanol_bio; TTW CO2 =
+  fuel_eu_default_methanol_ice_carbon_dioxide; methane and N2O as fuel oil's.
+- net_zero_framework: INTENSITY, FLEXIBLE, WTW, IncludeSlip TRUE, Emission("*"),
+  all four ports. SharedThreshold = Forecast net_zero_framework_z_values,
+  Multiplier 93.3, flat: 1.00 on 01-01-2025 and 31-12-2027, then 0.96 (2028),
+  0.94, 0.92 (2030), 0.876, 0.832, 0.788, 0.744, 0.70 (2035), 0.35 (2040), 0.05
+  (2050), each on 1 January. RemedialCost = Forecast
+  net_zero_framework_remedial, flat: 0 on 01-01-2025 and 31-12-2027, 380 from
+  01-01-2028.
+
+REPORT
+Report "output", Directory "./plots", add_port_property("*",
+BunkerIntensityPrice).
+
+BEFORE YOU TELL ME IT WORKS
+Run the deck and report as building-a-deck.md says: the exit code, and the
+warnings and errors in the Log summary. Then give, from the report:
+- the well-to-wake emissions in 2026, 2035 and 2050;
+- the energy by fuel in those three years;
+- whether bio-methanol is bunkered, and by which fleet if you can tell.
+List every place where your deck differs from what this prompt says.
+````
+<!-- /bank:mainline-feeders -->
+
+### Island trade in the South Pacific: biodiesel sold at two ports only
+<!-- bank:south-pacific -->
+
+**The study.** A regional bulk trade between Australia, New Zealand, Fiji, Samoa
+and Tonga, 2026 to 2050, yearly steps, in one run. Six Handysize bulk carriers
+call at the five ports in no fixed order. They can burn biodiesel (FAME) in their
+oil engines, but FAME is made in Europe and sold only in Australia and New
+Zealand. The question is whether the trade switches to FAME under a net-zero
+framework when only its main ports supply it. The prompt rebuilds
+`simulations/examples/example_2` exactly.
+
+**What comes from the library.** The ship class (`bulk_carrier_26k_dwt_ice_oil`),
+its seven efficiency measures, the fuels, the FAME plant and process, the fuel
+oil price, and every cost and emission Forecast the deck names.
+
+**What is GIVEN.** Every other number is the deck's own, given in the prompt as
+the person's numbers: the fleet of six ships and its ages, the route, the
+handling costs, the delivery distances, the FAME feedstock ceiling, and the CII
+and net-zero framework values. They are not sourced: compare runs of this deck
+with each other, not with the region's real totals.
+
+**Limits.** Six ships are a few ships, not a market segment: Navigate decides in
+fractions of ships. The net-zero framework uses the deck's own values, not the
+library's.
+
+**Tested:** 2026-10-30, built cold on Sonnet and on Haiku: both decks ran with
+the same 25 warnings as example_2 (2 unique, both expected) and reproduce its
+results: fuel oil only, 63.7 kt CO2e in 2026, 74.4 in 2035 and 119.9 in 2050.
+The plant then gained the library's cost of capital (it was financed at 0 %;
+no FAME is made, so nothing moves), and the wording was fixed from the
+builders' notes; built cold again on Haiku, it gives the same results.
+
+````text
+You are helping me build a simulation study for Navigate, the shipping
+decarbonisation model. Write the files yourself; do not only
+describe them.
+
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+Every number below is mine: use it as given and mark it GIVEN. The fleet is six
+ships on purpose. You should not need to invent anything: if you would have to,
+the prompt is missing it, so say so. Where this prompt and building-a-deck.md
+disagree, this prompt wins.
+
+THE DECK
+A new folder, simulations/user/south_pacific/, holding south_pacific.nav and its
+includes/ folder, one file per part below (bunker_logistics, fleet_curves, fleet,
+energy_efficiencies_curves, energy_efficiencies, route, ports, fuel_production,
+regions, producer, cii, net_zero_framework, decision_processes), included in
+that order from DEFINE.
+
+THE CASE
+A regional bulk trade in the South Pacific, 2026 to 2050, yearly steps, one run.
+- .nav DEFINE: Load DefaultModelDefinition first, then the includes, with
+  Load DefaultEmission after producer and Load DefaultPlot at the end. EVENTS:
+  Load DefaultTimeStepYearly. No DefaultBunkerLogistics, no DefaultRegulation, no
+  DefaultCalibration (decision_processes.inc holds the deck's own), no other
+  policy. You may add Load DefaultReport to read the results.
+
+FLEET
+- Copy Vessel "bulk_carrier_26k_dwt_ice_oil" to "bulk_carrier_handysize_oil".
+  No other design: the ships run on fuel oil or FAME in the same engine.
+- Fleet "bulk_carrier_handysize": that one vessel; InitialVessels = 6;
+  InitialSplit = [1.]; InitialAgeDistribution =
+  [Curve("age_dist_bulk_carrier_handysize_oil")], a list of one: ages 0 to 24, with 0.167 at ages 3, 11,
+  15, 16, 17 and 21, and 0 at every other age; TradeGrowth = 0.05;
+  AllowSpeedManagement = TRUE; MaximumSpeedChange = 0.5. No orderbook, no
+  set_fuel_conversion_cost.
+- Technologies, the library's seven for this class: air_lubrication,
+  exhaust_gas_boiler_ae, flettner_rotor, hull_painting, lighting_system,
+  propeller_improvement_devices and variable_frequency_drive, each named
+  <measure>_bulk_carrier_handy.
+- Initial technology shares, set_initial_technology_share("*", <technology>,
+  Curve), each a Curve "uptake_<technology>" flat from 0 to 30 (two rows):
+  exhaust_gas_boiler_ae 0.125, hull_painting 0.1, lighting_system 0.5,
+  propeller_improvement_devices 0.25, variable_frequency_drive 0.25. None for
+  air lubrication and the Flettner rotor.
+- Decision sensitivities: InterFuelSensitivity 0.5, IntraFuelSensitivity 0.5,
+  TechnologySensitivity 2.
+
+ROUTE
+- Vessel "bulk_carrier_handysize_oil" { Route = Route("pacific_trade") }.
+- Route "pacific_trade": REGIONAL_TRIP; Ports = Port("*"), which takes every
+  port of the deck in the order they are declared, so declare the five ports
+  in this order: australia, new_zealand, fiji, samoa, tonga;
+  PortCalls = [11, 9, 8, 4, 4]; TimeAtSea = 0.47;
+  Speeds = [13.0, 12.5, 12.0, 11.8, 12.2];
+  ConditionDistribution = [0.26, 0.21, 0.18, 0.17, 0.18]. No
+  CapacityUtilizations and no set_voyage_distribution: every port pair keeps
+  its equal share.
+
+PORTS
+- australia and new_zealand sell FAME (fatty_acid_methyl_ester); fiji, samoa
+  and tonga do not (set_bunkering_allowed FALSE).
+- Port "*": fossil_fuel_oil allowed everywhere; its bunker price set with
+  set_bunker_price_overwrite to Forecast("fossil_fuel_oil_price_global") and its
+  well-to-tank CO2 with set_bunker_wtt_overwrite to
+  Forecast("fossil_fuel_oil_wtt_carbon_dioxide"); handling cost 8 for fuel oil
+  and 18 for FAME, as Variables "handling_cost_oil" and "handling_cost_fame".
+
+BUNKER LOGISTICS
+- One BunkerLogistics block: LiquidMarketFuels = [Fuel("fossil_fuel_oil")];
+  set_distance europe to australia 11000 and europe to new_zealand 12200;
+  set_transport_cost("*", 0.01).
+
+FUEL PRODUCTION
+- Import Fuel fossil_fuel_oil and fatty_acid_methyl_ester; Import Plant
+  plant_fatty_acid_methyl_ester and set its Region to europe and its Source to
+  grid, and its CostOfCapital to Forecast cost_of_capital_plant_bio_europe.
+- Import Process fatty_acid_methyl_ester_synthesis; Import Feedstock
+  used_cooking_oil, methanol_grey and demineralized_water; Import Source grid.
+- Region "europe": set_source_opex("grid", Forecast("electricity_cost_europe_mid"))
+  and set_source_wtt("grid", "carbon_dioxide", Forecast("grid_emissions_europe")).
+- Region "*": set_transport_cost("truck", 0.0) and set_transport_wtt("truck",
+  "carbon_dioxide", Forecast("truck_emissions")); feedstock costs
+  demineralized_water_cost and used_cooking_oil_cost_europe; for
+  fatty_acid_methyl_ester_synthesis the process capex, opex and energy
+  Forecasts of the same names (fatty_acid_methyl_ester_synthesis_capex, _opex,
+  _energy), and its well-to-tank: carbon_dioxide =
+  <-Variable("carbon_dioxide_per_fame") + Forecast("fame_wtt_carbon_dioxide")>,
+  methane = fame_wtt_methane, nitrous_oxide = fame_wtt_nitrous_oxide. Then an
+  empty Transport "truck" { } node.
+- Producer "producer_fame": Plants = [plant_fatty_acid_methyl_ester];
+  MaximumDevelopment = 1; set_feed_constraint("used_cooking_oil",
+  Forecast("used_cooking_oil_constraint")), that Forecast being 2.80e4 in 2025,
+  3.30e4 in 2030, 3.70e4 in 2035, 3.90e4 in 2040, 4.10e4 in 2045, 4.20e4 in 2050
+  (dates "01-01-<year>"), Extrapolate = LINEAR. FuelDemandSensitivity 1.25,
+  FuelCostSensitivity 0.5.
+
+POLICY
+Both Regulations have Jurisdiction = the five ports and
+set_include_vessel("*", TRUE).
+- Regulation "cii": Measure TRANSPORT_NOMINAL, Scheme INDIVIDUAL, Scope TTW,
+  IncludeSlip FALSE, Emissions carbon_dioxide, Fuels all, RemedialCost = 0 (it
+  only tracks compliance). set_fuel_ttw carbon_dioxide: fossil_fuel_oil 3.114,
+  fatty_acid_methyl_ester 0.62. set_vessel_threshold("bulk_carrier_handy*",
+  Forecast("cii_target_bulk_carrier_handysize")). Forecast
+  "cii_target_reduction": 1.0 in 2019, then 0.99, 0.98, 0.97, 0.95, 0.93, 0.91,
+  0.89, 0.87, 0.85, 0.83 and 0.81 in 2030 (01-01 each year), Extrapolate FLAT.
+  Copy Forecast it to "cii_target_bulk_carrier_handysize" with Multiplier 7.08.
+- Regulation "net_zero_framework": Measure INTENSITY, Scheme FLEXIBLE, Scope WTW,
+  IncludeSlip TRUE, all emissions and fuels, RemedialCost =
+  Forecast("net_zero_framework_remedial"), SharedThreshold =
+  Forecast("net_zero_framework_z_values"). z values (Multiplier 93.3,
+  Extrapolate FLAT): 1.00 on 01-01-2025 and on 31-12-2027, then 0.96 (2028),
+  0.94 (2029), 0.92 (2030), 0.876 (2031), 0.832 (2032), 0.788 (2033), 0.744
+  (2034), 0.70 (2035), 0.35 (2040), 0.05 (2050), each on 01-01. Remedial cost
+  (Extrapolate FLAT): 0 on 01-01-2025 and on 31-12-2027, 380 from 01-01-2028.
+
+BEFORE YOU TELL ME IT WORKS
+Run the deck and report on it as building-a-deck.md says: the exit code, the
+warnings and errors from the Log summary, and any "convergence status: Failure".
+Then give, from the report, for 2026, 2035 and 2050: the well-to-wake emissions
+(kt CO2e) and the energy by fuel (PJ). Say plainly whether any FAME is
+bunkered, and remind me that the numbers are mine, not the library's.
+````
+<!-- /bank:south-pacific -->
+
+### Two fleets in the Baltic: what the owners' efficiency choices are worth
+<!-- bank:baltic-tankers -->
+
+**The study.** Product tankers in the Baltic, 2026 to 2050, owned by two groups
+of owners with the same ships on the same trades: mid-range tankers (47,000 DWT)
+between Helsinki, Stockholm and Gdansk, and coastal tankers (7,500 DWT) between
+Helsinki, Tallinn and Stockholm. The ships burn fuel oil or e-ammonia made in
+Europe, which only Helsinki and Stockholm sell. One group fits eight efficiency
+measures, the other none; both are under CII, a net-zero framework, the EU ETS
+and FuelEU. The question is how much the efficiency measures change their fuel
+and their emissions. This prompt rebuilds `simulations/examples/example_3`
+exactly. The "Two fleets, one market" variant of the copper trade asks the same
+question on one trade of your choice, with library numbers.
+
+**What comes from the library.** The two tanker classes (oil and ammonia
+designs), the eight efficiency measures, the fuels and the fuel oil price, the
+e-ammonia plant and its processes, Europe's electricity price, the EU ETS carbon
+price and phase-in, FuelEU's target and penalty, and the EU default emission
+factors.
+
+**What is GIVEN.** Everything else is example_3's own: the fleet sizes and ages,
+the routes, the ports' fuels and handling costs, the bunker delivery, the plant
+capacity, the CII and net-zero framework targets, and the decision
+sensitivities. The prompt gives them as the person's numbers, so the assistant
+uses them as they are and marks them GIVEN. They exist nowhere in the library:
+treat any result as the example's, not the Baltic's.
+
+**Limits.** A few ships per group (two mid-range and three coastal tankers each
+in 2026), so the results come in fractions of ships. Both tanker sizes fit the
+library's measures for a 35,000 DWT tanker.
+
+**Tested:** 2026-10-30, built cold on Sonnet and on Haiku: both decks ran with
+the same 48 warnings as example_3 (two unique, both expected) and reproduce it to
+the tonne, fleet by fleet. The plant then gained the library's cost of capital
+(it was financed at 0 %); built cold again on Haiku, the prompt reproduces the
+new deck to the tonne: 143,662 t CO2e in 2026, 144,697 t in 2035 and 117,990 t
+in 2050, when e-ammonia is 72 % of the energy burnt. In 2050 the efficient
+group emits 45 kt against 73 kt for the regular one.
+
+````text
+You are helping me build a simulation study for Navigate, the shipping
+decarbonisation model. Write the files yourself; do not only
+describe them.
+
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+THE DECK
+A new folder, simulations/user/baltic_tankers/, holding one deck,
+baltic_tankers.nav, with its files in includes/.
+
+THE CASE
+Product tankers in the Baltic, 2026 to 2050, yearly steps. Two groups of
+owners run the same ships on the same trades: one group fits eight efficiency
+measures, the other fits none. The question: how much do the efficiency
+measures change their fuel and their emissions?
+
+MY NUMBERS
+Every number in this prompt is mine: GIVEN. Use each one exactly as written,
+mark it GIVEN where it appears, and list them in the .nav header. The fleets are
+a few ships on purpose. You should not need to invent anything; if you would
+have to, the prompt is missing something: say what. Everything else comes from
+the library, by the names below.
+
+THE .NAV FILE
+DEFINE, in this order: Load DefaultModelDefinition; Include
+regular_fleet_curves.inc, regular_fleet.inc, efficient_fleet_curves.inc,
+efficient_fleet.inc, route.inc, ports.inc, bunker_logistics.inc,
+fuel_production.inc, regions.inc, producer.inc; Load DefaultEmission; Include
+cii.inc, eu_ets.inc, fuel_eu.inc, net_zero_framework.inc,
+decision_processes.inc; Load DefaultPlot. EVENTS: Load DefaultTimeStepYearly.
+Load no other module (no DefaultRegulation, DefaultBunkerLogistics,
+DefaultCalibration or DefaultConverterAvailable). For the numbers below you may
+add Load DefaultReport and a Report node of your own in includes/report.inc,
+included last: they change no result.
+
+FLEETS
+Four Fleet nodes that you declare yourself; do not Import or Copy the library's
+Fleet files (so no fuel conversion costs and no initial technology shares).
+Vessels are Copy Vessel of the library's:
+- tanker_47k_dwt_ice_oil to mid_range_regular_oil and mid_range_efficient_oil
+- tanker_47k_dwt_ice_ammonia to mid_range_regular_ammonia and
+  mid_range_efficient_ammonia
+- tanker_7500_dwt_ice_oil to coastal_regular_oil and coastal_efficient_oil
+- tanker_7500_dwt_ice_ammonia to coastal_regular_ammonia and
+  coastal_efficient_ammonia
+
+| Fleet | Vessels | InitialVessels | InitialSplit | InitialAgeDistribution |
+|---|---|---|---|---|
+| mid_range_regular | mid_range_regular_oil, _ammonia | 2 | [0.5, 0.5] | Curve age_dist_mid_range_regular_oil, Curve age_dist_mid_range_regular_ammonia |
+| coastal_regular | coastal_regular_oil, _ammonia | 3 | [1.0, 0.0] | Curve age_dist_coastal_regular_oil, 0 |
+| mid_range_efficient | mid_range_efficient_oil, _ammonia | 2 | [0.5, 0.5] | Curve age_dist_mid_range_efficient_oil, Curve age_dist_mid_range_efficient_ammonia |
+| coastal_efficient | coastal_efficient_oil, _ammonia | 3 | [1.0, 0.0] | Curve age_dist_coastal_efficient_oil, 0 |
+
+- All four: TradeGrowth = 0.05.
+- The two regular fleets also: AllowTechnologyApproximation = FALSE. The
+  efficient fleets do not set it.
+- Age curves, in <fleet>_curves.inc, each a Table of ages 0 to 24 with 0 at
+  every age not named: the mid_range ..._oil curves 1 at age 16; the mid_range
+  ..._ammonia curves 1 at age 0; the coastal ..._oil curves 0.333 at ages 6, 9
+  and 14. The regular and efficient files are the same apart from the names.
+- In efficient_fleet.inc, after the two fleets, one block Fleet "*_efficient"
+  with Technologies = the library's air_lubrication_tanker_35k_dwt,
+  cargo_systems_tanker_35k_dwt, exhaust_gas_boiler_ae_tanker_35k_dwt,
+  flettner_rotor_tanker_35k_dwt, hull_painting_tanker_35k_dwt,
+  lighting_system_tanker_35k_dwt, propeller_improvement_devices_tanker_35k_dwt,
+  variable_frequency_drive_tanker_35k_dwt (as Technology("...")). The regular
+  fleets have no Technologies.
+
+ROUTES (route.inc)
+Vessel "mid_range_*" takes Route("mid_range_route"); Vessel "coastal_*" takes
+Route("coastal_route"). Both are REGIONAL_TRIP:
+- mid_range_route: Ports helsinki, stockholm, gdansk; PortCalls [12, 10, 14];
+  TimeAtSea 0.55; Speeds [12.8, 13.0, 12.5]; ConditionDistribution
+  [0.34, 0.28, 0.38]
+- coastal_route: Ports helsinki, tallinn, stockholm; PortCalls [14, 12, 10];
+  TimeAtSea 0.40; Speeds [11.5, 11.0, 11.2]; ConditionDistribution
+  [0.40, 0.30, 0.30]
+No set_voyage_distribution: the work is split equally between port pairs.
+
+PORTS (ports.inc)
+Declare Port helsinki, stockholm, tallinn and gdansk. ammonia_electro may be
+bunkered at helsinki and stockholm, not at tallinn and gdansk. Then a Port "*"
+block: fossil_fuel_oil may be bunkered everywhere, its bunker price overwritten
+by Forecast fossil_fuel_oil_price_global and its carbon_dioxide well-to-tank by
+Forecast fossil_fuel_oil_wtt_carbon_dioxide (set_bunker_price_overwrite,
+set_bunker_wtt_overwrite); handling cost Variable handling_cost_oil = 8 for
+fossil_fuel_oil and Variable handling_cost_ammonia = 25 for ammonia_electro.
+
+BUNKER LOGISTICS (bunker_logistics.inc)
+LiquidMarketFuels = fossil_fuel_oil; set_distance("*", "*", 1000);
+set_transport_cost("*", 0.1).
+
+FUEL (fuel_production.inc, regions.inc, producer.inc)
+- Import Fuel fossil_fuel_oil and ammonia_electro; Import Plant
+  plant_ammonia_electro_alkaline, then a Plant block for it with
+  Region = Region("europe"), Source = Source("renewable") and CostOfCapital =
+  Forecast("cost_of_capital_plant_electro_europe"). Import Process electrolysis_stack_alkaline,
+  ammonia_synthesis_electro_alkaline, hydrogen_electro_alkaline and
+  nitrogen_air_separation; Import Feedstock demineralized_water; Import Source
+  renewable.
+- Region "europe", declared (not imported), with exactly these lines:
+  feedstock cost of demineralized_water = Forecast demineralized_water_cost;
+  source opex of renewable = Forecast electricity_cost_europe_mid; for
+  electrolysis_stack_alkaline and for hydrogen_electro_alkaline, process capex
+  and opex = Timetables <process>_capex and <process>_opex, and process energy,
+  lifetime and replacement = Forecasts <process>_energy, _lifetime and
+  _replacement; for "ammonia_synthesis_electro_*", process capex and opex =
+  Timetables ammonia_synthesis_capex and ammonia_synthesis_opex, and process
+  energy = Forecast ammonia_synthesis_energy.
+- Producer epc_europe: Plants = plant_ammonia_electro_alkaline,
+  InitialCapacity = [108], MaximumDevelopment = 1. No feedstock limits.
+
+POLICY
+All four regulations: Fuels all, Jurisdiction [helsinki, stockholm, gdansk,
+tallinn], set_include_vessel("*", TRUE).
+- cii.inc, Regulation cii: Measure TRANSPORT_NOMINAL, Scheme INDIVIDUAL, Scope
+  TTW, IncludeSlip FALSE, Emissions carbon_dioxide, RemedialCost 0; fuel TTW
+  carbon_dioxide 3.114 for fossil_fuel_oil and 0.054 for ammonia_electro;
+  vessel threshold Forecast cii_target_coastal for "coastal_*" and
+  cii_target_mid_range for "mid_range_*". Forecast cii_target_reduction:
+  2019 1.0, 2020 0.99, 2021 0.98, 2022 0.97, 2023 0.95, 2024 0.93, 2025 0.91,
+  2026 0.89, 2027 0.87, 2028 0.85, 2029 0.83, 2030 0.81 (each on 01-01),
+  Extrapolate FLAT. Copy Forecast it to cii_target_coastal (Multiplier 22.71)
+  and to cii_target_mid_range (Multiplier 7.41).
+- eu_ets.inc, Regulation eu_ets, declared (not the library's): Measure ABSOLUTE,
+  Scheme INDIVIDUAL, Scope TTW, IncludeSlip FALSE, Emissions carbon_dioxide,
+  methane, nitrous_oxide; IntraFraction 1, InterFraction 0.5, ExtraFraction 0;
+  RemedialCost = Forecast eu_ets_carbon_credit_price x Forecast
+  eu_ets_maritime_phase_in; vessel threshold 0 for "*"; global warming
+  potentials 1, 28, 265. Fuel TTW: fossil_fuel_oil carbon_dioxide = Variable
+  eu_default_diesel_carbon_dioxide; for both fossil_fuel_oil and
+  ammonia_electro, methane = Variable eu_default_diesel_ice_methane x Forecast
+  eu_ets_ghg_phase_in and nitrous_oxide = Variable
+  eu_default_diesel_ice_nitrous_oxide x Forecast eu_ets_ghg_phase_in;
+  ammonia_electro carbon_dioxide 0.
+- fuel_eu.inc, Regulation fuel_eu, declared (not the library's): Measure
+  INTENSITY, Scheme FLEXIBLE, Scope WTW, IncludeSlip FALSE, Emissions
+  carbon_dioxide, methane, nitrous_oxide; IntraFraction 1, InterFraction 0.5,
+  ExtraFraction 0; RemedialCost = Variable fuel_eu_remedial_cost;
+  SharedThreshold = Forecast fuel_eu_target_reduction; global warming
+  potentials 1, 25, 298. fossil_fuel_oil: well-to-tank "*" set to 0, then
+  carbon_dioxide = Variable fuel_eu_default_wtt_fossil_fuel_oil; TTW
+  carbon_dioxide, methane, nitrous_oxide = Variables
+  eu_default_diesel_carbon_dioxide, eu_default_diesel_ice_methane,
+  eu_default_diesel_ice_nitrous_oxide. ammonia_electro: TTW carbon_dioxide 0,
+  methane and nitrous_oxide the same two Variables.
+- net_zero_framework.inc, Regulation net_zero_framework: Measure INTENSITY,
+  Scheme FLEXIBLE, Scope WTW, IncludeSlip TRUE, Emissions all; RemedialCost =
+  Forecast net_zero_framework_remedial; SharedThreshold = Forecast
+  net_zero_framework_z_values. Forecast net_zero_framework_z_values, Multiplier
+  93.3, Extrapolate FLAT: 01-01-2025 1.00, 31-12-2027 1.00, 01-01-2028 0.96,
+  01-01-2029 0.94, 01-01-2030 0.92, 01-01-2031 0.876, 01-01-2032 0.832,
+  01-01-2033 0.788, 01-01-2034 0.744, 01-01-2035 0.70, 01-01-2040 0.35,
+  01-01-2050 0.05. Forecast net_zero_framework_remedial, Extrapolate FLAT:
+  01-01-2025 0, 31-12-2027 0, 01-01-2028 1000.
+
+DECISIONS (decision_processes.inc)
+Fleet "*": InterFuelSensitivity 0.5, IntraFuelSensitivity 0.5,
+TechnologySensitivity 2. Producer epc_europe: FuelDemandSensitivity 1.25,
+FuelCostSensitivity 0.5.
+
+BEFORE YOU TELL ME IT WORKS
+Run the deck and report on it as building-a-deck.md says: exit code, and the
+warnings and errors from the Log summary. Then give me, for 2026, 2035 and 2050:
+- well-to-wake emissions (TotalEquivalentWTW) of each of the four fleets, of
+  each group of owners (regular, efficient) and of all four together;
+- the energy consumed by fuel, all fleets together;
+- the ships of each vessel in 2050.
+Say plainly what the efficiency measures changed, for the mid-range and for the
+coastal tankers.
+````
+<!-- /bank:baltic-tankers -->
 
 ### Caribbean shipping under global and EU rules
+<!-- bank:caribbean -->
 
 **A region's own ships, and rules that do not reach them yet.** 330 domestic and intra-Caribbean ships (tugs, ferries, general cargo ships and small tankers), nearly all under 5,000 GT, and 40 container feeders on a Miami - Jamaica - Trinidad - Martinique loop, 2026 to 2050. New fuels are made in Trinidad, on the US Gulf Coast or in Chile, and shipped in. Three decks: no policy; today's rules, a global fuel standard as drafted at the IMO plus the EU ETS and FuelEU with Martinique as the EU port, which cover the feeders only; and the same rules extended to the regional ships. The question is how the region's own ships are affected, today and if the rules reached them.
 
@@ -663,96 +1443,10 @@ not calibrated: give its fuel burnt in 2026 next to the 309 kt CARES reports,
 so the differences between the decks matter, not the totals. Remind me which
 inputs are INVENTED.
 ````
-
-### EU short-sea feeders: what EU ETS and FuelEU make the owners do
-
-**Variant of "Session 1's copper trade" above.** Container feeder ships between Rotterdam
-and Gothenburg, 2026 to 2050, run twice: without policy, and under EU ETS and
-FuelEU Maritime at their library settings. Both ports are in the EU, so both
-instruments cover the whole voyage. The question is how the owners comply (which
-fuels, which ships) and what compliance costs them.
-
-**Build it from the full prompt of "Session 1's copper trade", with these differences:**
-- Folder `simulations/user/eu_feeder/`, two decks that differ in one Include
-  line: `no_policy.nav`, and `eu_policy.nav` with `includes/eu_policy.inc`.
-- Fleet: the library's 1,500 TEU container class, with its own split of designs,
-  age profile and fuel-conversion costs; 80 ships (INVENTED). All four designs
-  can be ordered; leave the orderbook out.
-- Route: Rotterdam to Gothenburg, 520 nm each way (INVENTED), speeds and time in
-  port from the class's operational profile.
-- Fuels: fuel oil and LNG at their library prices; FAME, bio-methanol, e-methanol
-  and e-ammonia, all made in Europe.
-- Policy: `eu_policy.inc` imports the library's `eu_ets` and `fuel_eu` (not
-  example_4's versions) with the two ports as their Jurisdiction. Do not load
-  DefaultRegulation: it also brings CII.
-- Bunker logistics: 300 nm from the European plants to each port, 0.03 USD per
-  ton per nm (INVENTED). Feedstock: 0.001 of the shipping share of used cooking
-  oil, biomass and biogenic CO2 (INVENTED).
-- Report, side by side: the energy by fuel in 2026, 2030, 2040 and 2050; WTW in
-  2026 and 2050 and summed; the ships of each design in 2050 and the conversions;
-  each regulation's cost in 2030 and 2050. Say how the owners comply: other
-  fuel, new or converted ships, or mostly paying.
-
-**Limits.** FuelEU pooling between companies and the ETS's free allowances are
-not in Navigate.
-
-**Tested:** 2026-10-19, built cold and through Session 5's start-up prompt from a
-different case (Antwerp to Helsinki). Both builds found the owners mostly pay
-until the mid-2030s, then comply through new methanol and ammonia ships: WTW over
-2026-2050 falls by 34 to 41 %. A larger feedstock share lets a small fleet live
-on Europe's biomass. the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28: not yet built from the variant.
-
-### Green finance: do cheaper loans bring zero-emission ships forward?
-
-**Variant of "Session 1's copper trade" above.** Panamax bulk carriers carrying iron ore from Tubarão (Brazil) to
-Rotterdam, 2026 to 2050, under EU ETS and FuelEU Maritime as the library sets
-them. The voyage leaves the EU, so both cover half of it. Two runs: the library's
-cost of capital, and a green-finance case where ammonia and methanol ships borrow
-two percentage points cheaper. The question is whether cheaper finance alone
-changes when, and how many, such ships are ordered.
-
-**Build it from the full prompt of "Session 1's copper trade", with these differences:**
-- Folder `simulations/user/green_finance/`, two decks that differ in one
-  Include line only: `reference.nav`, and `green_finance.nav` with
-  `includes/green_finance.inc`.
-- Trade: Tubarão (Brazil) to Rotterdam, iron ore, laden out and in ballast back,
-  5,000 nm each way (INVENTED). Fleet: 150 ships (INVENTED) of the same 80,000 DWT
-  class, all four designs orderable, no orderbook.
-- Fuels: fuel oil and LNG at their library prices; e-ammonia and e-methanol
-  made in the Americas only (no European plants, no bio-methanol). Bunker
-  logistics: 500 nm from the plants to tubarao and 5,000 nm to rotterdam,
-  0.02 USD per ton per nm; no port handling costs (INVENTED). Feedstock: 0.002 of
-  the library's shipping share of biogenic CO2, on the library's own growing pool
-  (INVENTED).
-- Policy, in both decks: the library's EU ETS and FuelEU (Import Regulation
-  "eu_ets" and "fuel_eu"), with rotterdam as their only port. Do not load
-  DefaultRegulation: it also brings CII.
-- `green_finance.inc` sets the CostOfCapital of the ammonia and methanol ships to
-  their library value minus 0.02 (INVENTED: two percentage points), as an
-  expression of the library's Forecast or Variable and a placeholder Variable.
-  Set the Fleet's `TechnologyCostOfCapital = Variable("cost_of_capital_vessel")`
-  in both decks, or the discount reaches the efficiency technology too.
-- Keep the INVENTED values in `includes/placeholders.inc` (plain numbers in their
-  own files, listed there as comments), and list them in both .nav headers.
-- Report, instead of the template's comparison, side by side: the newbuilds of
-  each design per year and the ships of each design in 2035 and 2050; the share
-  of energy by fuel in 2026, 2035 and 2050; the well-to-wake emissions summed over
-  2026-2050; the investment freight rate of each design in 2030 and 2045. Say
-  plainly what the cheaper finance changed, and whether the new ships burn the
-  fuel they were built for.
-
-**Limits.** Navigate prices finance through the cost of capital only: no
-guarantees, grants or loan terms.
-
-**Tested:** 2026-10-19. The final prompt passed every check above on the first
-attempt, built cold and also through Session 5's start-up prompt from a different
-case (US Gulf grain to Rotterdam, 1.5 points). Both builds found that cheaper
-loans add a few ammonia and methanol ships (about 6 to 10 by 2050) but bring
-nothing forward, and cut emissions by 1 to 2 %: the gap is the fuel's cost, not
-the ship's finance. Treat that as a property of the placeholders.
-2026-10-26, as the model a start-up prompt chose for a different case (Tubarão to Qingdao, no regulation): the chain built and ran cold with no warnings. Cheaper finance brought about 7 more ammonia and 7 more methanol ships by 2050, all burning pilot oil: without a policy, finance alone moves the orders, not the fuel. the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28.
+<!-- /bank:caribbean -->
 
 ### Session 2's reference scenario: the world fleet from the library's modules
+<!-- bank:world-fleet -->
 
 **The global case of Session 2, rebuilt from scratch.** The whole international fleet, as the data library describes it, from 2026 to 2050 on Session 2's coarse grid, under EU ETS, FuelEU and a moderate global fuel standard: the `workshop_basecase_mid_regulation` scenario.
 
@@ -909,8 +1603,10 @@ For comparison, the workshop's own deck for this case gives about 1,190 Mt in
 oil, blue ammonia and bio-methane the three biggest fuels. Say how close you
 are, and if you are far off, what in your deck could explain it.
 ````
+<!-- /bank:world-fleet -->
 
 ### A global study: the cost of waiting
+<!-- bank:cost-of-waiting -->
 
 **Variant of "Session 2's reference scenario" above.** The mid-regulation reference scenario includes a global fuel standard (`gfs`): a well-to-wake intensity limit that every ship is held to worldwide, tightening from 2028 to 2050. What if it started five years late, but kept the same 2050 target? No deck to build from scratch here: the scenario is run twice, as it is and with every date before 2050 moved later, on the coarse time grid of [Session 2](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-global-case.ipynb) so each run takes a few minutes. The answer is one number worth remembering: the extra megatonnes of CO2e a delay costs, and whether the delayed run catches up by 2050. The change goes in a copy of the regulation file, so the reference scenario itself stays untouched.
 
@@ -954,8 +1650,10 @@ the model the start-up prompt chose for a later and stricter standard, built
 cold on two processes: both ran clean first time. Built from this variant on
 Haiku the same day, with a five-year delay: clean first time, 1,559 Mt CO2e
 extra (+6.1 %). the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28.
+<!-- /bank:cost-of-waiting -->
 
 ### The world fleet, simplified: the global picture at a size you can iterate on
+<!-- bank:world-simplified -->
 
 **Variant of "Session 2's reference scenario" above.** No geography here: the Center's reference scenarios model twenty-three vessel classes on the library's own global operating profiles, and the only "places" are two abstract ports that exist so the EU measures know what they cover. This prompt keeps two or three classes of your choice, imported whole from the library with their own fleets, orderbooks and technologies, against the library's full fuel-supply chain in five regions and under EU ETS and FuelEU. Expect several minutes per run.
 
@@ -985,94 +1683,4 @@ global fuel standard.
 **Tested:** as Session 5's fourth example (added 2026-09-25): built cold, it ran
 without errors on the first attempt, but was not checked against the criteria
 above. Moved here from Session 5 on 2026-10-26; the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28.
-
-### Coastal shipping in Norway: two ship classes under a national CO2 tax
-
-**Variant of "Inland waterways in Germany" above**, with seagoing library
-classes instead of a resized vessel, and two classes on one trade. Coastal cargo
-ships and ferries between Bergen and Tromsø, 2026 to 2050, owned by many
-companies, run twice: without policy, and with Norway's CO2 tax on domestic
-shipping. The question is whether the tax moves the owners to biofuels in the
-ships they have, or to new ships.
-
-**Build it from the full prompt of "Inland waterways in Germany", with these differences:**
-- Folder `simulations/user/norway_coastal/`, two decks: `reference.nav` and
-  `co2_tax.nav` (with `includes/co2_tax.inc`).
-- Fleets: two Fleet nodes with Copy Vessel, nearly all on fuel oil at the start:
-  100 general cargo ships and 50 ferries (INVENTED), each with its library split
-  of designs, age profile and TradeGrowth. Designs oil, LNG and methanol for
-  both; leave out the general cargo ammonia design (and its split and age
-  entries; its initial share is 0). Neither class has
-  `set_fuel_conversion_cost` lines, so no ship can be converted: say so rather
-  than invent costs. Keep AllowSpeedManagement as the library sets it (FALSE for
-  ferries, TRUE for general cargo). Leave the orderbooks out.
-- Route: one ROUND_TRIP between bergen and tromso, 650 nm each way (INVENTED),
-  cargo both ways, with one Route node per class: ferries at 14 kn, 0.75 full,
-  0.5 x 365 / 50 = 3.65 days per call; general cargo at 11.2 kn, 0.5 full,
-  0.452 x 365 / 20 = 8.25 days per call (from each operational profile).
-- Fuels: fuel oil and LNG at their library prices; FAME, bio-methane,
-  bio-methanol and e-methanol, all made in Europe.
-- Policy: `co2_tax.inc` copies the library's `eu_ets` to `co2_tax_norway`, with
-  the two ports as Jurisdiction and the tax as RemedialCost: 100 USD/t CO2 in
-  2026, rising linearly to 200 in 2030, then flat (INVENTED). Import the fuels it
-  names that the case does not use (e-diesel, e-methane, blue and e-ammonia), in
-  both decks. Give the price Forecast a name of its own. No DefaultRegulation.
-- Bunker logistics: 300 nm from the European plants to bergen and 800 nm to
-  tromso, 0.03 USD per ton per nm (INVENTED). Feedstock: 0.0004 of the shipping
-  share of used cooking oil, biogas, gasifiable biomass and biogenic CO2
-  (INVENTED).
-- A Report per fleet (ConsumedEnergy by fuel, ExistingVessels per vessel,
-  TotalEquivalentWTW, RegulationExpenses), and the tax's own remedial,
-  flexibility and surplus lines in `co2_tax.inc`. Report each fleet and both
-  together; say whether new methanol ships burn methanol or their pilot oil.
-
-**Limits.** The ships and their operating patterns are the library's world
-averages for the class, not Norwegian coastal vessels. The library has no
-battery-electric ships, which much of Norway's ferry fleet is moving to.
-
-**Tested:** 2026-10-26, written by Session 5's start-up prompt from a short case
-(it took inland Germany as the model), then built cold: both decks ran with no
-warnings. Biofuels need roughly 440 USD/t; at 200 USD/t the owners pay the tax,
-order slightly more LNG ships, and the cargo ships slow down, which gives most
-of the 4.5 % cut in emissions. the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28: not yet built from the variant.
-
-### LNG carriers from Qatar to Japan: which fuel wins on cost alone
-
-**Variant of "Session 1's copper trade" above**, the gas-carrier counterpart of
-"One trade, two ports": its fleet already burns LNG at the start. LNG carriers from Ras Laffan to Futtsu (Tokyo
-Bay), 2026 to 2050, owned by many companies, with no regulation: every fuel
-choice is made on cost alone, with fuels made in the Middle East. The question
-is which fuel wins by 2050.
-
-**Build it from the full prompt of "Session 1's copper trade", with these differences:**
-- Folder `simulations/user/gulf_japan_lng/`, one deck.
-- Fleet: the library's `gas_carrier_100k_cbm` class as it is (do not resize it
-  to a 174,000 m3 carrier), its four designs orderable; 100 ships (INVENTED:
-  about 4 % of the library's 2,553), with the library's InitialSplit and age
-  profile (about two thirds LNG, one third oil). Leave the orderbook out. The
-  class has no `set_fuel_conversion_cost` lines: say so.
-- Route: Ras Laffan to Futtsu via the Strait of Malacca, 6,500 nm each way
-  (INVENTED), 16.6 kn both ways, 1.0 full out and empty home,
-  (1 - 0.684) x 365 / 30 = 3.8 days per call (from the operational profile).
-- Fuels: fuel oil and LNG as global commodities; bio-methane, e-methane, blue
-  ammonia, e-ammonia and e-methanol from the library's `middle_east` plants,
-  with Source "grid" for bio and blue, "renewable" for electro, and the
-  `cost_of_capital_plant_*_middle_east` forecasts.
-- No regulation: no DefaultRegulation, no Regulation or Levy. No
-  DefaultConverterAvailable: every design is orderable from year one.
-- Leave the energy-efficiency technologies out.
-- Bunker logistics: 200 nm from the plants to ras_laffan and 6,500 nm to futtsu,
-  0.02 USD per ton per nm (INVENTED). Feedstock: 0.006 of the shipping share of
-  biogenic CO2 and biogas (INVENTED).
-- Add a Report with `add_plant_property("*", InvestmentIntensityCost)`, and give
-  each unburnt fuel's 2050 cost per GJ next to the bunker price of LNG.
-
-**Limits.** The library's gas carrier is a 100,000 m3 ship, not a 174,000 m3 LNG
-carrier, and Navigate has no boil-off gas: the ships buy LNG at the port like any
-fuel.
-
-**Tested:** 2026-10-26, written by Session 5's start-up prompt from a short case,
-then built cold: it ran with no warnings. Nothing switched: the cheapest
-alternative, blue ammonia, costs about 2.6 times LNG in 2050. Methanol and
-ammonia ships are still ordered and burn only their pilot oil, so read the switch
-from ConsumedEnergy, not ship counts. the full prompt that passed is in the repository's history, commit `02d96755`. Folded into a variant on 2026-10-28: not yet built from the variant.
+<!-- /bank:world-simplified -->

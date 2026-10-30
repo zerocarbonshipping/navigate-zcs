@@ -22,7 +22,10 @@ Five sessions, each a notebook, in this order:
 5. `05-build-your-own-case.ipynb`: building a case with an AI assistant, step by step
    (local install only)
 
-`_style.py` holds the shared figure style. `index.md` is the overview page. The
+`_style.py` holds the shared figure style. `_results.py` holds Session 1's results
+figure (emissions, freight rate, fuel consumed) as functions, which the Examples
+pages and their explore notebooks use; Sessions 1, 2 and 4 still define their own
+copies. `index.md` is the overview page. The
 decks the sessions run are in `simulations/examples/example_4/` and
 `simulations/scenarios/workshop_whatif/`; the maps and schematics are drawn by the
 scripts in `docs/_figures/`.
@@ -73,7 +76,9 @@ authors ask for that specific change, and then as a commit of its own.
 Every assumption comes from `assumptions/`, referenced by name. The example decks
 teach structure, never numbers: some of their values exist nowhere in the library.
 A number the library lacks is marked INVENTED, with what it was derived from, and
-listed in the `.nav` header.
+listed in the `.nav` header. A number the person gives in a prompt is used as
+given and marked GIVEN (`building-a-deck.md` says how): the prompts that rebuild
+examples 1 to 3 give those decks' own numbers that way.
 
 ## Figures
 
@@ -108,9 +113,11 @@ listed in the `.nav` header.
 ## Prompts
 
 Session 5 teaches the process in seven steps, worked on Session 1's case, and
-shows a global and a regional case as cards. `prompt-bank.md`, not on the site,
-holds every full prompt and every variant, grouped by family, so that assistants
-start from the closest one. The start-up prompt has the assistant propose the
+shows a regional and a global case as cards. `prompt-bank.md`, not a page of the
+site, holds every full prompt and every variant, grouped by family, so that
+assistants start from the closest one. The Examples pages (`docs/examples/`)
+show each entry by including it from the `<!-- bank:<slug> -->` markers around
+it: keep the markers, and give a new entry its own pair. The start-up prompt has the assistant propose the
 family and the model, show a one-page case sheet for approval, and build from
 the case sheet and the model's full prompt. This process was chosen on
 2026-10-28 over writing a full prompt for approval: in six cold builds it was as
