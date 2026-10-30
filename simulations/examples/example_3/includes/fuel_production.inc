@@ -32,6 +32,8 @@ Import Plant "plant_ammonia_electro_alkaline"
 Plant "plant_ammonia_electro_alkaline" {
     Region = Region("europe")
     Source = Source("renewable")  # stand-alone renewable electricity production
+    # as default_plant.inc sets it for an e-fuel plant in Europe; without it, 0 %
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_europe")
 }
 
 # Production processes for electro-ammonia (Haber-Bosch + supporting steps)

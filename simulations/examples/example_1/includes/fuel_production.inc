@@ -26,6 +26,8 @@ Import Plant "plant_methanol_bio_gasification"
 Plant "plant_methanol_bio_gasification" {
     Region = Region("europe")
     Source = Source("grid")
+    # as default_plant.inc sets it for a bio plant in Europe; without it, 0 %
+    CostOfCapital = Forecast("cost_of_capital_plant_bio_europe")
 
     Capacity = Forecast("methanol_bio_gasification_plant_capacity")
 }

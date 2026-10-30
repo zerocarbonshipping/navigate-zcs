@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# RHINE INLAND DRY CARGO, Duisburg - Mannheim, 2026-2050, yearly steps.
+# REFERENCE deck: no policy. EU ETS and FuelEU Maritime do not cover inland
+# waterways, so DefaultRegulation is not loaded. example_6_co2_price.nav differs from this
+# deck in one Include line only.
+#
+# Ships: built from the library's general cargo vessels (general_cargo_ice_oil,
+# _ice_methane, _ice_methanol) and resized for the Rhine. The fuel-system and tank
+# costs are a seagoing ship's. No ammonia ships. No fuel conversion.
+# AllowSpeedManagement is FALSE: the waterway sets the speed.
+# DefaultConverterAvailable is not loaded (it needs the library's 23 fleets), so
+# every vessel type is orderable from year one rather than phased in.
+#
+# INVENTED placeholders (Variables/Curves/Forecasts in includes/placeholders.inc;
+# plain numbers in includes/route.inc and includes/bunker_logistics.inc):
+#   - 300 ships in 2026, aged evenly 0-39 years
+#   - 3,000 t capacity, 40-year lifetime, 6 M USD hull newbuild price, 1.5 MW propulsion
+#   - propulsion power vs speed: 4 kn 0.25, 6 kn 0.6, 8 kn 1.1, 9 kn 1.45 MW
+#   - auxiliary 0.1 MW at sea, 0.05 MW in port, 0.2 MW generators
+#   - route distances 50/52/51/40/193 nm, speeds 7 kn up and 8 kn back,
+#     1 day in port, loads 1.0/0.75/0.5/0.25/0
+#   - bunker logistics: 400 nm to duisburg and mannheim, 0.03 USD/t/nm
+#   - CO2 price 65 USD/t (2026) to 150 USD/t (2050)   [co2_price.nav only]
+# GIVEN by the prompt: feedstock shares 0.02 (used cooking oil), 0.02 (biogenic CO2).
+# Also a deck choice: producers deliver 50/50 to duisburg and mannheim.
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	Include "includes/placeholders.inc"
+
+	# ---- fleet and route ----
+	Include "includes/fleet.inc"
+	Include "includes/route.inc"
+	Include "includes/ports.inc"
+	Include "includes/bunker_logistics.inc"
+
+	# ---- fuel ----
+	Include "includes/fuel_production.inc"
+	Include "includes/regions.inc"
+	Include "includes/producer.inc"
+	Load DefaultEmission
+
+	# ---- policy: none ----
+
+	# ---- decision processes ----
+	Load DefaultCalibration
+
+	# ---- export ----
+	Include "includes/report.inc"
+	Load DefaultReport
+	Load DefaultPlot
+}
+
+EVENTS {
+	Load DefaultTimeStepYearly
+}

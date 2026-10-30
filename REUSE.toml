@@ -42,3 +42,10 @@ SPDX-License-Identifier = "CC-BY-4.0"
 path = "docs/workshop/*.ipynb"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "CC-BY-4.0"
+
+# Examples pages: explore notebooks and results figures.
+[[annotations]]
+path = ["docs/examples/*.ipynb", "docs/examples/figures/*.png",
+        "simulations/examples/*/explore.ipynb"]
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "CC-BY-4.0"

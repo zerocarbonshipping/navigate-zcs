@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# EXAMPLE 5 - Caribbean shipping with no climate policy: the reference the
+# other two decks are compared with.
+# Sources and invented values: README.md.
+
+DEFINE {
+    Load DefaultModelDefinition
+
+    Include "includes/fleet.inc"
+    Include "includes/route.inc"
+    Include "includes/ports.inc"
+    Include "includes/bunker_logistics.inc"
+
+    Include "includes/fuel_production.inc"
+    Include "includes/regions.inc"
+    Include "includes/producer.inc"
+    Load DefaultEmission
+
+
+    Load DefaultCalibration
+    Include "includes/report.inc"
+    Load DefaultPlot
+}
+
+EVENTS {
+    Include "includes/converter_available.inc"
+    Load DefaultTimeStepYearly
+}

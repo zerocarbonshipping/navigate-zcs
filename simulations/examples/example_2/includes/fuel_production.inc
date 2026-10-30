@@ -27,6 +27,8 @@ Import Plant "plant_fatty_acid_methyl_ester"
 Plant "plant_fatty_acid_methyl_ester" {
     Region = Region("europe")
     Source = Source("grid")
+    # as default_plant.inc sets it for FAME in Europe; without it, 0 %
+    CostOfCapital = Forecast("cost_of_capital_plant_bio_europe")
 }
 
 # FAME synthesis process using multiple feedstocks

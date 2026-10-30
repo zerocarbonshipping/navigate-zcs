@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# EXAMPLE 5 - Caribbean shipping with the rules extended to the regional fleet.
+# The same three policies as example_5_current_rules.nav, now covering the
+# regional ships too, as a regional adoption of the global fuel standard or the
+# EU ETS review's proposal to bring ships of 400-5,000 GT in would.
+# Sources and invented values: README.md.
+
+DEFINE {
+    Load DefaultModelDefinition
+
+    Include "includes/fleet.inc"
+    Include "includes/route.inc"
+    Include "includes/ports.inc"
+    Include "includes/bunker_logistics.inc"
+
+    Include "includes/fuel_production.inc"
+    Include "includes/regions.inc"
+    Include "includes/producer.inc"
+    Load DefaultEmission
+
+    Include "includes/policy_gfs.inc"
+    Include "includes/policy_eu.inc"
+    Include "includes/extend_to_regional.inc"
+
+    Load DefaultCalibration
+    Include "includes/report.inc"
+    Load DefaultPlot
+}
+
+EVENTS {
+    Include "includes/converter_available.inc"
+    Load DefaultTimeStepYearly
+}
