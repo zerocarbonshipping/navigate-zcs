@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Protocol
 
 import numpy as np
 
-from navigate.core.bounds import exclusive_bound_message
+from navigate.core._bounds import Bounds
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expression import Expression
 from navigate.core.node import Node
@@ -122,16 +122,10 @@ def assign_integer(
         The value that was passed, as an int, so a setter assigns what it
         validated.
     """
-    inclusive_lower, inclusive_upper = _inclusive_flags(
+    bounds = _resolve_bounds(
         lower, upper, inclusive_lower, inclusive_upper, allow_infinite=False
     )
-    _check_scalar(
-        assignment,
-        lower=lower,
-        upper=upper,
-        inclusive_lower=inclusive_lower,
-        inclusive_upper=inclusive_upper,
-    )
+    _check_scalar(assignment, bounds)
 
     value = round(assignment)
 
@@ -189,7 +183,7 @@ def assign_value[T: Assignment](
     Assignment
         The value that was passed, so a setter assigns what it validated.
     """
-    inclusive_lower, inclusive_upper = _inclusive_flags(
+    bounds = _resolve_bounds(
         lower, upper, inclusive_lower, inclusive_upper, allow_infinite=allow_infinite
     )
 
@@ -198,31 +192,15 @@ def assign_value[T: Assignment](
             raise ValueError(_failed_value_message(assignment, allow_scalar, type_))
 
         assignment.set_allowed_types(type_)
-        assignment.set_internal_bounds(
-            lower,
-            upper,
-            inclusive_lower=inclusive_lower,
-            inclusive_upper=inclusive_upper,
-        )
+        assignment.set_internal_bounds(bounds)
     elif allow_scalar and isinstance(assignment, (float, Scalar)):
-        _check_scalar(
-            assignment,
-            lower=lower,
-            upper=upper,
-            inclusive_lower=inclusive_lower,
-            inclusive_upper=inclusive_upper,
-        )
+        _check_scalar(assignment, bounds)
     elif (
         isinstance(assignment, Node)
         and is_calculator(assignment)
         and _accepts_reference(assignment, type_)
     ):
-        assignment.set_internal_bounds(
-            lower,
-            upper,
-            inclusive_lower=inclusive_lower,
-            inclusive_upper=inclusive_upper,
-        )
+        assignment.set_internal_bounds(bounds)
     else:
         raise ValueError(_failed_value_message(assignment, allow_scalar, type_))
 
@@ -880,16 +858,16 @@ def _value_kind(assignment: object) -> str:
     return str(assignment)
 
 
-def _inclusive_flags(
+def _resolve_bounds(
     lower: float,
     upper: float,
     inclusive_lower: bool,
     inclusive_upper: bool,
     *,
     allow_infinite: bool,
-) -> tuple[bool, bool]:
+) -> Bounds:
     """
-    Resolve whether each bound is inclusive once infinity is allowed or not.
+    Resolve a setter's bounds into the Bounds its value is held to.
 
     An exclusive bound at infinity rejects exactly infinity: a scalar when it
     is assigned, a calculator or an expression each time it is evaluated.
@@ -911,26 +889,17 @@ def _inclusive_flags(
 
     Returns
     -------
-    tuple[bool, bool]
-        Whether the lower and the upper bound are inclusive.
+    Bounds
+        The bounds the value is held to.
     """
-    if allow_infinite:
-        return inclusive_lower, inclusive_upper
+    if not allow_infinite:
+        inclusive_lower = inclusive_lower and math.isfinite(lower)
+        inclusive_upper = inclusive_upper and math.isfinite(upper)
 
-    return (
-        inclusive_lower and math.isfinite(lower),
-        inclusive_upper and math.isfinite(upper),
-    )
+    return Bounds(lower, upper, inclusive_lower, inclusive_upper)
 
 
-def _check_scalar(
-    assignment: float | Scalar,
-    lower: float,
-    upper: float,
-    *,
-    inclusive_lower: bool,
-    inclusive_upper: bool,
-) -> None:
+def _check_scalar(assignment: float | Scalar, bounds: Bounds) -> None:
     """
     Validate that a scalar value satisfies the given bounds.
 
@@ -938,14 +907,8 @@ def _check_scalar(
     ----------
     assignment
         Value being assigned, rejected unless it is a float or a Scalar.
-    lower
-        Lower bound.
-    upper
-        Upper bound.
-    inclusive_lower
-        If True, allow value == lower. If False, require value > lower.
-    inclusive_upper
-        If True, allow value == upper. If False, require value < upper.
+    bounds
+        The bounds the value is held to.
 
     Raises
     ------
@@ -959,17 +922,7 @@ def _check_scalar(
     else:
         raise ValueError(f"requires a scalar, but got {_value_kind(assignment)}")
 
-    if inclusive_lower and value < lower:
-        raise ValueError(f"must be ≥ {lower}, but got {value}")
-
-    if not inclusive_lower and value <= lower:
-        raise ValueError(exclusive_bound_message(">", lower, value))
-
-    if inclusive_upper and value > upper:
-        raise ValueError(f"must be ≤ {upper}, but got {value}")
-
-    if not inclusive_upper and value >= upper:
-        raise ValueError(exclusive_bound_message("<", upper, value))
+    bounds.check(value)
 
 
 def _check_list_length(assignment: Sized, min_length: int) -> None:

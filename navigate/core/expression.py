@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Protocol, overload
 
 import numpy as np
 
-from navigate.core.bounds import Bounds
+from navigate.core._bounds import Bounds
 from navigate.core.node_type import is_calculator
 from navigate.util import name_contains_wildcards
 
@@ -235,7 +235,7 @@ class Expression:
         Returns
         -------
         FloatLike
-            Expression value, clipped to the internal bounds and broadcast to
+            Expression value, clamped to the internal bounds and broadcast to
             the shape of the input.
 
         Raises
@@ -245,18 +245,12 @@ class Expression:
             internal bound.
         """
         evaluated = self._tree.evaluate(self.calculators, x, y)
-        bounds = self.internal_bounds
 
-        # inclusive bounds only clamp, so the check is skipped where both are
-        if bounds.exclusive:
-            violation = bounds.exclusive_violation(evaluated)
-            if violation is not None:
-                owner = f"{self._holder}: Expression <{self.text}>"
-                raise ValueError(f"{owner}: {violation}")
-
-        # numpy's stubs type np.clip over a float or an array as an array,
-        # though a float comes back as an np.float64, a float
-        value: FloatLike = np.clip(evaluated, bounds.lower, bounds.upper)
+        try:
+            value = self.internal_bounds.clamp(evaluated)
+        except ValueError as error:
+            owner = f"{self._holder}: Expression <{self.text}>"
+            raise ValueError(f"{owner}: {error}") from None
 
         # a float result is broadcast so an expression over scalars answers
         # an array input the way one over arrays does
@@ -282,31 +276,18 @@ class Expression:
             (allowed_types,) if isinstance(allowed_types, str) else allowed_types
         )
 
-    def set_internal_bounds(
-        self,
-        lower: float,
-        upper: float,
-        *,
-        inclusive_lower: bool = True,
-        inclusive_upper: bool = True,
-    ) -> None:
+    def set_internal_bounds(self, bounds: Bounds) -> None:
         """
-        Set the range every evaluated value is clipped to.
+        Set the bounds every evaluated value is clamped to.
 
-        A value reaching an exclusive bound raises instead of being clipped.
+        A value reaching an exclusive bound raises instead of being clamped.
 
         Parameters
         ----------
-        lower
-            Lower bound.
-        upper
-            Upper bound.
-        inclusive_lower
-            Whether the value may equal the lower bound.
-        inclusive_upper
-            Whether the value may equal the upper bound.
+        bounds
+            The bounds of the attribute holding the expression.
         """
-        self.internal_bounds = Bounds(lower, upper, inclusive_lower, inclusive_upper)
+        self.internal_bounds = bounds
 
     def check_consistency(self) -> None:
         """
