@@ -78,7 +78,7 @@ def calculate_vessel_allowance(
     expectation = regulation.expectation
 
     measure = expectation.get_vessel_measure(vessel_name, idx)
-    expectation.set_vessel_allowance(idx, vessel_name, threshold * measure)
+    expectation.set_vessel_allowance(vessel_name, idx, threshold * measure)
 
 
 def calculate_vessel_spend_coefficients(
@@ -120,11 +120,11 @@ def calculate_vessel_spend_coefficients(
             emission = expectation.get_emission_coefficient(fuel_key, idx)
 
             spend = emission - threshold_term * lhv
-            expectation.set_spend_coefficient(idx, fuel_key, spend)
+            expectation.set_spend_coefficient(fuel_key, idx, spend)
 
     for port in unique_list(vessel.route.ports):
         port_key = (vessel_name, port.name)
         emission = expectation.get_shore_power_emission_coefficient(port.name, idx)
 
         spend = emission - threshold_term
-        expectation.set_shore_power_spend_coefficient(idx, port_key, spend)
+        expectation.set_shore_power_spend_coefficient(port_key, idx, spend)

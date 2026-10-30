@@ -52,7 +52,7 @@ def calculate_jurisdiction_fractions(
     for route in routes.values():
         for port in route.ports:
             fraction = intra if port.name in jurisdiction else 0.0
-            expectation.set_port_fraction(idx, port.name, fraction)
+            expectation.set_port_fraction(port.name, idx, fraction)
 
         for leg in route.get_leg_keys():
             inside = [name in jurisdiction for name in leg]
@@ -64,7 +64,7 @@ def calculate_jurisdiction_fractions(
             else:
                 fraction = extra
 
-            expectation.set_leg_fraction(idx, leg, fraction)
+            expectation.set_leg_fraction(leg, idx, fraction)
 
 
 def calculate_regulation_measures(
@@ -97,7 +97,7 @@ def calculate_regulation_measures(
 
         for vessel_name, vessel in select_policed(regulation, vessels).items():
             measure = _calculate_vessel_measure(regulation, vessel, times, idx)
-            regulation.expectation.set_vessel_measure(idx, vessel_name, measure)
+            regulation.expectation.set_vessel_measure(vessel_name, idx, measure)
 
 
 def _calculate_vessel_measure(

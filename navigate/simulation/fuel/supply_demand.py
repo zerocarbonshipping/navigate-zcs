@@ -204,7 +204,7 @@ def calculate_fair_share_demand(
         for producer_name, share in shares.items():
             producer = producers[producer_name]
             demand = fuel_gap * share
-            producer.expectation.set_fair_share_demand(idx, fuel_name, demand)
+            producer.expectation.set_fair_share_demand(fuel_name, idx, demand)
             producer.results.fair_share_fuel_fraction[fuel_name][idx] = share
 
 

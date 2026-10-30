@@ -98,7 +98,7 @@ class PlantExpectation(_Expectation):
     def set_production(self, idx: int, production: FloatArray) -> None:
         self._production[idx:] = production
 
-    def add_feed_conversion(self, idx: int, feed_name: str, conversion: float) -> None:
+    def add_feed_conversion(self, feed_name: str, idx: int, conversion: float) -> None:
         # additive: a feed can occur several times in the process tree of idx
         self._feed_conversion[feed_name][idx] += conversion
 
@@ -106,18 +106,18 @@ class PlantExpectation(_Expectation):
         self._levelized_production_cost[idx] = cost
 
     def set_levelized_delivery_cost(
-        self, idx: int, port_name: str, cost: float
+        self, port_name: str, idx: int, cost: float
     ) -> None:
         self._levelized_delivery_cost[port_name][idx] = cost
 
     def set_tied_capital(self, idx: int, capital: FloatArray) -> None:
         self._tied_capital[idx] = capital
 
-    def set_production_wtt(self, idx: int, emission_name: str, wtt: float) -> None:
+    def set_production_wtt(self, emission_name: str, idx: int, wtt: float) -> None:
         self._production_wtt[emission_name][idx] = wtt
 
     def set_delivery_wtt(
-        self, idx: int, port_name: str, emission_name: str, wtt: FloatArray
+        self, port_name: str, emission_name: str, idx: int, wtt: FloatArray
     ) -> None:
         self._delivery_wtt[port_name, emission_name][idx:] = wtt
 
@@ -125,7 +125,7 @@ class PlantExpectation(_Expectation):
         self._expected_production_cost[idx:] = cost
 
     def set_expected_production_wtt(
-        self, idx: int, emission_name: str, wtt: FloatArray
+        self, emission_name: str, idx: int, wtt: FloatArray
     ) -> None:
         self._expected_production_wtt[emission_name][idx:] = wtt
 

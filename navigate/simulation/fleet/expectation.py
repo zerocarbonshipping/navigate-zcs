@@ -228,8 +228,8 @@ def calculate_fleet_evolution_expectation(
     expectation = fleet.expectation
     for v, vessel in enumerate(fleet.vessels):
         name = vessel.name
-        expectation.set_multiplier(idx, name, BunkerScopeID.EXISTING, existing[v])
-        expectation.set_multiplier(idx, name, BunkerScopeID.EXPECTED, expected[v])
+        expectation.set_multiplier(name, BunkerScopeID.EXISTING, idx, existing[v])
+        expectation.set_multiplier(name, BunkerScopeID.EXPECTED, idx, expected[v])
 
 
 def _existing_multipliers(fleet: Fleet, years_ahead: FloatArray) -> FloatArray:
@@ -335,4 +335,4 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
             demand[fuel_name] += multipliers * mass
 
     for key, value in demand.items():
-        fleet.expectation.set_fuel_demand(idx, key, value)
+        fleet.expectation.set_fuel_demand(key, idx, value)

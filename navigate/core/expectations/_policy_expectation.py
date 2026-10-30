@@ -40,15 +40,15 @@ class _PolicyExpectation[TtwKey: tuple[str, ...]](_Expectation):
     ) -> None:
         self._global_warming_potential[emission_name] = potential
 
-    def set_wtt(self, idx: int, key: tuple[str, str, str], wtt: FloatLike) -> None:
+    def set_wtt(self, key: tuple[str, str, str], idx: int, wtt: FloatLike) -> None:
         self._wtt.setdefault(key, self._default_array())
         self._wtt[key][idx:] = wtt
 
-    def set_ttw_consumption(self, idx: int, key: TtwKey, ttw: FloatLike) -> None:
+    def set_ttw_consumption(self, key: TtwKey, idx: int, ttw: FloatLike) -> None:
         self._ttw_consumption.setdefault(key, self._default_array())
         self._ttw_consumption[key][idx:] = ttw
 
-    def set_ttw_slip(self, idx: int, key: TtwKey, ttw: FloatLike) -> None:
+    def set_ttw_slip(self, key: TtwKey, idx: int, ttw: FloatLike) -> None:
         self._ttw_slip.setdefault(key, self._default_array())
         self._ttw_slip[key][idx:] = ttw
 

@@ -95,7 +95,7 @@ def _unset_adjusted_thresholds(
     expectation = regulation.expectation
 
     for vessel_name in policed:
-        expectation.set_adjusted_vessel_threshold(idx, vessel_name, np.nan)
+        expectation.set_adjusted_vessel_threshold(vessel_name, idx, np.nan)
 
     expectation.set_adjusted_shared_threshold(idx, np.nan)
 
@@ -115,14 +115,14 @@ def _calculate_individual(
         # a compliant vessel keeps its original threshold
         if expectation.get_vessel_remedial_units(vessel_name, idx) <= 0.0:
             threshold = expectation.get_vessel_threshold(vessel_name, idx)
-            expectation.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
+            expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
             continue
 
         emissions = expectation.get_vessel_emissions(vessel_name, idx)
         measure = calculate_achieved_measure(regulation, vessel_name, idx)
 
         threshold = _adjust_threshold(regulation, emissions, measure)
-        expectation.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
+        expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
 
         _calculate_adjusted_bunkering_inputs(regulation, vessels[vessel_name], idx)
         is_adjusted = True
@@ -147,7 +147,7 @@ def _calculate_flexible(
     if expectation.get_pooled_remedial_units(idx) <= 0.0:
         for vessel_name in policed:
             threshold = expectation.get_vessel_threshold(vessel_name, idx)
-            expectation.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
+            expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
 
         expectation.set_adjusted_shared_threshold(idx, np.nan)
         return False
@@ -163,7 +163,7 @@ def _calculate_flexible(
         total_measure += multiplier * measure
 
         threshold = _adjust_threshold(regulation, emissions, measure)
-        expectation.set_adjusted_vessel_threshold(idx, vessel_name, threshold)
+        expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
 
     shared_threshold = _adjust_threshold(regulation, total_emissions, total_measure)
     expectation.set_adjusted_shared_threshold(idx, shared_threshold)

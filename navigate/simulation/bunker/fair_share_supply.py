@@ -97,4 +97,4 @@ def _calculate_vessel_fair_shares(
             if scope == BunkerScopeID.EXISTING:
                 expectation.set_fair_share_fuel_existing(port.name, name, float(share))
             else:
-                expectation.set_fair_share_fuel_expected(idx, port.name, name, share)
+                expectation.set_fair_share_fuel_expected(port.name, name, idx, share)

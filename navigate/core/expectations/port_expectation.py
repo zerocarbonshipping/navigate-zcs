@@ -60,30 +60,30 @@ class PortExpectation(_Expectation):
         self._shore_power_connection_share = self._default_array()
         self._shore_power_emission_factor = self._default_dict_array(emission_names)
 
-    def set_handling_cost(self, idx: int, fuel_name: str, cost: FloatArray) -> None:
+    def set_handling_cost(self, fuel_name: str, idx: int, cost: FloatArray) -> None:
         self._handling_cost[fuel_name][idx:] = cost
 
-    def set_bunkering_limit(self, idx: int, fuel_name: str, limit: FloatArray) -> None:
+    def set_bunkering_limit(self, fuel_name: str, idx: int, limit: FloatArray) -> None:
         self._bunkering_limit[fuel_name][idx:] = limit
 
     def set_bunker_price_overwrite(
-        self, idx: int, fuel_name: str, overwrite: FloatArray
+        self, fuel_name: str, idx: int, overwrite: FloatArray
     ) -> None:
         self._bunker_price_overwrite[fuel_name][idx:] = overwrite
 
     def set_bunker_wtt_overwrite(
-        self, idx: int, fuel_name: str, emission_name: str, overwrite: FloatArray
+        self, fuel_name: str, emission_name: str, idx: int, overwrite: FloatArray
     ) -> None:
         self._bunker_wtt_overwrite[fuel_name, emission_name][idx:] = overwrite
 
-    def set_bunker_supply(self, idx: int, fuel_name: str, supply: FloatArray) -> None:
+    def set_bunker_supply(self, fuel_name: str, idx: int, supply: FloatArray) -> None:
         self._bunker_supply[fuel_name][idx:] = supply
 
-    def set_bunker_price(self, idx: int, fuel_name: str, price: FloatArray) -> None:
+    def set_bunker_price(self, fuel_name: str, idx: int, price: FloatArray) -> None:
         self._bunker_price[fuel_name][idx:] = price
 
     def set_bunker_wtt(
-        self, idx: int, fuel_name: str, emission_name: str, wtt: FloatArray
+        self, fuel_name: str, emission_name: str, idx: int, wtt: FloatArray
     ) -> None:
         self._bunker_wtt[fuel_name, emission_name][idx:] = wtt
 
@@ -94,7 +94,7 @@ class PortExpectation(_Expectation):
         self._shore_power_connection_share[idx:] = share
 
     def set_shore_power_emission_factor(
-        self, idx: int, emission_name: str, factor: FloatArray
+        self, emission_name: str, idx: int, factor: FloatArray
     ) -> None:
         self._shore_power_emission_factor[emission_name][idx:] = factor
 

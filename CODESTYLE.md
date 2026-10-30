@@ -112,7 +112,11 @@ arbiter.
   DSL-defined, and once per time step where events can change them.
 - The expectation classes (`navigate/core/expectations/`) are accessed
   through getters, adders and setters, which keep dynamic state apart from
-  user input and temporary results.
+  user input and temporary results. An accessor takes its keys, outermost
+  first, then the time step, the order a results field is indexed in; a
+  setter or adder takes the value last: `set_bunker_wtt(fuel_name,
+  emission_name, idx, wtt)` mirrors `get_bunker_wtt(fuel_name, emission_name,
+  idx)`.
 - The results classes (`navigate/core/results/`) are dataclasses written and
   read as plain fields; the run-wide timeline, fuel and emission constants,
   and the conversions by them, are their shared `ResultsContext`. A time step

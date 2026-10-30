@@ -49,11 +49,11 @@ class FleetExpectation(_Expectation):
         self._reset_dict_float(self._fuel_type_supply)
 
     def set_multiplier(
-        self, idx: int, vessel_name: str, scope: BunkerScopeID, multiplier: FloatArray
+        self, vessel_name: str, scope: BunkerScopeID, idx: int, multiplier: FloatArray
     ) -> None:
         self._multipliers[vessel_name, scope][idx:] = multiplier
 
-    def set_fuel_demand(self, idx: int, fuel_name: str, demand: FloatLike) -> None:
+    def set_fuel_demand(self, fuel_name: str, idx: int, demand: FloatLike) -> None:
         self._fuel_demand[fuel_name][idx:] = demand
 
     def set_uptakes(self, idx: int, uptakes: FloatArray) -> None:

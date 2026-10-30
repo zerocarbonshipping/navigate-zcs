@@ -116,7 +116,7 @@ def _calculate_import_from_liquid_market(
             bunker_supply = limit if allowed else zeros
 
             _set_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
-            expectation.set_bunker_supply(idx, fuel_name, bunker_supply)
+            expectation.set_bunker_supply(fuel_name, idx, bunker_supply)
 
             if allowed:
                 _record_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
@@ -189,7 +189,7 @@ def _calculate_import_from_producers(
             bunker_price = port.expectation.get_bunker_price(fuel_name, forward)
             bunker_supply = np.where(bunker_price > TOLERANCE, aligned[port_name], 0.0)
 
-            port.expectation.set_bunker_supply(idx, fuel_name, bunker_supply)
+            port.expectation.set_bunker_supply(fuel_name, idx, bunker_supply)
             port.results.bunker_supply_mass[fuel_name][idx] = bunker_supply[0]
 
 
@@ -369,10 +369,10 @@ def _set_bunker_terms(
         Current time-step index.
     """
     expectation = port.expectation
-    expectation.set_bunker_price(idx, fuel_name, bunker_price)
+    expectation.set_bunker_price(fuel_name, idx, bunker_price)
 
     for key, value in bunker_wtts.items():
-        expectation.set_bunker_wtt(idx, fuel_name, key, value)
+        expectation.set_bunker_wtt(fuel_name, key, idx, value)
 
 
 def _record_bunker_terms(
