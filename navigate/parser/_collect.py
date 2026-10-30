@@ -104,7 +104,8 @@ class Declaration:
     body: list[BodyItem]
     origin: Origin
     source: SourceLocation
-    # whether a Copy took the node as its source
+
+    # a Copy's source counts as used even when no node references it
     copied: bool = False
 
     @property
@@ -169,19 +170,21 @@ class Collector:
         self, library: Library, params: Mapping[str, str] | None = None
     ) -> None:
         self.library: Library = library
+
+        # the deck as read, each in read order
         self.declarations: dict[Key, Declaration] = {}
-        # each general node's body items, in read order
-        self.general: dict[str, list[BodyItem]] = {}
+        self.general: dict[str, list[Assignment]] = {}
         self.events: list[EventBlock] = []
-        # every Start (None) and Date read, each a time step of the simulation
         self.timeline: list[StepDate] = []
 
         self._params: Params = Params(params or {})
+        self._origin: Origin = Origin.DECK
+
         # names are unique across node types
         self._names: set[str] = set()
-        self._origin: Origin = Origin.DECK
-        # the nodes whose default files are being read, outermost first; a pull
-        # of one of them again is a cycle between default files
+
+        # a stack, outermost first: pulling a node whose default file is still
+        # being read is a cycle between default files
         self._pulling: list[Key] = []
 
     # deck -----------------------------------------------------------------------------
@@ -290,10 +293,16 @@ class Collector:
         node_type = statement.node_type
 
         _check_general_node_type(node_type, statement.source)
-        for item in statement.body:
-            deck_entry(node_type, item, SectionID.DEFINE)
 
-        self.general.setdefault(node_type, []).extend(statement.body)
+        assignments: list[Assignment] = []
+        for item in statement.body:
+            if not isinstance(item, Assignment):
+                raise item.source.error(f"'{node_type}' does not support commands.")
+
+            deck_entry(node_type, item, SectionID.DEFINE)
+            assignments.append(item)
+
+        self.general.setdefault(node_type, []).extend(assignments)
 
     def _import(self, statement: ImportStatement) -> None:
         node_type, name, source = statement.node_type, statement.name, statement.source
@@ -524,7 +533,7 @@ def deck_entry(node_type: str, item: BodyItem, section: SectionID) -> DeckEntry:
     node_type
         The node type or general node keyword the item is written on.
     item
-        The assignment or command.
+        The assignment or command; on a general node, an assignment.
     section
         The section the item is written in.
 
@@ -540,9 +549,6 @@ def deck_entry(node_type: str, item: BodyItem, section: SectionID) -> DeckEntry:
         command, or does not allow it in the section.
     """
     if node_type in GENERAL_NODE_CLASS:
-        if not isinstance(item, Assignment):
-            raise item.source.error(f"'{node_type}' does not support commands.")
-
         subject = f"'{node_type}'"
         entries = GENERAL_NODE_CLASS[node_type].deck_attributes
         kind, verb = "attribute", "setting attribute"

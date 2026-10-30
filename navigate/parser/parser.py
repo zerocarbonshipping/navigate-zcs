@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from navigate.core.node_registry import GeneralNodes, Nodes
+    from navigate.parser._collect import StepDate
     from navigate.parser._resolve import BoundEvent
     from navigate.util.types_ import DateArray
 
@@ -100,9 +101,7 @@ class Parser:
         return any(block.body for block, _ in events)
 
 
-def _time_steps(
-    timeline: list[np.datetime64 | None], start_date: np.datetime64
-) -> DateArray:
+def _time_steps(timeline: list[StepDate], start_date: np.datetime64) -> DateArray:
     """Build the dates the simulation steps through: the start date and every Date."""
     dated = {date for date in timeline if date is not None}
 

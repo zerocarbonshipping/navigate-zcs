@@ -91,13 +91,13 @@ class Builder:
         self.general_nodes: GeneralNodes
         self._node_by_key: dict[Key, Node] = {}
 
-        # the deck attributes whose setter ran on each node, for the required check
+        # a required attribute is declared without a value, so the check reads
+        # which setters ran
         self._assigned: dict[Holder, set[str]] = {}
-        # the expressions of the item being applied, checked once its setter or
-        # command has run
+
+        # held until checked or warned of: the expressions of the item being
+        # applied, and the references dropped from their lists
         self._unchecked: list[tuple[Expression, SourceLocation]] = []
-        # the references to nodes the simulation does not hold, each as
-        # "<holder> <attribute>: <reference>", left out of their lists
         self._dropped: list[str] = []
 
     # general nodes --------------------------------------------------------------------
@@ -118,9 +118,7 @@ class Builder:
         holders = (model_definition, bunker_options)
 
         for holder in holders:
-            # the collect phase lets no command onto a general node
             for item in self._collector.general.get(holder.type, []):
-                assert isinstance(item, Assignment)
                 self._assign(holder, item)
 
         for holder in holders:

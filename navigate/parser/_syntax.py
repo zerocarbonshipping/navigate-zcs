@@ -262,9 +262,9 @@ class _NavTransformer(Transformer[Token, object]):
 
     def __init__(self, text: str, file: str, deck_line: int) -> None:
         super().__init__()
-        self._text = text
-        self._file = file
-        self._deck_line = deck_line
+        self._text: str = text
+        self._file: str = file
+        self._deck_line: int = deck_line
 
     def _source(self, line: int) -> SourceLocation:
         return SourceLocation(self._file, line, self._deck_line)

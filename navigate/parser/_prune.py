@@ -50,11 +50,18 @@ NON_ACTIVATING = frozenset({(LEVY, "Jurisdiction"), (REGULATION, "Jurisdiction")
 
 @dataclass
 class Pruning:
-    """What the prune left: the nodes the simulation holds and the events to apply."""
+    """
+    What the prune left: the nodes the simulation holds and the events to apply.
 
-    # the kept declarations, in declaration order
+    Attributes
+    ----------
+    kept
+        The kept declarations, in declaration order.
+    events
+        Each kept event with the kept declarations its name matches.
+    """
+
     kept: list[Key]
-    # each kept event with the kept declarations its name matches
     events: list[BoundEvent]
 
 

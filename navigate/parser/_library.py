@@ -24,7 +24,7 @@ class Library:
     """The default library under ``data_dir``, or an empty one when it is None."""
 
     def __init__(self, data_dir: Path | None) -> None:
-        self._root = data_dir.resolve() if data_dir is not None else None
+        self._root: Path | None = data_dir.resolve() if data_dir is not None else None
 
     def default_file(self, node_type: str, name: str) -> Path | None:
         """Return a default node's file, or None if the library has none."""
