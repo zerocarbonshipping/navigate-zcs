@@ -18,7 +18,7 @@ import numpy as np
 
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.nodes.curve import Curve
-from navigate.core.wrap import to_numpy
+from navigate.core.wrap import to_array
 from navigate.util import HOUR_TO_DAY, ROUND_OFF, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
@@ -121,7 +121,7 @@ def derive_reference_trip(route: Route) -> ReferenceTrip:
         port_days = _calculate_tramp_port_days(route, time_at_sea)
 
     else:
-        leg_miles = to_numpy(route.leg_distances)
+        leg_miles = to_array(route.leg_distances)
         port_days = _calculate_liner_port_days(route)
 
     return ReferenceTrip(
@@ -281,7 +281,7 @@ def _calculate_liner_port_days(route: Route) -> FloatArray:
     destinations = [destination for _, destination in route.get_legs()]
 
     port_days = np.zeros(len(route.ports))
-    port_days[destinations] = to_numpy(route.leg_port_durations)
+    port_days[destinations] = to_array(route.leg_port_durations)
 
     return port_days
 
@@ -333,7 +333,7 @@ def _calculate_tramp_port_days(route: Route, time_at_sea: float) -> FloatArray:
     FloatArray
         Time at each port, in days/year.
     """
-    port_calls = to_numpy([route.port_calls[port.name] for port in route.ports])
+    port_calls = to_array([route.port_calls[port.name] for port in route.ports])
     call_shares = divide_nonzero(port_calls, np.sum(port_calls))
 
     port_days = (1.0 - time_at_sea) * YEAR
@@ -357,7 +357,7 @@ def _normalize_voyage_shares(route: Route) -> FloatArray:
     FloatArray
         Voyage share of each leg, in the order of `Route.get_legs`.
     """
-    shares = to_numpy(route.leg_voyage_shares)
+    shares = to_array(route.leg_voyage_shares)
     total = np.round(np.sum(shares), ROUND_OFF)
 
     return divide_nonzero(shares, total, default=1.0 / len(shares))

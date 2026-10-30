@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, ClassVar, final
 from navigate.core.dsl import collect_deck_entries
 
 if TYPE_CHECKING:
-    from navigate.core.dsl import DeckEntry
+    from navigate.core.dsl import DeckEntries
     from navigate.util.types_ import DateArray, FloatArray
 
 
@@ -20,8 +20,8 @@ class Node:
     # the node type keyword; each concrete node class sets its own
     type: ClassVar[str]
     # the deck attributes and commands the class's marked methods declare
-    deck_attributes: ClassVar[dict[str, DeckEntry]] = {}
-    deck_commands: ClassVar[dict[str, DeckEntry]] = {}
+    deck_attributes: ClassVar[DeckEntries] = {}
+    deck_commands: ClassVar[DeckEntries] = {}
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()

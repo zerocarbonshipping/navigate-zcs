@@ -54,7 +54,7 @@ Sets a factor that the `Value`, plus the `Addition`, is multiplied by, according
 
 ### LowerBound
 
-Sets the lower bound that the result is clamped to after the `Addition` and the `Multiplier` are applied, according to the [formula](#variable) at the top of this page. `-INF` means no lower bound; `INF` is rejected.
+Sets the lower bound that the result is clamped to after the `Addition` and the `Multiplier` are applied, according to the [formula](#variable) at the top of this page. `-INF` means no lower bound; `INF` is rejected. It must not exceed `UpperBound`, nor the upper bound an attribute referencing the node requires.
 
 * **Data type**: `Float`
 * **Example value**: `-5`
@@ -62,7 +62,7 @@ Sets the lower bound that the result is clamped to after the `Addition` and the 
 
 ### UpperBound
 
-Sets the upper bound that the result is clamped to after the `Addition` and the `Multiplier` are applied, according to the [formula](#variable) at the top of this page. `INF` means no upper bound; `-INF` is rejected.
+Sets the upper bound that the result is clamped to after the `Addition` and the `Multiplier` are applied, according to the [formula](#variable) at the top of this page. `INF` means no upper bound; `-INF` is rejected. It must not be below `LowerBound`, nor the lower bound an attribute referencing the node requires.
 
 * **Data type**: `Float`
 * **Example value**: `5`

@@ -258,6 +258,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The error for a `Process` whose `Feeds` and `Conversions` differ in length
   names the process and reads `The length of Feeds (n) and Conversions (m)
   must correspond.`
+- A calculator whose bounds admit no value - its `LowerBound` above its
+  `UpperBound` or the upper bound an attribute referencing it requires, or the
+  reverse - is a deck error when the deck is read instead of being clamped.
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`

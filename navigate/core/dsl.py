@@ -25,17 +25,17 @@ from navigate.util import setter_to_attribute
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
-type AllowedSections = tuple[SectionID, ...]
+type _AllowedSections = tuple[SectionID, ...]
 
-SECTION_DEFINE: AllowedSections = (SectionID.DEFINE,)
-SECTION_BOTH: AllowedSections = (SectionID.DEFINE, SectionID.EVENTS)
+SECTION_DEFINE: _AllowedSections = (SectionID.DEFINE,)
+SECTION_BOTH: _AllowedSections = (SectionID.DEFINE, SectionID.EVENTS)
 
 
 @dataclass(frozen=True)
 class DeckEntry:
     """What a deck may do with one attribute or command."""
 
-    sections: AllowedSections
+    sections: _AllowedSections
     required: bool = False
 
 
@@ -46,7 +46,7 @@ _COMMAND_MARKS: dict[Callable[..., None], DeckEntry] = {}
 
 
 def deck_attribute[F: Callable[..., None]](
-    sections: AllowedSections = SECTION_BOTH, *, required: bool = False
+    sections: _AllowedSections = SECTION_BOTH, *, required: bool = False
 ) -> Callable[[F], F]:
     """
     Mark a setter as taking a deck attribute.
@@ -72,7 +72,7 @@ def deck_attribute[F: Callable[..., None]](
 
 
 def deck_command[F: Callable[..., None]](
-    sections: AllowedSections = SECTION_BOTH,
+    sections: _AllowedSections = SECTION_BOTH,
 ) -> Callable[[F], F]:
     """
     Mark a method as a deck command.

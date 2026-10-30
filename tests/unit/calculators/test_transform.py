@@ -15,6 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from navigate.core._bounds import Bounds
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.variable import Variable
 from navigate.core.table_data import TableData
@@ -60,7 +61,7 @@ def test_addition_applies_inside_the_multiplier_then_the_tighter_bound(
     variable.set_addition(-1.0)
     variable.set_lower_bound(public[0])
     variable.set_upper_bound(public[1])
-    variable.set_internal_bounds(*internal)
+    variable.set_internal_bounds(Bounds(*internal))
 
     assert variable.get() == pytest.approx(expected)
 
@@ -93,7 +94,7 @@ def test_transform_applies_to_a_table_lookup_entrywise():
 )
 def test_a_value_on_an_exclusive_bound_raises(make_node, args, owner):
     node = make_node()
-    node.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+    node.set_internal_bounds(Bounds(0.0, np.inf, inclusive_lower=False))
 
     with pytest.raises(ValueError, match=rf"{owner}: must be > 0\.0, but got 0\.0"):
         node.get(*args)
@@ -107,7 +108,7 @@ def test_a_public_bound_inside_an_exclusive_bound_clamps():
     # the public bound 1 is the one applied, so -1 clamps up to 1 instead of
     # raising against the exclusive 0
     variable = _variable(-1.0)
-    variable.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+    variable.set_internal_bounds(Bounds(0.0, np.inf, inclusive_lower=False))
     variable.set_lower_bound(1.0)
 
     assert variable.get() == pytest.approx(1.0)

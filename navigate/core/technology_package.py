@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Define the technology package, a bundle of technologies held by the Fleet node."""
+"""The technology package, a bundle of technologies held by the Fleet node."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 @dataclass(slots=True, eq=False)
 class TechnologyPackage:
     """
-    Represent a bundle of technologies with their combined effects.
+    A bundle of technologies with their combined effects.
 
     The combined effects derive from the technologies and are set by
     ``update_packages`` every time-step, as technology properties may depend on time.
@@ -60,7 +60,7 @@ class TechnologyPackage:
 @dataclass(slots=True, eq=False)
 class PackageCostFlows:
     """
-    Hold the CAPEX and OPEX cost flows of a fleet's packages, per amortization horizon.
+    The CAPEX and OPEX cost flows of a fleet's packages, per amortization horizon.
 
     An installation is amortized over the years it serves: a vessel's lifetime for a
     newbuild, the remaining lifetime of a cohort for a retrofit. The flows are built

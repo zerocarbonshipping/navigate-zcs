@@ -6,16 +6,17 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import replace
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
 from navigate.core import Expression, assign_bound, assign_value, deck_attribute
-from navigate.core.bounds import Bounds
+from navigate.core._bounds import Bounds
 from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
+    from typing import Literal
+
     from navigate.core.types_ import NumberInput
     from navigate.util.types_ import FloatArray, FloatLike
 
@@ -68,66 +69,87 @@ class _Calculator:
         self._update_applied_bounds()
 
     # internal methods -----------------------------------------------------------------
-    def set_internal_bounds(
-        self,
-        lower: float,
-        upper: float,
-        *,
-        inclusive_lower: bool = True,
-        inclusive_upper: bool = True,
-    ) -> None:
+    def set_internal_bounds(self, bounds: Bounds) -> None:
         """
         Tighten the internal bounds of the calculator.
 
         Every attribute referencing the calculator offers its own bounds, so the
-        tightest offer across all of them wins and a looser one is ignored. An
-        offer equal to the current bound makes it exclusive if either is.
+        tightest offer across all of them wins and a looser one is ignored.
 
         Parameters
         ----------
-        lower
-            Internally applied lower bound.
-        upper
-            Internally applied upper bound.
-        inclusive_lower
-            Whether the calculated value may equal the lower bound.
-        inclusive_upper
-            Whether the calculated value may equal the upper bound.
+        bounds
+            The bounds of an attribute referencing the calculator.
         """
-        bounds = self._internal_bounds
+        internal = self._internal_bounds
+        tightened = internal.tightened(bounds)
 
-        if lower > bounds.lower:
-            if bounds.lower > -np.inf:
-                logger.warning(
-                    "%s: Internal lower bound tightened from %s to %s.",
-                    self,
-                    bounds.lower,
-                    lower,
-                )
+        if -np.inf < internal.lower < tightened.lower:
+            logger.warning(
+                "%s: Internal lower bound tightened from %s to %s.",
+                self,
+                internal.lower,
+                tightened.lower,
+            )
 
-            bounds = replace(bounds, lower=lower, inclusive_lower=inclusive_lower)
-        elif lower == bounds.lower:
-            inclusive = bounds.inclusive_lower and inclusive_lower
-            bounds = replace(bounds, inclusive_lower=inclusive)
+        if tightened.upper < internal.upper < np.inf:
+            logger.warning(
+                "%s: Internal upper bound tightened from %s to %s.",
+                self,
+                internal.upper,
+                tightened.upper,
+            )
 
-        if upper < bounds.upper:
-            if bounds.upper < np.inf:
-                logger.warning(
-                    "%s: Internal upper bound tightened from %s to %s.",
-                    self,
-                    bounds.upper,
-                    upper,
-                )
-
-            bounds = replace(bounds, upper=upper, inclusive_upper=inclusive_upper)
-        elif upper == bounds.upper:
-            inclusive = bounds.inclusive_upper and inclusive_upper
-            bounds = replace(bounds, inclusive_upper=inclusive)
-
-        self._internal_bounds = bounds
+        self._internal_bounds = tightened
 
         # called here in case internal bounds are set after the lower/upper bound
         self._update_applied_bounds()
+
+    def _check_bounds_consistency(self) -> None:
+        """
+        Reject applied bounds that admit no value.
+
+        The setters leave the bounds unchecked, as an event may set LowerBound and
+        UpperBound one after the other and cross them in between.
+        """
+        applied = self._applied_bounds
+
+        if not applied.is_empty:
+            return
+
+        internal = self._internal_bounds
+        lower = self._bound_source("lower", self.lower_bound > internal.lower)
+        upper = self._bound_source("upper", self.upper_bound < internal.upper)
+        inclusive = applied.inclusive_lower and applied.inclusive_upper
+        relation = "at most" if inclusive else "below"
+
+        raise ValueError(
+            f"{self}: The bounds admit no value: {lower} ({applied.lower}) must be"
+            f" {relation} {upper} ({applied.upper})."
+        )
+
+    @staticmethod
+    def _bound_source(side: Literal["lower", "upper"], from_deck: bool) -> str:
+        """
+        Name an applied bound by where it comes from, as a bound error names it.
+
+        Parameters
+        ----------
+        side
+            Which end of the bounds is named.
+        from_deck
+            Whether the deck's LowerBound or UpperBound is the one applied, rather
+            than the bound an attribute referencing the calculator requires.
+
+        Returns
+        -------
+        str
+            The attribute name, or the phrase for the referencing attribute's bound.
+        """
+        if from_deck:
+            return f"{side.capitalize()}Bound"
+
+        return f"the {side} bound an attribute referencing the node requires"
 
     @overload
     def _transform(
@@ -191,15 +213,10 @@ class _Calculator:
         ValueError
             If the value, or any entry of it, is at or beyond an exclusive bound.
         """
-        bounds = self._applied_bounds
-
-        # inclusive bounds only clamp, so the check is skipped where both are
-        if bounds.exclusive:
-            violation = bounds.exclusive_violation(value)
-            if violation is not None:
-                raise ValueError(f"{self}: {violation}")
-
-        return np.maximum(np.minimum(value, bounds.upper), bounds.lower)
+        try:
+            return self._applied_bounds.clamp(value)
+        except ValueError as error:
+            raise ValueError(f"{self}: {error}") from None
 
     def _update_applied_bounds(self) -> None:
         """

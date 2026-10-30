@@ -20,11 +20,11 @@ from typing import TYPE_CHECKING, Protocol
 
 import numpy as np
 
-from navigate.core.bounds import exclusive_bound_message
+from navigate.core._bounds import Bounds
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expression import Expression
 from navigate.core.node import Node
-from navigate.core.node_type import AcceptedNodeTypes, is_calculator
+from navigate.core.node_type import AcceptedNodeTypes, accepts_type, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
 from navigate.core.types_ import Calculator, CurveTableInput
@@ -58,7 +58,7 @@ _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
 # in as 'Any' and a deck can name any shape the grammar accepts - a bare
 # string, a list, a TableData. That is why the validators here keep runtime
 # reject arms for values their typed callers never pass.
-type Assignment = float | Scalar | Calculator | Expression
+type _Assignment = float | Scalar | Calculator | Expression
 
 # kind words for the values a setter can be handed; a value of no kind listed
 # here is echoed in the error instead, as its own text is what identifies it.
@@ -99,7 +99,7 @@ def assign_integer(
     inclusive_upper: bool = True,
 ) -> int:
     """
-    Validate an integer assignment against bounds and return it as int.
+    Check whether an integer assignment satisfies its bounds, and return it as int.
 
     Infinity is always rejected, as no integer is infinite.
 
@@ -112,9 +112,9 @@ def assign_integer(
     upper
         Upper bound.
     inclusive_lower
-        Lower bound is inclusive.
+        Whether the value may equal the lower bound.
     inclusive_upper
-        Upper bound is inclusive.
+        Whether the value may equal the upper bound.
 
     Returns
     -------
@@ -122,16 +122,10 @@ def assign_integer(
         The value that was passed, as an int, so a setter assigns what it
         validated.
     """
-    inclusive_lower, inclusive_upper = _inclusive_flags(
+    bounds = _resolve_bounds(
         lower, upper, inclusive_lower, inclusive_upper, allow_infinite=False
     )
-    _check_scalar(
-        assignment,
-        lower=lower,
-        upper=upper,
-        inclusive_lower=inclusive_lower,
-        inclusive_upper=inclusive_upper,
-    )
+    _check_scalar(assignment, bounds)
 
     value = round(assignment)
 
@@ -141,7 +135,7 @@ def assign_integer(
     return value
 
 
-def assign_value[T: Assignment](
+def assign_value[T: _Assignment](
     assignment: T,
     type_: AcceptedNodeTypes | None = None,
     lower: float = -np.inf,
@@ -180,16 +174,16 @@ def assign_value[T: Assignment](
     allow_infinite
         Whether the setter accepts INF and -INF within its bounds.
     inclusive_lower
-        Lower bound is inclusive.
+        Whether the value may equal the lower bound.
     inclusive_upper
-        Upper bound is inclusive.
+        Whether the value may equal the upper bound.
 
     Returns
     -------
-    Assignment
+    T
         The value that was passed, so a setter assigns what it validated.
     """
-    inclusive_lower, inclusive_upper = _inclusive_flags(
+    bounds = _resolve_bounds(
         lower, upper, inclusive_lower, inclusive_upper, allow_infinite=allow_infinite
     )
 
@@ -198,38 +192,22 @@ def assign_value[T: Assignment](
             raise ValueError(_failed_value_message(assignment, allow_scalar, type_))
 
         assignment.set_allowed_types(type_)
-        assignment.set_internal_bounds(
-            lower,
-            upper,
-            inclusive_lower=inclusive_lower,
-            inclusive_upper=inclusive_upper,
-        )
+        assignment.set_internal_bounds(bounds)
     elif allow_scalar and isinstance(assignment, (float, Scalar)):
-        _check_scalar(
-            assignment,
-            lower=lower,
-            upper=upper,
-            inclusive_lower=inclusive_lower,
-            inclusive_upper=inclusive_upper,
-        )
+        _check_scalar(assignment, bounds)
     elif (
         isinstance(assignment, Node)
         and is_calculator(assignment)
-        and _accepts_reference(assignment, type_)
+        and accepts_type(type_, assignment.type)
     ):
-        assignment.set_internal_bounds(
-            lower,
-            upper,
-            inclusive_lower=inclusive_lower,
-            inclusive_upper=inclusive_upper,
-        )
+        assignment.set_internal_bounds(bounds)
     else:
         raise ValueError(_failed_value_message(assignment, allow_scalar, type_))
 
     return assignment
 
 
-def assign_list[T: Assignment](
+def assign_list[T: _Assignment](
     assignment: list[T],
     min_length: int = 0,
     type_: AcceptedNodeTypes | None = None,
@@ -242,7 +220,7 @@ def assign_list[T: Assignment](
     inclusive_upper: bool = True,
 ) -> list[T]:
     """
-    Check each value of a list assigned to an attribute against its requirements.
+    Check whether each value in an assigned list satisfies its attribute's requirements.
 
     Only applicable to attributes requiring a list of values read through a
     getter, each checked as assign_value checks a single one; a list of node
@@ -265,13 +243,13 @@ def assign_list[T: Assignment](
     allow_infinite
         Whether the setter accepts INF and -INF within its bounds.
     inclusive_lower
-        Lower bound is inclusive.
+        Whether the value may equal the lower bound.
     inclusive_upper
-        Upper bound is inclusive.
+        Whether the value may equal the upper bound.
 
     Returns
     -------
-    list[Assignment]
+    list[T]
         The list that was passed, so a setter assigns what it validated.
     """
     _check_list_length(assignment, min_length)
@@ -312,7 +290,7 @@ def assign_reference[N: Node](assignment: N, type_: AcceptedNodeTypes) -> N:
     """
     # an expression has nothing to evaluate it at a reference, so it is
     # refused by kind like any other value that is not an accepted node
-    if not (isinstance(assignment, Node) and _accepts_reference(assignment, type_)):
+    if not (isinstance(assignment, Node) and accepts_type(type_, assignment.type)):
         raise ValueError(_only_allows(_node_types_phrase(type_), assignment))
 
     return assignment
@@ -372,7 +350,7 @@ def assign_boolean(assignment: str) -> bool:
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
 
     Returns
     -------
@@ -392,7 +370,7 @@ def assign_date(assignment: np.datetime64) -> np.datetime64:
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
 
     Returns
     -------
@@ -421,7 +399,7 @@ def assign_bound(
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
     inclusive_lower
         Whether the bound may be -INF.
     inclusive_upper
@@ -453,7 +431,7 @@ def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
     id_enum
         Enum class the assigned name is looked up in.
 
@@ -481,7 +459,7 @@ def assign_member[E: Enum](assignment: str, members: tuple[E, ...]) -> E:
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
     members
         The enum members the attribute accepts.
 
@@ -540,9 +518,9 @@ def assign_id_list[E: Enum](
     return members
 
 
-def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
+def assign_fraction_list(assignment: list[float]) -> tuple[list[float], bool]:
     """
-    Check a list of fractions assigned to an attribute and rescale it to sum to 1.
+    Check whether an assigned list of fractions is valid, and rescale it to sum to 1.
 
     Only applicable to attributes requiring a list of values summing to 1.
     Entries are floated first, so a list written as integers is rescaled the
@@ -554,7 +532,7 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
 
     Parameters
     ----------
-    fractions
+    assignment
         List of fractions passed to the setter.
 
     Returns
@@ -568,7 +546,7 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     ValueError
         If the entries do not sum to more than 0.
     """
-    floated = _floated_fractions(fractions)
+    floated = _floated_fractions(assignment)
     total = round(sum(floated), ROUND_OFF)
 
     if total <= 0.0:
@@ -649,7 +627,7 @@ def check_lengths_match(
         )
 
 
-def check_forecast_is_cumulative(node: Node, label: str, forecast: Forecast) -> None:
+def check_forecast_is_cumulative(node: Node, attribute: str, entry: Forecast) -> None:
     """
     Reject a cumulative Forecast that decreases, and warn where it extrapolates.
 
@@ -660,28 +638,29 @@ def check_forecast_is_cumulative(node: Node, label: str, forecast: Forecast) -> 
     ----------
     node
         Node holding the Forecast, named in the error.
-    label
-        Role of the Forecast on the node, such as Orderbook, named in the error.
-    forecast
-        Forecast of the cumulative count.
+    attribute
+        Name of the attribute, or of the Forecast's role on the node such as
+        Orderbook, named in the error.
+    entry
+        The attribute's Forecast of the cumulative count.
 
     Raises
     ------
     ValueError
         If the Forecast's values decrease anywhere.
     """
-    if not is_nondecreasing(forecast.y):
+    if not is_nondecreasing(entry.y):
         raise ValueError(
-            f"{node}: {label} ({forecast}) is not non-strictly increasing."
+            f"{node}: {attribute} ({entry}) is not non-strictly increasing."
         )
 
-    if forecast.extrapolate == ExtrapolateID.LINEAR:
+    if entry.extrapolate == ExtrapolateID.LINEAR:
         logger.warning(
             "%s: %s (%s) allows extrapolation and may therefore continue past the"
             " last date.",
             node,
-            label,
-            forecast,
+            attribute,
+            entry,
         )
 
 
@@ -714,7 +693,7 @@ def write_matching_keys[K: str | Enum, V](
             # deck defines, so a pattern that matches nothing is not an error
             return
 
-        raise _missing_names(key_name(key)) from None
+        raise ValueError(_missing_names(key_name(key))) from None
 
     # every matched key holds the same object: a Scalar answers a getter and
     # carries no per-key state, and a node or an expression was always shared
@@ -740,7 +719,8 @@ def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
         The dictionary being assigned to.
     """
     if not assignment_dict:
-        raise _missing_names(", ".join(key_name(key_part) for key_part in key))
+        names = ", ".join(key_name(key_part) for key_part in key)
+        raise ValueError(_missing_names(names))
 
     columns = zip(*assignment_dict, strict=True)
     try:
@@ -749,7 +729,7 @@ def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
             for key_part, existing_keys in zip(key, columns, strict=True)
         ]
     except KeyError as e:
-        raise _missing_names(e.args[0]) from None
+        raise ValueError(_missing_names(e.args[0])) from None
 
     # every matched key holds the same object: a Scalar answers a getter and
     # carries no per-key state, and a node or an expression was always shared
@@ -759,36 +739,11 @@ def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
             assignment_dict[(first, second)] = value
 
 
-def _accepts_reference(node: Node, type_: AcceptedNodeTypes | None) -> bool:
-    """
-    Check whether an attribute accepting 'type_' accepts a reference to a node.
-
-    Parameters
-    ----------
-    node
-        The node the deck named.
-    type_
-        The node type(s) the attribute accepts a reference to.
-
-    Returns
-    -------
-    bool
-        Whether the node is of a type the attribute allows.
-    """
-    if type_ is None:
-        return False
-
-    if isinstance(type_, tuple):
-        return node.type in type_
-
-    return node.type == type_
-
-
 def _failed_value_message(
     assignment: object, allow_scalar: bool, type_: AcceptedNodeTypes | None
 ) -> str:
     """
-    Build the error message for a value an attribute does not accept.
+    Spell the error message for a value an attribute does not accept.
 
     Parameters
     ----------
@@ -835,9 +790,9 @@ def _node_types_phrase(type_: AcceptedNodeTypes) -> str:
     return "nodes of type {} or {}".format(", ".join(type_[:-1]), type_[-1])
 
 
-def _missing_names(names: str) -> ValueError:
-    """Build the error for a command naming keys its dictionary does not hold."""
-    return ValueError(f"attempts to reference non-existing name(s) '{names}'")
+def _missing_names(names: str) -> str:
+    """Spell the error for a command naming keys its dictionary does not hold."""
+    return f"attempts to reference non-existing name(s) '{names}'"
 
 
 def _only_allows(allowed: str, assignment: object) -> str:
@@ -880,16 +835,16 @@ def _value_kind(assignment: object) -> str:
     return str(assignment)
 
 
-def _inclusive_flags(
+def _resolve_bounds(
     lower: float,
     upper: float,
     inclusive_lower: bool,
     inclusive_upper: bool,
     *,
     allow_infinite: bool,
-) -> tuple[bool, bool]:
+) -> Bounds:
     """
-    Resolve whether each bound is inclusive once infinity is allowed or not.
+    Resolve a setter's bounds into the Bounds its value is held to.
 
     An exclusive bound at infinity rejects exactly infinity: a scalar when it
     is assigned, a calculator or an expression each time it is evaluated.
@@ -903,49 +858,34 @@ def _inclusive_flags(
     upper
         Upper bound.
     inclusive_lower
-        Whether the setter asked for an inclusive lower bound.
+        Whether the value may equal the lower bound.
     inclusive_upper
-        Whether the setter asked for an inclusive upper bound.
+        Whether the value may equal the upper bound.
     allow_infinite
         Whether the setter accepts INF and -INF within its bounds.
 
     Returns
     -------
-    tuple[bool, bool]
-        Whether the lower and the upper bound are inclusive.
+    Bounds
+        The bounds the value is held to.
     """
-    if allow_infinite:
-        return inclusive_lower, inclusive_upper
+    if not allow_infinite:
+        inclusive_lower = inclusive_lower and math.isfinite(lower)
+        inclusive_upper = inclusive_upper and math.isfinite(upper)
 
-    return (
-        inclusive_lower and math.isfinite(lower),
-        inclusive_upper and math.isfinite(upper),
-    )
+    return Bounds(lower, upper, inclusive_lower, inclusive_upper)
 
 
-def _check_scalar(
-    assignment: float | Scalar,
-    lower: float,
-    upper: float,
-    *,
-    inclusive_lower: bool,
-    inclusive_upper: bool,
-) -> None:
+def _check_scalar(assignment: float | Scalar, bounds: Bounds) -> None:
     """
-    Validate that a scalar value satisfies the given bounds.
+    Reject a scalar value outside the given bounds.
 
     Parameters
     ----------
     assignment
         Value being assigned, rejected unless it is a float or a Scalar.
-    lower
-        Lower bound.
-    upper
-        Upper bound.
-    inclusive_lower
-        If True, allow value == lower. If False, require value > lower.
-    inclusive_upper
-        If True, allow value == upper. If False, require value < upper.
+    bounds
+        The bounds the value is held to.
 
     Raises
     ------
@@ -959,22 +899,12 @@ def _check_scalar(
     else:
         raise ValueError(f"requires a scalar, but got {_value_kind(assignment)}")
 
-    if inclusive_lower and value < lower:
-        raise ValueError(f"must be ≥ {lower}, but got {value}")
-
-    if not inclusive_lower and value <= lower:
-        raise ValueError(exclusive_bound_message(">", lower, value))
-
-    if inclusive_upper and value > upper:
-        raise ValueError(f"must be ≤ {upper}, but got {value}")
-
-    if not inclusive_upper and value >= upper:
-        raise ValueError(exclusive_bound_message("<", upper, value))
+    bounds.check(value)
 
 
 def _check_list_length(assignment: Sized, min_length: int) -> None:
     """
-    Validate that a list contains at least a minimum number of values.
+    Reject a list holding fewer than a minimum number of values.
 
     Parameters
     ----------
@@ -991,7 +921,7 @@ def _check_list_length(assignment: Sized, min_length: int) -> None:
 
 def _check_list_is_unique(entries: Collection[Hashable]) -> None:
     """
-    Validate that no entry occurs twice in a list.
+    Reject a list in which an entry occurs twice.
 
     Parameters
     ----------
@@ -1002,7 +932,7 @@ def _check_list_is_unique(entries: Collection[Hashable]) -> None:
         raise ValueError("requires all entries in the list to be unique")
 
 
-def _floated_fractions(fractions: list[float]) -> list[float]:
+def _floated_fractions(assignment: list[float]) -> list[float]:
     """
     Float the entries of a fraction list, rejecting a negative or non-finite one.
 
@@ -1012,7 +942,7 @@ def _floated_fractions(fractions: list[float]) -> list[float]:
 
     Parameters
     ----------
-    fractions
+    assignment
         The value passed to the setter.
 
     Returns
@@ -1020,7 +950,7 @@ def _floated_fractions(fractions: list[float]) -> list[float]:
     list[float]
         The entries, floated.
     """
-    if not isinstance(fractions, list):
+    if not isinstance(assignment, list):
         raise ValueError("only allows assignment of lists")
 
     # a non-number would reach the comparison below as a TypeError carrying no
@@ -1028,7 +958,7 @@ def _floated_fractions(fractions: list[float]) -> list[float]:
     # would escape the floating as an OverflowError, which the parser cannot
     # locate either; int, and the bool that subclasses it, pass
     floated = []
-    for fraction in fractions:
+    for fraction in assignment:
         if not isinstance(fraction, (int, float)):
             raise ValueError(_only_allows("plain numbers", fraction))
 

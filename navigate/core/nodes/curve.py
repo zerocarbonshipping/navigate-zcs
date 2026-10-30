@@ -46,6 +46,9 @@ class Curve(Node, _Table1D):
         self._pending_table = (x, y)
 
     # internal methods -----------------------------------------------------------------
+    def check_consistency(self) -> None:
+        self._check_bounds_consistency()
+
     def build_table(self) -> None:
         """Build the pending table with the interpolation and extrapolation set."""
         if self._pending_table is None:

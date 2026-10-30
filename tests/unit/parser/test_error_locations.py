@@ -8,15 +8,16 @@ The prefix is `Error in deck file, line <deck line>, include file '<path>',
 line <include line>`: the deck line is that of the Include directive (1 for
 DEFINE, 2 for EVENTS in these decks), the include line that of the statement.
 A setter's or command's `ValueError` is re-raised as a `DeckError` with that
-prefix. A table rejected when it is built after the deck is read names its
-node instead, and the run-level guards name what is missing.
+prefix. A table rejected when it is built after the deck is read, and a
+calculator whose bounds admit no value, name their node instead, and the
+run-level guards name what is missing.
 """
 
 from __future__ import annotations
 
 import pytest
 
-from helpers.parser_decks import FLEET, FUEL, line_of
+from helpers.parser_decks import FLEET, FUEL, emission_holding, fleet, line_of, variable
 from navigate.exceptions import DeckError, NavigateError
 from navigate.simulation.time_stepping import check_runnable
 
@@ -222,6 +223,44 @@ class TestTableBuild:
             DeckError, match=r"^Forecast\(\"f\"\): .*'x' must be strictly increasing"
         ):
             read_deck(define)
+
+
+class TestCalculatorBounds:
+    """
+    A calculator whose bounds admit no value is refused once the deck is read.
+
+    Its bounds are its own LowerBound and UpperBound merged with those of every
+    attribute referencing it, so either side can empty the interval.
+    """
+
+    HOLDER = emission_holding('Variable("v")')
+
+    # input:    | Variable "v" { LowerBound = 7  UpperBound = 3 }
+    #           |     held by Emission GlobalWarmingPotential (>= 0)
+    #           | Variable "v" { LowerBound = 7 }  held by Converter Efficiency (<= 1)
+    #           | Variable "v" { UpperBound = 0 }  held by Fuel LowerHeatingValue (> 0)
+    # expected: -> DeckError naming Variable("v"), as {v: 7 <= v <= 3},
+    #              {v: 7 <= v <= 1} and {v: 0 < v <= 0} are empty
+    @pytest.mark.parametrize(
+        "define",
+        [
+            HOLDER + variable(Value=1, LowerBound=7, UpperBound=3),
+            fleet(efficiency='Variable("v")') + FUEL + variable(Value=1, LowerBound=7),
+            FUEL.replace("41.2", 'Variable("v")') + variable(Value=1, UpperBound=0),
+        ],
+        ids=["deck_bounds", "attribute_upper", "attribute_exclusive_lower"],
+    )
+    def test_bounds_admitting_no_value_are_a_deck_error(self, read_deck, define):
+        with pytest.raises(DeckError, match=r'^Variable\("v"\): '):
+            read_deck(define)
+
+    # input:    | Variable "v" { Value = 5  LowerBound = 3  UpperBound = 3 }
+    #           |     held by Emission GlobalWarmingPotential (>= 0)
+    # expected: -> the deck loads and v reads 3.0, as {v: 3 <= v <= 3} = {3}
+    def test_bounds_meeting_at_one_value_are_accepted(self, read_deck):
+        parser = read_deck(self.HOLDER + variable(Value=5, LowerBound=3, UpperBound=3))
+
+        assert parser.nodes.variables["v"].get() == 3.0
 
 
 # input:    | a deck with Fleet "fleet" but no Fuel

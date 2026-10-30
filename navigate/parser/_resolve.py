@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.dsl import SECTION_DEFINE
+from navigate.core import SECTION_DEFINE
 from navigate.core.enum_ import SectionID
 from navigate.core.node_type import CALCULATOR_TYPES
 from navigate.parser._collect import check_no_self_reference, deck_entry, matching

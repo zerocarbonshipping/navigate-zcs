@@ -45,6 +45,9 @@ class Variable(Node, _Calculator):
         self.value = assign_value(value, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
+    def check_consistency(self) -> None:
+        self._check_bounds_consistency()
+
     @overload
     def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
 
