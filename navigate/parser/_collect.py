@@ -16,8 +16,8 @@ Once the deck's own files are read, every concrete reference to an undeclared
 name pulls that name's file from the default library, repeated until nothing
 more is pulled, as a pulled file may declare or extend further nodes. The
 pull is best-effort: a name the library does not hold stays undeclared, and
-the resolve phase raises for it only if a node the simulation holds
-references it.
+the prune phase raises for it only if a node the simulation holds references
+it.
 """
 
 from __future__ import annotations
@@ -86,6 +86,90 @@ def unmatched_wildcard_error(
     return source.error(
         f"No node of type '{node_type}' matches the wildcard expression '{pattern}'."
     )
+
+
+def deck_entry(node_type: str, item: BodyItem, section: SectionID) -> DeckEntry:
+    """
+    Look up the mark of an item's attribute or command on its node type.
+
+    Parameters
+    ----------
+    node_type
+        The node type or general node keyword the item is written on.
+    item
+        The assignment or command.
+    section
+        The section the item is written in.
+
+    Returns
+    -------
+    DeckEntry
+        The mark, allowing the item in the section.
+
+    Raises
+    ------
+    DeckError
+        At the item's line, where the node type has no such attribute or
+        command, or does not allow it in the section.
+    """
+    if node_type in GENERAL_NODE_CLASS:
+        if not isinstance(item, Assignment):
+            raise item.source.error(f"'{node_type}' does not support commands.")
+
+        subject = f"'{node_type}'"
+        entries = GENERAL_NODE_CLASS[node_type].deck_attributes
+        kind, verb = "attribute", "setting attribute"
+    else:
+        node_class = NODE_CLASS[node_type]
+        subject = f"Nodes of type '{node_type}'"
+
+        if isinstance(item, Assignment):
+            entries = node_class.deck_attributes
+            kind, verb = "attribute", "setting attribute"
+        else:
+            entries = node_class.deck_commands
+            kind, verb = "command", "use of command"
+
+    if item.name not in entries:
+        raise item.source.error(f"{subject} has no {kind} '{item.name}'.")
+
+    if section not in entries[item.name].sections:
+        raise item.source.error(
+            f"{subject} does not allow {verb} '{item.name}' in '{section.name}'."
+        )
+
+    return entries[item.name]
+
+
+def check_no_self_reference(key: Key, body: list[BodyItem]) -> None:
+    """
+    Raise where a body item names the node it is written on.
+
+    A node holding itself, directly, through a wildcard that matches its own
+    name or inside an expression, would read its own value while computing
+    it.
+
+    Parameters
+    ----------
+    key
+        The node the body applies to.
+    body
+        The items, each checked for a reference matching the key.
+    """
+    node_type, name = key
+    holder = f'{node_type}("{name}")'
+
+    for item in body:
+        for reference, _ in item_references(item):
+            if not matching({key}, reference.type, reference.name):
+                continue
+
+            through = (
+                f" through the wildcard {reference}" if reference.is_wildcard else ""
+            )
+            raise item.source.error(
+                f"{holder} references itself in '{item.name}'{through}."
+            )
 
 
 class Origin(Enum):
@@ -226,7 +310,9 @@ class Collector:
 
         if isinstance(directive, IncludeDirective):
             path = directory / directive.path
+
             logger.debug("[%s] Include %s", section.name, path)
+
             self._read_file(path, deck_line, section)
             return
 
@@ -236,6 +322,7 @@ class Collector:
             raise self.library.missing_module_error(directive.name, location)
 
         logger.debug("[%s] Load %s from %s", section.name, directive.name, path)
+
         self._read_file(path, deck_line, section)
 
     def _read_file(self, path: Path, deck_line: int, section: SectionID) -> None:
@@ -293,15 +380,10 @@ class Collector:
         node_type = statement.node_type
 
         _check_general_node_type(node_type, statement.source)
-
-        assignments: list[Assignment] = []
         for item in statement.body:
-            if not isinstance(item, Assignment):
-                raise item.source.error(f"'{node_type}' does not support commands.")
-
             deck_entry(node_type, item, SectionID.DEFINE)
-            assignments.append(item)
 
+        assignments = [item for item in statement.body if isinstance(item, Assignment)]
         self.general.setdefault(node_type, []).extend(assignments)
 
     def _import(self, statement: ImportStatement) -> None:
@@ -346,7 +428,7 @@ class Collector:
     # EVENTS ---------------------------------------------------------------------------
 
     def _walk_events(self, statements: list[Statement]) -> None:
-        # the date the blocks apply at: None for Start, once a date is read
+        # a node block must follow a Start or Date, which sets dated
         date: StepDate = None
         dated = False
 
@@ -398,7 +480,7 @@ class Collector:
                     pulled |= self._pull_default(reference.key, item.source)
 
     def _body_items(self) -> list[BodyItem]:
-        """Every item of the declarations' effective bodies and of the events."""
+        """Return every item of the declarations' effective bodies and of the events."""
         items: list[BodyItem] = []
         for declaration in self.declarations.values():
             items.extend(declaration.effective_body())
@@ -446,6 +528,7 @@ class Collector:
             )
 
         logger.debug('%s("%s") was retrieved from the defaults.', node_type, name)
+
         return True
 
     def _pull_required(self, key: Key, source: SourceLocation) -> None:
@@ -464,7 +547,7 @@ class Collector:
             self._pulling.pop()
             self._origin = origin
 
-    # helpers --------------------------------------------------------------------------
+    # declarations ---------------------------------------------------------------------
 
     def _new_declaration(self, key: Key, source: SourceLocation) -> Declaration:
         node_type, name = key
@@ -484,7 +567,7 @@ class Collector:
             )
 
 
-# validation --------------------------------------------------------------------------
+# validation ---------------------------------------------------------------------------
 
 
 def _check_node_type(node_type: str, source: SourceLocation) -> None:
@@ -495,6 +578,15 @@ def _check_node_type(node_type: str, source: SourceLocation) -> None:
         )
 
     if node_type not in NODE_CLASS:
+        raise source.error(f"'{node_type}' is not a recognized node type.")
+
+
+def _check_general_node_type(node_type: str, source: SourceLocation) -> None:
+    """Raise at the source unless the keyword is a general node, declared nameless."""
+    if node_type in NODE_CLASS:
+        raise source.error(f"'{node_type}' is a node type and is declared with a name.")
+
+    if node_type not in GENERAL_NODE_CLASS:
         raise source.error(f"'{node_type}' is not a recognized node type.")
 
 
@@ -522,92 +614,3 @@ def _check_item(node_type: str, item: BodyItem, section: SectionID) -> None:
                 f"'{item.name}' does not accept a wildcard node reference as an "
                 "argument."
             )
-
-
-def deck_entry(node_type: str, item: BodyItem, section: SectionID) -> DeckEntry:
-    """
-    Look up the mark of an item's attribute or command on its node type.
-
-    Parameters
-    ----------
-    node_type
-        The node type or general node keyword the item is written on.
-    item
-        The assignment or command; on a general node, an assignment.
-    section
-        The section the item is written in.
-
-    Returns
-    -------
-    DeckEntry
-        The mark, allowing the item in the section.
-
-    Raises
-    ------
-    DeckError
-        At the item's line, where the node type has no such attribute or
-        command, or does not allow it in the section.
-    """
-    if node_type in GENERAL_NODE_CLASS:
-        subject = f"'{node_type}'"
-        entries = GENERAL_NODE_CLASS[node_type].deck_attributes
-        kind, verb = "attribute", "setting attribute"
-    else:
-        node_class = NODE_CLASS[node_type]
-        subject = f"Nodes of type '{node_type}'"
-
-        if isinstance(item, Assignment):
-            entries = node_class.deck_attributes
-            kind, verb = "attribute", "setting attribute"
-        else:
-            entries = node_class.deck_commands
-            kind, verb = "command", "use of command"
-
-    if item.name not in entries:
-        raise item.source.error(f"{subject} has no {kind} '{item.name}'.")
-
-    if section not in entries[item.name].sections:
-        raise item.source.error(
-            f"{subject} does not allow {verb} '{item.name}' in '{section.name}'."
-        )
-
-    return entries[item.name]
-
-
-def check_no_self_reference(key: Key, body: list[BodyItem]) -> None:
-    """
-    Raise where a body item names the node it is written on.
-
-    A node holding itself, directly, through a wildcard that matches its own
-    name or inside an expression, would read its own value while computing
-    it.
-
-    Parameters
-    ----------
-    key
-        The node the body applies to.
-    body
-        The items, each checked for a reference matching the key.
-    """
-    node_type, name = key
-
-    for item in body:
-        for reference, _ in item_references(item):
-            if not matching({key}, reference.type, reference.name):
-                continue
-
-            through = (
-                f" through the wildcard {reference}" if reference.is_wildcard else ""
-            )
-            raise item.source.error(
-                f"{node_type}(\"{name}\") references itself in '{item.name}'{through}."
-            )
-
-
-def _check_general_node_type(node_type: str, source: SourceLocation) -> None:
-    """Raise at the source unless the keyword is a general node, declared nameless."""
-    if node_type in NODE_CLASS:
-        raise source.error(f"'{node_type}' is a node type and is declared with a name.")
-
-    if node_type not in GENERAL_NODE_CLASS:
-        raise source.error(f"'{node_type}' is not a recognized node type.")

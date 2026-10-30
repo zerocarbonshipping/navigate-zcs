@@ -7,8 +7,8 @@ The resolve phase: the EVENTS blocks against the declarations.
 Each block is bound to the declarations its name matches: a wildcard to every
 declaration of its type the pattern matches, a name to that declaration;
 either must match something, as the EVENTS section cannot define new nodes.
-Whether the targets take part in the simulation is not decided here;
-`_prune.py` decides that next. Once it has, an event changing a calculator a
+Whether the targets take part in the simulation is not decided here; the
+prune phase decides that next. Once it has, an event changing a calculator a
 kept node's DEFINE-only input holds is refused: the calculator is fixed with
 its holder.
 """

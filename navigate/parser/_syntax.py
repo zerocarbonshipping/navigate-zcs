@@ -32,7 +32,7 @@ from navigate.core.table_data import TableData
 from navigate.exceptions import DeckError
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
 
     from lark.tree import Meta
 
@@ -60,6 +60,11 @@ class SourceLocation:
     def error(self, message: str) -> DeckError:
         """Build the deck error for a one-sentence message written here."""
         return DeckError(f"{self.prefix()}: {message}")
+
+
+def bulleted(lines: Iterable[object]) -> str:
+    """Spell lines as the bullet list a deck message ends in, one line each."""
+    return "".join(f"\n\t- {line}" for line in lines)
 
 
 # deck-level AST (.nav) ----------------------------------------------------------------
@@ -155,13 +160,12 @@ def item_references(item: BodyItem) -> Iterator[tuple[NodeReference, bool]]:
 
 
 def _references(value: DeckValue) -> Iterator[tuple[NodeReference, bool]]:
+    """Yield each node reference a value holds, and whether it is in an expression."""
     if isinstance(value, NodeReference):
         yield value, False
-
     elif isinstance(value, list):
         for element in value:
             yield from _references(element)
-
     elif isinstance(value, ExpressionSyntax):
         for reference in node_references(value.root):
             yield reference, True
@@ -384,7 +388,7 @@ class _NavTransformer(Transformer[Token, object]):
         return Constant(math.inf)
 
 
-# public API ---------------------------------------------------------------------------
+# parsing ------------------------------------------------------------------------------
 
 _PARSER = Lark.open_from_package(
     "navigate.parser",
@@ -421,6 +425,7 @@ def parse_include_content(
 
 
 def _parse(start: str, text: str, file: str, deck_line: int) -> object:
+    """Parse text from a start rule of the grammar into its AST."""
     # the LALR parser reports running out of input as an UnexpectedToken
     try:
         tree = _PARSER.parse(text, start=start)

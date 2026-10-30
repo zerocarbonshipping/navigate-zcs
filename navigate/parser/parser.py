@@ -24,6 +24,7 @@ from navigate.parser._collect import Collector
 from navigate.parser._library import Library
 from navigate.parser._prune import prune
 from navigate.parser._resolve import check_pinned_calculators, resolve
+from navigate.parser._syntax import bulleted
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -111,7 +112,7 @@ def _time_steps(timeline: list[StepDate], start_date: np.datetime64) -> DateArra
             before_start.append(f"Date '{date}' is before start date '{start_date}'")
 
     if before_start:
-        listed = "".join(f"\n\t- {line}" for line in before_start)
+        listed = bulleted(before_start)
         raise DeckError(
             f"Inconsistent timeline detected:{listed}\nAll defined dates must be "
             "later than the start date."
@@ -126,9 +127,8 @@ def _events_by_date(
     """Key the events by date; on the start date the Start blocks come first."""
     queue: dict[np.datetime64, list[BoundEvent]] = {}
 
-    # two passes instead of a sort: insertion order keeps read order within
-    # each pass, and the first pass puts every Start block ahead of a block
-    # dated on the start date
+    # the Start blocks are queued first, so on the start date they apply before
+    # the blocks dated on it; each pass keeps read order
     for block, targets in events:
         if block.date is None:
             queue.setdefault(start_date, []).append((block, targets))

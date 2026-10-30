@@ -37,7 +37,12 @@ from navigate.core.node_type import MODEL_DEFINITION
 from navigate.core.table_data import TableData
 from navigate.exceptions import DeckError, UnassignedAttributeError
 from navigate.parser._collect import matching, unmatched_wildcard_error
-from navigate.parser._syntax import Assignment, Command, ExpressionSyntax
+from navigate.parser._syntax import (
+    Assignment,
+    Command,
+    ExpressionSyntax,
+    bulleted,
+)
 from navigate.util import attribute_to_setter
 
 if TYPE_CHECKING:
@@ -84,11 +89,11 @@ class Builder:
     """
 
     def __init__(self, collector: Collector, kept: list[Key]) -> None:
-        self._collector: Collector = collector
-        self._kept: list[Key] = kept
-
         self.nodes: Nodes = Nodes()
         self.general_nodes: GeneralNodes
+
+        self._collector: Collector = collector
+        self._kept: list[Key] = kept
         self._node_by_key: dict[Key, Node] = {}
 
         # a required attribute is declared without a value, so the check reads
@@ -200,7 +205,7 @@ class Builder:
         self._run_lifecycle(sweep)
         self._run_lifecycle(validate)
 
-    # applying items -------------------------------------------------------------------
+    # items ----------------------------------------------------------------------------
 
     def _assign(self, holder: Holder, item: Assignment) -> None:
         value = self._materialize(item.value, holder, item)
@@ -284,7 +289,7 @@ class Builder:
         except ValueError as error:
             raise DeckError(str(error)) from None
 
-    # materializing values -------------------------------------------------------------
+    # values ---------------------------------------------------------------------------
 
     def _materialize(
         self, value: DeckValue, holder: Holder, item: BodyItem
@@ -301,7 +306,7 @@ class Builder:
             if value.is_wildcard:
                 return self._expand_wildcard(value, item)
 
-            node = self._node_by_key.get((value.type, value.name))
+            node = self._node_by_key.get(value.key)
             if node is None:
                 self._dropped.append(f"{holder} {item.name}: {value}")
                 return None
@@ -363,5 +368,5 @@ class Builder:
             "Assign the removed node(s) to a Route to keep them, or drop the stale "
             "reference(s) from the deck.",
             len(dropped),
-            "".join(f"\n\t- {line}" for line in dropped),
+            bulleted(dropped),
         )
