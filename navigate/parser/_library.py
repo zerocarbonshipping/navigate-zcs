@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from navigate.exceptions import DeckError
-    from navigate.parser._lark_parser import SourceLocation
+    from navigate.parser._syntax import SourceLocation
 
 
 class Library:

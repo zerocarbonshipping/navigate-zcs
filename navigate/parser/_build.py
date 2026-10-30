@@ -37,7 +37,7 @@ from navigate.core.node_type import MODEL_DEFINITION
 from navigate.core.table_data import TableData
 from navigate.exceptions import DeckError, UnassignedAttributeError
 from navigate.parser._collect import matching
-from navigate.parser._lark_parser import Assignment, Command, ExpressionSyntax
+from navigate.parser._syntax import Assignment, Command, ExpressionSyntax
 from navigate.util import attribute_to_setter
 
 if TYPE_CHECKING:
@@ -49,8 +49,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.timetable import Timetable
     from navigate.parser._collect import Collector, Key
-    from navigate.parser._lark_parser import BodyItem, DeckValue, SourceLocation
     from navigate.parser._resolve import BoundEvent
+    from navigate.parser._syntax import BodyItem, DeckValue, SourceLocation
 
 logger = logging.getLogger(__name__)
 

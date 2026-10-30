@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from navigate.parser._lark_parser import SourceLocation
+from navigate.parser._syntax import SourceLocation
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

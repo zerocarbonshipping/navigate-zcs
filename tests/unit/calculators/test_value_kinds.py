@@ -25,7 +25,7 @@ from navigate.core.nodes.surface import Surface
 from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.table_data import TableData
-from navigate.parser._lark_parser import parse_include_content
+from navigate.parser._syntax import parse_include_content
 
 if TYPE_CHECKING:
     from collections.abc import Callable

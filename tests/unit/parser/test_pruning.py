@@ -32,15 +32,15 @@ from navigate.parser._collect import (
     EventBlock,
     Origin,
 )
-from navigate.parser._lark_parser import (
+from navigate.parser._library import Library
+from navigate.parser._prune import NON_ACTIVATING, ROOT_TYPES, prune
+from navigate.parser._resolve import resolve
+from navigate.parser._syntax import (
     Assignment,
     Command,
     NodeReference,
     SourceLocation,
 )
-from navigate.parser._library import Library
-from navigate.parser._prune import NON_ACTIVATING, ROOT_TYPES, prune
-from navigate.parser._resolve import resolve
 from navigate.util import attribute_to_setter
 
 NON_ROOT_TYPES = sorted(set(NODE_CLASS) - set(ROOT_TYPES))

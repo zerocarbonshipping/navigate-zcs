@@ -33,12 +33,12 @@ from navigate.core.node_type import (
     REGULATION,
 )
 from navigate.parser._collect import Origin, matching
-from navigate.parser._lark_parser import Assignment, item_references
+from navigate.parser._syntax import Assignment, item_references
 
 if TYPE_CHECKING:
     from navigate.parser._collect import Collector, Declaration, EventBlock, Key
-    from navigate.parser._lark_parser import BodyItem
     from navigate.parser._resolve import BoundEvent
+    from navigate.parser._syntax import BodyItem
 
 logger = logging.getLogger(__name__)
 

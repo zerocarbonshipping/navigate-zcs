@@ -22,7 +22,7 @@ from navigate.core.enum_ import (
 from navigate.core.node_registry import GENERAL_NODE_CLASS
 from navigate.exceptions import DeckError
 from navigate.parser._collect import deck_entry
-from navigate.parser._lark_parser import Command
+from navigate.parser._syntax import Command
 
 DEFINE = SectionID.DEFINE
 EVENTS = SectionID.EVENTS

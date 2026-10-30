@@ -30,7 +30,8 @@ from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import SectionID
 from navigate.core.node_registry import GENERAL_NODE_CLASS, NODE_CLASS
-from navigate.parser._lark_parser import (
+from navigate.parser._params import Params
+from navigate.parser._syntax import (
     Assignment,
     Command,
     CopyStatement,
@@ -46,7 +47,6 @@ from navigate.parser._lark_parser import (
     parse_deck_content,
     parse_include_content,
 )
-from navigate.parser._params import Params
 from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
@@ -56,8 +56,8 @@ if TYPE_CHECKING:
     import numpy as np
 
     from navigate.core.dsl import DeckEntry
-    from navigate.parser._lark_parser import BodyItem, Directive, Statement
     from navigate.parser._library import Library
+    from navigate.parser._syntax import BodyItem, Directive, Statement
 
 logger = logging.getLogger(__name__)
 

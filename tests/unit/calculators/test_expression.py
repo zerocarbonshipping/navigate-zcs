@@ -18,7 +18,7 @@ import pytest
 from navigate.core.expression import Expression, node_references
 from navigate.core.nodes.variable import Variable
 from navigate.exceptions import DeckError
-from navigate.parser._lark_parser import parse_include_content
+from navigate.parser._syntax import parse_include_content
 
 
 def _variable(name: str, value: float) -> Variable:
