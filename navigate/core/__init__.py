@@ -32,6 +32,8 @@ from navigate.core.assign import (
 from navigate.core.dsl import SECTION_DEFINE, deck_attribute, deck_command
 from navigate.core.expression import Expression
 from navigate.core.node_maps import (
+    define_fuel_plants,
+    define_producer_fuels,
     define_vessel_fuel_maps,
     define_vessels_in_jurisdiction,
     update_bunkerable_fuels,

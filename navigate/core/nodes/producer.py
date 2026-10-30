@@ -94,8 +94,8 @@ class Producer(Node):
         self.increments: list[list[PlantIncrement]]
         self.pipeline: list[list[PlantIncrement]]
 
-        # static variables
-        self.fuels: dict[str, Fuel] = {}
+        # node maps
+        self.fuels: dict[str, Fuel]
 
         # dynamic variables
         self.current_uptake: FloatArray

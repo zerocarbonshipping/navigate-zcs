@@ -16,7 +16,9 @@ if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
+    from navigate.core.nodes.producer import Producer
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
 
@@ -172,6 +174,42 @@ def _port_converters_per_fuel(
         port_converters_per_fuel[fuel_name] = in_port
 
     return port_converters_per_fuel
+
+
+def define_fuel_plants(fuels: dict[str, Fuel], plants: dict[str, Plant]) -> None:
+    """
+    Write on each fuel the plants producing it, in plant order.
+
+    Parameters
+    ----------
+    fuels
+        All fuels in the simulation, keyed by name.
+    plants
+        All plants in the simulation, keyed by name.
+    """
+    for fuel in fuels.values():
+        fuel.plants = []
+
+    for plant in plants.values():
+        plant.fuel.plants.append(plant)
+
+
+def define_producer_fuels(producers: dict[str, Producer]) -> None:
+    """
+    Write on each producer the fuels its plants produce, in plant order.
+
+    Parameters
+    ----------
+    producers
+        All producers in the simulation, keyed by name.
+    """
+    for producer in producers.values():
+        fuels: dict[str, Fuel] = {}
+
+        for plant in producer.plants:
+            fuels.setdefault(plant.fuel.name, plant.fuel)
+
+        producer.fuels = fuels
 
 
 def define_vessels_in_jurisdiction(
