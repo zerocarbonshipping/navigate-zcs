@@ -61,7 +61,7 @@ ones omitted, never "N/A".
   to the deck's own directory, and scenario and end-to-end test decks
   include `../0_includes/*.inc`: copy everything the deck reaches through
   relative includes with the layout kept, e.g. the parent folder. In that
-  environment, run `navigate <copy>/<deck>.nav -d <checkout>/assumptions -s`.
+  environment, run `navigate <copy>/<deck>.nav -d <checkout>/assumptions`.
 - **documentation:** Code wrong: a bug. Several mismatches of one kind found
   in one pass make one issue. The reference manual covers user-visible
   behaviour only, no modelling derivations; internals belong in root files
