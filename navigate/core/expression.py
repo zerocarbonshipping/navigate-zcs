@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Define restricted arithmetic expressions for deck attributes and commands.
+Restricted arithmetic expressions for deck attributes and commands.
 
 They are written using the deck's ``<...>`` syntax, which the parser's grammar
 reads straight into a tree of the evaluator nodes defined here: numeric

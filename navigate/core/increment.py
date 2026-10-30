@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Define the asset cohorts held by the Fleet (vessels) and Producer (plants) nodes.
+The asset cohorts held by the Fleet (vessels) and Producer (plants) nodes.
 
 The fleet and fuel domains build and age them; navigate.simulation.cohort holds
 the accounting the two share.
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 @dataclass(slots=True)
 class Increment:
     """
-    Represent one cohort of assets that entered service together.
+    One cohort of assets that entered service together.
 
     Parameters
     ----------
@@ -40,7 +40,7 @@ class Increment:
 @dataclass(slots=True)
 class VesselIncrement(Increment):
     """
-    Represent one cohort of vessels, with the technology it carries.
+    One cohort of vessels, with the technology it carries.
 
     Parameters
     ----------
@@ -67,7 +67,7 @@ class VesselIncrement(Increment):
 @dataclass(slots=True)
 class PlantIncrement(Increment):
     """
-    Represent one cohort of plants, with the time since it was decided.
+    One cohort of plants, with the time since it was decided.
 
     Parameters
     ----------

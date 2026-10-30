@@ -99,7 +99,7 @@ def assign_integer(
     inclusive_upper: bool = True,
 ) -> int:
     """
-    Validate an integer assignment against bounds and return it as int.
+    Check whether an integer assignment satisfies its bounds, and return it as int.
 
     Infinity is always rejected, as no integer is infinite.
 
@@ -112,9 +112,9 @@ def assign_integer(
     upper
         Upper bound.
     inclusive_lower
-        Lower bound is inclusive.
+        Whether the value may equal the lower bound.
     inclusive_upper
-        Upper bound is inclusive.
+        Whether the value may equal the upper bound.
 
     Returns
     -------
@@ -174,9 +174,9 @@ def assign_value[T: _Assignment](
     allow_infinite
         Whether the setter accepts INF and -INF within its bounds.
     inclusive_lower
-        Lower bound is inclusive.
+        Whether the value may equal the lower bound.
     inclusive_upper
-        Upper bound is inclusive.
+        Whether the value may equal the upper bound.
 
     Returns
     -------
@@ -220,7 +220,7 @@ def assign_list[T: _Assignment](
     inclusive_upper: bool = True,
 ) -> list[T]:
     """
-    Check each value of a list assigned to an attribute against its requirements.
+    Check whether each value in an assigned list satisfies its attribute's requirements.
 
     Only applicable to attributes requiring a list of values read through a
     getter, each checked as assign_value checks a single one; a list of node
@@ -243,9 +243,9 @@ def assign_list[T: _Assignment](
     allow_infinite
         Whether the setter accepts INF and -INF within its bounds.
     inclusive_lower
-        Lower bound is inclusive.
+        Whether the value may equal the lower bound.
     inclusive_upper
-        Upper bound is inclusive.
+        Whether the value may equal the upper bound.
 
     Returns
     -------
@@ -350,7 +350,7 @@ def assign_boolean(assignment: str) -> bool:
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
 
     Returns
     -------
@@ -370,7 +370,7 @@ def assign_date(assignment: np.datetime64) -> np.datetime64:
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
 
     Returns
     -------
@@ -399,7 +399,7 @@ def assign_bound(
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
     inclusive_lower
         Whether the bound may be -INF.
     inclusive_upper
@@ -431,7 +431,7 @@ def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
     id_enum
         Enum class the assigned name is looked up in.
 
@@ -459,7 +459,7 @@ def assign_member[E: Enum](assignment: str, members: tuple[E, ...]) -> E:
     Parameters
     ----------
     assignment
-        Value passed to the setter.
+        The value passed to the setter.
     members
         The enum members the attribute accepts.
 
@@ -520,7 +520,7 @@ def assign_id_list[E: Enum](
 
 def assign_fraction_list(assignment: list[float]) -> tuple[list[float], bool]:
     """
-    Check a list of fractions assigned to an attribute and rescale it to sum to 1.
+    Check whether an assigned list of fractions is valid, and rescale it to sum to 1.
 
     Only applicable to attributes requiring a list of values summing to 1.
     Entries are floated first, so a list written as integers is rescaled the
@@ -743,7 +743,7 @@ def _failed_value_message(
     assignment: object, allow_scalar: bool, type_: AcceptedNodeTypes | None
 ) -> str:
     """
-    Build the error message for a value an attribute does not accept.
+    Spell the error message for a value an attribute does not accept.
 
     Parameters
     ----------
@@ -858,9 +858,9 @@ def _resolve_bounds(
     upper
         Upper bound.
     inclusive_lower
-        Whether the setter asked for an inclusive lower bound.
+        Whether the value may equal the lower bound.
     inclusive_upper
-        Whether the setter asked for an inclusive upper bound.
+        Whether the value may equal the upper bound.
     allow_infinite
         Whether the setter accepts INF and -INF within its bounds.
 
@@ -878,7 +878,7 @@ def _resolve_bounds(
 
 def _check_scalar(assignment: float | Scalar, bounds: Bounds) -> None:
     """
-    Validate that a scalar value satisfies the given bounds.
+    Reject a scalar value outside the given bounds.
 
     Parameters
     ----------
@@ -904,7 +904,7 @@ def _check_scalar(assignment: float | Scalar, bounds: Bounds) -> None:
 
 def _check_list_length(assignment: Sized, min_length: int) -> None:
     """
-    Validate that a list contains at least a minimum number of values.
+    Reject a list holding fewer than a minimum number of values.
 
     Parameters
     ----------
@@ -921,7 +921,7 @@ def _check_list_length(assignment: Sized, min_length: int) -> None:
 
 def _check_list_is_unique(entries: Collection[Hashable]) -> None:
     """
-    Validate that no entry occurs twice in a list.
+    Reject a list in which an entry occurs twice.
 
     Parameters
     ----------
