@@ -1,0 +1,25 @@
+/*
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+*/
+
+/* The case maps are of different shapes: crop them all to one, from the top
+   left, where the maps put their title notes. */
+.example-card .sd-card-img-top {
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  object-position: top left;
+  background: #eaf6fb;
+}
+
+.example-card {
+  transition: box-shadow 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.example-card:hover {
+  transform: translateY(-2px);
+}
+
+.example-card .sd-card-footer {
+  font-size: 0.85em;
+}

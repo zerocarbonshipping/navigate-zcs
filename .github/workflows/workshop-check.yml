@@ -92,6 +92,8 @@ jobs:
             simulations/examples/example_2/example_2.nav \
             simulations/examples/example_3/example_3.nav \
             simulations/examples/example_4/example_4.nav \
+            simulations/examples/example_5/example_5_*.nav \
+            simulations/examples/example_6/example_6_*.nav \
             tutorials/tutorial_1/example_solution/tutorial_1.nav \
             tutorials/tutorial_2/example_solution/tutorial_2.nav \
             tutorials/tutorial_3/example_solution/tutorial_3_scenarios/baseline/baseline.nav \
@@ -114,14 +116,15 @@ jobs:
 
       - name: Execute the workshop notebooks
         run: |
-          notebooks="01-run-a-simple-case 02-run-a-global-case 03-how-a-navigate-model-is-built 04-how-navigate-solves"
+          notebooks="workshop/01-run-a-simple-case workshop/02-run-a-global-case workshop/03-how-a-navigate-model-is-built workshop/04-how-navigate-solves"
+          notebooks="$notebooks examples/mainline-and-feeders-explore examples/south-pacific-explore examples/two-fleets-explore examples/rhine-explore examples/caribbean-explore"
           FULL="${{ inputs.full }}" python - $notebooks <<'PY'
           import os, sys, nbformat
           from nbclient import NotebookClient
           from nbclient.exceptions import CellExecutionError
           failed = []
           for name in sys.argv[1:]:
-              path = f"docs/workshop/{name}.ipynb"
+              path = f"docs/{name}.ipynb"
               nb = nbformat.read(path, as_version=4)
               if os.environ.get("FULL") != "true":
                   # Session 2's last step solves three scenarios year by year (25-50 min):
@@ -131,7 +134,7 @@ jobs:
                   nb.cells = [c for c in nb.cells if not c.source.startswith(yearly)]
               try:
                   NotebookClient(nb, kernel_name="python3", timeout=3600,
-                                 resources={"metadata": {"path": "docs/workshop"}}).execute()
+                                 resources={"metadata": {"path": os.path.dirname(path)}}).execute()
                   print(f"{name}: ok")
               except CellExecutionError as e:
                   print(f"::error file={path}::{str(e).strip().splitlines()[-1][:300]}")

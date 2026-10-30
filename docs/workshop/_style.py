@@ -264,7 +264,12 @@ SCEN_COLOUR = {"basecase_no_regulation": swatch("black", 5),
                "reference": swatch("black", 4),
                "your scenario": swatch("blue", 8),
                # the sensitivity run before "your scenario": lighter than it
-               "previous scenario": swatch("blue", 5)}
+               "previous scenario": swatch("blue", 5),
+               # the Examples pages' cases of several decks, as no, mid and strong above
+               "no policy": swatch("black", 5),
+               "current rules": ORANGE,
+               "extended": swatch("blue", 8),
+               "CO2 price": swatch("blue", 8)}
 
 
 def scen_colour(name):

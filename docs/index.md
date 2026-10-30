@@ -14,6 +14,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 tutorials/index
 workshop/index
+examples/index
 reference_manual/index
 ```
 
@@ -40,13 +41,14 @@ emissions, and compliance costs through time.
 
 ## About this documentation
 
-This site is organised into three parts. New users should start with the
+This site is organised into four parts. New users should start with the
 tutorials and work through them in order; the workshop is a hands-on
 alternative that works one case through the model before the Center's own
-reference scenarios; the reference manual is there to look up specifics as you
+reference scenarios; the examples show the cases built so far, to start your
+own from; the reference manual is there to look up specifics as you
 build your own decks.
 
-::::{grid} 1 1 3 3
+::::{grid} 1 1 2 4
 :gutter: 3
 
 :::{grid-item-card} Tutorials
@@ -64,6 +66,14 @@ simulation through to modular, multi-scenario studies.
 Work one case through the model, then run the Center's own reference
 scenarios and move their assumptions — hands-on notebooks that launch directly
 in Google Colab.
+:::
+
+:::{grid-item-card} Examples
+:link: examples/index
+:link-type: doc
+
+Cases built with Navigate, by family: each with its map, its deck or the prompt
+that builds it, and its results.
 :::
 
 :::{grid-item-card} Reference Manual

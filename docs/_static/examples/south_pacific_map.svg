@@ -1,0 +1,46 @@
+<!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+
+Basemap geometry derived from Natural Earth 1:110m Admin 0 countries,
+which is in the public domain (naturalearthdata.com).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 764" width="100%" style="max-width:940px;height:auto;font-family:system-ui,-apple-system,'Segoe UI',sans-serif" role="img" aria-label="Map of example 2: Handysize bulk carriers on regional trips between Australia, New Zealand, Fiji, Samoa and Tonga, with FAME from Europe bunkered in Australia and New Zealand only">
+<defs><marker id="south_pacific0" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b55f2e"/></marker><marker id="south_pacific1" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#3d5f87"/></marker><marker id="south_pacific2" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#8c8c8c"/></marker></defs>
+<rect width="940" height="764" fill="#eaf6fb"/>
+<path d="M680.7 183.1L680.7 192.0L670.4 196.5L660.0 200.3L657.9 193.5L666.0 189.8L671.2 188.8L680.7 183.1ZM650.3 209.3L654.3 206.3L659.9 211.5L657.2 221.0L647.2 223.5L638.3 221.3L636.7 213.3L642.9 207.0L650.3 209.3ZM684.0 182.3L682.0 191.0L680.7 192.0L680.7 183.1L684.0 182.3ZM152.7 0.0L156.4 1.5L160.3 11.2L145.4 13.1L149.0 25.2L163.4 37.2L174.0 56.5L183.2 55.9L182.6 63.9L195.1 67.0L190.2 70.4L207.5 78.1L205.7 83.4L194.9 84.6L191.0 79.9L177.0 77.9L160.7 75.1L148.1 63.5L138.9 53.5L130.4 37.6L109.3 29.7L95.6 34.8L85.7 40.8L87.7 54.3L75.0 60.5L65.9 57.5L49.2 56.7L48.9 0.0ZM209.8 0.0L206.7 1.5L198.4 5.8L189.8 5.8L176.5 0.5L175.6 0.0ZM281.9 0.0L284.4 3.6L292.0 9.8L289.8 14.9L285.2 16.7L278.2 9.7L272.2 0.0ZM48.9 0.0L49.2 56.7L34.7 41.8L18.3 38.1L14.3 43.3L0.0 43.7L0.0 30.4L0.6 29.1L10.8 24.0L6.6 4.2L4.5 0.0ZM473.5 179.9L483.7 190.4L478.3 192.8L472.9 184.8L473.5 179.9ZM466.6 175.9L464.3 170.8L464.0 156.9L471.7 162.5L474.4 177.2L470.0 174.9L466.6 175.9ZM450.2 274.3L463.5 285.6L471.9 293.9L465.8 298.3L456.9 293.4L445.3 285.2L434.8 275.6L424.1 262.7L421.9 256.6L428.8 256.8L437.9 263.0L445.0 269.2L450.2 274.3ZM390.9 81.5L395.4 87.8L384.1 87.7L377.9 76.5L387.6 80.9L390.9 81.5ZM383.8 65.5L381.3 68.8L369.3 53.1L366.0 42.2L371.5 42.2L377.3 56.8L383.8 65.5ZM370.4 70.4L364.0 70.9L354.1 69.0L350.7 66.2L351.7 59.0L362.4 61.8L367.7 65.7L370.4 70.4ZM350.7 36.7L354.5 42.5L355.2 46.2L342.5 38.5L333.6 31.9L327.6 25.9L330.0 24.0L337.4 28.4L350.7 36.7ZM310.2 18.6L316.7 24.5L313.4 25.6L306.3 21.4L299.7 13.9L300.5 10.9L310.2 18.6ZM630.2 619.6L624.1 629.4L616.1 641.9L603.5 649.1L600.8 644.4L594.0 641.8L603.3 626.8L598.0 616.8L580.6 609.5L581.1 602.9L592.8 596.6L595.5 582.6L594.7 570.8L588.2 558.6L588.6 555.4L580.9 547.9L568.1 531.8L561.3 518.9L567.4 517.5L576.2 527.6L588.8 532.3L593.4 548.5L605.1 567.7L605.5 555.3L612.8 560.2L615.2 574.0L628.2 579.9L639.2 581.4L648.4 574.4L656.7 576.5L652.7 592.7L647.8 603.3L635.4 602.9L631.1 608.4L632.6 616.3L630.2 619.6ZM513.2 683.1L527.1 673.6L536.9 664.1L544.1 650.6L550.2 646.0L552.6 635.8L564.0 627.4L567.6 635.2L571.2 642.7L582.8 635.3L587.5 643.0L587.5 650.6L581.4 659.1L570.9 672.5L562.6 679.8L568.5 688.5L556.0 688.8L542.2 695.6L537.8 707.5L528.6 725.9L515.9 734.0L507.8 739.2L492.9 738.9L482.4 732.9L464.8 731.6L462.0 724.9L470.8 711.4L491.1 693.5L501.6 690.0L513.2 683.1ZM157.0 633.1L166.8 634.4L167.9 656.0L162.3 662.2L160.7 676.9L155.0 671.9L143.8 684.6L140.4 683.6L130.4 683.0L120.4 667.4L118.2 655.4L108.9 639.6L109.3 631.2L119.9 632.9L135.6 639.1L144.4 636.6L157.0 633.1ZM0.0 192.1L4.9 196.6L9.5 196.6L18.0 201.2L20.4 206.8L35.9 213.0L46.6 206.8L49.8 197.0L53.1 189.0L55.1 179.0L60.0 164.5L57.8 155.7L58.9 150.4L57.0 140.0L59.2 126.3L62.3 122.6L59.8 116.6L63.7 106.9L66.7 96.9L67.2 91.7L73.2 84.9L77.7 93.8L78.9 105.2L82.9 107.4L83.6 115.1L89.5 124.3L90.7 134.6L90.1 141.2L96.0 155.5L106.4 148.6L111.7 156.3L119.5 163.4L117.9 171.5L121.3 187.1L123.8 196.2L127.9 198.4L132.3 213.9L130.7 223.4L135.9 235.7L153.5 245.2L164.9 253.9L175.8 261.8L173.7 266.2L183.0 277.6L189.3 297.3L195.7 293.3L202.3 301.1L206.3 298.4L209.1 317.6L220.6 328.8L228.1 335.7L240.8 350.5L245.3 365.1L245.7 375.5L244.6 386.7L252.3 402.2L251.4 418.3L248.6 426.7L244.2 442.9L244.6 453.3L241.3 466.4L234.2 482.9L222.2 491.9L216.3 506.0L210.9 514.9L206.1 530.6L199.8 539.7L195.7 553.3L193.6 565.9L194.4 571.6L185.1 577.9L167.0 578.6L152.0 586.0L144.6 593.1L134.8 600.9L121.4 592.9L111.5 589.7L114.0 580.2L105.1 583.6L90.9 596.8L76.9 591.9L67.7 589.0L58.5 587.7L42.8 582.4L32.3 571.2L29.3 557.4L25.5 548.2L17.5 540.8L2.0 538.6L7.3 529.8L3.4 516.3L0.0 521.7Z" fill="#dcdcdc" stroke="#ffffff" stroke-width="0.8" stroke-linejoin="round" fill-rule="evenodd"/>
+<path d="M32.4 618.4L218.8 445.6L240.5 398.3" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#south_pacific2)"/>
+<path d="M32.4 618.4L356.6 663.9L587.2 564.2" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#south_pacific2)"/>
+<path d="M244.7 389.3L291.7 454.7L405.2 527.5L551.0 531.1L596.4 560.2L648.3 509.3L745.5 382.0L758.5 274.7L802.2 191.0L813.6 141.9L769.8 163.7L674.2 200.1L654.8 220.1L551.0 254.7L494.3 323.8L389.0 345.6L283.6 372.9L244.7 389.3" fill="none" stroke="#b55f2e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="translate(348.4 491.1) rotate(32.7) translate(-12.0 -10.5) scale(1.5)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#323232" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/></g>
+<g transform="translate(664.5 210.1) rotate(134.2) translate(-12.0 -10.5) scale(1.5)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#323232" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/></g>
+<circle cx="244.7" cy="389.3" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="596.4" cy="560.2" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="654.8" cy="220.1" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="813.6" cy="141.9" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="758.5" cy="274.7" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<text x="231.7" y="377.3" font-size="12.5" fill="#323232" text-anchor="end" font-weight="600">Australia</text>
+<text x="231.7" y="389.3" font-size="9.5" fill="#585858" text-anchor="end">fuel oil · FAME</text>
+<text x="609.4" y="578.2" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">New Zealand</text>
+<text x="609.4" y="590.2" font-size="9.5" fill="#585858" text-anchor="start">fuel oil · FAME</text>
+<text x="630.8" y="196.1" font-size="12.5" fill="#323232" text-anchor="end" font-weight="600">Fiji</text>
+<text x="630.8" y="208.1" font-size="9.5" fill="#585858" text-anchor="end">fuel oil only</text>
+<text x="826.6" y="144.9" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">Samoa</text>
+<text x="826.6" y="156.9" font-size="9.5" fill="#585858" text-anchor="start">fuel oil only</text>
+<text x="771.5" y="292.7" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">Tonga</text>
+<text x="771.5" y="304.7" font-size="9.5" fill="#585858" text-anchor="start">fuel oil only</text>
+<text x="48.6" y="700.3" font-size="11.5" fill="#585858" text-anchor="start" font-weight="600">FAME made in Europe</text>
+<text x="48.6" y="712.8" font-size="10" fill="#585858" text-anchor="start">11,000 nm to Australia, 12,200 to New Zealand</text>
+<text x="356.6" y="90.9" font-size="11.5" fill="#b55f2e" text-anchor="start" font-weight="600">regional trips between the five ports</text>
+<text x="356.6" y="103.4" font-size="10" fill="#b55f2e" text-anchor="start">no fixed order: 36 port calls shared between them</text>
+<text x="356.6" y="709.4" font-size="11.5" fill="#585858" text-anchor="start">CII and a net-zero framework at every port</text>
+<text x="356.6" y="721.9" font-size="10" fill="#585858" text-anchor="start">no EU policy</text>
+<text x="930.0" y="756.0" font-size="8.5" fill="#a5a5a5" text-anchor="end">Basemap: Natural Earth 1:110m (public domain)</text>
+<rect x="710.0" y="665" width="216" height="69" rx="5" fill="#ffffff" fill-opacity="0.9" stroke="#bebebe" stroke-width="0.8"/>
+<circle cx="727.0" cy="681" r="5" fill="#3d5f87"/>
+<text x="742.0" y="684.0" font-size="10" fill="#323232" text-anchor="start">bunker port</text>
+<line x1="720.0" y1="698" x2="734.0" y2="698" stroke="#b55f2e" stroke-width="2.6"/>
+<text x="742.0" y="701.0" font-size="10" fill="#323232" text-anchor="start">Handysize bulk carriers</text>
+<line x1="720.0" y1="715" x2="734.0" y2="715" stroke="#8c8c8c" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="742.0" y="718.0" font-size="10" fill="#323232" text-anchor="start">FAME delivery from Europe</text>
+</svg>

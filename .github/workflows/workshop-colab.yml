@@ -13,6 +13,7 @@ on:
     branches: [ dev-workshop ]   # change to main once the workshop is merged
     paths:
       - 'docs/workshop/*.ipynb'
+      - 'docs/examples/*.ipynb'
       - '.github/workflows/workshop-colab.yml'
   workflow_dispatch:
 
@@ -45,8 +46,10 @@ jobs:
           import glob, os
           import nbformat
 
-          os.makedirs("colab/docs/workshop", exist_ok=True)
-          for path in sorted(glob.glob("docs/workshop/*.ipynb")):
+          # the workshop sessions, and the explore notebooks of the Examples pages
+          for folder in ("docs/workshop", "docs/examples"):
+              os.makedirs(os.path.join("colab", folder), exist_ok=True)
+          for path in sorted(glob.glob("docs/workshop/*.ipynb") + glob.glob("docs/examples/*.ipynb")):
               nb = nbformat.read(path, as_version=4)
               for cell in nb.cells:
                   if cell.cell_type == "code":
@@ -59,7 +62,7 @@ jobs:
           with open("colab/README.md", "w", encoding="utf-8") as f:
               f.write("Generated from `dev-workshop` by "
                       "`.github/workflows/workshop-colab.yml`: the workshop "
-                      "notebooks with their outputs cleared, for Google Colab. "
+                      "and examples notebooks with their outputs cleared, for Google Colab. "
                       "Do not edit here.\n")
           PY
 
