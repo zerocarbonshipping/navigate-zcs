@@ -14,7 +14,6 @@ phase the others do not depend on: without it, every declaration is kept.
 
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -25,12 +24,14 @@ from navigate.parser._collect import Collector
 from navigate.parser._library import Library
 from navigate.parser._prune import prune
 from navigate.parser._resolve import check_pinned_calculators, resolve
+from navigate.parser._syntax import bulleted
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
     from navigate.core.node_registry import GeneralNodes, Nodes
+    from navigate.parser._collect import StepDate
     from navigate.parser._resolve import BoundEvent
     from navigate.util.types_ import DateArray
 
@@ -101,20 +102,19 @@ class Parser:
         return any(block.body for block, _ in events)
 
 
-def _time_steps(
-    timeline: list[np.datetime64 | None], start_date: np.datetime64
-) -> DateArray:
+def _time_steps(timeline: list[StepDate], start_date: np.datetime64) -> DateArray:
     """Build the dates the simulation steps through: the start date and every Date."""
     dated = {date for date in timeline if date is not None}
 
-    before_start = sorted(date for date in dated if date < start_date)
-    if before_start:
-        listed = ""
-        for date in before_start:
-            listed += f"\t- Date '{date}' is before start date '{start_date}'\n"
+    before_start: list[str] = []
+    for date in sorted(dated):
+        if date < start_date:
+            before_start.append(f"Date '{date}' is before start date '{start_date}'")
 
+    if before_start:
+        listed = bulleted(before_start)
         raise DeckError(
-            f"Inconsistent timeline detected:\n{listed}All defined dates must be "
+            f"Inconsistent timeline detected:{listed}\nAll defined dates must be "
             "later than the start date."
         )
 
@@ -125,17 +125,16 @@ def _events_by_date(
     events: list[BoundEvent], start_date: np.datetime64
 ) -> dict[np.datetime64, list[BoundEvent]]:
     """Key the events by date; on the start date the Start blocks come first."""
-    queue: defaultdict[np.datetime64, list[BoundEvent]] = defaultdict(list)
+    queue: dict[np.datetime64, list[BoundEvent]] = {}
 
-    # two passes instead of a sort: insertion order keeps read order within
-    # each pass, and the first pass puts every Start block ahead of a block
-    # dated on the start date
-    for block, keys in events:
+    # the Start blocks are queued first, so on the start date they apply before
+    # the blocks dated on it; each pass keeps read order
+    for block, targets in events:
         if block.date is None:
-            queue[start_date].append((block, keys))
+            queue.setdefault(start_date, []).append((block, targets))
 
-    for block, keys in events:
+    for block, targets in events:
         if block.date is not None:
-            queue[block.date].append((block, keys))
+            queue.setdefault(block.date, []).append((block, targets))
 
-    return dict(queue)
+    return queue

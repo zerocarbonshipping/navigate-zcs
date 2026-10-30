@@ -36,8 +36,13 @@ from navigate.core.node_registry import NODE_CLASS, GeneralNodes, Nodes
 from navigate.core.node_type import MODEL_DEFINITION
 from navigate.core.table_data import TableData
 from navigate.exceptions import DeckError, UnassignedAttributeError
-from navigate.parser._collect import matching
-from navigate.parser._lark_parser import Assignment, Command, ExpressionSyntax
+from navigate.parser._collect import matching, unmatched_wildcard_error
+from navigate.parser._syntax import (
+    Assignment,
+    Command,
+    ExpressionSyntax,
+    bulleted,
+)
 from navigate.util import attribute_to_setter
 
 if TYPE_CHECKING:
@@ -49,8 +54,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.timetable import Timetable
     from navigate.parser._collect import Collector, Key
-    from navigate.parser._lark_parser import BodyItem, DeckValue, SourceLocation
     from navigate.parser._resolve import BoundEvent
+    from navigate.parser._syntax import BodyItem, DeckValue, SourceLocation
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +73,7 @@ type MaterializedValue = (
 type Holder = Node | GeneralNode
 
 # a node and the body items to apply to it
-type Target = tuple[Node, list[BodyItem]]
+type NodeBody = tuple[Node, list[BodyItem]]
 
 
 class Builder:
@@ -84,20 +89,20 @@ class Builder:
     """
 
     def __init__(self, collector: Collector, kept: list[Key]) -> None:
-        self._collector: Collector = collector
-        self._kept: list[Key] = kept
-
         self.nodes: Nodes = Nodes()
         self.general_nodes: GeneralNodes
+
+        self._collector: Collector = collector
+        self._kept: list[Key] = kept
         self._node_by_key: dict[Key, Node] = {}
 
-        # the deck attributes whose setter ran on each node, for the required check
+        # a required attribute is declared without a value, so the check reads
+        # which setters ran
         self._assigned: dict[Holder, set[str]] = {}
-        # the expressions of the item being applied, checked once its setter or
-        # command has run
+
+        # held until checked or warned of: the expressions of the item being
+        # applied, and the references dropped from their lists
         self._unchecked: list[tuple[Expression, SourceLocation]] = []
-        # the references to nodes the simulation does not hold, each as
-        # "<holder> <attribute>: <reference>", left out of their lists
         self._dropped: list[str] = []
 
     # general nodes --------------------------------------------------------------------
@@ -118,9 +123,7 @@ class Builder:
         holders = (model_definition, bunker_options)
 
         for holder in holders:
-            # the collect phase lets no command onto a general node
             for item in self._collector.general.get(holder.type, []):
-                assert isinstance(item, Assignment)
                 self._assign(holder, item)
 
         for holder in holders:
@@ -142,7 +145,7 @@ class Builder:
         Nodes
             The node registry.
         """
-        targets: list[Target] = []
+        bodies: list[NodeBody] = []
 
         for key in self._kept:
             node_type, name = key
@@ -151,9 +154,9 @@ class Builder:
 
             self.nodes.group(node_type)[name] = node
             self._node_by_key[key] = node
-            targets.append((node, body))
+            bodies.append((node, body))
 
-        self._apply(targets, initialize)
+        self._apply(bodies, initialize)
         return self.nodes
 
     def apply_events(self, events: list[BoundEvent]) -> None:
@@ -166,34 +169,34 @@ class Builder:
             The event blocks to apply, each with the nodes it targets; empty on
             a date with no events, which only re-initializes.
         """
-        targets: list[Target] = []
+        bodies: list[NodeBody] = []
 
-        for block, keys in events:
-            for key in keys:
-                targets.append((self._node_by_key[key], block.body))
+        for block, targets in events:
+            for key in targets:
+                bodies.append((self._node_by_key[key], block.body))
 
-        self._apply(targets, reinitialize)
+        self._apply(bodies, reinitialize)
 
-    def _apply(self, targets: list[Target], sweep: Callable[[Nodes], None]) -> None:
+    def _apply(self, bodies: list[NodeBody], sweep: Callable[[Nodes], None]) -> None:
         """
         Assign, seed, command, build tables, run the lifecycle sweep, validate.
 
         The required attributes are checked before anything reads a node's
         attributes, the seeding included.
         """
-        for node, body in targets:
+        for node, body in bodies:
             for item in body:
                 if isinstance(item, Assignment):
                     self._assign(node, item)
 
         self._warn_dropped()
 
-        for node, _ in targets:
+        for node, _ in bodies:
             self._check_required(node)
 
         seed_dependencies(self.nodes)
 
-        for node, body in targets:
+        for node, body in bodies:
             for item in body:
                 if isinstance(item, Command):
                     self._run_command(node, item)
@@ -202,7 +205,7 @@ class Builder:
         self._run_lifecycle(sweep)
         self._run_lifecycle(validate)
 
-    # applying items -------------------------------------------------------------------
+    # items ----------------------------------------------------------------------------
 
     def _assign(self, holder: Holder, item: Assignment) -> None:
         value = self._materialize(item.value, holder, item)
@@ -213,9 +216,9 @@ class Builder:
 
         try:
             setter(value)
-        except ValueError as e:
+        except ValueError as error:
             raise item.source.error(
-                f"{holder} attribute '{item.attribute}' {e!s}."
+                f"{holder} attribute '{item.attribute}' {error}."
             ) from None
 
         self._check_expressions()
@@ -229,13 +232,13 @@ class Builder:
         # inside the command is a bug and keeps its traceback
         try:
             inspect.signature(method).bind(*inputs)
-        except TypeError as e:
-            raise item.source.error(f"'{item.name}' {e!s}.") from None
+        except TypeError as error:
+            raise item.source.error(f"'{item.name}' {error}.") from None
 
         try:
             method(*inputs)
-        except ValueError as e:
-            raise item.source.error(f"'{item.name}' {e!s}.") from None
+        except ValueError as error:
+            raise item.source.error(f"'{item.name}' {error}.") from None
 
         self._check_expressions()
 
@@ -244,8 +247,8 @@ class Builder:
         for expression, source in unchecked:
             try:
                 expression.check_consistency()
-            except ValueError as e:
-                raise source.error(str(e)) from None
+            except ValueError as error:
+                raise source.error(str(error)) from None
 
     def _check_required(self, holder: Holder) -> None:
         assigned = self._assigned.get(holder, set())
@@ -271,22 +274,22 @@ class Builder:
         for table in dated:
             try:
                 table.build_table(start_date)
-            except ValueError as e:
-                raise DeckError(f"{table}: {e!s}") from None
+            except ValueError as error:
+                raise DeckError(f"{table}: {error}") from None
 
         for table in undated:
             try:
                 table.build_table()
-            except ValueError as e:
-                raise DeckError(f"{table}: {e!s}") from None
+            except ValueError as error:
+                raise DeckError(f"{table}: {error}") from None
 
     def _run_lifecycle(self, sweep: Callable[[Nodes], None]) -> None:
         try:
             sweep(self.nodes)
-        except ValueError as e:
-            raise DeckError(str(e)) from None
+        except ValueError as error:
+            raise DeckError(str(error)) from None
 
-    # materializing values -------------------------------------------------------------
+    # values ---------------------------------------------------------------------------
 
     def _materialize(
         self, value: DeckValue, holder: Holder, item: BodyItem
@@ -303,7 +306,7 @@ class Builder:
             if value.is_wildcard:
                 return self._expand_wildcard(value, item)
 
-            node = self._node_by_key.get((value.type, value.name))
+            node = self._node_by_key.get(value.key)
             if node is None:
                 self._dropped.append(f"{holder} {item.name}: {value}")
                 return None
@@ -333,9 +336,7 @@ class Builder:
     ) -> list[MaterializedValue]:
         keys = matching(self._node_by_key, reference.type, reference.name)
         if not keys:
-            raise item.source.error(
-                f"Wildcard '{reference.name}' did not match any {reference.type} nodes."
-            )
+            raise unmatched_wildcard_error(reference.type, reference.name, item.source)
 
         return [self._node_by_key[key] for key in keys]
 
@@ -358,14 +359,14 @@ class Builder:
         return expression
 
     def _warn_dropped(self) -> None:
-        if not self._dropped:
+        dropped, self._dropped = self._dropped, []
+        if not dropped:
             return
 
         logger.warning(
             "Removed %s reference(s) to unused node(s):%s\n"
             "Assign the removed node(s) to a Route to keep them, or drop the stale "
             "reference(s) from the deck.",
-            len(self._dropped),
-            "".join(f"\n\t- {line}" for line in self._dropped),
+            len(dropped),
+            bulleted(dropped),
         )
-        self._dropped = []

@@ -24,7 +24,7 @@ from navigate.core.dsl import SECTION_DEFINE
 from navigate.core.enum_ import SectionID
 from navigate.exceptions import DeckError
 from navigate.parser._collect import deck_entry
-from navigate.parser._lark_parser import Assignment
+from navigate.parser._syntax import Assignment
 
 DEFINE = SectionID.DEFINE
 EVENTS = SectionID.EVENTS

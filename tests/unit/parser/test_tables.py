@@ -26,7 +26,7 @@ from navigate.core.table_data import (
     build_table_2d_dated,
 )
 from navigate.exceptions import DeckError
-from navigate.parser._lark_parser import parse_include_content
+from navigate.parser._syntax import parse_include_content
 
 DATE_A = np.datetime64("2024-01-01", "D")
 DATE_B = np.datetime64("2030-01-01", "D")

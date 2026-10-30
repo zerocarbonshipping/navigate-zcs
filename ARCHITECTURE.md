@@ -39,7 +39,7 @@ step, and `driver/` runs it from a read deck to its output.
   nodes (`general_nodes/`), the node maps, `expectations/`, `results/` and
   the records nodes hold.
 - `parser/` — reads `.nav`/`.inc` decks into nodes, in four phases that
-  each finish before the next starts: `_lark_parser.py` turns text into an
+  each finish before the next starts: `_syntax.py` turns text into an
   AST through `grammar.lark`, the one place that knows the syntax;
   `_collect.py` collects the files into declarations (one node's body
   items in read order) and events, each file's `%NAME%` placeholders

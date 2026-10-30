@@ -148,6 +148,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Three wildcard uses are rejected at their line: a glob as a command
   argument, a glob on a single-valued attribute (`Route = Route("r_*")`), and
   a node listed beside a glob that also matches it.
+- A wildcard value that matches no node, such as `Vessels = Vessel("ghost*")`,
+  reports "No node of type 'Vessel' matches the wildcard expression 'ghost*'.",
+  as a wildcard block that matches no node does.
 - A `Route`'s inputs are checked per leg, and these stop the deck (#491):
   - a command key pair that is no leg of the route, or a required leg left
     unset; `set_voyage_distribution` is required on every `TRAMP` leg;

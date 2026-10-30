@@ -34,7 +34,7 @@ from navigate.core.enum_ import (
     FuelTypeID,
 )
 from navigate.core.node_registry import GENERAL_NODE_CLASS, NODE_CLASS
-from navigate.parser._lark_parser import (
+from navigate.parser._syntax import (
     Assignment,
     Command,
     GeneralNodeDeclaration,

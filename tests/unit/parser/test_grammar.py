@@ -17,7 +17,7 @@ import pytest
 
 from navigate.core.table_data import TableData
 from navigate.exceptions import DeckError
-from navigate.parser._lark_parser import (
+from navigate.parser._syntax import (
     Assignment,
     Command,
     CopyStatement,

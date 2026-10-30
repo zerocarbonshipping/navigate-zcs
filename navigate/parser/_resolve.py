@@ -7,8 +7,8 @@ The resolve phase: the EVENTS blocks against the declarations.
 Each block is bound to the declarations its name matches: a wildcard to every
 declaration of its type the pattern matches, a name to that declaration;
 either must match something, as the EVENTS section cannot define new nodes.
-Whether the targets take part in the simulation is not decided here;
-`_prune.py` decides that next. Once it has, an event changing a calculator a
+Whether the targets take part in the simulation is not decided here; the
+prune phase decides that next. Once it has, an event changing a calculator a
 kept node's DEFINE-only input holds is refused: the calculator is fixed with
 its holder.
 """
@@ -20,8 +20,13 @@ from typing import TYPE_CHECKING
 from navigate.core import SECTION_DEFINE
 from navigate.core.enum_ import SectionID
 from navigate.core.node_type import CALCULATOR_TYPES
-from navigate.parser._collect import check_no_self_reference, deck_entry, matching
-from navigate.parser._lark_parser import Assignment, item_references
+from navigate.parser._collect import (
+    check_no_self_reference,
+    deck_entry,
+    matching,
+    unmatched_wildcard_error,
+)
+from navigate.parser._syntax import Assignment, item_references
 from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
@@ -69,14 +74,10 @@ def resolve(collector: Collector) -> list[BoundEvent]:
 def _unmatched_error(block: EventBlock) -> DeckError:
     """Build the error for a block whose name matches no declaration."""
     if name_contains_wildcards(block.pattern):
-        return block.source.error(
-            f"No node of type '{block.node_type}' matches the wildcard "
-            f"expression '{block.pattern}'."
-        )
+        return unmatched_wildcard_error(block.node_type, block.pattern, block.source)
 
     return block.source.error(
-        f'{block.node_type}("{block.pattern}") is not defined; the EVENTS '
-        "section cannot define new nodes."
+        f"{block} is not defined; the EVENTS section cannot define new nodes."
     )
 
 

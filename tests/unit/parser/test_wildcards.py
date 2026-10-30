@@ -53,8 +53,8 @@ def test_a_wildcard_value_matches_nodes_declared_after_it(read_deck, vessels, ex
 
 
 # input:    | Fleet "fleet" { Vessels = Vessel("ghost*") }
-# expected: -> DeckError "...define.inc', line N: Wildcard 'ghost*' did not
-#              match any Vessel nodes."
+# expected: -> DeckError "...define.inc', line N: No node of type 'Vessel'
+#              matches the wildcard expression 'ghost*'."
 def test_a_wildcard_value_without_a_match_is_a_located_error(tmp_path, read_deck):
     define = FLEET + 'Fleet "fleet" {\n    Vessels = Vessel("ghost*")\n}\n'
 
@@ -63,7 +63,8 @@ def test_a_wildcard_value_without_a_match_is_a_located_error(tmp_path, read_deck
 
     line = line_of(tmp_path / "define.inc", 'Vessel("ghost*")')
     assert str(error.value).endswith(
-        f"define.inc', line {line}: Wildcard 'ghost*' did not match any Vessel nodes."
+        f"define.inc', line {line}: No node of type 'Vessel' matches the wildcard "
+        "expression 'ghost*'."
     )
 
 

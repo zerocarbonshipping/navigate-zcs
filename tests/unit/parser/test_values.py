@@ -17,7 +17,7 @@ from navigate.core import Expression
 from navigate.core.expression import node_references
 from navigate.core.nodes.variable import Variable
 from navigate.exceptions import DeckError
-from navigate.parser._lark_parser import (
+from navigate.parser._syntax import (
     ExpressionSyntax,
     NodeReference,
     parse_include_content,
