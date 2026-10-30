@@ -358,7 +358,7 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
 
             gap = np.zeros_like(gap)
 
-        expectation.set_feed_gap(idx, feed_name, gap)
+        expectation.set_feed_gap(feed_name, idx, gap)
 
 
 def _calculate_feed_limits(

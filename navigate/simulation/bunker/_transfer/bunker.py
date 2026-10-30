@@ -94,4 +94,4 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
 
         vessel.expectation.add_total_energy(idx, energy)
         vessel.expectation.add_fuel_expenses(idx, expenses)
-        vessel.expectation.add_bunker_mass_expected(idx, port.name, f, mass)
+        vessel.expectation.add_bunker_mass_expected(port.name, f, idx, mass)

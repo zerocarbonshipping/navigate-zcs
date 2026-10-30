@@ -69,7 +69,7 @@ class ProducerExpectation(_Expectation):
         self._reset_dict_float(self._pipeline_feed)
 
     def set_export_distribution(
-        self, idx: int, port_name: str, distribution: FloatArray
+        self, port_name: str, idx: int, distribution: FloatArray
     ) -> None:
         self._export_distribution[port_name][idx:] = distribution
 
@@ -84,24 +84,24 @@ class ProducerExpectation(_Expectation):
     def add_pipeline_feed(self, feed_name: str, feed: float) -> None:
         self._pipeline_feed[feed_name] += feed
 
-    def set_feed_gap(self, idx: int, feed_name: str, gap: FloatLike) -> None:
+    def set_feed_gap(self, feed_name: str, idx: int, gap: FloatLike) -> None:
         self._feed_gap[feed_name][idx:] = gap
 
     def set_development_potential(self, fuel_name: str, potential: float) -> None:
         self._development_potential[fuel_name] = potential
 
     def set_fair_share_demand(
-        self, idx: int, fuel_name: str, demand: FloatLike
+        self, fuel_name: str, idx: int, demand: FloatLike
     ) -> None:
         self._fair_share_demand[fuel_name][idx:] = demand
 
     def set_guaranteed_production(
-        self, idx: int, plant_name: str, production: FloatArray
+        self, plant_name: str, idx: int, production: FloatArray
     ) -> None:
         self._guaranteed_production[plant_name][idx:] = production
 
     def set_expected_production(
-        self, idx: int, plant_name: str, production: FloatArray
+        self, plant_name: str, idx: int, production: FloatArray
     ) -> None:
         self._expected_production[plant_name][idx:] = production
 

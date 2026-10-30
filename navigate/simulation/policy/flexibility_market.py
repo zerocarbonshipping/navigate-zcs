@@ -227,4 +227,4 @@ def _calculate_market_expectations(
         net_units = units.flexibility - units.surplus
 
         vessel.expectation.add_remedial_expenses(idx, remedial_expenses)
-        expectation.set_vessel_net_flexibility_units(idx, vessel_name, net_units)
+        expectation.set_vessel_net_flexibility_units(vessel_name, idx, net_units)

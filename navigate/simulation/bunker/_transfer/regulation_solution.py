@@ -34,12 +34,12 @@ def transfer_regulation_solution(alg: BunkerAlgorithm) -> None:
         emissions = evaluate(alg.model, alg.regulation_emission_terms[r, v])
         energy = evaluate(alg.model, alg.regulation_energy_terms[r, v])
 
-        expectation.set_vessel_emissions(idx, v, emissions)
-        expectation.set_vessel_energy(idx, v, energy)
+        expectation.set_vessel_emissions(v, idx, emissions)
+        expectation.set_vessel_energy(v, idx, energy)
 
     for (r, v), remedial_factor in alg.remedial_factor_individual.items():
         expectation = alg.regulations[r].expectation
-        expectation.set_vessel_remedial_units(idx, v, alg.model.value(remedial_factor))
+        expectation.set_vessel_remedial_units(v, idx, alg.model.value(remedial_factor))
 
     for r, remedial_factor in alg.remedial_factor_flexibility.items():
         expectation = alg.regulations[r].expectation

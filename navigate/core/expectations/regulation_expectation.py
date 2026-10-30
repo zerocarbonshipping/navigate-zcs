@@ -125,24 +125,24 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
         self._reset_dict_array(self._vessel_net_flexibility_units)
 
     def set_emission_coefficient(
-        self, idx: int, key: tuple[str, str, str], coefficient: FloatLike
+        self, key: tuple[str, str, str], idx: int, coefficient: FloatLike
     ) -> None:
         self._emission_coefficient.setdefault(key, self._default_array())
         self._emission_coefficient[key][idx:] = coefficient
 
     def set_spend_coefficient(
-        self, idx: int | slice, key: tuple[str, str, str], coefficient: FloatLike
+        self, key: tuple[str, str, str], idx: int | slice, coefficient: FloatLike
     ) -> None:
         self._spend_coefficient.setdefault(key, self._default_array())
         self._spend_coefficient[key][idx] = coefficient
 
     def set_shore_power_emission_coefficient(
-        self, idx: int, port_name: str, coefficient: FloatLike
+        self, port_name: str, idx: int, coefficient: FloatLike
     ) -> None:
         self._shore_power_emission_coefficient[port_name][idx:] = coefficient
 
     def set_shore_power_spend_coefficient(
-        self, idx: int | slice, key: tuple[str, str], coefficient: FloatLike
+        self, key: tuple[str, str], idx: int | slice, coefficient: FloatLike
     ) -> None:
         self._shore_power_spend_coefficient[key][idx] = coefficient
 
@@ -150,51 +150,51 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
         self._flexibility_cost[idx] = cost
 
     def set_vessel_net_flexibility_units(
-        self, idx: int, vessel_name: str, units: float
+        self, vessel_name: str, idx: int, units: float
     ) -> None:
         self._vessel_net_flexibility_units[vessel_name][idx] = units
 
     def set_remedial_cost(self, idx: int, cost: FloatArray) -> None:
         self._remedial_cost[idx:] = cost
 
-    def set_port_fraction(self, idx: int, port_name: str, fraction: FloatLike) -> None:
+    def set_port_fraction(self, port_name: str, idx: int, fraction: FloatLike) -> None:
         self._port_fraction[port_name][idx:] = fraction
 
     def set_leg_fraction(
-        self, idx: int, leg: tuple[str, str], fraction: FloatArray
+        self, leg: tuple[str, str], idx: int, fraction: FloatArray
     ) -> None:
         self._leg_fraction[leg][idx:] = fraction
 
     def set_vessel_threshold(
-        self, idx: int, vessel_name: str, threshold: FloatLike
+        self, vessel_name: str, idx: int, threshold: FloatLike
     ) -> None:
         self._vessel_threshold[vessel_name][idx:] = threshold
 
     def set_vessel_capacity(
-        self, idx: int, vessel_name: str, capacity: FloatArray
+        self, vessel_name: str, idx: int, capacity: FloatArray
     ) -> None:
         self._vessel_capacity[vessel_name][idx:] = capacity
 
     def set_vessel_measure(
-        self, idx: int, vessel_name: str, measure: FloatLike
+        self, vessel_name: str, idx: int, measure: FloatLike
     ) -> None:
         self._vessel_measure[vessel_name][idx:] = measure
 
     def set_vessel_allowance(
-        self, idx: int | slice, vessel_name: str, allowance: FloatLike
+        self, vessel_name: str, idx: int | slice, allowance: FloatLike
     ) -> None:
         self._vessel_allowance[vessel_name][idx] = allowance
 
     def set_vessel_emissions(
-        self, idx: int, vessel_name: str, emissions: float
+        self, vessel_name: str, idx: int, emissions: float
     ) -> None:
         self._vessel_emissions[vessel_name][idx] = emissions
 
-    def set_vessel_energy(self, idx: int, vessel_name: str, energy: float) -> None:
+    def set_vessel_energy(self, vessel_name: str, idx: int, energy: float) -> None:
         self._vessel_energy[vessel_name][idx] = energy
 
     def set_vessel_remedial_units(
-        self, idx: int, vessel_name: str, units: float
+        self, vessel_name: str, idx: int, units: float
     ) -> None:
         self._vessel_remedial_units[vessel_name][idx] = units
 
@@ -205,7 +205,7 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
         self._pooled_shadow_price[idx] = price
 
     def set_adjusted_vessel_threshold(
-        self, idx: int, vessel_name: str, threshold: float
+        self, vessel_name: str, idx: int, threshold: float
     ) -> None:
         self._adjusted_vessel_threshold[vessel_name][idx] = threshold
 

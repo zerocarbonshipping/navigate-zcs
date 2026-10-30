@@ -78,18 +78,18 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
 
     for key, value in port.bunkering_limits.items():
         if value is not None:
-            expectation.set_bunkering_limit(idx, key, value.get(times))
+            expectation.set_bunkering_limit(key, idx, value.get(times))
 
     for key, value in port.handling_costs.items():
-        expectation.set_handling_cost(idx, key, value.get(times))
+        expectation.set_handling_cost(key, idx, value.get(times))
 
     for key, value in port.bunker_price_overwrites.items():
         if value is not None:
-            expectation.set_bunker_price_overwrite(idx, key, value.get(times))
+            expectation.set_bunker_price_overwrite(key, idx, value.get(times))
 
     for key, value in port.bunker_wtt_overwrites.items():
         if value is not None:
-            expectation.set_bunker_wtt_overwrite(idx, *key, value.get(times))
+            expectation.set_bunker_wtt_overwrite(*key, idx, value.get(times))
 
     share = port.shore_power_connection_share.get(times)
 
@@ -103,7 +103,7 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
     expectation.set_shore_power_cost(idx, cost)
 
     for key, value in factors.items():
-        expectation.set_shore_power_emission_factor(idx, key, value)
+        expectation.set_shore_power_emission_factor(key, idx, value)
 
 
 def _calculate_export_expectation(
@@ -125,7 +125,7 @@ def _calculate_export_expectation(
 
     for port_name, export in exports.items():
         share = divide_nonzero(export, total, default=default)
-        expectation.set_export_distribution(idx, port_name, share)
+        expectation.set_export_distribution(port_name, idx, share)
 
 
 def calculate_producer_evolution_expectation(
@@ -164,12 +164,12 @@ def calculate_producer_evolution_expectation(
     for p, plant in enumerate(plants):
         cost, wtt = mix.calculate_averages(p)
 
-        producer.expectation.set_guaranteed_production(idx, plant.name, guaranteed[p])
-        producer.expectation.set_expected_production(idx, plant.name, expected[p])
+        producer.expectation.set_guaranteed_production(plant.name, idx, guaranteed[p])
+        producer.expectation.set_expected_production(plant.name, idx, expected[p])
         plant.expectation.set_expected_production_cost(idx, cost)
 
         for key, value in wtt.items():
-            plant.expectation.set_expected_production_wtt(idx, key, value)
+            plant.expectation.set_expected_production_wtt(key, idx, value)
 
         if expected[p, 0] > TOLERANCE:
             plant.results.instantaneous_cost[idx] = cost[0]

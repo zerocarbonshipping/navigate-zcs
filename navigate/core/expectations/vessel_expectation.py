@@ -371,22 +371,22 @@ class VesselExpectation(_Expectation):
         _set_forward_per_key(self._energy_port, idx, energy)
 
     def set_energy_conservation_pi_sea(
-        self, idx: int, energy_id: EnergyDemandID, leg: int, pi: float
+        self, energy_id: EnergyDemandID, leg: int, idx: int, pi: float
     ) -> None:
         self._energy_conservation_pi_sea[energy_id][leg][idx] = pi
 
     def set_energy_conservation_pi_port(
-        self, idx: int, energy_id: EnergyDemandID, port: int, pi: float
+        self, energy_id: EnergyDemandID, port: int, idx: int, pi: float
     ) -> None:
         self._energy_conservation_pi_port[energy_id][port][idx] = pi
 
     def set_energy_conservation_rhs_sea(
-        self, idx: int, energy_id: EnergyDemandID, leg: int, rhs: float
+        self, energy_id: EnergyDemandID, leg: int, idx: int, rhs: float
     ) -> None:
         self._energy_conservation_rhs_sea[energy_id][leg][idx] = rhs
 
     def set_energy_conservation_rhs_port(
-        self, idx: int, energy_id: EnergyDemandID, port: int, rhs: float
+        self, energy_id: EnergyDemandID, port: int, idx: int, rhs: float
     ) -> None:
         self._energy_conservation_rhs_port[energy_id][port][idx] = rhs
 
@@ -417,7 +417,7 @@ class VesselExpectation(_Expectation):
         self._mean_ttw_slip[fuel_name, emission_name] = ttw
 
     def add_bunker_mass_expected(
-        self, idx: int, port_name: str, fuel_name: str, mass: float
+        self, port_name: str, fuel_name: str, idx: int, mass: float
     ) -> None:
         self._bunker_mass_expected[port_name, fuel_name][idx] += mass
 
@@ -441,7 +441,7 @@ class VesselExpectation(_Expectation):
         self._fair_share_fuel_existing[port_name, fuel_name] = share
 
     def set_fair_share_fuel_expected(
-        self, idx: int, port_name: str, fuel_name: str, share: FloatArray
+        self, port_name: str, fuel_name: str, idx: int, share: FloatArray
     ) -> None:
         self._fair_share_fuel_expected[port_name, fuel_name][idx:] = share
 

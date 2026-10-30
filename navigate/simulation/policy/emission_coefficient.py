@@ -169,7 +169,7 @@ def _calculate_regulation_wtt(
                     wtt = _average_wtt_over_route(ports, fuel, emission, plants, idx)
 
                 factor = _apply_gwp(wtt, regulation, emission)
-                expectation.set_wtt(idx, (vessel_name, *key), factor)
+                expectation.set_wtt((vessel_name, *key), idx, factor)
 
 
 def _calculate_regulation_ttw(
@@ -210,8 +210,8 @@ def _calculate_regulation_ttw(
                 factor_consumption = _apply_gwp(consumption, regulation, emission)
                 factor_slip = _apply_gwp(slip, regulation, emission)
 
-                expectation.set_ttw_consumption(idx, key, factor_consumption)
-                expectation.set_ttw_slip(idx, key, factor_slip)
+                expectation.set_ttw_consumption(key, idx, factor_consumption)
+                expectation.set_ttw_slip(key, idx, factor_slip)
 
 
 def _calculate_regulation_emission_coefficients(
@@ -242,7 +242,7 @@ def _calculate_regulation_emission_coefficients(
             if np.isnan(coefficient).any():
                 continue
 
-            expectation.set_emission_coefficient(idx, key, coefficient)
+            expectation.set_emission_coefficient(key, idx, coefficient)
 
 
 def _calculate_regulation_coefficient(
@@ -316,7 +316,7 @@ def _calculate_regulation_shore_power_coefficients(
             factor = get_emission_factor(emission.name, forward)
             coefficient += _apply_gwp(factor, regulation, emission)
 
-        expectation.set_shore_power_emission_coefficient(idx, port.name, coefficient)
+        expectation.set_shore_power_emission_coefficient(port.name, idx, coefficient)
 
 
 def _calculate_regulation_vessel_thresholds(
@@ -341,10 +341,10 @@ def _calculate_regulation_vessel_thresholds(
         # vessel, and the threshold written while it did would remain;
         # check_consistency guarantees every policed vessel a threshold
         if not regulation.vessel_is_policed(vessel_name) or threshold is None:
-            expectation.set_vessel_threshold(idx, vessel_name, 0.0)
+            expectation.set_vessel_threshold(vessel_name, idx, 0.0)
             continue
 
-        expectation.set_vessel_threshold(idx, vessel_name, threshold.get(times))
+        expectation.set_vessel_threshold(vessel_name, idx, threshold.get(times))
 
 
 def _calculate_levy(
@@ -428,7 +428,7 @@ def _calculate_levy_wtt(
                     wtt = _estimate_port_wtt(port, fuel, emission, plants, idx)
 
                 factor = _apply_gwp(wtt, levy, emission)
-                expectation.set_wtt(idx, (port.name, *key), factor)
+                expectation.set_wtt((port.name, *key), idx, factor)
 
 
 def _calculate_levy_ttw(
@@ -469,8 +469,8 @@ def _calculate_levy_ttw(
                 factor_consumption = _apply_gwp(consumption, levy, emission)
                 factor_slip = _apply_gwp(slip, levy, emission)
 
-                expectation.set_ttw_consumption(idx, key, factor_consumption)
-                expectation.set_ttw_slip(idx, key, factor_slip)
+                expectation.set_ttw_consumption(key, idx, factor_consumption)
+                expectation.set_ttw_slip(key, idx, factor_slip)
 
 
 def _calculate_levy_costs(
@@ -521,7 +521,7 @@ def _calculate_levy_costs(
                 # zero rather than unwritten: an event can stop the levy policing
                 # the vessel, and the cost written while it did would remain
                 if not is_policed:
-                    expectation.set_cost(idx, key, 0.0)
+                    expectation.set_cost(key, idx, 0.0)
                     continue
 
                 coefficient = _calculate_levy_coefficient(levy, key, idx)
@@ -533,7 +533,7 @@ def _calculate_levy_costs(
                     continue
 
                 coefficient = _apply_thresholds(coefficient, scheme, lhv, lower, upper)
-                expectation.set_cost(idx, key, level * coefficient)
+                expectation.set_cost(key, idx, level * coefficient)
 
 
 def _calculate_levy_coefficient(

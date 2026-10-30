@@ -35,7 +35,7 @@ class LevyExpectation(_PolicyExpectation[tuple[str, str, str]]):
     def set_level(self, idx: int, level: FloatArray) -> None:
         self._level[idx:] = level
 
-    def set_cost(self, idx: int, key: tuple[str, str, str], cost: FloatLike) -> None:
+    def set_cost(self, key: tuple[str, str, str], idx: int, cost: FloatLike) -> None:
         self._cost.setdefault(key, self._default_array())
         self._cost[key][idx:] = cost
 

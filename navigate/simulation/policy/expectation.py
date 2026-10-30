@@ -91,7 +91,7 @@ def _calculate_regulation_forecasts(
             else:
                 capacity = own_capacity.get(times)
 
-            expectation.set_vessel_capacity(idx, vessel_name, capacity)
+            expectation.set_vessel_capacity(vessel_name, idx, capacity)
 
 
 def _calculate_levy_forecasts(levy: Levy, times: FloatArray, idx: int) -> None:

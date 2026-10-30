@@ -148,7 +148,7 @@ def _calculate_delivery_cost(
 
             cost_flow = cost_rates[key] * distance.get(year_starts) * operating_flow
             cost = calculate_levelized_cost(cost_flow, operating_flow, discount_rate)
-            expectation.set_levelized_delivery_cost(t, port_name, cost)
+            expectation.set_levelized_delivery_cost(port_name, t, cost)
 
 
 def _calculate_delivery_wtt(
@@ -193,4 +193,4 @@ def _calculate_delivery_wtt(
                 wtt_rates[key] = rate.get(times)
 
             delivery_wtt = wtt_rates[key] * distances
-            expectation.set_delivery_wtt(idx, port_name, emission_name, delivery_wtt)
+            expectation.set_delivery_wtt(port_name, emission_name, idx, delivery_wtt)

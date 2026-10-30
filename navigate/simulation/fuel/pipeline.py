@@ -202,7 +202,7 @@ def _calculate_inertia_feed_gaps(
 
         spend = calculate_feed_spend(producer, feed_name, newbuilds)
         gap = expectation.get_feed_gap(feed_name, idx)
-        expectation.set_feed_gap(idx, feed_name, gap - spend)
+        expectation.set_feed_gap(feed_name, idx, gap - spend)
 
 
 def _calculate_uncovered_demand(

@@ -189,7 +189,7 @@ def _add_process_tree(
     size = expectation.get_size(idx)
     production = expectation.get_production(idx)
 
-    expectation.add_feed_conversion(idx, process.name, conversion)
+    expectation.add_feed_conversion(process.name, idx, conversion)
 
     _add_process_flows(component, plant, process, size, production, conversion)
     _add_energy_flows(component, plant, process, production, conversion)
@@ -199,7 +199,7 @@ def _add_process_tree(
         feed_conversion = conversion * feed_ratio.get(time_initial)
 
         if is_feedstock(feed):
-            expectation.add_feed_conversion(idx, feed.name, feed_conversion)
+            expectation.add_feed_conversion(feed.name, idx, feed_conversion)
 
             _add_feedstock_flows(component, plant, feed, production, feed_conversion)
             _add_transport_flows(component, plant, feed, production, feed_conversion)
@@ -458,4 +458,4 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     production_commence = production_flow[commence_idx]
     for emission_name, wtt_flow in component.wtt_flows.items():
         wtt = wtt_flow[commence_idx] / production_commence
-        expectation.set_production_wtt(idx, emission_name, wtt)
+        expectation.set_production_wtt(emission_name, idx, wtt)
