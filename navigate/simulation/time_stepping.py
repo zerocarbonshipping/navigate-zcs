@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 
 from navigate.core import (
     define_vessel_fuel_maps,
+    define_vessels_in_jurisdiction,
     update_bunkerable_fuels,
     update_imposed_levies,
 )
@@ -247,6 +248,8 @@ class Simulation:
     def _define_node_maps(self) -> None:
         """Write the node maps derived from DSL-defined attributes."""
         define_vessel_fuel_maps(self.nodes.vessels, self.nodes.fuels)
+        define_vessels_in_jurisdiction(self.nodes.levies, self.nodes.vessels)
+        define_vessels_in_jurisdiction(self.nodes.regulations, self.nodes.vessels)
 
     def _initialize_expectations(self) -> None:
         nodes = self.nodes

@@ -11,10 +11,13 @@ from navigate.core.enum_ import PORT_ENERGY_DEMANDS, FuelTypeID
 from navigate.util import unique_list
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
     from navigate.core.nodes.port import Port
+    from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
 
 
@@ -169,6 +172,30 @@ def _port_converters_per_fuel(
         port_converters_per_fuel[fuel_name] = in_port
 
     return port_converters_per_fuel
+
+
+def define_vessels_in_jurisdiction(
+    policies: Mapping[str, Levy | Regulation], vessels: dict[str, Vessel]
+) -> None:
+    """
+    Write on each policy whether each vessel's route calls at a port it governs.
+
+    Parameters
+    ----------
+    policies
+        All levies or all regulations in the simulation, keyed by name.
+    vessels
+        All vessels in the simulation, keyed by name.
+    """
+    for policy in policies.values():
+        jurisdiction = set(policy.jurisdiction)
+        in_jurisdiction_vessel: dict[str, bool] = {}
+
+        for vessel_name, vessel in vessels.items():
+            in_jurisdiction = not jurisdiction.isdisjoint(vessel.route.ports)
+            in_jurisdiction_vessel[vessel_name] = in_jurisdiction
+
+        policy.in_jurisdiction_vessel = in_jurisdiction_vessel
 
 
 def update_bunkerable_fuels(vessels: dict[str, Vessel]) -> None:
