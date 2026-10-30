@@ -69,85 +69,76 @@ class _Policy(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
-    def set_active(self, active: str) -> None:
+    def set_active(self, value: str) -> None:
         """Set whether the policy is active."""
-        self.active = assign_boolean(active)
+        self.active = assign_boolean(value)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_jurisdiction(self, ports: Port | list[Port]) -> None:
+    def set_jurisdiction(self, value: Port | list[Port]) -> None:
         """Set the ports under the jurisdiction of the policy."""
-        self.jurisdiction = assign_reference_list(ports, PORT)
+        self.jurisdiction = assign_reference_list(value, PORT)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_emissions(self, emissions: Emission | list[Emission]) -> None:
+    def set_emissions(self, value: Emission | list[Emission]) -> None:
         """Set the emissions targeted by the policy."""
         self.emissions = assign_reference_list(
-            emissions, EMISSION, min_length=1, unique=True
+            value, EMISSION, min_length=1, unique=True
         )
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_fuels(self, fuels: Fuel | list[Fuel]) -> None:
+    def set_fuels(self, value: Fuel | list[Fuel]) -> None:
         """Set the fuels targeted by the policy."""
-        self.fuels = assign_reference_list(fuels, FUEL, min_length=1, unique=True)
+        self.fuels = assign_reference_list(value, FUEL, min_length=1, unique=True)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_scope(self, scope: str) -> None:
+    def set_scope(self, value: str) -> None:
         """Set the scope of emissions targeted by the policy."""
-        self.scope = assign_id(scope, PolicyScopeID)
+        self.scope = assign_id(value, PolicyScopeID)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_emissions_lifetime(self, emissions_lifetime: ScalarArgument) -> None:
+    def set_emissions_lifetime(self, value: ScalarArgument) -> None:
         """Set the emissions lifetime used in the GWP calculation of emissions."""
         self.emissions_lifetime = assign_value(
-            as_scalar(emissions_lifetime), type_=VARIABLE, lower=0.0
+            as_scalar(value), type_=VARIABLE, lower=0.0
         )
 
     @deck_attribute()
-    def set_include_slip(self, include_slip: str) -> None:
+    def set_include_slip(self, value: str) -> None:
         """Set whether emissions slip is included in the policy's emissions."""
-        self.include_slip = assign_boolean(include_slip)
+        self.include_slip = assign_boolean(value)
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_include_vessel(self, vessel_name: str, include_vessel: str) -> None:
+    def set_include_vessel(self, key: str, value: str) -> None:
         """Set whether a vessel is impacted by the policy."""
         write_matching_keys(
-            vessel_name,
-            assign_boolean(include_vessel),
-            self.include_vessel,
-            allow_empty=True,
+            key, assign_boolean(value), self.include_vessel, allow_empty=True
         )
 
     @deck_command()
-    def set_global_warming_potential(
-        self, emission_name: str, global_warming_potential: CurveArgument
-    ) -> None:
+    def set_global_warming_potential(self, key: str, value: CurveArgument) -> None:
         """Set the GWP of an emission under the policy."""
         write_matching_keys(
-            emission_name,
-            assign_value(as_scalar(global_warming_potential), type_=(CURVE, VARIABLE)),
+            key,
+            assign_value(as_scalar(value), type_=(CURVE, VARIABLE)),
             self.global_warming_potentials,
         )
 
     @deck_command()
-    def set_fuel_wtt(
-        self, fuel_name: str, emission_name: str, emission_factor: ForecastArgument
-    ) -> None:
+    def set_fuel_wtt(self, key1: str, key2: str, value: ForecastArgument) -> None:
         """Set the WTT emission factor of a fuel and emission under the policy."""
         write_matching_key_pairs(
-            (fuel_name, emission_name),
-            assign_value(as_scalar(emission_factor), type_=(FORECAST, VARIABLE)),
+            (key1, key2),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.fuel_wtt,
         )
 
     @deck_command()
-    def set_fuel_ttw(
-        self, fuel_name: str, emission_name: str, emission_factor: ForecastArgument
-    ) -> None:
+    def set_fuel_ttw(self, key1: str, key2: str, value: ForecastArgument) -> None:
         """Set the TTW emission factor of a fuel and emission under the policy."""
         write_matching_key_pairs(
-            (fuel_name, emission_name),
-            assign_value(as_scalar(emission_factor), type_=(FORECAST, VARIABLE)),
+            (key1, key2),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.fuel_ttw,
         )
 

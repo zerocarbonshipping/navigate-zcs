@@ -58,36 +58,34 @@ class Technology(_Machinery):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
-    def set_shore_power_capacity(self, shore_power_capacity: ScalarArgument) -> None:
+    def set_shore_power_capacity(self, value: ScalarArgument) -> None:
         """Set the vessel-side shore power connection capacity."""
         self.shore_power_capacity = assign_value(
-            as_scalar(shore_power_capacity), type_=VARIABLE, lower=0.0
+            as_scalar(value), type_=VARIABLE, lower=0.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_energy_saving(self, energy_type: str, saving: ScalarArgument) -> None:
+    def set_energy_saving(self, key: str, value: ScalarArgument) -> None:
         """Set the fraction of the raw energy demand the technology saves."""
-        id_ = assign_id(energy_type, EnergyDemandID)
-        value_ = assign_value(as_scalar(saving), type_=VARIABLE, lower=0.0)
+        energy_type = assign_id(key, EnergyDemandID)
+        saving = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
 
-        write_matching_keys(id_, value_, self.energy_savings)
+        write_matching_keys(energy_type, saving, self.energy_savings)
 
     @deck_command()
-    def set_external_power(self, energy_type: str, power: ScalarArgument) -> None:
+    def set_external_power(self, key: str, value: ScalarArgument) -> None:
         """Set the external power the technology supplies to an energy demand type."""
-        id_ = assign_id(energy_type, EnergyDemandID)
-        value_ = assign_value(as_scalar(power), type_=VARIABLE, lower=0.0)
+        energy_type = assign_id(key, EnergyDemandID)
+        power = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
 
-        write_matching_keys(id_, value_, self.external_power)
+        write_matching_keys(energy_type, power, self.external_power)
 
     @deck_command()
-    def set_power_transfer(
-        self, source_id: str, sink_id: str, transfer: CurveArgument
-    ) -> None:
+    def set_power_transfer(self, key1: str, key2: str, value: CurveArgument) -> None:
         """Set the power transferred from a source energy type to a sink energy type."""
-        source = assign_id(source_id, EnergyDemandID)
-        sink = assign_id(sink_id, EnergyDemandID)
-        value_ = assign_value(as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0)
+        source = assign_id(key1, EnergyDemandID)
+        sink = assign_id(key2, EnergyDemandID)
+        transfer = assign_value(as_scalar(value), type_=(CURVE, VARIABLE), lower=0.0)
 
-        write_matching_key_pairs((source, sink), value_, self.power_transfers)
+        write_matching_key_pairs((source, sink), transfer, self.power_transfers)

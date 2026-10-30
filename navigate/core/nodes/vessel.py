@@ -101,120 +101,113 @@ class Vessel(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
-    def set_propulsion_load(self, propulsion_load: SurfaceArgument) -> None:
+    def set_propulsion_load(self, value: SurfaceArgument) -> None:
         """Set the propulsion load of the vessel."""
         self.propulsion_load = assign_value(
-            as_scalar(propulsion_load), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
+            as_scalar(value), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_electrical_load_at_sea(
-        self, electrical_load_at_sea: SurfaceArgument
-    ) -> None:
+    def set_electrical_load_at_sea(self, value: SurfaceArgument) -> None:
         """Set the electrical load of the vessel at sea."""
         self.electrical_load_at_sea = assign_value(
-            as_scalar(electrical_load_at_sea),
-            type_=(CURVE, SURFACE, VARIABLE),
-            lower=0.0,
+            as_scalar(value), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_electrical_load_in_port(
-        self, electrical_load_in_port: ScalarArgument
-    ) -> None:
+    def set_electrical_load_in_port(self, value: ScalarArgument) -> None:
         """Set the electrical load of the vessel in port."""
         self.electrical_load_in_port = assign_value(
-            as_scalar(electrical_load_in_port), type_=VARIABLE, lower=0.0
+            as_scalar(value), type_=VARIABLE, lower=0.0
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_heat_load_at_sea(self, heat_load_at_sea: SurfaceArgument) -> None:
+    def set_heat_load_at_sea(self, value: SurfaceArgument) -> None:
         """Set the heat load of the vessel at sea."""
         self.heat_load_at_sea = assign_value(
-            as_scalar(heat_load_at_sea), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
+            as_scalar(value), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_heat_load_in_port(self, heat_load_in_port: ScalarArgument) -> None:
+    def set_heat_load_in_port(self, value: ScalarArgument) -> None:
         """Set the heat load of the vessel in port."""
         self.heat_load_in_port = assign_value(
-            as_scalar(heat_load_in_port), type_=VARIABLE, lower=0.0
+            as_scalar(value), type_=VARIABLE, lower=0.0
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_fuel_type(self, fuel_type: str) -> None:
+    def set_fuel_type(self, value: str) -> None:
         """Set the primary fuel type of the vessel."""
-        self.fuel_type = assign_id(fuel_type, FuelTypeID)
+        self.fuel_type = assign_id(value, FuelTypeID)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_propulsion_converter(self, propulsion_converter: Converter) -> None:
+    def set_propulsion_converter(self, value: Converter) -> None:
         """Set the converter used to satisfy the propulsion demand."""
-        self.propulsion_converter = assign_reference(propulsion_converter, CONVERTER)
+        self.propulsion_converter = assign_reference(value, CONVERTER)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_electrical_converter(self, electrical_converter: Converter) -> None:
+    def set_electrical_converter(self, value: Converter) -> None:
         """Set the converter used to satisfy the electrical demand."""
-        self.electrical_converter = assign_reference(electrical_converter, CONVERTER)
+        self.electrical_converter = assign_reference(value, CONVERTER)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_heat_converter(self, heat_converter: Converter) -> None:
+    def set_heat_converter(self, value: Converter) -> None:
         """Set the converter used to satisfy the heat demand."""
-        self.heat_converter = assign_reference(heat_converter, CONVERTER)
+        self.heat_converter = assign_reference(value, CONVERTER)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_tanks(self, tanks: Tank | list[Tank]) -> None:
+    def set_tanks(self, value: Tank | list[Tank]) -> None:
         """Set the tanks used for onboard fuel storage."""
-        self.tanks = assign_reference_list(tanks, TANK, min_length=1, unique=True)
+        self.tanks = assign_reference_list(value, TANK, min_length=1, unique=True)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_route(self, route: Route) -> None:
+    def set_route(self, value: Route) -> None:
         """Set the route the vessel sails on."""
-        self.route = assign_reference(route, ROUTE)
+        self.route = assign_reference(value, ROUTE)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_nominal_capacity(self, nominal_capacity: ScalarArgument) -> None:
+    def set_nominal_capacity(self, value: ScalarArgument) -> None:
         """Set the nominal cargo carrying capacity of the vessel."""
         self.nominal_capacity = assign_value(
-            as_scalar(nominal_capacity),
-            type_=VARIABLE,
-            lower=0.0,
-            inclusive_lower=False,
+            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
         )
 
     @deck_attribute()
-    def set_lifetime(self, lifetime: ForecastArgument) -> None:
+    def set_lifetime(self, value: ForecastArgument) -> None:
         """Set the lifetime of the vessel."""
         self.lifetime = assign_value(
-            as_scalar(lifetime),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute()
-    def set_lead_time(self, lead_time: ForecastArgument) -> None:
+    def set_lead_time(self, value: ForecastArgument) -> None:
         """Set the lead time of the vessel."""
         self.lead_time = assign_value(
-            as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_capex(self, capex: ForecastArgument) -> None:
+    def set_capex(self, value: ForecastArgument) -> None:
         """Set the base CAPEX of building the vessel."""
         self.capex = assign_value(
-            as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_opex(self, opex: ForecastArgument) -> None:
+    def set_opex(self, value: ForecastArgument) -> None:
         """Set the base OPEX of maintaining the vessel."""
-        self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
+        self.opex = assign_value(
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     @deck_attribute()
-    def set_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
+    def set_cost_of_capital(self, value: ForecastArgument) -> None:
         """Set the cost of capital of the vessel."""
         self.cost_of_capital = assign_value(
-            as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     # internal methods -----------------------------------------------------------------

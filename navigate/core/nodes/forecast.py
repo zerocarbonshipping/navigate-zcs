@@ -45,9 +45,9 @@ class Forecast(Node, _Table1D):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
-    def set_table(self, table: TableData) -> None:
+    def set_table(self, value: TableData) -> None:
         """Set the table of x- and y-values the forecast interpolates in."""
-        self._pending_table = build_table_1d_dated(table)
+        self._pending_table = build_table_1d_dated(value)
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:

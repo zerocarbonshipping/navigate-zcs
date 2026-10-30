@@ -43,27 +43,27 @@ class _Calculator:
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
-    def set_addition(self, addition: NumberInput) -> None:
+    def set_addition(self, value: NumberInput) -> None:
         """Set the addition of the calculator."""
-        self.addition = assign_value(addition)
+        self.addition = assign_value(value)
 
     @deck_attribute()
-    def set_multiplier(self, multiplier: NumberInput) -> None:
+    def set_multiplier(self, value: NumberInput) -> None:
         """Set the multiplier of the calculator."""
-        self.multiplier = assign_value(multiplier)
+        self.multiplier = assign_value(value)
 
     @deck_attribute()
-    def set_lower_bound(self, lower_bound: float | str) -> None:
+    def set_lower_bound(self, value: float | str) -> None:
         """Set the user-defined lower bound of the calculator."""
-        self.lower_bound = assign_bound(lower_bound, inclusive_upper=False)
+        self.lower_bound = assign_bound(value, inclusive_upper=False)
 
         # called here in case the lower bound is changed during time-stepping
         self._update_applied_bounds()
 
     @deck_attribute()
-    def set_upper_bound(self, upper_bound: float | str) -> None:
+    def set_upper_bound(self, value: float | str) -> None:
         """Set the user-defined upper bound of the calculator."""
-        self.upper_bound = assign_bound(upper_bound, inclusive_lower=False)
+        self.upper_bound = assign_bound(value, inclusive_lower=False)
 
         # called here in case the upper bound is changed during time-stepping
         self._update_applied_bounds()

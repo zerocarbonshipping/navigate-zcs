@@ -36,11 +36,11 @@ class Tank(_Machinery):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_fuel_types(self, fuel_types: str | list[str]) -> None:
+    def set_fuel_types(self, value: str | list[str]) -> None:
         """Set the fuel types that can be stored in the tank."""
-        self.fuel_types = assign_id_list(fuel_types, FuelTypeID, min_length=1)
+        self.fuel_types = assign_id_list(value, FuelTypeID, min_length=1)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_size(self, size: ScalarArgument) -> None:
+    def set_size(self, value: ScalarArgument) -> None:
         """Set the volumetric size of the tank."""
-        self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
+        self.size = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)

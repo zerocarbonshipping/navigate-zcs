@@ -39,9 +39,9 @@ class Curve(Node, _Table1D):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
-    def set_table(self, table: TableData) -> None:
+    def set_table(self, value: TableData) -> None:
         """Set the table of x- and y-values the curve interpolates in."""
-        x, y = build_table_1d(table)
+        x, y = build_table_1d(value)
         self._check_table(x, y)
         self._pending_table = (x, y)
 

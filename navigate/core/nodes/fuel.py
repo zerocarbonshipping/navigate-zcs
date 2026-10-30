@@ -49,43 +49,35 @@ class Fuel(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_fuel_type(self, fuel_type: str) -> None:
+    def set_fuel_type(self, value: str) -> None:
         """Set the fuel type of the fuel."""
-        self.fuel_type = assign_id(fuel_type, FuelTypeID)
+        self.fuel_type = assign_id(value, FuelTypeID)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_liquid_market(self, liquid_market: str) -> None:
+    def set_liquid_market(self, value: str) -> None:
         """Set whether the fuel belongs to a liquid market."""
-        self.liquid_market = assign_boolean(liquid_market)
+        self.liquid_market = assign_boolean(value)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_lower_heating_value(self, lower_heating_value: ScalarArgument) -> None:
+    def set_lower_heating_value(self, value: ScalarArgument) -> None:
         """Set the lower heating value of the fuel."""
         self.lower_heating_value = assign_value(
-            as_scalar(lower_heating_value),
-            type_=VARIABLE,
-            lower=0.0,
-            inclusive_lower=False,
+            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
         )
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_mass_density(self, mass_density: ScalarArgument) -> None:
+    def set_mass_density(self, value: ScalarArgument) -> None:
         """Set the mass density of the fuel."""
         self.mass_density = assign_value(
-            as_scalar(mass_density),
-            type_=VARIABLE,
-            lower=0.0,
-            inclusive_lower=False,
+            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
         )
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command(SECTION_DEFINE)
-    def set_ttw(self, emission_name: str, ttw: ScalarArgument) -> None:
+    def set_ttw(self, key: str, value: ScalarArgument) -> None:
         """Set the TTW emission factor of the fuel for an emission."""
         write_matching_keys(
-            emission_name,
-            assign_value(as_scalar(ttw), type_=VARIABLE, lower=0.0),
-            self.ttw,
+            key, assign_value(as_scalar(value), type_=VARIABLE, lower=0.0), self.ttw
         )
 
     # internal methods -----------------------------------------------------------------

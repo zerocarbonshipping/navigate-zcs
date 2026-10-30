@@ -264,6 +264,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A calculator whose bounds admit no value - its `LowerBound` above its
   `UpperBound` or the upper bound an attribute referencing it requires, or the
   reverse - is a deck error when the deck is read instead of being clamped.
+- A command given too few or too many arguments reports how many it takes and
+  how many were given, such as `'set_ttw' takes 2 arguments, but 1 was given.`,
+  instead of naming a missing argument.
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`

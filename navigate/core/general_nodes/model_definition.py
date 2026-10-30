@@ -29,13 +29,11 @@ class ModelDefinition(GeneralNode):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_start_date(self, start_date: np.datetime64) -> None:
+    def set_start_date(self, value: np.datetime64) -> None:
         """Set the start date of the simulation."""
-        self.start_date = assign_date(start_date)
+        self.start_date = assign_date(value)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_emissions_lifetime(self, emissions_lifetime: float) -> None:
+    def set_emissions_lifetime(self, value: float) -> None:
         """Set the emission lifetime used for GWP."""
-        self.emissions_lifetime = assign_value(
-            emissions_lifetime, lower=0.0, allow_expression=False
-        )
+        self.emissions_lifetime = assign_value(value, lower=0.0, allow_expression=False)

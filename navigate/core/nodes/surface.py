@@ -39,9 +39,9 @@ class Surface(Node, _Table2D):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
-    def set_table(self, table: TableData) -> None:
+    def set_table(self, value: TableData) -> None:
         """Set the table of x-, y- and z-values the surface interpolates in."""
-        x, y, z = build_table_2d(table)
+        x, y, z = build_table_2d(value)
         self._check_table(x, y, z)
         self._pending_table = (x, y, z)
 

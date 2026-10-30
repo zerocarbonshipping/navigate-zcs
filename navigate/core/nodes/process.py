@@ -38,16 +38,14 @@ class Process(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
-    def set_feeds(self, feeds: Feedstock | Process | list[Feedstock | Process]) -> None:
+    def set_feeds(self, value: Feedstock | Process | list[Feedstock | Process]) -> None:
         """Set the feedstocks and processes whose outputs feed the process."""
-        self.feeds = assign_reference_list(feeds, (FEEDSTOCK, PROCESS), unique=True)
+        self.feeds = assign_reference_list(value, (FEEDSTOCK, PROCESS), unique=True)
 
     @deck_attribute()
-    def set_conversions(
-        self, conversions: ForecastArgument | list[ForecastArgument]
-    ) -> None:
+    def set_conversions(self, value: ForecastArgument | list[ForecastArgument]) -> None:
         """Set the conversion factors of the feeds into fuel."""
-        entries: list[ForecastArgument] = as_list(conversions)
+        entries: list[ForecastArgument] = as_list(value)
         self.conversions = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),

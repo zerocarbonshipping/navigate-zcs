@@ -230,10 +230,13 @@ class Builder:
 
         # the argument count is checked before the call, so an error raised
         # inside the command is a bug and keeps its traceback
-        try:
-            inspect.signature(method).bind(*inputs)
-        except TypeError as error:
-            raise item.source.error(f"'{item.name}' {error}.") from None
+        expected = len(inspect.signature(method).parameters)
+        given = len(inputs)
+        if given != expected:
+            verb = "was" if given == 1 else "were"
+            raise item.source.error(
+                f"'{item.name}' takes {expected} arguments, but {given} {verb} given."
+            )
 
         try:
             method(*inputs)

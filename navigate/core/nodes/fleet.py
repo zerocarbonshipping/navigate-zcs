@@ -131,57 +131,52 @@ class Fleet(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_vessels(self, vessels: Vessel | list[Vessel]) -> None:
+    def set_vessels(self, value: Vessel | list[Vessel]) -> None:
         """Set the vessel types that exist for the fleet."""
-        self.vessels = assign_reference_list(vessels, VESSEL, min_length=1, unique=True)
+        self.vessels = assign_reference_list(value, VESSEL, min_length=1, unique=True)
 
     @deck_attribute()
-    def set_memory(self, memory: ForecastArgument) -> None:
+    def set_memory(self, value: ForecastArgument) -> None:
         """Set the memory's exponential decay used in the newbuild uptake decision."""
         self.memory = assign_value(
-            as_scalar(memory), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     @deck_attribute()
-    def set_inertia(self, inertia: ForecastArgument) -> None:
+    def set_inertia(self, value: ForecastArgument) -> None:
         """Set the inertia used in the uptake decision of newbuild vessels."""
         self.inertia = assign_value(
-            as_scalar(inertia), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     @deck_attribute()
-    def set_fixed_scrap_rate(self, fixed_scrap_rate: ForecastArgument) -> None:
+    def set_fixed_scrap_rate(self, value: ForecastArgument) -> None:
         """Set the fixed scrap rate of the fleet."""
         self.fixed_scrap_rate = assign_value(
-            as_scalar(fixed_scrap_rate),
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     @deck_attribute()
-    def set_allow_secondary_scrapping(self, allow_secondary_scrapping: str) -> None:
+    def set_allow_secondary_scrapping(self, value: str) -> None:
         """Set whether secondary scrapping is allowed."""
-        self.allow_secondary_scrapping = assign_boolean(allow_secondary_scrapping)
+        self.allow_secondary_scrapping = assign_boolean(value)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_trade_growth(self, trade_growth: ForecastArgument) -> None:
+    def set_trade_growth(self, value: ForecastArgument) -> None:
         """Set the trade growth of the fleet."""
-        self.trade_growth = assign_value(
-            as_scalar(trade_growth), type_=(FORECAST, VARIABLE)
-        )
+        self.trade_growth = assign_value(as_scalar(value), type_=(FORECAST, VARIABLE))
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_initial_vessels(self, initial_vessels: ScalarArgument) -> None:
+    def set_initial_vessels(self, value: ScalarArgument) -> None:
         """Set the initial number of vessels in the fleet."""
         self.initial_vessels = assign_value(
-            as_scalar(initial_vessels), type_=VARIABLE, lower=0.0, inclusive_lower=False
+            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_initial_split(self, initial_split: list[float]) -> None:
+    def set_initial_split(self, value: list[float]) -> None:
         """Set the initial distribution of vessel types in the fleet."""
-        self.initial_split, rescaled = assign_fraction_list(initial_split)
+        self.initial_split, rescaled = assign_fraction_list(value)
 
         if rescaled:
             logger.warning(
@@ -190,10 +185,10 @@ class Fleet(Node):
 
     @deck_attribute(SECTION_DEFINE)
     def set_initial_age_distribution(
-        self, initial_age_distribution: CurveTableArgument | list[CurveTableArgument]
+        self, value: CurveTableArgument | list[CurveTableArgument]
     ) -> None:
         """Set the initial age distribution of each vessel type."""
-        entries: list[CurveTableArgument] = as_list(initial_age_distribution)
+        entries: list[CurveTableArgument] = as_list(value)
         self.initial_age_distribution = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=CURVE,
@@ -202,87 +197,75 @@ class Fleet(Node):
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_technologies(self, technologies: Technology | list[Technology]) -> None:
+    def set_technologies(self, value: Technology | list[Technology]) -> None:
         """Set the technologies that can be installed on the fleet's vessels."""
-        self.technologies = assign_reference_list(technologies, TECHNOLOGY, unique=True)
+        self.technologies = assign_reference_list(value, TECHNOLOGY, unique=True)
 
     @deck_attribute(required=True)
-    def set_intra_fuel_sensitivity(
-        self, intra_fuel_sensitivity: ForecastArgument
-    ) -> None:
+    def set_intra_fuel_sensitivity(self, value: ForecastArgument) -> None:
         """Set the within-fuel technology choice's sensitivity to LCOT."""
         self.intra_fuel_sensitivity = assign_value(
-            as_scalar(intra_fuel_sensitivity),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute(required=True)
-    def set_inter_fuel_sensitivity(
-        self, inter_fuel_sensitivity: ForecastArgument
-    ) -> None:
+    def set_inter_fuel_sensitivity(self, value: ForecastArgument) -> None:
         """Set the fuel-type choice's sensitivity to LCOT."""
         self.inter_fuel_sensitivity = assign_value(
-            as_scalar(inter_fuel_sensitivity),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute()
-    def set_technology_sensitivity(
-        self, technology_sensitivity: ForecastArgument
-    ) -> None:
+    def set_technology_sensitivity(self, value: ForecastArgument) -> None:
         """Set the technology package choice's sensitivity to its NPV."""
         self.technology_sensitivity = assign_value(
-            as_scalar(technology_sensitivity),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute()
-    def set_technology_cost_of_capital(
-        self, technology_cost_of_capital: ForecastArgument
-    ) -> None:
+    def set_technology_cost_of_capital(self, value: ForecastArgument) -> None:
         """Set the cost of capital used for evaluating technology investments."""
         self.technology_cost_of_capital = assign_value(
-            as_scalar(technology_cost_of_capital),
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_technology_horizon(self, technology_horizon: ForecastArgument) -> None:
+    def set_technology_horizon(self, value: ForecastArgument) -> None:
         """Set the smoothing horizon of the technology energy-scarcity belief."""
         self.technology_horizon = assign_value(
-            as_scalar(technology_horizon), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_speed_horizon(self, speed_horizon: ForecastArgument) -> None:
+    def set_speed_horizon(self, value: ForecastArgument) -> None:
         """Set the smoothing horizon of the speed energy-scarcity belief."""
         self.speed_horizon = assign_value(
-            as_scalar(speed_horizon), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_retrofit_frequency(self, retrofit_frequency: ForecastArgument) -> None:
+    def set_retrofit_frequency(self, value: ForecastArgument) -> None:
         """Set how often a vessel can retrofit technology or convert fuel."""
         self.retrofit_frequency = assign_value(
-            as_scalar(retrofit_frequency),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_orderbooks(
-        self, orderbooks: ForecastArgument | list[ForecastArgument]
-    ) -> None:
+    def set_orderbooks(self, value: ForecastArgument | list[ForecastArgument]) -> None:
         """Set the orderbook of each vessel type."""
-        entries: list[ForecastArgument] = as_list(orderbooks)
+        entries: list[ForecastArgument] = as_list(value)
         self.orderbooks = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
@@ -290,85 +273,68 @@ class Fleet(Node):
         )
 
     @deck_attribute()
-    def set_allow_speed_management(self, allow_speed_management: str) -> None:
+    def set_allow_speed_management(self, value: str) -> None:
         """Set whether speed management is allowed."""
-        self.allow_speed_management = assign_boolean(allow_speed_management)
+        self.allow_speed_management = assign_boolean(value)
 
     @deck_attribute()
-    def set_maximum_speed_change(self, maximum_speed_change: ForecastArgument) -> None:
+    def set_maximum_speed_change(self, value: ForecastArgument) -> None:
         """Set the maximum yearly speed change under speed management."""
         self.maximum_speed_change = assign_value(
-            as_scalar(maximum_speed_change),
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            allow_infinite=True,
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, allow_infinite=True
         )
 
     @deck_attribute()
-    def set_speed_alignment(self, speed_alignment: str) -> None:
+    def set_speed_alignment(self, value: str) -> None:
         """Set the method used to align speed across vessel types."""
-        self.speed_alignment = assign_id(speed_alignment, SpeedAlignmentID)
+        self.speed_alignment = assign_id(value, SpeedAlignmentID)
 
     @deck_attribute()
-    def set_assume_reference_speed_optimal(
-        self, assume_reference_speed_optimal: str
-    ) -> None:
+    def set_assume_reference_speed_optimal(self, value: str) -> None:
         """Set whether the reference speed is taken as the market optimum."""
-        self.assume_reference_speed_optimal = assign_boolean(
-            assume_reference_speed_optimal
-        )
+        self.assume_reference_speed_optimal = assign_boolean(value)
 
     @deck_attribute()
-    def set_fuel_conversion_sensitivity(
-        self, fuel_conversion_sensitivity: ForecastArgument
-    ) -> None:
+    def set_fuel_conversion_sensitivity(self, value: ForecastArgument) -> None:
         """Set the fuel-conversion choice's sensitivity to its NPV."""
         self.fuel_conversion_sensitivity = assign_value(
-            as_scalar(fuel_conversion_sensitivity),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute()
-    def set_fuel_conversion_minimum_age(
-        self, fuel_conversion_minimum_age: ForecastArgument
-    ) -> None:
+    def set_fuel_conversion_minimum_age(self, value: ForecastArgument) -> None:
         """Set the minimum age at which a vessel can convert fuel."""
         self.fuel_conversion_minimum_age = assign_value(
-            as_scalar(fuel_conversion_minimum_age),
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_allow_technology_approximation(
-        self, allow_technology_approximation: str
-    ) -> None:
+    def set_allow_technology_approximation(self, value: str) -> None:
         """Set whether technology uptake is approximated from other fleets."""
-        self.allow_technology_approximation = assign_boolean(
-            allow_technology_approximation
-        )
+        self.allow_technology_approximation = assign_boolean(value)
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
     def set_fuel_conversion_cost(
-        self, vessel_name_from: str, vessel_name_to: str, value: ForecastArgument
+        self, key1: str, key2: str, value: ForecastArgument
     ) -> None:
         """Set the cost of converting a vessel type to another."""
         write_matching_key_pairs(
-            (vessel_name_from, vessel_name_to),
+            (key1, key2),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.fuel_conversion_costs,
         )
 
     @deck_command()
     def set_fuel_conversion_limit(
-        self, vessel_name_from: str, vessel_name_to: str, value: ForecastArgument
+        self, key1: str, key2: str, value: ForecastArgument
     ) -> None:
         """Set the yearly cap on fuel conversions between two vessel types."""
         write_matching_key_pairs(
-            (vessel_name_from, vessel_name_to),
+            (key1, key2),
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
@@ -376,37 +342,31 @@ class Fleet(Node):
         )
 
     @deck_command()
-    def set_allow_vessel(self, vessel_name: str, value: str) -> None:
+    def set_allow_vessel(self, key: str, value: str) -> None:
         """Set whether a vessel type may enter the fleet."""
         write_matching_keys(
-            vessel_name, assign_boolean(value), self.allow_vessel, allow_empty=True
+            key, assign_boolean(value), self.allow_vessel, allow_empty=True
         )
 
     @deck_command()
-    def set_newbuild_available(self, vessel_name: str, value: str) -> None:
+    def set_newbuild_available(self, key: str, value: str) -> None:
         """Set whether a vessel type is available as a newbuild."""
         write_matching_keys(
-            vessel_name,
-            assign_boolean(value),
-            self.newbuild_available,
-            allow_empty=True,
+            key, assign_boolean(value), self.newbuild_available, allow_empty=True
         )
 
     @deck_command()
-    def set_conversion_available(self, vessel_name: str, value: str) -> None:
+    def set_conversion_available(self, key: str, value: str) -> None:
         """Set whether a vessel type is available as a conversion target."""
         write_matching_keys(
-            vessel_name,
-            assign_boolean(value),
-            self.conversion_available,
-            allow_empty=True,
+            key, assign_boolean(value), self.conversion_available, allow_empty=True
         )
 
     @deck_command()
-    def set_newbuild_limit(self, vessel_name: str, value: ForecastArgument) -> None:
+    def set_newbuild_limit(self, key: str, value: ForecastArgument) -> None:
         """Set the yearly newbuild cap of a vessel type."""
         write_matching_keys(
-            vessel_name,
+            key,
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
@@ -415,22 +375,20 @@ class Fleet(Node):
 
     @deck_command(SECTION_DEFINE)
     def set_initial_technology_share(
-        self, vessel_name: str, technology_name: str, value: Curve | Expression
+        self, key1: str, key2: str, value: Curve | Expression
     ) -> None:
         """Set the initial technology uptake by vessel age."""
         write_matching_key_pairs(
-            (vessel_name, technology_name),
+            (key1, key2),
             assign_value(value, allow_scalar=False, type_=CURVE, lower=0.0, upper=1.0),
             self.initial_technology_shares,
         )
 
     @deck_command()
-    def set_newbuild_technology_limit(
-        self, technology_name: str, value: ForecastArgument
-    ) -> None:
+    def set_newbuild_technology_limit(self, key: str, value: ForecastArgument) -> None:
         """Set the yearly cap on newbuild installs of a technology."""
         write_matching_keys(
-            technology_name,
+            key,
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
@@ -438,12 +396,10 @@ class Fleet(Node):
         )
 
     @deck_command()
-    def set_retrofit_technology_limit(
-        self, technology_name: str, value: ForecastArgument
-    ) -> None:
+    def set_retrofit_technology_limit(self, key: str, value: ForecastArgument) -> None:
         """Set the yearly cap on retrofits of a technology."""
         write_matching_keys(
-            technology_name,
+            key,
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
@@ -451,28 +407,24 @@ class Fleet(Node):
         )
 
     @deck_command()
-    def set_operational_saving_sea(
-        self, energy_type: str, value: ForecastArgument
-    ) -> None:
+    def set_operational_saving_sea(self, key: str, value: ForecastArgument) -> None:
         """Set the energy fraction saved at sea through operational measures."""
-        id_ = assign_id(energy_type, EnergyDemandID)
-        value_ = assign_value(
+        energy_type = assign_id(key, EnergyDemandID)
+        saving = assign_value(
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-        write_matching_keys(id_, value_, self.operational_savings_sea)
+        write_matching_keys(energy_type, saving, self.operational_savings_sea)
 
     @deck_command()
-    def set_operational_saving_port(
-        self, energy_type: str, value: ForecastArgument
-    ) -> None:
+    def set_operational_saving_port(self, key: str, value: ForecastArgument) -> None:
         """Set the energy fraction saved in port through operational measures."""
-        id_ = assign_member(energy_type, PORT_ENERGY_DEMANDS)
-        value_ = assign_value(
+        energy_type = assign_member(key, PORT_ENERGY_DEMANDS)
+        saving = assign_value(
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-        write_matching_keys(id_, value_, self.operational_savings_port)
+        write_matching_keys(energy_type, saving, self.operational_savings_port)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:

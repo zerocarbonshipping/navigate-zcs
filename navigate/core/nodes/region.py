@@ -64,10 +64,10 @@ class Region(Node):
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_process_capex(self, process_name: str, value: TimetableArgument) -> None:
+    def set_process_capex(self, key: str, value: TimetableArgument) -> None:
         """Set the CAPEX of a production process."""
         write_matching_keys(
-            process_name,
+            key,
             assign_value(
                 as_scalar(value), type_=(FORECAST, TIMETABLE, VARIABLE), lower=0.0
             ),
@@ -75,28 +75,28 @@ class Region(Node):
         )
 
     @deck_command()
-    def set_process_opex(self, process_name: str, value: TimetableArgument) -> None:
+    def set_process_opex(self, key: str, value: TimetableArgument) -> None:
         """Set the OPEX of a production process."""
         write_matching_keys(
-            process_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, TIMETABLE, VARIABLE)),
             self.process_opex,
         )
 
     @deck_command()
-    def set_process_energy(self, process_name: str, value: ForecastArgument) -> None:
+    def set_process_energy(self, key: str, value: ForecastArgument) -> None:
         """Set the energy demand of a production process."""
         write_matching_keys(
-            process_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.process_energy,
         )
 
     @deck_command()
-    def set_process_lifetime(self, process_name: str, value: ForecastArgument) -> None:
+    def set_process_lifetime(self, key: str, value: ForecastArgument) -> None:
         """Set the lifetime of a production process."""
         write_matching_keys(
-            process_name,
+            key,
             assign_value(
                 as_scalar(value),
                 type_=(FORECAST, VARIABLE),
@@ -107,12 +107,10 @@ class Region(Node):
         )
 
     @deck_command()
-    def set_process_replacement(
-        self, process_name: str, value: ForecastArgument
-    ) -> None:
+    def set_process_replacement(self, key: str, value: ForecastArgument) -> None:
         """Set the fraction of CAPEX repaid at the end of a process's lifetime."""
         write_matching_keys(
-            process_name,
+            key,
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
@@ -120,81 +118,73 @@ class Region(Node):
         )
 
     @deck_command()
-    def set_process_wtt(
-        self, process_name: str, emission_name: str, value: ForecastArgument
-    ) -> None:
+    def set_process_wtt(self, key1: str, key2: str, value: ForecastArgument) -> None:
         """Set the WTT emissions of a production process for an emission."""
         write_matching_key_pairs(
-            (process_name, emission_name),
+            (key1, key2),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.process_wtt,
         )
 
     @deck_command()
-    def set_source_capex(self, source_name: str, value: ForecastArgument) -> None:
+    def set_source_capex(self, key: str, value: ForecastArgument) -> None:
         """Set the CAPEX of a source."""
         write_matching_keys(
-            source_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.source_capex,
         )
 
     @deck_command()
-    def set_source_opex(self, source_name: str, value: ForecastArgument) -> None:
+    def set_source_opex(self, key: str, value: ForecastArgument) -> None:
         """Set the OPEX of a source."""
         write_matching_keys(
-            source_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.source_opex,
         )
 
     @deck_command()
-    def set_source_wtt(
-        self, source_name: str, emission_name: str, value: ForecastArgument
-    ) -> None:
+    def set_source_wtt(self, key1: str, key2: str, value: ForecastArgument) -> None:
         """Set the WTT emissions of a source for an emission."""
         write_matching_key_pairs(
-            (source_name, emission_name),
+            (key1, key2),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.source_wtt,
         )
 
     @deck_command()
-    def set_feedstock_cost(self, feedstock_name: str, value: ForecastArgument) -> None:
+    def set_feedstock_cost(self, key: str, value: ForecastArgument) -> None:
         """Set the cost of a feedstock."""
         write_matching_keys(
-            feedstock_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.feedstock_costs,
         )
 
     @deck_command()
-    def set_feedstock_wtt(
-        self, feedstock_name: str, emission_name: str, value: ForecastArgument
-    ) -> None:
+    def set_feedstock_wtt(self, key1: str, key2: str, value: ForecastArgument) -> None:
         """Set the WTT emissions of a feedstock for an emission."""
         write_matching_key_pairs(
-            (feedstock_name, emission_name),
+            (key1, key2),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.feedstock_wtt,
         )
 
     @deck_command()
-    def set_transport_cost(self, transport_name: str, value: ForecastArgument) -> None:
+    def set_transport_cost(self, key: str, value: ForecastArgument) -> None:
         """Set the cost of a transport."""
         write_matching_keys(
-            transport_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.transport_costs,
         )
 
     @deck_command()
-    def set_transport_wtt(
-        self, transport_name: str, emission_name: str, value: ForecastArgument
-    ) -> None:
+    def set_transport_wtt(self, key1: str, key2: str, value: ForecastArgument) -> None:
         """Set the WTT emissions of a transport for an emission."""
         write_matching_key_pairs(
-            (transport_name, emission_name),
+            (key1, key2),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.transport_wtt,
         )
