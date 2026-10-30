@@ -529,7 +529,7 @@ z = \min\left(\max\left(\text{Multiplier} \cdot (z(x, y) + \text{Addition}), \te
 </section>
 <section id="lowerbound">
 <h3>LowerBound<a class="headerlink" href="#lowerbound" title="Link to this heading">#</a></h3>
-<p>Sets the lower bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#surface">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">-INF</span></code> means no lower bound; <code class="docutils literal notranslate"><span class="pre">INF</span></code> is rejected.</p>
+<p>Sets the lower bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#surface">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">-INF</span></code> means no lower bound; <code class="docutils literal notranslate"><span class="pre">INF</span></code> is rejected. It must not exceed <code class="docutils literal notranslate"><span class="pre">UpperBound</span></code>, nor the upper bound an attribute referencing the node requires.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
@@ -538,7 +538,7 @@ z = \min\left(\max\left(\text{Multiplier} \cdot (z(x, y) + \text{Addition}), \te
 </section>
 <section id="upperbound">
 <h3>UpperBound<a class="headerlink" href="#upperbound" title="Link to this heading">#</a></h3>
-<p>Sets the upper bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#surface">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">INF</span></code> means no upper bound; <code class="docutils literal notranslate"><span class="pre">-INF</span></code> is rejected.</p>
+<p>Sets the upper bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#surface">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">INF</span></code> means no upper bound; <code class="docutils literal notranslate"><span class="pre">-INF</span></code> is rejected. It must not be below <code class="docutils literal notranslate"><span class="pre">LowerBound</span></code>, nor the lower bound an attribute referencing the node requires.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
