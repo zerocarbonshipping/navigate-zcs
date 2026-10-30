@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from navigate.simulation.bunker._build import get_constraint
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.tank import Tank
+    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
@@ -38,7 +38,10 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     tanks = vessel.tanks
     tank_stops = vessel.route.get_tank_stops()
 
-    volume_per_ton = {tank.name: _calculate_volume_per_ton(alg, tank) for tank in tanks}
+    volume_per_ton: dict[str, dict[str, float]] = {}
+
+    for t, fuels in vessel.fuels_per_tank.items():
+        volume_per_ton[t] = _calculate_volume_per_ton(fuels)
 
     rows = alg.tank_capacity
     mass_tank = alg.mass_tank
@@ -55,16 +58,14 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
                 model.set_coefficient(constraint, mass_tank[v, p, f], coefficient)
 
 
-def _calculate_volume_per_ton(alg: BunkerAlgorithm, tank: Tank) -> dict[str, float]:
+def _calculate_volume_per_ton(fuels: dict[str, Fuel]) -> dict[str, float]:
     """
-    Calculate the volume a ton of each fuel the tank stores takes up.
+    Calculate the volume a ton of each fuel a tank stores takes up.
 
     Parameters
     ----------
-    alg
-        The algorithm instance.
-    tank
-        Tank whose fuels are converted.
+    fuels
+        The fuels the tank stores, keyed by name.
 
     Returns
     -------
@@ -73,8 +74,7 @@ def _calculate_volume_per_ton(alg: BunkerAlgorithm, tank: Tank) -> dict[str, flo
     """
     volume_per_ton: dict[str, float] = {}
 
-    for fuel_type in tank.fuel_types:
-        for fuel in alg.fuels_per_fuel_type[fuel_type]:
-            volume_per_ton[fuel.name] = 1.0 / fuel.mass_density.get()
+    for fuel_name, fuel in fuels.items():
+        volume_per_ton[fuel_name] = 1.0 / fuel.mass_density.get()
 
     return volume_per_ton

@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import get_constraint
-from navigate.simulation.bunker._indices import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -43,7 +42,6 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     legs = route.get_legs()
     stops = route.get_stops()
-    port_converters = get_port_converters(vessel)
 
     for converter in vessel.get_converters():
         if not converter.is_dual_fuel():
@@ -54,7 +52,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         _update_sea_rows(alg, vessel, c, coefficients, legs)
 
         # the propulsion converter serves no port energy demand
-        if c in port_converters:
+        if c in vessel.fuels_per_port_converter:
             _update_port_rows(alg, vessel, c, coefficients, stops)
 
 

@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
-    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
@@ -28,7 +27,6 @@ def calculate_policy_emission_coefficients(
     regulations: dict[str, Regulation],
     levies: dict[str, Levy],
     vessels: dict[str, Vessel],
-    plants: dict[str, Plant],
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -53,8 +51,6 @@ def calculate_policy_emission_coefficients(
         All levies in the simulation.
     vessels
         All vessels in the simulation.
-    plants
-        All plants in the simulation.
     timeline
         Simulation timeline, in days.
     idx
@@ -62,29 +58,21 @@ def calculate_policy_emission_coefficients(
     """
     times = timeline[idx:]
 
-    plants_by_fuel: dict[str, list[Plant]] = {}
-    for plant in plants.values():
-        plants_by_fuel.setdefault(plant.fuel.name, []).append(plant)
-
     for regulation in regulations.values():
         if not regulation.active:
             continue
 
-        _calculate_regulation(regulation, vessels, plants_by_fuel, times, idx)
+        _calculate_regulation(regulation, vessels, times, idx)
 
     for levy in levies.values():
         if not levy.active:
             continue
 
-        _calculate_levy(levy, vessels, plants_by_fuel, times, idx)
+        _calculate_levy(levy, vessels, times, idx)
 
 
 def _calculate_regulation(
-    regulation: Regulation,
-    vessels: dict[str, Vessel],
-    plants_by_fuel: dict[str, list[Plant]],
-    times: FloatArray,
-    idx: int,
+    regulation: Regulation, vessels: dict[str, Vessel], times: FloatArray, idx: int
 ) -> None:
     """
     Calculate a regulation's emission factors, coefficients and vessel thresholds.
@@ -99,9 +87,6 @@ def _calculate_regulation(
         Regulation whose factors, coefficients and thresholds are calculated.
     vessels
         All vessels in the simulation.
-    plants_by_fuel
-        Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
-        absent.
     times
         Remaining timeline, in days.
     idx
@@ -110,7 +95,7 @@ def _calculate_regulation(
     scope = regulation.scope
 
     if scope in (PolicyScopeID.WTT, PolicyScopeID.WTW):
-        _calculate_regulation_wtt(regulation, vessels, plants_by_fuel, times, idx)
+        _calculate_regulation_wtt(regulation, vessels, times, idx)
 
     if scope in (PolicyScopeID.TTW, PolicyScopeID.WTW):
         _calculate_regulation_ttw(regulation, vessels, times, idx)
@@ -121,11 +106,7 @@ def _calculate_regulation(
 
 
 def _calculate_regulation_wtt(
-    regulation: Regulation,
-    vessels: dict[str, Vessel],
-    plants_by_fuel: dict[str, list[Plant]],
-    times: FloatArray,
-    idx: int,
+    regulation: Regulation, vessels: dict[str, Vessel], times: FloatArray, idx: int
 ) -> None:
     """
     Calculate the WTT emission factors of a regulation.
@@ -141,9 +122,6 @@ def _calculate_regulation_wtt(
         Regulation whose WTT emission factors are calculated.
     vessels
         All vessels in the simulation.
-    plants_by_fuel
-        Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
-        absent.
     times
         Remaining timeline, in days.
     idx
@@ -160,13 +138,11 @@ def _calculate_regulation_wtt(
         ports = unique_list(vessel.route.ports)
 
         for fuel in _select_target_fuels(regulation, vessel):
-            plants = plants_by_fuel.get(fuel.name, [])
-
             for emission in regulation.emissions:
                 key = (fuel.name, emission.name)
                 wtt = supplied[key]
                 if wtt is None:
-                    wtt = _average_wtt_over_route(ports, fuel, emission, plants, idx)
+                    wtt = _average_wtt_over_route(ports, fuel, emission, idx)
 
                 factor = _apply_gwp(wtt, regulation, emission)
                 expectation.set_wtt((vessel_name, *key), idx, factor)
@@ -348,11 +324,7 @@ def _calculate_regulation_vessel_thresholds(
 
 
 def _calculate_levy(
-    levy: Levy,
-    vessels: dict[str, Vessel],
-    plants_by_fuel: dict[str, list[Plant]],
-    times: FloatArray,
-    idx: int,
+    levy: Levy, vessels: dict[str, Vessel], times: FloatArray, idx: int
 ) -> None:
     """
     Calculate a levy's emission factors and its costs.
@@ -366,9 +338,6 @@ def _calculate_levy(
         Levy whose emission factors and costs are calculated.
     vessels
         All vessels in the simulation.
-    plants_by_fuel
-        Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
-        absent.
     times
         Remaining timeline, in days.
     idx
@@ -377,7 +346,7 @@ def _calculate_levy(
     scope = levy.scope
 
     if scope in (PolicyScopeID.WTT, PolicyScopeID.WTW):
-        _calculate_levy_wtt(levy, plants_by_fuel, times, idx)
+        _calculate_levy_wtt(levy, times, idx)
 
     if scope in (PolicyScopeID.TTW, PolicyScopeID.WTW):
         _calculate_levy_ttw(levy, vessels, times, idx)
@@ -385,12 +354,7 @@ def _calculate_levy(
     _calculate_levy_costs(levy, vessels, times, idx)
 
 
-def _calculate_levy_wtt(
-    levy: Levy,
-    plants_by_fuel: dict[str, list[Plant]],
-    times: FloatArray,
-    idx: int,
-) -> None:
+def _calculate_levy_wtt(levy: Levy, times: FloatArray, idx: int) -> None:
     """
     Calculate the WTT emission factors of a levy.
 
@@ -402,9 +366,6 @@ def _calculate_levy_wtt(
     ----------
     levy
         Levy whose WTT emission factors are calculated.
-    plants_by_fuel
-        Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
-        absent.
     times
         Remaining timeline, in days.
     idx
@@ -414,8 +375,6 @@ def _calculate_levy_wtt(
     supplied = _evaluate_supplied(levy, levy.fuel_wtt, times)
 
     for fuel in levy.fuels:
-        plants = plants_by_fuel.get(fuel.name, [])
-
         for emission in levy.emissions:
             key = (fuel.name, emission.name)
 
@@ -425,7 +384,7 @@ def _calculate_levy_wtt(
 
                 wtt = supplied[key]
                 if wtt is None:
-                    wtt = _estimate_port_wtt(port, fuel, emission, plants, idx)
+                    wtt = _estimate_port_wtt(port, fuel, emission, idx)
 
                 factor = _apply_gwp(wtt, levy, emission)
                 expectation.set_wtt((port.name, *key), idx, factor)
@@ -630,7 +589,7 @@ def _apply_thresholds(
 
 
 def _average_wtt_over_route(
-    ports: list[Port], fuel: Fuel, emission: Emission, plants: list[Plant], idx: int
+    ports: list[Port], fuel: Fuel, emission: Emission, idx: int
 ) -> FloatLike:
     """
     Estimate a vessel's WTT emissions of a fuel as the mean over its route ports.
@@ -647,8 +606,6 @@ def _average_wtt_over_route(
         Fuel whose WTT emissions are estimated.
     emission
         Emission the estimate is for.
-    plants
-        Plants producing the fuel, whose WTT the port estimates read.
     idx
         Current time-step index.
 
@@ -662,7 +619,7 @@ def _average_wtt_over_route(
         if not port.bunkering_allowed[fuel.name]:
             continue
 
-        estimate = _estimate_port_wtt(port, fuel, emission, plants, idx)
+        estimate = _estimate_port_wtt(port, fuel, emission, idx)
 
         # a port is left out whole where its estimate is NaN anywhere: a plant
         # estimate is NaN at every step or at none, and only a deck's overwrite
@@ -851,7 +808,7 @@ def _pair_target_converter_fuels(
 
 
 def _estimate_port_wtt(
-    port: Port, fuel: Fuel, emission: Emission, plants: list[Plant], idx: int
+    port: Port, fuel: Fuel, emission: Emission, idx: int
 ) -> FloatLike:
     """
     Estimate the WTT emissions of a fuel bunkered at a port, from `idx` onward.
@@ -874,8 +831,6 @@ def _estimate_port_wtt(
         Fuel whose WTT emissions are estimated.
     emission
         Emission the estimate is for.
-    plants
-        Plants producing the fuel, whose production and delivery WTT are averaged.
     idx
         Current time-step index.
 
@@ -890,11 +845,11 @@ def _estimate_port_wtt(
     if port.bunker_wtt_overwrites[key] is not None:
         return port.expectation.get_bunker_wtt_overwrite(*key, forward)
 
-    if not plants:
+    if not fuel.plants:
         return np.full(port.expectation.get_shape(idx), np.nan)
 
     estimates = []
-    for plant in plants:
+    for plant in fuel.plants:
         expectation = plant.expectation
         production = expectation.get_production_wtt(emission.name, forward)
         delivery = expectation.get_delivery_wtt(port.name, emission.name, forward)

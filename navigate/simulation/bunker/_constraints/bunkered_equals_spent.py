@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import get_constraint
-from navigate.simulation.bunker._indices import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -43,7 +42,6 @@ def update_bunkered_equals_spent_constraints(
 
     legs = route.get_legs()
     stops = route.get_stops()
-    port_converters = get_port_converters(vessel)
 
     rows = alg.bunkered_equals_spent
     bunker = alg.bunker
@@ -52,7 +50,7 @@ def update_bunkered_equals_spent_constraints(
     model = alg.model
 
     for f, converters in vessel.converters_per_fuel.items():
-        converters_in_port = [c for c in converters if c in port_converters]
+        port_converters = vessel.port_converters_per_fuel[f]
 
         key = (v, f)
         constraint = get_constraint(alg, rows, key, "==", "bunkered_equals_spent")
@@ -65,6 +63,6 @@ def update_bunkered_equals_spent_constraints(
             for i, e in legs:
                 model.set_coefficient(constraint, spend_sea[v, c, f, i, e], -1.0)
 
-        for c in converters_in_port:
+        for c in port_converters:
             for p in stops:
                 model.set_coefficient(constraint, spend_port[v, c, f, p], -1.0)

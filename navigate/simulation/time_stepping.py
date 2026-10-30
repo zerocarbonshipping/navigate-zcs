@@ -13,7 +13,14 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from navigate.core import define_vessel_fuel_maps, update_imposed_levies
+from navigate.core import (
+    define_fuel_plants,
+    define_producer_fuels,
+    define_vessel_fuel_maps,
+    define_vessels_in_jurisdiction,
+    update_bunkerable_fuels,
+    update_imposed_levies,
+)
 from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.core.results import GlobalResults, ResultsContext
 from navigate.exceptions import DeckError
@@ -242,7 +249,11 @@ class Simulation:
 
     def _define_node_maps(self) -> None:
         """Write the node maps derived from DSL-defined attributes."""
+        define_fuel_plants(self.nodes.fuels, self.nodes.plants)
+        define_producer_fuels(self.nodes.producers)
         define_vessel_fuel_maps(self.nodes.vessels, self.nodes.fuels)
+        define_vessels_in_jurisdiction(self.nodes.levies, self.nodes.vessels)
+        define_vessels_in_jurisdiction(self.nodes.regulations, self.nodes.vessels)
 
     def _initialize_expectations(self) -> None:
         nodes = self.nodes
@@ -402,6 +413,7 @@ class Simulation:
 
     def _update_node_maps(self) -> None:
         """Rewrite the node maps that events can change."""
+        update_bunkerable_fuels(self.nodes.vessels)
         update_imposed_levies(self.nodes.ports, self.nodes.levies)
 
     def _pre_assign_temporal(self) -> None:
@@ -494,7 +506,6 @@ class Simulation:
             self.nodes.regulations,
             self.nodes.levies,
             self.nodes.vessels,
-            self.nodes.plants,
             self.timeline,
             self._idx,
         )

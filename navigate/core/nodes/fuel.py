@@ -24,6 +24,7 @@ from navigate.core.node_type import FUEL, VARIABLE
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.plant import Plant
     from navigate.core.types_ import ScalarArgument, ScalarInput
 
 
@@ -46,6 +47,10 @@ class Fuel(Node):
 
         # emissions
         self.ttw: dict[str, ScalarInput] = {}
+
+        # internal variables -----------------------------------------------------------
+        # node maps
+        self.plants: list[Plant]
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)

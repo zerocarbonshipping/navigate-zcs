@@ -7,11 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
-from navigate.simulation.bunker._indices import get_port_converters
-
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
+    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker._solver import Terms, Variable
@@ -79,10 +76,10 @@ def calculate_regulation_terms(
     ports = route.ports
     expectation = regulation.expectation
 
-    port_converters = get_port_converters(vessel)
+    fuels_per_port_converter = vessel.fuels_per_port_converter
     fuels_per_converter = vessel.fuels_per_converter
 
-    port_weights = _calculate_weights(vessel, regulation, port_converters, idx)
+    port_weights = _calculate_weights(vessel, regulation, fuels_per_port_converter, idx)
     sea_weights = _calculate_weights(vessel, regulation, fuels_per_converter, idx)
     port_fractions = [expectation.get_port_fraction(port.name, idx) for port in ports]
 
@@ -124,7 +121,10 @@ def calculate_regulation_terms(
 
 
 def _calculate_weights(
-    vessel: Vessel, regulation: Regulation, converters: Iterable[str], idx: int
+    vessel: Vessel,
+    regulation: Regulation,
+    fuels_per_converter: dict[str, dict[str, Fuel]],
+    idx: int,
 ) -> dict[tuple[str, str], _Weights]:
     """
     Calculate the weights of each fuel of the given converters of a vessel.
@@ -135,8 +135,8 @@ def _calculate_weights(
         Vessel whose fuels are weighted.
     regulation
         Regulation whose coefficients weigh the fuels.
-    converters
-        Names of the converters whose fuels are weighted.
+    fuels_per_converter
+        The fuels to weigh per converter name.
     idx
         Time index the coefficients are read at.
 
@@ -149,12 +149,11 @@ def _calculate_weights(
     v = vessel.name
     expectation = regulation.expectation
     lhv = vessel.expectation.get_effective_lhv
-    fuels_per_converter = vessel.fuels_per_converter
 
     weights: dict[tuple[str, str], _Weights] = {}
 
-    for c in converters:
-        for f in fuels_per_converter[c]:
+    for c, fuels in fuels_per_converter.items():
+        for f in fuels:
             spend = expectation.get_spend_coefficient((v, c, f), idx)
             emission = expectation.get_emission_coefficient((v, c, f), idx)
             weights[c, f] = _Weights(spend, emission, lhv(c, f))

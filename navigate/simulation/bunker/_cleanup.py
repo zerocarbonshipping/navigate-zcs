@@ -63,9 +63,7 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
         The algorithm instance.
     """
     for v, p, f in list(alg.bunker):
-        port = alg.vessels[v].route.ports[p]
-
-        if not port.bunkering_allowed[f]:
+        if f not in alg.vessels[v].bunkerable_fuels[p]:
             alg.model.remove_variable(alg.bunker.pop((v, p, f)))
 
     for v, port_name, f in list(alg.fuel_inertia):

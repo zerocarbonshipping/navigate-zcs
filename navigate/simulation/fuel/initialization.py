@@ -44,7 +44,6 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
 
     for plant in producer.plants:
         plant.set_producer_assignment(producer.name)
-        producer.fuels.setdefault(plant.fuel.name, plant.fuel)
 
     producer.increments = _build_initial_increments(producer)
     producer.pipeline = _build_existing_pipeline(producer, timeline)

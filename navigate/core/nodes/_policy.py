@@ -65,7 +65,8 @@ class _Policy(Node):
         self.fuel_ttw: dict[tuple[str, str], ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
-        self.in_jurisdiction_vessel: dict[str, bool] = {}
+        # node maps
+        self.in_jurisdiction_vessel: dict[str, bool]
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
@@ -167,12 +168,6 @@ class _Policy(Node):
                 key = (fuel.name, emission.name)
                 self.fuel_wtt.setdefault(key, None)
                 self.fuel_ttw.setdefault(key, None)
-
-        # recomputed every pass, as routes and jurisdiction may change
-        jurisdiction = set(self.jurisdiction)
-        for vessel_name, vessel in vessels.items():
-            in_jurisdiction = not jurisdiction.isdisjoint(vessel.route.ports)
-            self.in_jurisdiction_vessel[vessel_name] = in_jurisdiction
 
     def vessel_is_policed(self, vessel_name: str) -> bool:
         return (

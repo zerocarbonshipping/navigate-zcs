@@ -59,10 +59,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     is_existing = alg.scope == BunkerScopeID.EXISTING
 
     for p, port in enumerate(vessel.route.ports):
-        for f, fuel in vessel.usable_fuels.items():
-            if not port.bunkering_allowed[f]:
-                continue
-
+        for f, fuel in vessel.bunkerable_fuels[p].items():
             price = port.expectation.get_bunker_price(f, alg.idx)
 
             levy_cost = 0.0
