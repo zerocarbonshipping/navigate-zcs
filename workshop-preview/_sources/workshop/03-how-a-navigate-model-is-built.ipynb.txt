@@ -11,7 +11,7 @@
     ">\n",
     "> Just click on the \"Open in Colab\" button and follow along. Click the ▶ button on each cell (or press Shift+Enter) to see the results and move on to the next one.\n",
     ">\n",
-    "> The documentation website shows pre-run results you can check if you don't want to or can't use Colab."
+    "> If you can't or don't want to use Colab, the documentation website shows the pre-run results."
    ]
   },
   {

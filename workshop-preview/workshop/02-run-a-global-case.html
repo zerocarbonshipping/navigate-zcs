@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/examples.css?v=242b7742" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
@@ -156,6 +157,13 @@
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="index.html">
     Use Navigate
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
   </a>
 </li>
 
@@ -291,6 +299,13 @@
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="index.html">
     Use Navigate
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
   </a>
 </li>
 
@@ -449,7 +464,7 @@
 <div><p><strong>Recommended: run this notebook in Google Colab, nothing to install.</strong></p>
 <p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-global-case.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <p>Just click on the “Open in Colab” button and follow along. Click the ▶ button on each cell (or press Shift+Enter) to see the results and move on to the next one.</p>
-<p>The documentation website shows pre-run results you can check if you don’t want to or can’t use Colab.</p>
+<p>If you can’t or don’t want to use Colab, the documentation website shows the pre-run results.</p>
 </div></blockquote>
 <section class="tex2jax_ignore mathjax_ignore" id="session-2-run-a-global-case">
 <h1>Session 2: Run a global case<a class="headerlink" href="#session-2-run-a-global-case" title="Link to this heading">#</a></h1>
@@ -545,10 +560,10 @@ the ETS and FuelEU reach.</em></p>
 <span class="c1"># ==========================================================================</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="c1"># Three reference scenarios, all on the workshop's coarse grid (2026, 2027,</span>
+<span class="c1"># The four reference scenarios, all on the workshop's coarse grid (2026, 2027,</span>
 <span class="c1"># 2030, then every four years to 2050). Each one is the deck in</span>
 <span class="c1"># simulations/scenarios/ of the same name with only its time step changed, so</span>
-<span class="c1"># the three compare with one another but not with the yearly runs of STEP 5.</span>
+<span class="c1"># the four compare with one another but not with the yearly runs of STEP 5.</span>
 <span class="n">SCENARIOS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"basecase_mid_regulation"</span><span class="p">:</span>
         <span class="s2">"simulations/scenarios/workshop_whatif/workshop_basecase_mid_regulation.nav"</span><span class="p">,</span>
@@ -556,6 +571,8 @@ the ETS and FuelEU reach.</em></p>
         <span class="s2">"simulations/scenarios/workshop_whatif/workshop_basecase_no_regulation.nav"</span><span class="p">,</span>
     <span class="s2">"basecase_strong_regulation"</span><span class="p">:</span>
         <span class="s2">"simulations/scenarios/workshop_whatif/workshop_basecase_strong_regulation.nav"</span><span class="p">,</span>
+    <span class="s2">"business_as_usual"</span><span class="p">:</span>
+        <span class="s2">"simulations/scenarios/workshop_whatif/workshop_business_as_usual.nav"</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -567,6 +584,7 @@ the ETS and FuelEU reach.</em></p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
@@ -923,6 +941,11 @@ the ETS and FuelEU reach.</em></p>
 
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"solving </span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">}</span><span class="s2"> ..."</span><span class="p">)</span>
     <span class="n">reference</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">()</span>
+    <span class="c1"># Every solve, a sensitivity included, overwrites the deck folder's</span>
+    <span class="c1"># plot_data.pkl, so keep this one for the output plots of STEP 5.</span>
+    <span class="n">_kept</span> <span class="o">=</span> <span class="n">NAV</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"coarse_</span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">_kept</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">NAV</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"plot_data.pkl"</span><span class="p">,</span> <span class="n">_kept</span> <span class="o">/</span> <span class="s2">"plot_data.pkl"</span><span class="p">)</span>
 
     <span class="n">ref</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
     <span class="n">YEARS</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"years"</span><span class="p">]</span>
@@ -1054,8 +1077,8 @@ Navigate 1.0.0 is already installed.
 <hr class="docutils" />
 <section id="step-2-check-the-different-scenarios">
 <h2>STEP 2: Check the different scenarios<a class="headerlink" href="#step-2-check-the-different-scenarios" title="Link to this heading">#</a></h2>
-<p>The Center maintains four reference scenarios in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code>. This session uses three of them; the fourth, <code class="docutils literal notranslate"><span class="pre">business_as_usual</span></code>, applies only the EU ETS and FuelEU and also includes the domestic fleet.</p>
-<p>The three used here share the same fleet, fuel and port assumptions and differ only in regulation:</p>
+<p>The Center maintains four reference scenarios in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code>. STEP 3 and STEP 4 can run any of the four on a coarse time grid; STEP 5 runs three of them year by year.</p>
+<p>The three basecases share the same fleet, fuel and port assumptions and differ only in regulation. <code class="docutils literal notranslate"><span class="pre">business_as_usual</span></code> applies only the EU ETS and FuelEU and also includes the domestic fleet:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>scenario</p></th>
@@ -1072,9 +1095,13 @@ Navigate 1.0.0 is already installed.
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">basecase_strong_regulation</span></code></p></td>
 <td><p>EU ETS + FuelEU + a strict global fuel standard</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">business_as_usual</span></code></p></td>
+<td><p>EU ETS + FuelEU</p></td>
+</tr>
 </tbody>
 </table>
 </div>
+<p>In <code class="docutils literal notranslate"><span class="pre">business_as_usual</span></code>, each ship class is split into an international and a domestic fleet: about half the ships by number are domestic, mostly tugs, ferries, offshore and other small vessels. The two fleets have the same ships and differ only in where they sail. A quarter of the domestic voyages stay inside Europe, where the EU ETS and FuelEU cover them in full, against under 5 % of the international ones.</p>
 <p>“Global fuel standard” is a limit on the well-to-wake carbon intensity of the energy a ship
 uses, tightening year on year and applied worldwide: a ship above the limit pays, a ship
 below it earns surplus units it can sell. The decks call it <code class="docutils literal notranslate"><span class="pre">gfs</span></code>.</p>
@@ -1141,7 +1168,7 @@ below it earns surplus units it can sell. The decks call it <code class="docutil
 </ul>
 <p>These numbers are calculated before any redistribution of the taxes collected, which Navigate does not currently model.</p>
 <p>Each scenario runs in a minute or two instead of 12 to 25 minutes, because the deck’s <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> block solves only 8 time steps instead of 25: 2026, 2027, 2030, then every four years to 2050. As a result, the same scenarios give different results from those of STEP 5, which solves every year.</p>
-<p>In the next cell, choose one of the three scenarios of STEP 2 (<code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code> by default), then run the cell.</p>
+<p>In the next cell, choose one of the four scenarios of STEP 2 (<code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code> by default), then run the cell.</p>
 <blockquote>
 <div><p><strong>These are scenarios, not forecasts</strong></p>
 <p>Each run shows what follows from one set of assumptions about fuel prices,
@@ -1157,8 +1184,11 @@ changes.</p>
 <span class="c1">#  2026 to 2050 (a minute or two), and shows its results. The levers in</span>
 <span class="c1">#  STEP 4 then change this scenario.</span>
 <span class="c1">#</span>
-<span class="c1">#  One of the three scenarios of STEP 2:</span>
-<span class="c1">#    "basecase_mid_regulation", "basecase_no_regulation", "basecase_strong_regulation"</span>
+<span class="c1">#  One of the four scenarios of STEP 2:</span>
+<span class="c1">#    "basecase_mid_regulation", "basecase_no_regulation", "basecase_strong_regulation",</span>
+<span class="c1">#    "business_as_usual"</span>
+<span class="c1">#  business_as_usual has twice as many fleets (the domestic ones as well),</span>
+<span class="c1">#  so it takes longer to solve.</span>
 <span class="c1"># ===========================================================================</span>
 <span class="n">SCENARIO</span> <span class="o">=</span> <span class="s2">"basecase_mid_regulation"</span>
 
@@ -1247,7 +1277,9 @@ well as on retrofits.</p></li>
 <span class="c1">#</span>
 <span class="c1">#  basecase_no_regulation has no EU ETS, FuelEU or global fuel standard, so</span>
 <span class="c1">#  EU_ETS_PRICE, the two GLOBAL_STANDARD levers and the NO_ switches change</span>
-<span class="c1">#  nothing there; the other levers apply to all three scenarios.</span>
+<span class="c1">#  nothing there. business_as_usual has no global fuel standard, so its two</span>
+<span class="c1">#  levers and NO_GLOBAL_STANDARD change nothing there. The other levers apply</span>
+<span class="c1">#  to all four scenarios.</span>
 <span class="c1">#</span>
 <span class="c1">#  GLOBAL_STANDARD_TARGET below 1.0 is a STRICTER limit. The spans are a</span>
 <span class="c1">#  sensible place to start, not a boundary - go outside them, but check the</span>
@@ -1298,7 +1330,7 @@ what moved most, in percentage points of the fuel mix:
 <hr class="docutils" />
 <section id="step-5-run-the-scenarios-with-the-full-time-resolution">
 <h2>STEP 5: Run the scenarios with the full time resolution<a class="headerlink" href="#step-5-run-the-scenarios-with-the-full-time-resolution" title="Link to this heading">#</a></h2>
-<p>Run the next cell to solve the three scenarios in parallel, on the full time grid.
+<p>Run the next cell to solve the three scenarios in parallel, on the full time grid. The switch at the top of the cell adds <code class="docutils literal notranslate"><span class="pre">business_as_usual</span></code>; it is off by default, for the reasons given next to it.
 Since this step takes a while (25-50 min, depending on the machine), you can go for a coffee, tea or take a nap in the meantime.</p>
 <p>Running the simulation year by year instead of every four years changes the results. The following table shows some of the differences between the previous simulation on a coarse time grid of STEP 3 and this one:</p>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -1332,6 +1364,15 @@ Since this step takes a while (25-50 min, depending on the machine), you can go 
 </summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Run the scenarios</span>
+<span class="n">INCLUDE_BUSINESS_AS_USUAL</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># @param {type:"boolean"}</span>
+<span class="c1"># Off by default: business_as_usual is quite different from the three basecases.</span>
+<span class="c1"># It splits each ship class into an international and a domestic fleet that</span>
+<span class="c1"># sail differently (see STEP 2), so its results do not differ from theirs by</span>
+<span class="c1"># regulation alone. It is also the slowest: about 40 minutes on its own on two</span>
+<span class="c1"># CPUs, so STEP 5 takes longer with it. With True it runs as well; the</span>
+<span class="c1"># comparison below keeps the three basecases, and its charts can be drawn in</span>
+<span class="c1"># "Check all the output plots".</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
@@ -1339,8 +1380,10 @@ Since this step takes a while (25-50 min, depending on the machine), you can go 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pretty</span><span class="p">,</span> <span class="n">display</span>
 
-<span class="c1"># the three decks this session compares</span>
+<span class="c1"># the three decks this session compares, and business_as_usual if switched on</span>
 <span class="n">deck_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"basecase_no_regulation"</span><span class="p">,</span> <span class="s2">"basecase_mid_regulation"</span><span class="p">,</span> <span class="s2">"basecase_strong_regulation"</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">INCLUDE_BUSINESS_AS_USUAL</span><span class="p">:</span>
+    <span class="n">deck_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"business_as_usual"</span><span class="p">)</span>
 
 <span class="n">nav_files</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">deck_names</span><span class="p">:</span>
@@ -1348,7 +1391,7 @@ Since this step takes a while (25-50 min, depending on the machine), you can go 
     <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">nav_file</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"Expected .nav file not found: </span><span class="si">{</span><span class="n">nav_file</span><span class="si">}</span><span class="s2"> -- check the scenario folder structure"</span>
     <span class="n">nav_files</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">nav_file</span>
 
-<span class="c1"># This is the 25-50 minute step: all three decks run at once.</span>
+<span class="c1"># This is the 25-50 minute step: all the decks run at once.</span>
 <span class="c1"># Unbuffered, so the year each run is on reaches its console log as it goes.</span>
 <span class="n">env</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">,</span> <span class="n">PYTHONUNBUFFERED</span><span class="o">=</span><span class="s2">"1"</span><span class="p">)</span>
 <span class="n">processes</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1630,7 +1673,7 @@ started basecase_mid_regulation (pid 14428) -&gt; simulations/scenarios/basecase
 </section>
 <section id="check-all-the-output-plots">
 <h3>Check all the output plots<a class="headerlink" href="#check-all-the-output-plots" title="Link to this heading">#</a></h3>
-<p>Run the next cell to plot Navigate’s own charts for the scenario of your choice. <strong>Choose the scenario on the first line of the cell below</strong> (<code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code> by default; in Colab, a drop-down list), then run it.</p>
+<p>Run the next cell to plot Navigate’s own charts for the scenario of your choice. <strong>Choose the scenario on the first line of the cell below</strong> (<code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code> by default; in Colab, a drop-down list), then run it. <code class="docutils literal notranslate"><span class="pre">business_as_usual</span></code> shows its year-by-year run if you switched it on in STEP 5, and otherwise its coarse run of STEP 3: run that first with <code class="docutils literal notranslate"><span class="pre">SCENARIO</span> <span class="pre">=</span> <span class="pre">&quot;business_as_usual&quot;</span></code>.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -1639,7 +1682,7 @@ started basecase_mid_regulation (pid 14428) -&gt; simulations/scenarios/basecase
 </summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Show the output plots</span>
-<span class="n">scenario</span> <span class="o">=</span> <span class="s2">"basecase_mid_regulation"</span>  <span class="c1"># @param ["basecase_no_regulation", "basecase_mid_regulation", "basecase_strong_regulation"]</span>
+<span class="n">scenario</span> <span class="o">=</span> <span class="s2">"basecase_mid_regulation"</span>  <span class="c1"># @param ["basecase_no_regulation", "basecase_mid_regulation", "basecase_strong_regulation", "business_as_usual"]</span>
 <span class="c1"># CHOOSE THE SCENARIO above: its charts are drawn below.</span>
 <span class="c1"># Navigate writes these charts into plots/ in the library's own colours. They are</span>
 <span class="c1"># drawn again here from the run's solved model, with Navigate's own plotting code</span>
@@ -1650,8 +1693,15 @@ started basecase_mid_regulation (pid 14428) -&gt; simulations/scenarios/basecase
 <span class="kn">from</span><span class="w"> </span><span class="nn">_style</span><span class="w"> </span><span class="kn">import</span> <span class="n">navigate_charts</span>
 
 <span class="n">run_folder</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"simulations/scenarios/</span><span class="si">{</span><span class="n">scenario</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">if</span> <span class="n">scenario</span> <span class="o">==</span> <span class="s2">"business_as_usual"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"INCLUDE_BUSINESS_AS_USUAL"</span><span class="p">):</span>
+    <span class="c1"># not run year by year: its coarse run of STEP 3, kept by run_reference()</span>
+    <span class="n">run_folder</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"simulations/scenarios/workshop_whatif/coarse_</span><span class="si">{</span><span class="n">scenario</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"business_as_usual on the coarse time grid of STEP 3"</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">run_folder</span><span class="si">}</span><span class="s2">/plot_data.pkl"</span><span class="p">):</span>
+<span class="k">if</span> <span class="s2">"workshop_whatif"</span> <span class="ow">in</span> <span class="n">run_folder</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">run_folder</span><span class="si">}</span><span class="s2">/plot_data.pkl"</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Run STEP 3 with SCENARIO = "business_as_usual" first, '</span>
+          <span class="s1">'or switch it on in STEP 5.'</span><span class="p">)</span>
+<span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">run_folder</span><span class="si">}</span><span class="s2">/plot_data.pkl"</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No plot_data.pkl in </span><span class="si">{</span><span class="n">run_folder</span><span class="si">}</span><span class="s2"> -- check what Navigate actually wrote there:"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">run_folder</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
@@ -1699,7 +1749,7 @@ started basecase_mid_regulation (pid 14428) -&gt; simulations/scenarios/basecase
 </section>
 <section id="regenerate-this-case-yourself">
 <h2>Regenerate this case yourself<a class="headerlink" href="#regenerate-this-case-yourself" title="Link to this heading">#</a></h2>
-<p>The prompts that rebuild this case with an AI coding assistant on your own machine, and how to run it again, are in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-case.ipynb#example-b">Session 5: Build your own case, example B</a>. Session 5 also lists other examples to start your own case from.</p>
+<p>The full prompt that rebuilds this case with an AI coding assistant on your own machine is in the prompt bank, as <em>Session 2’s reference scenario</em>. <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-case.ipynb#example-b">Session 5: Build your own case</a> shows how to use it, and how to build a case of your own.</p>
 </section>
 <section id="workshop-sessions">
 <h2>Workshop sessions<a class="headerlink" href="#workshop-sessions" title="Link to this heading">#</a></h2>

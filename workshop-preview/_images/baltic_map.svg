@@ -1,0 +1,50 @@
+<!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+
+Basemap geometry derived from Natural Earth 1:110m Admin 0 countries,
+which is in the public domain (naturalearthdata.com).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 714" width="100%" style="max-width:940px;height:auto;font-family:system-ui,-apple-system,'Segoe UI',sans-serif" role="img" aria-label="Map of example 3: two groups of owners with the same product tankers, mid-range tankers between Helsinki, Stockholm and Gdansk, coastal tankers between Helsinki, Tallinn and Stockholm, and a European e-ammonia plant delivering to Helsinki and Stockholm">
+<defs><marker id="baltic0" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b55f2e"/></marker><marker id="baltic1" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#3d5f87"/></marker><marker id="baltic2" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#8c8c8c"/></marker></defs>
+<rect width="940" height="714" fill="#eaf6fb"/>
+<path d="M940.0 0.0L940.0 714.0L884.9 714.0L882.8 704.0L873.6 679.8L881.2 673.0L912.8 675.5L928.0 659.6L916.7 640.2L890.3 627.3L892.7 614.2L876.7 600.9L852.2 553.1L860.6 533.5L856.7 499.3L818.4 481.9L797.9 490.6L792.3 472.5L751.1 454.2L738.5 411.2L735.2 375.8L716.3 359.0L733.1 335.9L721.5 267.9L749.3 225.9L743.4 213.2L787.9 172.9L746.9 138.2L830.8 45.2L867.1 3.1L868.4 0.0ZM537.8 588.4L465.8 589.5L417.5 581.3L426.5 549.2L480.5 525.5L521.5 538.3L538.8 549.9L534.7 569.8L537.8 588.4ZM116.1 0.0L117.2 43.7L142.2 80.7L129.3 166.4L96.7 216.3L79.4 258.3L53.1 213.6L0.0 271.5L0.0 0.0ZM79.4 258.3L96.7 216.3L129.3 166.4L142.2 80.7L117.2 43.7L116.1 0.0L339.5 0.0L318.0 77.2L345.9 128.5L383.4 169.0L347.4 251.2L306.6 268.3L291.7 390.6L269.5 458.9L221.9 451.9L199.8 509.7L154.4 513.1L142.0 444.1L109.2 361.4L79.4 258.3ZM751.1 454.2L792.3 472.5L797.9 490.6L818.4 481.9L856.7 499.3L860.6 533.5L852.2 553.1L876.7 600.9L892.7 614.2L890.3 627.3L916.7 640.2L928.0 659.6L912.8 675.5L881.2 673.0L873.6 679.8L882.8 704.0L884.9 714.0L569.7 714.0L579.6 707.7L579.9 678.7L569.0 650.9L567.3 618.7L605.2 619.2L647.7 591.7L656.8 550.6L688.9 527.2L685.2 494.6L709.0 482.3L751.1 454.2ZM567.3 618.7L569.0 650.9L579.9 678.7L579.6 707.7L569.7 714.0L213.3 714.0L213.0 712.6L198.8 686.6L209.7 667.1L200.5 630.0L227.3 608.6L288.4 574.9L337.7 550.2L376.8 562.6L379.8 580.3L417.5 581.3L465.8 589.5L537.8 588.4L557.9 596.2L567.3 618.7ZM685.2 494.6L688.9 527.2L656.8 550.6L647.7 591.7L605.2 619.2L567.3 618.7L557.9 596.2L537.8 588.4L534.7 569.8L538.8 549.9L521.5 538.3L480.5 525.5L472.2 464.3L517.0 441.9L582.7 446.6L621.2 439.4L626.7 454.5L647.5 459.2L685.2 494.6ZM716.3 359.0L735.2 375.8L738.5 411.2L751.1 454.2L709.0 482.3L685.2 494.6L647.5 459.2L626.7 454.5L621.2 439.4L582.7 446.6L517.0 441.9L472.2 464.3L473.5 409.4L492.8 363.6L529.7 338.7L560.8 393.2L592.2 391.8L599.8 335.8L633.1 322.9L650.3 331.9L684.0 358.9L716.3 359.0ZM743.4 213.2L749.3 225.9L721.5 267.9L733.1 335.9L716.3 359.0L684.0 358.9L650.3 331.9L633.1 322.9L599.8 335.8L604.3 292.8L589.9 302.0L565.0 276.1L561.6 234.2L611.2 213.9L660.5 203.3L703.0 215.3L743.4 213.2ZM200.5 630.0L209.7 667.1L198.8 686.6L213.0 712.6L213.3 714.0L0.0 714.0L0.0 548.2L11.0 551.8L36.1 540.7L36.8 568.8L76.4 585.8L76.0 611.7L115.8 598.0L137.8 578.0L182.0 606.8L200.5 630.0ZM36.1 540.7L11.0 551.8L0.0 548.2L0.0 383.3L16.6 381.1L30.4 361.0L61.9 340.4L60.6 377.9L49.0 401.7L53.7 422.1L74.9 433.1L65.3 460.6L53.7 452.7L25.5 505.2L36.1 540.7ZM132.0 458.4L144.5 495.0L121.0 554.0L80.0 512.8L74.6 482.6L132.0 458.4ZM868.4 0.0L867.1 3.1L830.8 45.2L746.9 138.2L675.8 144.0L607.0 170.8L543.2 186.1L520.6 146.4L482.6 122.5L491.3 50.6L476.7 0.0Z" fill="#dcdcdc" stroke="#ffffff" stroke-width="0.8" stroke-linejoin="round" fill-rule="evenodd"/>
+<path d="M176.2 422.8L254.6 277.0L346.4 228.5" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#baltic2)"/>
+<path d="M176.2 422.8L332.9 357.2L470.0 277.0L616.7 169.2" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#baltic2)"/>
+<path d="M624.7 163.3L528.8 196.8L450.4 226.0L399.5 233.3L355.2 223.8L387.7 277.0L415.2 393.6L407.3 503.0L378.0 583.2L415.2 524.8L454.3 393.6L481.8 277.0L540.5 211.4L624.7 163.3" fill="none" stroke="#b55f2e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M616.9 215.8L620.8 189.5L624.7 163.3L603.2 188.1L548.3 202.6L462.2 205.6L403.4 215.0L355.2 223.8L411.2 240.6L489.6 229.6L560.1 222.3L616.9 215.8" fill="none" stroke="#3d5f87" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="translate(377.4 228.5) rotate(-167.9) translate(-12.0 -10.5) scale(1.5)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#323232" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/></g>
+<g transform="translate(392.6 543.1) rotate(110.1) translate(-12.0 -10.5) scale(1.5)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#323232" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/></g>
+<g transform="translate(450.4 235.1) rotate(-7.9) translate(-12.0 -10.5) scale(1.5)"><path d="M0 9H16L13.5 13.5H2.5ZM5 4.5H9V9H5ZM10.5 5.5H12V9H10.5Z" fill="#323232" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/></g>
+<g transform="translate(168.9 416.4) scale(0.92)"><path d="M2 13H14V6H11V1H9V6H6V3H4V6H2Z" fill="#6fa59b" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<circle cx="624.7" cy="163.3" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="355.2" cy="223.8" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="616.9" cy="215.8" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="378.0" cy="583.2" r="5" fill="#3d5f87" stroke="#ffffff" stroke-width="1.5"/>
+<text x="176.2" y="448.8" font-size="11.5" fill="#323232" text-anchor="middle" font-weight="600">E-ammonia plant</text>
+<text x="176.2" y="460.3" font-size="9.5" fill="#585858" text-anchor="middle">Europe region · 1,000 nm to every port</text>
+<text x="637.7" y="166.3" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">Helsinki</text>
+<text x="637.7" y="178.3" font-size="9.5" fill="#585858" text-anchor="start">fuel oil · e-ammonia</text>
+<text x="331.2" y="199.8" font-size="12.5" fill="#323232" text-anchor="end" font-weight="600">Stockholm</text>
+<text x="331.2" y="211.8" font-size="9.5" fill="#585858" text-anchor="end">fuel oil · e-ammonia</text>
+<text x="629.9" y="218.8" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">Tallinn</text>
+<text x="629.9" y="230.8" font-size="9.5" fill="#585858" text-anchor="start">fuel oil only</text>
+<text x="391.0" y="601.2" font-size="12.5" fill="#323232" text-anchor="start" font-weight="600">Gdansk</text>
+<text x="391.0" y="613.2" font-size="9.5" fill="#585858" text-anchor="start">fuel oil only</text>
+<text x="39.2" y="43.7" font-size="11.5" fill="#585858" text-anchor="start" font-weight="600">two groups of owners, the same ships</text>
+<text x="39.2" y="56.2" font-size="10" fill="#585858" text-anchor="start">one fits eight efficiency measures, one none</text>
+<text x="685.4" y="430.1" font-size="11.5" fill="#585858" text-anchor="start">EU ETS, FuelEU, CII and a</text>
+<text x="685.4" y="442.6" font-size="10" fill="#585858" text-anchor="start">net-zero framework at every port</text>
+<text x="930.0" y="706.0" font-size="8.5" fill="#a5a5a5" text-anchor="end">Basemap: Natural Earth 1:110m (public domain)</text>
+<rect x="710.0" y="581" width="216" height="103" rx="5" fill="#ffffff" fill-opacity="0.9" stroke="#bebebe" stroke-width="0.8"/>
+<circle cx="727.0" cy="597" r="5" fill="#3d5f87"/>
+<text x="742.0" y="600.0" font-size="10" fill="#323232" text-anchor="start">bunker port</text>
+<g transform="translate(720.2 608.0) scale(0.85)"><path d="M2 13H14V6H11V1H9V6H6V3H4V6H2Z" fill="#6fa59b" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/></g>
+<text x="742.0" y="617.0" font-size="10" fill="#323232" text-anchor="start">e-ammonia plant</text>
+<line x1="720.0" y1="631" x2="734.0" y2="631" stroke="#b55f2e" stroke-width="2.6"/>
+<text x="742.0" y="634.0" font-size="10" fill="#323232" text-anchor="start">mid-range tankers, 47,000 DWT</text>
+<line x1="720.0" y1="648" x2="734.0" y2="648" stroke="#3d5f87" stroke-width="2.6"/>
+<text x="742.0" y="651.0" font-size="10" fill="#323232" text-anchor="start">coastal tankers, 7,500 DWT</text>
+<line x1="720.0" y1="665" x2="734.0" y2="665" stroke="#8c8c8c" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="742.0" y="668.0" font-size="10" fill="#323232" text-anchor="start">fuel delivery</text>
+</svg>

@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>A mainline and its feeders &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/examples.css?v=242b7742" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=7bd72466"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/mainline-and-feeders';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'workshop-preview';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/colab-links.js?v=e09c4b8f"></script>
+    <script src="../_static/version-banner.js?v=bdf8961d"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Island trade in the South Pacific" href="south-pacific.html" />
+    <link rel="prev" title="Regional networks" href="regional-networks.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../workshop/index.html">
+    Use Navigate
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../workshop/index.html">
+    Use Navigate
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="specific-trades.html">Specific trades</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="trade-route.html">A trade route, Chile to Rotterdam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rhine.html">Inland waterways in Germany</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rhine-explore.html">Explore: Inland waterways in Germany</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="regional-networks.html">Regional networks</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">A mainline and its feeders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="south-pacific.html">Island trade in the South Pacific</a></li>
+<li class="toctree-l2"><a class="reference internal" href="two-fleets.html">Two fleets in the Baltic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="caribbean.html">Caribbean shipping under global and EU rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mainline-and-feeders-explore.html">Explore: A mainline and its feeders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="south-pacific-explore.html">Explore: Island trade in the South Pacific</a></li>
+<li class="toctree-l2"><a class="reference internal" href="two-fleets-explore.html">Explore: Two fleets in the Baltic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="caribbean-explore.html">Explore: Caribbean shipping under global and EU rules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="global-cases.html">Global cases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="world-fleet.html">The world fleet</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Examples</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="regional-networks.html" class="nav-link">Regional networks</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">A mainline and its feeders</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="a-mainline-and-its-feeders">
+<h1>A mainline and its feeders<a class="headerlink" href="#a-mainline-and-its-feeders" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="regional-networks.html"><span class="std std-doc">Regional networks</span></a> · deck <code class="docutils literal notranslate"><span class="pre">simulations/examples/example_1/</span></code></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/examples/mainline-and-feeders-explore.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p>How do two ship sizes on connected routes choose fuels when the ports supply them
+unevenly?</p>
+<section id="the-case">
+<h2>The case<a class="headerlink" href="#the-case" title="Link to this heading">#</a></h2>
+<p><img alt="Map of a container mainline from Singapore to Rotterdam via Suez, feeders from Rotterdam to Hamburg and Aalborg, and a European bio-methanol plant" src="../_images/mainline_feeders_map.svg" /></p>
+<ul class="simple">
+<li><p><strong>Ships:</strong> two fleets on two routes. 5 mainline container ships
+(~15,000 TEU), four in five on fuel oil, the rest on methanol; 50 feeders
+(~1,500 TEU), almost all on fuel oil. Both can order or convert to methanol
+ships.</p></li>
+<li><p><strong>Routes:</strong> the mainline sails Singapore to Rotterdam, 8,300 nm each way in the
+deck, laden west and nearly empty east; the feeders sail Rotterdam, Hamburg
+and Aalborg.</p></li>
+<li><p><strong>Fuels:</strong> fuel oil at every port; bio-methanol from a European plant, at
+every port but Aalborg.</p></li>
+<li><p><strong>Policy:</strong> EU ETS and FuelEU on the three European ports; CII and a net-zero
+framework on all four, the framework with values that are the deck’s own, not
+the data library’s.</p></li>
+<li><p><strong>Horizon:</strong> 2026 to 2050, yearly.</p></li>
+</ul>
+</section>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
+<p><img alt="Well-to-wake emissions, freight rate and fuel consumed by fuel, 2026 to 2050" src="../_images/mainline-and-feeders.png" /></p>
+<p>Emissions fall from 1.3 to 0.3 Mt CO2e a year, and alternative fuels make up
+80 % of the energy burnt in 2050. Container ships carry TEU, so the freight rate
+here is per thousand TEU-miles: do not compare it with the bulk carriers’.</p>
+</section>
+<section id="the-deck">
+<h2>The deck<a class="headerlink" href="#the-deck" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+example_1.nav</label><div class="sd-tab-content docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ------------------------------------------------------------------------------</span>
+<span class="c1"># SETTING THE SCENE - EXAMPLE 1 (CONTAINER/FEEDER NETWORK)</span>
+<span class="c1">#</span>
+<span class="c1"># In this scenario, we follow a shipping company operating a logistics network</span>
+<span class="c1"># composed of large mainline container vessels and smaller regional feeder ships.</span>
+<span class="c1">#</span>
+<span class="c1"># The mainline ships sail a global route between Singapore and Rotterdam, carrying </span>
+<span class="c1"># international cargo across 11,000 nautical miles. Once in Europe, feeder vessels </span>
+<span class="c1"># take over the distribution: sailing to Hamburg (a major port with strong infrastructure), </span>
+<span class="c1"># and Aalborg (a smaller, less-equipped port).</span>
+<span class="c1">#</span>
+<span class="c1"># Each vessel type faces different realities — from fuel infrastructure and technology choices </span>
+<span class="c1"># to emissions regulations and upgrade constraints. The example captures these variations</span>
+<span class="c1"># through specific assumptions about fuels, fleet aging, emissions policy, and routing.</span>
+<span class="c1">#</span>
+<span class="c1"># This case is designed as a step up from basic tutorials. It allows users to explore dynamic </span>
+<span class="c1"># interactions between fuel switching, regulatory costs, and operational performance</span>
+<span class="c1"># without the full complexity of large-scale models.</span>
+<span class="c1">#</span>
+<span class="c1"># Use the .inc files to explore, adjust, and analyze how vessel behavior changes</span>
+<span class="c1"># under evolving market and policy conditions.</span>
+<span class="c1"># ------------------------------------------------------------------------------</span>
+
+<span class="n">DEFINE</span> <span class="p">{</span>
+	<span class="c1"># -------------------------- DEFINITIONS --------------------------</span>
+    <span class="c1"># Import the default model configuration for start</span>
+    <span class="c1"># date and global warming potential lifetime</span>
+	<span class="n">Load</span> <span class="n">DefaultModelDefinition</span>
+
+    <span class="c1"># ---------------------------- FLEET ---------------------------</span>
+    <span class="c1"># Define the available vessel options, including</span>
+    <span class="c1"># the composition of the existing fleet</span>
+    <span class="n">Include</span> <span class="s2">"includes/mainlines_curves.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/mainlines.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/feeders_curves.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/feeders.inc"</span>
+
+    <span class="c1"># ----------------------- ROUTE ------------------------</span>
+    <span class="c1"># Define the routes the vessels are operating on, including the</span>
+    <span class="c1"># bunker price of fossil fuels and handling costs in ports</span>
+    <span class="n">Include</span> <span class="s2">"includes/route.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/ports.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/bunker_logistics.inc"</span>
+
+    <span class="c1"># --------------------------- FUEL -----------------------------</span>
+    <span class="c1"># Define the fuel plants that can be built</span>
+    <span class="c1"># to meet the demand signals from the fleet</span>
+    <span class="n">Include</span> <span class="s2">"includes/fuel_production.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/regions.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/producer.inc"</span>
+    <span class="n">Load</span> <span class="n">DefaultEmission</span>
+
+    <span class="c1"># ------------------------ REGULATION --------------------------</span>
+    <span class="c1"># We also have to take into account the different regulations in place </span>
+    <span class="c1"># in the operating areas. These include the FuelEU, Cii, NZF and EU ETS.</span>
+    <span class="n">Include</span> <span class="s2">"includes/cii.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/eu_ets.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/fuel_eu.inc"</span>
+    <span class="n">Include</span> <span class="s2">"includes/net_zero_framework.inc"</span>
+
+    <span class="c1"># ---------------- DECISION PROCESESS ---------------------------</span>
+    <span class="n">Include</span> <span class="s2">"includes/decision_processes.inc"</span>
+
+    <span class="c1"># -----------------------EXPORT -----------------------------</span>
+    <span class="n">Include</span> <span class="s2">"includes/report.inc"</span>
+
+    <span class="c1"># -------------------------- OUTPUT -----------------------------</span>
+    <span class="n">Load</span> <span class="n">DefaultPlot</span>
+<span class="p">}</span>
+
+<span class="n">EVENTS</span> <span class="p">{</span>
+    <span class="c1"># time-steps</span>
+	<span class="n">Load</span> <span class="n">DefaultTimeStepYearly</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Fleets</label><div class="sd-tab-content docutils">
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">includes/mainlines.inc</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ---------------------------- CONTAINER FLEET --------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This file defines the mainline container fleet used in the scenario, which operates </span>
+<span class="c1"># along the long-haul route between Singapore and Rotterdam — a key global trade corridor.</span>
+<span class="c1">#</span>
+<span class="c1"># The fleet begins with a number of oil-fueled vessel nearing the end of their operational life</span>
+<span class="c1"># creating a decision point: should the company reinvest in traditional fossil ships or </span>
+<span class="c1"># transition to methanol as a low-emission alternative?</span>
+<span class="c1">#</span>
+<span class="c1"># This setup enables analysis of fuel transition timing, cost impacts, and emissions </span>
+<span class="c1"># trade-offs across the life cycle of long-haul container shipping.</span>
+<span class="c1">#</span>
+<span class="c1"># ----------------------------------------------------------------------------------</span>
+
+<span class="n">Copy</span> <span class="n">Vessel</span> <span class="s2">"container_15000_teu_ice_oil"</span> <span class="s2">"mainline_oil"</span>
+<span class="n">Copy</span> <span class="n">Vessel</span> <span class="s2">"container_15000_teu_ice_methanol"</span> <span class="s2">"mainline_methanol"</span>
+
+<span class="n">Fleet</span> <span class="s2">"mainlines"</span> <span class="p">{</span>
+	<span class="c1"># Vessel types</span>
+	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"mainline_oil"</span><span class="p">),</span>
+			   <span class="n">Vessel</span><span class="p">(</span><span class="s2">"mainline_methanol"</span><span class="p">)]</span>
+
+	<span class="c1"># Initial conditions - i.e. how many vessels of which type and age</span>
+	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">5</span>
+
+	<span class="n">InitialSplit</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.800</span><span class="p">,</span>
+                    <span class="mf">0.200</span><span class="p">]</span>
+
+	<span class="n">InitialAgeDistribution</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="n">Curve</span><span class="p">(</span><span class="s2">"age_dist_mainlines_oil"</span><span class="p">),</span>
+		<span class="n">Curve</span><span class="p">(</span><span class="s2">"age_dist_mainlines_methanol"</span><span class="p">)</span>
+	<span class="p">]</span>
+
+
+	<span class="c1"># Trade growth: annual growth rate of 5%, but can be changed if expected otherwise or disabled to keep constant. </span>
+	<span class="c1"># TradeGrowth = 0.05</span>
+	
+	<span class="c1"># Fuel conversion cost: defined for future retrofit from oil to methanol</span>
+	<span class="n">set_fuel_conversion_cost</span><span class="p">(</span><span class="s2">"mainline_oil"</span><span class="p">,</span> <span class="s2">"mainline_methanol"</span><span class="p">,</span> <span class="mf">24.3e6</span><span class="p">)</span>
+
+	<span class="c1"># Speed management: enabled to allow adjustments in operational behavior</span>
+	<span class="n">AllowSpeedManagement</span> <span class="o">=</span> <span class="n">TRUE</span> <span class="c1"># or TRUE</span>
+	<span class="n">MaximumSpeedChange</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">includes/feeders.inc</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># -------------------------------- FEEDER FLEET ---------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This file defines the feeder fleet used in the example, with vessels representing</span>
+<span class="c1"># the regional distribution layer of the transport network.</span>
+<span class="c1"># </span>
+<span class="c1"># Operating from Rotterdam to ports like Hamburg and Aalborg, they must navigate both</span>
+<span class="c1"># infrastructure limitations and stricter European regulations. Their smaller size and</span>
+<span class="c1"># operational context reflect the challenges and opportunities of short-sea shipping.</span>
+<span class="c1">#</span>
+<span class="c1"># -------------------------------------------------------------------------------------</span>
+
+<span class="n">Copy</span> <span class="n">Vessel</span> <span class="s2">"container_1500_teu_ice_oil"</span>        <span class="s2">"feeder_oil"</span>
+<span class="n">Copy</span> <span class="n">Vessel</span> <span class="s2">"container_1500_teu_ice_methanol"</span>   <span class="s2">"feeder_methanol"</span>
+
+<span class="n">Fleet</span> <span class="s2">"feeders"</span> <span class="p">{</span>
+	<span class="c1"># Vessel types</span>
+	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"feeder_oil"</span><span class="p">),</span>
+			   <span class="n">Vessel</span><span class="p">(</span><span class="s2">"feeder_methanol"</span><span class="p">)]</span>
+
+	<span class="c1"># Initial conditions - i.e. how many vessels of which type and age</span>
+	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">50</span>
+
+	<span class="n">InitialSplit</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.96</span><span class="p">,</span>
+                	<span class="mf">0.04</span><span class="p">]</span>
+
+	<span class="n">InitialAgeDistribution</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="n">Curve</span><span class="p">(</span><span class="s2">"age_dist_feeders_oil"</span><span class="p">),</span>
+		<span class="n">Curve</span><span class="p">(</span><span class="s2">"age_dist_feeders_methanol"</span><span class="p">)</span>
+	<span class="p">]</span>
+
+
+	<span class="c1"># Trade growth: annual growth rate of 5%, but can be changed if expected otherwise or disabled to keep constant. </span>
+	<span class="c1"># TradeGrowth = 0.05</span>
+
+	<span class="c1"># Fuel conversion cost: defined for future retrofit from oil to methanol</span>
+	<span class="n">set_fuel_conversion_cost</span><span class="p">(</span><span class="s2">"feeder_oil"</span><span class="p">,</span> <span class="s2">"feeder_methanol"</span><span class="p">,</span> <span class="mf">10.3e6</span><span class="p">)</span>
+
+	<span class="c1"># Speed management: enabled to allow adjustments in operational behavior</span>
+    <span class="n">AllowSpeedManagement</span> <span class="o">=</span> <span class="n">FALSE</span> <span class="c1"># or TRUE</span>
+	<span class="n">MaximumSpeedChange</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">includes/mainlines_curves.inc</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># Curve definitions for initial age distributions and technology shares</span>
+
+<span class="n">Curve</span> <span class="s2">"age_dist_mainlines_oil"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="mi">0</span>	<span class="mi">0</span>
+		<span class="mi">1</span>	<span class="mi">0</span>
+		<span class="mi">2</span>	<span class="mi">0</span>
+		<span class="mi">3</span>	<span class="mf">0.25</span>
+		<span class="mi">4</span>	<span class="mi">0</span>
+		<span class="mi">5</span>	<span class="mi">0</span>
+		<span class="mi">6</span>	<span class="mf">0.25</span>
+		<span class="mi">7</span>	<span class="mi">0</span>
+		<span class="mi">8</span>	<span class="mi">0</span>
+		<span class="mi">9</span>	<span class="mf">0.25</span>
+		<span class="mi">10</span>	<span class="mi">0</span>
+		<span class="mi">11</span>	<span class="mi">0</span>
+		<span class="mi">12</span>	<span class="mf">0.25</span>
+		<span class="mi">13</span>	<span class="mi">0</span>
+		<span class="mi">14</span>	<span class="mi">0</span>
+		<span class="mi">15</span>	<span class="mi">0</span>
+		<span class="mi">16</span>	<span class="mi">0</span>
+		<span class="mi">17</span>	<span class="mi">0</span>
+		<span class="mi">18</span>	<span class="mi">0</span>
+		<span class="mi">19</span>	<span class="mi">0</span>
+		<span class="mi">20</span>	<span class="mi">0</span>
+		<span class="mi">21</span>	<span class="mi">0</span>
+		<span class="mi">22</span>	<span class="mi">0</span>
+		<span class="mi">23</span>	<span class="mi">0</span>
+		<span class="mi">24</span>	<span class="mi">0</span>
+	<span class="p">]</span>
+<span class="p">}</span>
+
+<span class="n">Curve</span> <span class="s2">"age_dist_mainlines_methanol"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="mi">0</span>	<span class="mi">1</span>
+		<span class="mi">1</span>	<span class="mi">0</span>
+		<span class="mi">2</span>	<span class="mi">0</span>
+		<span class="mi">3</span>	<span class="mi">0</span>
+		<span class="mi">4</span>	<span class="mi">0</span>
+		<span class="mi">5</span>	<span class="mi">0</span>
+		<span class="mi">6</span>	<span class="mi">0</span>
+		<span class="mi">7</span>	<span class="mi">0</span>
+		<span class="mi">8</span>	<span class="mi">0</span>
+		<span class="mi">9</span>	<span class="mi">0</span>
+		<span class="mi">10</span>	<span class="mi">0</span>
+		<span class="mi">11</span>	<span class="mi">0</span>
+		<span class="mi">12</span>	<span class="mi">0</span>
+		<span class="mi">13</span>	<span class="mi">0</span>
+		<span class="mi">14</span>	<span class="mi">0</span>
+		<span class="mi">15</span>	<span class="mi">0</span>
+		<span class="mi">16</span>	<span class="mi">0</span>
+		<span class="mi">17</span>	<span class="mi">0</span>
+		<span class="mi">18</span>	<span class="mi">0</span>
+		<span class="mi">19</span>	<span class="mi">0</span>
+		<span class="mi">20</span>	<span class="mi">0</span>
+		<span class="mi">21</span>	<span class="mi">0</span>
+		<span class="mi">22</span>	<span class="mi">0</span>
+		<span class="mi">23</span>	<span class="mi">0</span>
+		<span class="mi">24</span>	<span class="mi">0</span>
+	<span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">includes/feeders_curves.inc</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># Curve definitions for initial age distributions and technology shares</span>
+
+<span class="n">Curve</span> <span class="s2">"age_dist_feeders_oil"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="mi">0</span>	<span class="mf">0.04</span>
+		<span class="mi">1</span>	<span class="mf">0.04</span>
+		<span class="mi">2</span>	<span class="mf">0.04</span>
+		<span class="mi">3</span>	<span class="mf">0.04</span>
+		<span class="mi">4</span>	<span class="mf">0.04</span>
+		<span class="mi">5</span>	<span class="mf">0.04</span>
+		<span class="mi">6</span>	<span class="mf">0.04</span>
+		<span class="mi">7</span>	<span class="mf">0.04</span>
+		<span class="mi">8</span>	<span class="mf">0.04</span>
+		<span class="mi">9</span>	<span class="mf">0.04</span>
+		<span class="mi">10</span>	<span class="mf">0.04</span>
+		<span class="mi">11</span>	<span class="mf">0.04</span>
+		<span class="mi">12</span>	<span class="mf">0.04</span>
+		<span class="mi">13</span>	<span class="mf">0.04</span>
+		<span class="mi">14</span>	<span class="mf">0.04</span>
+		<span class="mi">15</span>	<span class="mf">0.04</span>
+		<span class="mi">16</span>	<span class="mf">0.04</span>
+		<span class="mi">17</span>	<span class="mf">0.04</span>
+		<span class="mi">18</span>	<span class="mf">0.04</span>
+		<span class="mi">19</span>	<span class="mf">0.04</span>
+		<span class="mi">20</span>	<span class="mf">0.04</span>
+		<span class="mi">21</span>	<span class="mf">0.04</span>
+		<span class="mi">22</span>	<span class="mf">0.04</span>
+		<span class="mi">23</span>	<span class="mf">0.04</span>
+		<span class="mi">24</span>	<span class="mf">0.04</span>
+	<span class="p">]</span>
+<span class="p">}</span>
+
+<span class="n">Curve</span> <span class="s2">"age_dist_feeders_methanol"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="mi">0</span>	<span class="mf">0.5</span>
+		<span class="mi">1</span>	<span class="mi">0</span>
+		<span class="mi">2</span>	<span class="mf">0.5</span>
+		<span class="mi">3</span>	<span class="mi">0</span>
+		<span class="mi">4</span>	<span class="mi">0</span>
+		<span class="mi">5</span>	<span class="mi">0</span>
+		<span class="mi">6</span>	<span class="mi">0</span>
+		<span class="mi">7</span>	<span class="mi">0</span>
+		<span class="mi">8</span>	<span class="mi">0</span>
+		<span class="mi">9</span>	<span class="mi">0</span>
+		<span class="mi">10</span>	<span class="mi">0</span>
+		<span class="mi">11</span>	<span class="mi">0</span>
+		<span class="mi">12</span>	<span class="mi">0</span>
+		<span class="mi">13</span>	<span class="mi">0</span>
+		<span class="mi">14</span>	<span class="mi">0</span>
+		<span class="mi">15</span>	<span class="mi">0</span>
+		<span class="mi">16</span>	<span class="mi">0</span>
+		<span class="mi">17</span>	<span class="mi">0</span>
+		<span class="mi">18</span>	<span class="mi">0</span>
+		<span class="mi">19</span>	<span class="mi">0</span>
+		<span class="mi">20</span>	<span class="mi">0</span>
+		<span class="mi">21</span>	<span class="mi">0</span>
+		<span class="mi">22</span>	<span class="mi">0</span>
+		<span class="mi">23</span>	<span class="mi">0</span>
+		<span class="mi">24</span>	<span class="mi">0</span>
+	<span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Routes</label><div class="sd-tab-content docutils">
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">includes/route.inc</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ------------------------------ ROUTE -------------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This file defines the key transport routes in the example, covering:</span>
+<span class="c1"># - A long-haul mainline route between Singapore and Rotterdam</span>
+<span class="c1"># - A regional feeder roundtrip connecting Rotterdam, Hamburg, and Aalborg</span>
+<span class="c1">#</span>
+<span class="c1"># Each route includes realistic assumptions on distance, sailing time, vessel loading,</span>
+<span class="c1"># port durations, and operational conditions—capturing both global and short-sea dynamics </span>
+<span class="c1"># within the same logistics network.</span>
+<span class="c1">#</span>
+<span class="c1"># --------------------------------------------------------------------------------</span>
+
+<span class="c1"># Singapore to Rotterdam</span>
+<span class="c1"># This long-haul round trip is operated by the mainline container vessel (~15,000 TEU).</span>
+<span class="c1"># It covers approximately 8,300 nautical miles each way and includes turnaround time</span>
+<span class="c1"># at both ends. Cargo is loaded from Singapore and returns almost empty from Europe.</span>
+
+<span class="n">Vessel</span> <span class="s2">"mainline_*"</span> <span class="p">{</span>
+    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"mainline_route"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Vessel</span> <span class="s2">"feeder_*"</span> <span class="p">{</span>
+    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"feeder_route"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Route</span> <span class="s2">"mainline_route"</span> <span class="p">{</span>
+    <span class="n">RouteType</span> <span class="o">=</span> <span class="n">ROUND_TRIP</span>
+
+    <span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"singapore"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"rotterdam"</span><span class="p">)]</span>
+	<span class="n">PortDurations</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+
+	<span class="n">Distances</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8300</span><span class="p">,</span> <span class="mi">8300</span><span class="p">]</span>
+    <span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mf">15.5</span><span class="p">,</span> <span class="mf">14.2</span><span class="p">]</span>
+    <span class="c1"># Fully laden outbound, almost empty return</span>
+    <span class="n">CapacityUtilizations</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Rotterdam to Hamburg to Aalborg</span>
+<span class="c1"># This regional short-sea route connects Rotterdam with Hamburg and Aalborg.</span>
+<span class="c1"># It is operated by 1,500 TEU feeder vessels.</span>
+<span class="c1">#</span>
+<span class="c1"># Hamburg, a major container port with advanced infrastructure, supports early adoption of alternative fuels.</span>
+<span class="c1"># Aalborg, while smaller and less developed, represents a realistic challenge in fuel access and port services.</span>
+
+<span class="n">Route</span> <span class="s2">"feeder_route"</span> <span class="p">{</span>
+    <span class="n">RouteType</span> <span class="o">=</span> <span class="n">ROUND_TRIP</span>
+
+    <span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"rotterdam"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"hamburg"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"aalborg"</span><span class="p">)]</span>
+    <span class="n">PortDurations</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+
+    <span class="n">Distances</span> <span class="o">=</span> <span class="p">[</span><span class="mi">270</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">800</span><span class="p">]</span>
+    <span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mf">13.0</span><span class="p">,</span> <span class="mf">12.5</span><span class="p">,</span> <span class="mf">13.0</span><span class="p">]</span>
+    <span class="c1"># Full outbound, partial mid-leg, empty return</span>
+    <span class="n">CapacityUtilizations</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>  
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">includes/ports.inc</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ---------------------------- PORTS --------------------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This file defines the key ports used in the example: one in Asia (Singapore)</span>
+<span class="c1"># and multiple in Europe (Rotterdam, Hamburg, and Aalborg).</span>
+<span class="c1">#</span>
+<span class="c1"># These ports play a central role in shaping fuel availability and infrastructure limitations. </span>
+<span class="c1"># While major ports like Rotterdam and Singapore are equipped to handle a range of fuels </span>
+<span class="c1"># (including low-sulfur oil and bio-methanol), smaller ports like Aalborg may face </span>
+<span class="c1"># delays or be unable to adopt alternative fuel infrastructure.</span>
+<span class="c1">#</span>
+<span class="c1"># -------------------------------------------------------------------------------------</span>
+
+<span class="n">Port</span> <span class="s2">"singapore"</span> <span class="p">{</span>
+    <span class="n">set_bunkering_allowed</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Port</span> <span class="s2">"rotterdam"</span> <span class="p">{</span>
+    <span class="n">set_bunkering_allowed</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Port</span> <span class="s2">"hamburg"</span> <span class="p">{</span>
+    <span class="n">set_bunkering_allowed</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Port</span> <span class="s2">"aalborg"</span> <span class="p">{</span>
+    <span class="c1"># Test how bio-methanol not being possible in Aalborg affects the output.</span>
+    <span class="n">set_bunkering_allowed</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="n">FALSE</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Port</span> <span class="s2">"*"</span> <span class="p">{</span>
+    <span class="n">set_bunkering_allowed</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+
+    <span class="c1"># Here we set the price and upstream emissions of LSFO as we don't calculate it bottom up.</span>
+	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">))</span>
+	<span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"fossil_fuel_oil_wtt_carbon_dioxide"</span><span class="p">))</span>
+
+	<span class="n">set_handling_cost</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"handling_cost_oil"</span><span class="p">))</span>
+    <span class="n">set_handling_cost</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"handling_cost_methanol"</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="c1"># Here you can change the handling cost of oil and methanol</span>
+<span class="n">Variable</span> <span class="s2">"handling_cost_oil"</span> <span class="p">{</span>
+	<span class="n">Value</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="p">}</span>
+
+<span class="n">Variable</span> <span class="s2">"handling_cost_methanol"</span> <span class="p">{</span>
+	<span class="n">Value</span> <span class="o">=</span> <span class="mi">18</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id7">
+<div class="code-block-caption"><span class="caption-text">includes/bunker_logistics.inc</span><a class="headerlink" href="#id7" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># --------------------- BUNKER LOGISTICS -------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This file defines the cost assumptions related to transporting fuel from a</span>
+<span class="c1"># given production region to a bunker hub (port).</span>
+<span class="c1">#</span>
+<span class="c1"># In this case, fossil fuel oil is treated as a liquid market fuel —</span>
+<span class="c1"># widely available, with mature infrastructure and low delivery uncertainty.</span>
+<span class="c1"># For alternative fuels like bio-methanol, the cost and complexity of bunkering </span>
+<span class="c1"># can vary significantly depending on the port and supporting infrastructure.</span>
+<span class="c1">#</span>
+<span class="c1"># To keep the model streamlined and educational, fuel transport distances </span>
+<span class="c1"># and costs have been generalized, reflecting typical conditions </span>
+<span class="c1"># rather than port-specific variations.</span>
+<span class="c1">#</span>
+<span class="c1"># These parameters influence the total cost of fuel supply and are important </span>
+<span class="c1"># when comparing fossil fuels to emerging alternatives under realistic constraints.</span>
+<span class="c1">#</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="n">BunkerLogistics</span> <span class="p">{</span>
+	<span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">)]</span>
+
+	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>	
+	<span class="n">set_transport_cost</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Fuel</label><div class="sd-tab-content docutils">
+<div class="literal-block-wrapper docutils container" id="id8">
+<div class="code-block-caption"><span class="caption-text">includes/fuel_production.inc</span><a class="headerlink" href="#id8" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ---------------------------------- FUEL PRODUCTION --------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This file includes all components related to the production of fuels used in the example.</span>
+<span class="c1"># It covers both conventional marine fuels and a renewable alternative, along with their</span>
+<span class="c1"># associated production processes and feedstocks.</span>
+<span class="c1">#</span>
+<span class="c1"># The producer and regional differences are defined in the .inc files producer.inc and regions.inc</span>
+<span class="c1">#</span>
+<span class="c1"># ----------------------------------------------------------------------------------------</span>
+
+<span class="c1"># LSFO</span>
+<span class="c1"># Standard fossil fuel used in global shipping</span>
+<span class="n">Import</span> <span class="n">Fuel</span> <span class="s2">"fossil_fuel_oil"</span>
+
+<span class="c1"># Bio-Methanol</span>
+<span class="c1"># Low-emission methanol produced from sustainable biomass. Enables compliance with EU regulations</span>
+<span class="c1"># and allows fuel-switching behavior in both feeder and mainline vessels.</span>
+<span class="n">Import</span> <span class="n">Fuel</span> <span class="s2">"methanol_bio"</span>
+
+<span class="c1"># Methanol production facilities located in Europe</span>
+<span class="n">Import</span> <span class="n">Plant</span> <span class="s2">"plant_methanol_bio_gasification"</span>
+
+<span class="n">Plant</span> <span class="s2">"plant_methanol_bio_gasification"</span> <span class="p">{</span>
+    <span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">)</span>
+    <span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">)</span>
+    <span class="c1"># as default_plant.inc sets it for a bio plant in Europe; without it, 0 %</span>
+    <span class="n">CostOfCapital</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"cost_of_capital_plant_bio_europe"</span><span class="p">)</span>
+
+    <span class="n">Capacity</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"methanol_bio_gasification_plant_capacity"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Methanol synthesis process feedstock</span>
+<span class="n">Import</span> <span class="n">Process</span> <span class="s2">"methanol_synthesis_bio_gasification"</span>
+<span class="n">Import</span> <span class="n">Feedstock</span> <span class="s2">"feedstock_biomethanol_gasification"</span>
+
+<span class="c1"># Electricity Source</span>
+<span class="c1"># Fuel production in both regions draws electricity from the connected power grid.</span>
+<span class="n">Import</span> <span class="n">Source</span> <span class="s2">"grid"</span>
+
+<span class="c1"># Overwritten from the default values due to our smaller scenario</span>
+<span class="n">Forecast</span> <span class="s2">"methanol_bio_gasification_plant_capacity"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2030"</span>	<span class="mi">100</span>
+		<span class="s2">"01-01-2050"</span>	<span class="mi">100</span>
+	<span class="p">]</span>
+	
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">LINEAR</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id9">
+<div class="code-block-caption"><span class="caption-text">includes/regions.inc</span><a class="headerlink" href="#id9" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ------------------------------------ REGIONS ------------------------------------- </span>
+<span class="c1">#</span>
+<span class="c1"># This file defines the geographic region in which fuel production takes place.</span>
+<span class="c1">#</span>
+<span class="c1"># The region plays a role in the upstream (WTT) part of the fuel supply chain, </span>
+<span class="c1"># affecting the overall cost and environmental impact of fuel production and delivery.</span>
+<span class="c1">#</span>
+<span class="c1"># These regional settings are used to calculate the lifecycle emissions and cost differences </span>
+<span class="c1"># for fuels such as bio-methanol, depending on where they are produced and consumed.</span>
+<span class="c1">#</span>
+<span class="c1"># ----------------------------------------------------------------------------------</span>
+
+<span class="n">Region</span> <span class="s2">"europe"</span> <span class="p">{</span>
+	<span class="c1"># set region specific source cost</span>
+	<span class="n">set_source_opex</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"electricity_cost_europe_mid"</span><span class="p">))</span>
+	
+	<span class="c1"># set region specific feedstock cost</span>
+	<span class="n">set_feedstock_cost</span><span class="p">(</span><span class="s2">"feedstock_biomethanol_gasification"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"feedstock_biomethanol_gasification_cost"</span><span class="p">))</span>
+	
+	<span class="c1"># set region specific grid emissions</span>
+	<span class="n">set_source_wtt</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"grid_emissions_europe"</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="n">Region</span> <span class="s2">"*"</span> <span class="p">{</span>
+	<span class="n">set_transport_cost</span><span class="p">(</span><span class="s2">"truck"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+	<span class="n">set_transport_wtt</span><span class="p">(</span><span class="s2">"truck"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"truck_emissions"</span><span class="p">))</span>
+
+	<span class="c1"># Bio-methanol</span>
+	<span class="c1"># The cost (OPEX, CAPEX) as well as emissions can be changed, altering the fuel production cost.</span>
+	<span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification_capex"</span><span class="p">))</span>
+	<span class="n">set_process_opex</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification_opex"</span><span class="p">))</span>
+	<span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification_energy"</span><span class="p">))</span>
+	<span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"methanol_synthesis_bio_gasification"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="o">&lt;-</span><span class="n">Variable</span><span class="p">(</span><span class="s2">"carbon_dioxide_per_methanol"</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Import</span> <span class="n">Transport</span> <span class="s2">"truck"</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id10">
+<div class="code-block-caption"><span class="caption-text">includes/producer.inc</span><a class="headerlink" href="#id10" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ------------------------------ PRODUCER ----------------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This block defines the bio-methanol producer entity responsible for fuel supply</span>
+<span class="c1"># across European demand centers. It links to a dedicated plant and is subject to</span>
+<span class="c1"># regional feedstock constraints, which limit production scale and growth potential.</span>
+<span class="c1">#</span>
+<span class="c1"># -------------------------------------------------------------------------------------</span>
+
+<span class="n">Producer</span> <span class="s2">"producer_methanol_bio"</span> <span class="p">{</span>
+	<span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_bio_gasification"</span><span class="p">)]</span>
+
+    <span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">set_feed_constraint</span><span class="p">(</span><span class="s2">"feedstock_biomethanol_gasification"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"feedstock_biomethanol_gasification_constraint"</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="c1"># This forecast is simply for a single European producer instead of on a global scale.</span>
+<span class="c1"># These numbers can be changed if a lower availability is expected.</span>
+<span class="n">Forecast</span> <span class="s2">"feedstock_biomethanol_gasification_constraint"</span> <span class="p">{</span>
+    <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2025"</span>	<span class="mf">0.03e6</span>
+		<span class="s2">"01-01-2030"</span>	<span class="mf">0.15e6</span>
+		<span class="s2">"01-01-2035"</span>	<span class="mf">0.90e6</span>
+		<span class="s2">"01-01-2040"</span>	<span class="mf">1.14e6</span>
+		<span class="s2">"01-01-2045"</span>	<span class="mf">1.26e6</span>
+		<span class="s2">"01-01-2050"</span>	<span class="mf">1.38e6</span>
+    <span class="p">]</span>
+
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">LINEAR</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-4" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-4">
+Regulation</label><div class="sd-tab-content docutils">
+<div class="literal-block-wrapper docutils container" id="id11">
+<div class="code-block-caption"><span class="caption-text">includes/cii.inc</span><a class="headerlink" href="#id11" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ------------------ CARBON INTENSITY INDICATOR ---------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># Tracks compliance of international container ships with IMO’s CII rule </span>
+<span class="c1"># based on CO₂ per transport work (TTW). Used here for monitoring only, </span>
+<span class="c1"># with no effect on decision-making (remedial cost = 0).</span>
+<span class="c1">#</span>
+<span class="c1"># -----------------------------------------------------------------------</span>
+
+<span class="n">Regulation</span> <span class="s2">"cii"</span> <span class="p">{</span>
+
+	<span class="n">Measure</span> <span class="o">=</span> <span class="n">TRANSPORT_NOMINAL</span>
+	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">INDIVIDUAL</span>
+
+	<span class="n">Scope</span> <span class="o">=</span> <span class="n">TTW</span>
+	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">FALSE</span>
+
+	<span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">)</span>
+	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+	
+	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"singapore"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"rotterdam"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"hamburg"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"aalborg"</span><span class="p">)]</span>
+	
+	<span class="c1"># A remedial cost of zero means the regulation will have no influence on the decision making.</span>
+	<span class="c1"># The CII regulation is purely included to track the compliance with the regulation in the output.</span>
+	<span class="n">RemedialCost</span> <span class="o">=</span> <span class="mi">0</span>
+	
+	<span class="c1"># CII applies to all vessels in this scenario</span>
+	<span class="n">set_include_vessel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+	
+	<span class="c1"># assign regulation specific emission factors according to MEPC308(73) for EEDI index</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
+
+	<span class="c1"># there was an interim guideline at MEPC80 for how to calculate EF for CII for bio-fuels. This said that:</span>
+	<span class="c1"># EF = LHV * (1 - p) * 94 if and only if p &gt;= 0.65</span>
+	<span class="c1"># using the assumption that all our bio-fuels are 0.65&gt; in terms of WTW emissions, then we can assign the Navigate WTW (2030) as the regulation TTW</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+
+	<span class="n">set_vessel_threshold</span><span class="p">(</span><span class="s2">"feeder_*"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"cii_target_container_1500_teu"</span><span class="p">))</span>
+	<span class="n">set_vessel_threshold</span><span class="p">(</span><span class="s2">"mainline_*"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"cii_target_container_15000_teu"</span><span class="p">))</span>
+	
+	<span class="n">set_vessel_capacity</span><span class="p">(</span><span class="s2">"feeder_*"</span><span class="p">,</span> <span class="mi">22000</span><span class="p">)</span>
+	<span class="n">set_vessel_capacity</span><span class="p">(</span><span class="s2">"mainline_*"</span><span class="p">,</span> <span class="mi">160000</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Forecast</span> <span class="s2">"cii_target_reduction"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2019"</span>	<span class="mf">1.0</span>
+		<span class="s2">"01-01-2020"</span>	<span class="mf">0.99</span>
+		<span class="s2">"01-01-2021"</span>	<span class="mf">0.98</span>
+		<span class="s2">"01-01-2022"</span>	<span class="mf">0.97</span>
+		<span class="s2">"01-01-2023"</span>	<span class="mf">0.95</span>
+		<span class="s2">"01-01-2024"</span>	<span class="mf">0.93</span>
+		<span class="s2">"01-01-2025"</span>	<span class="mf">0.91</span>
+		<span class="s2">"01-01-2026"</span>	<span class="mf">0.89</span>
+		<span class="s2">"01-01-2027"</span>	<span class="mf">0.87</span>
+		<span class="s2">"01-01-2028"</span>	<span class="mf">0.85</span>
+		<span class="s2">"01-01-2029"</span>	<span class="mf">0.83</span>
+		<span class="s2">"01-01-2030"</span>	<span class="mf">0.81</span>
+	<span class="p">]</span>
+	
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">FLAT</span>
+<span class="p">}</span>
+
+<span class="n">Copy</span> <span class="n">Forecast</span> <span class="s2">"cii_target_reduction"</span>	<span class="s2">"cii_target_container_1500_teu"</span>
+<span class="n">Copy</span> <span class="n">Forecast</span> <span class="s2">"cii_target_reduction"</span>	<span class="s2">"cii_target_container_15000_teu"</span>
+
+<span class="n">Forecast</span> <span class="s2">"cii_target_container_1500_teu"</span> <span class="p">{</span>
+	<span class="n">Multiplier</span> <span class="o">=</span> <span class="mf">14.93</span>
+<span class="p">}</span>
+
+<span class="n">Forecast</span> <span class="s2">"cii_target_container_15000_teu"</span> <span class="p">{</span>
+	<span class="n">Multiplier</span> <span class="o">=</span> <span class="mf">5.66</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id12">
+<div class="code-block-caption"><span class="caption-text">includes/eu_ets.inc</span><a class="headerlink" href="#id12" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># --------------------------------- EU ETS REGULATION -----------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This regulation models the EU Emissions Trading System (ETS) as applied to shipping.</span>
+<span class="c1"># It covers CO₂, CH₄, and N₂O emissions from vessels operating within or entering EU ports.</span>
+<span class="c1">#</span>
+<span class="c1"># Domestic (intra-EU) voyages are fully covered, while international (inter-EU) voyages are </span>
+<span class="c1"># partially covered, with emissions priced via forecasted carbon credit values.</span>
+<span class="c1">#</span>
+<span class="c1"># Bio-methanol is assumed to be zero-rated for CO₂ under RED criteria, while methane and </span>
+<span class="c1"># nitrous oxide are priced using “worst-in-class” emission factors.</span>
+<span class="c1">#</span>
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+
+<span class="n">Regulation</span> <span class="s2">"eu_ets"</span> <span class="p">{</span>
+
+	<span class="n">Measure</span> <span class="o">=</span> <span class="n">ABSOLUTE</span>
+	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">INDIVIDUAL</span>
+
+	<span class="n">Scope</span> <span class="o">=</span> <span class="n">TTW</span>
+	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">FALSE</span> <span class="c1"># accounted for through TTW methane emission factors</span>
+
+	<span class="n">Emissions</span> <span class="o">=</span> <span class="p">[</span><span class="n">Emission</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">),</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">),</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">)]</span>
+	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+	
+	<span class="n">IntraFraction</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">InterFraction</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">ExtraFraction</span> <span class="o">=</span> <span class="mi">0</span>
+	
+	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"rotterdam"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"hamburg"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"aalborg"</span><span class="p">)]</span>
+	
+	<span class="n">RemedialCost</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Forecast</span><span class="p">(</span><span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">)</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"eu_ets_maritime_phase_in"</span><span class="p">)</span><span class="o">&gt;</span>
+	<span class="n">set_vessel_threshold</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+	
+	<span class="c1"># EU ETS applies to both domestic and international vessels that enter or operate in the EU</span>
+	<span class="n">set_include_vessel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+	
+	<span class="c1"># Global warming potentials</span>
+	<span class="n">set_global_warming_potential</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">set_global_warming_potential</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">,</span> <span class="mi">28</span><span class="p">)</span>
+	<span class="n">set_global_warming_potential</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mi">265</span><span class="p">)</span>
+	
+	<span class="c1"># DEFAULT EMISSION FACTORS</span>
+	<span class="c1"># EU ETS emission factors are based on MRV Maritime Regulation Annex I.</span>
+	<span class="c1"># All bio and electro fuels are assumed to have a proven &gt;65% reduction relative to LSFO and thus meet the</span>
+	<span class="c1"># criteria for "zero-rated" which means the fuel is classified with zero carbon dioxide emissions.</span>
+	<span class="c1"># Blue ammmonia is assumed to have a proven &gt;70% reduction and thus be classed as a "low-carbon fuel" which</span>
+	<span class="c1"># also meets the crtieria for being "zero-rated" (RED Implemementing Regulation 2018/2066 Article 23c (c)).</span>
+	<span class="c1"># The "zero-rated" does not apply to methane and nitrous oxide which for bio and electro are all defined</span>
+	<span class="c1"># as TBM (to be measured) and for blue either TBM or N/A (not applicable). In this case they should use the</span>
+	<span class="c1"># "highest in class" value which for all fuels correspond to methane emissions of 0.00005 and nitrous oxide</span>
+	<span class="c1"># emissions of 0.00018.</span>
+	
+	<span class="c1"># Fuel oil</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_carbon_dioxide"</span><span class="p">))</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_ice_methane"</span><span class="p">)</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"eu_ets_ghg_phase_in"</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_ice_nitrous_oxide"</span><span class="p">)</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"eu_ets_ghg_phase_in"</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)</span>
+
+	<span class="c1"># Bio-methanol</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_ice_methane"</span><span class="p">)</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"eu_ets_ghg_phase_in"</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_ice_nitrous_oxide"</span><span class="p">)</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"eu_ets_ghg_phase_in"</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id13">
+<div class="code-block-caption"><span class="caption-text">includes/fuel_eu.inc</span><a class="headerlink" href="#id13" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ---------------------------------- FUEL EU --------------------------------------------- </span>
+<span class="c1">#</span>
+<span class="c1"># This block represents the FuelEU Maritime regulation, which limits GHG intensity of fuels </span>
+<span class="c1"># used in EU waters. It applies fully to regional feeder routes and partially to the mainline </span>
+<span class="c1"># route (Singapore–Rotterdam).</span>
+<span class="c1">#</span>
+<span class="c1"># The policy promotes low-emission fuels like bio-methanol and penalizes fossil fuels, </span>
+<span class="c1"># helping simulate regulatory impact on fuel choice and compliance costs.</span>
+<span class="c1">#</span>
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+
+<span class="n">Regulation</span> <span class="s2">"fuel_eu"</span> <span class="p">{</span>
+
+	<span class="n">Measure</span> <span class="o">=</span> <span class="n">INTENSITY</span>
+	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">FLEXIBLE</span>
+	
+	<span class="n">Scope</span> <span class="o">=</span> <span class="n">WTW</span>
+	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">FALSE</span> <span class="c1"># accounted for through TTW methane emission factors</span>
+
+	<span class="n">Emissions</span> <span class="o">=</span> <span class="p">[</span><span class="n">Emission</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">),</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">),</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">)]</span>
+	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+	
+	<span class="n">IntraFraction</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">InterFraction</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">ExtraFraction</span> <span class="o">=</span> <span class="mi">0</span>
+	
+	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"rotterdam"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"hamburg"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"aalborg"</span><span class="p">)]</span>
+	
+	<span class="n">RemedialCost</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"fuel_eu_remedial_cost"</span><span class="p">)</span>
+	<span class="n">SharedThreshold</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"fuel_eu_target_reduction"</span><span class="p">)</span>
+	
+	<span class="c1"># FuelEU applies to both the feeders operating in EU and the mainline entering the EU.</span>
+	<span class="n">set_include_vessel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+	
+	<span class="c1"># Global warming potentials</span>
+	<span class="n">set_global_warming_potential</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">set_global_warming_potential</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+	<span class="n">set_global_warming_potential</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mi">298</span><span class="p">)</span>
+	
+	<span class="c1"># Fuel oil</span>
+	<span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># this overwrites the Navigate calculation of WTT</span>
+	<span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"fuel_eu_default_wtt_fossil_fuel_oil"</span><span class="p">))</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_carbon_dioxide"</span><span class="p">))</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_ice_methane"</span><span class="p">))</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_ice_nitrous_oxide"</span><span class="p">))</span>
+	
+	<span class="c1"># Bio-methanol</span>
+	<span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># this overwrites the Navigate calculation of WTT</span>
+	<span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"fuel_eu_default_wtt_methanol_bio"</span><span class="p">))</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"fuel_eu_default_methanol_ice_carbon_dioxide"</span><span class="p">))</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_ice_methane"</span><span class="p">))</span>
+	<span class="n">set_fuel_ttw</span><span class="p">(</span><span class="s2">"methanol_bio"</span><span class="p">,</span> <span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"eu_default_diesel_ice_nitrous_oxide"</span><span class="p">))</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id14">
+<div class="code-block-caption"><span class="caption-text">includes/net_zero_framework.inc</span><a class="headerlink" href="#id14" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># -------------------------- NET ZERO FRAMEWORK REGULATIONS --------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># Implements an interpretation of the IMO Net Zero Framework (January 2026).</span>
+<span class="c1"># Defines a well-to-wake (WTW) emissions intensity pathway aligned with net-zero goals.</span>
+<span class="c1"># Applies across fuels and vessel types, with adjustable scope, jurisdiction, and coverage.</span>
+<span class="c1">#</span>
+<span class="c1"># -------------------------------------------------------------------------------------</span>
+
+<span class="n">Regulation</span> <span class="s2">"net_zero_framework"</span> <span class="p">{</span>
+	<span class="n">Measure</span> <span class="o">=</span> <span class="n">INTENSITY</span>
+	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">FLEXIBLE</span>
+
+	<span class="n">Scope</span> <span class="o">=</span> <span class="n">WTW</span>
+	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">TRUE</span>
+
+	<span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+		
+	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"singapore"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"rotterdam"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"hamburg"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"aalborg"</span><span class="p">)]</span>
+	 
+	<span class="n">RemedialCost</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"net_zero_framework_remedial"</span><span class="p">)</span>
+	
+	<span class="n">SharedThreshold</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"net_zero_framework_z_values"</span><span class="p">)</span>
+	
+	<span class="n">set_include_vessel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Forecast</span> <span class="s2">"net_zero_framework_z_values"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2025"</span>	<span class="mf">1.00</span>
+		<span class="s2">"31-12-2027"</span>	<span class="mf">1.00</span>
+		<span class="s2">"01-01-2028"</span>	<span class="mf">0.96</span>
+		<span class="s2">"01-01-2029"</span>	<span class="mf">0.94</span>
+		<span class="s2">"01-01-2030"</span>	<span class="mf">0.92</span>
+		<span class="s2">"01-01-2031"</span>	<span class="mf">0.876</span>
+		<span class="s2">"01-01-2032"</span>	<span class="mf">0.832</span>
+		<span class="s2">"01-01-2033"</span>	<span class="mf">0.788</span>
+		<span class="s2">"01-01-2034"</span>	<span class="mf">0.744</span>
+		<span class="s2">"01-01-2035"</span>	<span class="mf">0.70</span>
+		<span class="s2">"01-01-2040"</span>	<span class="mf">0.35</span>
+		<span class="s2">"01-01-2050"</span>	<span class="mf">0.05</span>
+	<span class="p">]</span>
+	
+	<span class="n">Multiplier</span> <span class="o">=</span> <span class="mf">93.3</span>
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">FLAT</span>
+<span class="p">}</span>
+
+<span class="c1"># Here you can change the remedial cost</span>
+<span class="n">Forecast</span> <span class="s2">"net_zero_framework_remedial"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2025"</span>	<span class="mi">0</span>
+		<span class="s2">"31-12-2027"</span>	<span class="mi">0</span>
+		<span class="s2">"01-01-2028"</span>	<span class="mi">380</span>
+	<span class="p">]</span>
+	
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">FLAT</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-5">
+Decisions and report</label><div class="sd-tab-content docutils">
+<div class="literal-block-wrapper docutils container" id="id15">
+<div class="code-block-caption"><span class="caption-text">includes/decision_processes.inc</span><a class="headerlink" href="#id15" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># --------------------------- DECISION PROCESSES ----------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This file defines how quickly the fleet and producers can adopt new fuels or technologies</span>
+<span class="c1"># over time. These settings act as behavioral levers, influencing the model’s flexibility </span>
+<span class="c1"># in switching between fuels or retrofitting ships.</span>
+<span class="c1">#</span>
+<span class="c1"># -----------------------------------------------------------------------------------</span>
+
+<span class="n">Fleet</span> <span class="s2">"*"</span> <span class="p">{</span>
+	<span class="c1"># Decision sensitivities for newbuilds (odds ratios; LCOT is lower-is-better, so use a value below 1)</span>
+	<span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="c1"># Between fuel types: a 10% higher LCOT halves the odds</span>
+	<span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="c1"># Within a single fuel type</span>
+
+	<span class="c1"># Sensitivity for fuel conversions (NPV vs ship CAPEX; higher-is-better, so use a value above 1)</span>
+	<span class="n">FuelConversionSensitivity</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="p">}</span>
+
+<span class="n">Producer</span> <span class="s2">"producer_methanol_bio"</span> <span class="p">{</span>
+	<span class="c1"># Decision sensitivities for split between plants</span>
+    <span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.25</span> <span class="c1"># Between fuel pathways: a 10% higher expected demand gives 1.25x the odds</span>
+    <span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>    <span class="c1"># Within a pathway: a 10% higher LCoF halves the odds</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id16">
+<div class="code-block-caption"><span class="caption-text">includes/report.inc</span><a class="headerlink" href="#id16" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># ------------------------------- EXPORT --------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># This file defines the attributes from the example that are</span>
+<span class="c1"># exported to an excel file.</span>
+<span class="c1">#</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="n">Report</span> <span class="s2">"output"</span> <span class="p">{</span>
+	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots"</span>
+	
+	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">BunkerIntensityPrice</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="build-it-with-an-ai-assistant">
+<h2>Build it with an AI assistant<a class="headerlink" href="#build-it-with-an-ai-assistant" title="Link to this heading">#</a></h2>
+<p>The prompt below rebuilds this deck exactly: an assistant that saw only the
+prompt reproduced its results to the tonne. The deck’s own numbers are in it as
+the person’s numbers, marked GIVEN, so they are not a source. A network of
+connected routes starts from it. <a class="reference internal" href="../workshop/05-build-your-own-case.html"><span class="std std-doc">Session 5</span></a>
+shows how to use it.</p>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Full prompt for this case</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>The study.</strong> The deck <code class="docutils literal notranslate"><span class="pre">simulations/examples/example_1</span></code>, rebuilt from a prompt:
+5 container ships of 15,000 TEU on a Singapore - Rotterdam mainline, and 50
+feeders of 1,500 TEU on a Rotterdam - Hamburg - Aalborg loop, 2026 to 2050,
+under CII, EU ETS, FuelEU Maritime and a net-zero framework. Both fleets can
+burn fuel oil or bio-methanol, made in Europe; Aalborg sells no bio-methanol. The
+question is how two ship sizes on connected routes choose fuels when the ports
+supply them unevenly.</p>
+<p class="sd-card-text"><strong>What comes from the library.</strong> The four container ship designs, the fuels, the
+bio-methanol process, its feedstock and their costs, fuel oil’s price and
+upstream emissions, electricity and grid emissions in Europe, the EU ETS price
+and phase-in, FuelEU’s target and default emission factors.</p>
+<p class="sd-card-text"><strong>What is GIVEN.</strong> Everything else is the example deck’s own: the fleet sizes and
+ages, the routes, the bunker logistics, the handling costs, the plant capacity,
+the producer’s feedstock ceiling, the conversion costs, the regulations’ settings
+and the net-zero framework’s targets and price. The prompt gives them as the
+person’s numbers, so the build uses them as they are; none is a source.</p>
+<p class="sd-card-text"><strong>Limits.</strong> A few ships per fleet, not a market segment: Navigate decides in
+fractions of ships. The <code class="docutils literal notranslate"><span class="pre">.nav</span></code> header of example_1 says 11,000 nm; its route,
+which this prompt follows, says 8,300 nm.</p>
+<p class="sd-card-text"><strong>Tested:</strong> 2026-10-30, built cold on Sonnet and on Haiku: both decks ran with
+no warnings and reproduce example_1 to the tonne. The plant then gained the
+library’s cost of capital (it was financed at 0 %), and the wording was fixed
+from the builders’ notes; built cold again on Haiku, it reproduces the new
+deck to the tonne: 1,274,745 t CO2e in 2026, 914,092 t in 2035 and 276,588 t
+in 2050, when bio-methanol is 10.69 PJ of the 13.28 PJ burnt.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>You are helping me build a simulation study for Navigate, the shipping
+decarbonisation model. Write the files yourself; do not only
+describe them.
+
+Before writing anything, find the Navigate repository on my machine (a folder
+usually named navigate-zcs; ask me where it is if you cannot find it), then read
+docs/workshop/building-a-deck.md in it and follow it. It
+says how Navigate works, how to run a deck and read its results, and the rules
+every deck follows. This prompt gives the case.
+
+This case rebuilds the example deck simulations/examples/example_1 from this
+prompt; you may read that deck. Every number below is mine: use it as given and
+mark it GIVEN. The fleets are a few ships on purpose. You should not need to
+invent anything: if you do, tell me what was missing.
+
+THE DECK
+A new folder, simulations/user/mainline_feeders/, with mainline_feeders.nav and
+these files in includes/, included in this order: mainlines_curves.inc,
+mainlines.inc, feeders_curves.inc, feeders.inc, route.inc, ports.inc,
+bunker_logistics.inc, fuel_production.inc, regions.inc, producer.inc, then
+Load DefaultEmission, then cii.inc, eu_ets.inc, fuel_eu.inc,
+net_zero_framework.inc, decision_processes.inc, report.inc.
+DEFINE starts with Load DefaultModelDefinition and ends with Load DefaultPlot;
+EVENTS holds Load DefaultTimeStepYearly only. You may add Load DefaultReport to
+read the results. Load nothing else: no DefaultRegulation, no
+DefaultBunkerLogistics, no DefaultCalibration (decision_processes.inc holds
+the deck's own).
+
+THE CASE
+A container network, 2026 to 2050, yearly steps: mainline ships from Singapore
+to Rotterdam, and feeders from Rotterdam to Hamburg and Aalborg. Fuels: fuel oil
+and bio-methanol, made in Europe.
+
+FLEETS
+- Fleet "mainlines": Copy Vessel container_15000_teu_ice_oil to mainline_oil and
+  container_15000_teu_ice_methanol to mainline_methanol. 5 ships, split 0.8 oil,
+  0.2 methanol. Ages (Curves age_dist_mainlines_oil and
+  age_dist_mainlines_methanol, one row per age 0 to 24, 0 where not listed):
+  oil 0.25 at ages 3, 6, 9 and 12; methanol 1 at age 0.
+  set_fuel_conversion_cost("mainline_oil", "mainline_methanol", 24.3e6).
+  AllowSpeedManagement = TRUE, MaximumSpeedChange = 0.5. No TradeGrowth line.
+- Fleet "feeders": Copy Vessel container_1500_teu_ice_oil to feeder_oil and
+  container_1500_teu_ice_methanol to feeder_methanol. 50 ships, split 0.96 oil,
+  0.04 methanol. Ages (Curves age_dist_feeders_oil and
+  age_dist_feeders_methanol): oil 0.04 at every age 0 to 24; methanol 0.5 at
+  ages 0 and 2. set_fuel_conversion_cost("feeder_oil", "feeder_methanol",
+  10.3e6). AllowSpeedManagement = FALSE, MaximumSpeedChange = 0.5. No
+  TradeGrowth line.
+- Decision processes, for Fleet "*": InterFuelSensitivity 0.5,
+  IntraFuelSensitivity 0.5, FuelConversionSensitivity 2. For
+  producer_methanol_bio: FuelDemandSensitivity 1.25, FuelCostSensitivity 0.5.
+
+ROUTES (Vessel "mainline_*" and Vessel "feeder_*" each set their Route)
+- mainline_route: ROUND_TRIP, singapore - rotterdam; PortDurations 1.5, 1.0;
+  Distances 8300, 8300; Speeds 15.5, 14.2; CapacityUtilizations 0.95, 0.1.
+- feeder_route: ROUND_TRIP, rotterdam - hamburg - aalborg; PortDurations 1.5,
+  1.0, 1.0; Distances 270, 400, 800; Speeds 13.0, 12.5, 13.0;
+  CapacityUtilizations 1.0, 0.7, 0.0.
+
+PORTS
+- methanol_bio may be bunkered at singapore, rotterdam and hamburg, not at
+  aalborg; fossil_fuel_oil at every port.
+- At every port (Port "*"): fuel oil's bunker price is overwritten with
+  Forecast fossil_fuel_oil_price_global and its upstream CO2 with Forecast
+  fossil_fuel_oil_wtt_carbon_dioxide; handling cost Variable handling_cost_oil
+  = 8 and Variable handling_cost_methanol = 18 (declare both: the library has
+  neither).
+- BunkerLogistics: fossil_fuel_oil is the only liquid market fuel;
+  set_distance("*", "*", 1000); set_transport_cost("*", 0.1).
+
+FUEL PRODUCTION
+- Import Fuel fossil_fuel_oil and methanol_bio; Import Source grid; Import
+  Process methanol_synthesis_bio_gasification; Import Feedstock
+  feedstock_biomethanol_gasification; Import Transport truck.
+- Import Plant plant_methanol_bio_gasification and set its Region europe, Source
+  grid, and Capacity = Forecast methanol_bio_gasification_plant_capacity, which
+  you declare in the deck with my values, 100 in 2030 and 100 in 2050,
+  extrapolated linearly (it replaces the library's Forecast of that name), and
+  CostOfCapital = Forecast cost_of_capital_plant_bio_europe.
+- Region "europe", declared (not imported), with three lines: source opex of
+  grid = electricity_cost_europe_mid; feedstock cost of
+  feedstock_biomethanol_gasification = feedstock_biomethanol_gasification_cost;
+  source WTT CO2 of grid = grid_emissions_europe.
+- Region "*": truck transport cost 0, truck CO2 = truck_emissions;
+  methanol_synthesis_bio_gasification capex, opex and energy from the Forecasts
+  of the same name with _capex, _opex, _energy; its process CO2 =
+  -Variable carbon_dioxide_per_methanol.
+- Producer "producer_methanol_bio": that one plant, MaximumDevelopment 1, feed
+  constraint on feedstock_biomethanol_gasification = Forecast
+  feedstock_biomethanol_gasification_constraint, which you declare (the library
+  has none): 0.03e6 in 2025, 0.15e6 in
+  2030, 0.90e6 in 2035, 1.14e6 in 2040, 1.26e6 in 2045, 1.38e6 in 2050,
+  extrapolated linearly.
+
+POLICY (each Regulation written in full, not copied from the library; each has
+Fuels = Fuel("*") and set_include_vessel("*", TRUE))
+- cii: TRANSPORT_NOMINAL, INDIVIDUAL, TTW, IncludeSlip FALSE, CO2 only, all four
+  ports, RemedialCost 0 (it only tracks compliance). TTW CO2 3.114 for
+  fossil_fuel_oil and 0.3 for methanol_bio. Thresholds: Forecast
+  cii_target_reduction (1.0 in 2019, 0.99, 0.98, 0.97, 0.95, 0.93, 0.91, 0.89,
+  0.87, 0.85, 0.83, 0.81 in 2030, one per year on 1 January, flat after),
+  copied to cii_target_container_1500_teu (Multiplier 14.93) for feeder_* and
+  to cii_target_container_15000_teu (Multiplier 5.66) for mainline_*. Vessel
+  capacity 22000 for feeder_* and 160000 for mainline_*.
+- eu_ets: ABSOLUTE, INDIVIDUAL, TTW, IncludeSlip FALSE; CO2, methane, N2O;
+  IntraFraction 1, InterFraction 0.5, ExtraFraction 0; rotterdam, hamburg,
+  aalborg; RemedialCost = eu_ets_carbon_credit_price x eu_ets_maritime_phase_in;
+  set_vessel_threshold("*", 0.); GWP 1, 28, 265. TTW factors: fuel oil CO2 =
+  Variable eu_default_diesel_carbon_dioxide; fuel oil and methanol_bio methane =
+  eu_default_diesel_ice_methane x Forecast eu_ets_ghg_phase_in, N2O =
+  eu_default_diesel_ice_nitrous_oxide x eu_ets_ghg_phase_in; methanol_bio CO2 0.
+- fuel_eu: INTENSITY, FLEXIBLE, WTW, IncludeSlip FALSE; CO2, methane, N2O;
+  fractions 1, 0.5, 0; rotterdam, hamburg, aalborg; RemedialCost = Variable
+  fuel_eu_remedial_cost; SharedThreshold = Forecast fuel_eu_target_reduction;
+  GWP 1, 25, 298. Fuel oil: WTT "*" 0, then WTT CO2 =
+  fuel_eu_default_wtt_fossil_fuel_oil; TTW CO2 = eu_default_diesel_carbon_dioxide,
+  methane = eu_default_diesel_ice_methane, N2O =
+  eu_default_diesel_ice_nitrous_oxide. methanol_bio: WTT "*" 0, then WTT CO2 =
+  fuel_eu_default_wtt_methanol_bio; TTW CO2 =
+  fuel_eu_default_methanol_ice_carbon_dioxide; methane and N2O as fuel oil's.
+- net_zero_framework: INTENSITY, FLEXIBLE, WTW, IncludeSlip TRUE, Emission("*"),
+  all four ports. SharedThreshold = Forecast net_zero_framework_z_values,
+  Multiplier 93.3, flat: 1.00 on 01-01-2025 and 31-12-2027, then 0.96 (2028),
+  0.94, 0.92 (2030), 0.876, 0.832, 0.788, 0.744, 0.70 (2035), 0.35 (2040), 0.05
+  (2050), each on 1 January. RemedialCost = Forecast
+  net_zero_framework_remedial, flat: 0 on 01-01-2025 and 31-12-2027, 380 from
+  01-01-2028.
+
+REPORT
+Report "output", Directory "./plots", add_port_property("*",
+BunkerIntensityPrice).
+
+BEFORE YOU TELL ME IT WORKS
+Run the deck and report as building-a-deck.md says: the exit code, and the
+warnings and errors in the Log summary. Then give, from the report:
+- the well-to-wake emissions in 2026, 2035 and 2050;
+- the energy by fuel in those three years;
+- whether bio-methanol is bunkered, and by which fleet if you can tell.
+List every place where your deck differs from what this prompt says.
+</pre></div>
+</div>
+</div>
+</details></section>
+<section id="run-it-yourself">
+<h2>Run it yourself<a class="headerlink" href="#run-it-yourself" title="Link to this heading">#</a></h2>
+<p>In Colab: the <a class="reference internal" href="mainline-and-feeders-explore.html"><span class="std std-doc">explore notebook</span></a> runs the deck
+and lets you move one lever. On your machine, from the repository root:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>navigate<span class="w"> </span>simulations/examples/example_1/example_1.nav<span class="w"> </span>-d<span class="w"> </span>./assumptions
+</pre></div>
+</div>
+<p>To install Navigate, follow the <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation">installation steps in the README</a>,
+or the more detailed <a class="reference internal" href="../tutorials/getting_started.html"><span class="std std-doc">Getting started</span></a> tutorial.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="regional-networks.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Regional networks</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="south-pacific.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Island trade in the South Pacific</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-case">The case</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-deck">The deck</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-it-with-an-ai-assistant">Build it with an AI assistant</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-it-yourself">Run it yourself</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/examples/mainline-and-feeders.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

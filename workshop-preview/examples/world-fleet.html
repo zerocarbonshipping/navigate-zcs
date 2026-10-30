@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The world fleet &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/examples.css?v=242b7742" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=7bd72466"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/world-fleet';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'workshop-preview';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/colab-links.js?v=e09c4b8f"></script>
+    <script src="../_static/version-banner.js?v=bdf8961d"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reference Manual" href="../reference_manual/index.html" />
+    <link rel="prev" title="Global cases" href="global-cases.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../workshop/index.html">
+    Use Navigate
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../workshop/index.html">
+    Use Navigate
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="specific-trades.html">Specific trades</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="trade-route.html">A trade route, Chile to Rotterdam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rhine.html">Inland waterways in Germany</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rhine-explore.html">Explore: Inland waterways in Germany</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="regional-networks.html">Regional networks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="mainline-and-feeders.html">A mainline and its feeders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="south-pacific.html">Island trade in the South Pacific</a></li>
+<li class="toctree-l2"><a class="reference internal" href="two-fleets.html">Two fleets in the Baltic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="caribbean.html">Caribbean shipping under global and EU rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mainline-and-feeders-explore.html">Explore: A mainline and its feeders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="south-pacific-explore.html">Explore: Island trade in the South Pacific</a></li>
+<li class="toctree-l2"><a class="reference internal" href="two-fleets-explore.html">Explore: Two fleets in the Baltic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="caribbean-explore.html">Explore: Caribbean shipping under global and EU rules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="global-cases.html">Global cases</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">The world fleet</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Examples</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="global-cases.html" class="nav-link">Global cases</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">The world fleet</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="the-world-fleet">
+<h1>The world fleet<a class="headerlink" href="#the-world-fleet" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="global-cases.html"><span class="std std-doc">Global cases</span></a> · decks <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code> · the case of
+<a class="reference internal" href="../workshop/02-run-a-global-case.html"><span class="std std-doc">Session 2</span></a></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-global-case.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p>What does the world fleet burn to 2050 under a global fuel standard?</p>
+<section id="the-case">
+<h2>The case<a class="headerlink" href="#the-case" title="Link to this heading">#</a></h2>
+<p><img alt="Map of the Navigate reference scenario: five fuel-supply regions shaded by their 2050 electricity cost, with Europe ringed as the EU ETS and FuelEU jurisdiction" src="../_images/reference_scenario_map.svg" /></p>
+<ul class="simple">
+<li><p><strong>Ships:</strong> the whole international fleet as the data library describes it,
+twenty-three classes on the library’s global operating profiles.</p></li>
+<li><p><strong>Fuels:</strong> fuels made in five supply regions, from the library’s plants,
+producers and feedstocks.</p></li>
+<li><p><strong>Policy:</strong> three scenarios: no regulation; EU ETS and FuelEU with a moderate
+global fuel standard (mid); the same with a strict one (strong). A fourth,
+business as usual, keeps the EU measures only and splits each class into an
+international and a domestic fleet.</p></li>
+<li><p><strong>Horizon:</strong> 2026 to 2050. A yearly run takes about 25 minutes; the
+<code class="docutils literal notranslate"><span class="pre">workshop_whatif/</span></code> copies run on a coarse time grid in a few minutes.</p></li>
+</ul>
+<p>These scenarios test the model across degrees of regulation. They are not the
+Center’s view of likely futures.</p>
+</section>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
+<p><img alt="Well-to-wake emissions, freight rate and fuel consumed by fuel, for the no, mid and strong regulation scenarios, 2026 to 2050" src="../_images/world-fleet.png" /></p>
+<p>Without regulation emissions keep rising with trade; under the mid and strong
+standards they fall to well under 1 Gt CO2e a year by 2050, with LNG, biofuels
+and blue ammonia taking over from fuel oil. <a class="reference internal" href="../workshop/02-run-a-global-case.html"><span class="std std-doc">Session 2</span></a>
+draws this figure and lets you move the scenarios’ assumptions.</p>
+</section>
+<section id="the-deck">
+<h2>The deck<a class="headerlink" href="#the-deck" title="Link to this heading">#</a></h2>
+<p>The decks are almost entirely <code class="docutils literal notranslate"><span class="pre">Load</span></code> statements: every node comes from the data
+library’s modules.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+basecase_mid_regulation.nav</label><div class="sd-tab-content docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="n">DEFINE</span> <span class="p">{</span>
+	<span class="n">Load</span> <span class="n">DefaultModelDefinition</span>
+    <span class="n">Load</span> <span class="n">DefaultBunkerLogistics</span>
+
+    <span class="c1"># fleets</span>
+    <span class="n">Load</span> <span class="n">DefaultFleet</span>
+
+    <span class="c1"># voyages</span>
+    <span class="n">Load</span> <span class="n">DefaultPort</span>
+
+    <span class="c1"># fuels</span>
+    <span class="n">Load</span> <span class="n">DefaultEmission</span>
+    <span class="n">Load</span> <span class="n">DefaultFeedstock</span>
+    <span class="n">Load</span> <span class="n">DefaultFuel</span>
+    <span class="n">Load</span> <span class="n">DefaultProducer</span>
+    <span class="n">Load</span> <span class="n">DefaultPlant</span>
+    <span class="n">Load</span> <span class="n">DefaultRegion</span>
+    <span class="n">Load</span> <span class="n">DefaultSource</span>
+    <span class="n">Load</span> <span class="n">DefaultTransport</span>
+
+    <span class="c1"># regulations</span>
+	<span class="n">Load</span> <span class="n">DefaultRegulation</span>
+    <span class="n">Include</span> <span class="s2">"../0_includes/mid_regulation.inc"</span>
+
+    <span class="c1"># calibration</span>
+    <span class="n">Load</span> <span class="n">DefaultCalibration</span>
+
+	<span class="c1"># output</span>
+    <span class="n">Load</span> <span class="n">DefaultReport</span>
+    <span class="n">Load</span> <span class="n">DefaultPlot</span>
+	<span class="n">Load</span> <span class="n">DebugPlot</span>
+<span class="p">}</span>
+
+<span class="n">EVENTS</span> <span class="p">{</span>
+	<span class="n">Load</span> <span class="n">DefaultConverterAvailable</span>
+	<span class="n">Load</span> <span class="n">DefaultTimeStepYearly</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+mid_regulation.inc</label><div class="sd-tab-content docutils">
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">0_includes/mid_regulation.inc</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="n">Regulation</span> <span class="s2">"gfs"</span> <span class="p">{</span>
+	<span class="n">Measure</span> <span class="o">=</span> <span class="n">INTENSITY</span>
+	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">FLEXIBLE</span>
+
+	<span class="n">Scope</span> <span class="o">=</span> <span class="n">WTW</span>
+	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">TRUE</span>
+
+	<span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+		
+	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port_global"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"port_europe"</span><span class="p">)]</span>
+	
+	<span class="n">RemedialCost</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"gfs_remedial_unit"</span><span class="p">)</span>
+	
+	<span class="n">SharedThreshold</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"gfs_target_reduction"</span><span class="p">)</span>
+	
+	<span class="n">set_include_vessel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+<span class="p">}</span>
+
+
+<span class="n">Forecast</span> <span class="s2">"gfs_target_reduction"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2025"</span>	<span class="mf">1.00</span>
+		<span class="s2">"31-12-2027"</span>	<span class="mf">1.00</span>
+		<span class="s2">"01-01-2028"</span>	<span class="mf">0.96</span>
+		<span class="s2">"01-01-2029"</span>	<span class="mf">0.94</span>
+		<span class="s2">"01-01-2030"</span>	<span class="mf">0.95</span>
+		<span class="s2">"01-01-2035"</span>	<span class="mf">0.75</span>
+		<span class="s2">"01-01-2050"</span>	<span class="mf">0.30</span>
+	<span class="p">]</span>
+	
+	<span class="n">Multiplier</span> <span class="o">=</span> <span class="mf">93.3</span>
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">FLAT</span>
+<span class="p">}</span>
+
+<span class="n">Forecast</span> <span class="s2">"gfs_remedial_unit"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2025"</span>	<span class="mi">0</span>
+		<span class="s2">"31-12-2027"</span>	<span class="mi">0</span>
+		<span class="s2">"01-01-2028"</span>	<span class="mi">300</span>
+		<span class="s2">"01-01-2050"</span>	<span class="mi">300</span>
+	<span class="p">]</span>
+	
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">FLAT</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+strong_regulation.inc</label><div class="sd-tab-content docutils">
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">0_includes/strong_regulation.inc</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="n">Regulation</span> <span class="s2">"gfs"</span> <span class="p">{</span>
+	<span class="n">Measure</span> <span class="o">=</span> <span class="n">INTENSITY</span>
+	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">FLEXIBLE</span>
+
+	<span class="n">Scope</span> <span class="o">=</span> <span class="n">WTW</span>
+	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">TRUE</span>
+
+	<span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+		
+	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port_global"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"port_europe"</span><span class="p">)]</span>
+	
+	<span class="n">RemedialCost</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"gfs_remedial_unit"</span><span class="p">)</span>
+	
+	<span class="n">SharedThreshold</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"gfs_target_reduction"</span><span class="p">)</span>
+	
+	<span class="n">set_include_vessel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">)</span>
+<span class="p">}</span>
+
+
+<span class="n">Forecast</span> <span class="s2">"gfs_target_reduction"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2025"</span>	<span class="mf">1.00</span>
+		<span class="s2">"31-12-2027"</span>	<span class="mf">1.00</span>
+		<span class="s2">"01-01-2028"</span>	<span class="mf">0.96</span>
+		<span class="s2">"01-01-2029"</span>	<span class="mf">0.94</span>
+		<span class="s2">"01-01-2030"</span>	<span class="mf">0.92</span>
+		<span class="s2">"01-01-2031"</span>	<span class="mf">0.876</span>
+		<span class="s2">"01-01-2032"</span>	<span class="mf">0.832</span>
+		<span class="s2">"01-01-2033"</span>	<span class="mf">0.788</span>
+		<span class="s2">"01-01-2034"</span>	<span class="mf">0.744</span>
+		<span class="s2">"01-01-2035"</span>	<span class="mf">0.70</span>
+		<span class="s2">"01-01-2040"</span>	<span class="mf">0.50</span>
+		<span class="s2">"01-01-2050"</span>	<span class="mf">0.00</span>
+	<span class="p">]</span>
+	
+	<span class="n">Multiplier</span> <span class="o">=</span> <span class="mf">93.3</span>
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">FLAT</span>
+<span class="p">}</span>
+
+<span class="n">Forecast</span> <span class="s2">"gfs_remedial_unit"</span> <span class="p">{</span>
+	<span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+		<span class="s2">"01-01-2025"</span>	<span class="mi">0</span>
+		<span class="s2">"31-12-2027"</span>	<span class="mi">0</span>
+		<span class="s2">"01-01-2028"</span>	<span class="mi">800</span>
+		<span class="s2">"01-01-2050"</span>	<span class="mi">800</span>
+	<span class="p">]</span>
+	
+	<span class="n">Extrapolate</span> <span class="o">=</span> <span class="n">FLAT</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Coarse grid</label><div class="sd-tab-content docutils">
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">workshop_whatif/workshop_basecase_mid_regulation.nav</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># basecase_mid_regulation on a coarse timeline. Identical DEFINE block; only the</span>
+<span class="c1"># time step differs. Its numbers are therefore NOT comparable with the yearly</span>
+<span class="c1"># basecases - see docs/workshop/02-run-a-global-case.ipynb.</span>
+
+<span class="n">DEFINE</span> <span class="p">{</span>
+	<span class="n">Load</span> <span class="n">DefaultModelDefinition</span>
+    <span class="n">Load</span> <span class="n">DefaultBunkerLogistics</span>
+
+    <span class="c1"># fleets</span>
+    <span class="n">Load</span> <span class="n">DefaultFleet</span>
+
+    <span class="c1"># voyages</span>
+    <span class="n">Load</span> <span class="n">DefaultPort</span>
+
+    <span class="c1"># fuels</span>
+    <span class="n">Load</span> <span class="n">DefaultEmission</span>
+    <span class="n">Load</span> <span class="n">DefaultFeedstock</span>
+    <span class="n">Load</span> <span class="n">DefaultFuel</span>
+    <span class="n">Load</span> <span class="n">DefaultProducer</span>
+    <span class="n">Load</span> <span class="n">DefaultPlant</span>
+    <span class="n">Load</span> <span class="n">DefaultRegion</span>
+    <span class="n">Load</span> <span class="n">DefaultSource</span>
+    <span class="n">Load</span> <span class="n">DefaultTransport</span>
+
+    <span class="c1"># regulations</span>
+	<span class="n">Load</span> <span class="n">DefaultRegulation</span>
+    <span class="n">Include</span> <span class="s2">"../0_includes/mid_regulation.inc"</span>
+
+    <span class="c1"># calibration</span>
+    <span class="n">Load</span> <span class="n">DefaultCalibration</span>
+
+	<span class="c1"># output</span>
+    <span class="n">Load</span> <span class="n">DefaultReport</span>
+    <span class="n">Load</span> <span class="n">DefaultPlot</span>
+	<span class="n">Load</span> <span class="n">DebugPlot</span>
+<span class="p">}</span>
+
+<span class="n">EVENTS</span> <span class="p">{</span>
+	<span class="n">Load</span> <span class="n">DefaultConverterAvailable</span>
+	<span class="n">Include</span> <span class="s2">"./includes/time_steps_coarse.inc"</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">workshop_whatif/includes/time_steps_coarse.inc</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># Four years, not five. RetrofitFrequency defaults to 5, and is_retrofit_cycle</span>
+<span class="c1"># tests `age % frequency &lt; time_step`, so a 5-year step makes that always true</span>
+<span class="c1"># and the drydock gate stops gating. On main the fleet converts late (from 2042</span>
+<span class="c1"># in the yearly run), so this grid still converts far fewer hulls than the yearly</span>
+<span class="c1"># run - 112 against 1,140 - and lands 2050 emissions at 711 Mt against 676.</span>
+<span class="c1">#</span>
+<span class="c1"># 2027 and 2030 are not a choice: DefaultConverterAvailable declares them, and</span>
+<span class="c1"># every date the parser sees is merged into one timeline. They are listed here</span>
+<span class="c1"># so this file states the grid the model will actually use.</span>
+
+<span class="n">Start</span>
+
+<span class="n">Date</span> <span class="s2">"01-01-2027"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2030"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2034"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2038"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2042"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2046"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2050"</span>
+
+<span class="n">End</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="build-it-with-an-ai-assistant">
+<h2>Build it with an AI assistant<a class="headerlink" href="#build-it-with-an-ai-assistant" title="Link to this heading">#</a></h2>
+<p>This is the model of the global family: a case on the world fleet, or on a
+policy applied worldwide, starts from its full prompt.
+<a class="reference internal" href="../workshop/05-build-your-own-case.html"><span class="std std-doc">Session 5</span></a> shows how to use it.</p>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Full prompt: Session 2’s reference scenario</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>The global case of Session 2, rebuilt from scratch.</strong> The whole international fleet, as the data library describes it, from 2026 to 2050 on Session 2’s coarse grid, under EU ETS, FuelEU and a moderate global fuel standard: the <code class="docutils literal notranslate"><span class="pre">workshop_basecase_mid_regulation</span></code> scenario.</p>
+<p class="sd-card-text"><img alt="Map of the Navigate reference scenario: five fuel-supply regions shaded by their 2050 electricity cost, with Europe ringed as the EU ETS and FuelEU jurisdiction" src="_figures/reference_scenario_map.png" /></p>
+<p class="sd-card-text"><strong>Tested:</strong> built by handing it to a Claude model with no other instructions, directly and through its own start-up prompt, then in Session 5: both decks ran with only the library’s expected warnings, and both matched the results of Session 2 within rounding. It was one of Session 5’s examples until
+2026-10-28.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>You are helping me build and run a simulation deck for Navigate, the shipping decarbonisation model in this repository. Write the files yourself; do not only describe them.
+
+Before writing anything, read docs/workshop/building-a-deck.md in the Navigate
+repository and follow it:
+it holds the rules every deck follows and the traps earlier builds fell into.
+simulations/scenarios/ holds this case, already built: take its structure,
+and the numbers this prompt gives. Where this prompt and the guide disagree,
+this prompt wins.
+
+GETTING NAVIGATE RUNNING (do this first)
+- Navigate is the repository https://github.com/zerocarbonshipping/navigate-zcs.
+  If you were not opened in it, look for it on this machine (a folder usually
+  named navigate-zcs, holding README.md, navigate/ and assumptions/), or ask me
+  where it is. If it is not on this machine yet, tell me, and propose cloning
+  it (or downloading the zip from GitHub). Work from the repository root from
+  then on.
+- Check whether Navigate is installed, from the repository root:
+      python -m pip show navigate-zcs
+      python -m navigate --help
+  If both work, go on to the deck.
+- If not, the installation steps are in README.md (section "Installation"):
+  Python 3.12, ideally in its own environment (venv or conda), then
+      python -m pip install .
+  from the repository root. The README also has the fixes for the two common
+  Windows errors (PowerShell refusing to activate a venv, and pip.exe "Access is
+  denied"). A slower, beginner's walk-through with VS Code is in
+  docs/tutorials/getting_started.md, also online at
+  https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html
+- Show me the commands and wait for my go-ahead before you install, upgrade or
+  create anything. No extra solver is needed: Navigate comes with HiGHS. Skip the
+  optional Gurobi extra unless I say I have a full Gurobi licence.
+
+HOW NAVIGATE WORKS (read this before writing anything)
+- A deck is one .nav file plus the .inc files it includes. The syntax is explained
+  in docs/reference_manual/overview.md, and every node type (Fleet, Vessel, Route,
+  Port, Fuel, Plant, Producer, Regulation, ...) has its own page in
+  docs/reference_manual/.
+- assumptions/ is the data library. `Load DefaultFleet` reads the module file
+  assumptions/modules/installation/default_fleet.inc, which imports every fleet
+  of the library; each `Load Default&lt;Name&gt;` reads default_&lt;name&gt;.inc the same way.
+  `Import Regulation "eu_ets"` reads one node from
+  assumptions/defaults/installation/Regulation/eu_ets.inc.
+- simulations/examples/example_1 to example_4 are complete decks that run: read
+  them for syntax.
+- Run a deck from the repository root, in the Python environment where Navigate
+  was installed from this repository, with:
+      python -m navigate &lt;path to the .nav file&gt; -d ./assumptions
+  (`python -m navigate` run from the repository root always uses this
+  repository's code; the shorter `navigate` command may point to another copy.)
+- A run writes a .log file next to the .nav. The end of the .log has a "Log
+  summary" table with the number of warnings and errors. `Load DefaultPlot` in
+  the .nav DEFINE block also writes the charts to plots/ and plots_analysis/.
+  If you cannot run terminal commands, give me the exact command, wait for me to
+  paste back the end of the output, and fix whatever it reports.
+- To get results as numbers, add `Load DefaultReport` to the .nav DEFINE block.
+  The run then also writes plots/&lt;deck name&gt;_report_default.xlsx. Its "Global"
+  sheet has one row per time step, one ConsumedEnergy column per fuel (GJ per
+  year; the fuel name is in the third header row) and the emissions of all the
+  fleets together (TotalEquivalentWTW, t CO2e per year).
+
+THE DECK
+Build it in a new folder, simulations/user/my_simulation/, with the .nav file
+my_simulation.nav and one .inc file per topic in includes/. If that folder
+already exists, use my_simulation_2 (then _3, ...) instead, and tell me which.
+Write nothing outside that folder: do not change, move or delete any file that
+is already in the repository.
+
+THE CASE
+The whole international shipping fleet, 2026 to 2050, as the data library
+describes it. The model decides which fuel each fleet bunkers and where, how
+fast it sails, which ships are retrofitted or ordered, and which efficiency
+measures are fitted. Fuel producers decide where to build plants.
+
+1. The world, all from the library's modules
+   Load, in the DEFINE block, the modules for: the model definition, bunker
+   logistics, the fleets (DefaultFleet, international shipping only: not the
+   DefaultFleetInternational and DefaultFleetDomestic pair, which adds the
+   domestic fleets), the ports, emissions, feedstocks, fuels, producers,
+   plants, regions, sources and transport. Each is one `Load` line; find the
+   module names in assumptions/modules/installation/. Do not restate or copy
+   any of their nodes.
+
+2. Regulation: EU ETS, FuelEU Maritime and a global fuel standard
+   - The EU ETS and FuelEU Maritime: the library's, with Load DefaultRegulation.
+   - The global fuel standard: write it yourself, in includes/regulation.inc,
+     included right after DefaultRegulation. It is a Regulation node named "gfs":
+       Measure = INTENSITY, Scheme = FLEXIBLE, Scope = WTW, IncludeSlip = TRUE,
+       every emission and every fuel (Emission("*"), Fuel("*")),
+       Jurisdiction = both of the library's ports, port_global and port_europe,
+       every vessel included (set_include_vessel("*", TRUE)),
+       SharedThreshold = Forecast("gfs_target_reduction"),
+       RemedialCost = Forecast("gfs_remedial_unit").
+     Declare the two forecasts in the same file, with Extrapolate = FLAT:
+       gfs_target_reduction, a fraction of 93.3 gCO2eq/MJ (Multiplier = 93.3):
+         01-01-2025 1.00, 31-12-2027 1.00, 01-01-2028 0.96, 01-01-2029 0.94,
+         01-01-2030 0.95, 01-01-2035 0.75, 01-01-2050 0.30
+       gfs_remedial_unit, USD per ton of excess emission:
+         01-01-2025 0, 31-12-2027 0, 01-01-2028 300, 01-01-2050 300
+     These are the Center's scenario values for a moderate standard: copy them
+     as given, with a comment saying where they come from (this prompt).
+
+3. The rest of the DEFINE block
+   Load DefaultCalibration after the regulation: it sets the decision behaviour
+   with wildcards (Fleet "*", ...) that only match nodes already declared.
+   Then DefaultReport and DefaultPlot.
+
+4. EVENTS: a coarse time grid
+   Load DefaultConverterAvailable first: it decides from when methanol,
+   ammonia and electric ships may be ordered, and it declares 2027 and 2030 as
+   dates of its own. Then include your own includes/time_steps.inc, holding
+   Start, one Date line for each of 01-01-2027, 01-01-2030, 01-01-2034,
+   01-01-2038, 01-01-2042, 01-01-2046 and 01-01-2050, and End.
+   Do NOT load DefaultTimeStepYearly. Steps of four years (not five) after 2030
+   are on purpose: retrofits are considered every five years, and a five-year
+   step would let every step count as a retrofit year.
+
+PITFALLS (each cost someone time before)
+- This is the whole world fleet: even on this coarse grid a run takes several
+  minutes (a yearly grid would take twenty or more). If it runs past thirty
+  minutes, stop it and tell me.
+- The library's own nodes raise about 200 warnings of two kinds, "No technology
+  cost of capital supplied for Fleet(...)" and "Does not have convex load
+  functions" for some vessels. They are expected: do not try to fix them.
+  Report any warning of another kind, and any error.
+
+NUMBERS
+Every number must come from assumptions/ (through the modules) or from this
+prompt. Mark anything else INVENTED in a comment where it appears and list it
+in the .nav header; built as described here, there should be none.
+
+DECK RULES
+The .nav DEFINE and EVENTS blocks accept only Include and Load. Every node
+declaration goes in an .inc file that they include.
+
+BEFORE YOU TELL ME IT WORKS
+Run it (or have me run it) as above. Report the exit code and the warning and
+error counts from the Log summary. Then, from the report, tell me:
+- the well-to-wake emissions of all the fleets in 2026 and in 2050 (Mt CO2e
+  per year);
+- the share of alternative fuels (everything but fuel oil and LNG) in the
+  energy consumed in 2050;
+- the three biggest fuels in 2050.
+For comparison, the workshop's own deck for this case gives about 1,190 Mt in
+2026, about 710 Mt in 2050 and about 52 % alternative fuels in 2050, with fuel
+oil, blue ammonia and bio-methane the three biggest fuels. Say how close you
+are, and if you are far off, what in your deck could explain it.
+</pre></div>
+</div>
+</div>
+</details><section id="variants">
+<h3>Variants<a class="headerlink" href="#variants" title="Link to this heading">#</a></h3>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">A global study: the cost of waiting</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>Variant of “Session 2’s reference scenario” above.</strong> The mid-regulation reference scenario includes a global fuel standard (<code class="docutils literal notranslate"><span class="pre">gfs</span></code>): a well-to-wake intensity limit that every ship is held to worldwide, tightening from 2028 to 2050. What if it started five years late, but kept the same 2050 target? No deck to build from scratch here: the scenario is run twice, as it is and with every date before 2050 moved later, on the coarse time grid of <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-global-case.ipynb">Session 2</a> so each run takes a few minutes. The answer is one number worth remembering: the extra megatonnes of CO2e a delay costs, and whether the delayed run catches up by 2050. The change goes in a copy of the regulation file, so the reference scenario itself stays untouched.</p>
+<p class="sd-card-text"><strong>How it differs from the scenarios in the repository.</strong> The four reference scenarios in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code> differ in <em>how strict</em> the regulation is: none at all, EU ETS and FuelEU only (business as usual), or those plus a global fuel standard that is moderate (mid) or strict (strong). Both standards start in 2028. This case keeps the mid scenario exactly as it is and changes only <em>when</em> its standard starts, which none of them explores. It also runs on the coarse grid, so compare its two runs with each other, not with the yearly results of Session 2.</p>
+<p class="sd-card-text"><img alt="The global fuel standard's well-to-wake intensity limit from 2025 to 2050: the reference has its penalty from 2028, the delayed start from 2033, and both reach 28.0 gCO2eq/MJ in 2050" src="../_images/gfs_delay_chart.png" /></p>
+<p class="sd-card-text"><em>The global fuel standard of the mid-regulation scenario (grey) and the same standard started five years later, with the same 2050 target (blue).</em></p>
+<p class="sd-card-text"><strong>Build it from the full prompt of “Session 2’s reference scenario”, with these differences:</strong></p>
+<ul class="simple">
+<li><p class="sd-card-text">Do not rebuild the world:
+this study runs the mid-regulation deck already there, on the coarse grid of
+<code class="docutils literal notranslate"><span class="pre">simulations/scenarios/workshop_whatif/</span></code> (a few minutes a run).</p></li>
+<li><p class="sd-card-text">Folder <code class="docutils literal notranslate"><span class="pre">simulations/user/my_global_study/</span></code>. <code class="docutils literal notranslate"><span class="pre">reference.nav</span></code> is a copy of
+<code class="docutils literal notranslate"><span class="pre">workshop_whatif/workshop_basecase_mid_regulation.nav</span></code>, with its two Include
+paths rewritten so they still point at the original files. <code class="docutils literal notranslate"><span class="pre">delayed.nav</span></code> is the
+same, except that it includes your own copy of
+<code class="docutils literal notranslate"><span class="pre">simulations/scenarios/0_includes/mid_regulation.inc</span></code>, as
+<code class="docutils literal notranslate"><span class="pre">includes/gfs_delayed.inc</span></code>. The two decks differ in that one line only, and
+nothing in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code> changes.</p></li>
+<li><p class="sd-card-text">In that copy, move every date of <code class="docutils literal notranslate"><span class="pre">gfs_target_reduction</span></code> and <code class="docutils literal notranslate"><span class="pre">gfs_remedial_unit</span></code>
+that falls before 2050 by [THE DELAY, e.g. five years], and leave the 2050 rows
+where they are. Mark each moved row with a comment giving its reference date.
+The delay is the only INVENTED value.</p></li>
+<li><p class="sd-card-text">A start moved to 2028 or 2029 falls between two steps of the coarse grid:
+building-a-deck.md says what to do.</p></li>
+<li><p class="sd-card-text">Report, instead of the template’s comparison, side by side: the well-to-wake
+emissions at every time step; their sum over 2026-2050, weighting each step by
+the years it stands for (say how), and the extra Mt CO2e the delay costs; the
+share of energy by fuel in 2030, 2038 and 2050, and whether the delayed run
+catches up by 2050. Say that these are coarse-grid runs, to compare with each
+other only.</p></li>
+</ul>
+<p class="sd-card-text"><strong>Tested:</strong> 2026-10-06, as what was then Session 5’s fourth example: built cold, it ran
+without errors on the first attempt. 2026-10-26, built cold again with a five-year
+delay and checked against the criteria above: both decks ran with only the
+library’s expected warnings, and the delay added about 1,560 Mt CO2e over
+2026-2050 (+6 %), still 20 Mt a year more in 2050. The two decks share one
+<code class="docutils literal notranslate"><span class="pre">plots/</span></code> folder, so compare them from their reports. On 2026-10-28 it was also
+the model the start-up prompt chose for a later and stricter standard, built
+cold on two processes: both ran clean first time. Built from this variant on
+Haiku the same day, with a five-year delay: clean first time, 1,559 Mt CO2e
+extra (+6.1 %). the full prompt that passed is in the repository’s history, commit <code class="docutils literal notranslate"><span class="pre">02d96755</span></code>. Folded into a variant on 2026-10-28.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">The world fleet, simplified: the global picture at a size you can iterate on</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>Variant of “Session 2’s reference scenario” above.</strong> No geography here: the Center’s reference scenarios model twenty-three vessel classes on the library’s own global operating profiles, and the only “places” are two abstract ports that exist so the EU measures know what they cover. This prompt keeps two or three classes of your choice, imported whole from the library with their own fleets, orderbooks and technologies, against the library’s full fuel-supply chain in five regions and under EU ETS and FuelEU. Expect several minutes per run.</p>
+<p class="sd-card-text"><strong>Build it from the full prompt of “Session 2’s reference scenario”, with these differences:</strong></p>
+<ul class="simple">
+<li><p class="sd-card-text">Fleets: two or three classes of the user’s choice (for example
+<code class="docutils literal notranslate"><span class="pre">tanker_127k_dwt</span></code> and <code class="docutils literal notranslate"><span class="pre">bulk_carrier_80k_dwt</span></code>), each imported whole with
+<code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">Fleet</span> <span class="pre">&quot;...&quot;</span></code>, so it brings its own vessels, age distribution,
+orderbook, technologies and retrofit costs. Not <code class="docutils literal notranslate"><span class="pre">Load</span> <span class="pre">DefaultFleet</span></code>.</p></li>
+<li><p class="sd-card-text">Geography: none of your own. Load DefaultVoyage for the per-class operating
+profiles, and DefaultPort for the library’s two abstract ports.</p></li>
+<li><p class="sd-card-text">Regulation: the EU ETS and FuelEU at their library settings
+(DefaultRegulation). No global fuel standard: leave out
+<code class="docutils literal notranslate"><span class="pre">includes/regulation.inc</span></code>.</p></li>
+<li><p class="sd-card-text">EVENTS: with fewer than the library’s twenty-three fleets, do not load
+DefaultConverterAvailable (building-a-deck.md says why), and say in the header
+that every vessel type is orderable from year one. Use DefaultTimeStepYearly
+rather than the coarse grid. Expect five to ten minutes a run.</p></li>
+<li><p class="sd-card-text">Every number comes from the library: if you find yourself writing one, stop and
+say why the library has none.</p></li>
+<li><p class="sd-card-text">Report, instead of the template’s comparison: the fuel mix at both ends of the
+horizon.</p></li>
+</ul>
+<p class="sd-card-text"><strong>Limits.</strong> Fewer fleets than the library’s twenty-three (building-a-deck.md says
+what that means for DefaultConverterAvailable), and EU ETS and FuelEU only: no
+global fuel standard.</p>
+<p class="sd-card-text"><strong>Tested:</strong> as Session 5’s fourth example (added 2026-09-25): built cold, it ran
+without errors on the first attempt, but was not checked against the criteria
+above. Moved here from Session 5 on 2026-10-26; the full prompt that passed is in the repository’s history, commit <code class="docutils literal notranslate"><span class="pre">02d96755</span></code>. Folded into a variant on 2026-10-28.</p>
+</div>
+</details></section>
+</section>
+<section id="run-it-yourself">
+<h2>Run it yourself<a class="headerlink" href="#run-it-yourself" title="Link to this heading">#</a></h2>
+<p>In Colab: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-global-case.ipynb">Session 2</a>.
+On your machine, from the repository root:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>navigate<span class="w"> </span>simulations/scenarios/workshop_whatif/workshop_basecase_mid_regulation.nav<span class="w"> </span>-d<span class="w"> </span>./assumptions
+</pre></div>
+</div>
+<p>To install Navigate, follow the <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation">installation steps in the README</a>,
+or the more detailed <a class="reference internal" href="../tutorials/getting_started.html"><span class="std std-doc">Getting started</span></a> tutorial.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="global-cases.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Global cases</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../reference_manual/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Reference Manual</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-case">The case</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-deck">The deck</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-it-with-an-ai-assistant">Build it with an AI assistant</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#variants">Variants</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-it-yourself">Run it yourself</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/examples/world-fleet.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
