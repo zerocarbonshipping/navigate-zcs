@@ -99,6 +99,8 @@ class Vessel(Node):
         self.fuels_per_tank: dict[str, dict[str, Fuel]]
         self.fuels_per_converter: dict[str, dict[str, Fuel]]
         self.converters_per_fuel: dict[str, dict[str, Converter]]
+        self.fuels_per_port_converter: dict[str, dict[str, Fuel]]
+        self.port_converters_per_fuel: dict[str, dict[str, Converter]]
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)

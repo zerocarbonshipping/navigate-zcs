@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, FuelTypeID
 from navigate.util import unique_list
 
 if TYPE_CHECKING:
@@ -26,7 +26,8 @@ def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) 
     is a fuel of a usable type. Each tank is paired with the fuels of its fuel types,
     type by type. Each converter is paired with the usable fuels of its fuel types,
     in usable-fuel order, and each usable fuel with the converters burning it, in
-    converter order; a fuel only a tank stores has no converter.
+    converter order; a fuel only a tank stores has no converter. The port pairs keep
+    only the converters serving port energy demands, in that demand order.
 
     Parameters
     ----------
@@ -43,11 +44,15 @@ def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) 
         per_tank = _fuels_per_tank(vessel, fuels_per_fuel_type)
         per_converter = _fuels_per_converter(vessel, usable_fuels)
         per_fuel = _converters_per_fuel(vessel, usable_fuels, per_converter)
+        per_port_converter = _fuels_per_port_converter(vessel, per_converter)
+        port_per_fuel = _port_converters_per_fuel(per_fuel, per_port_converter)
 
         vessel.usable_fuels = usable_fuels
         vessel.fuels_per_tank = per_tank
         vessel.fuels_per_converter = per_converter
         vessel.converters_per_fuel = per_fuel
+        vessel.fuels_per_port_converter = per_port_converter
+        vessel.port_converters_per_fuel = port_per_fuel
 
 
 def _fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fuel]]:
@@ -133,6 +138,37 @@ def _converters_per_fuel(
             converters_per_fuel[fuel_name][converter.name] = converter
 
     return converters_per_fuel
+
+
+def _fuels_per_port_converter(
+    vessel: Vessel, fuels_per_converter: dict[str, dict[str, Fuel]]
+) -> dict[str, dict[str, Fuel]]:
+    """Return, per name of a converter serving port demands, its usable fuels."""
+    fuels_per_port_converter: dict[str, dict[str, Fuel]] = {}
+
+    for demand_type in PORT_ENERGY_DEMANDS:
+        name = vessel.get_converter(demand_type).name
+        fuels_per_port_converter[name] = fuels_per_converter[name]
+
+    return fuels_per_port_converter
+
+
+def _port_converters_per_fuel(
+    converters_per_fuel: dict[str, dict[str, Converter]],
+    fuels_per_port_converter: dict[str, dict[str, Fuel]],
+) -> dict[str, dict[str, Converter]]:
+    """Return, per usable fuel name, the converters burning it that serve in port."""
+    port_converters_per_fuel: dict[str, dict[str, Converter]] = {}
+
+    for fuel_name, converters in converters_per_fuel.items():
+        in_port: dict[str, Converter] = {}
+
+        for converter_name, converter in converters.items():
+            if converter_name in fuels_per_port_converter:
+                in_port[converter_name] = converter
+        port_converters_per_fuel[fuel_name] = in_port
+
+    return port_converters_per_fuel
 
 
 def update_imposed_levies(ports: dict[str, Port], levies: dict[str, Levy]) -> None:

@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import add_variable
-from navigate.simulation.bunker._indices import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -43,8 +42,8 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                 add_variable(alg, alg.spend_sea, (v, c, f, *leg), "spend_sea")
 
     # only the converters serving port energy demands spend in port
-    for c in get_port_converters(vessel):
-        for f in fuels_per_converter[c]:
+    for c, fuels in vessel.fuels_per_port_converter.items():
+        for f in fuels:
             for p in stops:
                 add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
 

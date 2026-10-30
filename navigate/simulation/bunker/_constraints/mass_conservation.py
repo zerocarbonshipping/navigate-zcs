@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import get_constraint
-from navigate.simulation.bunker._indices import get_port_converters
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -57,7 +56,6 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
 
     tank_stops = route.get_tank_stops()
     previous = {e: i for i, e in route.get_tank_legs()}
-    port_converters = get_port_converters(vessel)
 
     rows = alg.mass_conservation
     mass_tank = alg.mass_tank
@@ -67,7 +65,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     model = alg.model
 
     for f, converters in vessel.converters_per_fuel.items():
-        converters_in_port = [c for c in converters if c in port_converters]
+        converters_in_port = vessel.port_converters_per_fuel[f]
 
         for p in tank_stops:
             key = (v, p, f)
