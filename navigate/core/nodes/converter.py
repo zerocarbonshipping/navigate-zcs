@@ -60,68 +60,61 @@ class Converter(_Machinery):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_power_capacity(self, power_capacity: ScalarArgument) -> None:
+    def set_power_capacity(self, value: ScalarArgument) -> None:
         """Set the power capacity of the converter."""
-        self.power_capacity = assign_value(
-            as_scalar(power_capacity), type_=VARIABLE, lower=0.0
-        )
+        self.power_capacity = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_minimum_load(self, minimum_load: ScalarArgument) -> None:
+    def set_minimum_load(self, value: ScalarArgument) -> None:
         """Set the minimum load as a fraction of power capacity."""
         self.minimum_load = assign_value(
-            as_scalar(minimum_load), type_=VARIABLE, lower=0.0, upper=1.0
+            as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_main_fuel_types(self, main_fuel_types: str | list[str]) -> None:
+    def set_main_fuel_types(self, value: str | list[str]) -> None:
         """Set the main fuel types of the converter."""
         self.main_fuel_types = assign_id_list(
-            main_fuel_types, FuelTypeID, min_length=1, unique=True
+            value, FuelTypeID, min_length=1, unique=True
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_pilot_fuel_types(self, pilot_fuel_types: str | list[str]) -> None:
+    def set_pilot_fuel_types(self, value: str | list[str]) -> None:
         """Set the pilot fuel types of the converter."""
         self.pilot_fuel_types = assign_id_list(
-            pilot_fuel_types, FuelTypeID, min_length=1, unique=True
+            value, FuelTypeID, min_length=1, unique=True
         )
 
     @deck_attribute()
-    def set_minimum_pilot_fuel(self, minimum_pilot_fuel: ForecastArgument) -> None:
+    def set_minimum_pilot_fuel(self, value: ForecastArgument) -> None:
         """Set the minimum pilot fuel fraction required to use the converter."""
         self.minimum_pilot_fuel = assign_value(
-            as_scalar(minimum_pilot_fuel),
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     @deck_attribute(required=True)
-    def set_efficiency(self, efficiency: ScalarArgument) -> None:
+    def set_efficiency(self, value: ScalarArgument) -> None:
         """Set the energy conversion efficiency of the converter."""
         self.efficiency = assign_value(
-            as_scalar(efficiency), type_=VARIABLE, lower=0.0, upper=1.0
+            as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_slip_fraction(self, fuel_type: str, value: ScalarArgument) -> None:
+    def set_slip_fraction(self, key: str, value: ScalarArgument) -> None:
         """Set the fraction of fuel mass escaping unburned for a fuel type."""
-        id_ = assign_member(fuel_type, self.get_fuel_types())
-        value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
+        fuel_type = assign_member(key, self.get_fuel_types())
+        slip = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
 
-        write_matching_keys(id_, value_, self.slip_fractions)
+        write_matching_keys(fuel_type, slip, self.slip_fractions)
 
     @deck_command()
-    def set_consumption_ttw(
-        self, fuel_type: str, emission_name: str, value: ScalarArgument
-    ) -> None:
+    def set_consumption_ttw(self, key1: str, key2: str, value: ScalarArgument) -> None:
         """Set a consumption-related emission for a fuel type in the converter."""
-        id_ = assign_member(fuel_type, self.get_fuel_types())
-        value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
+        fuel_type = assign_member(key1, self.get_fuel_types())
+        ttw = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
 
-        write_matching_key_pairs((id_, emission_name), value_, self.consumption_ttw)
+        write_matching_key_pairs((fuel_type, key2), ttw, self.consumption_ttw)
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:

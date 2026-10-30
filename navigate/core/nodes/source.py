@@ -24,6 +24,6 @@ class Source(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_dependency(self, dependency: str) -> None:
+    def set_dependency(self, value: str) -> None:
         """Set whether the source is standalone or connected to its region's grid."""
-        self.dependency = assign_id(dependency, SourceDependencyID)
+        self.dependency = assign_id(value, SourceDependencyID)

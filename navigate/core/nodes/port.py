@@ -67,35 +67,30 @@ class Port(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
-    def set_shore_power_cost(self, shore_power_cost: ForecastArgument) -> None:
+    def set_shore_power_cost(self, value: ForecastArgument) -> None:
         """Set the shore power electricity tariff of the port."""
         self.shore_power_cost = assign_value(
-            as_scalar(shore_power_cost), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_shore_power_connection_share(
-        self, shore_power_connection_share: ForecastArgument
-    ) -> None:
+    def set_shore_power_connection_share(self, value: ForecastArgument) -> None:
         """Set the fraction of port time with a shore power connection."""
         self.shore_power_connection_share = assign_value(
-            as_scalar(shore_power_connection_share),
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:
+    def set_bunkering_allowed(self, key: str, value: str) -> None:
         """Set whether a fuel may be bunkered in the port."""
-        write_matching_keys(fuel_name, assign_boolean(value), self.bunkering_allowed)
+        write_matching_keys(key, assign_boolean(value), self.bunkering_allowed)
 
     @deck_command()
-    def set_bunkering_limit(self, fuel_name: str, value: ForecastArgument) -> None:
+    def set_bunkering_limit(self, key: str, value: ForecastArgument) -> None:
         """Set the limit on the amount of a fuel bunkered in the port."""
         write_matching_keys(
-            fuel_name,
+            key,
             assign_value(
                 as_scalar(value),
                 type_=(FORECAST, VARIABLE),
@@ -106,10 +101,10 @@ class Port(Node):
         )
 
     @deck_command()
-    def set_bunkering_inertia(self, fuel_name: str, value: ForecastArgument) -> None:
+    def set_bunkering_inertia(self, key: str, value: ForecastArgument) -> None:
         """Set the bunkering inertia of a fuel in the port."""
         write_matching_keys(
-            fuel_name,
+            key,
             assign_value(
                 as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
             ),
@@ -117,43 +112,41 @@ class Port(Node):
         )
 
     @deck_command()
-    def set_handling_cost(self, fuel_name: str, value: ForecastArgument) -> None:
+    def set_handling_cost(self, key: str, value: ForecastArgument) -> None:
         """Set the storage and bunkering service cost of a fuel in the port."""
         write_matching_keys(
-            fuel_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.handling_costs,
         )
 
     @deck_command()
-    def set_bunker_price_overwrite(
-        self, fuel_name: str, value: ForecastArgument
-    ) -> None:
+    def set_bunker_price_overwrite(self, key: str, value: ForecastArgument) -> None:
         """Set the overwrite price of a fuel in the port."""
         write_matching_keys(
-            fuel_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.bunker_price_overwrites,
         )
 
     @deck_command()
     def set_bunker_wtt_overwrite(
-        self, fuel_name: str, emission_name: str, value: ForecastArgument
+        self, key1: str, key2: str, value: ForecastArgument
     ) -> None:
         """Set the overwrite WTT emissions of a fuel in the port for an emission."""
         write_matching_key_pairs(
-            (fuel_name, emission_name),
+            (key1, key2),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.bunker_wtt_overwrites,
         )
 
     @deck_command()
     def set_shore_power_emission_factor(
-        self, emission_name: str, value: ForecastArgument
+        self, key: str, value: ForecastArgument
     ) -> None:
         """Set the shore power emission factor for an emission."""
         write_matching_keys(
-            emission_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.shore_power_emission_factors,
         )

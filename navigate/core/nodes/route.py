@@ -83,20 +83,20 @@ class Route(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_route_type(self, route_type: str) -> None:
+    def set_route_type(self, value: str) -> None:
         """Set the route type."""
-        self.route_type = assign_id(route_type, RouteTypeID)
+        self.route_type = assign_id(value, RouteTypeID)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_ports(self, ports: Port | list[Port]) -> None:
+    def set_ports(self, value: Port | list[Port]) -> None:
         """Set the list of ports available for bunkering on the route."""
-        self.ports = assign_reference_list(ports, PORT, min_length=1)
+        self.ports = assign_reference_list(value, PORT, min_length=1)
 
     @deck_attribute()
-    def set_time_at_sea(self, time_at_sea: ForecastArgument) -> None:
+    def set_time_at_sea(self, value: ForecastArgument) -> None:
         """Set the fraction of time spent at sea."""
         self.time_at_sea = assign_value(
-            as_scalar(time_at_sea),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             upper=1.0,
@@ -105,42 +105,40 @@ class Route(Node):
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_speed(
-        self, port_name_from: str, port_name_to: str, speed: CurveArgument
-    ) -> None:
+    def set_speed(self, key1: str, key2: str, value: CurveArgument) -> None:
         """Set the speed, or the distribution of speeds, sailed on a leg."""
-        value: CurveInput
+        speed: CurveInput
 
-        if isinstance(speed, Curve):
+        if isinstance(value, Curve):
             # a Curve's y is the share of the leg's sea time sailed at its x, the speed
-            value = assign_value(speed, type_=CURVE, lower=0.0, upper=1.0)
+            speed = assign_value(value, type_=CURVE, lower=0.0, upper=1.0)
         else:
             # CURVE lets an expression referencing a Curve through the reference
             # walk, so that check_consistency rejects it with its own message
-            value = assign_value(
-                as_scalar(speed),
+            speed = assign_value(
+                as_scalar(value),
                 type_=(CURVE, VARIABLE),
                 lower=0.0,
                 inclusive_lower=False,
             )
 
-        self._write_legs((port_name_from, port_name_to), value, self.speeds)
+        self._write_legs((key1, key2), speed, self.speeds)
 
     @deck_command()
     def set_utilization(
-        self, port_name_from: str, port_name_to: str, utilization: CurveForecastArgument
+        self, key1: str, key2: str, value: CurveForecastArgument
     ) -> None:
         """Set the cargo capacity utilization on a leg."""
-        if isinstance(utilization, Curve) and self.route_type != RouteTypeID.TRAMP:
+        if isinstance(value, Curve) and self.route_type != RouteTypeID.TRAMP:
             raise ValueError(
                 f"only accepts a Curve on a TRAMP route, but {self} is a"
                 f" {self.route_type.name} route"
             )
 
         self._write_legs(
-            (port_name_from, port_name_to),
+            (key1, key2),
             assign_value(
-                as_scalar(utilization),
+                as_scalar(value),
                 type_=(CURVE, FORECAST, VARIABLE),
                 lower=0.0,
                 upper=1.0,
@@ -149,58 +147,52 @@ class Route(Node):
         )
 
     @deck_command(SECTION_DEFINE)
-    def set_distance(
-        self, port_name_from: str, port_name_to: str, distance: NumberInput
-    ) -> None:
+    def set_distance(self, key1: str, key2: str, value: NumberInput) -> None:
         """Set the distance of a leg."""
         self._check_route_type(RouteTypeID.LINER)
 
         self._write_legs(
-            (port_name_from, port_name_to),
-            assign_value(as_scalar(distance), lower=0.0, inclusive_lower=False),
+            (key1, key2),
+            assign_value(as_scalar(value), lower=0.0, inclusive_lower=False),
             self.distances,
         )
 
     @deck_command()
-    def set_port_duration(
-        self, port_name_from: str, port_name_to: str, port_duration: ForecastArgument
-    ) -> None:
+    def set_port_duration(self, key1: str, key2: str, value: ForecastArgument) -> None:
         """Set the time in port at the stop that ends a leg."""
         self._check_route_type(RouteTypeID.LINER)
 
         self._write_legs(
-            (port_name_from, port_name_to),
-            assign_value(
-                as_scalar(port_duration), type_=(FORECAST, VARIABLE), lower=0.0
-            ),
+            (key1, key2),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.port_durations,
         )
 
     @deck_command()
     def set_voyage_distribution(
-        self, port_name_from: str, port_name_to: str, share: ScalarArgument
+        self, key1: str, key2: str, value: ScalarArgument
     ) -> None:
         """Set the share of the sea miles sailed on a leg."""
         self._check_route_type(RouteTypeID.TRAMP)
 
         self._write_legs(
-            (port_name_from, port_name_to),
-            assign_value(as_scalar(share), type_=VARIABLE, lower=0.0, upper=1.0),
+            (key1, key2),
+            assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0),
             self.voyage_shares,
         )
 
     @deck_command()
-    def set_port_calls(self, port_name: str, port_calls: ForecastArgument) -> None:
+    def set_port_calls(self, key: str, value: ForecastArgument) -> None:
         """Set the number of calls at a port over the reference year."""
         self._check_route_type(RouteTypeID.TRAMP)
 
-        if not matching_keys(port_name, self.port_calls):
-            raise ValueError(f'is given "{port_name}", which matches no port of {self}')
+        if not matching_keys(key, self.port_calls):
+            raise ValueError(f'is given "{key}", which matches no port of {self}')
 
         write_matching_keys(
-            port_name,
+            key,
             assign_value(
-                as_scalar(port_calls),
+                as_scalar(value),
                 type_=(FORECAST, VARIABLE),
                 lower=0.0,
                 inclusive_lower=False,

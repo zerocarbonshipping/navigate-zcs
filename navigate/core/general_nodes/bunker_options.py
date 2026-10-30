@@ -37,42 +37,35 @@ class BunkerOptions(GeneralNode):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
-    def set_solver(self, solver: str) -> None:
+    def set_solver(self, value: str) -> None:
         """Set the solver backend."""
-        self.solver = assign_id(solver, SolverBackendID)
+        self.solver = assign_id(value, SolverBackendID)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_solver_method(self, solver_method: str) -> None:
+    def set_solver_method(self, value: str) -> None:
         """Set the LP solver method."""
-        self.solver_method = assign_id(solver_method, SolverMethodID)
+        self.solver_method = assign_id(value, SolverMethodID)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_solution_tolerance(self, solution_tolerance: float) -> None:
+    def set_solution_tolerance(self, value: float) -> None:
         """Set the solution tolerance."""
         self.solution_tolerance = assign_value(
-            solution_tolerance, lower=0.0, inclusive_lower=False, allow_expression=False
+            value, lower=0.0, inclusive_lower=False, allow_expression=False
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_threads(self, threads: float) -> None:
+    def set_threads(self, value: float) -> None:
         """Set the number of threads of the LP solver."""
-        self.threads = assign_integer(threads, lower=0)
+        self.threads = assign_integer(value, lower=0)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_fair_share_maximum_iterations(
-        self, fair_share_maximum_iterations: float
-    ) -> None:
+    def set_fair_share_maximum_iterations(self, value: float) -> None:
         """Set the maximum number of fair-share iterations."""
-        self.fair_share_maximum_iterations = assign_integer(
-            fair_share_maximum_iterations, lower=1
-        )
+        self.fair_share_maximum_iterations = assign_integer(value, lower=1)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_fair_share_tolerance(self, fair_share_tolerance: float) -> None:
+    def set_fair_share_tolerance(self, value: float) -> None:
         """Set the fair-share tolerance."""
         self.fair_share_tolerance = assign_value(
-            fair_share_tolerance,
-            lower=0.0,
-            inclusive_lower=False,
-            allow_expression=False,
+            value, lower=0.0, inclusive_lower=False, allow_expression=False
         )

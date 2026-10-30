@@ -152,11 +152,11 @@ def test_an_unknown_node_type_in_events_is_rejected_when_read(tmp_path, read_dec
 #           |     set_ttw("co2")
 #           | }
 # expected: -> DeckError "Error in deck file, line 1, include file '.../define.inc',
-#              line 9: 'set_ttw' missing a required argument: 'ttw'."
+#              line 9: 'set_ttw' takes 2 arguments, but 1 was given."
 def test_a_wrong_number_of_command_arguments_is_located(tmp_path, read_deck):
     message = (
         f"Error in deck file, line 1, include file '{tmp_path / 'define.inc'}', "
-        "line 9: 'set_ttw' missing a required argument: 'ttw'."
+        "line 9: 'set_ttw' takes 2 arguments, but 1 was given."
     )
 
     with pytest.raises(DeckError) as raised:

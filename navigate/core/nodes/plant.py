@@ -81,40 +81,40 @@ class Plant(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_fuel(self, fuel: Fuel) -> None:
+    def set_fuel(self, value: Fuel) -> None:
         """Set the fuel produced by the plant."""
-        self.fuel = assign_reference(fuel, FUEL)
+        self.fuel = assign_reference(value, FUEL)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_process(self, process: Process) -> None:
+    def set_process(self, value: Process) -> None:
         """Set the production process used by the plant."""
-        self.process = assign_reference(process, PROCESS)
+        self.process = assign_reference(value, PROCESS)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_region(self, region: Region) -> None:
+    def set_region(self, value: Region) -> None:
         """Set the region in which the plant is built."""
-        self.region = assign_reference(region, REGION)
+        self.region = assign_reference(value, REGION)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_source(self, source: Source) -> None:
+    def set_source(self, value: Source) -> None:
         """Set the energy source powering the plant."""
-        self.source = assign_reference(source, SOURCE)
+        self.source = assign_reference(value, SOURCE)
 
     @deck_attribute(required=True)
-    def set_capacity(self, capacity: ForecastArgument) -> None:
+    def set_capacity(self, value: ForecastArgument) -> None:
         """Set the production capacity of the plant."""
         self.capacity = assign_value(
-            as_scalar(capacity),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute()
-    def set_uptime(self, uptime: ForecastArgument) -> None:
+    def set_uptime(self, value: ForecastArgument) -> None:
         """Set the production uptime of the plant."""
         self.uptime = assign_value(
-            as_scalar(uptime),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             upper=1.0,
@@ -122,62 +122,58 @@ class Plant(Node):
         )
 
     @deck_attribute()
-    def set_lifetime(self, lifetime: ForecastArgument) -> None:
+    def set_lifetime(self, value: ForecastArgument) -> None:
         """Set the lifetime of the plant."""
         self.lifetime = assign_value(
-            as_scalar(lifetime),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute()
-    def set_lead_time(self, lead_time: ForecastArgument) -> None:
+    def set_lead_time(self, value: ForecastArgument) -> None:
         """Set the planning-to-production lead time of the plant."""
         self.lead_time = assign_value(
-            as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
+    def set_cost_of_capital(self, value: ForecastArgument) -> None:
         """Set the cost of capital of the plant."""
         self.cost_of_capital = assign_value(
-            as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_feed_transport(self, feed_name: str, value: Transport) -> None:
+    def set_feed_transport(self, key: str, value: Transport) -> None:
         """Set the transport mode delivering a feedstock or process output."""
         write_matching_keys(
-            feed_name,
-            assign_reference(value, TRANSPORT),
-            self.feed_transports,
+            key, assign_reference(value, TRANSPORT), self.feed_transports
         )
 
     @deck_command()
-    def set_feed_distance(self, feed_name: str, value: ForecastArgument) -> None:
+    def set_feed_distance(self, key: str, value: ForecastArgument) -> None:
         """Set the distance a feedstock or process output is transported."""
         write_matching_keys(
-            feed_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.feed_distances,
         )
 
     @deck_command()
-    def set_fuel_transport(self, port_name: str, value: Transport) -> None:
+    def set_fuel_transport(self, key: str, value: Transport) -> None:
         """Set the transport mode delivering the produced fuel to a port."""
         write_matching_keys(
-            port_name,
-            assign_reference(value, TRANSPORT),
-            self.fuel_transports,
+            key, assign_reference(value, TRANSPORT), self.fuel_transports
         )
 
     @deck_command()
-    def set_fuel_distance(self, port_name: str, value: ForecastArgument) -> None:
+    def set_fuel_distance(self, key: str, value: ForecastArgument) -> None:
         """Set the distance the produced fuel is transported to a port."""
         write_matching_keys(
-            port_name,
+            key,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.fuel_distances,
         )

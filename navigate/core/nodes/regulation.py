@@ -69,74 +69,72 @@ class Regulation(_Policy):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_scheme(self, scheme: str) -> None:
+    def set_scheme(self, value: str) -> None:
         """Set the scheme of the regulation."""
-        self.scheme = assign_id(scheme, RegulationSchemeID)
+        self.scheme = assign_id(value, RegulationSchemeID)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_measure(self, measure: str) -> None:
+    def set_measure(self, value: str) -> None:
         """Set the emission measure of the regulation."""
-        self.measure = assign_id(measure, RegulationMeasureID)
+        self.measure = assign_id(value, RegulationMeasureID)
 
     @deck_attribute()
-    def set_intra_fraction(self, intra_fraction: ForecastArgument) -> None:
+    def set_intra_fraction(self, value: ForecastArgument) -> None:
         """Set the fraction of emissions counted for intra-jurisdiction travel."""
         self.intra_fraction = assign_value(
-            as_scalar(intra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     @deck_attribute()
-    def set_inter_fraction(self, inter_fraction: ForecastArgument) -> None:
+    def set_inter_fraction(self, value: ForecastArgument) -> None:
         """Set the fraction of emissions counted for inter-jurisdiction travel."""
         self.inter_fraction = assign_value(
-            as_scalar(inter_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     @deck_attribute()
-    def set_extra_fraction(self, extra_fraction: ForecastArgument) -> None:
+    def set_extra_fraction(self, value: ForecastArgument) -> None:
         """Set the fraction of emissions counted for extra-jurisdiction travel."""
         self.extra_fraction = assign_value(
-            as_scalar(extra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     @deck_attribute()
-    def set_remedial_cost(self, remedial_cost: ForecastArgument) -> None:
+    def set_remedial_cost(self, value: ForecastArgument) -> None:
         """Set the cost of purchasing a remedial compliance unit."""
         self.remedial_cost = assign_value(
-            as_scalar(remedial_cost), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_flexibility_horizon(self, flexibility_horizon: ForecastArgument) -> None:
+    def set_flexibility_horizon(self, value: ForecastArgument) -> None:
         """Set the decision horizon smoothing the flexibility-cost belief."""
         self.flexibility_horizon = assign_value(
-            as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
         self._flexibility_horizon_unreported = True
 
     @deck_attribute()
-    def set_allow_threshold_adjustment(self, allow_threshold_adjustment: str) -> None:
+    def set_allow_threshold_adjustment(self, value: str) -> None:
         """Set whether the threshold is automatically adjusted on non-compliance."""
-        self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)
+        self.allow_threshold_adjustment = assign_boolean(value)
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_vessel_threshold(
-        self, vessel_name: str, threshold: ForecastArgument
-    ) -> None:
+    def set_vessel_threshold(self, key: str, value: ForecastArgument) -> None:
         """Set the threshold that a specific vessel must satisfy."""
         write_matching_keys(
-            vessel_name,
-            assign_value(as_scalar(threshold), type_=(FORECAST, VARIABLE), lower=0.0),
+            key,
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.vessel_thresholds,
         )
 
     @deck_command()
-    def set_vessel_capacity(self, vessel_name: str, capacity: ForecastArgument) -> None:
+    def set_vessel_capacity(self, key: str, value: ForecastArgument) -> None:
         """Set the capacity of a specific vessel for use in transport calculations."""
         write_matching_keys(
-            vessel_name,
-            assign_value(as_scalar(capacity), type_=(FORECAST, VARIABLE), lower=0.0),
+            key,
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.vessel_capacities,
         )
 

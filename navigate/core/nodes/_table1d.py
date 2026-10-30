@@ -44,24 +44,24 @@ class _Table1D(_Calculator):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
-    def set_interpolate(self, interpolate: str) -> None:
+    def set_interpolate(self, value: str) -> None:
         """Set the interpolation method used within the table."""
-        self.interpolate = assign_id(interpolate, Interpolate1DID)
+        self.interpolate = assign_id(value, Interpolate1DID)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_extrapolate(self, extrapolate: str) -> None:
+    def set_extrapolate(self, value: str) -> None:
         """Set the extrapolation method used beyond the ends of the table."""
-        self.extrapolate = assign_id(extrapolate, ExtrapolateID)
+        self.extrapolate = assign_id(value, ExtrapolateID)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_below(self, below: NumberInput) -> None:
+    def set_below(self, value: NumberInput) -> None:
         """Set the flat extrapolation value below the table."""
-        self.below = assign_value(below, allow_infinite=True)
+        self.below = assign_value(value, allow_infinite=True)
 
     @deck_attribute(SECTION_DEFINE)
-    def set_above(self, above: NumberInput) -> None:
+    def set_above(self, value: NumberInput) -> None:
         """Set the flat extrapolation value above the table."""
-        self.above = assign_value(above, allow_infinite=True)
+        self.above = assign_value(value, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
     @overload

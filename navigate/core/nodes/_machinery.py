@@ -29,30 +29,32 @@ class _Machinery(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
-    def set_capex(self, capex: ForecastArgument) -> None:
+    def set_capex(self, value: ForecastArgument) -> None:
         """Set the CAPEX of installing the machinery."""
         self.capex = assign_value(
-            as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_opex(self, opex: ForecastArgument) -> None:
+    def set_opex(self, value: ForecastArgument) -> None:
         """Set the yearly OPEX of maintaining the machinery."""
-        self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
+        self.opex = assign_value(
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     @deck_attribute()
-    def set_lifetime(self, lifetime: ForecastArgument) -> None:
+    def set_lifetime(self, value: ForecastArgument) -> None:
         """Set the lifetime of the machinery."""
         self.lifetime = assign_value(
-            as_scalar(lifetime),
+            as_scalar(value),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     @deck_attribute()
-    def set_replacement(self, replacement: ForecastArgument) -> None:
+    def set_replacement(self, value: ForecastArgument) -> None:
         """Set the CAPEX fraction paid to reinstall the machinery at end of lifetime."""
         self.replacement = assign_value(
-            as_scalar(replacement), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )

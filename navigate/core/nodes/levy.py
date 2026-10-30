@@ -49,29 +49,29 @@ class Levy(_Policy):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_scheme(self, scheme: str) -> None:
+    def set_scheme(self, value: str) -> None:
         """Set the scheme of the levy."""
-        self.scheme = assign_id(scheme, LevySchemeID)
+        self.scheme = assign_id(value, LevySchemeID)
 
     @deck_attribute()
-    def set_level(self, level: ForecastArgument) -> None:
+    def set_level(self, value: ForecastArgument) -> None:
         """Set the levy level paid or received, depending on scheme."""
         self.level = assign_value(
-            as_scalar(level), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_lower_threshold(self, lower_threshold: ForecastArgument) -> None:
+    def set_lower_threshold(self, value: ForecastArgument) -> None:
         """Set the lower emission factor threshold of the levy."""
         self.lower_threshold = assign_value(
-            as_scalar(lower_threshold), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     @deck_attribute()
-    def set_upper_threshold(self, upper_threshold: ForecastArgument) -> None:
+    def set_upper_threshold(self, value: ForecastArgument) -> None:
         """Set the upper emission factor threshold of the levy."""
         self.upper_threshold = assign_value(
-            as_scalar(upper_threshold), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     # internal methods -----------------------------------------------------------------

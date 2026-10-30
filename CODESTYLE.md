@@ -19,8 +19,8 @@ arbiter.
 - Give parameters, variables and attributes descriptive names, not single
   letters or opaque prefixes: `multipliers_total`, not `m`. Exempt are an
   integer index of a loop or comprehension (`i`, `j`, `k`, `t`), but not an
-  element or key variable, and the axis variables `x`, `y` of a table or
-  interpolation.
+  element or key variable, the axis variables `x`, `y` of a table or
+  interpolation, and the parameters of a DSL setter (see Nodes and the DSL).
 - Reserve a bare `idx` for the time-step index, or for the slice of time steps a
   getter takes in its place, and qualify every other index: `vessel_idx`,
   `plant_idx`. Bound to a name, the slice from the time step onward is
@@ -76,6 +76,10 @@ arbiter.
   Add a second paragraph only for an implementation note the code cannot
   show. A `set_` method the model calls rather than the deck
   (`set_internal_bounds`) is no DSL setter and follows the Docstrings rules.
+- A DSL setter's parameters are generic, as its name says what it sets: an
+  attribute setter takes `value`, a command `key, value` or
+  `key1, key2, value`. A local holding a converted key or value is named for
+  what it holds (`energy_type`, `saving`).
 - Deck-facing attribute tokens keep their DSL casing (`CAPEX`,
   `TotalEquivalentWTT`); `attribute_to_setter` (`navigate/util/naming.py`)
   maps them to setter names.

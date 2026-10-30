@@ -47,9 +47,9 @@ class Timetable(Node, _Table2D):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
-    def set_table(self, table: TableData) -> None:
+    def set_table(self, value: TableData) -> None:
         """Set the table of x-, y- and z-values the timetable interpolates in."""
-        self._pending_table = build_table_2d_dated(table)
+        self._pending_table = build_table_2d_dated(value)
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
