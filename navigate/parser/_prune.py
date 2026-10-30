@@ -58,14 +58,6 @@ class Pruning:
     events: list[BoundEvent]
 
 
-def _is_activating(node_type: str, item: BodyItem) -> bool:
-    """Whether the references of an item make their targets part of the simulation."""
-    if isinstance(item, Assignment):
-        return (node_type, item.attribute) not in NON_ACTIVATING
-
-    return True
-
-
 def prune(collector: Collector, events: list[BoundEvent]) -> Pruning:
     """
     Keep the declarations a top-level node reaches, and the events targeting them.
@@ -148,6 +140,14 @@ def _referenced(
     return referenced
 
 
+def _is_activating(node_type: str, item: BodyItem) -> bool:
+    """Whether the references of an item make their targets part of the simulation."""
+    if isinstance(item, Assignment):
+        return (node_type, item.attribute) not in NON_ACTIVATING
+
+    return True
+
+
 def _warn_unused(declarations: dict[Key, Declaration], reached: set[Key]) -> None:
     unused: list[Declaration] = []
 
@@ -171,20 +171,20 @@ def _warn_unused(declarations: dict[Key, Declaration], reached: set[Key]) -> Non
 
 def _keep_events(events: list[BoundEvent], reached: set[Key]) -> list[BoundEvent]:
     kept: list[BoundEvent] = []
-    dropped: list[EventBlock] = []
+    dropped: list[str] = []
 
     for block, targets in events:
         kept_targets = [key for key in targets if key in reached]
         if kept_targets:
             kept.append((block, kept_targets))
         else:
-            dropped.append(block)
+            dropped.append(f"{block} at {block.source.prefix()}")
 
     if dropped:
         logger.warning(
             "Dropped %s EVENTS statement(s) targeting only unused node(s):%s",
             len(dropped),
-            "".join(f"\n\t- {block} at {block.source.prefix()}" for block in dropped),
+            "".join(f"\n\t- {line}" for line in dropped),
         )
 
     return kept

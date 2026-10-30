@@ -489,13 +489,30 @@ def _check_node_type(node_type: str, source: SourceLocation) -> None:
         raise source.error(f"'{node_type}' is not a recognized node type.")
 
 
-def _check_general_node_type(node_type: str, source: SourceLocation) -> None:
-    """Raise at the source unless the keyword is a general node, declared nameless."""
-    if node_type in NODE_CLASS:
-        raise source.error(f"'{node_type}' is a node type and is declared with a name.")
+def _check_item(node_type: str, item: BodyItem, section: SectionID) -> None:
+    """Raise at the item unless its name, section and references are allowed."""
+    deck_entry(node_type, item, section)
 
-    if node_type not in GENERAL_NODE_CLASS:
-        raise source.error(f"'{node_type}' is not a recognized node type.")
+    for reference, in_expression in item_references(item):
+        if reference.type not in NODE_CLASS:
+            raise item.source.error(
+                f"'{reference.type}' is not a recognized node type."
+            )
+
+        if not reference.is_wildcard:
+            continue
+
+        if in_expression:
+            raise item.source.error(
+                f"Expression references {reference}: a node reference in an "
+                "expression must not contain wildcards."
+            )
+
+        if isinstance(item, Command):
+            raise item.source.error(
+                f"'{item.name}' does not accept a wildcard node reference as an "
+                "argument."
+            )
 
 
 def deck_entry(node_type: str, item: BodyItem, section: SectionID) -> DeckEntry:
@@ -581,27 +598,10 @@ def check_no_self_reference(key: Key, body: list[BodyItem]) -> None:
             )
 
 
-def _check_item(node_type: str, item: BodyItem, section: SectionID) -> None:
-    """Check an item's attribute or command and its references, located."""
-    deck_entry(node_type, item, section)
+def _check_general_node_type(node_type: str, source: SourceLocation) -> None:
+    """Raise at the source unless the keyword is a general node, declared nameless."""
+    if node_type in NODE_CLASS:
+        raise source.error(f"'{node_type}' is a node type and is declared with a name.")
 
-    for reference, in_expression in item_references(item):
-        if reference.type not in NODE_CLASS:
-            raise item.source.error(
-                f"'{reference.type}' is not a recognized node type."
-            )
-
-        if not reference.is_wildcard:
-            continue
-
-        if in_expression:
-            raise item.source.error(
-                f"Expression references {reference}: a node reference in an "
-                "expression must not contain wildcards."
-            )
-
-        if isinstance(item, Command):
-            raise item.source.error(
-                f"'{item.name}' does not accept a wildcard node reference as an "
-                "argument."
-            )
+    if node_type not in GENERAL_NODE_CLASS:
+        raise source.error(f"'{node_type}' is not a recognized node type.")

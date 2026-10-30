@@ -404,13 +404,35 @@ _LITERALS = {
 }
 
 
-def _describe(terminal: str) -> str:
-    """Name a terminal as a deck author reads it: its text, or its name in words."""
-    if terminal == "$END":
-        return "end of file"
-    if terminal in _LITERALS:
-        return f"'{_LITERALS[terminal]}'"
-    return terminal.lower().replace("_", " ")
+def parse_deck_content(text: str, file: str = "") -> Deck:
+    """Parse the text of a deck (.nav) file; ``file`` is named in errors."""
+    deck = _parse("deck", text, file, 0)
+    assert isinstance(deck, Deck)
+    return deck
+
+
+def parse_include_content(
+    text: str, file: str = "", deck_line: int = 0
+) -> list[Statement]:
+    """Parse the text of an include (.inc) file read through a deck directive."""
+    statements = _parse("include_file", text, file, deck_line)
+    assert isinstance(statements, list)
+    return statements
+
+
+def _parse(start: str, text: str, file: str, deck_line: int) -> object:
+    # the LALR parser reports running out of input as an UnexpectedToken
+    try:
+        tree = _PARSER.parse(text, start=start)
+    except (UnexpectedToken, UnexpectedCharacters) as error:
+        raise _syntax_error(error, text, file, deck_line) from None
+
+    # lark wraps an error a rule method raises; the deck error inside is the
+    # one to report
+    try:
+        return _NavTransformer(text, file, deck_line).transform(tree)
+    except VisitError as error:
+        raise error.orig_exc from None
 
 
 def _syntax_error(
@@ -442,32 +464,10 @@ def _syntax_error(
     return DeckError(f"{where}:\n\n{context}\nUnexpected {got} - expected {listed}")
 
 
-def _parse(start: str, text: str, file: str, deck_line: int) -> object:
-    # the LALR parser reports running out of input as an UnexpectedToken
-    try:
-        tree = _PARSER.parse(text, start=start)
-    except (UnexpectedToken, UnexpectedCharacters) as error:
-        raise _syntax_error(error, text, file, deck_line) from None
-
-    # lark wraps an error a rule method raises; the deck error inside is the
-    # one to report
-    try:
-        return _NavTransformer(text, file, deck_line).transform(tree)
-    except VisitError as error:
-        raise error.orig_exc from None
-
-
-def parse_deck_content(text: str, file: str = "") -> Deck:
-    """Parse the text of a deck (.nav) file; ``file`` is named in errors."""
-    deck = _parse("deck", text, file, 0)
-    assert isinstance(deck, Deck)
-    return deck
-
-
-def parse_include_content(
-    text: str, file: str = "", deck_line: int = 0
-) -> list[Statement]:
-    """Parse the text of an include (.inc) file read through a deck directive."""
-    statements = _parse("include_file", text, file, deck_line)
-    assert isinstance(statements, list)
-    return statements
+def _describe(terminal: str) -> str:
+    """Name a terminal as a deck author reads it: its text, or its name in words."""
+    if terminal == "$END":
+        return "end of file"
+    if terminal in _LITERALS:
+        return f"'{_LITERALS[terminal]}'"
+    return terminal.lower().replace("_", " ")

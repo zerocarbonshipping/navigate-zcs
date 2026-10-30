@@ -213,9 +213,9 @@ class Builder:
 
         try:
             setter(value)
-        except ValueError as e:
+        except ValueError as error:
             raise item.source.error(
-                f"{holder} attribute '{item.attribute}' {e!s}."
+                f"{holder} attribute '{item.attribute}' {error}."
             ) from None
 
         self._check_expressions()
@@ -229,13 +229,13 @@ class Builder:
         # inside the command is a bug and keeps its traceback
         try:
             inspect.signature(method).bind(*inputs)
-        except TypeError as e:
-            raise item.source.error(f"'{item.name}' {e!s}.") from None
+        except TypeError as error:
+            raise item.source.error(f"'{item.name}' {error}.") from None
 
         try:
             method(*inputs)
-        except ValueError as e:
-            raise item.source.error(f"'{item.name}' {e!s}.") from None
+        except ValueError as error:
+            raise item.source.error(f"'{item.name}' {error}.") from None
 
         self._check_expressions()
 
@@ -244,8 +244,8 @@ class Builder:
         for expression, source in unchecked:
             try:
                 expression.check_consistency()
-            except ValueError as e:
-                raise source.error(str(e)) from None
+            except ValueError as error:
+                raise source.error(str(error)) from None
 
     def _check_required(self, holder: Holder) -> None:
         assigned = self._assigned.get(holder, set())
@@ -271,20 +271,20 @@ class Builder:
         for table in dated:
             try:
                 table.build_table(start_date)
-            except ValueError as e:
-                raise DeckError(f"{table}: {e!s}") from None
+            except ValueError as error:
+                raise DeckError(f"{table}: {error}") from None
 
         for table in undated:
             try:
                 table.build_table()
-            except ValueError as e:
-                raise DeckError(f"{table}: {e!s}") from None
+            except ValueError as error:
+                raise DeckError(f"{table}: {error}") from None
 
     def _run_lifecycle(self, sweep: Callable[[Nodes], None]) -> None:
         try:
             sweep(self.nodes)
-        except ValueError as e:
-            raise DeckError(str(e)) from None
+        except ValueError as error:
+            raise DeckError(str(error)) from None
 
     # materializing values -------------------------------------------------------------
 
@@ -356,14 +356,14 @@ class Builder:
         return expression
 
     def _warn_dropped(self) -> None:
-        if not self._dropped:
+        dropped, self._dropped = self._dropped, []
+        if not dropped:
             return
 
         logger.warning(
             "Removed %s reference(s) to unused node(s):%s\n"
             "Assign the removed node(s) to a Route to keep them, or drop the stale "
             "reference(s) from the deck.",
-            len(self._dropped),
-            "".join(f"\n\t- {line}" for line in self._dropped),
+            len(dropped),
+            "".join(f"\n\t- {line}" for line in dropped),
         )
-        self._dropped = []
