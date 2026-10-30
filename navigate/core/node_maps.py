@@ -50,14 +50,14 @@ def define_vessel_fuel_maps(vessels: dict[str, Vessel], fuels: dict[str, Fuel]) 
         per_converter = _fuels_per_converter(vessel, usable_fuels)
         per_fuel = _converters_per_fuel(vessel, usable_fuels, per_converter)
         per_port_converter = _fuels_per_port_converter(vessel, per_converter)
-        port_per_fuel = _port_converters_per_fuel(per_fuel, per_port_converter)
+        per_fuel_in_port = _port_converters_per_fuel(per_fuel, per_port_converter)
 
         vessel.usable_fuels = usable_fuels
         vessel.fuels_per_tank = per_tank
         vessel.fuels_per_converter = per_converter
         vessel.converters_per_fuel = per_fuel
         vessel.fuels_per_port_converter = per_port_converter
-        vessel.port_converters_per_fuel = port_per_fuel
+        vessel.port_converters_per_fuel = per_fuel_in_port
 
 
 def _fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fuel]]:
@@ -207,7 +207,7 @@ def define_producer_fuels(producers: dict[str, Producer]) -> None:
         fuels: dict[str, Fuel] = {}
 
         for plant in producer.plants:
-            fuels.setdefault(plant.fuel.name, plant.fuel)
+            fuels[plant.fuel.name] = plant.fuel
 
         producer.fuels = fuels
 

@@ -50,7 +50,7 @@ def update_bunkered_equals_spent_constraints(
     model = alg.model
 
     for f, converters in vessel.converters_per_fuel.items():
-        converters_in_port = vessel.port_converters_per_fuel[f]
+        port_converters = vessel.port_converters_per_fuel[f]
 
         key = (v, f)
         constraint = get_constraint(alg, rows, key, "==", "bunkered_equals_spent")
@@ -63,6 +63,6 @@ def update_bunkered_equals_spent_constraints(
             for i, e in legs:
                 model.set_coefficient(constraint, spend_sea[v, c, f, i, e], -1.0)
 
-        for c in converters_in_port:
+        for c in port_converters:
             for p in stops:
                 model.set_coefficient(constraint, spend_port[v, c, f, p], -1.0)
