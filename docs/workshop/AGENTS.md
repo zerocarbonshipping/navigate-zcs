@@ -78,7 +78,9 @@ teach structure, never numbers: some of their values exist nowhere in the librar
 A number the library lacks is marked INVENTED, with what it was derived from, and
 listed in the `.nav` header. A number the person gives in a prompt is used as
 given and marked GIVEN (`building-a-deck.md` says how): the prompts that rebuild
-examples 1 to 3 give those decks' own numbers that way.
+examples 1 to 3 give those decks' own numbers that way. The library's money is
+in US dollars of 2024; `building-a-deck.md` (Numbers) and Session 5 ("Using your
+own numbers") say so, so change both when the reference year changes.
 
 ## Figures
 

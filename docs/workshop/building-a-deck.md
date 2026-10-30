@@ -146,6 +146,33 @@ prompt calls it; list them in the `.nav` header next to the INVENTED ones. They
 are the person's to source: do not swap them for library values. If one is far
 from the library's, say so once, in the case sheet.
 
+Navigate reads each number in the unit its property expects, and has no units
+of its own to check them: the reference manual gives the unit of each attribute,
+and each library file states it in its header (`# Unit: USD / ton`). Money is in
+US dollars of 2024, the library's reference year. When you ask the person for a number, give Navigate's unit for it ("the
+fuel oil price, in USD per tonne"), so that they can answer in that unit. When
+they give a number in another unit or currency, convert it, and keep the
+original with the conversion, so that they can check it and redo it later:
+
+- in the comment where the number appears: the original value with its unit (and,
+  for money, its currency and year), each factor with its source, and the result,
+  for example `# GIVEN: 12 USD/GJ x 41.2 GJ/t (lower_heating_value_oil) = 494.4 USD/t`;
+- in the `.nav` header, one line per converted number, with the other GIVEN ones;
+- in the case sheet, for the person to approve before you build.
+
+The conversion is the person's responsibility, as the number is: in the case
+sheet, ask them to check each conversion, its factors and its result, and do
+not build until they have confirmed it.
+
+Take physical factors from the library where it has them (a fuel's
+LowerHeatingValue, a ship's capacity). The library holds no exchange rate: ask
+the person for the rate to use, or propose one and give its date and source, and
+write both in the comment. Money from another year is brought to 2024 dollars
+the same way, with the price index and its source in the comment. If a unit, a currency or a year is missing or can be
+read two ways (tonnes or long tons, lower or higher heating value, per TEU or per
+tonne, today's money or a past year's), ask rather than guess. Never convert a
+number without saying so.
+
 A fleet is a market segment owned by many companies: hundreds of ships, or a
 share of a library class, never one company's fleet or a single ship. Navigate
 decides for the segment as a whole, in fractions of ships, so a case about one
