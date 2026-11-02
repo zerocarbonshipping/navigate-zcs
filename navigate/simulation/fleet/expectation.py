@@ -329,7 +329,7 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
 
         # the bunkered mass is per port, so a port the route calls more than once
         # counts once
-        ports = dict.fromkeys(vessel.route.ports)
+        ports = vessel.route.distinct_ports
         for port, fuel_name in itertools.product(ports, fuels):
             mass = expectation.get_bunker_mass_expected(port.name, fuel_name, forward)
             demand[fuel_name] += multipliers * mass

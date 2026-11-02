@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import RegulationMeasureID
-from navigate.util import TON_TO_KG, unique_list
+from navigate.util import TON_TO_KG
 
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
@@ -122,7 +122,7 @@ def calculate_vessel_spend_coefficients(
             spend = emission - threshold_term * lhv
             expectation.set_spend_coefficient(fuel_key, idx, spend)
 
-    for port in unique_list(vessel.route.ports):
+    for port in vessel.route.distinct_ports:
         port_key = (vessel_name, port.name)
         emission = expectation.get_shore_power_emission_coefficient(port.name, idx)
 

@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.levy import Levy
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray, FloatLike
@@ -135,14 +136,12 @@ def _calculate_regulation_wtt(
         if not regulation.in_jurisdiction_vessel[vessel_name]:
             continue
 
-        ports = unique_list(vessel.route.ports)
-
         for fuel in _select_target_fuels(regulation, vessel):
             for emission in regulation.emissions:
                 key = (fuel.name, emission.name)
                 wtt = supplied[key]
                 if wtt is None:
-                    wtt = _average_wtt_over_route(ports, fuel, emission, idx)
+                    wtt = _average_wtt_over_route(vessel.route, fuel, emission, idx)
 
                 factor = _apply_gwp(wtt, regulation, emission)
                 expectation.set_wtt((vessel_name, *key), idx, factor)
@@ -462,7 +461,7 @@ def _calculate_levy_costs(
     upper = None if levy.upper_threshold is None else levy.upper_threshold.get(times)
 
     for vessel_name, vessel in vessels.items():
-        ports = list_intersection(vessel.route.ports, levy.jurisdiction)
+        ports = list_intersection(vessel.route.distinct_ports, levy.jurisdiction)
         if not ports:
             continue
 
@@ -589,19 +588,19 @@ def _apply_thresholds(
 
 
 def _average_wtt_over_route(
-    ports: list[Port], fuel: Fuel, emission: Emission, idx: int
+    route: Route, fuel: Fuel, emission: Emission, idx: int
 ) -> FloatLike:
     """
     Estimate a vessel's WTT emissions of a fuel as the mean over its route ports.
 
     The mean weighs equally the ports that allow bunkering the fuel and have an
-    estimate for it. A port listed twice counts twice, so callers pass each port once.
-    Where no port contributes, the result is NaN.
+    estimate for it, a port the route calls more than once counting once. Where no
+    port contributes, the result is NaN.
 
     Parameters
     ----------
-    ports
-        Ports on the vessel's route whose estimates are averaged, each listed once.
+    route
+        Route of the vessel, whose ports' estimates are averaged.
     fuel
         Fuel whose WTT emissions are estimated.
     emission
@@ -615,7 +614,7 @@ def _average_wtt_over_route(
         Approximate WTT from `idx` onward, in ton emission/ton fuel.
     """
     estimates = []
-    for port in ports:
+    for port in route.distinct_ports:
         if not port.bunkering_allowed[fuel.name]:
             continue
 

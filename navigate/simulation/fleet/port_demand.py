@@ -77,7 +77,7 @@ def _calculate_vessel_demand(
     route = vessel.route
     demand: dict[tuple[str, FuelTypeID], FloatLike] = {}
 
-    for port in dict.fromkeys(route.ports):
+    for port in route.distinct_ports:
         energies = _calculate_energy_at_port(route, port, energy_sea_leg, energy_port)
         fuel_type_demand = _calculate_fuel_type_demand(vessel, energies)
 
