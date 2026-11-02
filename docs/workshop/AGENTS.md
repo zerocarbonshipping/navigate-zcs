@@ -22,7 +22,8 @@ Five sessions, each a notebook, in this order:
 5. `05-build-your-own-case.ipynb`: building a case with an AI assistant, step by step
    (local install only)
 
-`_style.py` holds the shared figure style. `_results.py` holds Session 1's results
+`_style.py` holds the shared figure style. `annotated/` holds commented
+copies of the library files Session 3's tabs explain; Navigate never reads them. `_results.py` holds Session 1's results
 figure (emissions, freight rate, fuel consumed) as functions, which the Examples
 pages and their explore notebooks use; Sessions 1, 2 and 4 still define their own
 copies. `index.md` is the overview page. The
@@ -54,6 +55,15 @@ behaviour at run time, as `navigate_charts()` swaps colours while Navigate draws
 but never by patching the package. A change to `navigate/` is made only when the
 authors ask for that specific change, and then as a commit of its own.
 
+## The assumptions library
+
+Work on the workshop never changes `assumptions/`, not even a comment: the
+default values and their files are the Center's, shared by every deck and every
+user. A number the workshop needs differently goes in the deck (marked INVENTED
+or GIVEN, see Numbers), and an explanation of a library line goes in an
+annotated copy under `annotated/` (see Prose). This was learned the hard way: teaching comments
+added to fourteen library files on 2026-11-02 had to be reverted.
+
 ## Prose
 
 - Name the actor. The **owners** order, retrofit and scrap ships and fit
@@ -65,7 +75,22 @@ authors ask for that specific change, and then as a commit of its own.
   problem in existing prose is raised with the authors, not rewritten in place.
 - Teaching belongs in the notebook. Comments in `.nav` and `.inc` files stay
   minimal: the SPDX header, a one-line title, the INVENTED marker and what a
-  number was derived from, and syntax traps the code cannot show.
+  number was derived from, and syntax traps the code cannot show. The exception
+  is `example_4`, Session 3's teaching deck: its comments explain each line and
+  number, and Session 3 shows the files in tabs rather than repeating them in
+  prose. Text about one line of the deck goes in its comment, not in the
+  notebook, next to the number it explains (inline, or above the row of a
+  table). The notebook does not point readers to those comments ("see the comment
+  in…", "(Delivery tab)"): the tabs sit right there. When a change makes a
+  comment wrong (a number, a line or a file it describes), update the comment in
+  the same change.
+- A library file Session 3 shows in its tabs is never commented in place (see
+  "The assumptions library" below). To explain one of its lines, copy the file to
+  `annotated/` under its own path (e.g.
+  `annotated/assumptions/defaults/installation/Tank/…`) and add the comments
+  there; `show_deck` then shows the copy, captioned "annotated copy for the
+  workshop", and stops if its lines (comments aside) no longer match the
+  library's. When the library file changes, copy it again and keep the comments.
 - Before changing a number in the prose to match a run, run again and check it is
   stable. The global decks move in the last digit from one run to the next, so
   quote them to no more precision than they reproduce at. The example_4 figures
@@ -110,7 +135,9 @@ own numbers") say so, so change both when the reference year changes.
   output contains mojibake (`â€`, `Ã`), and no output contains a local path or
   user name.
 - The docs build does not execute the notebooks (`nb_execution_mode = 'off'`), so
-  what is saved is what is published.
+  what is saved is what is published. Session 3's tab cells save the text of
+  the files they show (`example_4`'s and some library files), so run them again
+  whenever one of those files changes.
 
 ## Prompts
 

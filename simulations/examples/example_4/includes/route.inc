@@ -26,6 +26,7 @@ Route "copper_route" {
     # Modal service speed from the library's operational profile for this ship class.
     Speeds = [11.5, 11.5]
 
-    # Laden out, ballast home.
+    # The two legs are asymmetric: outbound the ship is full of copper
+    # concentrate; homebound it sails in ballast (empty).
     CapacityUtilizations = [1.0, 0.0]
 }

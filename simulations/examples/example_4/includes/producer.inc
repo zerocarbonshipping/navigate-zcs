@@ -1,7 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# PRODUCERS - the agents that decide whether to build another plant.
+# PRODUCERS - the agents that decide whether to build fuel plants, and which
+# ones. Two of them: an e-fuel producer that can build e-ammonia and e-methanol
+# in either Patagonia or Europe, and a biofuel producer that builds
+# bio-methanol (only in Europe).
+#
+# The feedstocks for bio-methanol (biomass) and e-methanol (biogenic CO2) are
+# constrained, so plant build is limited for these two fuels.
 
 Producer "producer_efuel" {
 	Plants = [Plant("plant_methanol_electro_alkaline"),
@@ -9,6 +15,7 @@ Producer "producer_efuel" {
 	          Plant("plant_methanol_electro_alkaline_europe"),
 	          Plant("plant_ammonia_electro_alkaline_europe")]
 
+	# Caps the plant build in a year; not binding in this example.
 	MaximumDevelopment = <Forecast("epc_global_capacity_mid") * Forecast("epc_global_share_shipping")>
 
 	# Ceiling on biogenic CO2, the feedstock both its e-methanol plants draw on.

@@ -3,15 +3,18 @@
 
 # EU ETS - absolute price on CO2-equivalent burned on board, no free allowance.
 #
-# The coverage fractions are applied PER LEG (one sailing
+# In Navigate a regulation is applied to a specific geography. Jurisdiction lists
+# the ports that sit inside the regulatory scheme: here Rotterdam, but not San
+# Antonio. Three fractions decide how much of the fuel burned on a voyage is
+# counted. They are applied PER LEG (one sailing
 # from one port to the next), not to the round trip. Both legs
 # here are inter-jurisdiction, so both count at 50%. Port stays are classified
 # by their own port, so Rotterdam counts in full and San Antonio not at all.
 
 Regulation "eu_ets" {
 	Measure = ABSOLUTE
-	Scheme = INDIVIDUAL
-	Scope = TTW
+	Scheme = INDIVIDUAL   # applies per vessel
+	Scope = TTW           # tank to wake: the emissions that come out of the ship's engine
 	IncludeSlip = FALSE   # methane slip is carried in the TTW methane factors
 	Emissions = [Emission("carbon_dioxide"), Emission("methane"), Emission("nitrous_oxide")]
 	Fuels = Fuel("*")
@@ -32,6 +35,9 @@ Regulation "eu_ets" {
 	set_global_warming_potential("methane", 28)
 	set_global_warming_potential("nitrous_oxide", 265)
 
+	# Beyond the geography, most of the content is emission factors: a
+	# set_fuel_ttw line per fuel per gas, saying what a ton of that fuel emits
+	# once burned.
 	# Emission factors follow MRV Maritime Regulation Annex I. Bio and electro
 	# fuels are assumed to meet the >65% criterion, so are zero-rated for CO2 but
 	# still take "highest in class" methane and nitrous oxide.

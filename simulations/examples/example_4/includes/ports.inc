@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# PORTS - what can be bunkered where. All three alternative fuels are bunkerable at
-# both ports; a fuel is shipped to the port that did not produce it, the same way
-# Chilean e-ammonia reaches Rotterdam.
+# PORTS - what can be bunkered where. Both ports sell the same five fuels: fuel
+# oil, LNG, e-ammonia, e-methanol and bio-methanol. A fuel is shipped from the
+# region that made it to the port that needs it, the same way Chilean e-ammonia
+# reaches Rotterdam.
 # Delivered price is production cost plus transport, set in bunker_logistics.inc.
 
 Port "san_antonio" {
@@ -31,7 +32,13 @@ Port "*" {
     set_bunker_wtt_overwrite("liquefied_natural_gas", "carbon_dioxide", Forecast("liquefied_natural_gas_wtt_carbon_dioxide"))
     set_bunker_wtt_overwrite("liquefied_natural_gas", "methane", Forecast("liquefied_natural_gas_wtt_methane"))
 
-    # cost of physically getting the fuel aboard, USD/ton
+    # Cost of physically getting the fuel aboard, USD/ton: a fixed cost per ton
+    # for storage and the bunkering service. These per-ton charges are the only
+    # infrastructure costs in Navigate: terminals, storage tanks and bunker
+    # vessels have no investment cost and are never built. A slow or costly port
+    # build-out has to be entered by hand: set_bunkering_allowed or
+    # set_bunkering_limit for when and how much a port can deliver, and a higher
+    # or time-varying handling cost for what it costs.
     set_handling_cost("fossil_fuel_oil", Variable("handling_cost_oil"))
     set_handling_cost("liquefied_natural_gas", Variable("handling_cost_lng"))
     set_handling_cost("methanol_electro", Variable("handling_cost_methanol"))

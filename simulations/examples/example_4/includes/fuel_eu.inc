@@ -3,17 +3,17 @@
 
 # FUELEU MARITIME - caps WTW greenhouse gas intensity, tightening over time.
 #
-# The e-fuels get no default set_fuel_wtt. Instead, Navigate calculates
-# their upstream intensity from the production chain in regions.inc, so the
-# power price at each site feeds their FuelEU score. The fossil fuels and
-# bio-methanol instead use the regulation's own defaults.
-#
-# Same coverage geography as eu_ets.inc.
+# The same shape and coverage geography as eu_ets.inc, plus set_fuel_wtt lines
+# for the fuels whose upstream value the regulation fixes by default: the fossil
+# fuels and bio-methanol. The e-fuels get none, since the regulation has no
+# default for them. Instead, Navigate calculates their upstream intensity from
+# the production chain in regions.inc, so the power price at each site feeds
+# their FuelEU score.
 
 Regulation "fuel_eu" {
 	Measure = INTENSITY
-	Scheme = FLEXIBLE     # pooled and banked across years, unlike the ETS
-	Scope = WTW
+	Scheme = FLEXIBLE     # applies for the fleet, pooled and banked across years, unlike the ETS (INDIVIDUAL, per vessel)
+	Scope = WTW           # well to wake: TTW, plus the emissions to make and deliver the fuel
 	IncludeSlip = FALSE   # methane slip is carried in the TTW methane factors
 	Emissions = [Emission("carbon_dioxide"), Emission("methane"), Emission("nitrous_oxide")]
 	Fuels = Fuel("*")

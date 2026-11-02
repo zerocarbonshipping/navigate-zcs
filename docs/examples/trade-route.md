@@ -66,10 +66,6 @@ how the model solves it.
 :language: python
 :caption: includes/ports.inc
 ```
-```{literalinclude} ../../simulations/examples/example_4/includes/bunker_logistics.inc
-:language: python
-:caption: includes/bunker_logistics.inc
-```
 ::::
 
 ::::{tab-item} Fuel
@@ -84,6 +80,10 @@ how the model solves it.
 ```{literalinclude} ../../simulations/examples/example_4/includes/producer.inc
 :language: python
 :caption: includes/producer.inc
+```
+```{literalinclude} ../../simulations/examples/example_4/includes/bunker_logistics.inc
+:language: python
+:caption: includes/bunker_logistics.inc
 ```
 ::::
 

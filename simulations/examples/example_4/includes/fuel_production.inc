@@ -3,6 +3,12 @@
 
 # FUEL PRODUCTION - five fuels for four ships; both methanols feed one ship.
 #
+# A vessel is defined by the fuel TYPE its engine and tanks accept, and several
+# fuels can satisfy one type: the same methanol ship can burn bio-methanol,
+# e-methanol or oil (dual-fuel engine). Fuel oil and LNG are bought on the world
+# market; e-ammonia, e-methanol and bio-methanol need to be produced by a fuel
+# plant.
+#
 # Only the siting and financing are set here (region, electricity source and
 # cost of capital, which Import Plant does not bring: the library sets it in
 # DefaultPlant). Lead times, lifetimes, capacities and process economics come
