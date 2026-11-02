@@ -95,7 +95,7 @@ def write_results(
     Path
         The file written.
     """
-    table = results_table(results, run_name, params)
+    table = _results_table(results, run_name, params)
 
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -114,27 +114,10 @@ def write_results(
     return path
 
 
-def results_table(
+def _results_table(
     results: SimulationResults, run_name: str, params: Mapping[str, str]
 ) -> pa.Table:
-    """
-    Build the results table of a run, metadata included.
-
-    Parameters
-    ----------
-    results
-        Results of the finished run.
-    run_name
-        Name of the run, stored in the table metadata.
-    params
-        Value of each %NAME% placeholder the deck was read with, stored in the
-        table metadata.
-
-    Returns
-    -------
-    pa.Table
-        One row per series and date, in SCHEMA.
-    """
+    """Build the results table of a run, one row per series and date, with metadata."""
     days = results.dateline.astype("datetime64[D]")
     step_years = step_lengths(dates_to_years(results.dateline))
     series = list(_series(results, step_years))
@@ -160,19 +143,7 @@ def results_table(
 def _results_by_node(
     results: SimulationResults,
 ) -> Iterator[tuple[str, str, BaseResults]]:
-    """
-    Walk the global results and every node's results of the run.
-
-    Parameters
-    ----------
-    results
-        Results of the finished run.
-
-    Yields
-    ------
-    tuple[str, str, BaseResults]
-        Node kind, node name ("" for the global results) and results.
-    """
+    """Walk the global results and every node's results of the run."""
     yield GLOBAL_KIND, "", results.global_results
 
     for node in results.nodes.all_nodes():
@@ -181,21 +152,7 @@ def _results_by_node(
 
 
 def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Series]:
-    """
-    Yield every series of every result that is not negligible throughout.
-
-    Parameters
-    ----------
-    results
-        Results of the finished run.
-    step_years
-        Length of each time step, years, to turn per-step counts into rates.
-
-    Yields
-    ------
-    Series
-        Each timeline, in node and result order.
-    """
+    """Yield every series of every result that is not negligible throughout."""
     for kind, node, node_results in _results_by_node(results):
         per_step = per_step_results(type(node_results))
 
@@ -244,24 +201,7 @@ def _label(key: str | Enum | None) -> str | None:
 def _metadata(
     results: SimulationResults, run_name: str, params: Mapping[str, str]
 ) -> dict[str, Any]:
-    """
-    Describe the run: schema, provenance, placeholder values, units and constants.
-
-    Parameters
-    ----------
-    results
-        Results of the finished run, whose results name the units and hold the
-        constants.
-    run_name
-        Name of the run.
-    params
-        Value of each %NAME% placeholder the deck was read with.
-
-    Returns
-    -------
-    dict[str, Any]
-        JSON-serializable metadata.
-    """
+    """Describe the run: schema, provenance, placeholder values, units and constants."""
     plants = results.nodes.plants.values()
 
     return {
