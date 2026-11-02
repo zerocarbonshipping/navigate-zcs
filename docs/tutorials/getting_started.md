@@ -25,7 +25,7 @@ Download **Source code (zip)** from the latest Navigate release:
 Go to the Navigate releases
 ```
 
-Extract the archive, rename the extracted project folder (the one containing `pyproject.toml`) to `navigate` or a name of your choice, and move it to the location where you want to work.
+Extract the archive, rename the extracted project folder (the one containing `pyproject.toml`) to `navigate-zcs`, and move it to the location where you want to work.
 
 You may also clone the repository or run `pip install navigate-zcs`; however, the latter will not give you access to the full documentation and support files.
 
