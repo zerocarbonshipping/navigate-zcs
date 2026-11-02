@@ -50,7 +50,11 @@ You may also clone the repository or run `pip install navigate-zcs`; however, th
 
 4. Open up a new terminal in VS Code (see top menu bar). Its prompt starts with `(.venv)`, which shows that the virtual environment is active.
 
-5. Type `pip install .` into the terminal. If this doesn't work, you can also attempt `pip3 install .`. 
+5. Install the package:
+
+   ```bash
+   pip install .
+   ```
 
 This tutorial also lives in the repository, under `docs/tutorials/`. You can open it and read along from there if you prefer.
 
