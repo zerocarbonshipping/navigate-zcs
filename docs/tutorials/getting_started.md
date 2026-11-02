@@ -31,6 +31,8 @@ You may also clone the repository or run `pip install navigate-zcs`; however, th
 
 This tutorial also lives in the repository, under `docs/tutorials/`. You can open it and read along from there if you prefer.
 
+Before running a tutorial, download its files using the button on its page and extract the `tutorial_X` folder into the `navigate-zcs` folder opened in VS Code. In VS Code's Explorer, right-click the extracted tutorial folder and select **Open in Integrated Terminal**. Run that tutorial's `navigate` commands in this terminal rather than in the repository-root terminal used for installation.
+
 ### Assumptions – Defaults and Modules
 
 *These are not needed for the tutorial simulations, however...*
