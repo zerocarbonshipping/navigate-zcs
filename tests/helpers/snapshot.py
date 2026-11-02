@@ -61,7 +61,7 @@ def _getters(node_results: object) -> list[str]:
     """Name the results' public getters that take no argument."""
     names = []
     for name, member in inspect.getmembers(type(node_results), inspect.isfunction):
-        if not name.startswith("get_") or name.endswith(_TIMING_SUFFIX):
+        if not name.startswith("get_"):
             continue
         parameters = list(inspect.signature(member).parameters.values())[1:]
         if all(p.default is not inspect.Parameter.empty for p in parameters):
@@ -93,16 +93,14 @@ def _readers(node_results: Any) -> dict[str, Callable[[], object]]:
             for getter in _getters(node_results)
         }
 
-    return {
-        name: partial(getattr, node_results, name)
-        for name in sorted(names)
-        if not name.endswith(_TIMING_SUFFIX)
-    }
+    return {name: partial(getattr, node_results, name) for name in sorted(names)}
 
 
-def _add_results(snap: Snapshot, prefix: str, node_results: object) -> None:
-    """Add every result of one node under `prefix`."""
-    for result, read in _readers(node_results).items():
+def _add_results(
+    snap: Snapshot, prefix: str, readers: dict[str, Callable[[], object]]
+) -> None:
+    """Add the result each reader reads under `prefix`."""
+    for result, read in readers.items():
         value = read()
         name = f"{prefix}{_SEPARATOR}{result}"
         if isinstance(value, dict):
@@ -132,12 +130,18 @@ def snapshot(results: SimulationResults) -> Snapshot:
     global_results = getattr(results, "global_results", None)
     if global_results is None:
         global_results = results.profile
-    _add_results(snap, "global", global_results)
+    global_readers = {
+        name: read
+        for name, read in _readers(global_results).items()
+        if not name.endswith(_TIMING_SUFFIX)
+    }
+    _add_results(snap, "global", global_readers)
     for group, nodes in vars(results.nodes).items():
         for name, node in nodes.items():
             node_results = getattr(node, "results", getattr(node, "profile", None))
             if node_results is not None:
-                _add_results(snap, f"{group}{_SEPARATOR}{name}", node_results)
+                prefix = f"{group}{_SEPARATOR}{name}"
+                _add_results(snap, prefix, _readers(node_results))
     return snap
 
 
