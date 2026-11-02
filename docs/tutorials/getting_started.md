@@ -98,8 +98,6 @@ To permanently link the assumptions, do the following:
 
   ::::
 
-## 
-
 ## Setting up Syntax Highlighting (Optional but recommended)
 
 Syntax highlighting shows keywords in the Navigate language in different colors, so that writing `.nav` and `.inc` files becomes easier.
