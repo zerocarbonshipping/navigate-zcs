@@ -4,97 +4,80 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 
 # Setting up Navigate
-This is a beginner-level tutorial. The normal installation procedure for developers is mentioned in the `README.md`
+This is a beginner-level tutorial. The normal installation procedure for developers is mentioned in the `README.md`.
 
-Navigate can be run though a number of different editors, environments and IDEs since it us just a python package. In this tutorial, we will showcase using Visual Studio Code as it keeps the usage streamlined throughout operating systems and holds everything you need in one place.
+Navigate can be run through a number of different editors, environments and IDEs since it is just a Python package. In this tutorial, we will showcase using Visual Studio Code (VS Code) as it keeps the usage streamlined throughout operating systems and holds everything you need in one place.
 
-## Prequisites:
+## Prerequisites
 
 - Python 3.13
 - Visual Studio Code 
 
-On windows, all of these programs can be downloaded without administrator privileges through the microsoft store.
-
-### (Optional) Using an environment manager.
-
-If you use python for other projects and want to maintain separate python environments, you need an environment manager. Examples include:
-- [Conda](https://www.anaconda.com/docs/getting-started/miniconda/install) - Separate install
-- [venv](https://docs.python.org/3/library/venv.html) - Comes with python.
-
-Creating, activating and maintaining environments is neither part of, nor required for this tutorial, but a good practice in the future.
+On Windows, these programs can be downloaded without administrator privileges through the Microsoft Store. 
 
 ## Downloading the Software
 
-Navigate is available [here!](https://github.com/zerocarbonshipping/navigate-zcs)
+Download **Source code (zip)** from the latest [Navigate release](https://github.com/zerocarbonshipping/navigate-zcs/releases). Extract the archive, rename the extracted project folder (the one containing `pyproject.toml`) to `navigate-zcs`, and move it to the location where you want to work.
 
-### Option 1 - I have never used git.
-
-In the github repository, click green `<> Code` button and select *Download Zip*. Unzip the file and move the folder named `Navigate` to a location where you want to work with it.
-
-### Option 2 - I use git.
-
-Clone the repository at your desired location. 
+You may also clone the repository or run `pip install navigate-zcs`; however, the latter will not give you access to the full documentation and support files.
 
 ## Installation and Setup
 
-1. Open Visual Studio Code (VSCode) and open the `Navigate` folder in VS Code. 
+1. Open VS Code and open the `navigate-zcs` folder in VS Code. 
 
-2. Open up a new terminal VS Code or a terminal program of your choice.
+2. Open up a new terminal in VS Code (see top menu bar) or a terminal program of your choice.
 
 3. Type `pip install .` into the terminal. If this doesn't work, you can also attempt `pip3 install .`. 
 
 This tutorial also lives in the repository, under `docs/tutorials/`. You can open it and read along from there if you prefer.
 
+Before running a tutorial, download its files using the button on its page and extract the `tutorial_X` folder into the `navigate-zcs` folder opened in VS Code. In VS Code's Explorer, right-click the extracted tutorial folder and select **Open in Integrated Terminal**. Run that tutorial's `navigate` commands in this terminal rather than in the repository-root terminal used for installation.
 
-## Basic Terminal Usage
+### Assumptions – Defaults and Modules
 
-If you have never used a terminal before, we will go through the prompt and two commands that you will often need in conjunction with Navigate.
+*These are not needed for the tutorial simulations, however...*
 
-The prompt shows you in which folder you are currently.
-```bash
-user@host:~/Navigate $
-```
-This prompt tells you that the user `user` is on the machine `host` in the folder `~/Navigate`. Yours may look different, but the path is almost always included.
+Most of the Center's larger simulations use a set of pre-configured input files from the `assumptions/` folder. When running Navigate and loading these modules, the location of the folder has to be known. This can be done once or with every run. 
 
-**The ls command**
-```bash
-ls
-```
-This command lists all items in the current directory (folder). Example output:
-```
-CHANGELOG.md  CITATION.cff  CODESTYLE.md  CONTRIBUTING.md  LICENSE  Makefile  README.md  assumptions  docs  navigate  pyproject.toml  simulations  syntax  tests
-```
+To permanently link the assumptions, do the following:
 
-**The cd command**
-```
-cd path/to/directory
-```
-This command lets you move between folders. You can specify any path, copy it from the file explorer or just repeat the command until you get where you need to.
+::::{tab-set}
+  :sync-group: os
 
-`cd ..` Moves to the parent folder. `cd docs` moves to a folder called docs in your current folder and so on. If you need to switch to a different drive, you would use `cd C:\path\to\directory` where `C` is the drive. Note that between windows, mac and linux, the paths are slightly different. 
+  :::{tab-item} Windows
+  :sync: windows
 
-**To-Do**
+  Press Windows+R and paste the following to open the environment variables window:
 
-1. Download the Tutorial 1 files with the button at the top of the [Tutorial 1](tutorial_1.md) page and unzip them into the `Navigate` folder.
-2. Use the `cd` command in your VS Code terminal to move from the folder `Navigate` to the folder `tutorial_1`
+  ```
+  rundll32 sysdm.cpl,EditEnvironmentVariables
+  ```
 
-```bash
-# Windows Powershell
-cd .\tutorial_1\
+  1. Under *User variables*, click *New...*
+  2. Enter `ASSUMPTIONS_DATA_DIR` as the variable name.
+  3. Enter the full path to the `assumptions` folder as the variable value, e.g.
+  `C:\path\to\navigate-zcs\assumptions`. *Browse Directory...* lets you pick it.
+  4. Click *OK* in both windows.
 
-# Linux/MacOS
-cd tutorial_1/
-```
+  Restart VS Code so that its terminal picks up the new variable.
+  :::
 
-On windows, please use powershell over cmd. It is default, but you can also pick it in the VS Code terminal if you need to.
+  :::{tab-item} Mac/Linux
+  :sync: unix
+  
+  In a terminal, run the following command after changing the path.
+  ```bash
+  echo 'export ASSUMPTIONS_DATA_DIR="/path/to/navigate-zcs/assumptions"' >> ~/.zshrc
+  ```
 
+  On Linux, use `~/.bashrc` instead of `~/.zshrc`. Open a new terminal afterwards.
+  :::
 
+  ::::
 
 ## Setting up Syntax Highlighting (Optional but recommended)
 
 Syntax highlighting shows keywords in the Navigate language in different colors, so that writing `.nav` and `.inc` files becomes easier.
-
-### VS Code
 
 ```{button-link} navigate-language.vsix
 :color: primary
@@ -106,13 +89,6 @@ Download the VS Code extension
 2. Still in the sidebar, on the top, click `...`
 3. Select *Install from VSIX*
 4. Find and select the downloaded `navigate-language.vsix`
-
-### PyCharm
-
-1. Navigate to `File` -> `Settings`
-2. Go to `Editor` -> `TextMate Bundles`
-3. Click the `+`
-4. Find and select the folder `Navigate/syntax/pycharm/Navigate.tmbundle` 
 
 ## Checklist
 
@@ -126,14 +102,13 @@ For reference, here is the file structure you should be seeing in your VS Code f
 Navigate/
 ├── README.md
 ├── assumptions/
+│   ├── defaults/
+│   └── modules/
 ├── docs/
-│   └── tutorials/          <- the tutorial texts, including this guide
+│   └── tutorials/        <- the tutorial texts, including this guide
 ├── navigate/
 ├── simulations/
 ├── syntax/
-├── tutorial_1/             <- unzipped from the Tutorial 1 download
-│   ├── includes/
-│   └── tutorial_1.nav
 ├── pyproject.toml
 └── ...other files...
 ```

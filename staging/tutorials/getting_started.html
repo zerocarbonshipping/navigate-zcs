@@ -432,87 +432,67 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 <section class="tex2jax_ignore mathjax_ignore" id="setting-up-navigate">
 <h1>Setting up Navigate<a class="headerlink" href="#setting-up-navigate" title="Link to this heading">#</a></h1>
-<p>This is a beginner-level tutorial. The normal installation procedure for developers is mentioned in the <code class="docutils literal notranslate"><span class="pre">README.md</span></code></p>
-<p>Navigate can be run though a number of different editors, environments and IDEs since it us just a python package. In this tutorial, we will showcase using Visual Studio Code as it keeps the usage streamlined throughout operating systems and holds everything you need in one place.</p>
-<section id="prequisites">
-<h2>Prequisites:<a class="headerlink" href="#prequisites" title="Link to this heading">#</a></h2>
+<p>This is a beginner-level tutorial. The normal installation procedure for developers is mentioned in the <code class="docutils literal notranslate"><span class="pre">README.md</span></code>.</p>
+<p>Navigate can be run through a number of different editors, environments and IDEs since it is just a Python package. In this tutorial, we will showcase using Visual Studio Code (VS Code) as it keeps the usage streamlined throughout operating systems and holds everything you need in one place.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>Python 3.13</p></li>
 <li><p>Visual Studio Code</p></li>
 </ul>
-<p>On windows, all of these programs can be downloaded without administrator privileges through the microsoft store.</p>
-<section id="optional-using-an-environment-manager">
-<h3>(Optional) Using an environment manager.<a class="headerlink" href="#optional-using-an-environment-manager" title="Link to this heading">#</a></h3>
-<p>If you use python for other projects and want to maintain separate python environments, you need an environment manager. Examples include:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://www.anaconda.com/docs/getting-started/miniconda/install">Conda</a> - Separate install</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a> - Comes with python.</p></li>
-</ul>
-<p>Creating, activating and maintaining environments is neither part of, nor required for this tutorial, but a good practice in the future.</p>
-</section>
+<p>On Windows, these programs can be downloaded without administrator privileges through the Microsoft Store.</p>
 </section>
 <section id="downloading-the-software">
 <h2>Downloading the Software<a class="headerlink" href="#downloading-the-software" title="Link to this heading">#</a></h2>
-<p>Navigate is available <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs">here!</a></p>
-<section id="option-1-i-have-never-used-git">
-<h3>Option 1 - I have never used git.<a class="headerlink" href="#option-1-i-have-never-used-git" title="Link to this heading">#</a></h3>
-<p>In the github repository, click green <code class="docutils literal notranslate"><span class="pre">&lt;&gt;</span> <span class="pre">Code</span></code> button and select <em>Download Zip</em>. Unzip the file and move the folder named <code class="docutils literal notranslate"><span class="pre">Navigate</span></code> to a location where you want to work with it.</p>
-</section>
-<section id="option-2-i-use-git">
-<h3>Option 2 - I use git.<a class="headerlink" href="#option-2-i-use-git" title="Link to this heading">#</a></h3>
-<p>Clone the repository at your desired location.</p>
-</section>
+<p>Download <strong>Source code (zip)</strong> from the latest <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/releases">Navigate release</a>. Extract the archive, rename the extracted project folder (the one containing <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>) to <code class="docutils literal notranslate"><span class="pre">navigate-zcs</span></code>, and move it to the location where you want to work.</p>
+<p>You may also clone the repository or run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">navigate-zcs</span></code>; however, the latter will not give you access to the full documentation and support files.</p>
 </section>
 <section id="installation-and-setup">
 <h2>Installation and Setup<a class="headerlink" href="#installation-and-setup" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Open Visual Studio Code (VSCode) and open the <code class="docutils literal notranslate"><span class="pre">Navigate</span></code> folder in VS Code.</p></li>
-<li><p>Open up a new terminal VS Code or a terminal program of your choice.</p></li>
+<li><p>Open VS Code and open the <code class="docutils literal notranslate"><span class="pre">navigate-zcs</span></code> folder in VS Code.</p></li>
+<li><p>Open up a new terminal in VS Code (see top menu bar) or a terminal program of your choice.</p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> into the terminal. If this doesn’t work, you can also attempt <code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">.</span></code>.</p></li>
 </ol>
 <p>This tutorial also lives in the repository, under <code class="docutils literal notranslate"><span class="pre">docs/tutorials/</span></code>. You can open it and read along from there if you prefer.</p>
-</section>
-<section id="basic-terminal-usage">
-<h2>Basic Terminal Usage<a class="headerlink" href="#basic-terminal-usage" title="Link to this heading">#</a></h2>
-<p>If you have never used a terminal before, we will go through the prompt and two commands that you will often need in conjunction with Navigate.</p>
-<p>The prompt shows you in which folder you are currently.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>user@host:~/Navigate<span class="w"> </span>$
+<p>Before running a tutorial, download its files using the button on its page and extract the <code class="docutils literal notranslate"><span class="pre">tutorial_X</span></code> folder into the <code class="docutils literal notranslate"><span class="pre">navigate-zcs</span></code> folder opened in VS Code. In VS Code’s Explorer, right-click the extracted tutorial folder and select <strong>Open in Integrated Terminal</strong>. Run that tutorial’s <code class="docutils literal notranslate"><span class="pre">navigate</span></code> commands in this terminal rather than in the repository-root terminal used for installation.</p>
+<section id="assumptions-defaults-and-modules">
+<h3>Assumptions – Defaults and Modules<a class="headerlink" href="#assumptions-defaults-and-modules" title="Link to this heading">#</a></h3>
+<p><em>These are not needed for the tutorial simulations, however…</em></p>
+<p>Most of the Center’s larger simulations use a set of pre-configured input files from the <code class="docutils literal notranslate"><span class="pre">assumptions/</span></code> folder. When running Navigate and loading these modules, the location of the folder has to be known. This can be done once or with every run.</p>
+<p>To permanently link the assumptions, do the following:</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" data-sync-group="os" data-sync-id="windows" for="sd-tab-item-0">
+Windows</label><div class="sd-tab-content docutils">
+<p>Press Windows+R and paste the following to open the environment variables window:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rundll32</span> <span class="n">sysdm</span><span class="o">.</span><span class="n">cpl</span><span class="p">,</span><span class="n">EditEnvironmentVariables</span>
 </pre></div>
 </div>
-<p>This prompt tells you that the user <code class="docutils literal notranslate"><span class="pre">user</span></code> is on the machine <code class="docutils literal notranslate"><span class="pre">host</span></code> in the folder <code class="docutils literal notranslate"><span class="pre">~/Navigate</span></code>. Yours may look different, but the path is almost always included.</p>
-<p><strong>The ls command</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ls
-</pre></div>
-</div>
-<p>This command lists all items in the current directory (folder). Example output:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CHANGELOG</span><span class="o">.</span><span class="n">md</span>  <span class="n">CITATION</span><span class="o">.</span><span class="n">cff</span>  <span class="n">CODESTYLE</span><span class="o">.</span><span class="n">md</span>  <span class="n">CONTRIBUTING</span><span class="o">.</span><span class="n">md</span>  <span class="n">LICENSE</span>  <span class="n">Makefile</span>  <span class="n">README</span><span class="o">.</span><span class="n">md</span>  <span class="n">assumptions</span>  <span class="n">docs</span>  <span class="n">navigate</span>  <span class="n">pyproject</span><span class="o">.</span><span class="n">toml</span>  <span class="n">simulations</span>  <span class="n">syntax</span>  <span class="n">tests</span>
-</pre></div>
-</div>
-<p><strong>The cd command</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">directory</span>
-</pre></div>
-</div>
-<p>This command lets you move between folders. You can specify any path, copy it from the file explorer or just repeat the command until you get where you need to.</p>
-<p><code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">..</span></code> Moves to the parent folder. <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">docs</span></code> moves to a folder called docs in your current folder and so on. If you need to switch to a different drive, you would use <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">C:\path\to\directory</span></code> where <code class="docutils literal notranslate"><span class="pre">C</span></code> is the drive. Note that between windows, mac and linux, the paths are slightly different.</p>
-<p><strong>To-Do</strong></p>
 <ol class="arabic simple">
-<li><p>Download the Tutorial 1 files with the button at the top of the <a class="reference internal" href="tutorial_1.html"><span class="std std-doc">Tutorial 1</span></a> page and unzip them into the <code class="docutils literal notranslate"><span class="pre">Navigate</span></code> folder.</p></li>
-<li><p>Use the <code class="docutils literal notranslate"><span class="pre">cd</span></code> command in your VS Code terminal to move from the folder <code class="docutils literal notranslate"><span class="pre">Navigate</span></code> to the folder <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code></p></li>
+<li><p>Under <em>User variables</em>, click <em>New…</em></p></li>
+<li><p>Enter <code class="docutils literal notranslate"><span class="pre">ASSUMPTIONS_DATA_DIR</span></code> as the variable name.</p></li>
+<li><p>Enter the full path to the <code class="docutils literal notranslate"><span class="pre">assumptions</span></code> folder as the variable value, e.g.
+<code class="docutils literal notranslate"><span class="pre">C:\path\to\navigate-zcs\assumptions</span></code>. <em>Browse Directory…</em> lets you pick it.</p></li>
+<li><p>Click <em>OK</em> in both windows.</p></li>
 </ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Windows Powershell</span>
-<span class="nb">cd</span><span class="w"> </span>.<span class="se">\t</span>utorial_1<span class="se">\</span>
-
-<span class="c1"># Linux/MacOS</span>
-<span class="nb">cd</span><span class="w"> </span>tutorial_1/
+<p>Restart VS Code so that its terminal picks up the new variable.</p>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" data-sync-group="os" data-sync-id="unix" for="sd-tab-item-1">
+Mac/Linux</label><div class="sd-tab-content docutils">
+<p>In a terminal, run the following command after changing the path.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="s1">'export ASSUMPTIONS_DATA_DIR="/path/to/navigate-zcs/assumptions"'</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.zshrc
 </pre></div>
 </div>
-<p>On windows, please use powershell over cmd. It is default, but you can also pick it in the VS Code terminal if you need to.</p>
+<p>On Linux, use <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code> instead of <code class="docutils literal notranslate"><span class="pre">~/.zshrc</span></code>. Open a new terminal afterwards.</p>
+</div>
+</div>
+</section>
 </section>
 <section id="setting-up-syntax-highlighting-optional-but-recommended">
 <h2>Setting up Syntax Highlighting (Optional but recommended)<a class="headerlink" href="#setting-up-syntax-highlighting-optional-but-recommended" title="Link to this heading">#</a></h2>
 <p>Syntax highlighting shows keywords in the Navigate language in different colors, so that writing <code class="docutils literal notranslate"><span class="pre">.nav</span></code> and <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files becomes easier.</p>
-<section id="vs-code">
-<h3>VS Code<a class="headerlink" href="#vs-code" title="Link to this heading">#</a></h3>
 <p><a class="sd-sphinx-override sd-btn sd-text-wrap sd-btn-primary reference external" href="navigate-language.vsix"><span>Download the VS Code extension</span></a></p>
 <ol class="arabic simple">
 <li><p>In the left sidebar, click extensions.</p></li>
@@ -520,16 +500,6 @@ SPDX-License-Identifier: CC-BY-4.0
 <li><p>Select <em>Install from VSIX</em></p></li>
 <li><p>Find and select the downloaded <code class="docutils literal notranslate"><span class="pre">navigate-language.vsix</span></code></p></li>
 </ol>
-</section>
-<section id="pycharm">
-<h3>PyCharm<a class="headerlink" href="#pycharm" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p>Navigate to <code class="docutils literal notranslate"><span class="pre">File</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Settings</span></code></p></li>
-<li><p>Go to <code class="docutils literal notranslate"><span class="pre">Editor</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">TextMate</span> <span class="pre">Bundles</span></code></p></li>
-<li><p>Click the <code class="docutils literal notranslate"><span class="pre">+</span></code></p></li>
-<li><p>Find and select the folder <code class="docutils literal notranslate"><span class="pre">Navigate/syntax/pycharm/Navigate.tmbundle</span></code></p></li>
-</ol>
-</section>
 </section>
 <section id="checklist">
 <h2>Checklist<a class="headerlink" href="#checklist" title="Link to this heading">#</a></h2>
@@ -542,14 +512,13 @@ SPDX-License-Identifier: CC-BY-4.0
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Navigate/
 ├── README.md
 ├── assumptions/
+│   ├── defaults/
+│   └── modules/
 ├── docs/
-│   └── tutorials/          &lt;- the tutorial texts, including this guide
+│   └── tutorials/        &lt;- the tutorial texts, including this guide
 ├── navigate/
 ├── simulations/
 ├── syntax/
-├── tutorial_1/             &lt;- unzipped from the Tutorial 1 download
-│   ├── includes/
-│   └── tutorial_1.nav
 ├── pyproject.toml
 └── ...other files...
 </pre></div>
@@ -606,22 +575,13 @@ SPDX-License-Identifier: CC-BY-4.0
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prequisites">Prequisites:</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-using-an-environment-manager">(Optional) Using an environment manager.</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-software">Downloading the Software</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-and-setup">Installation and Setup</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#assumptions-defaults-and-modules">Assumptions – Defaults and Modules</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-software">Downloading the Software</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-i-have-never-used-git">Option 1 - I have never used git.</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-i-use-git">Option 2 - I use git.</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-and-setup">Installation and Setup</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-terminal-usage">Basic Terminal Usage</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-syntax-highlighting-optional-but-recommended">Setting up Syntax Highlighting (Optional but recommended)</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vs-code">VS Code</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pycharm">PyCharm</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-syntax-highlighting-optional-but-recommended">Setting up Syntax Highlighting (Optional but recommended)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checklist">Checklist</a></li>
 </ul>
   </nav></div>
