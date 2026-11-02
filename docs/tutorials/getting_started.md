@@ -17,7 +17,15 @@ On Windows, these programs can be downloaded without administrator privileges th
 
 ## Downloading the Software
 
-Download **Source code (zip)** from the latest [Navigate release](https://github.com/zerocarbonshipping/navigate-zcs/releases). Extract the archive, rename the extracted project folder (the one containing `pyproject.toml`) to `navigate-zcs`, and move it to the location where you want to work.
+Download **Source code (zip)** from the latest Navigate release:
+
+```{button-link} https://github.com/zerocarbonshipping/navigate-zcs/releases
+:color: primary
+
+Go to the Navigate releases
+```
+
+Extract the archive, rename the extracted project folder (the one containing `pyproject.toml`) to `navigate` or a name of your choice, and move it to the location where you want to work.
 
 You may also clone the repository or run `pip install navigate-zcs`; however, the latter will not give you access to the full documentation and support files.
 
@@ -25,9 +33,24 @@ You may also clone the repository or run `pip install navigate-zcs`; however, th
 
 1. Open VS Code and open the `navigate-zcs` folder in VS Code. 
 
-2. Open up a new terminal in VS Code (see top menu bar) or a terminal program of your choice.
+2. Install the Python extension. Click *Extensions* in the left sidebar, search for `python` and install **Python** by Microsoft. VS Code needs it to create and use a virtual environment.
 
-3. Type `pip install .` into the terminal. If this doesn't work, you can also attempt `pip3 install .`. 
+   ```{image} ../_static/vscode_sidebar.png
+   :alt: The Python extension in the Extensions view
+   :scale: 70%
+   ```
+
+3. Create a virtual environment: a Python installation for Navigate alone, so that its packages do not mix with those of your other Python projects. Open any Python file, for example `navigate/__init__.py`, and click **Select Python Interpreter** (or the Python version shown in its place) at the bottom right of the window.
+
+   ![Select Python Interpreter in the status bar](../_static/select_interpreter_1.png)
+
+   Select **Create Virtual Environment...** and follow the prompts, choosing Python 3.13 when asked. VS Code creates a `.venv` folder in `navigate-zcs` and uses it from then on.
+
+   ![Create Virtual Environment in the interpreter list](../_static/select_interpreter_2.png)
+
+4. Open up a new terminal in VS Code (see top menu bar). Its prompt starts with `(.venv)`, which shows that the virtual environment is active.
+
+5. Type `pip install .` into the terminal. If this doesn't work, you can also attempt `pip3 install .`. 
 
 This tutorial also lives in the repository, under `docs/tutorials/`. You can open it and read along from there if you prefer.
 
@@ -74,6 +97,8 @@ To permanently link the assumptions, do the following:
   :::
 
   ::::
+
+## 
 
 ## Setting up Syntax Highlighting (Optional but recommended)
 
