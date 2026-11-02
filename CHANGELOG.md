@@ -11,6 +11,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+- Bio-methane plants (`plant_methane_bio`) read their lifetime from a new
+  Forecast `lifetime_plant_methane_bio` instead of sharing
+  `lifetime_plant_methane` with the electro-methane plants. The new Forecast
+  carries the same value as before (30 years), so results do not change; the
+  two plant families can now be given different lifetimes.
+
 ### Fixed
 - Parse errors now name keywords as the grammar spells them. Lark derives
   keyword terminal names from the literal, uppercased, so a misspelled

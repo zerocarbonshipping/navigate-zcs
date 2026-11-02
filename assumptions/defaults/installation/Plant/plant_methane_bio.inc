@@ -8,7 +8,7 @@ Plant "plant_methane_bio" {
 	Capacity = Forecast("methane_bio_plant_capacity")
 
 	LeadTime = Forecast("lead_time_plant_bio")
-	Lifetime = Forecast("lifetime_plant_methane")
+	Lifetime = Forecast("lifetime_plant_methane_bio")
 	Uptime = Forecast("uptime_plant_bio")
 
 	set_feed_transport("feedstock_biogas", Transport("truck"))
