@@ -424,7 +424,7 @@ class Simulation:
             forecast.precalculate(time)
 
         for timetable in self.nodes.timetables.values():
-            timetable.set_current_time(time)
+            timetable.current_time = time
 
     def _calculate_expectations(self) -> None:
         """Calculate the per-step expectations later phases and other domains read."""

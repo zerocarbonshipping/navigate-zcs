@@ -85,7 +85,7 @@ def test_forecast_get_without_input_reads_the_precalculated_step():
 
 
 # reads a Timetable with only y given; before its clock is set it raises, after
-# set_current_time(50) it uses day 50 as x.
+# its current time is set to day 50 it uses day 50 as x.
 # catches: the current time ignored, so the lookup always reads day 0 (5 instead
 # of 55).
 def test_timetable_reads_the_current_time():
@@ -99,7 +99,7 @@ def test_timetable_reads_the_current_time():
     with pytest.raises(ValueError, match="requires a time, unset before the first"):
         timetable.get(y=0.5)
 
-    timetable.set_current_time(50.0)
+    timetable.current_time = 50.0
     # 50 + 10 * 0.5 = 55
     assert timetable.get(y=0.5) == pytest.approx(55.0)
 
