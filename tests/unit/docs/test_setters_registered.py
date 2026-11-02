@@ -35,8 +35,6 @@ DSL_PREFIXES = ("set_", "add_")
 INTERNAL_SETTERS = {
     # the attribute that holds a calculator narrows its bounds at assignment
     "set_internal_bounds",
-    # the simulation loop advances a Timetable's clock each step
-    "set_current_time",
     # a Producer claims its Plants while the supply chain initializes
     "set_producer_assignment",
 }

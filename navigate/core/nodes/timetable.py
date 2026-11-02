@@ -24,6 +24,9 @@ class Timetable(Node, _Table2D):
     """
     A table of z against time and y, evaluated at the current time by default.
 
+    The simulation writes the current time, in days since the start date, to
+    ``current_time`` each time-step.
+
     Parameters
     ----------
     name
@@ -38,7 +41,7 @@ class Timetable(Node, _Table2D):
 
         # internal variables -----------------------------------------------------------
         # None until the first time-step sets the time
-        self._current_time: float | None = None
+        self.current_time: float | None = None
 
         # the table read from the deck, pending until it is built
         self._pending_table: (
@@ -70,17 +73,6 @@ class Timetable(Node, _Table2D):
 
         self._set_table(x, y, z)
         self._pending_table = None
-
-    def set_current_time(self, time: float) -> None:
-        """
-        Set the current time, read by 'get' when no explicit x-value is given.
-
-        Parameters
-        ----------
-        time
-            Time passed since start date, in days.
-        """
-        self._current_time = time
 
     @overload
     def get(self, x: float | None = None, y: float | None = None) -> float: ...
@@ -119,7 +111,7 @@ class Timetable(Node, _Table2D):
             raise ValueError(f"{self}: Evaluating a Timetable requires an input 'y'.")
 
         if x is None:
-            x = self._current_time
+            x = self.current_time
 
         if x is None:
             raise ValueError(
