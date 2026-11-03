@@ -84,12 +84,12 @@ def update_regulation_flexibility_beliefs(
     idx: int,
 ) -> None:
     """
-    Smooth each FLEXIBLE regulation's flexibility cost and apply its vessels' expenses.
+    Smooth each active FLEXIBLE regulation's flexibility cost and apply its expenses.
 
     The raw flexibility cost the market clearing derived from the shadow price is
     smoothed by an exponential moving average, in place on the expectation's belief, so
     that small changes in future fuel availability do not become expectations of large
-    differences in flexibility cost.
+    differences in flexibility cost. An inactive regulation keeps its belief as it is.
 
     A policed vessel's expected flexibility expenses are its net flexibility units,
     flexibility minus surplus units, valued at the smoothed cost, which values its
@@ -107,7 +107,8 @@ def update_regulation_flexibility_beliefs(
         Current time-step index.
     """
     for regulation in regulations.values():
-        if regulation.scheme != RegulationSchemeID.FLEXIBLE:
+        is_flexible = regulation.scheme == RegulationSchemeID.FLEXIBLE
+        if not (regulation.active and is_flexible):
             continue
 
         expectation = regulation.expectation

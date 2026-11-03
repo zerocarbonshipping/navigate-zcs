@@ -651,6 +651,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Vessels converted out of a vessel type that other conversions convert into
   in the same time-step keep the technology package and charter rate of the
   cohort they leave; they could carry those of an older cohort (#581).
+- An inactive FLEXIBLE regulation keeps its expected flexibility cost; it
+  decayed toward 0, so after reactivation the policed vessels' expected
+  flexibility expenses depended on how long the regulation was off (#562).
 
 ## [1.0.0] - 2026-07-16
 
