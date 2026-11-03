@@ -26,6 +26,7 @@ from navigate.core.assign import (
     check_forecast_is_cumulative,
     check_lengths_match,
     check_tables_are_finite,
+    check_tables_are_nonnegative,
     write_matching_key_pairs,
     write_matching_keys,
 )

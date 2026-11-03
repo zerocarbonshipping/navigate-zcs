@@ -47,6 +47,7 @@ class Curve(Node, _Table1D):
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
+        self._check_extrapolate_consistency()
         self._check_bounds_consistency()
 
     def build_table(self) -> None:

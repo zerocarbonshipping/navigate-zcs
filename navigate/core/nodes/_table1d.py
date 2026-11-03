@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
@@ -18,6 +19,8 @@ from navigate.util import is_strictly_increasing
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
     from navigate.util.types_ import FloatArray, FloatLike
+
+logger = logging.getLogger(__name__)
 
 
 class _Table1D(_Calculator):
@@ -103,6 +106,20 @@ class _Table1D(_Calculator):
             return None
 
         return np.interp(y, yp, self.x)
+
+    def _check_extrapolate_consistency(self) -> None:
+        if self.extrapolate == ExtrapolateID.FLAT:
+            return
+
+        for name, value in (("Below", self.below), ("Above", self.above)):
+            if value is not None:
+                logger.warning(
+                    "%s: '%s' is defined, but ignored since 'Extrapolate' is set"
+                    " to %s.",
+                    self,
+                    name,
+                    self.extrapolate.name,
+                )
 
     def _check_interpolate_extrapolate_consistency(self) -> None:
         is_step = self.interpolate in (Interpolate1DID.PREVIOUS, Interpolate1DID.NEXT)

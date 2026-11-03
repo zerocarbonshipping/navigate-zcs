@@ -72,7 +72,7 @@ This attribute sets the fraction of CAPEX paid when part of the machinery is rep
 
 ### FuelTypes 
 
-This attribute sets the types of fuel that can be stored in the tank. At least one fuel type must be assigned.
+This attribute sets the types of fuel that can be stored in the tank. All 'FuelTypes' must be unique, i.e., a fuel type cannot be duplicated in the input list, e.g. [OIL, OIL]. At least one fuel type must be assigned.
 
 * **Data type**: List of `IDs`
 * **Legal values**: [FuelTypeID](appendix_ids.md#fueltypeid)

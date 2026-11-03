@@ -592,6 +592,44 @@ def check_tables_are_finite(
             raise ValueError(f"{node}: {attribute} ({entry}) must hold finite values.")
 
 
+def check_tables_are_nonnegative(
+    node: Node, attribute: str, entries: Sequence[CurveTableInput]
+) -> None:
+    """
+    Reject a table among an attribute's entries that holds a negative x- or y-value.
+
+    The Curves are read as tables, never evaluated, so the lower bound they are
+    assigned under never reaches their values. A node runs this from
+    check_consistency, as the tables are built only after its setters have run.
+
+    Parameters
+    ----------
+    node
+        Node holding the attribute, named in the error.
+    attribute
+        Name of the attribute, named in the error.
+    entries
+        The attribute's entries; a number among them is skipped.
+
+    Raises
+    ------
+    ValueError
+        If a table holds a negative x- or y-value.
+    """
+    for entry in entries:
+        if isinstance(entry, Scalar):
+            continue
+
+        for axis, values in (("x", entry.x), ("y", entry.y)):
+            lowest = float(np.min(values))
+
+            if lowest < 0.0:
+                raise ValueError(
+                    f"{node}: {attribute} ({entry}) must hold no negative"
+                    f" {axis}-value, but holds {lowest}."
+                )
+
+
 def check_lengths_match(
     node: Node,
     attribute: str,

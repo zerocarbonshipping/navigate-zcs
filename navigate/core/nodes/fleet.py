@@ -26,6 +26,7 @@ from navigate.core import (
     check_forecast_is_cumulative,
     check_lengths_match,
     check_tables_are_finite,
+    check_tables_are_nonnegative,
     deck_attribute,
     deck_command,
     write_matching_key_pairs,
@@ -455,6 +456,7 @@ class Fleet(Node):
         check_lengths_match(self, "Vessels", vessels, "InitialSplit", split)
         check_lengths_match(self, "Vessels", vessels, "InitialAgeDistribution", ages)
         check_tables_are_finite(self, "InitialAgeDistribution", ages)
+        check_tables_are_nonnegative(self, "InitialAgeDistribution", ages)
 
         if not orderbooks:
             return

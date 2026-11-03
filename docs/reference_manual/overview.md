@@ -201,8 +201,8 @@ Information is provided in four levels, namely:
 14:29:16 [ERROR] navigate.app.cli: Fatal error: Error in deck file, line 2, include file '/home/user/sim/includes/fuels.inc', line 14: Nodes of type 'Fuel' has no command 'set_wtw'.
 ```
 
-If an ERROR occurs the simulation stops: the console shows the error message on its own (run with `-l DEBUG` to also see the full Python traceback there), and the `.log` file records the error together with its full traceback regardless of the chosen log level.
+An ERROR in the deck or its input stops the simulation: the console shows the error message on its own (run with `-l DEBUG` to also see the full Python traceback there), and the `.log` file records the error together with its full traceback regardless of the chosen log level. An ERROR the run can continue after, such as a result that cannot be read for the results file, is logged and the run finishes without that result. Either way, `navigate` exits with code 1 instead of 0.
 
-At the end of a successful run the log closes with a summary table counting the messages of each level, followed by the unique warnings with how often each was logged. When warnings were logged, the console also prints their count with a pointer to the `.log` file.
+At the end of a run that finishes, the log closes with a summary table counting the messages of each level, followed by the unique warnings and errors with how often each was logged. When errors or warnings were logged, the console also prints their counts with a pointer to the `.log` file.
 
 Besides the log file, a run writes its [results file](results_file.md) into the deck directory, or the folder given with `--output-dir`. Open it with [Lantern](https://github.com/zerocarbonshipping/lantern-zcs) to browse the results as plots.

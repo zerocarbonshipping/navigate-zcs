@@ -121,12 +121,22 @@ class RunLog:
             listing,
         )
 
-    def print_warning_notice(self) -> None:
-        """Print the number of warnings logged so far to the console, if any were."""
-        warnings = self._ledger.level_counts["WARNING"]
+    @property
+    def error_count(self) -> int:
+        """Count the ERROR records logged so far."""
+        return self._ledger.level_counts["ERROR"]
 
-        if warnings:
-            print(f"{warnings} warning(s) logged - see '{self._log_path.name}'.")
+    def print_notice(self) -> None:
+        """Print the number of errors and warnings logged so far, if any were."""
+        counts = self._ledger.level_counts
+        logged = [
+            f"{counts[level]} {level.lower()}(s)"
+            for level in ("ERROR", "WARNING")
+            if counts[level]
+        ]
+
+        if logged:
+            print(f"{' and '.join(logged)} logged - see '{self._log_path.name}'.")
 
 
 class _WarningLedger(logging.Filter):

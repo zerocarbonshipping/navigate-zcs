@@ -121,7 +121,7 @@ def _calculate_import_from_liquid_market(
             if allowed:
                 _record_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
 
-            if allowed and np.isfinite(bunker_supply[0]):
+            if np.isfinite(bunker_supply[0]):
                 port.results.bunker_supply_mass[fuel_name][idx] = bunker_supply[0]
 
 

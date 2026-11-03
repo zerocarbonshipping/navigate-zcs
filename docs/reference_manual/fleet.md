@@ -208,7 +208,7 @@ Entries must be finite, non-negative numbers. The list should sum to 1; its tota
 
 This attribute sets the initial age distribution of each vessel type in the fleet.
 
-The list must have a length corresponding to the number of vessel types. Each entry is either a Curve reference (where the Curve's x-values are ages in increasing order and y-values are the corresponding fractions) or `0` for vessel types with no custom distribution. The Curve's values must be finite.
+The list must have a length corresponding to the number of vessel types. Each entry is either a Curve reference (where the Curve's x-values are ages in increasing order and y-values are the corresponding fractions) or `0` for vessel types with no custom distribution. The Curve's values must be finite, and its ages and fractions must not be negative.
 
 A number in place of a Curve gives a uniform age spread over the vessel type's lifetime, shortened to 1/[FixedScrapRate](#fixedscraprate) when that is lower. `0` is the conventional entry, but any other non-negative number behaves the same.
 

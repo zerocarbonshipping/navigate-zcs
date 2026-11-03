@@ -38,7 +38,7 @@ class Tank(_Machinery):
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_fuel_types(self, value: str | list[str]) -> None:
         """Set the fuel types that can be stored in the tank."""
-        self.fuel_types = assign_id_list(value, FuelTypeID, min_length=1)
+        self.fuel_types = assign_id_list(value, FuelTypeID, min_length=1, unique=True)
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_size(self, value: ScalarArgument) -> None:

@@ -48,14 +48,19 @@ class SourceLocation:
     line: int = 0
     deck_line: int = 0
 
-    def prefix(self) -> str:
-        """Spell the location the way every deck error opens."""
+    def __str__(self) -> str:
         parts = []
         if self.deck_line:
-            parts.append(f"Error in deck file, line {self.deck_line}")
+            parts.append(f"deck file, line {self.deck_line}")
         if self.file:
             parts.append(f"include file '{self.file}', line {self.line}")
-        return ", ".join(parts) if parts else "Parser error"
+        return ", ".join(parts)
+
+    def prefix(self) -> str:
+        """Spell the location the way every deck error opens."""
+        if self.deck_line:
+            return f"Error in {self}"
+        return str(self) or "Parser error"
 
     def error(self, message: str) -> DeckError:
         """Build the deck error for a one-sentence message written here."""

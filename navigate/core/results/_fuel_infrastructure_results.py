@@ -36,7 +36,8 @@ class _FuelInfrastructureResults(BaseResults):
         self.bunker_supply_mass = self._default_dict(fuels)
         self.bunkering_limit_mass = self._default_dict(fuels, default=np.nan)
 
-        # liquid-market supply is recorded only where a finite bunkering limit bounds it
+        # a liquid-market supply stays NaN where the fuel is allowed without a finite
+        # bunkering limit, as nothing bounds it
         for fuel_name in self.context.liquid_market_fuels:
             self.bunker_supply_mass[fuel_name] = self._default_array(default=np.nan)
 

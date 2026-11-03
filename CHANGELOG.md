@@ -267,6 +267,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A command given too few or too many arguments reports how many it takes and
   how many were given, such as `'set_ttw' takes 2 arguments, but 1 was given.`,
   instead of naming a missing argument.
+- A `Tank` whose `FuelTypes` lists a fuel type twice is a deck error, as a
+  `Converter`'s fuel types are (#813).
+- A `Curve` or `Forecast` given `Below` or `Above` while `Extrapolate` is not
+  `FLAT` logs a warning that the value is ignored, as a `Surface` or
+  `Timetable` does for `Outside` (#814).
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`
@@ -623,6 +628,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   DSL keyword (#614).
 - An infeasible bunkering problem on HiGHS now names its limiting constraints,
   or says they could not be identified, instead of listing none (#465).
+- A run that logs an ERROR and finishes, as when a result cannot be read for
+  the results file, now prints its error count on the console and exits with
+  code 1 instead of 0 (#471).
+- `pilot_fuel_share` is missing, not 1, at dates the vessels of the fuel type
+  burn nothing, so a fuel type never in the fleet has no series (#400).
+- A port's `bunker_supply_mass` of a liquid-market fuel is 0, not missing, at
+  dates the port does not allow the fuel (#464).
+- The warning for a dropped `EVENTS` block names each block's location without
+  opening it with "Error in", so it no longer reads as an error (#824).
+- A `Technology`'s `set_energy_saving` above 1 is a deck error; it ran and
+  saved all of the demand, or less than one of its savings alone (#317).
+- A Curve in a `Fleet`'s or `Producer`'s `InitialAgeDistribution` with a
+  negative age or fraction is a deck error; it ran with assets entering in the
+  future or negative asset counts (#214, #469).
 
 ## [1.0.0] - 2026-07-16
 
