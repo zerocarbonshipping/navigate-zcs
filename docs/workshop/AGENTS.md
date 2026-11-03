@@ -55,6 +55,18 @@ behaviour at run time, as `navigate_charts()` swaps colours while Navigate draws
 but never by patching the package. A change to `navigate/` is made only when the
 authors ask for that specific change, and then as a commit of its own.
 
+## Correct against the code
+
+Everything the workshop states (prose, code comments, figure titles and labels,
+printed text) must match what the code on the workshop's branch does, and its
+numbers must match the deck. Check a claim in `navigate/` and the deck before
+writing it, and again when the code changes. Compare with `dev` as well: a bug
+that `dev` fixes is raised with the authors; a difference that only comes with
+`dev` is noted for the switch, not applied.
+
+A bug is meant to be fixed, so the prose does not describe it: it explains what
+the model is meant to do, and the bug is raised with the authors (see above).
+
 ## The assumptions library
 
 Work on the workshop never changes `assumptions/`, not even a comment: the
