@@ -706,7 +706,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="initialagedistribution">
 <h3>InitialAgeDistribution<a class="headerlink" href="#initialagedistribution" title="Link to this heading">#</a></h3>
 <p>This attribute sets the initial age distribution of each vessel type in the fleet.</p>
-<p>The list must have a length corresponding to the number of vessel types. Each entry is either a Curve reference (where the Curve’s x-values are ages in increasing order and y-values are the corresponding fractions) or <code class="docutils literal notranslate"><span class="pre">0</span></code> for vessel types with no custom distribution. The Curve’s values must be finite.</p>
+<p>The list must have a length corresponding to the number of vessel types. Each entry is either a Curve reference (where the Curve’s x-values are ages in increasing order and y-values are the corresponding fractions) or <code class="docutils literal notranslate"><span class="pre">0</span></code> for vessel types with no custom distribution. The Curve’s values must be finite, and its ages and fractions must not be negative.</p>
 <p>A number in place of a Curve gives a uniform age spread over the vessel type’s lifetime, shortened to 1/<a class="reference internal" href="#fixedscraprate">FixedScrapRate</a> when that is lower. <code class="docutils literal notranslate"><span class="pre">0</span></code> is the conventional entry, but any other non-negative number behaves the same.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code></p></li>

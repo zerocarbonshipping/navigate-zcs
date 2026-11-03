@@ -94,6 +94,7 @@ This command sets the fraction of the raw energy demand of an energy demand type
   + `HEAT, Variable("name")`
 * **Unit**: Fraction
 * **Minimum value**: 0
+* **Maximum value**: 1
 * **Default**: 0
 
 ### set\_external\_power

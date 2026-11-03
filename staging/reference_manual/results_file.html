@@ -776,7 +776,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
 <td><p>fuel type</p></td>
 <td><p>Share of the energy the vessels of a primary fuel type burn that is a fuel of another type: their pilot fuel.</p></td>
-<td><p>Vessels burn a pilot fuel. The share is also 1 for every fuel type whose vessels burn nothing, so read it only for the fuel types in <code class="docutils literal notranslate"><span class="pre">converter_energy</span></code></p></td>
+<td><p>Vessels burn a pilot fuel; missing at dates the vessels of the fuel type burn nothing</p></td>
 </tr>
 </tbody>
 </table>
@@ -1304,7 +1304,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
 <td><p>fuel</p></td>
 <td><p>Fuel available for bunkering.</p></td>
-<td><p>A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, and never in <code class="docutils literal notranslate"><span class="pre">global</span></code></p></td>
+<td><p>A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, missing at dates it allows the fuel without one and 0 at dates it does not allow it; never in <code class="docutils literal notranslate"><span class="pre">global</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunkering_limit_mass</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunkering_limit_mass</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>

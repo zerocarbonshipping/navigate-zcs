@@ -104,7 +104,7 @@ This attribute sets the extrapolation method used to extrapolate outside the tab
 
 ### Below
 
-Sets the flat extrapolation value below the first x-value of the table. It is only used when `Extrapolate` is `FLAT`, and it then takes the place of the table's y-value in the [formula](#curve) at the top of this page. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the curve is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
+Sets the flat extrapolation value below the first x-value of the table. It is only used when `Extrapolate` is `FLAT`, and it then takes the place of the table's y-value in the [formula](#curve) at the top of this page; when `Extrapolate` is not `FLAT`, a value set here is ignored with a warning. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the curve is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
 
 * **Data type**: `Float`, `Expression`
 * **Example value**: `-5`
@@ -112,7 +112,7 @@ Sets the flat extrapolation value below the first x-value of the table. It is on
 
 ### Above
 
-Sets the flat extrapolation value above the last x-value of the table. It is only used when `Extrapolate` is `FLAT`, and it then takes the place of the table's y-value in the [formula](#curve) at the top of this page. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the curve is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
+Sets the flat extrapolation value above the last x-value of the table. It is only used when `Extrapolate` is `FLAT`, and it then takes the place of the table's y-value in the [formula](#curve) at the top of this page; when `Extrapolate` is not `FLAT`, a value set here is ignored with a warning. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the curve is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
 
 * **Data type**: `Float`, `Expression`
 * **Example value**: `5`
