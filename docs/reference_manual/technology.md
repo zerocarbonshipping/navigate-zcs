@@ -112,7 +112,7 @@ This command sets the external power the technology supplies to an energy demand
 
 ### set\_power\_transfer
 
-This command sets the power transferred from a source energy demand type to a sink energy demand type, e.g. from propulsion to electrical for a shaft generator. A Curve maps the load of the source's converter (its residual power divided by its power capacity) to the transferred power; a number is a constant power. The power is converted to energy over the time spent on each leg or in each port and subtracted from the sink's residual demand, floored at 0. The transfers of several technologies installed together add up.
+This command sets the power transferred from a source energy demand type to a sink energy demand type, e.g. from propulsion to electrical for a shaft generator. A Curve maps the load of the source's converter (its residual power divided by its power capacity, or 0 for a converter with no power capacity) to the transferred power; a number is a constant power. The power is converted to energy over the time spent on each leg or in each port and subtracted from the sink's residual demand, floored at 0. The transfers of several technologies installed together add up.
 
 * **Primary key type**: [EnergyDemandID](appendix_ids.md#energydemandid) (source)
 * **Secondary key type**: [EnergyDemandID](appendix_ids.md#energydemandid) (sink)
