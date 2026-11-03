@@ -152,7 +152,7 @@ Some rules hold throughout:
 | `global.fuel_type_energy`<br>`fleet.fuel_type_energy`<br>`vessel.fuel_type_energy` | `GJ/year` | fuel type | `consumed_energy` summed by the fuels' type. | Each fuel type burnt |
 | `global.total_consumed_energy`<br>`fleet.total_consumed_energy`<br>`vessel.total_consumed_energy` | `GJ/year` | | All fuels plus shore power. | Always |
 | `global.converter_energy`<br>`fleet.converter_energy`<br>`vessel.converter_energy` | `GJ/year` | fuel type, fuel | Fuel burnt by the vessels of a primary fuel type. | Each pair burnt |
-| `global.pilot_fuel_share`<br>`fleet.pilot_fuel_share`<br>`vessel.pilot_fuel_share` | `-` | fuel type | Share of the energy the vessels of a primary fuel type burn that is a fuel of another type: their pilot fuel. | Vessels burn a pilot fuel. The share is also 1 for every fuel type whose vessels burn nothing, so read it only for the fuel types in `converter_energy` |
+| `global.pilot_fuel_share`<br>`fleet.pilot_fuel_share`<br>`vessel.pilot_fuel_share` | `-` | fuel type | Share of the energy the vessels of a primary fuel type burn that is a fuel of another type: their pilot fuel. | Vessels burn a pilot fuel; missing at dates the vessels of the fuel type burn nothing |
 
 ### Expenses and compliance
 
@@ -265,7 +265,7 @@ The energies are the masses times the fuel's `lower_heating_value`.
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
 | `global.bunker_mass`<br>`port.bunker_mass` | `t/year` | fuel | Fuel bunkered. | Each fuel bunkered |
-| `global.bunker_supply_mass`<br>`port.bunker_supply_mass` | `t/year` | fuel | Fuel available for bunkering. | A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, and never in `global` |
+| `global.bunker_supply_mass`<br>`port.bunker_supply_mass` | `t/year` | fuel | Fuel available for bunkering. | A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, missing at dates it allows the fuel without one and 0 at dates it does not allow it; never in `global` |
 | `global.bunkering_limit_mass`<br>`port.bunkering_limit_mass` | `t/year` | fuel | Limit the port's infrastructure puts on bunkering. | The Port has `set_bunkering_limit` for the fuel; missing at dates without one. Never in `global` |
 | `global.bunker_energy`<br>`port.bunker_energy` | `GJ/year` | fuel | `bunker_mass` in energy. | As `bunker_mass` |
 | `global.bunker_supply_energy`<br>`port.bunker_supply_energy` | `GJ/year` | fuel | `bunker_supply_mass` in energy. | As `bunker_supply_mass` |

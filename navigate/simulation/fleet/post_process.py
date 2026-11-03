@@ -454,7 +454,9 @@ def _pilot_fuel_share(results: _ConsumerResults) -> dict[FuelTypeID, FloatArray]
     for vessel_fuel_type, mass in results.converter_mass.items():
         energy = context.calculate_fuel_type_energy(mass)
         total = sum_values(energy, shape)
-        share[vessel_fuel_type] = 1.0 - divide_nonzero(energy[vessel_fuel_type], total)
+        # a share of nothing is undefined, so it is NaN where the vessels burn nothing
+        main_share = divide_nonzero(energy[vessel_fuel_type], total, default=np.nan)
+        share[vessel_fuel_type] = 1.0 - main_share
 
     return share
 

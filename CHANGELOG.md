@@ -626,6 +626,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A run that logs an ERROR and finishes, as when a result cannot be read for
   the results file, now prints its error count on the console and exits with
   code 1 instead of 0 (#471).
+- `pilot_fuel_share` is missing, not 1, at dates the vessels of the fuel type
+  burn nothing, so a fuel type never in the fleet has no series (#400).
+- A port's `bunker_supply_mass` of a liquid-market fuel is 0, not missing, at
+  dates the port does not allow the fuel (#464).
 
 ## [1.0.0] - 2026-07-16
 
