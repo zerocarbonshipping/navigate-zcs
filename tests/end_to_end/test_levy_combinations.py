@@ -40,8 +40,6 @@ UPPER_THRESHOLD = {"WTT": 17.0, "TTW": 75.0, "WTW": 92.0}
 # the same coefficients summed in a different order
 SUMMATION_RTOL = 1e-9
 
-pytestmark = pytest.mark.slow
-
 
 def _collected(run_combination, scheme, scope, upper):
     layers = [

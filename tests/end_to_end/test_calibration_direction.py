@@ -27,7 +27,6 @@ from __future__ import annotations
 import itertools
 
 import numpy as np
-import pytest
 
 FLEET = "container_15000_teu"
 OIL_VESSEL = "container_15000_teu_ice_oil"
@@ -41,8 +40,6 @@ CAPEX = 1e6
 INTER_FUEL = (0.9, 0.75, 0.5)
 TECHNOLOGY_SENSITIVITY = (1.5, 2, 4)
 FUEL_CONVERSION = (1.5, 2, 4)
-
-pytestmark = pytest.mark.slow
 
 
 def _fleet(results):

@@ -30,8 +30,6 @@ ROUTE = "combination_route"
 # the same speed mapped through the same route distribution
 SPEED_RTOL = 1e-9
 
-pytestmark = pytest.mark.slow
-
 
 def _run(run_combination, route_type, alignment, speed_management):
     return run_combination(

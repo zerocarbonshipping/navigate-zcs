@@ -69,7 +69,3 @@ testpaths = ["tests"]
 # wheel with the source checkout in CI's wheel-validation job
 pythonpath = ["tests"]
 addopts = "-x --tb=short -q --import-mode=importlib"
-markers = [
-    "slow: marks tests as slow (> 30s)",
-    "integration: marks large integration tests (> 5 min)",
-]

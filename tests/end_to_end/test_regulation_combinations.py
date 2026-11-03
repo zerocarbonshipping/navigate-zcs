@@ -33,8 +33,6 @@ REMEDIAL_COST = 100.0
 # the same emissions summed in a different order across measures and schemes
 SUMMATION_RTOL = 1e-9
 
-pytestmark = pytest.mark.slow
-
 
 def _run(run_combination, measure, scheme, scope, adjustment):
     return run_combination(

@@ -69,8 +69,6 @@ DEARER_LNG_PRICE = 480
 # the same products of savings, taken in a different order
 SAVING_RTOL = 1e-9
 
-pytestmark = pytest.mark.slow
-
 
 def _package_layer(technologies):
     listed = ", ".join(
