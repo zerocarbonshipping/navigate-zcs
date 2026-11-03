@@ -57,7 +57,7 @@
     "fast to sail. **Owners** decide when to retrofit ships, order new ones and fit\n",
     "efficiency measures.\n",
     "\n",
-    "Four ship designs are available on the market:\n",
+    "Four ship designs are available on the market in this example:\n",
     "\n",
     "| Configuration | Burns |\n",
     "|---|---|\n",
@@ -776,7 +776,7 @@
     "The levers proposed in the previous section are just a simple example of what can be changed in the model.\n",
     "\n",
     "Advanced sensitivities changing other parameters or personalised simulations can be done by:\n",
-    "- editing the deck in `simulations/examples/example_4/` itself (needs a [local installation](https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation))\n",
+    "- editing the deck in `simulations/examples/example_4/` itself (needs a [local installation](https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html))\n",
     "- using our [Horizon-zcs](https://github.com/zerocarbonshipping/horizon-zcs/tree/main) tool for global sensitivity analysis (which is what we are using for our own analyses)"
    ]
   },

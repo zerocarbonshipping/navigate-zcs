@@ -26,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
@@ -36,10 +36,10 @@
     <link rel="stylesheet" type="text/css" href="../_static/examples.css?v=242b7742" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
     <script src="../_static/documentation_options.js?v=7bd72466"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
@@ -49,7 +49,7 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples/trade-route';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'workshop-preview';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
@@ -113,7 +113,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -217,14 +217,14 @@
 
 <div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
   <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
-    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
   </ul>
 </div></div>
       
@@ -259,7 +259,7 @@
   
 
   
-    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -273,7 +273,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
@@ -350,14 +350,14 @@
 
 <div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
   <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
-    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
   </ul>
 </div></div>
         
@@ -452,7 +452,7 @@
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+        <i class="fa-solid fa-house"></i>
       </a>
     </li>
     
@@ -570,6 +570,10 @@ Fleet</label><div class="sd-tab-content docutils">
 
 <span class="c1"># FLEET - Panamax bulk carriers (~80,000 DWT), four configurations of one hull.</span>
 <span class="c1"># All four share hull, propulsion curve, cargo capacity and OPEX.</span>
+<span class="c1">#</span>
+<span class="c1"># This file never describes the ships themselves. It reaches for them with</span>
+<span class="c1"># Copy Vessel, which takes a vessel out of the assumptions library and gives the</span>
+<span class="c1"># copy a local name, so ship_lng is a copy of bulk_carrier_80k_dwt_ice_methane.</span>
 
 <span class="n">Copy</span> <span class="n">Vessel</span> <span class="s2">"bulk_carrier_80k_dwt_ice_oil"</span>      <span class="s2">"ship_oil"</span>
 <span class="n">Copy</span> <span class="n">Vessel</span> <span class="s2">"bulk_carrier_80k_dwt_ice_methane"</span>  <span class="s2">"ship_lng"</span>
@@ -585,6 +589,8 @@ Fleet</label><div class="sd-tab-content docutils">
 	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">300</span> <span class="c1"># Arbitrary number (represents 8% of the world Panamax fleet)</span>
 	<span class="n">InitialSplit</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span> <span class="c1"># Only ship oil vessels</span>
 
+	<span class="c1"># The age spread of the world's 80k DWT bulk carriers, taken from the library.</span>
+	<span class="c1"># Navigate splits the fleet into one cohort per year of age.</span>
 	<span class="n">InitialAgeDistribution</span> <span class="o">=</span> <span class="p">[</span>
 		<span class="n">Curve</span><span class="p">(</span><span class="s2">"age_dist_bulk_carrier_80k_dwt_oil"</span><span class="p">),</span>
 		<span class="mi">0</span><span class="p">,</span>
@@ -599,6 +605,9 @@ Fleet</label><div class="sd-tab-content docutils">
 	<span class="n">TradeGrowth</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"trade_growth_bulk_carrier"</span><span class="p">)</span>
 
 	<span class="c1"># Retrofit costs, figures for this class (Fleet/bulk_carrier_80k_dwt.inc).</span>
+	<span class="c1"># These lines set which retrofits are possible and what each costs: an oil</span>
+	<span class="c1"># ship can be converted to methanol or ammonia, and an LNG ship to ammonia.</span>
+	<span class="c1"># No line converts a ship to LNG, so an LNG ship can only be bought new.</span>
 	<span class="n">set_fuel_conversion_cost</span><span class="p">(</span><span class="s2">"ship_oil"</span><span class="p">,</span> <span class="s2">"ship_methanol"</span><span class="p">,</span> <span class="mf">17.5e6</span><span class="p">)</span>
 	<span class="n">set_fuel_conversion_cost</span><span class="p">(</span><span class="s2">"ship_oil"</span><span class="p">,</span> <span class="s2">"ship_ammonia"</span><span class="p">,</span> <span class="mf">24.1e6</span><span class="p">)</span>
 	<span class="n">set_fuel_conversion_cost</span><span class="p">(</span><span class="s2">"ship_lng"</span><span class="p">,</span> <span class="s2">"ship_ammonia"</span><span class="p">,</span> <span class="mf">14.2e6</span><span class="p">)</span>
@@ -681,7 +690,8 @@ Route</label><div class="sd-tab-content docutils">
     <span class="c1"># Modal service speed from the library's operational profile for this ship class.</span>
     <span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mf">11.5</span><span class="p">,</span> <span class="mf">11.5</span><span class="p">]</span>
 
-    <span class="c1"># Laden out, ballast home.</span>
+    <span class="c1"># The two legs are asymmetric: outbound the ship is full of copper</span>
+    <span class="c1"># concentrate; homebound it sails in ballast (empty).</span>
     <span class="n">CapacityUtilizations</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -692,9 +702,10 @@ Route</label><div class="sd-tab-content docutils">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
 <span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
 
-<span class="c1"># PORTS - what can be bunkered where. All three alternative fuels are bunkerable at</span>
-<span class="c1"># both ports; a fuel is shipped to the port that did not produce it, the same way</span>
-<span class="c1"># Chilean e-ammonia reaches Rotterdam.</span>
+<span class="c1"># PORTS - what can be bunkered where. Both ports sell the same five fuels: fuel</span>
+<span class="c1"># oil, LNG, e-ammonia, e-methanol and bio-methanol. A fuel is shipped from the</span>
+<span class="c1"># region that made it to the port that needs it, the same way Chilean e-ammonia</span>
+<span class="c1"># reaches Rotterdam.</span>
 <span class="c1"># Delivered price is production cost plus transport, set in bunker_logistics.inc.</span>
 
 <span class="n">Port</span> <span class="s2">"san_antonio"</span> <span class="p">{</span>
@@ -722,7 +733,13 @@ Route</label><div class="sd-tab-content docutils">
     <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"liquefied_natural_gas"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"liquefied_natural_gas_wtt_carbon_dioxide"</span><span class="p">))</span>
     <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"liquefied_natural_gas"</span><span class="p">,</span> <span class="s2">"methane"</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"liquefied_natural_gas_wtt_methane"</span><span class="p">))</span>
 
-    <span class="c1"># cost of physically getting the fuel aboard, USD/ton</span>
+    <span class="c1"># Cost of physically getting the fuel aboard, USD/ton: a fixed cost per ton</span>
+    <span class="c1"># for storage and the bunkering service. These per-ton charges are the only</span>
+    <span class="c1"># infrastructure costs in Navigate: terminals, storage tanks and bunker</span>
+    <span class="c1"># vessels have no investment cost and are never built. A slow or costly port</span>
+    <span class="c1"># build-out has to be entered by hand: set_bunkering_allowed or</span>
+    <span class="c1"># set_bunkering_limit for when and how much a port can deliver, and a higher</span>
+    <span class="c1"># or time-varying handling cost for what it costs.</span>
     <span class="n">set_handling_cost</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"handling_cost_oil"</span><span class="p">))</span>
     <span class="n">set_handling_cost</span><span class="p">(</span><span class="s2">"liquefied_natural_gas"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"handling_cost_lng"</span><span class="p">))</span>
     <span class="n">set_handling_cost</span><span class="p">(</span><span class="s2">"methanol_electro"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"handling_cost_methanol"</span><span class="p">))</span>
@@ -749,41 +766,22 @@ Route</label><div class="sd-tab-content docutils">
 </pre></div>
 </div>
 </div>
-<div class="literal-block-wrapper docutils container" id="id5">
-<div class="code-block-caption"><span class="caption-text">includes/bunker_logistics.inc</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
-<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
-
-<span class="c1"># BUNKER LOGISTICS - production site to bunker port.</span>
-<span class="c1"># LiquidMarketFuels are treated as global commodities: quoted price, no plant,</span>
-<span class="c1"># no producer, no logistics chain. Everything else picks up distance x rate.</span>
-
-<span class="n">BunkerLogistics</span> <span class="p">{</span>
-	<span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">),</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"liquefied_natural_gas"</span><span class="p">)]</span>
-
-	<span class="c1"># The values have been invented for this example:</span>
-	<span class="c1"># nautical miles from the production region to each port</span>
-	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"americas"</span><span class="p">,</span> <span class="s2">"san_antonio"</span><span class="p">,</span> <span class="mi">1250</span><span class="p">)</span>
-	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"americas"</span><span class="p">,</span> <span class="s2">"rotterdam"</span><span class="p">,</span> <span class="mi">7600</span><span class="p">)</span>
-	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">,</span> <span class="s2">"rotterdam"</span><span class="p">,</span> <span class="mi">540</span><span class="p">)</span>
-	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">,</span> <span class="s2">"san_antonio"</span><span class="p">,</span> <span class="mi">7600</span><span class="p">)</span>
-
-	<span class="c1"># USD per ton per nautical mile</span>
-	<span class="n">set_transport_cost</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</div>
 </div>
 <input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
 <label class="sd-tab-label" for="sd-tab-item-3">
 Fuel</label><div class="sd-tab-content docutils">
-<div class="literal-block-wrapper docutils container" id="id6">
-<div class="code-block-caption"><span class="caption-text">includes/fuel_production.inc</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">includes/fuel_production.inc</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
 <span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
 
 <span class="c1"># FUEL PRODUCTION - five fuels for four ships; both methanols feed one ship.</span>
+<span class="c1">#</span>
+<span class="c1"># A vessel is defined by the fuel TYPE its engine and tanks accept, and several</span>
+<span class="c1"># fuels can satisfy one type: the same methanol ship can burn bio-methanol,</span>
+<span class="c1"># e-methanol or oil (dual-fuel engine). Fuel oil and LNG are bought on the world</span>
+<span class="c1"># market; e-ammonia, e-methanol and bio-methanol need to be produced by a fuel</span>
+<span class="c1"># plant.</span>
 <span class="c1">#</span>
 <span class="c1"># Only the siting and financing are set here (region, electricity source and</span>
 <span class="c1"># cost of capital, which Import Plant does not bring: the library sets it in</span>
@@ -855,8 +853,8 @@ Fuel</label><div class="sd-tab-content docutils">
 </pre></div>
 </div>
 </div>
-<div class="literal-block-wrapper docutils container" id="id7">
-<div class="code-block-caption"><span class="caption-text">includes/regions.inc</span><a class="headerlink" href="#id7" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">includes/regions.inc</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
 <span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
 
@@ -931,12 +929,18 @@ Fuel</label><div class="sd-tab-content docutils">
 </pre></div>
 </div>
 </div>
-<div class="literal-block-wrapper docutils container" id="id8">
-<div class="code-block-caption"><span class="caption-text">includes/producer.inc</span><a class="headerlink" href="#id8" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id7">
+<div class="code-block-caption"><span class="caption-text">includes/producer.inc</span><a class="headerlink" href="#id7" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
 <span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
 
-<span class="c1"># PRODUCERS - the agents that decide whether to build another plant.</span>
+<span class="c1"># PRODUCERS - the agents that decide whether to build fuel plants, and which</span>
+<span class="c1"># ones. Two of them: an e-fuel producer that can build e-ammonia and e-methanol</span>
+<span class="c1"># in either Patagonia or Europe, and a biofuel producer that builds</span>
+<span class="c1"># bio-methanol (only in Europe).</span>
+<span class="c1">#</span>
+<span class="c1"># The feedstocks for bio-methanol (biomass) and e-methanol (biogenic CO2) are</span>
+<span class="c1"># constrained, so plant build is limited for these two fuels.</span>
 
 <span class="n">Producer</span> <span class="s2">"producer_efuel"</span> <span class="p">{</span>
 	<span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_electro_alkaline"</span><span class="p">),</span>
@@ -944,6 +948,7 @@ Fuel</label><div class="sd-tab-content docutils">
 	          <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_electro_alkaline_europe"</span><span class="p">),</span>
 	          <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_electro_alkaline_europe"</span><span class="p">)]</span>
 
+	<span class="c1"># Caps the plant build in a year; not binding in this example.</span>
 	<span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Forecast</span><span class="p">(</span><span class="s2">"epc_global_capacity_mid"</span><span class="p">)</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"epc_global_share_shipping"</span><span class="p">)</span><span class="o">&gt;</span>
 
 	<span class="c1"># Ceiling on biogenic CO2, the feedstock both its e-methanol plants draw on.</span>
@@ -985,6 +990,33 @@ Fuel</label><div class="sd-tab-content docutils">
 </pre></div>
 </div>
 </div>
+<div class="literal-block-wrapper docutils container" id="id8">
+<div class="code-block-caption"><span class="caption-text">includes/bunker_logistics.inc</span><a class="headerlink" href="#id8" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
+<span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
+
+<span class="c1"># BUNKER LOGISTICS - production site to bunker port.</span>
+<span class="c1"># LiquidMarketFuels such as fuel oil and LNG are treated as global commodities:</span>
+<span class="c1"># available anywhere at a quoted price, with no plant, producer or logistics</span>
+<span class="c1"># chain modelled. Everything else has to be physically moved from the plant to</span>
+<span class="c1"># the bunker port, priced at distance x rate.</span>
+
+<span class="n">BunkerLogistics</span> <span class="p">{</span>
+	<span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"fossil_fuel_oil"</span><span class="p">),</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"liquefied_natural_gas"</span><span class="p">)]</span>
+
+	<span class="c1"># The values have been invented for this example:</span>
+	<span class="c1"># the sea distance, in nautical miles, from each production region to each port</span>
+	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"americas"</span><span class="p">,</span> <span class="s2">"san_antonio"</span><span class="p">,</span> <span class="mi">1250</span><span class="p">)</span>
+	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"americas"</span><span class="p">,</span> <span class="s2">"rotterdam"</span><span class="p">,</span> <span class="mi">7600</span><span class="p">)</span>
+	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">,</span> <span class="s2">"rotterdam"</span><span class="p">,</span> <span class="mi">540</span><span class="p">)</span>
+	<span class="n">set_distance</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">,</span> <span class="s2">"san_antonio"</span><span class="p">,</span> <span class="mi">7600</span><span class="p">)</span>
+
+	<span class="c1"># USD per ton per nautical mile</span>
+	<span class="n">set_transport_cost</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
 </div>
 <input id="sd-tab-item-4" name="sd-tab-set-0" type="radio">
 <label class="sd-tab-label" for="sd-tab-item-4">
@@ -996,15 +1028,18 @@ Regulation</label><div class="sd-tab-content docutils">
 
 <span class="c1"># EU ETS - absolute price on CO2-equivalent burned on board, no free allowance.</span>
 <span class="c1">#</span>
-<span class="c1"># The coverage fractions are applied PER LEG (one sailing</span>
+<span class="c1"># In Navigate a regulation is applied to a specific geography. Jurisdiction lists</span>
+<span class="c1"># the ports that sit inside the regulatory scheme: here Rotterdam, but not San</span>
+<span class="c1"># Antonio. Three fractions decide how much of the fuel burned on a voyage is</span>
+<span class="c1"># counted. They are applied PER LEG (one sailing</span>
 <span class="c1"># from one port to the next), not to the round trip. Both legs</span>
 <span class="c1"># here are inter-jurisdiction, so both count at 50%. Port stays are classified</span>
 <span class="c1"># by their own port, so Rotterdam counts in full and San Antonio not at all.</span>
 
 <span class="n">Regulation</span> <span class="s2">"eu_ets"</span> <span class="p">{</span>
 	<span class="n">Measure</span> <span class="o">=</span> <span class="n">ABSOLUTE</span>
-	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">INDIVIDUAL</span>
-	<span class="n">Scope</span> <span class="o">=</span> <span class="n">TTW</span>
+	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">INDIVIDUAL</span>   <span class="c1"># applies per vessel</span>
+	<span class="n">Scope</span> <span class="o">=</span> <span class="n">TTW</span>           <span class="c1"># tank to wake: the emissions that come out of the ship's engine</span>
 	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">FALSE</span>   <span class="c1"># methane slip is carried in the TTW methane factors</span>
 	<span class="n">Emissions</span> <span class="o">=</span> <span class="p">[</span><span class="n">Emission</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">),</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">),</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">)]</span>
 	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
@@ -1025,6 +1060,9 @@ Regulation</label><div class="sd-tab-content docutils">
 	<span class="n">set_global_warming_potential</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">,</span> <span class="mi">28</span><span class="p">)</span>
 	<span class="n">set_global_warming_potential</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mi">265</span><span class="p">)</span>
 
+	<span class="c1"># Beyond the geography, most of the content is emission factors: a</span>
+	<span class="c1"># set_fuel_ttw line per fuel per gas, saying what a ton of that fuel emits</span>
+	<span class="c1"># once burned.</span>
 	<span class="c1"># Emission factors follow MRV Maritime Regulation Annex I. Bio and electro</span>
 	<span class="c1"># fuels are assumed to meet the &gt;65% criterion, so are zero-rated for CO2 but</span>
 	<span class="c1"># still take "highest in class" methane and nitrous oxide.</span>
@@ -1058,17 +1096,17 @@ Regulation</label><div class="sd-tab-content docutils">
 
 <span class="c1"># FUELEU MARITIME - caps WTW greenhouse gas intensity, tightening over time.</span>
 <span class="c1">#</span>
-<span class="c1"># The e-fuels get no default set_fuel_wtt. Instead, Navigate calculates</span>
-<span class="c1"># their upstream intensity from the production chain in regions.inc, so the</span>
-<span class="c1"># power price at each site feeds their FuelEU score. The fossil fuels and</span>
-<span class="c1"># bio-methanol instead use the regulation's own defaults.</span>
-<span class="c1">#</span>
-<span class="c1"># Same coverage geography as eu_ets.inc.</span>
+<span class="c1"># The same shape and coverage geography as eu_ets.inc, plus set_fuel_wtt lines</span>
+<span class="c1"># for the fuels whose upstream value the regulation fixes by default: the fossil</span>
+<span class="c1"># fuels and bio-methanol. The e-fuels get none, since the regulation has no</span>
+<span class="c1"># default for them. Instead, Navigate calculates their upstream intensity from</span>
+<span class="c1"># the production chain in regions.inc, so the power price at each site feeds</span>
+<span class="c1"># their FuelEU score.</span>
 
 <span class="n">Regulation</span> <span class="s2">"fuel_eu"</span> <span class="p">{</span>
 	<span class="n">Measure</span> <span class="o">=</span> <span class="n">INTENSITY</span>
-	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">FLEXIBLE</span>     <span class="c1"># pooled and banked across years, unlike the ETS</span>
-	<span class="n">Scope</span> <span class="o">=</span> <span class="n">WTW</span>
+	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">FLEXIBLE</span>     <span class="c1"># applies for the fleet, pooled and banked across years, unlike the ETS (INDIVIDUAL, per vessel)</span>
+	<span class="n">Scope</span> <span class="o">=</span> <span class="n">WTW</span>           <span class="c1"># well to wake: TTW, plus the emissions to make and deliver the fuel</span>
 	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">FALSE</span>   <span class="c1"># methane slip is carried in the TTW methane factors</span>
 	<span class="n">Emissions</span> <span class="o">=</span> <span class="p">[</span><span class="n">Emission</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">),</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">),</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">)]</span>
 	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
@@ -1652,7 +1690,7 @@ or the more detailed <a class="reference internal" href="../tutorials/getting_st
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
@@ -1697,8 +1735,8 @@ or the more detailed <a class="reference internal" href="../tutorials/getting_st
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1731,7 +1769,7 @@ or the more detailed <a class="reference internal" href="../tutorials/getting_st
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
 </p></div>
       
     </div>
