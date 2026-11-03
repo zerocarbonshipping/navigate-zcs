@@ -123,8 +123,6 @@ class _ConversionCohort:
     ----------
     source
         Invariants of the cohort's vessel type.
-    increment_idx
-        Index of the cohort in its vessel type's increment list.
     increment
         The cohort's increment.
     mean_age
@@ -134,7 +132,6 @@ class _ConversionCohort:
     """
 
     source: _ConversionSource
-    increment_idx: int
     increment: VesselIncrement
     mean_age: float
     remaining_lifetime: float
@@ -179,8 +176,9 @@ class _ConversionProposal:
     ----------
     name_from
         Name of the source vessel type.
-    increment_idx
-        Index of the cohort in the source type's increment list.
+    increment
+        The cohort's increment, which the conversions reduce and carry the
+        technology package and charter rate from.
     age
         Age of the cohort, in years.
     age_span
@@ -190,7 +188,7 @@ class _ConversionProposal:
     """
 
     name_from: str
-    increment_idx: int
+    increment: VesselIncrement
     age: float
     age_span: float
     candidates: dict[str, _ConversionCandidate]
@@ -282,7 +280,7 @@ def _propose_fuel_conversions(
 
         proposal = _ConversionProposal(
             cohort.source.name,
-            cohort.increment_idx,
+            cohort.increment,
             cohort.increment.age,
             cohort.increment.age_span,
             candidates,
@@ -360,7 +358,7 @@ def _apply_fuel_conversions(
     names = [vessel.name for vessel in fleet.vessels]
     increments = dict(zip(names, fleet.increments, strict=True))
 
-    _apply_from_side(fleet, proposals, increments, timeline, idx)
+    _apply_from_side(fleet, proposals, timeline, idx)
     _apply_to_side(proposals, increments)
 
 
@@ -402,7 +400,7 @@ def _eligible_cohorts(
         # cohorts are walked youngest to oldest (index 0 is the oldest cohort); when
         # target-fuel supply binds, younger cohorts with longer remaining lifetimes
         # claim the working supply excess first
-        for increment_idx, increment in reversed(list(enumerate(increments))):
+        for increment in reversed(increments):
             if not is_retrofit_cycle(increment.age, retrofit_frequency, dt):
                 continue
 
@@ -417,9 +415,7 @@ def _eligible_cohorts(
             if increment.multiplier <= 0.0:
                 continue
 
-            yield _ConversionCohort(
-                source, increment_idx, increment, mean_age, remaining_lifetime
-            )
+            yield _ConversionCohort(source, increment, mean_age, remaining_lifetime)
 
 
 def _extract_conversion_source(
@@ -680,7 +676,6 @@ def _proposed_conversions(
 def _apply_from_side(
     fleet: Fleet,
     proposals: list[_ConversionProposal],
-    increments: dict[str, list[VesselIncrement]],
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -693,8 +688,6 @@ def _apply_from_side(
         Fleet whose vessels convert.
     proposals
         Reconciled proposals.
-    increments
-        Increment list of each vessel type, keyed by name.
     timeline
         Simulation timeline, in days.
     idx
@@ -705,7 +698,7 @@ def _apply_from_side(
     expenses_ahead = fleet.fuel_conversion_expenses[idx:]
 
     for proposal, name_to, candidate in _proposed_conversions(proposals):
-        increment_from = increments[proposal.name_from][proposal.increment_idx]
+        increment_from = proposal.increment
         count = candidate.count
 
         increment_from.multiplier -= count
@@ -738,13 +731,10 @@ def _apply_to_side(
         Increment list of each vessel type, keyed by name; updated in place.
     """
     for proposal, name_to, candidate in _proposed_conversions(proposals):
-        # resolve the source increment per insert: earlier inserts may have shifted
-        # its list
-        increment_from = increments[proposal.name_from][proposal.increment_idx]
         increments_to = increments[name_to]
         count = candidate.count
 
-        _insert_converted_increment(increments_to, increment_from, proposal, count)
+        _insert_converted_increment(increments_to, proposal.increment, proposal, count)
 
 
 def _insert_converted_increment(

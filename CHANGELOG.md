@@ -642,6 +642,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A Curve in a `Fleet`'s or `Producer`'s `InitialAgeDistribution` with a
   negative age or fraction is a deck error; it ran with assets entering in the
   future or negative asset counts (#214, #469).
+- A `set_power_transfer` whose source converter has no power capacity and no
+  demand transfers the curve's power at load 0; the sink's residual energy was
+  NaN (#481).
+- A producer's plant development ramps up by `MaximumRampUp` per year, as its
+  own forecasts assume; with time steps shorter than a year it ramped up by
+  the full yearly amount every step (#564).
+- Vessels converted out of a vessel type that other conversions convert into
+  in the same time-step keep the technology package and charter rate of the
+  cohort they leave; they could carry those of an older cohort (#581).
+- An inactive FLEXIBLE regulation keeps its expected flexibility cost; it
+  decayed toward 0, so after reactivation the policed vessels' expected
+  flexibility expenses depended on how long the regulation was off (#562).
+- A vessel type with no existing vessels left sets no fuel inertia floor at a
+  port's `set_bunkering_inertia`; it kept the fuel mass it last bunkered, which
+  forced fuel purchases in its expected bunkering or made the expected
+  bunkering LP infeasible (#806).
+- A run in which no vessel is left to bunker, as when a fleet's vessels have
+  all been scrapped, continues; it stopped with a `ValueError` or
+  `ZeroDivisionError` traceback (#485).
 
 ## [1.0.0] - 2026-07-16
 

@@ -35,9 +35,10 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
     """Write the bunkered mass, expenses, WTT emissions and levies to the results."""
     idx = alg.idx
 
-    # every vessel in the LP restarts its bunker mass from zero, as it is added up below
-    for vessel in alg.vessels.values():
-        vessel.expectation.reset_bunker_mass_existing()
+    # every fleet vessel restarts its bunker mass from zero, also one out of the LP
+    for fleet in alg.fleets.values():
+        for vessel in fleet.vessels:
+            vessel.expectation.reset_bunker_mass_existing()
 
     for (v, p, f), bunker in alg.bunker.items():
         mass = alg.model.value(bunker)
