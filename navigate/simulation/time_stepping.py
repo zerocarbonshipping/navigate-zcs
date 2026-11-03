@@ -167,7 +167,7 @@ class Simulation:
         self._idx: int = 0
         self._time_step: float
 
-        self.global_results: GlobalResults = GlobalResults()
+        self._global_results: GlobalResults = GlobalResults()
         self.timings: Timings[TimingID]
 
         self._bunker_existing: BunkerAlgorithm
@@ -188,7 +188,7 @@ class Simulation:
         self._define_node_maps()
         self._initialize_expectations()
         self._initialize_results()
-        self.timings = Timings(self.global_results.computational_time)
+        self.timings = Timings(self._global_results.computational_time)
         self._initialize_bunkers()
 
     def step(self, inputs_changed: bool) -> None:
@@ -226,18 +226,18 @@ class Simulation:
 
         for fleet in self.nodes.fleets.values():
             complete_fleet_results(fleet, self.timeline)
-            self.global_results.add_vessel_aggregate_results(fleet.results)
+            self._global_results.add_vessel_aggregate_results(fleet.results)
 
         for port in self.nodes.ports.values():
             complete_port_results(port.results)
-            self.global_results.add_fuel_infrastructure_results(port.results)
+            self._global_results.add_fuel_infrastructure_results(port.results)
 
         for producer in self.nodes.producers.values():
             complete_producer_results(producer.results)
-            self.global_results.add_plant_aggregate_results(producer.results)
+            self._global_results.add_plant_aggregate_results(producer.results)
 
-        complete_global_fleet_results(self.global_results)
-        complete_global_fuel_results(self.global_results)
+        complete_global_fleet_results(self._global_results)
+        complete_global_fuel_results(self._global_results)
 
         for plant in self.nodes.plants.values():
             complete_plant_results(plant.results)
@@ -245,7 +245,7 @@ class Simulation:
         for regulation in self.nodes.regulations.values():
             complete_regulation_results(regulation.results)
 
-        return self.global_results
+        return self._global_results
 
     def _define_node_maps(self) -> None:
         """Write the node maps derived from DSL-defined attributes."""
@@ -300,7 +300,7 @@ class Simulation:
         regulation_names = list(nodes.regulations.keys())
         vessel_names = list(nodes.vessels.keys())
 
-        self.global_results.initialize(
+        self._global_results.initialize(
             context, feedstock_names, process_names, regulation_names, levy_names
         )
 
