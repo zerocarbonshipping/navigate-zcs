@@ -414,13 +414,16 @@ Date "01-01-2050"
 
 4. Let’s run Navigate and see if it works and we get an output.
 
-Navigate should have run error-free now, with PowerShell showing a message like the one in the right column – well done, you’ve defined all the components necessary to run a simulation!
+Navigate should have run error-free now, with the terminal ending like this – well done, you’ve defined all the components necessary to run a simulation!
 
 
 ```
 ...
-Finished EVENTS, elapsed time: 0m and 5s.
+Date: 2050-01-01
+Finished simulation, elapsed time: 0m and 5s.
 ```
+
+The elapsed time differs from run to run. If the run logged warnings, one more line counts them and names the `.log` file to read them in.
 
 
 ## Interpret the results
