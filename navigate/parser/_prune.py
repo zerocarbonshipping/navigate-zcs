@@ -205,5 +205,5 @@ def _warn_dropped_events(events: list[BoundEvent], reached: set[Key]) -> None:
     logger.warning(
         "Dropped %s EVENTS statement(s) targeting only unused node(s):%s",
         len(dropped),
-        bulleted(f"{block} at {block.source.prefix()}" for block in dropped),
+        bulleted(f"{block} at {block.source}" for block in dropped),
     )

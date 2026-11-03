@@ -630,6 +630,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   burn nothing, so a fuel type never in the fleet has no series (#400).
 - A port's `bunker_supply_mass` of a liquid-market fuel is 0, not missing, at
   dates the port does not allow the fuel (#464).
+- The warning for a dropped `EVENTS` block names each block's location without
+  opening it with "Error in", so it no longer reads as an error (#824).
 
 ## [1.0.0] - 2026-07-16
 
