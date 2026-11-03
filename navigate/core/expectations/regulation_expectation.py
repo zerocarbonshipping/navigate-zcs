@@ -89,7 +89,9 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
 
         vessel_ports: list[tuple[str, str]] = []
         for vessel_name, vessel in vessels.items():
-            vessel_ports.extend((vessel_name, port.name) for port in vessel.route.ports)
+            vessel_ports.extend(
+                (vessel_name, port.name) for port in vessel.route.distinct_ports
+            )
 
         self._shore_power_emission_coefficient = self._default_dict_array(port_names)
         self._shore_power_spend_coefficient = self._default_dict_array(vessel_ports)

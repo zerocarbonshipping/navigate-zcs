@@ -951,7 +951,7 @@ def _port_fuels(vessel: Vessel, fuels: dict[str, Fuel]) -> Iterator[tuple[Port, 
     tuple[Port, Fuel]
         The port and the fuel.
     """
-    for port in dict.fromkeys(vessel.route.ports):
+    for port in vessel.route.distinct_ports:
         for fuel in fuels.values():
             if port.bunkering_allowed[fuel.name]:
                 yield port, fuel

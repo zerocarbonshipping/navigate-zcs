@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
 from navigate.simulation.bunker._indices import get_scope_steps
-from navigate.util import divide_nonzero, unique_list
+from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -63,7 +63,7 @@ def _calculate_port_demand(
             multiplier = fleet.expectation.get_multiplier(vessel.name, scope, steps)
 
             # the demand is held per port, so a port called at twice counts once
-            for port in unique_list(vessel.route.ports):
+            for port in vessel.route.distinct_ports:
                 for fuel_type in FuelTypeID:
                     key = (port.name, fuel_type)
                     demand = expectation.get_potential_fuel_type_demand(*key, steps)
@@ -83,7 +83,7 @@ def _calculate_vessel_fair_shares(
     """Calculate the vessel's fair share of each port's supply of the given fuels."""
     expectation = vessel.expectation
 
-    for port in vessel.route.ports:
+    for port in vessel.route.distinct_ports:
         for name, fuel in fuels.items():
             if name not in vessel.usable_fuels:
                 continue

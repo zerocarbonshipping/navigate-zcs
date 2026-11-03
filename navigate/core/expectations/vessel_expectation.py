@@ -126,7 +126,7 @@ class VesselExpectation(_Expectation):
     ) -> None:
         self._initialize_expectation(length)
 
-        port_names = [port.name for port in route.ports]
+        port_names = [port.name for port in route.distinct_ports]
         condition_count = len(route.get_conditions())
         leg_count = len(route.get_legs())
         port_count = len(route.ports)

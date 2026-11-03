@@ -71,6 +71,9 @@ class Route(Node):
         self.port_calls: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------
+        # each port once, in the order the route first calls it
+        self.distinct_ports: tuple[Port, ...]
+
         # the per-leg inputs in the order of get_legs, empty where the route type
         # reads none
         self.leg_speeds: tuple[CurveInput, ...]
@@ -213,6 +216,9 @@ class Route(Node):
         self._check_legs_assigned("set_voyage_distribution", self.voyage_shares)
 
     def apply_defaults(self) -> None:
+        # the ports are DEFINE-only, so their distinct order is fixed from here on
+        self.distinct_ports = tuple(unique_list(self.ports))
+
         # the expectations are sized by the sailing conditions once DEFINE is read,
         # so the number on each leg is fixed from here on
         self.conditions_per_leg = _count_conditions(_in_seeded_order(self.speeds))
@@ -340,7 +346,7 @@ class Route(Node):
 
     def _check_tramp(self) -> None:
         """Check that the ports of a TRAMP are unique."""
-        if len(self.ports) > len(unique_list(self.ports)):
+        if len(self.distinct_ports) < len(self.ports):
             raise ValueError(f"{self}: All ports on a TRAMP must be unique.")
 
     def _check_speed(self, key: tuple[str, str], speed: CurveInput) -> None:
