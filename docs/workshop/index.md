@@ -45,7 +45,7 @@ To open a terminal: on **Windows** press Start and type `PowerShell`, then Enter
 git clone -b dev-workshop https://github.com/zerocarbonshipping/navigate-zcs.git
 cd navigate-zcs
 pip install .
-pip install jupyterlab
+pip install jupyterlab ipywidgets
 jupyter lab
 ```
 
