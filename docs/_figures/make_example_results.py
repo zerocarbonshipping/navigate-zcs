@@ -39,13 +39,13 @@ DECKS = {"trade-route": "simulations/examples/example_4/example_4.nav",
 # page: (plot folder of the run, chart) - the figure that shows what the case compares
 NAVIGATE_CHARTS = {"two-fleets": ("plots_analysis", "fleet_emission_absolute.png")}
 
-# page: (notebook, first line of the cell) - a figure taken from a notebook's saved
+# page: (notebook, first line or tag of the cell) - a figure taken from a notebook's saved
 # output, for decks too slow to solve here (the global scenarios take about 25
 # minutes each) or cases of several decks, which their explore notebook already
 # runs side by side (make_example_notebooks.py)
 RUN = "# @title Run the case and see the results"
 SESSION_FIGURES = {"world-fleet": ("docs/workshop/02-run-a-global-case.ipynb",
-                                   "# @title Figure: compare the three scenarios"),
+                                   "compare-scenarios"),
                    "caribbean": ("docs/examples/caribbean-explore.ipynb", RUN),
                    "rhine": ("docs/examples/rhine-explore.ipynb", RUN)}
 
@@ -53,10 +53,11 @@ OUT = Path("docs/examples/figures")
 
 
 def session_figure(notebook, first_line):
-    """The PNG saved in the output of the notebook cell starting with `first_line`."""
+    """The PNG saved in the output of the notebook cell starting with `first_line`, or tagged with it."""
     nb = nbformat.read(notebook, as_version=4)
     cell = next(c for c in nb.cells
-                if c.cell_type == "code" and c.source.startswith(first_line))
+                if c.cell_type == "code" and (c.source.startswith(first_line)
+                                              or first_line in c.metadata.get("tags", [])))
     png = next(o.data["image/png"] for o in cell.outputs if "image/png" in o.get("data", {}))
     return base64.b64decode(png)
 

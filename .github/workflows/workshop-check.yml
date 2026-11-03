@@ -128,10 +128,9 @@ jobs:
               nb = nbformat.read(path, as_version=4)
               if os.environ.get("FULL") != "true":
                   # Session 2's last step solves three scenarios year by year (25-50 min):
-                  # only with `full`
-                  yearly = ("# @title Run the scenarios", "# @title Show the output plots",
-                            "# @title Figure: compare the three scenarios")
-                  nb.cells = [c for c in nb.cells if not c.source.startswith(yearly)]
+                  # only with `full`. Its cells carry the tag, so a retitled cell stays skipped.
+                  nb.cells = [c for c in nb.cells
+                              if "yearly-run" not in c.metadata.get("tags", [])]
               try:
                   NotebookClient(nb, kernel_name="python3", timeout=3600,
                                  resources={"metadata": {"path": os.path.dirname(path)}}).execute()
