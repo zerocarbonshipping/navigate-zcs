@@ -4,8 +4,10 @@
 # Does the workshop still run on the latest main?
 #
 # Merges origin/main into the workshop branch, then runs every deck the
-# workshop and the docs rely on and executes the workshop notebooks. On a
-# failure it opens (or comments on) one GitHub issue. The job summary also lists
+# workshop and the docs rely on and executes the workshop notebooks. When a run
+# nobody is watching fails (a scheduled run, a push to main, a workshop-sync/**
+# branch) it opens or comments on one GitHub issue, naming what failed; a push to
+# dev-workshop or a manual run only shows red, to whoever made it. The job summary also lists
 # what changed on main since the workshop's base in the places that change
 # results without breaking anything: the parser, the profiles, the assumptions.
 #
@@ -55,6 +57,7 @@ jobs:
           echo "base=$(git merge-base HEAD origin/main)" >> "$GITHUB_OUTPUT"
           if ! git merge --no-edit origin/main; then
             echo "::error::origin/main does not merge cleanly into the workshop: needs a manual sync"
+            echo "origin/main does not merge cleanly into the workshop: needs a manual sync" >> "$RUNNER_TEMP/failures.txt"
             exit 1
           fi
 
@@ -103,11 +106,13 @@ jobs:
           do
             log="${deck%.nav}.log"
             if ! python -m navigate "$deck" -d ./assumptions -s > /dev/null 2>&1; then
-              echo "::error file=$deck::run failed"; tail -20 "$log" || true; status=1; continue
+              echo "::error file=$deck::run failed"; tail -20 "$log" || true; status=1
+              echo "$deck: run failed" >> "$RUNNER_TEMP/failures.txt"; continue
             fi
             errors=$(grep -E '^\|\s+ERROR\s+\|' "$log" | grep -oE '[0-9]+' | tail -1)
             if [ "${errors:-0}" != "0" ]; then
               echo "::error file=$deck::$errors error(s) in the log"
+              echo "$deck: $errors error(s) in the log" >> "$RUNNER_TEMP/failures.txt"
               grep '\[ERROR\]' "$log" | sort -u | head -10; status=1
             fi
             echo "$deck: ok (errors: ${errors:-0})"
@@ -136,18 +141,28 @@ jobs:
                                  resources={"metadata": {"path": os.path.dirname(path)}}).execute()
                   print(f"{name}: ok")
               except CellExecutionError as e:
-                  print(f"::error file={path}::{str(e).strip().splitlines()[-1][:300]}")
+                  last = str(e).strip().splitlines()[-1][:300]
+                  print(f"::error file={path}::{last}")
+                  with open(os.path.join(os.environ["RUNNER_TEMP"], "failures.txt"), "a") as fh:
+                      fh.write(f"{path}: {last}\n")
                   failed.append(name)
           sys.exit(1 if failed else 0)
           PY
 
+      # Only for runs nobody is watching: whoever pushes to dev-workshop or starts a
+      # run by hand sees the red check, and the failure may be their own change.
       - name: Open or update an issue
-        if: failure()
+        if: >-
+          failure() && (github.event_name == 'schedule' || github.ref_name == 'main'
+          || startsWith(github.ref_name, 'workshop-sync/'))
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           title="Workshop check fails against main"
-          body="The workshop check failed on \`${GITHUB_REF_NAME}\` after merging origin/main: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          failures=$(sed 's/^/- /' "$RUNNER_TEMP/failures.txt" 2>/dev/null || true)
+          body="The workshop check failed on \`${GITHUB_REF_NAME}\` after merging origin/main: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          ${failures:-See the run for what failed.}"
           number=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
           if [ -n "$number" ]; then
             gh issue comment "$number" --body "$body"
