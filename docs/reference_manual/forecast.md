@@ -94,7 +94,7 @@ This attribute sets the extrapolation method used to extrapolate outside the tab
 
 ### Below
 
-Sets the flat extrapolation value before the first date of the table. It is only used when `Extrapolate` is `FLAT`, and it then takes the place of the table's y-value in the [formula](#forecast) at the top of this page. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the forecast is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
+Sets the flat extrapolation value before the first date of the table. It is only used when `Extrapolate` is `FLAT`, and it then takes the place of the table's y-value in the [formula](#forecast) at the top of this page; when `Extrapolate` is not `FLAT`, a value set here is ignored with a warning. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the forecast is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
 
 * **Data type**: `Float`, `Expression`
 * **Example value**: `-5`
@@ -102,7 +102,7 @@ Sets the flat extrapolation value before the first date of the table. It is only
 
 ### Above
 
-Sets the flat extrapolation value after the last date of the table. It is only used when `Extrapolate` is `FLAT`, and it then takes the place of the table's y-value in the [formula](#forecast) at the top of this page. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the forecast is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
+Sets the flat extrapolation value after the last date of the table. It is only used when `Extrapolate` is `FLAT`, and it then takes the place of the table's y-value in the [formula](#forecast) at the top of this page; when `Extrapolate` is not `FLAT`, a value set here is ignored with a warning. The value may be an [expression](dsl_reference.md#expressions) of numbers; an expression that references a node is rejected. `INF` and `-INF` are accepted, and are checked against each attribute the forecast is assigned to (see [Assigning attributes](dsl_reference.md#assigning-attributes)).
 
 * **Data type**: `Float`, `Expression`
 * **Example value**: `5`

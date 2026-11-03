@@ -269,6 +269,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   instead of naming a missing argument.
 - A `Tank` whose `FuelTypes` lists a fuel type twice is a deck error, as a
   `Converter`'s fuel types are (#813).
+- A `Curve` or `Forecast` given `Below` or `Above` while `Extrapolate` is not
+  `FLAT` logs a warning that the value is ignored, as a `Surface` or
+  `Timetable` does for `Outside` (#814).
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`
