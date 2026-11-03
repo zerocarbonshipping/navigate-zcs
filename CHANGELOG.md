@@ -632,6 +632,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   dates the port does not allow the fuel (#464).
 - The warning for a dropped `EVENTS` block names each block's location without
   opening it with "Error in", so it no longer reads as an error (#824).
+- A `Technology`'s `set_energy_saving` above 1 is a deck error; it ran and
+  saved all of the demand, or less than one of its savings alone (#317).
 
 ## [1.0.0] - 2026-07-16
 

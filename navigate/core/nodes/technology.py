@@ -69,7 +69,7 @@ class Technology(_Machinery):
     def set_energy_saving(self, key: str, value: ScalarArgument) -> None:
         """Set the fraction of the raw energy demand the technology saves."""
         energy_type = assign_id(key, EnergyDemandID)
-        saving = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
+        saving = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
 
         write_matching_keys(energy_type, saving, self.energy_savings)
 
