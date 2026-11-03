@@ -267,6 +267,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A command given too few or too many arguments reports how many it takes and
   how many were given, such as `'set_ttw' takes 2 arguments, but 1 was given.`,
   instead of naming a missing argument.
+- A `Tank` whose `FuelTypes` lists a fuel type twice is a deck error, as a
+  `Converter`'s fuel types are (#813).
 
 ### Removed
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`
