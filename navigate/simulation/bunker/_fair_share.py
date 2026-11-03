@@ -239,6 +239,9 @@ def _update_convergence_statistics(alg: BunkerAlgorithm, change: FloatArray) -> 
     """
     Append the share of changed bunker variables and the norm and maximum change.
 
+    A scope without bunker variables, as when no vessel is left to bunker, changes
+    nothing.
+
     Parameters
     ----------
     alg
@@ -247,12 +250,12 @@ def _update_convergence_statistics(alg: BunkerAlgorithm, change: FloatArray) -> 
         Absolute change of each bunker variable since the previous solve, in tons/year.
     """
     non_zero = np.count_nonzero(change >= alg.options.fair_share_tolerance)
-    non_zero_fraction = non_zero / change.size
+    non_zero_fraction = non_zero / change.size if change.size else 0.0
 
     statistics = alg.fair_share_convergence_statistics
     statistics["Non-zero (%)"].append(int(non_zero_fraction * 100.0))
     statistics["Norm"].append(float(norm(change)))
-    statistics["Max"].append(float(np.max(change)))
+    statistics["Max"].append(float(np.max(change, initial=0.0)))
 
 
 def _get_fair_share(

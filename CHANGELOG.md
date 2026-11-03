@@ -658,6 +658,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   port's `set_bunkering_inertia`; it kept the fuel mass it last bunkered, which
   forced fuel purchases in its expected bunkering or made the expected
   bunkering LP infeasible (#806).
+- A run in which no vessel is left to bunker, as when a fleet's vessels have
+  all been scrapped, continues; it stopped with a `ValueError` or
+  `ZeroDivisionError` traceback (#485).
 
 ## [1.0.0] - 2026-07-16
 
