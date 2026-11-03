@@ -103,7 +103,7 @@ The list must have the same length as the list of plants.
 
 This attribute sets the initial age distribution of each plant type.
 
-The list must have a length corresponding to the number of plant types. Each entry is either a Curve reference (where the Curve's x-values are ages in increasing order and y-values are the corresponding fractions) or a number for plant types with no custom distribution. `0`, any other number, or leaving the attribute unset all give a uniform age spread over the plant's lifetime. The Curve's values must be finite.
+The list must have a length corresponding to the number of plant types. Each entry is either a Curve reference (where the Curve's x-values are ages in increasing order and y-values are the corresponding fractions) or a number for plant types with no custom distribution. `0`, any other number, or leaving the attribute unset all give a uniform age spread over the plant's lifetime. The Curve's values must be finite, and its ages and fractions must not be negative.
 
 * **Data type**: List of `Float` and/or `Curve` nodes
 * **Example value**: `[Curve("age_dist_1"), 0, Curve("age_dist_3")]`
