@@ -654,6 +654,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - An inactive FLEXIBLE regulation keeps its expected flexibility cost; it
   decayed toward 0, so after reactivation the policed vessels' expected
   flexibility expenses depended on how long the regulation was off (#562).
+- A vessel type with no existing vessels left sets no fuel inertia floor at a
+  port's `set_bunkering_inertia`; it kept the fuel mass it last bunkered, which
+  forced fuel purchases in its expected bunkering or made the expected
+  bunkering LP infeasible (#806).
 
 ## [1.0.0] - 2026-07-16
 
