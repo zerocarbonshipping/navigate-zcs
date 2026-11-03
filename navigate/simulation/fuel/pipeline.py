@@ -99,7 +99,7 @@ def perform_pipeline_planning(
     """
     dt = time_step / YEAR
     limit = producer.maximum_development.get() * dt
-    ramp_up = producer.maximum_ramp_up.get()
+    ramp_up = producer.maximum_ramp_up.get() * dt
     offtake_duration = producer.minimum_offtake_duration.get()
 
     inertia_newbuilds = _calculate_inertia_newbuilds(producer, limit, time_step, idx)

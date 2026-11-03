@@ -645,6 +645,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A `set_power_transfer` whose source converter has no power capacity and no
   demand transfers the curve's power at load 0; the sink's residual energy was
   NaN (#481).
+- A producer's plant development ramps up by `MaximumRampUp` per year, as its
+  own forecasts assume; with time steps shorter than a year it ramped up by
+  the full yearly amount every step (#564).
 
 ## [1.0.0] - 2026-07-16
 
