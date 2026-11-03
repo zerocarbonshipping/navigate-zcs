@@ -165,8 +165,9 @@ def main() -> int:
     Returns
     -------
     int
-        The exit code: 0 on success, 1 on a reported error, 130 on interrupt.
-        A usage error exits with 2 through argparse instead.
+        The exit code: 0 on success, 1 on a fatal error or a run that logged
+        an ERROR, 130 on interrupt. A usage error exits with 2 through argparse
+        instead.
     """
     parser = _build_parser()
     args = parser.parse_args()
@@ -201,7 +202,7 @@ def main() -> int:
             print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-    return 0
+    return 1 if run_log.error_count else 0
 
 
 def _run(args: argparse.Namespace, run_log: RunLog) -> None:
@@ -218,7 +219,7 @@ def _run(args: argparse.Namespace, run_log: RunLog) -> None:
     )
 
     # a profiled run ends its console output with the profile statistics, so it
-    # prints no warning count
+    # prints no notice
     if args.profile:
         with cProfile.Profile() as profiler:
             run()
@@ -229,7 +230,7 @@ def _run(args: argparse.Namespace, run_log: RunLog) -> None:
         run()
 
         run_log.log_summary()
-        run_log.print_warning_notice()
+        run_log.print_notice()
 
 
 def _params_by_name(

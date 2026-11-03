@@ -623,6 +623,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   DSL keyword (#614).
 - An infeasible bunkering problem on HiGHS now names its limiting constraints,
   or says they could not be identified, instead of listing none (#465).
+- A run that logs an ERROR and finishes, as when a result cannot be read for
+  the results file, now prints its error count on the console and exits with
+  code 1 instead of 0 (#471).
 
 ## [1.0.0] - 2026-07-16
 
