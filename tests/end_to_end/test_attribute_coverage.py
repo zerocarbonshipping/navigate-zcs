@@ -297,6 +297,5 @@ def test_exclusions_are_live():
         assert (node_type, attribute) not in USE.attributes(events_only=True)
 
 
-@pytest.mark.slow
 def test_invariants():
     check_invariants(run_simulation(DECK_DIR))

@@ -29,8 +29,6 @@ FACTOR = 2
 # for a reordered sum without hiding a real departure from proportionality.
 SCALING_RTOL = 1e-9
 
-pytestmark = pytest.mark.slow
-
 
 def _scaled_fleet(run_combination, factor):
     layer = ("initial_vessels.inc", {"initial_vessels": BASE_VESSELS * factor})

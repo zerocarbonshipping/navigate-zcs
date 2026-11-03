@@ -19,8 +19,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 from compare_results import DECKS
 from helpers import snapshot
 from helpers.simulation import default_assumptions_dir, run_simulation
@@ -29,8 +27,6 @@ COMPARE_SCRIPT = Path(__file__).resolve().parents[1] / "compare_results.py"
 DECK = "combination_mechanisms"
 
 HASH_SEEDS = ("0", "1")
-
-pytestmark = pytest.mark.slow
 
 
 def test_two_runs_in_one_process_agree(tmp_path):

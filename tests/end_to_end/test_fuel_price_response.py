@@ -15,7 +15,6 @@ the first step only initializes expectations.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 FLEET = "container_15000_teu"
 OIL_VESSEL = "container_15000_teu_ice_oil"
@@ -24,8 +23,6 @@ METHANE_VESSEL = "container_15000_teu_ice_methane"
 # USD/ton. Per GJ, against oil's 550/40 = 13.75 in 0_includes/fuels_ports.inc,
 # LNG rises from the base deck's 380/50 = 7.6 to 480/50 = 9.6.
 DEARER_LNG_PRICE = 480
-
-pytestmark = pytest.mark.slow
 
 
 def _run(run_combination, dearer, conversion):
