@@ -43,7 +43,7 @@ to the ports. Every source, and every value that had to be invented, is listed i
 `README.md` next to this notebook.
 
 The notebook follows Session 1's layout:
-1. run the three decks and compare them;
+1. run the deck three ways and compare the runs;
 2. change a few levers and see what moves.
 
 Running everything takes about five minutes.
@@ -51,27 +51,29 @@ Running everything takes about five minutes.
 **Note on calibration:** the regional fleet is not calibrated to the region. It
 burns about 36 % more fuel in 2026 than the IMO CARES study finds (419 kt
 against 309 kt), because each library ship class is a world average and
-Caribbean ships are smaller. Read the results as differences between decks,
+Caribbean ships are smaller. Read the results as differences between runs,
 not as the region's real totals."""
 
 CASE = """\
-## The three decks
+## One deck, three runs
 
-| Deck | Policies | Who they cover |
+`example_5.nav` has today's rules; the three runs differ in whom they cover.
+
+| Run | Policies | Who they cover |
 |---|---|---|
-| `example_5_no_policy.nav` | none | nobody |
-| `example_5_current_rules.nav` | global fuel standard, EU ETS, FuelEU | the international ships only, as today |
-| `example_5_extended.nav` | the same | the regional ships too |
+| no policy | none | nobody |
+| current rules | global fuel standard, EU ETS, FuelEU | the international ships only, as today |
+| extended | the same | the regional ships too |
 
-The extended deck stands for two possibilities:
+The extended run stands for two possibilities:
 - the region adopts the standard for its own ships;
 - the EU ETS review brings ships of 400 - 5,000 GT in. Martinique is an EU
   outermost region, so this would reach ships calling there.
 
-The cell below runs the three decks and draws two figures, one for each fleet.
+The cell below runs the deck three ways and draws two figures, one for each fleet.
 In each figure:
 - the top row shows emissions and the yearly fuel and policy bill;
-- the bottom row shows the fuel mix, one panel per deck."""
+- the bottom row shows the fuel mix, one panel per run."""
 
 MACHINERY = '''\
 # @title The machinery (nothing to edit)
@@ -101,9 +103,11 @@ from _solver import guard_interior_point
 guard_interior_point()
 
 ARGS = argparse.Namespace(data_dir=Path("./assumptions"), solver=None)
-DECKS = {"no policy": "example_5_no_policy.nav",
-         "current rules": "example_5_current_rules.nav",
-         "extended": "example_5_extended.nav"}
+# each run of the one deck, and the vessels the four regulations cover in it
+DECKS = {"no policy": [],
+         "current rules": ["intl_*"],
+         "extended": ["intl_*", "reg_*"]}
+POLICIES = ["gfs_tier_1", "gfs_tier_2", "eu_ets", "fuel_eu"]
 FLEETS = {"regional": "reg_", "international": "intl_"}
 
 # none < current < extended, as an ordered ramp like the reference scenarios'
@@ -116,11 +120,17 @@ def colour(case):
     return DECK_COLOUR.get(case, scen_colour(case))
 
 
-def run_deck(deck, tweak=None):
-    """Parse a deck, optionally modify it, solve it, return the manager."""
+def run_deck(case, tweak=None):
+    """Parse the deck, set whom the rules cover in this run, optionally modify it,
+    solve it, return the manager."""
     m = SimulationManager()
     with contextlib.redirect_stdout(io.StringIO()):
-        m.read_deck(EXAMPLE / deck, ARGS)
+        m.read_deck(EXAMPLE / "example_5.nav", ARGS)
+        for policy in POLICIES:
+            regulation = m.nodes.regulations[policy]
+            regulation.set_include_vessel("*", "FALSE")
+            for pattern in DECKS[case]:
+                regulation.set_include_vessel(pattern, "TRUE")
         if tweak is not None:
             tweak(m)
         m.run()
@@ -206,7 +216,7 @@ def table(cases):
 # ---- the levers, each a change to the freshly parsed deck --------------------
 def scale_forecast(name, factor):
     def tweak(m):
-        if name in m.nodes.forecasts:          # the no-policy deck has no standard
+        if name in m.nodes.forecasts:
             f = m.nodes.forecasts[name]
             f.set_multiplier(f.get_multiplier() * float(factor))
     return tweak
@@ -321,8 +331,8 @@ def both(*tweaks):
 '''
 
 RUN_REF = '''\
-# @title Run the three decks and compare them (about 5 minutes)
-REF = {case: run_deck(deck) for case, deck in DECKS.items()}
+# @title Run the deck three ways and compare the runs (about 5 minutes)
+REF = {case: run_deck(case) for case in DECKS}
 
 for group, prefix in FLEETS.items():
     cases = {case: summarise(m, prefix) for case, m in REF.items()}
@@ -330,7 +340,7 @@ for group, prefix in FLEETS.items():
     table(cases)'''
 
 READ = """\
-## What the three decks show
+## What the three runs show
 
 - **Today's rules leave the regional fleet where it was without any policy.**
   Its lines for "no policy" and "current rules" lie on top of each other. This
@@ -350,12 +360,12 @@ READ = """\
 YOURS_MD = """\
 ## Your scenario
 
-Set the levers, then run the cell. It solves the deck you pick, with your
-changes, and compares it with the same deck as shipped. A run takes about a
+Set the levers, then run the cell. It solves the run you pick, with your
+changes, and compares it with the same run as shipped. A run takes about a
 minute and a half.
 
 **The global fuel standard can be rewritten from here.** The settings apply to
-the current rules and extended decks; the no-policy deck has no standard.
+every run; in the no-policy run it covers nobody unless GFS_COVERS says whom.
 - **Who it covers:** `GFS_COVERS` set to `"nobody"`, `"international"` or
   `"all"`. Leave it at `None` to keep what the deck says.
 - **When it starts:** `GFS_START`.
@@ -425,7 +435,7 @@ tweak = both(gfs(GFS_COVERS, GFS_START, GFS_BASE_TARGET, GFS_DIRECT_TARGET,
              chile_electricity(CHILE_ELECTRICITY),
              caribbean_renewables(CARIBBEAN_RENEWABLES) if CARIBBEAN_RENEWABLES else None)
 
-yours = run_deck(DECKS[DECK], tweak)
+yours = run_deck(DECK, tweak)
 for group, prefix in FLEETS.items():
     cases = {"reference": summarise(REF[DECK], prefix), "your scenario": summarise(yours, prefix)}
     plot_cases(cases, f"The {group} fleet: {DECK}, as shipped and with your levers")
@@ -440,14 +450,14 @@ These limits apply to every result above:
   kt and about 1.0 Mt CO2e, so the model is about 36 % too high on fuel. Each
   library ship class is a world average, and Caribbean ships are smaller (most
   CARES tugs are 250 - 300 GT). The gap is left in on purpose; compare the
-  decks with each other, not with the region's real totals.
+  runs with each other, not with the region's real totals.
 - **Where fuel is made:** with several sites on, each builds about the same
   amount of a fuel, whatever it costs. Use `FUEL_SITES` to compare.
 - **The global fuel standard is not adopted.** As shipped:
   - its prices are set only to 2030, and its targets only to 2035; both are
     held flat after that, unless you change them above;
   - surplus units pool freely, which the framework restricts.
-- **Exemptions:** the extended deck ignores the outermost-region exemptions,
+- **Exemptions:** the extended run ignores the outermost-region exemptions,
   which run until 2030 for the EU ETS and 2029 for FuelEU.
 
 For a larger sweep of these levers, use the Center's own tool, horizon-zcs,

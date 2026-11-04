@@ -14,7 +14,7 @@ what each policy does to the ships it covers.
 > well-to-wake; the IMO CARES study puts these ships at 309 kt and about
 > 1.0 Mt CO2e, so the model is about 36 % too high on fuel. Each library ship
 > class is a world average, and Caribbean ships are smaller (most CARES tugs are
-> 250 - 300 GT). Read the results as differences between the decks, not as the
+> 250 - 300 GT). Read the results as differences between the runs, not as the
 > region's real totals.
 
 ## The case
@@ -41,24 +41,27 @@ what each policy does to the ships it covers.
   All four can be bunkered at the three Caribbean ports. Fossil fuel oil can be
   bunkered everywhere, and LNG only at Jamaica and Miami.
 
-## The three decks
+## One deck, three runs
 
-| Deck | Policies | Who they cover |
+`example_5.nav` has today's rules. The case runs it three ways, which differ in
+whom the policies cover:
+
+| Run | Policies | Who they cover |
 |---|---|---|
-| `example_5_no_policy.nav` | none | nobody |
-| `example_5_current_rules.nav` | global fuel standard (two tiers), EU ETS, FuelEU | international ships only, as today |
-| `example_5_extended.nav` | the same | the regional ships too |
+| no policy | none (the deck without its two policy Includes) | nobody |
+| current rules | global fuel standard (two tiers), EU ETS, FuelEU | international ships only, as today |
+| extended | the same (the deck with its commented `extend_to_regional.inc` line) | the regional ships too |
 
-The extended deck stands for a region adopting the standard for its own ships,
+The extended run stands for a region adopting the standard for its own ships,
 or for the EU ETS review (COM(2026) 616), which brings ships of 400 - 5,000 GT
 in.
 
-To run one deck: `python -m navigate simulations/examples/example_5/example_5_current_rules.nav -d ./assumptions -s`
+To run the deck: `python -m navigate simulations/examples/example_5/example_5.nav -d ./assumptions -s`
 
-To run all three and compare them (about 5 minutes):
+To run it all three ways and compare them (about 5 minutes):
 `python simulations/examples/example_5/compare.py`
 
-To explore them, open `explore.ipynb`. It runs the three decks and has a
+To explore them, open `explore.ipynb`. It runs the deck three ways and has a
 switches cell for the levers. Among them is the global fuel standard, which
 can be rewritten there:
 - who it covers;
@@ -77,7 +80,7 @@ anything. Run it again after any change to the ports, routes or production sites
 
 **Regional fleet**
 
-| Deck | Oil share 2050 | WTW 2050 (Mt CO2e) | Cumulative WTW 2026-2050 (Mt) | Fuel and policy cost 2026-2050 (bn USD) |
+| Run | Oil share 2050 | WTW 2050 (Mt CO2e) | Cumulative WTW 2026-2050 (Mt) | Fuel and policy cost 2026-2050 (bn USD) |
 |---|---|---|---|---|
 | No policy | 80 % | 2.12 | 48.0 | 6.0 |
 | Current rules | 80 % | 2.12 | 48.0 | 6.0 |
@@ -85,7 +88,7 @@ anything. Run it again after any change to the ports, routes or production sites
 
 **International feeders**
 
-| Deck | Oil share 2050 | WTW 2050 (Mt CO2e) | Cumulative WTW 2026-2050 (Mt) | Fuel and policy cost 2026-2050 (bn USD) |
+| Run | Oil share 2050 | WTW 2050 (Mt CO2e) | Cumulative WTW 2026-2050 (Mt) | Fuel and policy cost 2026-2050 (bn USD) |
 |---|---|---|---|---|
 | No policy | 73 % | 1.12 | 22.0 | 2.7 |
 | Current rules | 55 % | 0.66 | 15.1 | 4.7 |
@@ -110,7 +113,7 @@ What the runs show:
 
 ### Fuel from far away but cheap: Chile
 
-Extended deck, e-ammonia delivered to the three ports, average 2040 - 2050:
+Extended run, e-ammonia delivered to the three ports, average 2040 - 2050:
 
 | Production sites | e-ammonia delivered (USD/t) | Regional WTW 2026-2050 (Mt) | Regional bill (bn USD) |
 |---|---|---|---|
@@ -190,7 +193,7 @@ Each one is marked `INVENTED` in its file.
   tolls are not counted.
 
 - **Calibration:** not calibrated, on purpose; see the note at the top.
-- **Outermost-region exemptions:** the extended deck covers the regional ships
+- **Outermost-region exemptions:** the extended run covers the regional ships
   at once. It ignores these exemptions, which run until 2030 for the EU ETS
   and 2029 for FuelEU.
 - **Shore power:** left out. On `main` its limits do not constrain the result.

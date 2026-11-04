@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
-"""Run example_5's three decks and compare the regional and international fleets.
+"""Run example_5's deck three ways and compare the regional and international fleets.
 
 Run from the repository root:  python simulations/examples/example_5/compare.py
+
+The deck has today's rules; the three runs differ in whom the four regulations
+cover: nobody, the international ships, or the regional ships too.
 """
 import argparse
 import contextlib
@@ -21,7 +24,10 @@ from navigate.manager import SimulationManager  # noqa: E402
 guard_interior_point()
 
 HERE = Path("simulations/examples/example_5")
-DECKS = ["no_policy", "current_rules", "extended"]
+# each run, and the vessels the four regulations cover in it
+COVERS = {"no_policy": [], "current_rules": ["intl_*"], "extended": ["intl_*", "reg_*"]}
+DECKS = list(COVERS)
+POLICIES = ["gfs_tier_1", "gfs_tier_2", "eu_ets", "fuel_eu"]
 ARGS = argparse.Namespace(data_dir=Path("./assumptions"), solver=None)
 SHOW = [2030, 2040, 2050]
 GROUPS = {"regional": "reg_", "international": "intl_"}
@@ -30,7 +36,12 @@ GROUPS = {"regional": "reg_", "international": "intl_"}
 def run(name):
     m = SimulationManager()
     with contextlib.redirect_stdout(io.StringIO()):
-        m.read_deck(HERE / f"example_5_{name}.nav", ARGS)
+        m.read_deck(HERE / "example_5.nav", ARGS)
+        for policy in POLICIES:
+            regulation = m.nodes.regulations[policy]
+            regulation.set_include_vessel("*", "FALSE")
+            for pattern in COVERS[name]:
+                regulation.set_include_vessel(pattern, "TRUE")
         m.run()
     return m
 
