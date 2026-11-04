@@ -209,9 +209,9 @@ def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) ->
     return 1.0 / (1.0 + horizon / dt)
 
 
-def update_belief_path(
+def smooth_belief_path(
     raw_path: FloatArray, belief: FloatArray, alpha: float, idx: int
-) -> None:
+) -> FloatArray:
     """
     Smooth a belief path towards the latest raw path, entry by calendar date.
 
@@ -232,11 +232,16 @@ def update_belief_path(
         Raw forward path from the latest LP solve; entries before ``idx`` are ignored.
     belief
         Previous belief path, NaN where never updated, the length of ``raw_path``;
-        updated in place.
+        entries before ``idx`` are ignored.
     alpha
         Smoothing weight: 1 adopts the raw path in full, 0 keeps the belief.
     idx
-        Current time-step index; only entries from it onward are updated.
+        Current time-step index; only entries from it onward are smoothed.
+
+    Returns
+    -------
+    FloatArray
+        The smoothed belief from ``idx`` onward, for the caller to store.
     """
     forward = np.s_[idx:]
     raw = raw_path[forward]
@@ -244,7 +249,7 @@ def update_belief_path(
 
     # exponential smoothing, where an entry with no prior (NaN) adopts the raw value
     smoothed = alpha * raw + (1.0 - alpha) * prior
-    belief[forward] = np.where(np.isnan(prior), raw, smoothed)
+    return np.where(np.isnan(prior), raw, smoothed)
 
 
 def calculate_step_inertia(inertia: float, time_step: float) -> float:

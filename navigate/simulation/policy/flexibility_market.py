@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, NamedTuple
 
 from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
 from navigate.simulation.policy._policed import calculate_vessel_account, select_policed
-from navigate.util import calculate_smoothing_alpha, divide_nonzero, update_belief_path
+from navigate.util import calculate_smoothing_alpha, divide_nonzero, smooth_belief_path
 
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
@@ -87,8 +87,8 @@ def update_regulation_flexibility_beliefs(
     Smooth each active FLEXIBLE regulation's flexibility cost and apply its expenses.
 
     The raw flexibility cost the market clearing derived from the shadow price is
-    smoothed by an exponential moving average, in place on the expectation's belief, so
-    that small changes in future fuel availability do not become expectations of large
+    smoothed into the expectation's belief by an exponential moving average, so that
+    small changes in future fuel availability do not become expectations of large
     differences in flexibility cost. An inactive regulation keeps its belief as it is.
 
     A policed vessel's expected flexibility expenses are its net flexibility units,
@@ -116,12 +116,13 @@ def update_regulation_flexibility_beliefs(
 
         alpha = calculate_smoothing_alpha(horizon, timeline, idx)
         raw_cost = expectation.get_flexibility_cost()
-        belief = expectation.get_belief_flexibility_cost()
-        update_belief_path(raw_cost, belief, alpha, idx)
+        prior = expectation.get_belief_flexibility_cost()
+        belief = smooth_belief_path(raw_cost, prior, alpha, idx)
+        expectation.set_belief_flexibility_cost(idx, belief)
 
         for vessel_name, vessel in select_policed(regulation, vessels).items():
             net_units = expectation.get_vessel_net_flexibility_units(vessel_name)
-            expenses = net_units[idx:] * belief[idx:]
+            expenses = net_units[idx:] * belief
             vessel.expectation.add_flexibility_expenses(idx, expenses)
 
 

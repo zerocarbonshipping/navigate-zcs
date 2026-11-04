@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import calculate_smoothing_alpha, update_belief_path
+from navigate.util import calculate_smoothing_alpha, smooth_belief_path
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping, Sequence
@@ -30,12 +30,12 @@ def update_vessel_scarcity_beliefs(
     """
     Update every vessel's per-leg shadow-price beliefs.
 
-    Each (energy-demand-type, leg) array of LP duals is smoothed on its own by an
-    exponential moving average, in place on the expectation's belief arrays. A slower
-    belief serves technology decisions, amortised over `technology_horizon`, and a
-    faster one operational speed management, over `speed_horizon`. Smoothing each leg
-    on its own keeps the LP's structure across legs, where shadow prices may differ
-    in sign and magnitude, while damping each leg's year-to-year volatility.
+    Each (energy-demand-type, leg) array of LP duals is smoothed on its own into the
+    expectation's beliefs by an exponential moving average. A slower belief serves
+    technology decisions, amortised over `technology_horizon`, and a faster one
+    operational speed management, over `speed_horizon`. Smoothing each leg on its own
+    keeps the LP's structure across legs, where shadow prices may differ in sign and
+    magnitude, while damping each leg's year-to-year volatility.
 
     Parameters
     ----------
@@ -62,11 +62,15 @@ def update_vessel_scarcity_beliefs(
             )
             technology, speed = _beliefs(expectation)
 
-            for raw_leg, belief_leg in _zip_legs(raw, technology):
-                update_belief_path(raw_leg, belief_leg, alpha_technology, idx)
+            technology_sea, technology_port = _smooth(
+                raw, technology, alpha_technology, idx
+            )
+            speed_sea, speed_port = _smooth(raw, speed, alpha_speed, idx)
 
-            for raw_leg, belief_leg in _zip_legs(raw, speed):
-                update_belief_path(raw_leg, belief_leg, alpha_speed, idx)
+            expectation.set_belief_pi_sea_technology(idx, technology_sea)
+            expectation.set_belief_pi_port_technology(idx, technology_port)
+            expectation.set_belief_pi_sea_speed(idx, speed_sea)
+            expectation.set_belief_pi_port_speed(idx, speed_port)
 
 
 def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
@@ -112,6 +116,23 @@ def _beliefs(expectation: VesselExpectation) -> tuple[_SeaPortPaths, _SeaPortPat
         expectation.get_belief_pi_port_speed(),
     )
     return technology, speed
+
+
+def _smooth(
+    raw: _SeaPortPaths, beliefs: _SeaPortPaths, alpha: float, idx: int
+) -> _SeaPortPaths:
+    """Smooth each leg's belief towards its raw path, giving the paths from `idx`."""
+    sea, port = (
+        {
+            energy_id: [
+                smooth_belief_path(raw_leg, belief_leg, alpha, idx)
+                for raw_leg, belief_leg in zip(raw_side[energy_id], legs, strict=True)
+            ]
+            for energy_id, legs in belief_side.items()
+        }
+        for raw_side, belief_side in zip(raw, beliefs, strict=True)
+    )
+    return sea, port
 
 
 def _zip_legs(

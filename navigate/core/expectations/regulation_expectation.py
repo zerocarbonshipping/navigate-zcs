@@ -151,6 +151,9 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
     def set_flexibility_cost(self, idx: int, cost: float) -> None:
         self._flexibility_cost[idx] = cost
 
+    def set_belief_flexibility_cost(self, idx: int, belief: FloatArray) -> None:
+        self._belief_flexibility_cost[idx:] = belief
+
     def set_vessel_net_flexibility_units(
         self, vessel_name: str, idx: int, units: float
     ) -> None:
