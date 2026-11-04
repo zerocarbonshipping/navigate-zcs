@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from navigate.core.results._fuel_producer_results import _FuelProducerResults
-from navigate.core.results.base_results import accumulate, result
+from navigate.core.results.base_results import Unit, accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class _PlantAggregateResults(_FuelProducerResults):
     """Tied-up capital of the plants in a producer's results or the global results."""
 
-    plant_tied_capital: FloatArray = result("USD")
+    plant_tied_capital: FloatArray = result(Unit.USD)
 
     def _initialize_plant_aggregate(self) -> None:
         self.plant_tied_capital = self._default_array()

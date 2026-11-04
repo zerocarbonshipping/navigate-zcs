@@ -390,6 +390,26 @@ class VesselExpectation(_Expectation):
     ) -> None:
         self._energy_conservation_rhs_port[energy_id][port][idx] = rhs
 
+    def set_belief_pi_sea_technology(
+        self, idx: int, beliefs: Mapping[EnergyDemandID, Iterable[FloatArray]]
+    ) -> None:
+        _set_forward_per_key(self._belief_pi_sea_technology, idx, beliefs)
+
+    def set_belief_pi_port_technology(
+        self, idx: int, beliefs: Mapping[EnergyDemandID, Iterable[FloatArray]]
+    ) -> None:
+        _set_forward_per_key(self._belief_pi_port_technology, idx, beliefs)
+
+    def set_belief_pi_sea_speed(
+        self, idx: int, beliefs: Mapping[EnergyDemandID, Iterable[FloatArray]]
+    ) -> None:
+        _set_forward_per_key(self._belief_pi_sea_speed, idx, beliefs)
+
+    def set_belief_pi_port_speed(
+        self, idx: int, beliefs: Mapping[EnergyDemandID, Iterable[FloatArray]]
+    ) -> None:
+        _set_forward_per_key(self._belief_pi_port_speed, idx, beliefs)
+
     def set_effective_lhv(
         self, converter_name: str, fuel_name: str, lhv: float
     ) -> None:

@@ -14,7 +14,7 @@ from navigate.core.results._fuel_infrastructure_results import (
 )
 from navigate.core.results._plant_aggregate_results import _PlantAggregateResults
 from navigate.core.results._vessel_aggregate_results import _VesselAggregateResults
-from navigate.core.results.base_results import result
+from navigate.core.results.base_results import Unit, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -29,7 +29,9 @@ class GlobalResults(
 ):
     """Totals over every vessel, plant and port, plus the run's computational time."""
 
-    computational_time: dict[TimingID, FloatArray] = result("s/year", per_step=True)
+    computational_time: dict[TimingID, FloatArray] = result(
+        Unit.SECONDS_PER_YEAR, per_step=True
+    )
 
     def initialize(
         self,

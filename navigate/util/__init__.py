@@ -55,8 +55,8 @@ from navigate.util.numeric import (
     interpolate_yearly_flow,
     is_nondecreasing,
     is_strictly_increasing,
+    smooth_belief_path,
     step_lengths,
-    update_belief_path,
 )
 from navigate.util.timings import Timings, timed
 from navigate.util.units import (

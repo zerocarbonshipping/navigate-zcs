@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results.base_results import BaseResults, result
+from navigate.core.results.base_results import BaseResults, Unit, result
 
 if TYPE_CHECKING:
     from navigate.core.results.results_context import ResultsContext
@@ -22,16 +22,16 @@ class PlantResults(BaseResults):
     """Production cost and well-to-tank emissions of the fuel one plant makes."""
 
     # cost of the fuel produced
-    investment_cost: FloatArray = result("USD/t")
-    instantaneous_cost: FloatArray = result("USD/t")
+    investment_cost: FloatArray = result(Unit.USD_PER_TON)
+    instantaneous_cost: FloatArray = result(Unit.USD_PER_TON)
 
     # well-to-tank emissions per ton of fuel: the emissions are written, their
     # CO2-equivalents computed from them
     investment_wtt: dict[str, FloatArray] = field(init=False)
     instantaneous_wtt: dict[str, FloatArray] = field(init=False)
 
-    equivalent_investment_wtt: dict[str, FloatArray] = result("tCO2e/t")
-    equivalent_instantaneous_wtt: dict[str, FloatArray] = result("tCO2e/t")
+    equivalent_investment_wtt: dict[str, FloatArray] = result(Unit.TCO2E_PER_TON)
+    equivalent_instantaneous_wtt: dict[str, FloatArray] = result(Unit.TCO2E_PER_TON)
 
     def initialize(self, context: ResultsContext) -> None:
         """

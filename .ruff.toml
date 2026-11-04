@@ -54,10 +54,9 @@ ignore = [
 convention = "numpy"
 
 [lint.flake8-bugbear]
-# these return the dataclasses.field that declares a result or a node group
+# this returns the dataclasses.field that declares a result
 extend-immutable-calls = [
     "navigate.core.results.base_results.result",
-    "navigate.core.node_registry._node_group",
 ]
 
 [lint.isort]
@@ -71,6 +70,8 @@ known-first-party = ["helpers", "compare_results"]
 "navigate/core/expectations/*" = ["D102"]
 "navigate/core/nodes/*" = ["D102"]
 "navigate/core/general_nodes/*" = ["D102"]
+# the registries read the node classes off their annotations at runtime
+"navigate/core/node_registry.py" = ["TC001"]
 # tests document themselves through their names and access private state of
 # the module under test (white-box testing is the suite convention)
 "tests/*" = ["D1", "SLF001"]
