@@ -25,7 +25,7 @@ Five sessions, each a notebook, in this order:
 `_style.py` holds the shared figure style. `annotated/` holds commented
 copies of the library files Session 3's tabs explain; Navigate never reads them. `_results.py` holds Session 1's results
 figure (emissions, freight rate, fuel consumed) as functions, which the Examples
-pages and their explore notebooks use; Sessions 1, 2 and 4 still define their own
+notebooks use; Sessions 1, 2 and 4 still define their own
 copies. `index.md` is the overview page. The
 decks the sessions run are in `simulations/examples/example_4/` and
 `simulations/scenarios/workshop_whatif/`; the maps and schematics are drawn by the
@@ -193,6 +193,55 @@ Keep the start-up prompt as short as a participant could write it, and shorten
 it only with a chain test showing the cut breaks nothing. The rules Session 5's prompts share live in
 `building-a-deck.md`: change them there, not in each prompt, and test the chain
 again afterwards.
+
+### How much to test
+
+Test before each workshop, not after each edit: collect the changes to
+`building-a-deck.md` and the bank, and test them together in the week before. Until
+then, a changed entry's index row says "re-test pending". Each full prompt carries
+a `<!-- tested-prompt: … -->` fingerprint of the text that last passed;
+`python docs/workshop/_prompt_hashes.py` lists the ones changed since, and the
+workshop check warns about them. When a prompt passes, record its text with
+`--record <slug>`.
+
+The decks are not what these tests check: the workshop check
+(`.github/workflows/workshop-check.yml`) runs every example deck and executes the
+Examples notebooks on each push. The tests check that an assistant gets from a
+prompt to a working deck, so they need far fewer builds than there are examples:
+
+| What | When | Builds |
+|---|---|---|
+| Start-up chain on a new specific trade (Session 5's family) | before every workshop | 1 Haiku |
+| Start-up chain on a new case of one other family, regional or global, taking turns | before every workshop | 1 Haiku |
+| A full prompt (the entries `_prompt_hashes.py` lists), run directly | when its text changed, or a `building-a-deck.md` line it relies on | 1 Haiku each |
+| A variant | not on its own: it inherits its model's test; built once when it is promoted to a full prompt | - |
+| The whole chain above, every family, with one Sonnet run | when the start-up prompt, the case-sheet process or a family changes | about 7-10 |
+
+A normal workshop is two to four Haiku builds, about half an hour in parallel.
+
+Find the prompts a change can reach by searching the bank for what it touches
+(`Port "*"`, `Copy Vessel`, `Import Region`, a module name). Start with one Haiku
+build of the most affected prompt, and run the others, in parallel, only once it
+passes. A global prompt's tester runs Session 2's coarse time grid
+(`simulations/scenarios/workshop_whatif/includes/time_steps_coarse.inc`), not
+the yearly one: it catches the same build errors in minutes.
+
+A prompt whose deck is in the repository is checked against that deck: the
+copper trade against `example_4`, the Rhine against `example_6`, Session 2's
+against `simulations/scenarios/`. `_compare_build.py` solves both and flags any
+headline number more than 1 % apart (1 point for a share):
+
+```bash
+python docs/workshop/_compare_build.py BUILD.nav=REFERENCE.nav [BUILD.nav=REFERENCE.nav ...]
+```
+
+The numbers come from the script; read the tester's report for what went wrong
+and what was unclear. Give every tester the same rules: check out the workshop
+branch's commit first; do not open the reference deck, its Examples page or its
+bank entry; run decks with `python -m navigate <deck>.nav -d ./assumptions -s`;
+ask nothing and commit nothing. Ask for a report of one page at most: the answer
+the prompt asks for, each deck's warning and error counts, the problems hit and
+what was unclear, and the files written.
 
 ## Running decks
 

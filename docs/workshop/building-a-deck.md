@@ -199,7 +199,10 @@ a comment where it appears, and listed in the `.nav` header.
   files with `Copy Vessel`, as `simulations/examples/example_4/includes/fleet.inc`
   does. `Import Fleet` brings the world fleet, with a world-sized fleet and
   orderbook, which is right for a global deck and wrong for a trade. A deck on named
-  ports takes its structure from example_4.
+  ports takes its structure from example_4. A vessel's engine power sits in its
+  Converter nodes, which its PowerSystem names: to resize a copied vessel, copy
+  its Converters and its PowerSystem too, point the copied PowerSystem at the
+  copied Converters, and the vessel at the copied PowerSystem.
 - The library's operational profiles are world-average patterns between two
   abstract ports (`port_global`, `port_europe`) that exist for regulatory scope,
   not places on a map. A deck on named ports builds a ROUND_TRIP route between
@@ -211,11 +214,16 @@ a comment where it appears, and listed in the `.nav` header.
 - A deck on named ports also rebuilds the other parts example_4 has, with its own
   values: the ports, the bunker logistics (how fuel travels from the plants to each
   port) and the regions (where the fuels are made). `Import Region` brings only
-  the region's own lines (power prices, grid emissions); the process costs and
+  the region's own lines (power prices and grid emissions; for Europe also the
+  used cooking oil cost and the FAME process); the other process costs and
   most feedstocks are in the `Region "*"` block of
   `assumptions/modules/installation/default_region.inc`, so restate the lines your
-  plants use. BunkerLogistics takes its
-  distances and transport cost as plain numbers, not as Variables. Give the fuel
+  plants use. The region's power-price lines name both `Source "grid"` and
+  `Source "renewable"`: import both, even if no plant uses one. BunkerLogistics takes its
+  distances and transport cost as plain numbers, not as Variables. A fuel listed in
+  its LiquidMarketFuels is bought at the port at the price the port sets with
+  `set_bunker_price_overwrite` (give it a `set_bunker_wtt_overwrite` too, or its
+  upstream emissions are 0), and cannot also come from a plant. Give the fuel
   producers a share of the library's feedstock ceilings, marked INVENTED, as
   example_4's `producer.inc` does. The library's ceilings are what all shipping
   may use, so size the share to the fleet: roughly its first-year energy divided
@@ -239,6 +247,8 @@ a comment where it appears, and listed in the `.nav` header.
   and a region-port pair with no `set_distance` delivers at no cost (the default
   distance is 0). Set `set_bunkering_allowed` for every fuel at every port, FALSE
   where it may not be bunkered, and give a distance for every pair that delivers.
+  Declare the named Port nodes before any `Port "*"` block: a wildcard that
+  matches no node yet stops the parse.
 - The `set_voyage_distribution` command that splits a route's work between port
   pairs is missing from this version's reference manual. It takes two port
   names and a share; `"*", "*", 0` first clears the default split.
@@ -273,11 +283,13 @@ a comment where it appears, and listed in the `.nav` header.
   SurplusRevenue (net = remedial + flexibility - surplus), from a Report node in
   the policy's own `.inc`, so the deck without the policy stays unchanged.
 - A copied or imported library node brings every reference it makes: copying
-  `eu_ets` needs all the fuels it names to exist. Import the missing ones rather
-  than deleting lines from the copy.
+  `eu_ets` needs all the fuels it names to exist. Import every one your deck does
+  not already have, whether the case uses it or not, rather than deleting lines
+  from the copy.
 - With AllowSpeedManagement on, the ships may sail faster than the route's
   speeds, not only slower. Check ActualSpeed before reading energy use or ship
-  counts.
+  counts. With it off, ActualSpeed has no value: the route's speeds are the
+  speeds sailed.
 - A deck that changes a vessel's CostOfCapital should set the Fleet's
   TechnologyCostOfCapital explicitly: without it, efficiency technology is
   financed at each vessel's own rate and inherits the change.
@@ -305,6 +317,9 @@ a comment where it appears, and listed in the `.nav` header.
   solution) and `DefaultCalibration` in DEFINE, and `DefaultTimeStepYearly` in
   EVENTS. A deck on named ports declares its own BunkerLogistics instead, as
   example_4 does, and then does not load `DefaultBunkerLogistics` as well.
+  `DefaultCalibration` calibrates the producers too, and fails to parse in a deck
+  that has none (every fuel bought at a set price): restate its `Port` and
+  `Fleet` blocks in an `.inc` of your own instead.
 - Do not load `DefaultConverterAvailable` on a deck with fewer than the library's
   twenty-three fleets. It phases alternative vessel types in over time using
   wildcards like `Fleet "tug*"` that only resolve against the full set, so it
@@ -344,6 +359,8 @@ Things that are easy to misread:
   "convergence status: Failure" and report the years it names.
 - To compare the fleet's fuel use with a published figure, report
   `add_fleet_property("*", TotalConsumedMass)`, the fuel burnt in tonnes a year.
+- A Report's `Directory` is relative to the `.nav` file, so its output lands in
+  the deck's folder.
 
 ## Then prepare the case's prompt bank entry
 
