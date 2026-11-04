@@ -45,12 +45,12 @@ prompt.
 | Specific trade | EU short-sea feeders: what EU ETS and FuelEU make the owners do (variant) | How do owners comply with EU ETS and FuelEU, and at what cost? | One trade, both ports in the EU: Rotterdam to Gothenburg | 1,500 TEU feeders | EU ETS and FuelEU on the whole voyage | A policy: with and without it | 2026-10-19 |
 | Specific trade | Green finance: do cheaper loans bring zero-emission ships forward? (variant) | Do cheaper loans bring zero-emission ships forward? | One trade: Tubarão to Rotterdam | Panamax ore carriers | EU ETS and FuelEU on half the voyage, in both runs | Finance: cheaper cost of capital for ammonia and methanol ships | 2026-10-19 |
 | Specific trade | Two fleets, one market: what the owners' efficiency choices are worth (variant) | How much do the owners' efficiency choices matter on the same trade? | One trade of your choice | Two fleets of one class | Your choice | Technology: with and without it | ran first time; criteria not checked |
-| Specific trade | Inland waterways in Germany: what e-fuel price and CO2 price make owners and operators switch | What e-fuel price and CO2 price lead fleet owners and operators to switch fuel? | One river trade in Germany: five ports, Duisburg to Mannheim | 300 Rhine cargo vessels | National CO2 price (a copied EU ETS Regulation) | One deck; the CO2 price and the fuel prices are the user's levers | 2026-11-04, Sonnet and Haiku; changed since (one deck), re-test pending |
+| Specific trade | Inland waterways in Germany: what e-fuel price and CO2 price make owners and operators switch | What e-fuel price and CO2 price lead fleet owners and operators to switch fuel? | One river trade in Germany: five ports, Duisburg to Mannheim | 300 Rhine cargo vessels | National CO2 price (a copied EU ETS Regulation) | One deck; the CO2 price and the fuel prices are the user's levers | 2026-11-04, Haiku (one deck) |
 | Specific trade | Coastal shipping in Norway: two ship classes under a national CO2 tax (variant) | What biofuel and e-fuel price and CO2 tax lead fleet owners and operators to switch fuel? | One coastal trade: Bergen to Tromsø | 100 general cargo ships and 50 ferries | National CO2 tax (a copied EU ETS Regulation) | One deck; two classes on one trade; every fuel bought at a set price | 2026-11-04, Haiku |
 | Regional network | A mainline and its feeders: two ship sizes on connected routes | How do two ship sizes on connected routes choose fuels when the ports supply them unevenly? | Two connected routes: Singapore to Rotterdam, then Rotterdam, Hamburg and Aalborg | 5 mainline ships of 15,000 TEU and 50 feeders of 1,500 TEU (GIVEN) | CII, EU ETS, FuelEU, a net-zero framework (the deck's own settings) | One run: the fuel choice where ports supply unevenly | 2026-10-30, Sonnet and Haiku |
 | Regional network | Island trade in the South Pacific: biodiesel sold at two ports only | Can a regional bulk trade switch to biodiesel when only its main ports supply it? | A region: five ports in the South Pacific, no fixed order | 6 Handysize bulk carriers (GIVEN) | CII (tracked only) and a net-zero framework with the deck's own values | One run: the fuel choice when FAME is sold at two ports only | 2026-10-30, Sonnet and Haiku |
 | Regional network | Two fleets in the Baltic: what the owners' efficiency choices are worth | How much do the owners' efficiency choices matter on the same trades? | A region: four Baltic ports, two REGIONAL_TRIP routes | Two groups of owners, each 2 mid-range (47,000 DWT) and 3 coastal (7,500 DWT) tankers (GIVEN) | CII, net-zero framework, EU ETS, FuelEU (the deck's own) | Technology: eight efficiency measures, fitted by one group only | 2026-10-30, Sonnet and Haiku |
-| Regional network | Caribbean shipping under global and EU rules | How are a region's own ships affected by global and EU rules, today and if extended to them? | A region: the Caribbean | 330 regional ships and 40 feeders | Global fuel standard (two tiers), EU ETS, FuelEU | Coverage: the feeders only, then the regional ships too | 2026-10-28, built cold; changed 2026-11-04 (one deck, run three ways), re-test pending |
+| Regional network | Caribbean shipping under global and EU rules | How are a region's own ships affected by global and EU rules, today and if extended to them? | A region: the Caribbean | 330 regional ships and 40 feeders | Global fuel standard (two tiers), EU ETS, FuelEU | Coverage: the feeders only, then the regional ships too | 2026-11-04, Haiku (one deck, run three ways); fuel mix differs from example_5 |
 | Global case | Session 2's reference scenario: the world fleet from the library's modules | What does the world fleet burn to 2050 under a global fuel standard? | The world | The library's whole fleet | EU ETS, FuelEU, global fuel standard | One run: no comparison | 2026-10-19 |
 | Global case | A global study: the cost of waiting (variant) | What does starting a global fuel standard late cost? | The world | The library's whole fleet | Global fuel standard, EU ETS, FuelEU | Timing: the standard on time vs delayed | 2026-10-26 |
 | Global case | The world fleet, simplified: the global picture at a size you can iterate on (variant) | What does a cut-down world fleet do under EU policy? | The world, two or three classes | Library fleets | EU ETS and FuelEU | One run: no comparison | ran first time; criteria not checked |
@@ -543,7 +543,7 @@ checked. It was one of Session 5's examples until 2026-10-28; the full prompt th
 
 ### Inland waterways in Germany: what e-fuel price and CO2 price make owners and operators switch
 <!-- bank:rhine -->
-<!-- tested-prompt: a8eb5946672f -->
+<!-- tested-prompt: 2541cf7dda55 -->
 **The study.** Dry-cargo motor vessels on the Rhine between Duisburg and
 Mannheim, 2026 to 2050, in one deck with a CO2 price on the fossil fuel they
 burn, standing for Germany's national CO2 price; setting the price to 0 gives
@@ -607,6 +607,11 @@ e-diesel about 780 by 2050. Haiku took the library's fame_wtt_carbon_dioxide
 (0.627, per t of feedstock, without the biogenic credit) for a contradiction of
 the FAME line, which now says how the two relate. Haiku had to put Port "*"
 after the named ports.
+2026-11-04 again, as one deck with the CO2 price as a lever: built cold on
+Haiku, the deck ran with no warnings and matches `example_6` on every headline
+number (607.10 and 629.33 kt, freight rate 153.45). The builder kept the CO2 price
+Forecast in co2_price.inc and listed it in placeholders.inc as a comment, since
+the prompt names both files.
 
 ![Map of an inland dry-cargo trade on the Rhine in Germany, from Duisburg upstream to Mannheim with calls at Cologne, Koblenz and Mainz, every fuel bought at Duisburg and Mannheim](../_figures/rhine_inland_map.png)
 
@@ -1363,7 +1368,7 @@ coastal tankers.
 
 ### Caribbean shipping under global and EU rules
 <!-- bank:caribbean -->
-<!-- tested-prompt: e8b938eb289f -->
+<!-- tested-prompt: f645bb9c7f68 -->
 **A region's own ships, and rules that do not reach them yet.** 330 domestic and intra-Caribbean ships (tugs, ferries, general cargo ships and small tankers), nearly all under 5,000 GT, and 40 container feeders on a Miami - Jamaica - Trinidad - Martinique loop, 2026 to 2050. New fuels are made in Trinidad, on the US Gulf Coast or in Chile, and shipped in. One deck, run three ways: no policy; today's rules, a global fuel standard as drafted at the IMO plus the EU ETS and FuelEU with Martinique as the EU port, which cover the feeders only; and the same rules extended to the regional ships. The question is how the region's own ships are affected, today and if the rules reached them.
 
 **Built on public data, with gaps.** The fleet counts come from the IMO CARES report on domestic shipping (2024). The split of the cargo ships, the distances, speeds, delivery costs and the region's share of plant building are INVENTED, and the prompt marks each one. The regional fleet is not calibrated: with the library's world-average ships it burns more fuel than CARES reports, so compare the decks with each other, not with the region's real totals.
@@ -1375,6 +1380,14 @@ explicit port times, speed management and production pathways; the second build
 ran first time with no warnings: the regional ships burnt 418.5 kt in 2026 (CARES:
 309 kt), and summed 47.9 Mt without policy against 39.3 Mt with the rules extended
 to them. It was one of Session 5's examples until it moved here the same day.
+2026-11-04, changed to one deck run three ways by its policy Include lines, and
+built cold on Haiku: the three runs ran with no warnings, the regional ships burnt
+418.5 kt in 2026 and summed 47.9 Mt without policy against 39.0 Mt extended, and
+today's rules again leave them where they were. Against `example_5`, emissions
+agree within 0.5 %, but the 2050 fuel mix does not: LNG 8 % against 17 %, blue
+ammonia 2 % against 7 %, e-ammonia 4 % against 0.5 %. The prompt leaves the
+production pathways' details open (Chile's grid line, which site makes what), and
+the builder chose differently; tighten the production lines if the mix matters.
 
 ````text
 You are helping me build a simulation study for Navigate, the shipping
