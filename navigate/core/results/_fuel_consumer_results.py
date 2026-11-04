@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
-from navigate.core.results.base_results import BaseResults, accumulate, result
+from navigate.core.results.base_results import BaseResults, Unit, accumulate, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -22,59 +22,61 @@ class _FuelConsumerResults(BaseResults):
     """Energy demand, fuel burnt, emissions and fuel expenses of a fuel consumer."""
 
     # raw energy demand
-    raw_energy_sea: dict[EnergyDemandID, FloatArray] = result("GJ/year")
-    raw_energy_port: dict[EnergyDemandID, FloatArray] = result("GJ/year")
-    raw_energy: FloatArray = result("GJ/year")
+    raw_energy_sea: dict[EnergyDemandID, FloatArray] = result(Unit.GJ_PER_YEAR)
+    raw_energy_port: dict[EnergyDemandID, FloatArray] = result(Unit.GJ_PER_YEAR)
+    raw_energy: FloatArray = result(Unit.GJ_PER_YEAR)
 
     # operational energy demand: after operational savings, before technology
-    operational_energy_sea: dict[EnergyDemandID, FloatArray] = result("GJ/year")
-    operational_energy_port: dict[EnergyDemandID, FloatArray] = result("GJ/year")
-    operational_energy: FloatArray = result("GJ/year")
+    operational_energy_sea: dict[EnergyDemandID, FloatArray] = result(Unit.GJ_PER_YEAR)
+    operational_energy_port: dict[EnergyDemandID, FloatArray] = result(Unit.GJ_PER_YEAR)
+    operational_energy: FloatArray = result(Unit.GJ_PER_YEAR)
 
     # energy demand
-    energy_sea: dict[EnergyDemandID, FloatArray] = result("GJ/year")
-    energy_port: dict[EnergyDemandID, FloatArray] = result("GJ/year")
-    energy: FloatArray = result("GJ/year")
+    energy_sea: dict[EnergyDemandID, FloatArray] = result(Unit.GJ_PER_YEAR)
+    energy_port: dict[EnergyDemandID, FloatArray] = result(Unit.GJ_PER_YEAR)
+    energy: FloatArray = result(Unit.GJ_PER_YEAR)
 
     # counterfactual raw energy: the year-0 raw energy intensity times the transport
     # work performed
-    baseline_energy: FloatArray = result("GJ/year")
+    baseline_energy: FloatArray = result(Unit.GJ_PER_YEAR)
 
     # savings: 1 less the energy over the raw energy, per energy demand, and the
     # energy intensity savings against the baseline
-    saving: dict[EnergyDemandID, FloatArray] = result("-")
-    speed_energy_intensity_saving: FloatArray = result("-")
-    operational_energy_intensity_saving: FloatArray = result("-")
-    technology_energy_intensity_saving: FloatArray = result("-")
-    energy_intensity_saving: FloatArray = result("-")
+    saving: dict[EnergyDemandID, FloatArray] = result(Unit.DIMENSIONLESS)
+    speed_energy_intensity_saving: FloatArray = result(Unit.DIMENSIONLESS)
+    operational_energy_intensity_saving: FloatArray = result(Unit.DIMENSIONLESS)
+    technology_energy_intensity_saving: FloatArray = result(Unit.DIMENSIONLESS)
+    energy_intensity_saving: FloatArray = result(Unit.DIMENSIONLESS)
 
     # fuel consumed: the mass is written, the energy computed from it
     consumed_mass: dict[str, FloatArray] = field(init=False)
-    consumed_energy: dict[str, FloatArray] = result("GJ/year")
-    fuel_type_energy: dict[FuelTypeID, FloatArray] = result("GJ/year")
-    total_consumed_energy: FloatArray = result("GJ/year")
+    consumed_energy: dict[str, FloatArray] = result(Unit.GJ_PER_YEAR)
+    fuel_type_energy: dict[FuelTypeID, FloatArray] = result(Unit.GJ_PER_YEAR)
+    total_consumed_energy: FloatArray = result(Unit.GJ_PER_YEAR)
 
     # fuel burnt in converters, per vessel fuel type and fuel; the energy is keyed by
     # (vessel fuel type, fuel)
     converter_mass: dict[FuelTypeID, dict[str, FloatArray]] = field(init=False)
-    converter_energy: dict[tuple[FuelTypeID, str], FloatArray] = result("GJ/year")
-    pilot_fuel_share: dict[FuelTypeID, FloatArray] = result("-")
+    converter_energy: dict[tuple[FuelTypeID, str], FloatArray] = result(
+        Unit.GJ_PER_YEAR
+    )
+    pilot_fuel_share: dict[FuelTypeID, FloatArray] = result(Unit.DIMENSIONLESS)
 
     # expenses
-    fuel_expenses: dict[str, FloatArray] = result("USD/year")
-    levy_expenses: dict[str, FloatArray] = result("USD/year")
-    fuel_related_expenses: dict[str, FloatArray] = result("USD/year")
-    remedial_expenses: FloatArray = result("USD/year")
-    flexibility_expenses: FloatArray = result("USD/year")
-    surplus_revenue: FloatArray = result("USD/year")
-    regulation_expenses: FloatArray = result("USD/year")
-    total_fuel_expenses: FloatArray = result("USD/year")
-    total_fuel_related_expenses: FloatArray = result("USD/year")
+    fuel_expenses: dict[str, FloatArray] = result(Unit.USD_PER_YEAR)
+    levy_expenses: dict[str, FloatArray] = result(Unit.USD_PER_YEAR)
+    fuel_related_expenses: dict[str, FloatArray] = result(Unit.USD_PER_YEAR)
+    remedial_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    flexibility_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    surplus_revenue: FloatArray = result(Unit.USD_PER_YEAR)
+    regulation_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    total_fuel_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    total_fuel_related_expenses: FloatArray = result(Unit.USD_PER_YEAR)
 
     # CO2-equivalents under the policy's own global warming potential; a levy unit is
     # the levy collected over its level
-    remedial_units: dict[str, FloatArray] = result("tCO2e/year")
-    levy_units: dict[str, FloatArray] = result("tCO2e/year")
+    remedial_units: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
+    levy_units: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
 
     # emissions, keyed by (fuel, emission): the tons of each emission are written,
     # the CO2-equivalents computed from them; the intensities are the totals per
@@ -82,23 +84,23 @@ class _FuelConsumerResults(BaseResults):
     wtt: dict[tuple[str, str], FloatArray] = field(init=False)
     ttw: dict[tuple[str, str], FloatArray] = field(init=False)
 
-    equivalent_wtt: dict[tuple[str, str], FloatArray] = result("tCO2e/year")
-    intensity_total_equivalent_wtt: FloatArray = result("gCO2e/MJ")
+    equivalent_wtt: dict[tuple[str, str], FloatArray] = result(Unit.TCO2E_PER_YEAR)
+    intensity_total_equivalent_wtt: FloatArray = result(Unit.GCO2E_PER_MJ)
 
-    equivalent_ttw: dict[tuple[str, str], FloatArray] = result("tCO2e/year")
-    intensity_total_equivalent_ttw: FloatArray = result("gCO2e/MJ")
+    equivalent_ttw: dict[tuple[str, str], FloatArray] = result(Unit.TCO2E_PER_YEAR)
+    intensity_total_equivalent_ttw: FloatArray = result(Unit.GCO2E_PER_MJ)
 
     # the total includes the shore power emissions, which have no
     # (fuel, emission) attribution
-    equivalent_wtw: dict[tuple[str, str], FloatArray] = result("tCO2e/year")
-    total_equivalent_wtw: FloatArray = result("tCO2e/year")
-    intensity_total_equivalent_wtw: FloatArray = result("gCO2e/MJ")
+    equivalent_wtw: dict[tuple[str, str], FloatArray] = result(Unit.TCO2E_PER_YEAR)
+    total_equivalent_wtw: FloatArray = result(Unit.TCO2E_PER_YEAR)
+    intensity_total_equivalent_wtw: FloatArray = result(Unit.GCO2E_PER_MJ)
 
     # shore power: a WTW-lumped emission per gas, unweighted and with no fuel
     # attribution
-    shore_power_energy: FloatArray = result("GJ/year")
-    shore_power_expenses: FloatArray = result("USD/year")
-    shore_power_emission: dict[str, FloatArray] = result("t/year")
+    shore_power_energy: FloatArray = result(Unit.GJ_PER_YEAR)
+    shore_power_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    shore_power_emission: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
 
     def _initialize_fuel_consumer(
         self, regulation_names: Sequence[str], levy_names: Sequence[str]

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from navigate.core.results._transport_results import _TransportResults
 from navigate.core.results._vessel_aggregate_results import _VesselAggregateResults
-from navigate.core.results.base_results import result
+from navigate.core.results.base_results import Unit, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -23,22 +23,26 @@ if TYPE_CHECKING:
 class FleetResults(_VesselAggregateResults, _TransportResults):
     """Trade, transport work, fleet composition and speeds of one fleet."""
 
-    trade: FloatArray = result("cargo-miles/year")
+    trade: FloatArray = result(Unit.CARGO_MILES_PER_YEAR)
 
-    existing_vessels: dict[str, FloatArray] = result("vessels")
-    scrap: dict[str, FloatArray] = result("vessels/year", per_step=True)
-    newbuilds: dict[str, FloatArray] = result("vessels/year", per_step=True)
+    existing_vessels: dict[str, FloatArray] = result(Unit.VESSELS)
+    scrap: dict[str, FloatArray] = result(Unit.VESSELS_PER_YEAR, per_step=True)
+    newbuilds: dict[str, FloatArray] = result(Unit.VESSELS_PER_YEAR, per_step=True)
     fuel_conversions: dict[tuple[str, str], FloatArray] = result(
-        "vessels/year", per_step=True
+        Unit.VESSELS_PER_YEAR, per_step=True
     )
 
     # fraction of the vessels carrying a technology, per vessel and technology,
     # across the fleet, among the newbuilds and among the retrofits
-    technology_uptake: dict[tuple[str, str], FloatArray] = result("-")
-    newbuild_technology_uptake: dict[tuple[str, str], FloatArray] = result("-")
-    retrofit_technology_uptake: dict[tuple[str, str], FloatArray] = result("-")
+    technology_uptake: dict[tuple[str, str], FloatArray] = result(Unit.DIMENSIONLESS)
+    newbuild_technology_uptake: dict[tuple[str, str], FloatArray] = result(
+        Unit.DIMENSIONLESS
+    )
+    retrofit_technology_uptake: dict[tuple[str, str], FloatArray] = result(
+        Unit.DIMENSIONLESS
+    )
     # fraction of the fleet carrying a technology, weighted by vessel count
-    fleet_technology_uptake: dict[str, FloatArray] = result("-")
+    fleet_technology_uptake: dict[str, FloatArray] = result(Unit.DIMENSIONLESS)
 
     def initialize(
         self,

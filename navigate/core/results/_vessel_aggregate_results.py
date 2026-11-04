@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.results._fuel_consumer_results import _FuelConsumerResults
-from navigate.core.results.base_results import accumulate, result
+from navigate.core.results.base_results import Unit, accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
@@ -21,27 +21,31 @@ class _VesselAggregateResults(_FuelConsumerResults):
     """Installed power, fleet turnover and expenses summed over a set of vessels."""
 
     # power
-    installed_power: dict[FuelTypeID, FloatArray] = result("MW")
-    newbuild_power: dict[FuelTypeID, FloatArray] = result("MW/year", per_step=True)
-    scrapped_power: dict[FuelTypeID, FloatArray] = result("MW/year", per_step=True)
+    installed_power: dict[FuelTypeID, FloatArray] = result(Unit.MW)
+    newbuild_power: dict[FuelTypeID, FloatArray] = result(
+        Unit.MW_PER_YEAR, per_step=True
+    )
+    scrapped_power: dict[FuelTypeID, FloatArray] = result(
+        Unit.MW_PER_YEAR, per_step=True
+    )
     fuel_converted_power: dict[tuple[FuelTypeID, FuelTypeID], FloatArray] = result(
-        "MW/year", per_step=True
+        Unit.MW_PER_YEAR, per_step=True
     )
 
     # expenses
-    vessel_expenses: FloatArray = result("USD/year")
-    technology_expenses: FloatArray = result("USD/year")
-    fuel_conversion_expenses: FloatArray = result("USD/year")
-    vessel_related_expenses: FloatArray = result("USD/year")
-    expenses: FloatArray = result("USD/year")
-    vessel_tied_capital: FloatArray = result("USD")
+    vessel_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    technology_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    fuel_conversion_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    vessel_related_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    vessel_tied_capital: FloatArray = result(Unit.USD)
 
     # power-weighted average age, kept as a summable numerator and denominator
     weighted_age_numerator: dict[FuelTypeID, FloatArray] = field(init=False)
     weighted_age_denominator: dict[FuelTypeID, FloatArray] = field(init=False)
-    weighted_average_age: dict[FuelTypeID, FloatArray] = result("years")
+    weighted_average_age: dict[FuelTypeID, FloatArray] = result(Unit.YEARS)
 
-    fuel_type_capacity: dict[FuelTypeID, FloatArray] = result("GJ/year")
+    fuel_type_capacity: dict[FuelTypeID, FloatArray] = result(Unit.GJ_PER_YEAR)
 
     def _initialize_vessel_aggregate(self) -> None:
         # the global results sum the fleets' baselines; a fleet computes its own

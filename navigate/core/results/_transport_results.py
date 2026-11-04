@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results.base_results import BaseResults, result
+from navigate.core.results.base_results import BaseResults, Unit, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
@@ -20,18 +20,18 @@ if TYPE_CHECKING:
 class _TransportResults(BaseResults):
     """Transport work, speeds and freight rate of a vessel or a fleet."""
 
-    cargo_miles: FloatArray = result("cargo-miles/year")
+    cargo_miles: FloatArray = result(Unit.CARGO_MILES_PER_YEAR)
 
     # speeds
-    reference_speed: FloatArray = result("knots")
-    minimum_speed: FloatArray = result("knots")
-    maximum_speed: FloatArray = result("knots")
-    actual_speed: FloatArray = result("knots")
-    optimal_speed: FloatArray = result("knots")
-    lowest_speed: FloatArray = result("knots")
-    highest_speed: FloatArray = result("knots")
+    reference_speed: FloatArray = result(Unit.KNOTS)
+    minimum_speed: FloatArray = result(Unit.KNOTS)
+    maximum_speed: FloatArray = result(Unit.KNOTS)
+    actual_speed: FloatArray = result(Unit.KNOTS)
+    optimal_speed: FloatArray = result(Unit.KNOTS)
+    lowest_speed: FloatArray = result(Unit.KNOTS)
+    highest_speed: FloatArray = result(Unit.KNOTS)
 
-    instantaneous_freight_rate: FloatArray = result("USD/cargo-mile")
+    instantaneous_freight_rate: FloatArray = result(Unit.USD_PER_CARGO_MILE)
 
     def _initialize_transport(self) -> None:
         self.cargo_miles = self._default_array()

@@ -12,7 +12,7 @@ import numpy as np
 
 from navigate.core.results._fuel_consumer_results import _FuelConsumerResults
 from navigate.core.results._transport_results import _TransportResults
-from navigate.core.results.base_results import result
+from navigate.core.results.base_results import Unit, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -25,28 +25,28 @@ if TYPE_CHECKING:
 class VesselResults(_FuelConsumerResults, _TransportResults):
     """Energy, emissions, speeds, expenses and charter rates of one vessel type."""
 
-    lifetime: FloatArray = result("years")
-    lead_time: FloatArray = result("years")
+    lifetime: FloatArray = result(Unit.YEARS)
+    lead_time: FloatArray = result(Unit.YEARS)
 
     # investment signals: energy-weighted mean of the smoothed energy-conservation duals
-    investment_signal_technology: FloatArray = result("USD/GJ")
-    investment_signal_speed: FloatArray = result("USD/GJ")
+    investment_signal_technology: FloatArray = result(Unit.USD_PER_GJ)
+    investment_signal_speed: FloatArray = result(Unit.USD_PER_GJ)
 
-    technology_cost: FloatArray = result("USD/year")
+    technology_cost: FloatArray = result(Unit.USD_PER_YEAR)
 
     # freight and charter rates
-    asset_charter_rate: FloatArray = result("USD/year")
-    cargo_charter_rate: FloatArray = result("USD/year")
-    investment_freight_rate: FloatArray = result("USD/cargo-mile")
+    asset_charter_rate: FloatArray = result(Unit.USD_PER_YEAR)
+    cargo_charter_rate: FloatArray = result(Unit.USD_PER_YEAR)
+    investment_freight_rate: FloatArray = result(Unit.USD_PER_CARGO_MILE)
 
     # savings against the year-0 raw energy
-    speed_energy_saving: FloatArray = result("-")
-    operational_energy_saving: FloatArray = result("-")
-    technology_energy_saving: FloatArray = result("-")
-    energy_saving: FloatArray = result("-")
+    speed_energy_saving: FloatArray = result(Unit.DIMENSIONLESS)
+    operational_energy_saving: FloatArray = result(Unit.DIMENSIONLESS)
+    technology_energy_saving: FloatArray = result(Unit.DIMENSIONLESS)
+    energy_saving: FloatArray = result(Unit.DIMENSIONLESS)
 
     # fleet membership and cost state
-    in_fleet: BoolArray = result("-")
+    in_fleet: BoolArray = result(Unit.DIMENSIONLESS)
     cost_is_calculated: BoolArray = field(init=False)
 
     def initialize(

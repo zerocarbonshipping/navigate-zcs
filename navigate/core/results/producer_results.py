@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.results._plant_aggregate_results import _PlantAggregateResults
-from navigate.core.results.base_results import result
+from navigate.core.results.base_results import Unit, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -25,10 +25,10 @@ class ProducerResults(_PlantAggregateResults):
     """Production, feedstock use and plant development of one fuel producer."""
 
     # plants added to the development pipeline
-    maximum_development: FloatArray = result("plants/year")
-    development: FloatArray = result("plants/year", per_step=True)
+    maximum_development: FloatArray = result(Unit.PLANTS_PER_YEAR)
+    development: FloatArray = result(Unit.PLANTS_PER_YEAR, per_step=True)
 
-    fair_share_fuel_fraction: dict[str, FloatArray] = result("-")
+    fair_share_fuel_fraction: dict[str, FloatArray] = result(Unit.DIMENSIONLESS)
 
     def initialize(
         self,

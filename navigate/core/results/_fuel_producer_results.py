@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results.base_results import BaseResults, accumulate, result
+from navigate.core.results.base_results import BaseResults, Unit, accumulate, result
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -25,11 +25,11 @@ class _FuelProducerResults(BaseResults):
 
     # the mass is written, the energy computed from it
     production_mass: dict[str, FloatArray] = field(init=False)
-    production_energy: dict[str, FloatArray] = result("GJ/year")
-    production_type_energy: dict[FuelTypeID, FloatArray] = result("GJ/year")
+    production_energy: dict[str, FloatArray] = result(Unit.GJ_PER_YEAR)
+    production_type_energy: dict[FuelTypeID, FloatArray] = result(Unit.GJ_PER_YEAR)
 
-    feed_mass: dict[str, FloatArray] = result("t/year")
-    feed_constraint: dict[str, FloatArray] = result("t/year")
+    feed_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
+    feed_constraint: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
 
     def _initialize_fuel_producer(
         self, feedstock_names: Sequence[str], process_names: Sequence[str]

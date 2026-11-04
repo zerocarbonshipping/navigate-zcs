@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from navigate.core.results._fuel_infrastructure_results import (
     _FuelInfrastructureResults,
 )
-from navigate.core.results.base_results import result
+from navigate.core.results.base_results import Unit, result
 
 if TYPE_CHECKING:
     from navigate.core.results.results_context import ResultsContext
@@ -22,13 +22,15 @@ if TYPE_CHECKING:
 class PortResults(_FuelInfrastructureResults):
     """Bunkering permissions, prices and well-to-tank emissions at one port."""
 
-    bunkering_allowed: dict[str, BoolArray] = result("-")
-    bunker_price: dict[str, FloatArray] = result("USD/t")
+    bunkering_allowed: dict[str, BoolArray] = result(Unit.DIMENSIONLESS)
+    bunker_price: dict[str, FloatArray] = result(Unit.USD_PER_TON)
 
     # well-to-tank emissions per ton of the fuel bunkered, keyed by
     # (fuel, emission): the emission is written, its CO2-equivalent computed
-    bunker_wtt: dict[tuple[str, str], FloatArray] = result("t/t")
-    equivalent_bunker_wtt: dict[tuple[str, str], FloatArray] = result("tCO2e/t")
+    bunker_wtt: dict[tuple[str, str], FloatArray] = result(Unit.TON_PER_TON)
+    equivalent_bunker_wtt: dict[tuple[str, str], FloatArray] = result(
+        Unit.TCO2E_PER_TON
+    )
 
     def initialize(self, context: ResultsContext) -> None:
         """

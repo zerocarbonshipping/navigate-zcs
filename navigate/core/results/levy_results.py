@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.results.base_results import BaseResults, result
+from navigate.core.results.base_results import BaseResults, Unit, result
 
 if TYPE_CHECKING:
     from navigate.core.results.results_context import ResultsContext
@@ -20,7 +20,7 @@ class LevyResults(BaseResults):
     """Revenue one levy collected over the timeline."""
 
     # negative where the levy pays out a subsidy
-    collected: FloatArray = result("USD/year")
+    collected: FloatArray = result(Unit.USD_PER_YEAR)
 
     def initialize(self, context: ResultsContext) -> None:
         """

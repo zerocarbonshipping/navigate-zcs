@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.results.base_results import BaseResults, accumulate, result
+from navigate.core.results.base_results import BaseResults, Unit, accumulate, result
 
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
@@ -21,13 +21,13 @@ class _FuelInfrastructureResults(BaseResults):
     """Fuel bunkered, supplied and permitted by capacity at a bunkering location."""
 
     # each mass is written, its energy computed from it
-    bunker_mass: dict[str, FloatArray] = result("t/year")
-    bunker_supply_mass: dict[str, FloatArray] = result("t/year")
-    bunkering_limit_mass: dict[str, FloatArray] = result("t/year")
+    bunker_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
+    bunker_supply_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
+    bunkering_limit_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
 
-    bunker_energy: dict[str, FloatArray] = result("GJ/year")
-    bunker_supply_energy: dict[str, FloatArray] = result("GJ/year")
-    bunkering_limit_energy: dict[str, FloatArray] = result("GJ/year")
+    bunker_energy: dict[str, FloatArray] = result(Unit.GJ_PER_YEAR)
+    bunker_supply_energy: dict[str, FloatArray] = result(Unit.GJ_PER_YEAR)
+    bunkering_limit_energy: dict[str, FloatArray] = result(Unit.GJ_PER_YEAR)
 
     def _initialize_fuel_infrastructure(self) -> None:
         fuels = self.context.fuels
