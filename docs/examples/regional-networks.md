@@ -69,8 +69,4 @@ mainline-and-feeders
 south-pacific
 two-fleets
 caribbean
-mainline-and-feeders-explore
-south-pacific-explore
-two-fleets-explore
-caribbean-explore
 ```

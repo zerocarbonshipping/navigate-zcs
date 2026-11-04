@@ -33,10 +33,12 @@ locale_dirs = []
 # otherwise pick up as an orphan document and warn about. The AGENTS.md and
 # CLAUDE.md in workshop/ are for people editing the workshop, and building-a-deck
 # and prompt-bank for the AI assistants that read them from the repository: none
-# of them is for the site's readers.
+# of them is for the site's readers. 'examples/_pages' holds the sources the
+# Examples notebooks are generated from; the notebooks are the pages.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '_figures',
                     'workshop/AGENTS.md', 'workshop/CLAUDE.md',
-                    'workshop/building-a-deck.md', 'workshop/prompt-bank.md']
+                    'workshop/building-a-deck.md', 'workshop/prompt-bank.md',
+                    'examples/_pages']
 
 extensions = [
     # myst_nb supersedes myst_parser: it registers the same Markdown parser

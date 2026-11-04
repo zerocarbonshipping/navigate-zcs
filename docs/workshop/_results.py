@@ -132,11 +132,52 @@ def print_summary(s):
         print(f"  {label:30} {value:>9}  {unit}")
 
 
-def plot_cases(cases):
+def end_labels(ax, cases, values, fmt, colours=None):
+    """Label each line with its last value, nudged apart where lines end close together.
+
+    Lines that end on the same rounded value share one label, in ink. `colours`
+    maps a case to its line colour when it is not one of the scenario names.
+    """
+    colours = colours or {}
+    if fmt is None:
+        # enough digits to tell the lines apart: 0.27 Mt is not "0"
+        top = max(abs(float(v[-1])) for v in values.values())
+        fmt = ".2f" if top < 10 else (".1f" if top < 100 else ",.0f")
+    span = ax.get_ylim()[1] - ax.get_ylim()[0]
+    labels = {}
+    for s in cases:
+        text = format(values[s][-1], fmt)
+        if text.startswith("-") and float(text.replace(",", "")) == 0:
+            text = text[1:]        # a value that rounds to zero is 0, not -0
+        labels.setdefault(text, []).append(s)
+    # from the top down, so a nudge pushes a label down into the axes, not into the title
+    placed = []
+    for text, names in sorted(labels.items(), key=lambda kv: -values[kv[1][0]][-1]):
+        y = values[names[0]][-1]
+        if placed and placed[-1] - y < .07 * span:
+            y = placed[-1] - .07 * span
+        placed.append(y)
+        colour = colours.get(names[0], scen_colour(names[0])) if len(names) == 1 else INK
+        ax.annotate(text, xy=(cases[names[0]]["years"][-1], values[names[0]][-1]),
+                    xytext=(cases[names[0]]["years"][-1], y), textcoords="data",
+                    xycoords="data", fontsize=10, color=colour, fontweight="bold",
+                    va="center", ha="left", annotation_clip=False,
+                    bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none"))
+    # room on the right for the labels, with no tick past the horizon
+    first, last = cases[names[0]]["years"][0], cases[names[0]]["years"][-1]
+    ticks = [t for t in ax.get_xticks() if first <= t <= last]
+    ax.set_xlim(first - .5, last + .14 * (last - first))
+    ax.set_xticks(ticks)
+
+
+def plot_cases(cases, annotate=False):
     """Emissions, the fuel bunkered and the freight rate, one line or panel per case.
 
     `cases` maps a label ("reference", "your scenario") to what summarise()
     returns. Emissions and cost on top, one fuel-mix panel per case below.
+    With `annotate`, the figure carries the headline numbers print_summary()
+    prints: each line's last value, and each fuel panel's share of non-fossil
+    fuels in the last year.
     """
     from matplotlib.ticker import MaxNLocator
 
@@ -194,6 +235,12 @@ def plot_cases(cases):
                               [fuel_colour(f) for f in fuels])
         ax.set_title(f"Fuel consumed, {s}", fontsize=TITLE, color=INK, loc="left")
         ax.margins(x=0)
+        if annotate:
+            # FOSSIL counts LNG with fuel oil, so an LNG band can sit next to 0 %
+            ax.text(.98, .96, f"non-fossil fuels in {cases[s]['years'][-1]}: "
+                    f"{cases[s]['alt_last']:.1f} %", transform=ax.transAxes,
+                    fontsize=9.5, color=INK, ha="right", va="top",
+                    bbox=dict(boxstyle="square,pad=0.3", fc="white", ec="none", alpha=.85))
     mix_axes[0].set_ylabel(f"Fuel consumed [{energy_unit}]", fontsize=LABEL, color=SUBINK)
     fig.legend(*mix_axes[0].get_legend_handles_labels(), fontsize=LABEL,
                frameon=False, labelcolor=SUBINK, ncol=len(fuels),
@@ -209,12 +256,73 @@ def plot_cases(cases):
         for side in ("left", "bottom"):
             ax.spines[side].set_color(AXIS)
 
+    if annotate:
+        end_labels(axE, cases, {s: cases[s]["wtw"] * 1e3 / mass_div for s in order}, None)
+        end_labels(axC, cases, {s: cases[s]["freight"] for s in order}, None)
     return fig
 
 
-def compare(nav, ref, tweak):
-    """Solve the deck with `tweak`, print it against `ref` and draw both."""
+def plot_fleet_emissions(m, panels, colours):
+    """Well-to-wake emissions of each fleet, one panel per group, each line labelled at its end.
+
+    `panels` maps a panel title to {line label: fleet name}; `colours` maps a line
+    label to its colour. Each panel has its own scale.
+    """
+    from matplotlib.ticker import MaxNLocator
+
+    years = years_of(m)
+    fig, axes = plt.subplots(1, len(panels), figsize=(11, 3.8), constrained_layout=True)
+    for ax, (title, fleets) in zip(np.atleast_1d(axes), panels.items()):
+        values = {}
+        for label, name in fleets.items():
+            wtw = np.nan_to_num(np.asarray(m.nodes.fleets[name].profile.get_total_equivalent_WTW(),
+                                           dtype=float)) / 1e3                 # kt CO2e per year
+            ax.plot(years, wtw, lw=2.4, marker=".", ms=7, label=label, color=colours[label])
+            values[label] = wtw
+        ax.set_title(title, fontsize=12.5, color=INK, loc="left")
+        ax.set_ylabel("WTW CO$_2$-eq. [kt/year]", fontsize=10.5, color=SUBINK)
+        ax.set_ylim(bottom=0.)
+        ax.legend(fontsize=10.5, frameon=False, labelcolor=SUBINK, loc="lower left")
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.grid(color=GRID, lw=.8)
+        ax.set_axisbelow(True)
+        ax.tick_params(colors=TICK, labelsize=10, length=0)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+        for side in ("left", "bottom"):
+            ax.spines[side].set_color(AXIS)
+        end_labels(ax, {label: {"years": years} for label in fleets}, values, ",.0f", colours)
+    return fig
+
+
+def compare_with_previous(nav, ref, tweak, label, runs, ref_label="reference"):
+    """Solve the deck with `tweak` and draw it against `ref` and the scenario solved before it.
+
+    As Session 1's sensitivities: `runs` keeps every scenario solved so far as
+    (label, summary), newest last, and `label` names the levers moved. The figure
+    carries the numbers; nothing is printed.
+    """
     yours = summarise(run_case(nav, tweak))
+    previous = runs[-1] if runs else None
+    runs.append((label, yours))
+    cases = {ref_label: ref}
+    if previous:
+        cases["previous scenario"] = previous[1]
+    cases["your scenario"] = yours
+    fig = plot_cases(cases, annotate=True)
+    fig.suptitle("  yours: " + label + (f"      previous: {previous[0]}" if previous else ""),
+                 fontsize=11, color=SUBINK, x=0.01, ha="left")
+    return fig
+
+
+def compare(nav, ref, tweak, quiet=False):
+    """Solve the deck with `tweak`, print it against `ref` and draw both.
+
+    Quiet, it prints nothing and puts the numbers on the figure instead.
+    """
+    yours = summarise(run_case(nav, tweak))
+    if quiet:
+        return plot_cases({"reference": ref, "your scenario": yours}, annotate=True)
     cols = [("reference", ref), ("your scenario", yours)]
     print(f"  {'':32}" + "".join(f" {n:>14}" for n, _ in cols) + f" {'change':>10}")
     for name, get, fmt, pp in (

@@ -31,23 +31,19 @@ from _results import plot_cases, print_summary, run_case, summarise  # noqa: E40
 from _solver import guard_interior_point  # noqa: E402
 from _style import navigate_charts  # noqa: E402
 
-DECKS = {"trade-route": "simulations/examples/example_4/example_4.nav",
-         "two-fleets": "simulations/examples/example_3/example_3.nav",
-         "mainline-and-feeders": "simulations/examples/example_1/example_1.nav",
-         "south-pacific": "simulations/examples/example_2/example_2.nav"}
+DECKS = {"trade-route": "simulations/examples/example_4/example_4.nav"}
 
 # page: (plot folder of the run, chart) - the figure that shows what the case compares
-NAVIGATE_CHARTS = {"two-fleets": ("plots_analysis", "fleet_emission_absolute.png")}
+NAVIGATE_CHARTS = {}
 
 # page: (notebook, first line or tag of the cell) - a figure taken from a notebook's saved
 # output, for decks too slow to solve here (the global scenarios take about 25
-# minutes each) or cases of several decks, which their explore notebook already
-# runs side by side (make_example_notebooks.py)
-RUN = "# @title Run the case and see the results"
+# minutes each)
 SESSION_FIGURES = {"world-fleet": ("docs/workshop/02-run-a-global-case.ipynb",
-                                   "compare-scenarios"),
-                   "caribbean": ("docs/examples/caribbean-explore.ipynb", RUN),
-                   "rhine": ("docs/examples/rhine-explore.ipynb", RUN)}
+                                   "compare-scenarios")}
+# A page that is a notebook (docs/examples/_pages/, make_example_notebooks.py) shows
+# its results as the run cell's own output and needs no figure here: every Examples
+# page but the two that come from a workshop session (trade-route, world-fleet).
 
 OUT = Path("docs/examples/figures")
 
