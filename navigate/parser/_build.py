@@ -89,7 +89,7 @@ class Builder:
     """
 
     def __init__(self, collector: Collector, kept: list[Key]) -> None:
-        self.nodes: Nodes = Nodes()
+        self.nodes: Nodes
         self.general_nodes: GeneralNodes
 
         self._collector: Collector = collector
@@ -152,10 +152,10 @@ class Builder:
             node = NODE_CLASS[node_type](name)
             body = self._collector.declarations[key].effective_body()
 
-            self.nodes.group(node_type)[name] = node
             self._node_by_key[key] = node
             bodies.append((node, body))
 
+        self.nodes = Nodes.build(self._node_by_key.values())
         self._apply(bodies, initialize)
         return self.nodes
 

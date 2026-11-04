@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The registries the parser fills with the nodes and general nodes of a deck."""
+"""The registries the parser builds from the nodes and general nodes of a deck."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, fields
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple, get_args, get_type_hints
 
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
@@ -41,41 +40,54 @@ if TYPE_CHECKING:
     from navigate.core.node import Node
 
 
-# the field metadata key naming the node class a field holds
-_CLASS = "class"
-
-
-def _node_group(cls: type[Node]) -> Any:
-    return field(default_factory=dict, metadata={_CLASS: cls})
-
-
-@dataclass
-class Nodes:
+class Nodes(NamedTuple):
     """The nodes a deck defines, grouped by node type and keyed by node name."""
 
-    converters: dict[str, Converter] = _node_group(Converter)
-    curves: dict[str, Curve] = _node_group(Curve)
-    emissions: dict[str, Emission] = _node_group(Emission)
-    feedstocks: dict[str, Feedstock] = _node_group(Feedstock)
-    fleets: dict[str, Fleet] = _node_group(Fleet)
-    forecasts: dict[str, Forecast] = _node_group(Forecast)
-    fuels: dict[str, Fuel] = _node_group(Fuel)
-    levies: dict[str, Levy] = _node_group(Levy)
-    plants: dict[str, Plant] = _node_group(Plant)
-    ports: dict[str, Port] = _node_group(Port)
-    processes: dict[str, Process] = _node_group(Process)
-    producers: dict[str, Producer] = _node_group(Producer)
-    regions: dict[str, Region] = _node_group(Region)
-    regulations: dict[str, Regulation] = _node_group(Regulation)
-    routes: dict[str, Route] = _node_group(Route)
-    sources: dict[str, Source] = _node_group(Source)
-    surfaces: dict[str, Surface] = _node_group(Surface)
-    tanks: dict[str, Tank] = _node_group(Tank)
-    technologies: dict[str, Technology] = _node_group(Technology)
-    timetables: dict[str, Timetable] = _node_group(Timetable)
-    transports: dict[str, Transport] = _node_group(Transport)
-    variables: dict[str, Variable] = _node_group(Variable)
-    vessels: dict[str, Vessel] = _node_group(Vessel)
+    converters: dict[str, Converter]
+    curves: dict[str, Curve]
+    emissions: dict[str, Emission]
+    feedstocks: dict[str, Feedstock]
+    fleets: dict[str, Fleet]
+    forecasts: dict[str, Forecast]
+    fuels: dict[str, Fuel]
+    levies: dict[str, Levy]
+    plants: dict[str, Plant]
+    ports: dict[str, Port]
+    processes: dict[str, Process]
+    producers: dict[str, Producer]
+    regions: dict[str, Region]
+    regulations: dict[str, Regulation]
+    routes: dict[str, Route]
+    sources: dict[str, Source]
+    surfaces: dict[str, Surface]
+    tanks: dict[str, Tank]
+    technologies: dict[str, Technology]
+    timetables: dict[str, Timetable]
+    transports: dict[str, Transport]
+    variables: dict[str, Variable]
+    vessels: dict[str, Vessel]
+
+    @classmethod
+    def build(cls, nodes: Iterable[Node]) -> Nodes:
+        """
+        Sort nodes into the groups of their node types.
+
+        Parameters
+        ----------
+        nodes
+            The nodes, each group taking its nodes in this order.
+
+        Returns
+        -------
+        Nodes
+            The registry, with an empty group for a node type without nodes.
+        """
+        groups: dict[str, dict[str, Any]] = {name: {} for name in cls._fields}
+
+        for node in nodes:
+            groups[_GROUP_FIELD[node.type]][node.name] = node
+
+        return cls(**groups)
 
     def all_nodes(self) -> Iterable[Node]:
         """
@@ -86,45 +98,27 @@ class Nodes:
         Node
             Each node of every group, in turn.
         """
-        for group_field in fields(self):
-            yield from getattr(self, group_field.name).values()
-
-    def group(self, node_type: str) -> dict[str, Node]:
-        """
-        Look up the group holding the nodes of a node type.
-
-        Parameters
-        ----------
-        node_type
-            The node type keyword.
-
-        Returns
-        -------
-        dict[str, Node]
-            The group, keyed by node name; the registry's own dict, so writes
-            to it change the registry.
-        """
-        group: dict[str, Node] = getattr(self, _GROUP_FIELD[node_type])
-        return group
+        for group in self:
+            yield from group.values()
 
 
-# the field of Nodes holding each node type, read off the field metadata
-_GROUP_FIELD: dict[str, str] = {f.metadata[_CLASS].type: f.name for f in fields(Nodes)}
-
-
-@dataclass
-class GeneralNodes:
+class GeneralNodes(NamedTuple):
     """The at-most-one-per-deck nodes, built once the DEFINE pass has checked them."""
 
-    bunker_options: BunkerOptions = field(metadata={_CLASS: BunkerOptions})
-    model_definition: ModelDefinition = field(metadata={_CLASS: ModelDefinition})
+    bunker_options: BunkerOptions
+    model_definition: ModelDefinition
 
 
-def _classes_by_type(registry: type[Nodes | GeneralNodes]) -> dict[str, Any]:
-    classes = [f.metadata[_CLASS] for f in fields(registry)]
-    return {cls.type: cls for cls in classes}
+# the node class each field of Nodes holds, read off its annotation
+_GROUP_CLASS: dict[str, type[Node]] = {
+    name: get_args(hint)[1] for name, hint in get_type_hints(Nodes).items()
+}
 
+# the field of Nodes holding each node type
+_GROUP_FIELD: dict[str, str] = {cls.type: name for name, cls in _GROUP_CLASS.items()}
 
-# the class of each node type and general node, read off the field metadata
-NODE_CLASS: dict[str, type[Node]] = _classes_by_type(Nodes)
-GENERAL_NODE_CLASS: dict[str, type[GeneralNode]] = _classes_by_type(GeneralNodes)
+# the class of each node type and general node
+NODE_CLASS: dict[str, type[Node]] = {cls.type: cls for cls in _GROUP_CLASS.values()}
+GENERAL_NODE_CLASS: dict[str, type[GeneralNode]] = {
+    cls.type: cls for cls in get_type_hints(GeneralNodes).values()
+}

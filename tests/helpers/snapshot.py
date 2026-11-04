@@ -136,7 +136,7 @@ def snapshot(results: SimulationResults) -> Snapshot:
         if not name.endswith(_TIMING_SUFFIX)
     }
     _add_results(snap, "global", global_readers)
-    for group, nodes in vars(results.nodes).items():
+    for group, nodes in results.nodes._asdict().items():
         for name, node in nodes.items():
             node_results = getattr(node, "results", getattr(node, "profile", None))
             if node_results is not None:
