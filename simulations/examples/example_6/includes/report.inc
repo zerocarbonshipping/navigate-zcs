@@ -18,9 +18,6 @@ Report "output" {
 	add_fleet_property("rhine_fleet", RegulationExpenses)
 	add_fleet_property("rhine_fleet", TotalConsumedMass)
 
-	# delivered bunker price per unit of energy, by port
+	# bunker price per unit of energy, handling included, by port
 	add_port_property("*", BunkerIntensityPrice)
-
-	# levelised cost per GJ of each plant, even when none is built
-	add_plant_property("*", InvestmentIntensityCost)
 }

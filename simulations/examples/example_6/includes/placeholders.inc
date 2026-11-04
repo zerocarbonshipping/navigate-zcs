@@ -4,9 +4,8 @@
 # PLACEHOLDERS - every INVENTED or GIVEN number of this case that can be a
 # Variable, Curve or Forecast, in one place. Replace them here.
 #
-# Plain numbers that Navigate takes only as numbers live in their own files:
+# Plain numbers that Navigate takes only as numbers live in their own file:
 #   includes/route.inc             distances, speeds, port days, loads   (INVENTED)
-#   includes/bunker_logistics.inc  400 nm plant-to-port, 0.03 USD/t/nm   (INVENTED)
 
 # ---- fleet (INVENTED) -------------------------------------------------------
 Variable "rhine_initial_vessels" {
@@ -102,13 +101,87 @@ Variable "rhine_electrical_power_capacity" {
 	Value = 0.2            # INVENTED: MW, generators
 }
 
-# ---- feedstock shares (GIVEN by the prompt as this fleet's share) -----------
-Variable "rhine_share_used_cooking_oil" {
-	Value = 0.02           # GIVEN: this fleet's share of used_cooking_oil_share_shipping
+# ---- handling at the bunker ports (INVENTED) --------------------------------
+# USD per t of fuel, storage and the bunkering service, on top of the price
+Variable "rhine_handling_fuel_oil" {
+	Value = 10             # INVENTED
 }
 
-Variable "rhine_share_biogenic_carbon_dioxide" {
-	Value = 0.02           # GIVEN: this fleet's share of carbon_dioxide_biogenic_share_shipping
+Variable "rhine_handling_lng" {
+	Value = 40             # INVENTED: cryogenic storage and bunkering
+}
+
+Variable "rhine_handling_fame" {
+	Value = 10             # INVENTED
+}
+
+Variable "rhine_handling_e_diesel" {
+	Value = 10             # INVENTED
+}
+
+Variable "rhine_handling_e_methanol" {
+	Value = 15             # INVENTED
+}
+
+# ---- FAME at the bunker ports (PLACEHOLDERS: replace with your source) -------
+# Defaults: what the library's own FAME plant (used cooking oil, grey methanol,
+# grid power, in Europe) would cost and emit in this deck, plus 12 USD/t delivery
+# to the port. Not net zero: its upstream CO2 falls short of what the engine emits.
+Forecast "rhine_fame_price" {
+	# USD per t, linear between the points; 45 USD/GJ, nearly flat (37.1 GJ/t)
+	Table = [
+		"01-01-2026"	1669
+		"01-01-2030"	1667
+		"01-01-2040"	1663
+		"01-01-2050"	1659
+	]
+}
+
+Forecast "rhine_fame_wtt_carbon_dioxide" {
+	# t CO2 per t of fuel, against 2.84 at the tailpipe
+	Table = [
+		"01-01-2026"	-2.086
+		"01-01-2030"	-2.103
+		"01-01-2040"	-2.130
+		"01-01-2050"	-2.139
+	]
+}
+
+Variable "rhine_fame_wtt_methane" {
+	Value = 0.0016         # t methane per t of fuel
+}
+
+# ---- e-fuels at the bunker ports (PLACEHOLDERS: replace with your source) ----
+# Defaults: what the library's own plants would cost and emit in this deck
+# (alkaline electrolysis in Europe, renewable power, biogenic CO2), plus 12 USD/t
+# delivery to the port. Net zero upstream: the CO2 captured equals what the engine
+# emits.
+Forecast "rhine_e_diesel_price" {
+	# USD per t, linear between the points; 103 USD/GJ in 2026, 71 by 2050 (42.7 GJ/t)
+	Table = [
+		"01-01-2026"	4390
+		"01-01-2030"	4023
+		"01-01-2040"	3369
+		"01-01-2050"	3019
+	]
+}
+
+Forecast "rhine_e_methanol_price" {
+	# USD per t, linear between the points; 84 USD/GJ in 2026, 57 by 2050 (19.9 GJ/t)
+	Table = [
+		"01-01-2026"	1680
+		"01-01-2030"	1512
+		"01-01-2040"	1260
+		"01-01-2050"	1132
+	]
+}
+
+Variable "rhine_e_diesel_wtt_carbon_dioxide" {
+	Value = -3.206         # t CO2 per t of fuel: minus its tailpipe CO2, net zero
+}
+
+Variable "rhine_e_methanol_wtt_carbon_dioxide" {
+	Value = -1.38          # t CO2 per t of fuel: minus its tailpipe CO2, net zero
 }
 
 # ---- Germany's CO2 price (INVENTED), used by includes/co2_price.inc ---------

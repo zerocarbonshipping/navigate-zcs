@@ -5,7 +5,8 @@ Run from anywhere:  python docs/_figures/make_rhine_map.py
 Writes docs/_static/rhine_inland_map.svg, the map for the workshop prompt
 "Inland waterways in Germany": Rhine motor cargo vessels from Duisburg up to
 Mannheim, calling at Cologne, Koblenz and Mainz, with the new fuels bunkered at
-the two ends only, and the European fuel production that supplies them. To rasterise it:
+the two ends only. Every fuel is bought at the ports at a set price: the deck
+makes none, so the map has no plant. To rasterise it:
 
     python docs/_figures/make_rhine_map.py                 # SVG
     python docs/_figures/render_map_png.py rhine_inland    # SVG -> PNG
@@ -18,10 +19,6 @@ from it. Two things differ:
 - The voyage is on a river, so there is no sea test. The Rhine is drawn from
   approximate coordinates of the towns on its banks (RHINE below); at 1:110m
   the basemap has no rivers.
-
-The plants are drawn at one place in the west for legibility only: the deck's
-plants are the library's Europe region, which has no location, and their
-delivery legs carry the deck's INVENTED 400 nm.
 """
 import json
 import math
@@ -57,16 +54,6 @@ PORTS = [(*DUISBURG, "Duisburg", "every fuel", True),
          (*MAINZ, "Mainz", "fuel oil only", False),
          (*MANNHEIM, "Mannheim", "every fuel", True)]
 
-# Colours as in the charts: oil_bio, diesel_electro, methanol_electro.
-FUEL_COLOURS = {"FAME": "#9f5959",
-                "e-diesel": "#296565",
-                "e-methanol": "#457b7b"}
-
-PLANT = (3.4, 50.0)
-PLANTS = [(*PLANT, "European fuel production",
-           "Europe region · 400 nm to each end",
-           list(FUEL_COLOURS))]
-
 # The Rhine from Lake Constance to the North Sea, through the towns on its
 # banks: Schaffhausen, Basel, Strasbourg, Karlsruhe, Speyer, Mannheim, Worms,
 # Mainz, Bingen, Koblenz, Bonn, Cologne, Dusseldorf, Duisburg, Wesel, Emmerich,
@@ -84,23 +71,19 @@ RHINE = [(9.40, 47.62), (8.63, 47.70), (8.20, 47.60), (7.59, 47.56),
 i0, i1 = RHINE.index(DUISBURG), RHINE.index(MANNHEIM)
 ROUTE = RHINE[i0:i1 - 1:-1]
 
-DELIVERY = [("to_duisburg", [PLANT, (4.6, 50.9), (5.8, 51.3), DUISBURG]),
-            ("to_mannheim", [PLANT, (5.0, 50.1), (6.9, 49.8), (7.6, 49.38), MANNHEIM])]
-
 C_OCEAN, C_LAND, C_BORDER = "#eaf6fb", "#dcdcdc", "#ffffff"
-C_GERMANY = "#cfcfcf"
+C_GERMANY = "#bebebe"          # Black-2: Germany a step darker than the land around it
 C_RIVER = "#97c8e4"
 C_ROUTE, C_PORT = "#b55f2e", "#3d5f87"
-C_DELIV = "#8c8c8c"
 C_TEXT, C_SUB = "#323232", "#585858"
 
 SHIP_SEGMENTS = [2, 6]     # Cologne-Bonn and Koblenz-Bingen
 SHIP_SCALE = 1.2
 
-TRIM = {"route": 10.0, "to_duisburg": 10.0, "to_mannheim": 10.0}
-MIN_TAIL = {"route": 18.0, "to_duisburg": 16.0, "to_mannheim": 16.0}
+TRIM = {"route": 10.0}
+MIN_TAIL = {"route": 18.0}
 
-LEGEND_BOX = [W - 222, H - 208, W - 10, H - 30]
+LEGEND_BOX = [W - 222, H - 153, W - 10, H - 30]
 
 ROUTE_LABEL_AT = (8.0, 50.5)
 NOTE_AT = (11.6, 49.4)
@@ -117,8 +100,6 @@ PORT_CANDS = [
      (30, -16, "start"), (-16, 18, "end"), (-24, 28, "end"), (0, -26, "middle")],
     [(13, 3, "start"), (13, 18, "start"), (13, -12, "start"), (0, 26, "middle")],
 ]
-PLANT_CANDS = [(-44, 26, "start"), (-24, -30, "start"), (-24, 26, "start"), (0, -30, "middle"), (0, 26, "middle"),
-               (13, -30, "start")]
 
 
 def main():
@@ -136,16 +117,11 @@ def main():
         f'font-family:system-ui,-apple-system,\'Segoe UI\',sans-serif" role="img" '
         f'aria-label="Map of an inland trade on the Rhine in Germany from Duisburg '
         f'upstream to Mannheim, calling at Cologne, Koblenz and Mainz: every fuel at '
-        f'Duisburg and Mannheim, fuel oil only at the three ports between, and '
-        f'European fuel production delivering FAME, e-diesel and e-methanol to the two '
-        f'ends">')
+        f'Duisburg and Mannheim, fuel oil only at the three ports between">')
     add('<defs>'
         f'<marker id="rharw" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" '
         f'markerHeight="5.5" orient="auto-start-reverse">'
         f'<path d="M0 0 L10 5 L0 10 z" fill="{C_ROUTE}"/></marker>'
-        f'<marker id="rhsup" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4.5" '
-        f'markerHeight="4.5" orient="auto-start-reverse">'
-        f'<path d="M0 0 L10 5 L0 10 z" fill="{C_DELIV}"/></marker>'
         '</defs>')
     add(f'<rect width="{W:.0f}" height="{H:.0f}" fill="{C_OCEAN}"/>')
 
@@ -185,8 +161,6 @@ def main():
     ships = [g.ship_on_route(ROUTE, seg, SHIP_SCALE) for seg in SHIP_SEGMENTS]
     for _, ship_box in ships:
         lay.reserve(ship_box)
-    for _, pts in DELIVERY:
-        reserve_polyline([xy(*c) for c in pts], half=2.5)
 
     rp = g.straighten_tail(g.trim_end([xy(*c) for c in ROUTE], TRIM["route"]),
                            MIN_TAIL["route"])
@@ -194,14 +168,6 @@ def main():
         f'stroke="{C_ROUTE}" stroke-width="2.8" stroke-linecap="round" '
         f'stroke-linejoin="round" marker-end="url(#rharw)"/>')
     tips = {"route": g.marker_tip(rp, 5.5, 2.8)}
-
-    for name, pts in DELIVERY:
-        dp = g.straighten_tail(g.trim_end([xy(*c) for c in pts], TRIM[name]),
-                               MIN_TAIL[name])
-        add(f'<path d="M{"L".join(f"{x:.1f} {y:.1f}" for x, y in dp)}" fill="none" '
-            f'stroke="{C_DELIV}" stroke-width="1.6" stroke-dasharray="7 5" '
-            f'marker-end="url(#rhsup)"/>')
-        tips[name] = g.marker_tip(dp, 4.5, 1.6)
 
     for ship_svg, _ in ships:
         add(ship_svg)
@@ -222,20 +188,6 @@ def main():
     for lon, lat, *_ in PORTS:
         x, y = xy(lon, lat)
         lay.reserve([x - 7, y - 7, x + 7, y + 7])
-    for lon, lat, _, _, fuels in PLANTS:
-        x, y = xy(lon, lat)
-        span = 13.0 * (len(fuels) - 1)
-        lay.reserve([x - span / 2 - 10, y - 10, x + span / 2 + 10, y + 10])
-
-    for lon, lat, name, sub, fuels in PLANTS:
-        x, y = xy(lon, lat)
-        span = 13.0 * (len(fuels) - 1)
-        for k, fuel in enumerate(fuels):
-            add(g.factory(x - span / 2 + k * 13.0, y, FUEL_COLOURS[fuel]))
-        bx, by, anchor = lay.pair(x, y, name, sub, 11.5, 9.5, PLANT_CANDS)
-        labels.append(txt(bx, by, name, 11.5, anchor, C_TEXT, "600"))
-        labels.append(txt(bx, by + 11.5, sub, 9.5, anchor, C_SUB))
-
     for (lon, lat, name, sub, full), cands in zip(PORTS, PORT_CANDS):
         x, y = xy(lon, lat)
         bx, by, anchor = lay.pair(x, y, name, sub, 12.5, 9.5, cands)
@@ -246,14 +198,14 @@ def main():
     SPREAD = [(0, 0), (0, -17), (0, 19), (0, -34), (0, 36), (36, 0), (-36, 0),
               (0, -52), (0, 54), (64, 10), (-64, 10), (0, -70), (0, 72)]
     lx, ly = lay.one(*xy(*GERMANY_AT), "GERMANY", 13, "middle", "bold", SPREAD)
-    labels.append(txt(lx, ly, "GERMANY", 13, "middle", "#a5a5a5", "600"))
+    labels.append(txt(lx, ly, "GERMANY", 13, "middle", "#8c8c8c", "600"))
 
     # Two-line notes: the second line sits under the first, placed together.
     PAIR_SPREAD = [(dx, dy, "start") for dx, dy in SPREAD]
     notes = [(ROUTE_LABEL_AT, "193 nm upstream, five calls", "cargo off at each call, ballast down",
               C_ROUTE, "600"),
              (NOTE_AT, "No EU ETS or FuelEU on inland waterways",
-              "the second deck adds a national CO2 price", C_SUB, "400")]
+              "the deck adds a national CO2 price", C_SUB, "400")]
     for at, top, bot, fill, weight in notes:
         x, y = xy(*at)
         bx, by, anchor = lay.pair(x, y, top, bot, 11.5, 10, PAIR_SPREAD)
@@ -264,7 +216,7 @@ def main():
     add(txt(W - 10, H - 8, "Basemap: Natural Earth 1:110m (public domain)", 8.5, "end", "#a5a5a5"))
 
     lgx, lgy = LEGEND_BOX[0] + 2, LEGEND_BOX[1] + 2
-    add(f'<rect x="{lgx}" y="{lgy}" width="206" height="169" rx="5" fill="#ffffff" '
+    add(f'<rect x="{lgx}" y="{lgy}" width="206" height="114" rx="5" fill="#ffffff" '
         f'fill-opacity="0.90" stroke="#bebebe" stroke-width="0.8"/>')
     row = lgy + 19
     add(port_dot(lgx + 17, row - 3, True))
@@ -273,11 +225,7 @@ def main():
     add(port_dot(lgx + 17, row - 3, False))
     add(txt(lgx + 32, row, "port, fuel oil only", 10, "start", C_TEXT))
     row += 18
-    add(txt(lgx + 10, row, "fuel plant, by fuel made:", 9.5, "start", C_SUB))
-    for fuel, colour in FUEL_COLOURS.items():
-        row += 17
-        add(g.factory(lgx + 17, row - 3, colour, scale=0.85))
-        add(txt(lgx + 32, row, fuel, 10, "start", C_TEXT))
+    add(txt(lgx + 10, row, "every fuel bought at the port", 9.5, "start", C_SUB))
     row += 19
     add(f'<line x1="{lgx + 11}" y1="{row - 3}" x2="{lgx + 24}" y2="{row - 3}" '
         f'stroke="{C_ROUTE}" stroke-width="2.8"/>')
@@ -286,16 +234,12 @@ def main():
     add(f'<line x1="{lgx + 11}" y1="{row - 3}" x2="{lgx + 24}" y2="{row - 3}" '
         f'stroke="{C_RIVER}" stroke-width="3.2"/>')
     add(txt(lgx + 32, row, "the Rhine", 10, "start", C_TEXT))
-    row += 15
-    add(f'<line x1="{lgx + 11}" y1="{row - 3}" x2="{lgx + 24}" y2="{row - 3}" '
-        f'stroke="{C_DELIV}" stroke-width="1.6" stroke-dasharray="7 5"/>')
-    add(txt(lgx + 32, row, "fuel delivery", 10, "start", C_TEXT))
 
     add('</svg>')
     svg = "\n".join(out)
 
     PORT_PX = {"duisburg": xy(*DUISBURG), "mannheim": xy(*MANNHEIM)}
-    TARGET = {"route": "mannheim", "to_duisburg": "duisburg", "to_mannheim": "mannheim"}
+    TARGET = {"route": "mannheim"}
     DOT_R = 5.2 + 1.6 / 2 + 1.0
     print("arrowheads:")
     for name, ((tx, ty), length) in tips.items():
@@ -303,9 +247,6 @@ def main():
         gap = math.hypot(tx - px_, ty - py_)
         assert gap >= DOT_R, f"{name} tip sits on the {TARGET[name]} dot ({gap:.1f} px)"
         print(f"  {name:12} tip {gap:5.1f} px from the port dot")
-    (ax, ay), _ = tips["route"]
-    (bx, by), _ = tips["to_mannheim"]
-    assert math.hypot(ax - bx, ay - by) >= 8.0, "heads at Mannheim overlap"
 
     bs = lay.text_boxes
     worst = None

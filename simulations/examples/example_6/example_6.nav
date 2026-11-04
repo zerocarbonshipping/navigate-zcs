@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 # RHINE INLAND DRY CARGO, Duisburg - Mannheim, 2026-2050, yearly steps.
-# REFERENCE deck: no policy. EU ETS and FuelEU Maritime do not cover inland
-# waterways, so DefaultRegulation is not loaded. example_6_co2_price.nav differs from this
-# deck in one Include line only.
+# One deck, with Germany's national CO2 price (includes/co2_price.inc); set its
+# Forecast to 0 for no policy. EU ETS and FuelEU Maritime do not cover inland
+# waterways, so DefaultRegulation is not loaded.
 #
 # Ships: built from the library's general cargo vessels (general_cargo_ice_oil,
 # _ice_methane, _ice_methanol) and resized for the Rhine. The fuel-system and tank
@@ -14,17 +14,19 @@
 # every vessel type is orderable from year one rather than phased in.
 #
 # INVENTED placeholders (Variables/Curves/Forecasts in includes/placeholders.inc;
-# plain numbers in includes/route.inc and includes/bunker_logistics.inc):
+# plain numbers in includes/route.inc):
 #   - 300 ships in 2026, aged evenly 0-39 years
 #   - 3,000 t capacity, 40-year lifetime, 6 M USD hull newbuild price, 1.5 MW propulsion
 #   - propulsion power vs speed: 4 kn 0.25, 6 kn 0.6, 8 kn 1.1, 9 kn 1.45 MW
 #   - auxiliary 0.1 MW at sea, 0.05 MW in port, 0.2 MW generators
 #   - route distances 50/52/51/40/193 nm, speeds 7 kn up and 8 kn back,
 #     1 day in port, loads 1.0/0.75/0.5/0.25/0
-#   - bunker logistics: 400 nm to duisburg and mannheim, 0.03 USD/t/nm
-#   - CO2 price 65 USD/t (2026) to 150 USD/t (2050)   [co2_price.nav only]
-# GIVEN by the prompt: feedstock shares 0.02 (used cooking oil), 0.02 (biogenic CO2).
-# Also a deck choice: producers deliver 50/50 to duisburg and mannheim.
+#   - handling at the ports, USD/t: fuel oil, FAME and e-diesel 10, LNG 40, e-methanol 15
+#   - CO2 price 65 USD/t (2026) to 150 USD/t (2050)
+# PLACEHOLDERS for your source (includes/placeholders.inc), defaults from the library's
+# own plants in this deck: FAME 45 USD/GJ, flat, about a quarter of fuel oil's CO2;
+# e-diesel 103 USD/GJ (2026) to 71 (2050) and e-methanol 84 to 57, both net zero.
+# All five fuels are market fuels bought at the ports; nothing is made in the deck.
 
 DEFINE {
 	Load DefaultModelDefinition
@@ -38,15 +40,14 @@ DEFINE {
 	Include "includes/bunker_logistics.inc"
 
 	# ---- fuel ----
-	Include "includes/fuel_production.inc"
-	Include "includes/regions.inc"
-	Include "includes/producer.inc"
+	Include "includes/fuels.inc"
 	Load DefaultEmission
 
-	# ---- policy: none ----
+	# ---- policy: Germany's CO2 price ----
+	Include "includes/co2_price.inc"
 
 	# ---- decision processes ----
-	Load DefaultCalibration
+	Include "includes/calibration.inc"
 
 	# ---- export ----
 	Include "includes/report.inc"
