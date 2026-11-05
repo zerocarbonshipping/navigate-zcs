@@ -231,9 +231,11 @@ its section layout; the rules below cover the content.
   checks; past validation, trust the types (mypy `warn_unreachable` flags a
   check the types already rule out).
 - In `navigate/`, confine dynamic attribute access (`hasattr`, `getattr`,
-  `setattr`) to the boundary modules: `navigate/parser/` (DSL dispatch),
-  `navigate/output/` (results by name) and `navigate/app/` (the
-  `extra` keys of a log record).
+  `setattr`, `delattr`, `vars`, `__dict__`) to the boundary modules:
+  `navigate/parser/` (DSL dispatch), `navigate/output/` (results by name) and
+  `navigate/app/` (the `extra` keys of a log record). The exception is
+  `navigate/core/dsl.py`, which uses `vars` to collect decorator marks from
+  methods defined on a class and its bases.
 
 ## Logging
 
