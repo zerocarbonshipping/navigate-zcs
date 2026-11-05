@@ -185,7 +185,6 @@ class BunkerAlgorithm:
 
         # policies
         self.active_regulations: dict[str, Regulation]
-        self.regulated_shore_power: set[tuple[str, int]]
         self.regulation_rhs_individual: dict[tuple[str, str], float]
         self.regulation_rhs_flexibility: dict[str, float]
 
@@ -363,8 +362,6 @@ class BunkerAlgorithm:
 
     def _reset_dynamic_properties(self) -> None:
         """Reset the containers recalculated at every time-step, so none goes stale."""
-        self.regulated_shore_power = set()
-
         self.regulation_rhs_individual = {}
         self.regulation_rhs_flexibility = {}
         self.regulation_emission_terms = {}
@@ -396,34 +393,12 @@ class BunkerAlgorithm:
             self.vessels[v] = vessel
             self.multipliers[v] = float(multiplier)
 
-            # registered before the vessel's variables are added, on purpose
-            self._update_regulated_shore_power(vessel)
-
             update_vessel_variables(self, vessel)
             update_vessel_objectives(self, vessel)
             self._update_vessel_constraints(vessel)
 
         elif v in self.vessels:
             remove_redundant_vessel(self, v)
-
-    def _update_regulated_shore_power(self, vessel: Vessel) -> None:
-        """
-        Add the vessel's shore-power connections in the model to those regulated.
-
-        Only these are weighed by the regulation rows: a connection whose variable
-        this build adds is not weighed until the next build. That is a known defect,
-        kept so results do not move.
-
-        Parameters
-        ----------
-        vessel
-            Vessel whose connections are added.
-        """
-        v = vessel.name
-
-        for p in vessel.route.get_stops():
-            if (v, p) in self.shore_power:
-                self.regulated_shore_power.add((v, p))
 
     def _update_vessel_constraints(self, vessel: Vessel) -> None:
         """
