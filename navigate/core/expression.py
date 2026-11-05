@@ -246,8 +246,8 @@ class Expression:
         Raises
         ------
         ValueError
-            If the value, or any entry of it, is at or beyond an exclusive
-            internal bound.
+            If the value, or any entry of it, is NaN, or at or beyond an
+            exclusive internal bound.
         """
         evaluated = self._tree.evaluate(self.calculators, x, y)
 
@@ -282,7 +282,8 @@ class Expression:
         """
         Set the bounds every evaluated value is clamped to.
 
-        A value reaching an exclusive bound raises instead of being clamped.
+        A value reaching an exclusive bound raises instead of being clamped, and so
+        does a NaN.
 
         Parameters
         ----------

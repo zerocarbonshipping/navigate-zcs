@@ -198,7 +198,19 @@ class _Table2D(_Calculator):
         is_outside = (outside_x | outside_y) & ~has_nan
         return np.where(is_outside, self._evaluate_number(outside), table_value)
 
+    def _check_interpolate_infinite_consistency(self, z: FloatArray) -> None:
+        # a linear interpolation in a cell with an infinite corner is NaN at its
+        # finite corners, so the nearest point says where the value is infinite
+        if self.interpolate == Interpolate2DID.LINEAR and np.any(np.isinf(z)):
+            raise ValueError(
+                "'Interpolate' must not be LINEAR when the table holds INF or -INF,"
+                " as a linear interpolation next to an infinite value is undefined."
+                " Use NEAREST."
+            )
+
     def _set_table(self, x: FloatArray, y: FloatArray, z: FloatArray) -> None:
+        self._check_interpolate_infinite_consistency(z)
+
         self.x = x
         self.y = y
 
@@ -221,8 +233,9 @@ class _Table2D(_Calculator):
 
         'x' and 'y' must each hold at least two finite values, both strictly
         increasing, and 'z' must be a 2-D array of shape ('x'.size, 'y'.size). A 'z'
-        may be INF, and is checked by each attribute the table is assigned to when
-        it is evaluated, but never NaN, which no bound can reject.
+        may be INF under the nearest interpolation, which is checked when the table
+        is built, and each attribute the table is assigned to checks it when it is
+        evaluated; a 'z' is never NaN.
 
         Parameters
         ----------

@@ -45,7 +45,7 @@ Surface "speed_power_draft_surface" {
 
 ### Table
 
-This attribute sets the table of x-, y- and z-values that the surface interpolates in. There must be at least two x-values and two y-values, each finite and strictly increasing, and the number of z-values must equal the number of x-values times the number of y-values. A z-value may be `INF` or `-INF`, but not `nan`. The syntax is described under [Assigning tables](dsl_reference.md#surface).
+This attribute sets the table of x-, y- and z-values that the surface interpolates in. There must be at least two x-values and two y-values, each finite and strictly increasing, and the number of z-values must equal the number of x-values times the number of y-values. A z-value may be `INF` or `-INF` when [Interpolate](#interpolate) is `NEAREST`, but never `nan`. The syntax is described under [Assigning tables](dsl_reference.md#surface).
 
 * **Data type**: `Table`
 * **Default**: None. Must be provided by the user.
@@ -84,7 +84,7 @@ Sets the upper bound that the result is clamped to after the `Addition` and the 
 
 ### Interpolate
 
-This attribute sets the interpolation method used to interpolate in the table.
+This attribute sets the interpolation method used to interpolate in the table. `LINEAR` cannot be combined with an `INF` or `-INF` in the table, as a linear interpolation next to an infinite value is undefined; such a surface is rejected.
 
 * **Data type**: `ID`
 * **Legal values**: [Interpolate2DID](appendix_ids.md#interpolate2did)
