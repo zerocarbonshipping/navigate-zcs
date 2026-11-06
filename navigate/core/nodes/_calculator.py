@@ -196,7 +196,8 @@ class _Calculator:
         Truncate a calculated value to the applied bounds.
 
         An inclusive bound clamps the value; one reaching an exclusive bound
-        raises instead of being clamped onto a value the bound forbids.
+        raises instead of being clamped onto a value the bound forbids, and so
+        does a NaN.
 
         Parameters
         ----------
@@ -211,7 +212,8 @@ class _Calculator:
         Raises
         ------
         ValueError
-            If the value, or any entry of it, is at or beyond an exclusive bound.
+            If the value, or any entry of it, is NaN, or at or beyond an exclusive
+            bound.
         """
         try:
             return self._applied_bounds.clamp(value)

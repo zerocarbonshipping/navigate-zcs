@@ -6,11 +6,13 @@ Lookups beyond a calculator table, for every 'Extrapolate' mode.
 
 Covers LINEAR, which continues the end segments; FLAT, which holds Below/Above
 on a Curve and Outside on a Surface; FALSE, which refuses the lookup; and the
-mode pairings a table refuses before it is ever looked up.
+mode pairings, and the INF values under a LINEAR interpolation, that a table
+refuses before it is ever looked up.
 """
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from navigate.core.nodes.curve import Curve
@@ -139,6 +141,29 @@ def test_step_interpolation_refuses_linear_extrapolation(interpolate):
 
     with pytest.raises(ValueError, match="'Extrapolate' must not be LINEAR"):
         curve.build_table()
+
+
+# builds a Curve and a Surface whose table holds INF with the default LINEAR
+# interpolation and expects the build to fail.
+# catches: the check dropped from either table, so the deck loads and a lookup
+# next to INF gives NaN mid-run instead of an error at deck load.
+@pytest.mark.parametrize(
+    ("node_class", "rows"),
+    [
+        (Curve, [[0.0, 1.0], [1.0, np.inf]]),
+        # header row holds y = [0, 1]; z(0, 1) is INF
+        (Surface, [[0.0, 1.0], [0.0, 1.0, np.inf], [1.0, 2.0, 3.0]]),
+    ],
+    ids=["curve", "surface"],
+)
+def test_linear_interpolation_refuses_an_infinite_table_value(node_class, rows):
+    # a linear interpolation next to INF is NaN at the finite point; LINEAR is
+    # the default, so leaving 'Interpolate' unset is refused too
+    node = node_class("t")
+    node.set_table(TableData(rows=rows))
+
+    with pytest.raises(ValueError, match="'Interpolate' must not be LINEAR"):
+        node.build_table()
 
 
 # asks a Surface and a Timetable with FLAT extrapolation but no Outside value to

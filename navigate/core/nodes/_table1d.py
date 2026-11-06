@@ -207,8 +207,20 @@ class _Table1D(_Calculator):
         # np.where answers a scalar input with a 0-d array
         return filled if isinstance(x, np.ndarray) else float(filled)
 
+    def _check_interpolate_infinite_consistency(self, y: FloatArray) -> None:
+        # a linear interpolation from a finite to an infinite value is infinite
+        # right past the finite point and NaN at it, so a step method says where
+        # the value turns infinite
+        if self.interpolate == Interpolate1DID.LINEAR and np.any(np.isinf(y)):
+            raise ValueError(
+                "'Interpolate' must not be LINEAR when the table holds INF or -INF,"
+                " as a linear interpolation next to an infinite value is undefined."
+                " Use PREVIOUS, NEXT, NEAREST or NEAREST_UP."
+            )
+
     def _set_table(self, x: FloatArray, y: FloatArray) -> None:
         self._check_interpolate_extrapolate_consistency()
+        self._check_interpolate_infinite_consistency(y)
 
         self.x = x
         self.y = y
@@ -230,8 +242,9 @@ class _Table1D(_Calculator):
         Validate the x and y arrays used to build a 1D table.
 
         Every 'x' must be finite, as interpolating across an infinite one gives NaN.
-        A 'y' may be INF, and is checked by each attribute the table is assigned to
-        when it is evaluated, but never NaN, which no bound can reject.
+        A 'y' may be INF under a step interpolation, which is checked when the table
+        is built, and each attribute the table is assigned to checks it when it is
+        evaluated; a 'y' is never NaN.
 
         Parameters
         ----------
