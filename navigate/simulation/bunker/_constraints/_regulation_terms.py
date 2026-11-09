@@ -97,9 +97,9 @@ def calculate_regulation_terms(
         for (c, f), weights in sea_weights.items():
             terms.append(_Term(alg.spend_sea[v, c, f, i, e], fraction, weights))
 
-    # shore power, at the connections the regulations weigh
+    # shore power, at each connection in the model
     for p, (port, fraction) in enumerate(zip(ports, port_fractions, strict=True)):
-        if (v, p) not in alg.regulated_shore_power:
+        if (v, p) not in alg.shore_power:
             continue
 
         spend = expectation.get_shore_power_spend_coefficient((v, port.name), idx)

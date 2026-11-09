@@ -94,7 +94,7 @@ To permanently link the assumptions, do the following:
   
   In a terminal, run the following command after changing the path.
   ```bash
-  echo 'export ASSUMPTIONS_DATA_DIR="/path/to/navigate-zcs/assumptions"' >> ~/.zshrc
+  echo 'export ASSUMPTIONS_DATA_DIR="/__YOUR__PATH__HERE!__/navigate-zcs/assumptions"' >> ~/.zshrc
   ```
 
   On Linux, use `~/.bashrc` instead of `~/.zshrc`. Open a new terminal afterwards.

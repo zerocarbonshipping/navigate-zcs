@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# EXAMPLE 4 - Panamax fleet, Chile to Rotterdam, with Session 1's levers as
+# %NAME% placeholders: run it with navigate --set NAME=VALUE, or through
+# Horizon with levers.hor.
+
+DEFINE {
+    Load DefaultModelDefinition
+
+    # ---- fleet ----
+    Include "includes/fleet.inc"
+
+    # ---- route ----
+    Include "includes/route.inc"
+    Include "includes/ports.inc"
+
+    # ---- fuel ----
+    Load DefaultSource
+    Load DefaultTransport
+    Include "includes/fuel_production.inc"
+    Include "includes/regions.inc"
+    Include "includes/producer.inc"
+    Include "includes/bunker_logistics.inc"
+    Load DefaultEmission
+
+    # ---- regulation ----
+    Include "includes/eu_ets.inc"
+    Include "includes/fuel_eu.inc"
+
+    # ---- decision processes ----
+    Load DefaultCalibration
+
+    # ---- levers ----
+    Include "includes/eu_scope_%EU_SCOPE%.inc"
+    Include "includes/levers.inc"
+}
+
+EVENTS {
+    Load DefaultTimeStepYearly
+}

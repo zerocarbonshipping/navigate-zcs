@@ -661,6 +661,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A run in which no vessel is left to bunker, as when a fleet's vessels have
   all been scrapped, continues; it stopped with a `ValueError` or
   `ZeroDivisionError` traceback (#485).
+- Shore power counts toward a regulation's emissions, regulated energy and
+  threshold from the time-step its connection is first available to a vessel;
+  in that first time-step it was left out (#497).
 - A `nan` no longer reaches the model as a value (#344):
   - A `nan` from a calculator or an expression, as `INF - INF` or `0 * INF`
     gives, stops the run with an error naming it; it passed every minimum and
