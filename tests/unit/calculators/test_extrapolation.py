@@ -4,10 +4,11 @@
 """
 Lookups beyond a calculator table, for every 'Extrapolate' mode.
 
-Covers LINEAR, which continues the end segments; FLAT, which holds Below/Above
-on a Curve and Outside on a Surface; FALSE, which refuses the lookup; and the
-mode pairings, and the INF values under a LINEAR interpolation, that a table
-refuses before it is ever looked up.
+Covers LINEAR, which continues the end segments, and is infinite past an
+infinite end; FLAT, which holds Below/Above on a Curve and Outside on a
+Surface; FALSE, which refuses the lookup; and the mode pairings, and the
+infinite values of a LINEAR table, that a table refuses before it is ever
+looked up.
 """
 
 from __future__ import annotations
@@ -19,6 +20,8 @@ from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.surface import Surface
 from navigate.core.nodes.timetable import Timetable
 from navigate.core.table_data import TableData
+
+INF = np.inf
 
 # y against x: 0 -> 0, 1 -> 10, 2 -> 40; end slopes 10 and 30
 CURVE_ROWS = [[0.0, 0.0], [1.0, 10.0], [2.0, 40.0]]
@@ -143,26 +146,75 @@ def test_step_interpolation_refuses_linear_extrapolation(interpolate):
         curve.build_table()
 
 
-# builds a Curve and a Surface whose table holds INF with the default LINEAR
-# interpolation and expects the build to fail.
-# catches: the check dropped from either table, so the deck loads and a lookup
-# next to INF gives NaN mid-run instead of an error at deck load.
+# reads a LINEAR Curve below its infinite first point and above its finite last
+# segment.
+# catches: the extrapolation read off the finite stand-in the interpolator holds
+# for the infinite end, so x = -1 reads a finite value instead of INF.
+def test_curve_linear_extrapolation_past_an_infinite_end_is_infinite():
+    # y against x: 0 -> INF, 1 -> 5, 2 -> 7
+    curve = Curve("c")
+    curve.set_table(TableData(rows=[[0.0, INF], [1.0, 5.0], [2.0, 7.0]]))
+    curve.build_table()
+
+    assert curve.get(-1.0) == INF
+    # the last segment's slope of 2 continues: 7 + 2 = 9
+    assert curve.get(3.0) == pytest.approx(9.0)
+
+
+# builds LINEAR Curves and Surfaces whose infinite values leave a lookup
+# undefined, and expects each build to fail: INF next to -INF, where a lookup
+# weighs both, and LINEAR extrapolation off a finite end or edge point whose
+# neighbour is infinite, which continues an infinite slope.
+# catches: either check dropped, so the deck loads and a lookup gives NaN from
+# INF - INF mid-run, or extrapolates to -INF, which a bunkering limit clamps to 0.
 @pytest.mark.parametrize(
-    ("node_class", "rows"),
+    ("node_class", "extrapolate", "rows", "match"),
     [
-        (Curve, [[0.0, 1.0], [1.0, np.inf]]),
-        # header row holds y = [0, 1]; z(0, 1) is INF
-        (Surface, [[0.0, 1.0], [0.0, 1.0, np.inf], [1.0, 2.0, 3.0]]),
+        (
+            Curve,
+            "FLAT",
+            [[0.0, 1.0], [1.0, INF], [2.0, -INF], [3.0, 4.0]],
+            "INF next to -INF",
+        ),
+        # header row holds y = [0, 1]; INF at z(0, 0) and -INF across the cell
+        # at z(1, 1)
+        (
+            Surface,
+            "FLAT",
+            [[0.0, 1.0], [0.0, INF, 2.0], [1.0, 3.0, -INF]],
+            "INF and -INF in the corners of one cell",
+        ),
+        # above x = 3, the slope from INF at x = 2 to 5 at x = 3 continues
+        (
+            Curve,
+            "LINEAR",
+            [[0.0, 1.0], [1.0, 2.0], [2.0, INF], [3.0, 5.0]],
+            "'Extrapolate' must not be LINEAR",
+        ),
+        # header row holds y = [0, 1]; below x = 0, the slope from z(0, 0) = 1
+        # to INF at z(1, 0) continues
+        (
+            Surface,
+            "LINEAR",
+            [[0.0, 1.0], [0.0, 1.0, 2.0], [1.0, INF, 3.0]],
+            "'Extrapolate' must not be LINEAR",
+        ),
     ],
-    ids=["curve", "surface"],
+    ids=[
+        "curve_opposite_infinities",
+        "surface_opposite_infinities",
+        "curve_extrapolation",
+        "surface_extrapolation",
+    ],
 )
-def test_linear_interpolation_refuses_an_infinite_table_value(node_class, rows):
-    # a linear interpolation next to INF is NaN at the finite point; LINEAR is
-    # the default, so leaving 'Interpolate' unset is refused too
+def test_linear_table_refuses_an_undefined_infinite_neighbour(
+    node_class, extrapolate, rows, match
+):
     node = node_class("t")
+    node.set_extrapolate(extrapolate)
     node.set_table(TableData(rows=rows))
 
-    with pytest.raises(ValueError, match="'Interpolate' must not be LINEAR"):
+    with pytest.raises(ValueError, match=match):
         node.build_table()
 
 
