@@ -157,7 +157,7 @@ says. [Session 5](../workshop/05-build-your-own-case.ipynb) shows how to use the
 ```
 ::::
 
-[Two fleets in the Baltic](two-fleets.md) asks the same question on a regional
+[Two fleets in the Baltic](two-fleets.ipynb) asks the same question on a regional
 network, with a deck of its own.
 
 ## Run it yourself

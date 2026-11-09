@@ -33,7 +33,7 @@ Also: Gulf to China tankers · Qatar to Japan LNG · EU short-sea feeders · Gre
 :img-alt: Map of an inland trade on the Rhine from Duisburg to Mannheim, calling at Cologne, Koblenz and Mainz
 :class-card: example-card
 
-Does a national CO2 price move owners to drop-in fuels or new engines?
+What e-fuel price and CO2 price lead fleet owners and operators to switch fuel?
 
 300 Rhine cargo vessels · five ports · a national CO2 price
 +++
@@ -47,5 +47,4 @@ Also: Coastal shipping in Norway
 
 trade-route
 rhine
-rhine-explore
 ```
