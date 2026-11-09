@@ -33,17 +33,23 @@ locale_dirs = []
 exclude_patterns = ['_build', '_generated', 'Thumbs.db', '.DS_Store']
 
 extensions = [
-    'myst_parser',
+    # MyST Markdown and notebooks; myst_nb sets up myst_parser itself, which
+    # fails when it is listed here too
+    'myst_nb',
     'sphinx_design',
     'sphinx_copybutton',
 ]
 
 source_suffix = {
     '.rst': 'restructuredtext',
-    '.md': 'markdown',
+    '.md': 'myst-nb',
+    '.ipynb': 'myst-nb',
 }
 
 myst_heading_anchors = 4
+
+# a notebook page shows the outputs saved in the notebook; the build never runs it
+nb_execution_mode = 'off'
 
 myst_enable_extensions = [
     "dollarmath",
