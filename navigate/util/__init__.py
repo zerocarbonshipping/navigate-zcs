@@ -55,7 +55,6 @@ from navigate.util.numeric import (
     interpolate_yearly_flow,
     is_nondecreasing,
     is_strictly_increasing,
-    points_either_side,
     smooth_belief_path,
     step_lengths,
 )

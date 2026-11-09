@@ -49,7 +49,7 @@ Curve "speed_power_curve" {
 
 ### Table
 
-This attribute sets the table of x- and y-values that the curve interpolates in. The table must hold at least two rows and its x-values must be finite and strictly increasing. A y-value may be `INF` or `-INF`, but never `nan`. With [Interpolate](#interpolate) `LINEAR`, the value between an infinite point and its neighbours is that infinity, while the neighbours keep their own values: a table of the points (0, 1), (10, 2) and (20, `INF`) gives 2 at 10 and `INF` above it; Navigate warns of such a table, as `PREVIOUS` or `NEXT` sets where the value turns infinite. Two neighbouring points must not be `INF` and `-INF`; such a curve is rejected. The syntax is described under [Assigning tables](dsl_reference.md#curve).
+This attribute sets the table of x- and y-values that the curve interpolates in. The table must hold at least two rows and its x-values must be finite and strictly increasing. A y-value may be `INF` or `-INF`, but never `nan`. With [Interpolate](#interpolate) `LINEAR`, the value between an infinite point and its neighbours is that infinity, while the neighbours keep their own values: a table of the points (0, 1), (10, 2) and (20, `INF`) gives 2 at 10 and `INF` above it; Navigate warns of such a table, as `PREVIOUS` or `NEXT` sets where the value turns infinite. The table must not hold both `INF` and `-INF`; such a curve is rejected. The syntax is described under [Assigning tables](dsl_reference.md#curve).
 
 * **Data type**: `Table`
 * **Default**: None. Must be provided by the user.

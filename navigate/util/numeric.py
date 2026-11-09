@@ -20,7 +20,7 @@ from navigate.util.dates import YEAR
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from navigate.util.types_ import FloatArray, FloatLike, IntArray
+    from navigate.util.types_ import FloatArray, IntArray
 
 ROUND_OFF = 5  # decimals
 TOLERANCE = 10 ** (-ROUND_OFF)
@@ -91,32 +91,6 @@ def is_strictly_increasing(values: FloatArray) -> bool:
         Whether ``values`` is strictly increasing.
     """
     return not np.any(np.diff(values) <= 0)
-
-
-def points_either_side(points: FloatArray, x: FloatLike) -> tuple[IntArray, IntArray]:
-    """
-    Find the indices of the points either side of each ``x`` on an axis.
-
-    The two are the same point where ``x`` lies on one, and the end point where
-    ``x`` lies beyond the axis.
-
-    Parameters
-    ----------
-    points
-        Strictly increasing points of the axis.
-    x
-        Value(s) to find the points either side of.
-
-    Returns
-    -------
-    tuple[IntArray, IntArray]
-        Index of the last point at or below ``x``, and of the first point at or
-        above it, each in the shape of ``x``.
-    """
-    last = points.size - 1
-    below = np.clip(np.searchsorted(points, x, side="right") - 1, 0, last)
-    above = np.clip(np.searchsorted(points, x, side="left"), 0, last)
-    return below, above
 
 
 def is_nondecreasing(values: FloatArray) -> bool:

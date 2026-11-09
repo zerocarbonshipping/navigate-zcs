@@ -671,10 +671,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - A linear table holding `INF` or `-INF` gives that infinity between the
     infinite point and its neighbours, which keep their own values; it gave
     `nan` at the neighbours. A warning names such a table, as a step
-    interpolation sets where the value turns infinite. A table with `INF`
-    next to `-INF`, or with `Extrapolate = LINEAR` off a finite end next to
-    an infinite value, which extrapolated to `-INF`, is rejected when the
-    deck loads.
+    interpolation sets where the value turns infinite. A linear table holding
+    both `INF` and `-INF`, or with `Extrapolate = LINEAR` off a finite end
+    next to an infinite value, which extrapolated to `-INF`, is rejected when
+    the deck loads.
 
 ## [1.0.0] - 2026-07-16
 

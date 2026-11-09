@@ -14,11 +14,11 @@ from scipy.interpolate import RegularGridInterpolator
 from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribute
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
 from navigate.core.nodes._calculator import _Calculator
-from navigate.util import is_strictly_increasing, points_either_side
+from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
-    from navigate.util.types_ import BoolArray, FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class _Table2D(_Calculator):
         self.is_convex: bool
         self._table: RegularGridInterpolator
         self._fill_value: NumberInput | None
-        self._infinite_z: FloatArray | None
+        self._signs: RegularGridInterpolator | None
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
@@ -76,8 +76,13 @@ class _Table2D(_Calculator):
         # and y, as a 0-d array for two scalars, which '_transform' unwraps
         table_value: FloatLike = self._table((x, y))
 
-        if self._infinite_z is not None:
-            table_value = self._fill_infinite(x, y, table_value, self._infinite_z)
+        if self._signs is not None:
+            # a lookup on a table point weighs every other point by exactly 0,
+            # so a finite point's sign is 0
+            sign = self._signs((x, y))
+            table_value = np.where(
+                np.abs(sign) > 0, np.copysign(np.inf, sign), table_value
+            )
 
         if self._fill_value is not None:
             table_value = self._fill_flat(x, y, table_value, self._fill_value)
@@ -202,99 +207,7 @@ class _Table2D(_Calculator):
         is_outside = (outside_x | outside_y) & ~has_nan
         return np.where(is_outside, self._evaluate_number(outside), table_value)
 
-    def _fill_infinite(
-        self, x: FloatLike, y: FloatLike, table_value: FloatLike, z: FloatArray
-    ) -> FloatLike:
-        """
-        Put the infinite table values back where a linear lookup weighs them.
-
-        The interpolator holds a finite stand-in for each infinite value, as it
-        would weigh an infinite corner by zero at its finite corners and give
-        0 * INF = NaN there. A lookup that gives an infinite point a nonzero weight
-        takes its value: inside each cell the point is a corner of, without the
-        cell's edges and corners the point is not on, and beyond the table where
-        the edge point is infinite.
-
-        Parameters
-        ----------
-        x
-            First input the table was looked up at.
-        y
-            Second input the table was looked up at.
-        table_value
-            Lookup of the finite stand-ins at ``x`` and ``y``.
-        z
-            z-values in table, the infinite ones included.
-
-        Returns
-        -------
-        FloatLike
-            Table lookup with the infinite values put back, in the broadcast shape
-            of ``x`` and ``y``.
-        """
-        filled = table_value
-        for x_point in points_either_side(self.x, x):
-            for y_point in points_either_side(self.y, y):
-                corner = z[x_point, y_point]
-                filled = np.where(np.isinf(corner), corner, filled)
-
-        # a NaN input stays NaN, as the interpolator answers it
-        return np.where(np.isnan(x) | np.isnan(y), table_value, filled)
-
-    def _check_infinite_neighbours(self, z: FloatArray) -> None:
-        """
-        Reject a linear table whose infinite values leave a lookup undefined.
-
-        Inside a cell holding INF and -INF, a linear lookup weighs both, and linear
-        extrapolation off a finite edge point continues the slope to its neighbour
-        inside the table, infinite when the neighbour is.
-
-        Parameters
-        ----------
-        z
-            z-values in table, one row per 'x' and one column per 'y'.
-        """
-        holds_inf = _in_any_corner(z == np.inf)
-        holds_minus_inf = _in_any_corner(z == -np.inf)
-
-        if np.any(holds_inf & holds_minus_inf):
-            raise ValueError(
-                "'Table' must not hold INF and -INF in the corners of one cell when"
-                " 'Interpolate' is LINEAR, as the value inside the cell is undefined."
-            )
-
-        if self.extrapolate != ExtrapolateID.LINEAR:
-            return
-
-        edges = ((z[0], z[1]), (z[-1], z[-2]), (z[:, 0], z[:, 1]), (z[:, -1], z[:, -2]))
-        for edge, neighbours in edges:
-            if np.any(np.isfinite(edge) & np.isinf(neighbours)):
-                raise ValueError(
-                    "'Extrapolate' must not be LINEAR when a point on the edge of the"
-                    " table is finite and its neighbour inside infinite, as the"
-                    " extrapolated slope is infinite. Use FLAT or FALSE."
-                )
-
-    def _warn_infinite_neighbours(self, z: FloatArray) -> None:
-        # a finite corner of a cell with an infinite corner holds only at its own
-        # point, which a table meant as a ramp to no limit does not expect
-        is_finite = np.isfinite(z)
-        if np.any(_in_any_corner(is_finite) & _in_any_corner(~is_finite)):
-            logger.warning(
-                "%s: with 'Interpolate' LINEAR, the table is infinite inside every"
-                " cell with an infinite corner, and the cell's finite corners keep"
-                " their values only at their own points. Use NEAREST to set where the"
-                " value turns infinite.",
-                self,
-            )
-
     def _set_table(self, x: FloatArray, y: FloatArray, z: FloatArray) -> None:
-        # the nearest interpolation takes a point's value, an infinite one included
-        is_linear = self.interpolate == Interpolate2DID.LINEAR
-        if is_linear:
-            self._check_infinite_neighbours(z)
-            self._warn_infinite_neighbours(z)
-
         self.x = x
         self.y = y
 
@@ -302,13 +215,18 @@ class _Table2D(_Calculator):
         self.is_convex = all(self._test_convexity(x, column) for column in z.T)
         self._fill_value = self._flat_fill_value()
 
-        has_infinite = is_linear and bool(np.any(np.isinf(z)))
-        self._infinite_z = z if has_infinite else None
-        table_z = np.where(np.isinf(z), 0.0, z) if has_infinite else z
+        # the nearest interpolation takes a point's value, an infinite one included
+        self._signs = None
+        if self.interpolate == Interpolate2DID.LINEAR:
+            z, signs = self._split_infinite(z, self.extrapolate == ExtrapolateID.LINEAR)
+            if signs is not None:
+                self._signs = RegularGridInterpolator(
+                    (x, y), signs, bounds_error=False, fill_value=None
+                )
 
         self._table = RegularGridInterpolator(
             (x, y),
-            table_z,
+            z,
             method=self._interpolator_method(),
             bounds_error=self.extrapolate == ExtrapolateID.FALSE,
             fill_value=self._interpolator_fill_value(),
@@ -322,8 +240,7 @@ class _Table2D(_Calculator):
         'x' and 'y' must each hold at least two finite values, both strictly
         increasing, and 'z' must be a 2-D array of shape ('x'.size, 'y'.size). A 'z'
         may be INF, and is checked by each attribute the table is assigned to when
-        it is evaluated, but never NaN, which no bound can reject. Where a linear
-        table may hold INF is checked when the table is built.
+        it is evaluated, but never NaN, which no bound can reject.
 
         Parameters
         ----------
@@ -359,20 +276,3 @@ class _Table2D(_Calculator):
 
         if not is_strictly_increasing(y):
             raise ValueError("'y' must be strictly increasing.")
-
-
-def _in_any_corner(mask: BoolArray) -> BoolArray:
-    """
-    Mark each cell of a table that holds a marked point in any of its corners.
-
-    Parameters
-    ----------
-    mask
-        One flag per table point, one row per 'x' and one column per 'y'.
-
-    Returns
-    -------
-    BoolArray
-        One flag per cell, one row fewer and one column fewer than ``mask``.
-    """
-    return mask[:-1, :-1] | mask[1:, :-1] | mask[:-1, 1:] | mask[1:, 1:]
