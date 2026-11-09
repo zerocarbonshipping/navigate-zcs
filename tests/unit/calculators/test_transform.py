@@ -7,7 +7,7 @@ The transform every calculator applies to its raw value, and its bounds.
 output = clamp(Multiplier * (value + Addition)) to the tighter of the public
 bounds (LowerBound/UpperBound) and the internal bounds pushed on by the
 attribute the calculator is assigned to. An exclusive internal bound is never
-clamped to: a value reaching it raises.
+clamped to: a value reaching it raises, as does a NaN, whatever the bounds.
 """
 
 from __future__ import annotations
@@ -98,6 +98,32 @@ def test_a_value_on_an_exclusive_bound_raises(make_node, args, owner):
 
     with pytest.raises(ValueError, match=rf"{owner}: must be > 0\.0, but got 0\.0"):
         node.get(*args)
+
+
+# reads a Curve with Multiplier 0 whose table steps from 1 to INF at x = 1, under
+# the default bounds, which are inclusive; 0 * INF is NaN, and the error names
+# the node.
+# catches: the NaN check dropped, or skipped with the exclusive check where both
+# bounds are inclusive, so the NaN passes every bound, as any comparison with it
+# is false.
+# numpy warns of the array's 0 * INF before the bound rejects the NaN
+@pytest.mark.filterwarnings("ignore:invalid value encountered in multiply")
+@pytest.mark.parametrize(
+    "x",
+    [1.0, np.array([0.0, 1.0])],
+    ids=["scalar", "array_entry"],
+)
+def test_a_nan_value_raises_whatever_the_bounds(x):
+    # PREVIOUS reads 1 below x = 1 and INF from it on; 0 * 1 is 0, 0 * INF is NaN
+    curve = Curve("c")
+    curve.set_interpolate("PREVIOUS")
+    curve.set_extrapolate("FLAT")
+    curve.set_multiplier(0.0)
+    curve.set_table(TableData(rows=[[0.0, 1.0], [1.0, np.inf]]))
+    curve.build_table()
+
+    with pytest.raises(ValueError, match=r'Curve\("c"\): must be a number, but got'):
+        curve.get(x)
 
 
 # sets an exclusive internal lower bound of 0 and a public lower bound of 1 on a

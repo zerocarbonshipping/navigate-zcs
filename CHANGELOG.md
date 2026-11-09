@@ -664,6 +664,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Shore power counts toward a regulation's emissions, regulated energy and
   threshold from the time-step its connection is first available to a vessel;
   in that first time-step it was left out (#497).
+- A `nan` no longer reaches the model as a value (#344):
+  - A `nan` from a calculator or an expression, as `INF - INF` or `0 * INF`
+    gives, stops the run with an error naming it; it passed every minimum and
+    maximum, so a `nan` bunkering limit counted as no limit.
+  - A linear table holding `INF` or `-INF` gives that infinity between the
+    infinite point and its neighbours, which keep their own values; it gave
+    `nan` at the neighbours. A warning names such a table, as a step
+    interpolation sets where the value turns infinite. A linear table holding
+    both `INF` and `-INF`, or with `Extrapolate = LINEAR` off a finite end
+    next to an infinite value, which extrapolated to `-INF`, is rejected when
+    the deck loads.
 
 ## [1.0.0] - 2026-07-16
 

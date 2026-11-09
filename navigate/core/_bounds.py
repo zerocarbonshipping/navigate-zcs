@@ -6,8 +6,9 @@ Attribute bounds a value is held to, each end inclusive or exclusive.
 
 The validators in `assign` resolve an attribute's bounds once and check a scalar
 against them at assignment; the calculator nodes (`_Calculator`) and `Expression`
-clamp to them each time they evaluate. Every message is a fragment the caller
-prefixes with the owner of the value.
+clamp to them each time they evaluate, and reject a NaN, which passes every
+comparison with a bound. Every message is a fragment the caller prefixes with the
+owner of the value.
 """
 
 from __future__ import annotations
@@ -88,7 +89,7 @@ class Bounds:
         Clamp a value to the inclusive bounds, rejecting one at an exclusive bound.
 
         An exclusive bound is never clamped to, as the value it would clamp onto
-        is the one the bound forbids.
+        is the one the bound forbids. A NaN is rejected whatever the bounds.
 
         Parameters
         ----------
@@ -103,9 +104,12 @@ class Bounds:
         Raises
         ------
         ValueError
-            If the value, or any entry of it, is at or beyond an exclusive bound;
-            the message names the extreme entry, NaN ignored.
+            If the value, or any entry of it, is NaN, or at or beyond an exclusive
+            bound; the message names the extreme entry.
         """
+        # NaN fails every comparison, so neither the check nor the clamp catches it
+        _check_number(value)
+
         # inclusive bounds only clamp, so the check is skipped where both are
         if not (self.inclusive_lower and self.inclusive_upper):
             self._check_exclusive(value)
@@ -158,10 +162,19 @@ class Bounds:
             breaks_upper = not self.inclusive_upper and np.any(value >= self.upper)
 
         if breaks_lower:
-            raise ValueError(_exclusive_message(">", self.lower, np.nanmin(value)))
+            raise ValueError(_exclusive_message(">", self.lower, np.min(value)))
 
         if breaks_upper:
-            raise ValueError(_exclusive_message("<", self.upper, np.nanmax(value)))
+            raise ValueError(_exclusive_message("<", self.upper, np.max(value)))
+
+
+def _check_number(value: FloatLike) -> None:
+    """Reject a value, or any entry of it, that is NaN."""
+    # a float is checked on its own, far faster than by numpy's reductions
+    is_nan = math.isnan(value) if isinstance(value, float) else np.isnan(value).any()
+
+    if is_nan:
+        raise ValueError("must be a number, but got NaN, as from INF - INF or 0 * INF")
 
 
 def _exclusive_message(relation: Literal[">", "<"], bound: float, value: float) -> str:

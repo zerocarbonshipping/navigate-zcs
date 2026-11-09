@@ -196,7 +196,8 @@ class _Calculator:
         Truncate a calculated value to the applied bounds.
 
         An inclusive bound clamps the value; one reaching an exclusive bound
-        raises instead of being clamped onto a value the bound forbids.
+        raises instead of being clamped onto a value the bound forbids, and so
+        does a NaN.
 
         Parameters
         ----------
@@ -211,7 +212,8 @@ class _Calculator:
         Raises
         ------
         ValueError
-            If the value, or any entry of it, is at or beyond an exclusive bound.
+            If the value, or any entry of it, is NaN, or at or beyond an exclusive
+            bound.
         """
         try:
             return self._applied_bounds.clamp(value)
@@ -286,11 +288,79 @@ class _Calculator:
         Returns
         -------
         bool
-            Whether the piecewise linear function is convex.
+            Whether the piecewise linear function is convex; False where a y-value
+            is infinite, as the function is then not piecewise linear.
         """
+        if not np.all(np.isfinite(y)):
+            return False
+
         if x.size < 3:
             return True
 
         dy_dx = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
         d2y_dx2 = (dy_dx[1:] - dy_dx[:-1]) / (x[2:] - x[1:-1])
         return not np.any(np.round(d2y_dx2, ROUND_OFF) < 0.0)
+
+    def _split_infinite(
+        self, values: FloatArray, extrapolate_linearly: bool
+    ) -> tuple[FloatArray, FloatArray | None]:
+        """
+        Split a linear table into its finite values and the signs of its infinite ones.
+
+        A table holding INF is the limit of the same table holding a finite M in its
+        place, as M grows: the lookup of its finite values plus M times the lookup of
+        the signs. So a lookup is infinite wherever the signs look up nonzero, and
+        otherwise the lookup of the finite values, which the interpolator takes
+        instead of its 0 * INF = NaN next to an infinite value. Where the limit is
+        undefined or flips sign, the table is refused.
+
+        Parameters
+        ----------
+        values
+            Table values, one axis per table input.
+        extrapolate_linearly
+            Whether the table extrapolates linearly.
+
+        Returns
+        -------
+        tuple[FloatArray, FloatArray | None]
+            The values with 0 for each infinite one, and the sign of each infinite
+            value with 0 for each finite one; None for a table without one.
+        """
+        signs = np.where(np.isinf(values), np.sign(values), 0.0)
+        if not signs.any():
+            return values, None
+
+        if signs.max() * signs.min() < 0:
+            raise ValueError(
+                "'Table' must not hold both INF and -INF when 'Interpolate' is LINEAR,"
+                " as the value between them is undefined."
+            )
+
+        # linear extrapolation off a finite end next to an infinite value continues
+        # an infinite slope, towards the opposite infinity
+        if extrapolate_linearly and any(
+            np.any(
+                (np.take(signs, [0, -1], axis) == 0)
+                & (np.take(signs, [1, -2], axis) != 0)
+            )
+            for axis in range(signs.ndim)
+        ):
+            raise ValueError(
+                "'Extrapolate' must not be LINEAR when an end of the table is finite"
+                " and its neighbour infinite, as the extrapolated slope is infinite."
+                " Use FLAT or FALSE."
+            )
+
+        # a table holding finite and infinite values has a finite point next to an
+        # infinite one, which holds only at its own point
+        if not signs.all():
+            logger.warning(
+                "%s: with 'Interpolate' LINEAR, the table is infinite all the way"
+                " from an infinite point to its finite neighbours, which keep their"
+                " values only at their own points. Use a step interpolation to set"
+                " where the value turns infinite.",
+                self,
+            )
+
+        return np.where(signs != 0, 0.0, values), signs

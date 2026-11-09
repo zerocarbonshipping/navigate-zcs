@@ -43,6 +43,7 @@ class _Table2D(_Calculator):
         self.is_convex: bool
         self._table: RegularGridInterpolator
         self._fill_value: NumberInput | None
+        self._signs: RegularGridInterpolator | None
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
@@ -74,6 +75,14 @@ class _Table2D(_Calculator):
         # RegularGridInterpolator is untyped; it answers in the broadcast shape of x
         # and y, as a 0-d array for two scalars, which '_transform' unwraps
         table_value: FloatLike = self._table((x, y))
+
+        if self._signs is not None:
+            # a lookup on a table point weighs every other point by exactly 0,
+            # so a finite point's sign is 0
+            sign = self._signs((x, y))
+            table_value = np.where(
+                np.abs(sign) > 0, np.copysign(np.inf, sign), table_value
+            )
 
         if self._fill_value is not None:
             table_value = self._fill_flat(x, y, table_value, self._fill_value)
@@ -205,6 +214,15 @@ class _Table2D(_Calculator):
         # the surface is convex in x when every slice of it at a fixed y is
         self.is_convex = all(self._test_convexity(x, column) for column in z.T)
         self._fill_value = self._flat_fill_value()
+
+        # the nearest interpolation takes a point's value, an infinite one included
+        self._signs = None
+        if self.interpolate == Interpolate2DID.LINEAR:
+            z, signs = self._split_infinite(z, self.extrapolate == ExtrapolateID.LINEAR)
+            if signs is not None:
+                self._signs = RegularGridInterpolator(
+                    (x, y), signs, bounds_error=False, fill_value=None
+                )
 
         self._table = RegularGridInterpolator(
             (x, y),

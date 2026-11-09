@@ -44,6 +44,7 @@ class _Table1D(_Calculator):
         self.is_convex: bool
         self._table: interp1d
         self._fill_values: tuple[NumberInput, NumberInput] | None
+        self._signs: FloatArray | None
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
@@ -76,6 +77,15 @@ class _Table1D(_Calculator):
     def calculate(self, x: FloatLike) -> FloatLike:
         # interp1d is untyped; it answers in the shape of its input
         table_value: FloatLike = self._table(x)
+
+        if self._signs is not None:
+            # np.interp reads a table point exactly, so a finite one's sign is 0;
+            # beyond the table it holds the end signs, which the extrapolation
+            # check in '_split_infinite' makes right
+            sign = np.interp(x, self.x, self._signs)
+            table_value = np.where(
+                np.abs(sign) > 0, np.copysign(np.inf, sign), table_value
+            )
 
         if self._fill_values is not None:
             table_value = self._fill_flat(x, table_value, *self._fill_values)
@@ -215,6 +225,14 @@ class _Table1D(_Calculator):
 
         self.is_convex = self._test_convexity(x, y)
         self._fill_values = self._flat_fill_values()
+
+        # a step interpolation takes a point's value, an infinite one included
+        is_linear = self.interpolate == Interpolate1DID.LINEAR
+        y, self._signs = (
+            self._split_infinite(y, self.extrapolate == ExtrapolateID.LINEAR)
+            if is_linear
+            else (y, None)
+        )
 
         self._table = interp1d(
             x,
