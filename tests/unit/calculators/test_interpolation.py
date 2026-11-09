@@ -196,5 +196,7 @@ def test_linear_curve_next_to_an_infinite_point_warns(interpolate, warns, caplog
     with caplog.at_level(logging.WARNING):
         curve.build_table()
 
-    warned = any("PREVIOUS or NEXT" in record.getMessage() for record in caplog.records)
+    warned = any(
+        "step interpolation" in record.getMessage() for record in caplog.records
+    )
     assert warned is warns

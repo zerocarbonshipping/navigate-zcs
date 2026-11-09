@@ -161,28 +161,30 @@ def test_curve_linear_extrapolation_past_an_infinite_end_is_infinite():
     assert curve.get(3.0) == pytest.approx(9.0)
 
 
-# builds LINEAR Curves and Surfaces whose infinite values leave a lookup
-# undefined, and expects each build to fail: INF next to -INF, where a lookup
-# weighs both, and LINEAR extrapolation off a finite end or edge point whose
+# builds LINEAR Curves and Surfaces whose infinite values could leave a lookup
+# undefined, and expects each build to fail: a table holding both INF and -INF,
+# even apart, and LINEAR extrapolation off a finite end or edge point whose
 # neighbour is infinite, which continues an infinite slope.
-# catches: either check dropped, so the deck loads and a lookup gives NaN from
-# INF - INF mid-run, or extrapolates to -INF, which a bunkering limit clamps to 0.
+# catches: either check dropped or narrowed to neighbouring points, so the deck
+# loads and a lookup gives NaN from INF - INF mid-run, or extrapolates to -INF,
+# which a bunkering limit clamps to 0.
 @pytest.mark.parametrize(
     ("node_class", "extrapolate", "rows", "match"),
     [
+        # INF and -INF two points apart
         (
             Curve,
             "FLAT",
-            [[0.0, 1.0], [1.0, INF], [2.0, -INF], [3.0, 4.0]],
-            "INF next to -INF",
+            [[0.0, 1.0], [1.0, INF], [2.0, 2.0], [3.0, -INF]],
+            "both INF and -INF",
         ),
-        # header row holds y = [0, 1]; INF at z(0, 0) and -INF across the cell
-        # at z(1, 1)
+        # header row holds y = [0, 1]; INF at z(0, 0) and -INF at z(2, 1), in
+        # different cells
         (
             Surface,
             "FLAT",
-            [[0.0, 1.0], [0.0, INF, 2.0], [1.0, 3.0, -INF]],
-            "INF and -INF in the corners of one cell",
+            [[0.0, 1.0], [0.0, INF, 2.0], [1.0, 3.0, 4.0], [2.0, 5.0, -INF]],
+            "both INF and -INF",
         ),
         # above x = 3, the slope from INF at x = 2 to 5 at x = 3 continues
         (
