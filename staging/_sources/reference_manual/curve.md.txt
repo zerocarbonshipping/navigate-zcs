@@ -49,7 +49,7 @@ Curve "speed_power_curve" {
 
 ### Table
 
-This attribute sets the table of x- and y-values that the curve interpolates in. The table must hold at least two rows and its x-values must be finite and strictly increasing. A y-value may be `INF` or `-INF`, but not `nan`. The syntax is described under [Assigning tables](dsl_reference.md#curve).
+This attribute sets the table of x- and y-values that the curve interpolates in. The table must hold at least two rows and its x-values must be finite and strictly increasing. A y-value may be `INF` or `-INF`, but never `nan`. With [Interpolate](#interpolate) `LINEAR`, the value between an infinite point and its neighbours is that infinity, while the neighbours keep their own values: a table of the points (0, 1), (10, 2) and (20, `INF`) gives 2 at 10 and `INF` above it; Navigate warns of such a table, as `PREVIOUS` or `NEXT` sets where the value turns infinite. The table must not hold both `INF` and `-INF`; such a curve is rejected. The syntax is described under [Assigning tables](dsl_reference.md#curve).
 
 * **Data type**: `Table`
 * **Default**: None. Must be provided by the user.
@@ -96,7 +96,7 @@ This attribute sets the interpolation method used to interpolate in the table. `
 
 ### Extrapolate
 
-This attribute sets the extrapolation method used to extrapolate outside the table. With `FLAT`, the values of `Below` and `Above` are used.
+This attribute sets the extrapolation method used to extrapolate outside the table. With `FLAT`, the values of `Below` and `Above` are used. With `Interpolate = LINEAR`, `LINEAR` cannot be combined with a finite end value whose neighbour is `INF` or `-INF`, as the slope it would continue is infinite; such a curve is rejected. Beyond an infinite end value, the extrapolation is that infinity.
 
 * **Data type**: `ID`
 * **Legal values**: [ExtrapolateID](appendix_ids.md#extrapolateid)
