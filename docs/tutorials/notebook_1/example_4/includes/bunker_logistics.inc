@@ -19,22 +19,12 @@ Plant "*" {
 }
 
 # INVENTED: nautical miles from the production region to each port
-Plant "plant_methanol_electro_alkaline" {
-	set_fuel_distance("san_antonio", 1250)
-	set_fuel_distance("rotterdam", 7600)
-}
-
-Plant "plant_ammonia_electro_alkaline" {
+Plant "*_americas" {
 	set_fuel_distance("san_antonio", 1250)
 	set_fuel_distance("rotterdam", 7600)
 }
 
 Plant "*_europe" {
-	set_fuel_distance("rotterdam", 540)
-	set_fuel_distance("san_antonio", 7600)
-}
-
-Plant "plant_methanol_bio_gasification" {
 	set_fuel_distance("rotterdam", 540)
 	set_fuel_distance("san_antonio", 7600)
 }

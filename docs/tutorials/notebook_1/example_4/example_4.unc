@@ -10,13 +10,14 @@ DEFINE {
 
     # ---- fleet ----
     Include "includes/fleet.inc"
-    Include "includes/energy_efficiencies.inc"
 
     # ---- route ----
     Include "includes/route.inc"
     Include "includes/ports.inc"
 
     # ---- fuel ----
+    Load DefaultSource
+    Load DefaultTransport
     Include "includes/fuel_production.inc"
     Include "includes/regions.inc"
     Include "includes/producer.inc"

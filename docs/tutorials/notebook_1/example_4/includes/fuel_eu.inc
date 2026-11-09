@@ -3,6 +3,9 @@
 
 # FUELEU MARITIME - caps WTW greenhouse gas intensity, tightening over time.
 #
+# The library's Regulation "fuel_eu", copied for this deck's five fuels and
+# with Rotterdam as its jurisdiction, for the reason given in eu_ets.inc.
+#
 # The e-fuels get no default set_fuel_wtt. Instead, Navigate calculates
 # their upstream intensity from the production chain in regions.inc, so the
 # power price at each site feeds their FuelEU score. The fossil fuels and
