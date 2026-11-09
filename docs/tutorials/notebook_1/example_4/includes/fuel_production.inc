@@ -3,70 +3,57 @@
 
 # FUEL PRODUCTION - five fuels for four ships; both methanols feed one ship.
 #
-# Only the siting and financing are set here (region, electricity source and
-# cost of capital, which Import Plant does not bring: the library sets it in
-# DefaultPlant). Lead times, lifetimes, capacities and process economics come
-# from the library.
-# Feedstock ceilings for the two methanols are set in producer.inc.
+# The plants are regional copies of the library's pathways, named and sited the
+# way DefaultPlant does it for its own copies; lead times, lifetimes, capacities
+# and process economics come from the library. Loading DefaultPlant itself would
+# bring in the fuels of all its other plants too.
+# A second electrolyser route for e-ammonia was tried, to give one fuel two
+# competing plants under one producer. It stalls the 2038 solve, so it is left
+# out.
 
 # ---- fossil (global commodities, no production chain modelled) --------------
 Import Fuel "fossil_fuel_oil"
 Import Fuel "liquefied_natural_gas"
 
-# ---- Chilean e-methanol -----------------------------------------------------
+# ---- e-fuels, made in Chile or in Europe ------------------------------------
 Import Fuel "methanol_electro"
-Import Plant "plant_methanol_electro_alkaline"
-Plant "plant_methanol_electro_alkaline" {
-    Region = Region("americas")
-    Source = Source("renewable")   # dedicated wind, not the Chilean grid
-    CostOfCapital = Forecast("cost_of_capital_plant_electro_americas")
-}
-Import Process "methanol_synthesis_electro_alkaline"
-Import Process "hydrogen_electro_alkaline"
-Import Process "electrolysis_stack_alkaline"
-Import Feedstock "carbon_dioxide_biogenic"
-
-# ---- Chilean e-ammonia ------------------------------------------------------
 Import Fuel "ammonia_electro"
-Import Plant "plant_ammonia_electro_alkaline"
-Plant "plant_ammonia_electro_alkaline" {
-    Region = Region("americas")
+Copy Plant "plant_methanol_electro_alkaline" "plant_methanol_electro_alkaline_americas"
+Copy Plant "plant_ammonia_electro_alkaline"  "plant_ammonia_electro_alkaline_americas"
+Copy Plant "plant_methanol_electro_alkaline" "plant_methanol_electro_alkaline_europe"
+Copy Plant "plant_ammonia_electro_alkaline"  "plant_ammonia_electro_alkaline_europe"
+
+# ---- bio-methanol, made in Europe only ---------------------------------------
+Import Fuel "methanol_bio"
+Copy Plant "plant_methanol_bio_gasification" "plant_methanol_bio_gasification_europe"
+
+# ---- siting and financing, DefaultPlant's rules -------------------------------
+# a biofuel plant draws from the grid
+Plant "*" {
+    Source = Source("grid")
+}
+
+# an e-fuel plant runs on dedicated renewable power, not the grid
+Plant "*electro*" {
     Source = Source("renewable")
+}
+
+Plant "*americas" {
+    Region = Region("americas")
+}
+
+Plant "*europe" {
+    Region = Region("europe")
+}
+
+Plant "*electro*americas" {
     CostOfCapital = Forecast("cost_of_capital_plant_electro_americas")
 }
-Import Process "ammonia_synthesis_electro_alkaline"
-Import Process "nitrogen_air_separation"
 
-# ---- European bio-methanol --------------------------------------------------
-Import Fuel "methanol_bio"
-Import Plant "plant_methanol_bio_gasification"
-Plant "plant_methanol_bio_gasification" {
-    Region = Region("europe")
-    Source = Source("grid")        # a biomass plant draws from the grid
+Plant "*electro*europe" {
+    CostOfCapital = Forecast("cost_of_capital_plant_electro_europe")
+}
+
+Plant "*bio*europe" {
     CostOfCapital = Forecast("cost_of_capital_plant_bio_europe")
 }
-Import Process "methanol_synthesis_bio_gasification"
-Import Feedstock "feedstock_biomethanol_gasification"
-
-# ---- European e-fuels -------------------------------------------------------
-# The same library pathways as Chile, sited in Europe. Copy, not Import: the
-# Chilean nodes already carry these library names and are sited in americas.
-# A second electrolyser route for e-ammonia was tried here, to give one fuel two
-# competing plants under one producer. It stalls the 2038 solve, so it is left out.
-Copy Plant "plant_methanol_electro_alkaline" "plant_methanol_electro_alkaline_europe"
-Plant "plant_methanol_electro_alkaline_europe" {
-    Region = Region("europe")
-    Source = Source("renewable")
-    CostOfCapital = Forecast("cost_of_capital_plant_electro_europe")
-}
-Copy Plant "plant_ammonia_electro_alkaline" "plant_ammonia_electro_alkaline_europe"
-Plant "plant_ammonia_electro_alkaline_europe" {
-    Region = Region("europe")
-    Source = Source("renewable")
-    CostOfCapital = Forecast("cost_of_capital_plant_electro_europe")
-}
-
-# ---- shared inputs ----------------------------------------------------------
-Import Feedstock "demineralized_water"
-Import Source "renewable"
-Import Source "grid"

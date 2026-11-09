@@ -1,17 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# REGIONS - where fuels get made, and the economics of making them.
-# All cost curves are referenced by name from the assumptions library.
+# REGIONS - the economics of making fuel, all of them the library's own.
+#
+# Navigate rejects a command naming a node the deck does not hold. So where a
+# library node also prices pathways this deck leaves out, its lines for this
+# case's pathways are copied here instead of loaded: the Region "europe" node
+# also prices FAME, and DefaultRegion's Region "*" block blue ammonia, the PEM
+# and solid-oxide electrolysers, bio-methane, bio-ethanol and e-diesel.
 #
 # The methanol synthesis steps carry negative CO2 terms: the molecule locks up
 # captured carbon, so production is a WTT sink and combustion releases it again.
 
-Region "americas" {
-    set_source_opex("renewable", Forecast("electricity_cost_americas_mid"))
-    set_source_opex("grid", Forecast("electricity_cost_americas_mid"))
-    set_source_wtt("grid", "carbon_dioxide", Forecast("grid_emissions_americas"))
-}
+# electricity price and grid emissions
+Import Region "americas"
 
 Region "europe" {
     set_source_opex("renewable", Forecast("electricity_cost_europe_mid"))
@@ -61,11 +63,6 @@ Region "*" {
     set_process_energy("methanol_synthesis_bio_gasification", Forecast("methanol_synthesis_bio_gasification_energy"))
     set_process_wtt("methanol_synthesis_bio_gasification", "carbon_dioxide", <-Variable("carbon_dioxide_per_methanol")>)
 
-    # ---- plant to quayside within a region ----
-    set_transport_cost("truck", 0.0)
+    # ---- plant to quayside within a region, at Navigate's default cost of 0 ----
     set_transport_wtt("truck", "carbon_dioxide", Forecast("truck_emissions"))
 }
-
-# A command taking a node name as a string key needs that node to exist already,
-# so this is imported rather than auto-resolved like a Fuel() reference.
-Import Transport "truck"

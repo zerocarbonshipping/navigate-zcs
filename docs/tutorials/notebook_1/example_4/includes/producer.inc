@@ -4,8 +4,8 @@
 # PRODUCERS - the agents that decide whether to build another plant.
 
 Producer "producer_efuel" {
-	Plants = [Plant("plant_methanol_electro_alkaline"),
-	          Plant("plant_ammonia_electro_alkaline"),
+	Plants = [Plant("plant_methanol_electro_alkaline_americas"),
+	          Plant("plant_ammonia_electro_alkaline_americas"),
 	          Plant("plant_methanol_electro_alkaline_europe"),
 	          Plant("plant_ammonia_electro_alkaline_europe")]
 
@@ -17,7 +17,7 @@ Producer "producer_efuel" {
 }
 
 Producer "producer_biofuel" {
-	Plants = [Plant("plant_methanol_bio_gasification")]
+	Plants = [Plant("plant_methanol_bio_gasification_europe")]
 
 	MaximumDevelopment = <Forecast("epc_global_capacity_mid") * Forecast("epc_global_share_shipping")>
 

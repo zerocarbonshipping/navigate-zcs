@@ -1,41 +1,31 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# FLEET - Panamax bulk carriers (~80,000 DWT), four configurations of one hull.
-# All four share hull, propulsion curve, cargo capacity and OPEX.
+# FLEET - Panamax bulk carriers (~80,000 DWT): the library's fleet for this class.
+# It brings the four configurations of one hull, which share hull, propulsion
+# curve, cargo capacity and OPEX; today's split between them (99.9% fuel oil,
+# 0.1% LNG) and the ships' ages; trade growth; retrofit costs; speed management;
+# and the seven efficiency technologies, with the share of today's ships
+# already fitted with each.
+# Only what makes this one trade rather than the world's fleet is set here.
 
-Copy Vessel "bulk_carrier_80k_dwt_ice_oil"      "ship_oil"
-Copy Vessel "bulk_carrier_80k_dwt_ice_methane"  "ship_lng"
-Copy Vessel "bulk_carrier_80k_dwt_ice_methanol" "ship_methanol"
-Copy Vessel "bulk_carrier_80k_dwt_ice_ammonia"  "ship_ammonia"
+Import Fleet "bulk_carrier_80k_dwt"
 
-Fleet "copper_trade" {
-	Vessels = [Vessel("ship_oil"),
-	           Vessel("ship_lng"),
-	           Vessel("ship_methanol"),
-	           Vessel("ship_ammonia")]
+# Imported by name too, so that the Vessel "bulk_carrier_80k_dwt_*" block of
+# route.inc matches them: a wildcard block matches only the nodes a deck
+# declares, not those its references bring in.
+Import Vessel "bulk_carrier_80k_dwt_ice_oil"
+Import Vessel "bulk_carrier_80k_dwt_ice_methane"
+Import Vessel "bulk_carrier_80k_dwt_ice_methanol"
+Import Vessel "bulk_carrier_80k_dwt_ice_ammonia"
 
+Fleet "bulk_carrier_80k_dwt" {
 	InitialVessels = 300 # Arbitrary number (represents 8% of the world Panamax fleet)
-	InitialSplit = [1.0, 0.0, 0.0, 0.0] # Only ship oil vessels
 
-	InitialAgeDistribution = [
-		Curve("age_dist_bulk_carrier_80k_dwt_oil"),
-		0,
-		0,
-		0
-	]
-	# Note: Orderbooks omitted for this example since the library's are sized for
-	# the whole world
+	# the library's orderbooks are sized for the whole world
+	Orderbooks = [0, 0, 0, 0]
 
-	# Library trade growth for this class: ~2.2%/yr stepping down to ~1.4%.
-	# Newbuilds are therefore a mix of replacement and expansion.
-	TradeGrowth = Forecast("trade_growth_bulk_carrier")
-
-	# Retrofit costs, figures for this class (Fleet/bulk_carrier_80k_dwt.inc).
-	set_fuel_conversion_cost("ship_oil", "ship_methanol", 17.5e6)
-	set_fuel_conversion_cost("ship_oil", "ship_ammonia", 24.1e6)
-	set_fuel_conversion_cost("ship_lng", "ship_ammonia", 14.2e6)
-
-	AllowSpeedManagement = TRUE
-	MaximumSpeedChange = 0.7
+	# The library defines no technology-specific rate, so this makes Navigate's
+	# own fallback explicit: same value, no warning, nothing invented.
+	TechnologyCostOfCapital = Variable("cost_of_capital_vessel")
 }

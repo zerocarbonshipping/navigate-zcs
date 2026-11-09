@@ -3,6 +3,11 @@
 
 # EU ETS - absolute price on CO2-equivalent burned on board, no free allowance.
 #
+# The library's Regulation "eu_ets", for this deck's five fuels and with
+# Rotterdam as its jurisdiction. It is copied rather than imported: the library
+# node sets factors for fuels this deck does not hold, and Navigate rejects a
+# command naming a node the deck does not hold.
+#
 # The coverage fractions are applied PER LEG (one sailing
 # from one port to the next), not to the round trip. Both legs
 # here are inter-jurisdiction, so both count at 50%. Port stays are classified

@@ -44,7 +44,7 @@ Producer "producer_efuel" {
 }
 
 # ---- the owners ----
-Fleet "copper_trade" {
+Fleet "bulk_carrier_80k_dwt" {
     # 0 keeps trade at its 2026 volume, -1 shrinks it as fast as it would have grown
     TradeGrowth = <Forecast("trade_growth_bulk_carrier") * %TRADE_GROWTH%>
 

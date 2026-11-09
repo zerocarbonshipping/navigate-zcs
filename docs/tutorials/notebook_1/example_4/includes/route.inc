@@ -5,7 +5,9 @@
 # A LINER visits the ports in the order listed; each per-leg command is keyed by
 # the leg's origin and destination ports.
 
-Vessel "ship_*" {
+# the library's ships sail its world-average profile for the class; these sail
+# this route
+Vessel "bulk_carrier_80k_dwt_*" {
     Route = Route("copper_route")
 }
 

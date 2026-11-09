@@ -8,6 +8,8 @@ SPDX-License-Identifier: CC-BY-4.0
 Navigate is a sectoral integrated assessment model for simulating the maritime industry's transition toward zero-carbon shipping. It models fleet investment decisions, fuel production, bunkering operations, and regulatory impacts over multi-decade timelines.
 
 ## Installation
+
+Navigate supports python version 3.13 or newer to run.
 It is recommended that Navigate is installed within an environment such as [conda](https://continuumio-docs.readthedocs-hosted.com/miniconda/) or [venv](https://docs.python.org/3/library/venv.html).
 
 ### Navigate + Assumptions & Simulations (Preferred)
@@ -23,6 +25,20 @@ Navigate ships with the open-source [HiGHS](https://highs.dev/) solver and uses 
 
 
 ## Usage
+
+Navigate is a command-line tool that is run from the terminal:
+
+```bash
+navigate my_simulation.nav
+```
+
+A run writes two files next to the deck:
+
+- `my_simulation.parquet`: every result of the run, one row per series and date, with the unit of each series in its metadata. See [Results file](docs/reference_manual/results_file.md).
+- `my_simulation.log`: the run's log, with every warning and error. The terminal shows the progress and the number of warnings.
+
+`--name` and `--output-dir` change their names and folder.
+
 The following options are available when running Navigate. See them in the command line by typing `navigate --help`.
 
 | Flag                            | Description                                                                                                                                                                                                                                                       |
@@ -40,6 +56,13 @@ The following options are available when running Navigate. See them in the comma
 Detailed installation guide, step-by-step tutorials and a full reference manual are available in the [documentation](https://zerocarbonshipping.github.io/navigate-zcs/). Each tutorial page offers its starting files as a download.
 Some simple example simulations can be found under `simulations/examples`
 
+
+## Horizon and Lantern
+
+Two companion tools work with Navigate's runs:
+
+- [Horizon](https://github.com/zerocarbonshipping/horizon-zcs/tree/dev) runs uncertainty studies. It samples the `%NAME%` placeholders of a deck over their ranges (Latin hypercube or Monte Carlo), starts one Navigate run per sample, on this machine or through a queue such as pueue or slurm, and gathers the results into one file per study. It runs the `navigate` command, so it is installed in the same environment.
+- [Lantern](https://github.com/zerocarbonshipping/lantern-zcs/tree/dev) plots Navigate's results files. It opens one run or many, a Horizon study included, as interactive plots in the browser, or writes the plots as HTML pages and the rows as CSV.
 
 
 ## Disclaimer
