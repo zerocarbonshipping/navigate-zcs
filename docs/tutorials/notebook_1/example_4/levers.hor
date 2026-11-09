@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# LEVERS - Horizon study of example_4.unc over Session 1's levers: each block
+# fills the %NAME% of the same name in example_4.unc and includes/levers.inc.
+# The ranges are the suggested spans of Session 1's YOUR SCENARIO cell.
+# emissions_low = MAXIMUM marks a lever whose high end lowers the emissions, so
+# that sample 2 is the low-emission corner of the study and sample 3 the high one.
+
+ContinuousParameter "OIL_PRICE" = TRIANGULAR(0.7, 1.0, 2.0) { emissions_low = MAXIMUM }
+ContinuousParameter "LNG_PRICE" = TRIANGULAR(0.7, 1.0, 1.6) { emissions_low = MAXIMUM }
+ContinuousParameter "EU_ETS_PRICE" = TRIANGULAR(0.5, 1.0, 3.0) { emissions_low = MAXIMUM }
+ContinuousParameter "FUELEU_TARGET" = TRIANGULAR(0.3, 1.0, 1.2)
+ContinuousParameter "FUELEU_PENALTY" = TRIANGULAR(1.0, 1.0, 5.0) { emissions_low = MAXIMUM }
+ContinuousParameter "CHILE_ELECTRICITY_PRICE" = TRIANGULAR(0.6, 1.0, 1.4)
+ContinuousParameter "EUROPE_ELECTRICITY_PRICE" = TRIANGULAR(0.6, 1.0, 1.4)
+ContinuousParameter "BIOMASS_AVAILABILITY" = LOG-TRIANGULAR(0.1, 1.0, 10.0) { emissions_low = MAXIMUM }
+ContinuousParameter "BIOGENIC_CO2_AVAILABILITY" = TRIANGULAR(0.5, 1.0, 2.0) { emissions_low = MAXIMUM }
+ContinuousParameter "TRADE_GROWTH" = TRIANGULAR(0.0, 1.0, 2.0)
+
+# Held at the reference unless switched on with active = TRUE. A scenario
+# parameter that is active runs the whole study once for each of its values.
+ContinuousParameter "TECHNOLOGY_LIMIT" = UNIFORM(0.0, 1.0) { default = 1.0, active = FALSE }
+ScenarioParameter "FUELEU" { values = ["TRUE", "FALSE"], active = FALSE }
+ScenarioParameter "EU_SCOPE" { values = ["rotterdam", "whole_voyage"], active = FALSE }
+
+Horizon {
+    UncFilePath = "example_4.unc"
+    OutputPath = "study"
+    NumberOfSamples = 30
+    SamplingMethod = LHS
+    RandomSeed = 42
+}
