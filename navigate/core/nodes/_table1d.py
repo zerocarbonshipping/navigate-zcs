@@ -14,7 +14,7 @@ from scipy.interpolate import interp1d
 from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribute
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
 from navigate.core.nodes._calculator import _Calculator
-from navigate.util import is_strictly_increasing
+from navigate.util import is_strictly_increasing, points_either_side
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
@@ -44,6 +44,7 @@ class _Table1D(_Calculator):
         self.is_convex: bool
         self._table: interp1d
         self._fill_values: tuple[NumberInput, NumberInput] | None
+        self._has_infinite: bool
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
@@ -76,6 +77,9 @@ class _Table1D(_Calculator):
     def calculate(self, x: FloatLike) -> FloatLike:
         # interp1d is untyped; it answers in the shape of its input
         table_value: FloatLike = self._table(x)
+
+        if self._has_infinite:
+            table_value = self._fill_infinite(x, table_value)
 
         if self._fill_values is not None:
             table_value = self._fill_flat(x, table_value, *self._fill_values)
@@ -207,20 +211,94 @@ class _Table1D(_Calculator):
         # np.where answers a scalar input with a 0-d array
         return filled if isinstance(x, np.ndarray) else float(filled)
 
-    def _check_interpolate_infinite_consistency(self, y: FloatArray) -> None:
-        # a linear interpolation from a finite to an infinite value is infinite
-        # right past the finite point and NaN at it, so a step method says where
-        # the value turns infinite
-        if self.interpolate == Interpolate1DID.LINEAR and np.any(np.isinf(y)):
+    def _fill_infinite(self, x: FloatLike, table_value: FloatLike) -> FloatLike:
+        """
+        Put the infinite table values back where a linear lookup weighs them.
+
+        The interpolator holds a finite stand-in for each infinite value, as it
+        would weigh an infinite value by zero at its finite neighbour and give
+        0 * INF = NaN there. A lookup that gives an infinite point a nonzero weight
+        takes its value: between the point and its neighbours, the neighbours
+        excluded, and beyond the table where the end point is infinite.
+
+        Parameters
+        ----------
+        x
+            Input the table was looked up at.
+        table_value
+            Lookup of the finite stand-ins at ``x``.
+
+        Returns
+        -------
+        FloatLike
+            Table lookup with the infinite values put back, in the shape of ``x``.
+        """
+        below, above = points_either_side(self.x, x)
+
+        # a lookup on a point is its value; the interpolator's slope arithmetic
+        # from a stand-in could miss a finite neighbour by a rounding error
+        filled = np.where(self.x[below] == x, self.y[below], table_value)
+        filled = np.where(np.isinf(self.y[below]), self.y[below], filled)
+        filled = np.where(np.isinf(self.y[above]), self.y[above], filled)
+
+        # a NaN input stays NaN, as the interpolator answers it
+        filled = np.where(np.isnan(x), table_value, filled)
+
+        # np.where answers a scalar input with a 0-d array
+        return filled if isinstance(x, np.ndarray) else float(filled)
+
+    def _check_infinite_neighbours(self, y: FloatArray) -> None:
+        """
+        Reject a linear table whose infinite values leave a lookup undefined.
+
+        Between INF and -INF, a linear lookup weighs both, and linear extrapolation
+        off a finite end continues the slope to its neighbour, infinite when the
+        neighbour is.
+
+        Parameters
+        ----------
+        y
+            'y' values in table.
+        """
+        if np.any(np.isinf(y[:-1]) & np.isinf(y[1:]) & (y[:-1] != y[1:])):
             raise ValueError(
-                "'Interpolate' must not be LINEAR when the table holds INF or -INF,"
-                " as a linear interpolation next to an infinite value is undefined."
-                " Use PREVIOUS, NEXT, NEAREST or NEAREST_UP."
+                "'Table' must not hold INF next to -INF when 'Interpolate' is LINEAR,"
+                " as the value between them is undefined."
+            )
+
+        if self.extrapolate != ExtrapolateID.LINEAR:
+            return
+
+        for end, neighbour in ((y[0], y[1]), (y[-1], y[-2])):
+            if np.isfinite(end) and np.isinf(neighbour):
+                raise ValueError(
+                    "'Extrapolate' must not be LINEAR when an end of the table is"
+                    " finite and its neighbour infinite, as the extrapolated slope is"
+                    " infinite. Use FLAT or FALSE."
+                )
+
+    def _warn_infinite_neighbours(self, y: FloatArray) -> None:
+        # a finite point next to an infinite one holds only at its own x, which a
+        # table meant as a ramp to no limit, or as a step at the infinite point,
+        # does not expect
+        is_finite = np.isfinite(y)
+        if np.any(is_finite[:-1] != is_finite[1:]):
+            logger.warning(
+                "%s: with 'Interpolate' LINEAR, the table is infinite all the way"
+                " from an infinite point to its finite neighbours, which keep their"
+                " values only at their own points. Use PREVIOUS or NEXT to set where"
+                " the value turns infinite.",
+                self,
             )
 
     def _set_table(self, x: FloatArray, y: FloatArray) -> None:
         self._check_interpolate_extrapolate_consistency()
-        self._check_interpolate_infinite_consistency(y)
+
+        # a step interpolation takes a point's value, an infinite one included
+        is_linear = self.interpolate == Interpolate1DID.LINEAR
+        if is_linear:
+            self._check_infinite_neighbours(y)
+            self._warn_infinite_neighbours(y)
 
         self.x = x
         self.y = y
@@ -228,9 +306,12 @@ class _Table1D(_Calculator):
         self.is_convex = self._test_convexity(x, y)
         self._fill_values = self._flat_fill_values()
 
+        self._has_infinite = is_linear and bool(np.any(np.isinf(y)))
+        table_y = np.where(np.isinf(y), 0.0, y) if self._has_infinite else y
+
         self._table = interp1d(
             x,
-            y,
+            table_y,
             kind=self._interp1d_kind(),
             bounds_error=self.extrapolate == ExtrapolateID.FALSE,
             fill_value=self._interp1d_fill_value(),
@@ -242,9 +323,9 @@ class _Table1D(_Calculator):
         Validate the x and y arrays used to build a 1D table.
 
         Every 'x' must be finite, as interpolating across an infinite one gives NaN.
-        A 'y' may be INF under a step interpolation, which is checked when the table
-        is built, and each attribute the table is assigned to checks it when it is
-        evaluated; a 'y' is never NaN.
+        A 'y' may be INF, and is checked by each attribute the table is assigned to
+        when it is evaluated, but never NaN, which no bound can reject. Where a
+        linear table may hold INF is checked when the table is built.
 
         Parameters
         ----------

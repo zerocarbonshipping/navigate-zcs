@@ -665,9 +665,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - A `nan` from a calculator or an expression, as `INF - INF` or `0 * INF`
     gives, stops the run with an error naming it; it passed every minimum and
     maximum, so a `nan` bunkering limit counted as no limit.
-  - A table holding `INF` or `-INF` needs `Interpolate` `PREVIOUS`, `NEXT`,
-    `NEAREST` or `NEAREST_UP` (`NEAREST` on a Surface or Timetable); `LINEAR`
-    gave `nan` next to the infinite value and is rejected when the deck loads.
+  - A linear table holding `INF` or `-INF` gives that infinity between the
+    infinite point and its neighbours, which keep their own values; it gave
+    `nan` at the neighbours. A warning names such a table, as a step
+    interpolation sets where the value turns infinite. A table with `INF`
+    next to `-INF`, or with `Extrapolate = LINEAR` off a finite end next to
+    an infinite value, which extrapolated to `-INF`, is rejected when the
+    deck loads.
 
 ## [1.0.0] - 2026-07-16
 

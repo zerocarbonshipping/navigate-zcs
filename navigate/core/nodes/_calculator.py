@@ -288,8 +288,12 @@ class _Calculator:
         Returns
         -------
         bool
-            Whether the piecewise linear function is convex.
+            Whether the piecewise linear function is convex; False where a y-value
+            is infinite, as the function is then not piecewise linear.
         """
+        if not np.all(np.isfinite(y)):
+            return False
+
         if x.size < 3:
             return True
 

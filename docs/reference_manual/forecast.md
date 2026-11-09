@@ -39,7 +39,7 @@ Forecast "methanol_plant_capacity" {
 
 ### Table
 
-This attribute sets the table of x- and y-values that the forecast interpolates in, where the x-values are dates or days since the start of the simulation. The table must hold at least two rows and its x-values must be finite and strictly increasing. A y-value may be `INF` or `-INF` when [Interpolate](#interpolate) is `PREVIOUS`, `NEXT`, `NEAREST` or `NEAREST_UP`, but never `nan`. The syntax is described under [Assigning tables](dsl_reference.md#forecast).
+This attribute sets the table of x- and y-values that the forecast interpolates in, where the x-values are dates or days since the start of the simulation. The table must hold at least two rows and its x-values must be finite and strictly increasing. A y-value may be `INF` or `-INF`, but never `nan`. With [Interpolate](#interpolate) `LINEAR`, the value between an infinite point and its neighbours is that infinity, while the neighbours keep their own values: a table of the points (0, 1), (10, 2) and (20, `INF`) gives 2 at 10 and `INF` above it; Navigate warns of such a table, as `PREVIOUS` or `NEXT` sets where the value turns infinite. Two neighbouring points must not be `INF` and `-INF`; such a forecast is rejected. The syntax is described under [Assigning tables](dsl_reference.md#forecast).
 
 * **Data type**: `Table`
 * **Default**: None. Must be provided by the user.
@@ -78,7 +78,7 @@ Sets the upper bound that the result is clamped to after the `Addition` and the 
 
 ### Interpolate
 
-This attribute sets the interpolation method used to interpolate in the table. `PREVIOUS` and `NEXT` cannot be combined with `Extrapolate = LINEAR`, and `LINEAR` cannot be combined with an `INF` or `-INF` in the table, as a linear interpolation next to an infinite value is undefined; such a forecast is rejected.
+This attribute sets the interpolation method used to interpolate in the table. `PREVIOUS` and `NEXT` cannot be combined with `Extrapolate = LINEAR`; such a forecast is rejected.
 
 * **Data type**: `ID`
 * **Legal values**: [Interpolate1DID](appendix_ids.md#interpolate1did)
@@ -86,7 +86,7 @@ This attribute sets the interpolation method used to interpolate in the table. `
 
 ### Extrapolate
 
-This attribute sets the extrapolation method used to extrapolate outside the table. With `FLAT`, the values of `Below` and `Above` are used.
+This attribute sets the extrapolation method used to extrapolate outside the table. With `FLAT`, the values of `Below` and `Above` are used. With `Interpolate = LINEAR`, `LINEAR` cannot be combined with a finite end value whose neighbour is `INF` or `-INF`, as the slope it would continue is infinite; such a forecast is rejected. Beyond an infinite end value, the extrapolation is that infinity.
 
 * **Data type**: `ID`
 * **Legal values**: [ExtrapolateID](appendix_ids.md#extrapolateid)
