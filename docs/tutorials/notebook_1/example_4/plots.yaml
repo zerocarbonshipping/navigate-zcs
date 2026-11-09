@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The plots Session 1 draws with Lantern, which reads this catalogue when it is
+# started in this folder. The entries follow Lantern's own plots.yaml.
+
+# the runs the notebook writes, and the Horizon study of levers.hor
+customize_runs:
+  example_4:     {name: reference, color: black_4}
+  your_scenario: {name: your scenario, color: blue_8}
+  levers:        {name: all levers drawn, color: blue_8}
+
+session:
+  emissions:
+    title: Well-to-wake emissions
+    total: true
+    series: global.total_equivalent_wtw
+
+  fuel_consumed:
+    title: Fuel consumed
+    draw: stack
+    label: shore_power
+    series:
+      - global.consumed_energy
+      - global.shore_power_energy
+
+  expenses:
+    title: What the ships paid
+    draw: stack
+    split_by: attribute
+    series:
+      - global.vessel_expenses
+      - global.fuel_conversion_expenses
+      - global.technology_expenses
+      - global.total_fuel_expenses
+      - global.levy_expenses
+      - global.regulation_expenses
+
+  expenses_total:
+    title: What the ships paid, in total
+    total: true
+    series: global.expenses
