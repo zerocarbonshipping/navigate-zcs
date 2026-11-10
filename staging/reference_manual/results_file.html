@@ -1545,13 +1545,13 @@ of its Measure. CO2-equivalents use its own global warming potentials.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.shared_threshold</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">measure</span></code></p></td>
 <td><p></p></td>
-<td><p>Threshold of the pool: the vessel thresholds averaged by measure.</p></td>
+<td><p>Threshold of the pool: the vessel thresholds averaged by measure; under <code class="docutils literal notranslate"><span class="pre">ABSOLUTE</span></code> their multiplier-weighted sum.</p></td>
 <td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme with an <code class="docutils literal notranslate"><span class="pre">ABSOLUTE</span></code> or <code class="docutils literal notranslate"><span class="pre">INTENSITY</span></code> Measure</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.adjusted_vessel_threshold</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">measure</span></code></p></td>
 <td><p>vessel</p></td>
-<td><p>Threshold after adjustment for non-compliance; a vessel that complies keeps its threshold.</p></td>
+<td><p>Threshold after adjustment for non-compliance. Under <code class="docutils literal notranslate"><span class="pre">INDIVIDUAL</span></code> a vessel that complies keeps its threshold; under <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> every vessel keeps it while the pool complies, and under <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> with an <code class="docutils literal notranslate"><span class="pre">ABSOLUTE</span></code> Measure every vessel’s threshold is scaled by the same factor, or set to its own emissions where the pool’s thresholds are all 0.</p></td>
 <td><p>AllowThresholdAdjustment</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.adjusted_shared_threshold</span></code></p></td>

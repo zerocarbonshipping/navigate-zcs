@@ -701,7 +701,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </section>
 <section id="allowthresholdadjustment">
 <h3>AllowThresholdAdjustment<a class="headerlink" href="#allowthresholdadjustment" title="Link to this heading">#</a></h3>
-<p>This attribute sets whether the regulation threshold is automatically adjusted when the bunker algorithm detects non-compliance. If enabled, the bunker algorithm performs a multi-step solve where it first solves normally, then adjusts the threshold to match achievable compliance levels, and re-solves with the adjusted thresholds.</p>
+<p>This attribute sets whether the regulation threshold is automatically adjusted when the bunker algorithm detects non-compliance. If enabled, the bunker algorithm performs a multi-step solve where it first solves normally, then adjusts the threshold to match achievable compliance levels, and re-solves with the adjusted thresholds. If ‘Scheme’ is FLEXIBLE and ‘Measure’ is ABSOLUTE, the adjustment scales the threshold of every included vessel by the same factor, so that the thresholds of the pool add up to the emissions it achieved. Where the thresholds of the pool are all 0, each vessel’s threshold is set to its own emissions instead.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
 <li><p><strong>Default</strong>: FALSE</p></li>
