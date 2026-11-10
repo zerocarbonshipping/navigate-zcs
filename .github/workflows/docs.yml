@@ -106,8 +106,10 @@ jobs:
           keep_files: false
 
   # Pages serves the gh-pages branch that deploy assembles, but deploys it from
-  # here rather than from the branch: a deploy that hangs fails after five
-  # minutes, and a newer one cancels it instead of queueing behind it
+  # here rather than from the branch, where a stalled deploy has no timeout and
+  # the next one queues behind it. Pages tends to stall on the first deployment
+  # of changed content and to deploy the same content in seconds when asked
+  # again, so the job asks up to three times.
   pages:
     needs: deploy   # skipped whenever deploy is, so never on PRs
     runs-on: ubuntu-latest
@@ -116,10 +118,14 @@ jobs:
       id-token: write   # authenticate it
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.third.outputs.page_url || steps.second.outputs.page_url || steps.first.outputs.page_url }}
     concurrency:
       group: pages
       cancel-in-progress: true
+    env:
+      # named per attempt: a re-run of this job alone would otherwise find the
+      # earlier attempt's artifact under the same name and refuse to deploy
+      PAGES_ARTIFACT: github-pages-${{ github.run_attempt }}
     steps:
       - name: Checkout the assembled site
         uses: actions/checkout@v7
@@ -129,10 +135,32 @@ jobs:
       - name: Upload the site
         uses: actions/upload-pages-artifact@v5
         with:
+          name: ${{ env.PAGES_ARTIFACT }}
           path: .
 
+      # timeouts in ms; a healthy deploy takes under 20 seconds, and a timeout
+      # cancels the deployment before the next step requests it again
       - name: Deploy to GitHub Pages
-        id: deployment
+        id: first
+        continue-on-error: true
         uses: actions/deploy-pages@v5
         with:
-          timeout: 300000   # ms; a healthy deploy takes under a minute
+          artifact_name: ${{ env.PAGES_ARTIFACT }}
+          timeout: 90000
+
+      - name: Deploy again after a stall
+        id: second
+        if: steps.first.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: ${{ env.PAGES_ARTIFACT }}
+          timeout: 90000
+
+      - name: Deploy a last time
+        id: third
+        if: steps.second.outcome == 'failure'
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: ${{ env.PAGES_ARTIFACT }}
+          timeout: 300000
