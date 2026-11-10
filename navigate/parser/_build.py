@@ -9,7 +9,8 @@ required attributes, seed the command-written dictionaries, run the commands,
 build the tables, initialize, validate. The same steps apply an event at its
 date, followed by the registry-wide re-initialization and validation. A value
 is materialized per target: a reference becomes its node, a wildcard the nodes
-it matches, an expression a fresh Expression bound to its holder.
+of the declarations it matches, an expression a fresh Expression bound to its
+holder.
 """
 
 from __future__ import annotations
@@ -300,27 +301,23 @@ class Builder:
         """
         Replace every reference in a value with the node it names.
 
-        A wildcard becomes the list of the nodes it matches, spliced into a list
-        it sits in. A reference the simulation does not hold, which the prune
-        leaves only under a non-activating attribute, is dropped from its list
-        and recorded; a lone one becomes None.
+        A wildcard becomes the list of the nodes of every declaration it
+        matches, spliced into a list it sits in. A node the simulation does not
+        hold, which the prune leaves only under a non-activating attribute, is
+        dropped from its list and recorded, whether named or matched; a lone
+        reference to one becomes None.
         """
         if isinstance(value, NodeReference):
             if value.is_wildcard:
-                return self._expand_wildcard(value, item)
+                return self._expand_wildcard(value, holder, item)
 
-            node = self._node_by_key.get(value.key)
-            if node is None:
-                self._dropped.append(f"{holder} {item.name}: {value}")
-                return None
-
-            return node
+            return self._held_node(value, holder, item)
 
         if isinstance(value, list):
             materialized: list[MaterializedValue] = []
             for element in value:
                 if isinstance(element, NodeReference) and element.is_wildcard:
-                    materialized.extend(self._expand_wildcard(element, item))
+                    materialized.extend(self._expand_wildcard(element, holder, item))
                     continue
 
                 result = self._materialize(element, holder, item)
@@ -335,13 +332,35 @@ class Builder:
         return value
 
     def _expand_wildcard(
-        self, reference: NodeReference, item: BodyItem
+        self, reference: NodeReference, holder: Holder, item: BodyItem
     ) -> list[MaterializedValue]:
-        keys = matching(self._node_by_key, reference.type, reference.name)
+        """Return the held nodes of the declarations a wildcard matches, in order."""
+        keys = matching(self._collector.declarations, reference.type, reference.name)
         if not keys:
             raise unmatched_wildcard_error(reference.type, reference.name, item.source)
 
-        return [self._node_by_key[key] for key in keys]
+        nodes: list[MaterializedValue] = []
+        for key in keys:
+            node = self._held_node(NodeReference(*key), holder, item)
+            if node is not None:
+                nodes.append(node)
+
+        return nodes
+
+    def _held_node(
+        self, reference: NodeReference, holder: Holder, item: BodyItem
+    ) -> Node | None:
+        """
+        Return the node a reference names, if the simulation holds it.
+
+        A reference to a node it does not hold is recorded as dropped and
+        yields None.
+        """
+        node = self._node_by_key.get(reference.key)
+        if node is None:
+            self._dropped.append(f"{holder} {item.name}: {reference}")
+
+        return node
 
     def _materialize_expression(
         self, syntax: ExpressionSyntax, holder: Holder, item: BodyItem

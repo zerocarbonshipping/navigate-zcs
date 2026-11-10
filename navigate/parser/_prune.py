@@ -9,10 +9,11 @@ it to a top-level node, one of the node types nothing assigns (ROOT_TYPES).
 The walk starts there and follows every reference of a reached node's
 effective body and of the events targeting it. A reference under a
 NON_ACTIVATING attribute keeps nothing alive: a Levy's or Regulation's
-Jurisdiction selects among routed ports and must not make an unrouted port
-part of the fuel supply. The build phase constructs the kept declarations
-only, so a node the simulation does not hold never exists: it receives no
-value, enters no dependency dictionary and runs no command.
+Jurisdiction must not make an unrouted port part of the fuel supply. The build
+phase constructs the kept declarations only, so a node the simulation does not
+hold never exists: it receives no value, enters no dependency dictionary and
+runs no command. A port such a Jurisdiction names or matches by wildcard, but
+nothing keeps, is dropped from it.
 
 The prune phase is optional: without it, every declaration is kept and every
 bound event applies as bound.
