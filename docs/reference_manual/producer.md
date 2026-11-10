@@ -197,6 +197,8 @@ This command sets the relative weight with which the fuel production of the prod
 
 The weights of all ports are normalized to sum to one in every time-step, so a weight is a share of the production only when the weights assigned across the ports already sum to one. Assigning `0.5` to one of three ports therefore exports the entire production to that port, not half of it. If no port carries a positive weight, the production is split equally across all ports.
 
+A port that does not allow bunkering a fuel receives none of it. For that fuel, the weights are normalized over the ports that allow it, and the production is split equally among them when none of them carries a positive weight.
+
 * **Primary key type**: String (Port name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
