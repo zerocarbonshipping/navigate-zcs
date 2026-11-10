@@ -57,8 +57,7 @@ def calculate_vessel_account(
 
     The allowance holds the vessel to its adjusted threshold, where one was
     adjusted, so that non-compliance and surplus are measured against the target
-    the fleet actually trades against; under FLEXIBLE, every vessel is held to the
-    shared adjusted threshold.
+    the fleet actually trades against.
 
     Parameters
     ----------
@@ -90,7 +89,9 @@ def get_adjusted_threshold(regulation: Regulation, vessel_name: str, idx: int) -
     """
     Get the adjusted threshold a policed vessel is held to at a time step.
 
-    Under FLEXIBLE, every vessel is held to the shared adjusted threshold.
+    Under FLEXIBLE, a vessel is held to the shared adjusted threshold, a value per
+    unit of measure, except under ABSOLUTE: there the shared threshold is the pool's
+    total, and the vessel is held to its own scaled share of it.
 
     Parameters
     ----------
@@ -108,7 +109,10 @@ def get_adjusted_threshold(regulation: Regulation, vessel_name: str, idx: int) -
     """
     expectation = regulation.expectation
 
-    if regulation.scheme == RegulationSchemeID.FLEXIBLE:
+    is_flexible = regulation.scheme == RegulationSchemeID.FLEXIBLE
+    is_absolute = regulation.measure == RegulationMeasureID.ABSOLUTE
+
+    if is_flexible and not is_absolute:
         return expectation.get_adjusted_shared_threshold(idx)
 
     return expectation.get_adjusted_vessel_threshold(vessel_name, idx)

@@ -118,12 +118,7 @@ def _calculate_individual(
             expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
             continue
 
-        emissions = expectation.get_vessel_emissions(vessel_name, idx)
-        measure = calculate_achieved_measure(regulation, vessel_name, idx)
-
-        threshold = _adjust_threshold(regulation, emissions, measure)
-        expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
-
+        _calculate_achieved_vessel_threshold(regulation, vessel_name, idx)
         _calculate_adjusted_bunkering_inputs(regulation, vessels[vessel_name], idx)
         is_adjusted = True
 
@@ -152,6 +147,30 @@ def _calculate_flexible(
         expectation.set_adjusted_shared_threshold(idx, np.nan)
         return False
 
+    shared_threshold = _calculate_shared_threshold(regulation, policed, idx)
+    expectation.set_adjusted_shared_threshold(idx, shared_threshold)
+
+    # the shared threshold of an ABSOLUTE pool is the pool's total, not a value per
+    # vessel, so the vessels' thresholds are scaled to it by one factor, which keeps
+    # the regulator's split of the pool
+    if regulation.measure == RegulationMeasureID.ABSOLUTE:
+        _calculate_scaled_vessel_thresholds(regulation, policed, shared_threshold, idx)
+    else:
+        for vessel_name in policed:
+            _calculate_achieved_vessel_threshold(regulation, vessel_name, idx)
+
+    for vessel_name in policed:
+        _calculate_adjusted_bunkering_inputs(regulation, vessels[vessel_name], idx)
+
+    return True
+
+
+def _calculate_shared_threshold(
+    regulation: Regulation, policed: dict[str, float], idx: int
+) -> float:
+    """Calculate the adjusted threshold the pool's achieved emissions meet."""
+    expectation = regulation.expectation
+
     total_emissions = 0.0
     total_measure = 0.0
 
@@ -162,16 +181,55 @@ def _calculate_flexible(
         total_emissions += multiplier * emissions
         total_measure += multiplier * measure
 
-        threshold = _adjust_threshold(regulation, emissions, measure)
-        expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
+    return _adjust_threshold(regulation, total_emissions, total_measure)
 
-    shared_threshold = _adjust_threshold(regulation, total_emissions, total_measure)
-    expectation.set_adjusted_shared_threshold(idx, shared_threshold)
+
+def _calculate_scaled_vessel_thresholds(
+    regulation: Regulation,
+    policed: dict[str, float],
+    shared_threshold: float,
+    idx: int,
+) -> None:
+    """
+    Scale the vessels' thresholds by one factor.
+
+    The factor is chosen so their multiplier-weighted sum is the shared threshold.
+    A pool whose thresholds sum to zero has nothing to scale: each vessel's threshold
+    is adjusted to its own achieved emissions instead.
+    """
+    expectation = regulation.expectation
+
+    pooled_threshold = 0.0
+
+    for vessel_name, multiplier in policed.items():
+        threshold = expectation.get_vessel_threshold(vessel_name, idx)
+        pooled_threshold += multiplier * threshold
+
+    # a pool whose thresholds are all zero allows no trading, so there is no split to
+    # keep and each vessel is held to its own emissions
+    if pooled_threshold <= 0.0:
+        for vessel_name in policed:
+            _calculate_achieved_vessel_threshold(regulation, vessel_name, idx)
+        return
+
+    factor = shared_threshold / pooled_threshold
 
     for vessel_name in policed:
-        _calculate_adjusted_bunkering_inputs(regulation, vessels[vessel_name], idx)
+        threshold = expectation.get_vessel_threshold(vessel_name, idx)
+        expectation.set_adjusted_vessel_threshold(vessel_name, idx, factor * threshold)
 
-    return True
+
+def _calculate_achieved_vessel_threshold(
+    regulation: Regulation, vessel_name: str, idx: int
+) -> None:
+    """Adjust a vessel's threshold to what its own achieved emissions meet."""
+    expectation = regulation.expectation
+
+    emissions = expectation.get_vessel_emissions(vessel_name, idx)
+    measure = calculate_achieved_measure(regulation, vessel_name, idx)
+
+    threshold = _adjust_threshold(regulation, emissions, measure)
+    expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
 
 
 def _calculate_adjusted_bunkering_inputs(
