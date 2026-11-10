@@ -57,7 +57,7 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Session 1: Run a simple case" href="../tutorials/notebook_1/notebook_1.html" />
+    <link rel="next" title="Session 1: Run a simple case" href="notebook_1/notebook_1.html" />
     <link rel="prev" title="Tutorial 3" href="../tutorials/tutorial_3.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
@@ -377,7 +377,7 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/notebook_1/notebook_1.html">Session 1: Run a simple case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebook_1/notebook_1.html">Session 1: Run a simple case</a></li>
 </ul>
 </div>
 </nav></div>
@@ -446,9 +446,42 @@ Colab or on your own machine. Each page shows the notebook with the results of
 a run, so it can be read without running it.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/notebook_1/notebook_1.html">Session 1: Run a simple case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebook_1/notebook_1.html">Session 1: Run a simple case</a></li>
 </ul>
 </div>
+<section id="running-a-notebook-on-your-own-machine">
+<h2>Running a notebook on your own machine<a class="headerlink" href="#running-a-notebook-on-your-own-machine" title="Link to this heading">#</a></h2>
+<p>Colab needs nothing installed. To run a notebook locally instead, you need:</p>
+<ul class="simple">
+<li><p><strong>The notebook file.</strong> Download it from its folder under
+<a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/tree/dev/docs/notebooks"><code class="docutils literal notranslate"><span class="pre">docs/notebooks/</span></code></a>
+on GitHub (<em>Download raw file</em>), or open it in a clone of the repository.</p></li>
+<li><p><strong>Python 3.13.</strong> Navigate runs on 3.13 only.</p></li>
+<li><p><strong>A fresh environment</strong> with that Python, for example
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-n</span> <span class="pre">navigate-notebook</span> <span class="pre">python=3.13</span></code> or
+<code class="docutils literal notranslate"><span class="pre">python3.13</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">.venv</span></code>. The setup cell installs Navigate, Horizon and
+Lantern into it and replaces any Navigate already there, an editable
+install included.</p></li>
+<li><p><strong>A Jupyter kernel in that environment</strong>, <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">ipykernel</span></code>, and a
+front end to run it: VS Code with its Jupyter extension, choosing the
+environment as the kernel, or JupyterLab (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">jupyterlab</span></code>)
+started from the activated environment. The <code class="docutils literal notranslate"><span class="pre">!navigate</span></code>, <code class="docutils literal notranslate"><span class="pre">!horizon</span></code> and
+<code class="docutils literal notranslate"><span class="pre">!lantern</span></code> lines are shell commands, and they find the programs only when
+the kernel runs with the environment active.</p></li>
+<li><p><strong>Git</strong>, which the setup cell clones the repository with, and an internet
+connection for that clone and the installs; together they take a few
+minutes. No solver to install: HiGHS comes with Navigate.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ROOT</span></code> set to a folder of your own</strong> in the setup cell before you run it,
+such as <code class="docutils literal notranslate"><span class="pre">&quot;/home/you/notebook&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;C:/notebook&quot;</span></code>, with no spaces in its
+path; the default, <code class="docutils literal notranslate"><span class="pre">/content</span></code>, exists only on Colab. The cell clones
+Navigate into <code class="docutils literal notranslate"><span class="pre">ROOT/navigate-zcs</span></code>, copies the case into <code class="docutils literal notranslate"><span class="pre">ROOT/&lt;case&gt;</span></code> and
+moves there, so the results and plots land in that folder.</p></li>
+</ul>
+<p>Running the setup cell again keeps the first clone, and git reports that the
+folder already exists. It overwrites the copy of the case, edits to its files
+included, and keeps the results of earlier runs. To start over with the latest
+version, delete <code class="docutils literal notranslate"><span class="pre">ROOT/navigate-zcs</span></code> and <code class="docutils literal notranslate"><span class="pre">ROOT/&lt;case&gt;</span></code> first.</p>
+</section>
 </section>
 
 
@@ -471,7 +504,7 @@ a run, so it can be read without running it.</p>
       </div>
     </a>
     <a class="right-next"
-       href="../tutorials/notebook_1/notebook_1.html"
+       href="notebook_1/notebook_1.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
@@ -489,6 +522,18 @@ a run, so it can be read without running it.</p>
                 <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-a-notebook-on-your-own-machine">Running a notebook on your own machine</a></li>
+</ul>
+  </nav></div>
 
   <div class="sidebar-secondary-item">
 
