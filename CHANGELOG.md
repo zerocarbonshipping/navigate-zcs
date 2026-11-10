@@ -349,6 +349,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   receive its whole production, shared by their `set_export_distribution`
   weights; with unequal weights they received more or less than was produced
   (#645).
+- A wildcard in a `Levy` or `Regulation` `Jurisdiction`, such as `Port("eu_*")`,
+  that matches only ports on no route no longer fails with "No node of type
+  'Port' matches the wildcard expression". The matched ports on no route are
+  dropped with the warning a listed one gets, and a `Jurisdiction` left empty
+  fails with the unassigned-attribute error as it does for listed ports (#822).
 - An unbounded bunkering LP, or a solve that stops at a limit, now stops the run
   with an error naming the bunkering scope, instead of a `RecursionError` on
   HiGHS or a silent continuation on Gurobi (#368).
