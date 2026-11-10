@@ -188,7 +188,7 @@ A longer horizon makes the belief respond more slowly to changes in the flexibil
 
 ### AllowThresholdAdjustment
 
-This attribute sets whether the regulation threshold is automatically adjusted when the bunker algorithm detects non-compliance. If enabled, the bunker algorithm performs a multi-step solve where it first solves normally, then adjusts the threshold to match achievable compliance levels, and re-solves with the adjusted thresholds.
+This attribute sets whether the regulation threshold is automatically adjusted when the bunker algorithm detects non-compliance. If enabled, the bunker algorithm performs a multi-step solve where it first solves normally, then adjusts the threshold to match achievable compliance levels, and re-solves with the adjusted thresholds. If 'Scheme' is FLEXIBLE and 'Measure' is ABSOLUTE, the adjustment scales the threshold of every included vessel by the same factor, so that the thresholds of the pool add up to the emissions it achieved. Where the thresholds of the pool are all 0, each vessel's threshold is set to its own emissions instead.
 
 * **Data type**: `Boolean`
 * **Default**: FALSE

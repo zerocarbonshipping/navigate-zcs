@@ -90,7 +90,7 @@ def _record_compliance(
 
     # the fleet-level effective target of a flexible regulation: the measure-weighted
     # mean of the per-vessel thresholds, equal to the uniform value when the
-    # thresholds are assigned via a wildcard
+    # thresholds are assigned via a wildcard; under ABSOLUTE their weighted sum
     if regulation.scheme == RegulationSchemeID.FLEXIBLE:
         threshold = normalize_by_measure(regulation, total_allowance, total_measure)
         results.shared_threshold[idx] = threshold

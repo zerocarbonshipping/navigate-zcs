@@ -357,6 +357,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - An unbounded bunkering LP, or a solve that stops at a limit, now stops the run
   with an error naming the bunkering scope, instead of a `RecursionError` on
   HiGHS or a silent continuation on Gurobi (#368).
+- A `FLEXIBLE` `Regulation` with `Measure = ABSOLUTE` and
+  `AllowThresholdAdjustment = TRUE` (#561):
+  - no longer reports `regulation.vessel_allowance`,
+    `regulation.shared_allowance`, `regulation.shared_threshold` and
+    `regulation.surplus_units` multiplied by the number of policed vessels;
+  - reports the `regulation.flexibility_units` its vessels trade, which were
+    missing;
+  - reports in `regulation.adjusted_vessel_threshold` each vessel's threshold
+    scaled by one factor, so the pool's thresholds add up to its emissions;
+  - sets each vessel's adjusted threshold to its own emissions where the pool's
+    thresholds are all 0.
 - The `--help` text and the README no longer say `-p` silences other console
   output or that `-s` leaves Excel reports; reports keep their own format
   (#444).

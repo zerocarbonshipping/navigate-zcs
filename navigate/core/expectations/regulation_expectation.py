@@ -67,10 +67,13 @@ class RegulationExpectation(_PolicyExpectation[tuple[str, str, str, str]]):
         self._pooled_shadow_price: FloatArray
 
         # the thresholds adjusted to the compliance achievable, written by the
-        # threshold adjustment after the first solve of each bunkering LP; a compliant
-        # vessel of an adjustable regulation holds its original threshold. NaN where
-        # the regulation allows no adjustment, and in the shared slot under INDIVIDUAL
-        # or of a compliant FLEXIBLE regulation
+        # threshold adjustment after the first solve of each bunkering LP; a vessel
+        # that complies under INDIVIDUAL, or every vessel of a FLEXIBLE pool that
+        # complies, holds its original threshold, and an adjusted ABSOLUTE pool's
+        # vessel thresholds are scaled by one factor, or set to each vessel's own
+        # emissions where they are all zero. NaN where the regulation allows no
+        # adjustment, and in the shared slot under INDIVIDUAL or of a compliant
+        # FLEXIBLE regulation
         self._adjusted_vessel_threshold: dict[str, FloatArray]
         self._adjusted_shared_threshold: FloatArray
 
