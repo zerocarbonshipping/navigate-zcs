@@ -345,6 +345,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- Where some ports do not allow a Producer's fuel, the ports that allow it
+  receive its whole production, shared by their `set_export_distribution`
+  weights; with unequal weights they received more or less than was produced
+  (#645).
 - An unbounded bunkering LP, or a solve that stops at a limit, now stops the run
   with an error naming the bunkering scope, instead of a `RecursionError` on
   HiGHS or a silent continuation on Gurobi (#368).

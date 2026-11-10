@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import logging
-from collections import Counter
 from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
@@ -204,8 +203,9 @@ def _calculate_import_totals(
     """
     Sum the supply each port imports from every plant, and its weighted cost and WTT.
 
-    A fuel disallowed in some ports has its export rerouted to the others by equal
-    fractions.
+    A plant's fuel goes to the ports allowing it, by the producer's export weights
+    normalized over those ports, and equally among them where none of them carries
+    a positive weight.
 
     Parameters
     ----------
@@ -230,7 +230,7 @@ def _calculate_import_totals(
     forward = np.s_[idx:]
     times = timeline[forward]
 
-    shares = _calculate_allowed_port_shares(ports)
+    allowed_ports = _allowed_ports_per_fuel(ports, fuels)
 
     supplies = {}
     costs = {}
@@ -249,7 +249,7 @@ def _calculate_import_totals(
         for plant in producer.plants:
             fuel_name = plant.fuel.name
 
-            if shares[fuel_name] == 0.0:
+            if not allowed_ports[fuel_name]:
                 logger.debug(
                     'Fuel("%s") is not allowed for bunkering in any port. Any existing '
                     "production from %s is inaccessible during bunkering.",
@@ -262,13 +262,10 @@ def _calculate_import_totals(
             production = producer.expectation.get_expected_production(
                 plant.name, forward
             )
+            shares = _calculate_export_shares(exports, allowed_ports[fuel_name])
 
-            for port_name, export in exports.items():
-                if not ports[port_name].bunkering_allowed[fuel_name]:
-                    continue
-
-                rerouted = export / shares[fuel_name]
-                supply = production * rerouted
+            for port_name, share in shares.items():
+                supply = production * share
                 delivered_cost = _calculate_delivered_cost(plant, port_name, forward)
                 delivered_wtts = _calculate_delivered_wtts(plant, port_name, forward)
 
@@ -279,6 +276,66 @@ def _calculate_import_totals(
                     wtts[fuel_name, emission_name][port_name] += supply * delivered_wtt
 
     return _ImportTotals(supplies, costs, wtts)
+
+
+def _allowed_ports_per_fuel(
+    ports: dict[str, Port], fuels: dict[str, Fuel]
+) -> dict[str, list[str]]:
+    """
+    List the names of the ports allowing each fuel to be bunkered.
+
+    Parameters
+    ----------
+    ports
+        All ports in the simulation.
+    fuels
+        All fuels in the simulation which do not belong to a liquid market.
+
+    Returns
+    -------
+    dict[str, list[str]]
+        Names of the ports allowing each fuel.
+    """
+    allowed_ports: dict[str, list[str]] = {}
+
+    for fuel_name in fuels:
+        allowed_ports[fuel_name] = []
+
+        for port_name, port in ports.items():
+            if port.bunkering_allowed[fuel_name]:
+                allowed_ports[fuel_name].append(port_name)
+
+    return allowed_ports
+
+
+def _calculate_export_shares(
+    exports: dict[str, FloatArray], port_names: list[str]
+) -> dict[str, FloatArray]:
+    """
+    Calculate the share of a producer's export to each port, normalized over the ports.
+
+    Parameters
+    ----------
+    exports
+        Export weight of the producer to every port in the simulation.
+    port_names
+        Names of the ports sharing the export.
+
+    Returns
+    -------
+    dict[str, FloatArray]
+        Share of the export to each of the ports.
+    """
+    # at steps where the ports carry no positive weight, they share exports equally
+    total = sum(exports[port_name] for port_name in port_names)
+    default = 1.0 / len(port_names)
+
+    shares = {}
+
+    for port_name in port_names:
+        shares[port_name] = divide_nonzero(exports[port_name], total, default=default)
+
+    return shares
 
 
 def _allocate_per_port(
@@ -467,29 +524,6 @@ def _calculate_bunker_wtts(
         wtts[emission_name] = overwrite if overwritten else fallback
 
     return wtts
-
-
-def _calculate_allowed_port_shares(ports: dict[str, Port]) -> dict[str, float]:
-    """
-    Calculate the share of ports allowing each fuel to be bunkered.
-
-    Parameters
-    ----------
-    ports
-        All ports in the simulation.
-
-    Returns
-    -------
-    dict[str, float]
-        Share of ports allowing each fuel.
-    """
-    counts: Counter[str] = Counter()
-
-    for port in ports.values():
-        for fuel_name, allowed in port.bunkering_allowed.items():
-            counts[fuel_name] += allowed
-
-    return {fuel_name: count / len(ports) for fuel_name, count in counts.items()}
 
 
 def _align_with_bunkering_limits(
