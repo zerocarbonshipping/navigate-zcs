@@ -24,6 +24,14 @@ NOTEBOOKS = Path(__file__).parent / "tutorials"
 # logs it at the ERROR level
 ERROR_TEXT = re.compile(r"^(Traceback|Error:)|- ERROR -", re.MULTILINE)
 
+HOW_TO_REFRESH = """
+To refresh a notebook's outputs:
+  1. Set ROOT in its setup cell to a folder of your own.
+  2. Restart the kernel and run all cells.
+  3. Set ROOT back to "/content"; the outputs stay.
+  4. Save the notebook and run this check again: python docs/check_notebooks.py
+  5. Commit the notebook."""
+
 
 def find_problems(path: Path) -> list[str]:
     """Return what keeps a notebook from being one clean run, if anything."""
@@ -79,4 +87,6 @@ if __name__ == "__main__":
     )
     problems = [problem for path in paths for problem in find_problems(path)]
     if problems:
-        sys.exit("\n".join(problems))
+        sys.exit("\n".join(problems) + "\n" + HOW_TO_REFRESH)
+
+    print("Success!")
