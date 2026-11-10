@@ -393,6 +393,41 @@ def get_flow_size(lead_time: float, lifetime: float) -> int:
     return math.ceil(_horizon(lead_time, lifetime))
 
 
+def get_horizon_stop(
+    timeline: FloatArray, idx: int, lead_time: float, lifetime: float
+) -> int:
+    """
+    Get the index one past the last time-step that starts inside an asset's horizon.
+
+    The horizon runs `lead_time + lifetime` years from the investment decision at
+    time-step `idx`, whatever the length of the time-steps.
+
+    Parameters
+    ----------
+    timeline
+        Simulation timeline, in days.
+    idx
+        Time-step of the investment decision.
+    lead_time
+        Lead time of the asset, in years.
+    lifetime
+        Lifetime of the asset, in years.
+
+    Returns
+    -------
+    int
+        Index one past the last time-step inside the horizon, at least `idx + 1` and
+        at most the number of time-steps.
+    """
+    _, time_end = _operating_window(lead_time, lifetime, timeline[idx])
+
+    # whole years of 365.25 days end up to 0.75 day off a calendar date, so a
+    # time-step starting within a day before the end counts as on it; the decision
+    # step starts inside its own horizon, however short
+    stop = int(np.searchsorted(timeline, time_end - 1.0))
+    return max(stop, idx + 1)
+
+
 def trim_flow_to_window(flow: FloatArray, span: float, window: float) -> FloatArray:
     """
     Trim a yearly flow over `span` years to the amount over its first `window` years.

@@ -22,6 +22,7 @@ from navigate.core.enum_ import PORT_ENERGY_DEMANDS
 from navigate.simulation.economics import (
     build_operating_flows,
     calculate_net_present_value,
+    get_horizon_stop,
 )
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import TOLERANCE, divide_nonzero, sum_values
@@ -588,9 +589,11 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
         lead_time = results.lead_time[idx]
         year_starts, operating_flow = build_operating_flows(lead_time, lifetime, time)
 
-        # the cost needs bunkering data over the lead time and the lifetime, which a
-        # vessel that left the fleet lacks, as the bunkering algorithm no longer ran it
-        if not np.all(results.in_fleet[idx : idx + operating_flow.size]):
+        # the cost needs bunkering data over the years of the lead time plus the
+        # lifetime, which a vessel that left the fleet lacks, as the bunkering
+        # algorithm no longer ran it
+        stop = get_horizon_stop(timeline, idx, lead_time, lifetime)
+        if not np.all(results.in_fleet[idx:stop]):
             logger.debug(
                 "%s: Unable to post-process fuel related costs at time %s days.",
                 vessel,

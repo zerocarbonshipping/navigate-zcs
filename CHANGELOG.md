@@ -705,6 +705,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A fractional `LeadTime` plus `Lifetime` no longer prices a vessel or plant as
   operating to the next whole year; its `asset_charter_rate`, `cargo_charter_rate`,
   `instantaneous_freight_rate`, `investment_cost` and delivery costs change (#662).
+- On a timeline that is not yearly, a vessel's achieved `cargo_charter_rate` and
+  `instantaneous_freight_rate`, and the fleet's freight rate, follow its presence in
+  the fleet over its lead time and lifetime in years, not in as many time-steps (#854).
 - A fleet with more capacity than its trade no longer receives negative orderbook
   deliveries, which showed as negative `Newbuilds` and a negative "% delivered" in
   the log. Its due orders are postponed and, where `AllowSecondaryScrapping` is on,

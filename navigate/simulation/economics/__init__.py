@@ -21,6 +21,7 @@ from navigate.simulation.economics.flows import (
     build_production_flow,
     expand_to_flow,
     get_flow_size,
+    get_horizon_stop,
     trim_flow_to_window,
 )
 from navigate.simulation.economics.metric import (
