@@ -537,6 +537,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <section id="set-bunkering-allowed">
 <h3>set_bunkering_allowed<a class="headerlink" href="#set-bunkering-allowed" title="Link to this heading">#</a></h3>
 <p>This command sets whether it is allowed to bunker a specific fuel in the port.</p>
+<p>A Producer’s export aimed at a port that does not allow the fuel goes to the ports that allow it, by their export weights.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>

@@ -55,6 +55,8 @@ This attribute sets the fraction of the time in port during which a shore power 
 
 This command sets whether it is allowed to bunker a specific fuel in the port.
 
+A Producer's export aimed at a port that does not allow the fuel goes to the ports that allow it, by their export weights.
+
 * **Primary key type**: String (Fuel name; supports wildcards)
 * **Data type**: `Boolean`
 * **Example values**:
