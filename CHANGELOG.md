@@ -683,6 +683,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     both `INF` and `-INF`, or with `Extrapolate = LINEAR` off a finite end
     next to an infinite value, which extrapolated to `-INF`, is rejected when
     the deck loads.
+- A fractional `LeadTime` plus `Lifetime` no longer prices a vessel or plant as
+  operating to the next whole year; its `asset_charter_rate`, `cargo_charter_rate`,
+  `instantaneous_freight_rate`, `investment_cost` and delivery costs change (#662).
 
 ## [1.0.0] - 2026-07-16
 

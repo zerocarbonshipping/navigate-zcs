@@ -29,11 +29,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import UtilityID
-from navigate.simulation.economics import (
-    build_year_starts,
-    calculate_asset_shares,
-    trim_flow_to_lifetime,
-)
+from navigate.simulation.economics import build_operating_flows, calculate_asset_shares
 from navigate.simulation.fleet._composition import (
     get_multipliers,
     get_total_multiplier,
@@ -351,13 +347,14 @@ def _calculate_packages_saving(
 
     time = timeline[idx]
     times = timeline[forward]
-    year_starts = build_year_starts(lead_time=0.0, lifetime=lifetime, time_initial=time)
+    flows = build_operating_flows(lead_time=0.0, lifetime=lifetime, time_initial=time)
+    year_starts, operating_flow = flows
 
     savings = []
     for package in packages:
         saving = calculate_marginal_technology_saving(vessel, legs, package, forward)
         yearly_saving = np.interp(year_starts, times, saving)
-        savings.append(trim_flow_to_lifetime(yearly_saving, lifetime))
+        savings.append(yearly_saving * operating_flow)
 
     return savings
 
@@ -422,6 +419,7 @@ def _propose_retrofits(
     cohorts = list(_retrofit_cohorts(fleet, basis, time_step))
 
     v = basis.vessel_idx
+    lifetime = basis.vessel.lifetime.get()
     savings = basis.packages_saving
     discount_rate = basis.discount_rate
     vessel_rate = basis.vessel_discount_rate
@@ -434,7 +432,9 @@ def _propose_retrofits(
             if share <= 0.0:
                 continue
 
-            npv = calculate_retrofit_npv(p, savings, flows, remaining, discount_rate)
+            npv = calculate_retrofit_npv(
+                p, savings, flows, lifetime, remaining, discount_rate
+            )
             choices, _ = basis.calculate_shares(npv)
             costs = calculate_retrofit_charter_rates(p, flows, remaining, vessel_rate)
 

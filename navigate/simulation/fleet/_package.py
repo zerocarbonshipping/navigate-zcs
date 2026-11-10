@@ -22,7 +22,7 @@ from navigate.simulation.economics import (
     calculate_net_present_value,
     expand_to_flow,
     get_flow_size,
-    trim_flow_to_lifetime,
+    trim_flow_to_window,
 )
 from navigate.util import ROUND_OFF
 
@@ -193,7 +193,7 @@ def _build_package_cost_flows(
         cumulative = cumulative + component.get_cost_flow()
         flows.append(cumulative)
 
-    return [trim_flow_to_lifetime(flow, horizon) for flow in flows]
+    return flows
 
 
 def _build_technology_component(
@@ -244,6 +244,7 @@ def calculate_retrofit_npv(
     package_idx: int,
     package_savings: list[FloatArray],
     cost_flows: list[FloatArray],
+    lifetime: float,
     remaining: float,
     discount_rate: float,
 ) -> FloatArray:
@@ -259,9 +260,11 @@ def calculate_retrofit_npv(
     package_idx
         Package the vessels currently sit at.
     package_savings
-        Yearly saving flow of each package, in USD/year.
+        Yearly saving flow of each package over the vessel lifetime, in USD/year.
     cost_flows
         Cost flow of each package over the remaining lifetime, in USD/year.
+    lifetime
+        Vessel lifetime, in years.
     remaining
         Remaining vessel lifetime, in years.
     discount_rate
@@ -272,7 +275,8 @@ def calculate_retrofit_npv(
     FloatArray
         NPV of each retrofit step, in USD; zero for the stay option.
     """
-    savings_flow = trim_flow_to_lifetime(package_savings[package_idx], remaining)
+    package_saving = package_savings[package_idx]
+    savings_flow = trim_flow_to_window(package_saving, lifetime, remaining)
     n_steps = len(package_savings) - package_idx
     npv = np.zeros(n_steps)
 

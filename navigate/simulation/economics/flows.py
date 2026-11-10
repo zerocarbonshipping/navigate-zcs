@@ -33,9 +33,9 @@ class Component:
 
     Every flow spans the horizon `lead_time + lifetime` in calendar-year bins
     anchored at `time_initial`. Operation commences at `time_commence`, after the
-    lead time, and ends at `time_end`, the end of the horizon. `replacement_cycle`
-    is None while the component lives as long as the asset; it is attached by
-    `attach_process_cycle` or `attach_machinery_cycle`.
+    lead time, and ends at `time_end`, after the lifetime; a bin holding either is
+    prorated. `replacement_cycle` is None while the component lives as long as the
+    asset; it is attached by `attach_process_cycle` or `attach_machinery_cycle`.
 
     Parameters
     ----------
@@ -144,11 +144,11 @@ class Component:
 
     def _update_time_context(self, time_initial: float) -> None:
         """Recompute the time context from an investment time."""
-        self.time_initial = time_initial
-        self.time_commence = _future_time(time_initial, self.lead_time)
-        self.time_end = _future_time(time_initial, self.size)
-
+        window = _operating_window(self.lead_time, self.lifetime, time_initial)
         flows = build_operating_flows(self.lead_time, self.lifetime, time_initial)
+
+        self.time_initial = time_initial
+        self.time_commence, self.time_end = window
         self.year_starts, self.operating_flow = flows
 
 
@@ -290,8 +290,8 @@ def build_production_flow(component: Component, production: float) -> FloatArray
     """
     Expand a fixed annual production into a calendar-year flow.
 
-    The flow is zero during the construction lead time, and the first operational
-    year is prorated by its overlap with the operation window.
+    The flow is zero during the construction lead time, and the first and last
+    operational years are prorated by their overlap with the operating window.
 
     Parameters
     ----------
@@ -314,8 +314,8 @@ def build_cargo_flow(
     """
     Expand variable annual cargo-miles into a calendar-year flow.
 
-    The flow is zero during the construction lead time, and the first operational
-    year is prorated by its overlap with the operation window.
+    The flow is zero during the construction lead time, and the first and last
+    operational years are prorated by their overlap with the operating window.
 
     Parameters
     ----------
@@ -335,30 +335,6 @@ def build_cargo_flow(
     return rate * component.operating_flow
 
 
-def build_year_starts(
-    lead_time: float, lifetime: float, time_initial: float
-) -> FloatArray:
-    """
-    Build the start time of each calendar-year bin over an asset's horizon.
-
-    Parameters
-    ----------
-    lead_time
-        Lead time of the asset, in years.
-    lifetime
-        Lifetime of the asset, in years.
-    time_initial
-        Time of the investment decision, in days.
-
-    Returns
-    -------
-    FloatArray
-        Start time of each year over the horizon `lead_time + lifetime`, in days.
-    """
-    size = get_flow_size(lead_time, lifetime)
-    return time_initial + np.arange(size, dtype=float) * YEAR
-
-
 def build_operating_flows(
     lead_time: float, lifetime: float, time_initial: float
 ) -> tuple[FloatArray, FloatArray]:
@@ -366,9 +342,10 @@ def build_operating_flows(
     Build the calendar-year grid of an asset and the fraction of each year it operates.
 
     The operating flow is zero during the lead time and one during operational years,
-    with the first operational year prorated by its overlap with the operation window.
-    Both span `lead_time + lifetime` years, so cost, production and age flows built on
-    them share one basis and spread cost only over the years the asset operates.
+    with the first and last operational years prorated by their overlap with the
+    operating window. Both span `lead_time + lifetime` years, so cost, production and
+    age flows built on them share one basis and spread cost only over the years the
+    asset operates.
 
     Parameters
     ----------
@@ -385,10 +362,10 @@ def build_operating_flows(
         Start time of each year, in days, and the fraction of each year the asset
         operates.
     """
-    year_starts = build_year_starts(lead_time, lifetime, time_initial)
+    size = get_flow_size(lead_time, lifetime)
+    year_starts = time_initial + np.arange(size, dtype=float) * YEAR
 
-    time_commence = _future_time(time_initial, lead_time)
-    time_end = _future_time(time_initial, year_starts.size)
+    time_commence, time_end = _operating_window(lead_time, lifetime, time_initial)
     operating_flow = _overlap_years(year_starts, time_commence, time_end)
 
     return year_starts, operating_flow
@@ -413,29 +390,34 @@ def get_flow_size(lead_time: float, lifetime: float) -> int:
     int
         Number of yearly bins.
     """
-    return math.ceil(round(lead_time + lifetime, ROUND_OFF))
+    return math.ceil(_horizon(lead_time, lifetime))
 
 
-def trim_flow_to_lifetime(flow: FloatArray, lifetime: float) -> FloatArray:
+def trim_flow_to_window(flow: FloatArray, span: float, window: float) -> FloatArray:
     """
-    Trim a yearly flow to its first `lifetime` years, prorating a partial final year.
+    Trim a yearly flow over `span` years to the amount over its first `window` years.
+
+    Each year of the flow holds the amount over the part of it the span covers, so a
+    year the window cuts keeps the window's share of that part.
 
     Parameters
     ----------
     flow
-        Yearly flow covering at least `lifetime` years.
-    lifetime
-        Years to keep.
+        Yearly flow over `span` years, a partial final year holding its prorated amount.
+    span
+        Years the flow covers.
+    window
+        Years to keep, at most `span`.
 
     Returns
     -------
     FloatArray
         Trimmed copy; the input flow is left untouched.
     """
-    trimmed = flow[: get_flow_size(lead_time=0.0, lifetime=lifetime)].copy()
-    _prorate_final_year(trimmed, lifetime)
+    kept = expand_to_flow(window, 1.0)
+    spanned = expand_to_flow(span, 1.0)
 
-    return trimmed
+    return flow[: kept.size] * kept / spanned[: kept.size]
 
 
 def expand_to_flow(lifetime: float, value: float) -> FloatArray:
@@ -454,10 +436,10 @@ def expand_to_flow(lifetime: float, value: float) -> FloatArray:
     FloatArray
         A vector filled with `value`, the partial final year prorated.
     """
-    flow = np.full(get_flow_size(lead_time=0.0, lifetime=lifetime), value)
-    _prorate_final_year(flow, lifetime)
+    flows = build_operating_flows(lead_time=0.0, lifetime=lifetime, time_initial=0.0)
+    _, operating_flow = flows
 
-    return flow
+    return value * operating_flow
 
 
 def _bin_index(time: float, time_initial: float, size: int) -> int:
@@ -499,6 +481,54 @@ def _future_time(time: float, years: float) -> float:
         New absolute time, in days.
     """
     return time + years * YEAR
+
+
+def _horizon(lead_time: float, lifetime: float) -> float:
+    """
+    Sum an asset's lead time and lifetime into the years it spans.
+
+    The sum is rounded, so a whole number of years summed from fractional parts, as
+    0.1 + 2.9, ends exactly on a bin edge.
+
+    Parameters
+    ----------
+    lead_time
+        Lead time of the asset, in years.
+    lifetime
+        Lifetime of the asset, in years.
+
+    Returns
+    -------
+    float
+        Years from the investment decision to the end of operation.
+    """
+    return round(lead_time + lifetime, ROUND_OFF)
+
+
+def _operating_window(
+    lead_time: float, lifetime: float, time_initial: float
+) -> tuple[float, float]:
+    """
+    Calculate the times an asset commences and ends operation.
+
+    Parameters
+    ----------
+    lead_time
+        Lead time of the asset, in years.
+    lifetime
+        Lifetime of the asset, in years.
+    time_initial
+        Time of the investment decision, in days.
+
+    Returns
+    -------
+    tuple[float, float]
+        Times of commencement and of the end of operation, in days.
+    """
+    time_commence = _future_time(time_initial, lead_time)
+    time_end = _future_time(time_initial, _horizon(lead_time, lifetime))
+
+    return time_commence, time_end
 
 
 def _overlap_years(year_starts: FloatArray, start: float, end: float) -> FloatArray:
@@ -565,7 +595,7 @@ def _calculate_staircase_segments(
     Calculate the anchor time and normalized overlap of each component lifetime.
 
     Each segment runs from an installation to the next replacement, or to the end of
-    the horizon. Its anchor time is the time at which a locked value is evaluated, and
+    operation. Its anchor time is the time at which a locked value is evaluated, and
     its normalized overlap is the overlap per calendar-year bin as a fraction of a
     year.
 
@@ -643,8 +673,8 @@ def _add_initial_tied_capital_flow(component: Component, deposits: FloatArray) -
          bins before commencement.
       2) Straight-line depreciation from commencement (bin-start convention) with no
          residual value, applied as two tranches:
-            - non-replaceable share: (1 - replace(time_initial)) depreciated over the
-              full remaining asset horizon
+            - non-replaceable share: (1 - replace(time_initial)) depreciated from the
+              commencement bin to the end of operation
             - replaceable share: replace(time_initial) depreciated over the component
               lifetime locked at time_initial
 
@@ -715,7 +745,7 @@ def _add_recurring_capex_flow(
 
     Each replacement's CAPEX is locked at its replacement time and deposited into the
     calendar-year bin holding it, scaled by the share of the component lifetime that
-    fits within the remaining horizon. Its tied up capital depreciates straight-line
+    fits before the end of operation. Its tied up capital depreciates straight-line
     from the bin start, over the component lifetime locked at the replacement.
 
     Parameters
@@ -747,8 +777,8 @@ def _build_staircase_flow(
     """
     Build a piecewise-constant flow, locked at installation and each replacement.
 
-    The first operational calendar year is prorated by the overlaps, which already
-    reflect a fractional lead time.
+    The first and last operational calendar years are prorated by the overlaps, which
+    already reflect a fractional lead time and lifetime.
 
     Parameters
     ----------
@@ -763,7 +793,7 @@ def _build_staircase_flow(
         Piecewise-constant flow per calendar year.
     """
     # a component as long-lived as its asset holds one value, zero during the lead
-    # time and prorated in the commencement year
+    # time and prorated in the years operation commences and ends
     cycle = component.replacement_cycle
     if cycle is None:
         return value(component.time_initial) * component.operating_flow
@@ -773,21 +803,3 @@ def _build_staircase_flow(
         flow += value(anchor) * overlap
 
     return flow
-
-
-def _prorate_final_year(flow: FloatArray, lifetime: float) -> None:
-    """
-    Scale the final year of a yearly flow by the fraction of it within the lifetime.
-
-    Parameters
-    ----------
-    flow
-        Yearly flow whose final year is prorated in place.
-    lifetime
-        Lifetime of the asset, in years.
-    """
-    years = round(lifetime, ROUND_OFF)
-    fraction = years - math.floor(years)
-
-    if fraction > 0.0:
-        flow[-1] *= fraction
