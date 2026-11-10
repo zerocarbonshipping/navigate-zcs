@@ -24,19 +24,29 @@ session:
       - global.consumed_energy
       - global.shore_power_energy
 
+  # per transport work: the fleet's cargo-miles are tonne-nautical-miles, and the
+  # scale turns USD per tonne-nautical-mile into USD per 1,000 tonne-km (1,000 / 1.852)
   expenses:
-    title: What the ships paid
+    title: What the ships paid per tonne-km
+    unit: USD per 1,000 t-km
     draw: stack
     split_by: attribute
+    per: fleet.cargo_miles
+    scale: 539.96
     series:
-      - global.vessel_expenses
-      - global.fuel_conversion_expenses
-      - global.technology_expenses
-      - global.total_fuel_expenses
-      - global.levy_expenses
-      - global.regulation_expenses
+      - fleet.vessel_expenses
+      - fleet.fuel_conversion_expenses
+      - fleet.technology_expenses
+      - fleet.total_fuel_expenses
+      - fleet.levy_expenses
+      - fleet.regulation_expenses
 
+  # on a Horizon study's summary runs this is, say, the median expenses over the
+  # median cargo-miles, not the median of their ratio
   expenses_total:
-    title: What the ships paid, in total
+    title: What the ships paid in total, per tonne-km
+    unit: USD per 1,000 t-km
     total: true
-    series: global.expenses
+    per: fleet.cargo_miles
+    scale: 539.96
+    series: fleet.expenses
