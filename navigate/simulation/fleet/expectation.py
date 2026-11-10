@@ -174,7 +174,7 @@ def _calculate_mean_ttw(
 
 
 def calculate_fleet_evolution_expectation(
-    fleet: Fleet, timeline: FloatArray, idx: int
+    fleet: Fleet, timeline: FloatArray, idx: int, *, scrapping_pending: bool
 ) -> None:
     """
     Calculate the multipliers of the existing and expected fleet from this time-step on.
@@ -190,12 +190,15 @@ def calculate_fleet_evolution_expectation(
         Simulation timeline, in days.
     idx
         Current time-step index, where the expectation starts.
+    scrapping_pending
+        Whether this time-step's scrapping is still to run. If not, the existing
+        multipliers at the time-step are the vessels in the fleet.
     """
     forward = np.s_[idx:]
     years = timeline[forward] / YEAR
     years_ahead = years - years[0]
 
-    existing = _existing_multipliers(fleet, years_ahead)
+    existing = _existing_multipliers(fleet, years_ahead, scrapping_pending)
 
     # the multipliers become cargo-miles to take the speed expectations into account
     cargo_miles = extract_cargo_miles(fleet.vessels, forward)
@@ -232,7 +235,9 @@ def calculate_fleet_evolution_expectation(
         expectation.set_multiplier(name, BunkerScopeID.EXPECTED, idx, expected[v])
 
 
-def _existing_multipliers(fleet: Fleet, years_ahead: FloatArray) -> FloatArray:
+def _existing_multipliers(
+    fleet: Fleet, years_ahead: FloatArray, scrapping_pending: bool
+) -> FloatArray:
     """
     Return the multipliers of the existing vessels, declining by expected scrapping.
 
@@ -242,6 +247,8 @@ def _existing_multipliers(fleet: Fleet, years_ahead: FloatArray) -> FloatArray:
         Fleet whose existing vessels are scrapped.
     years_ahead
         Years from the current time-step to each time-step of the horizon.
+    scrapping_pending
+        Whether the current time-step's scrapping is still to run.
 
     Returns
     -------
@@ -263,6 +270,12 @@ def _existing_multipliers(fleet: Fleet, years_ahead: FloatArray) -> FloatArray:
         # first, so the cumulative sum is the expected scrapping to date
         cumulative = np.cumsum(multipliers)
         scrapped = np.interp(years_ahead, lifetime - ages, cumulative, left=0.0)
+
+        # with no scrapping left to run at the current time-step, the vessels at or
+        # past their lifetime stay in the fleet for it
+        if not scrapping_pending:
+            scrapped[0] = 0.0
+
         existing[v] = get_multiplier(fleet, v) - scrapped
 
     return existing

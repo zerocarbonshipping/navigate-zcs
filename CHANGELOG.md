@@ -388,6 +388,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `ValueError` once it has `Technologies`. Technology costs are amortized over
   each vessel's own lifetime, or the years left for a retrofit, so a
   replacement outlasting them is charged only in part (#546).
+- Ships at their vessel type's `Lifetime` that are still in the fleet now
+  bunker. The fleet's fuel demand, fuel expenses and emissions include them
+  (#543).
 - `set_power_transfer` (Technology) accepts a transfer above 1 MW; the value
   is a power in MW and was capped at 1.
 - `--solver auto` no longer fails with a traceback (#402).
