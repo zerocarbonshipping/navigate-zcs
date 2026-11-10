@@ -36,6 +36,7 @@ from navigate.simulation.fleet._composition import (
     get_total_multiplier,
     is_retrofit_cycle,
 )
+from navigate.simulation.fleet.charter import build_fuel_component
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -60,14 +61,13 @@ class _ConversionTarget:
         Name of the destination vessel type.
     fuel_type
         Primary fuel type of the destination vessel type.
-    lead_time
-        Lead time of the destination vessel type, in years.
     lifetime
         Lifetime of the destination vessel type, in years.
     energy_per_vessel
         Energy demand of one destination vessel, in GJ/year.
     fuel_cost_flow
-        Expected yearly fuel cost flow of one destination vessel, in USD/year.
+        Expected yearly fuel cost flow of one destination vessel in service from now,
+        over the vessel type's lifetime, in USD/year.
     discount_rate
         Discount rate of the destination vessel type, its cost of capital.
     cost
@@ -76,7 +76,6 @@ class _ConversionTarget:
 
     name: str
     fuel_type: FuelTypeID
-    lead_time: float
     lifetime: float
     energy_per_vessel: float
     fuel_cost_flow: FloatArray
@@ -95,14 +94,13 @@ class _ConversionSource:
         Name of the source vessel type.
     fuel_type
         Primary fuel type of the source vessel type.
-    lead_time
-        Lead time of the source vessel type, in years.
     lifetime
         Lifetime of the source vessel type, in years.
     energy_per_vessel
         Energy demand of one source vessel, in GJ/year.
     fuel_cost_flow
-        Expected yearly fuel cost flow of one source vessel, in USD/year.
+        Expected yearly fuel cost flow of one source vessel in service from now, over
+        the vessel type's lifetime, in USD/year.
     capex_npv
         Summed ship CAPEX NPV, in USD; it non-dimensionalizes the conversion NPV in
         the DCM.
@@ -112,7 +110,6 @@ class _ConversionSource:
 
     name: str
     fuel_type: FuelTypeID
-    lead_time: float
     lifetime: float
     energy_per_vessel: float
     fuel_cost_flow: FloatArray
@@ -224,13 +221,13 @@ def perform_fuel_conversions(
     if not fleet.can_fuel_convert():
         return
 
-    proposals = _propose_fuel_conversions(fleet, time_step, idx)
+    proposals = _propose_fuel_conversions(fleet, timeline, time_step, idx)
     _reconcile_fuel_conversion_caps(fleet, proposals, time_step)
     _apply_fuel_conversions(fleet, proposals, timeline, idx)
 
 
 def _propose_fuel_conversions(
-    fleet: Fleet, time_step: float, idx: int
+    fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> list[_ConversionProposal]:
     """
     Walk the (from-type, eligible-cohort, to-type) nest to produce conversion counts.
@@ -254,10 +251,13 @@ def _propose_fuel_conversions(
     ----------
     fleet
         Fleet whose vessels may convert.
+    timeline
+        Simulation timeline, in days.
     time_step
         Current time-step size, in days.
     idx
-        Current time-step index of the energy and cost-flow lookups.
+        Current time-step index of the expectation lookups, where the fuel cost flows
+        start.
 
     Returns
     -------
@@ -276,7 +276,7 @@ def _propose_fuel_conversions(
 
     proposals = []
 
-    for cohort in _eligible_cohorts(fleet, time_step, idx):
+    for cohort in _eligible_cohorts(fleet, timeline, time_step, idx):
         candidates = _evaluate_candidates(cohort, supply_excess)
         if not candidates:
             continue
@@ -369,7 +369,7 @@ def _apply_fuel_conversions(
 
 
 def _eligible_cohorts(
-    fleet: Fleet, time_step: float, idx: int
+    fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> Iterator[_ConversionCohort]:
     """
     Yield the cohorts eligible for conversion, in walk order.
@@ -382,10 +382,13 @@ def _eligible_cohorts(
     ----------
     fleet
         Fleet whose vessels may convert.
+    timeline
+        Simulation timeline, in days.
     time_step
         Current time-step size, in days.
     idx
-        Current time-step index of the expectation lookups.
+        Current time-step index of the expectation lookups, where the fuel cost flows
+        start.
 
     Yields
     ------
@@ -398,8 +401,14 @@ def _eligible_cohorts(
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
 
+    fuel_cost_flows = {}
+    for vessel in fleet.vessels:
+        fuel_cost_flows[vessel.name] = _build_fuel_cost_flow(vessel, timeline, idx)
+
     for vessel_from, increments in zip(fleet.vessels, fleet.increments, strict=True):
-        source = _extract_conversion_source(fleet, vessels, vessel_from, idx)
+        source = _extract_conversion_source(
+            fleet, vessels, fuel_cost_flows, vessel_from, idx
+        )
         if source is None:
             continue
 
@@ -425,7 +434,11 @@ def _eligible_cohorts(
 
 
 def _extract_conversion_source(
-    fleet: Fleet, vessels: dict[str, Vessel], vessel_from: Vessel, idx: int
+    fleet: Fleet,
+    vessels: dict[str, Vessel],
+    fuel_cost_flows: dict[str, FloatArray],
+    vessel_from: Vessel,
+    idx: int,
 ) -> _ConversionSource | None:
     """
     Bundle the per-source-vessel-type invariants of a propose pass.
@@ -439,6 +452,9 @@ def _extract_conversion_source(
         Fleet holding the conversion costs and settings.
     vessels
         Vessel types by name.
+    fuel_cost_flows
+        Expected yearly fuel cost flow of one vessel in service from now, over its
+        vessel type's lifetime, by vessel-type name, in USD/year.
     vessel_from
         Source vessel type.
     idx
@@ -458,7 +474,9 @@ def _extract_conversion_source(
         if not (fleet.allow_vessel[name_to] and fleet.conversion_available[name_to]):
             continue
 
-        targets[name_to] = _extract_conversion_target(vessels[name_to], cost, idx)
+        vessel_to = vessels[name_to]
+        flow_to = fuel_cost_flows[name_to]
+        targets[name_to] = _extract_conversion_target(vessel_to, flow_to, cost, idx)
 
     if not targets:
         return None
@@ -466,17 +484,19 @@ def _extract_conversion_source(
     return _ConversionSource(
         vessel_from.name,
         vessel_from.primary_fuel_type,
-        vessel_from.lead_time.get(),
         vessel_from.lifetime.get(),
         vessel_from.expectation.get_total_energy(idx),
-        vessel_from.expectation.get_fuel_cost_flow(),
+        fuel_cost_flows[vessel_from.name],
         vessel_from.expectation.get_capex_npv(idx),
         targets,
     )
 
 
 def _extract_conversion_target(
-    vessel_to: Vessel, conversion_cost: ForecastInput, idx: int
+    vessel_to: Vessel,
+    fuel_cost_flow: FloatArray,
+    conversion_cost: ForecastInput,
+    idx: int,
 ) -> _ConversionTarget:
     """
     Bundle the invariants of one conversion lane's destination for a propose pass.
@@ -485,6 +505,9 @@ def _extract_conversion_target(
     ----------
     vessel_to
         Destination vessel type.
+    fuel_cost_flow
+        Expected yearly fuel cost flow of one destination vessel in service from now,
+        over the vessel type's lifetime, in USD/year.
     conversion_cost
         Cost of converting one vessel along the lane.
     idx
@@ -502,13 +525,37 @@ def _extract_conversion_target(
     return _ConversionTarget(
         vessel_to.name,
         vessel_to.primary_fuel_type,
-        vessel_to.lead_time.get(),
         vessel_to.lifetime.get(),
         energy_per_vessel,
-        vessel_to.expectation.get_fuel_cost_flow(),
+        fuel_cost_flow,
         vessel_to.cost_of_capital.get(),
         conversion_cost.get(),
     )
+
+
+def _build_fuel_cost_flow(vessel: Vessel, timeline: FloatArray, idx: int) -> FloatArray:
+    """
+    Build the expected fuel cost flow of one vessel already in service.
+
+    The vessel serves from this time-step on, so the flow has no lead time and spans
+    the vessel type's lifetime.
+
+    Parameters
+    ----------
+    vessel
+        Vessel type providing the lifetime and the expected fuel and policy expenses.
+    timeline
+        Simulation timeline, in days.
+    idx
+        Current time-step index, where the flow starts.
+
+    Returns
+    -------
+    FloatArray
+        Yearly fuel cost flow, in USD/year.
+    """
+    component = build_fuel_component(vessel, lead_time=0.0, timeline=timeline, idx=idx)
+    return component.get_cost_flow()
 
 
 def _evaluate_candidates(
@@ -575,11 +622,11 @@ def _evaluate_candidate(
     maximum_vessels = supply / target.energy_per_vessel
     limit = min(maximum_vessels / cohort.increment.multiplier, 1.0)
 
-    # fuel savings count over the years both the current and the converted
-    # vessel type still serve; the conversion cost is a lump sum up front
+    # fuel savings count over the years from now that both the current and the
+    # converted vessel type still serve; the conversion cost is a lump sum up front
     common_years = min(remaining_from, remaining_to)
-    span_from = source.lead_time + source.lifetime
-    span_to = target.lead_time + target.lifetime
+    span_from = source.lifetime
+    span_to = target.lifetime
     fuel_cost_from = trim_flow_to_window(source.fuel_cost_flow, span_from, common_years)
     fuel_cost_to = trim_flow_to_window(target.fuel_cost_flow, span_to, common_years)
     cash_flow = fuel_cost_from - fuel_cost_to
