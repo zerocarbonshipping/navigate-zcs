@@ -56,7 +56,10 @@ every change. The detail lives in the files it points to.
   `gh-pages`; `dev` publishes to `/staging/`. `docs/tutorials/` holds each
   tutorial's starting files next to its page; the docs build zips them into
   the page's download, and the example solution is written into the page.
-  Nothing runs the tutorials. The build also packages the VS Code extension
+  Nothing runs the tutorials. `docs/notebooks/` holds each workshop notebook
+  in a folder of its own, next to the case it runs; the notebook keeps the
+  outputs of one run, which its page shows, and `docs/check_notebooks.py`
+  checks them. The build also packages the VS Code extension
   from `syntax/vscode/` for the getting-started page.
 - `syntax/` — editor syntax highlighting for the DSL; `syntax/vscode/` is the
   VS Code extension's source.

@@ -7,7 +7,7 @@ Check that each tutorial notebook holds one clean run of it.
 The documentation shows a notebook with the outputs saved in it and never runs
 it, so those outputs must come from one run from a fresh kernel, without
 errors, with every plot, and with the setup cell's ROOT left at Colab's
-/content. Without arguments it checks every notebook under docs/tutorials/; a
+/content. Without arguments it checks every notebook under docs/notebooks/; a
 pre-commit hook can pass the notebooks it commits instead.
 """
 
@@ -18,7 +18,7 @@ import re
 import sys
 from pathlib import Path
 
-NOTEBOOKS = Path(__file__).parent / "tutorials"
+NOTEBOOKS = Path(__file__).parent / "notebooks"
 
 # a shell command such as !navigate prints its error as plain text, and Horizon
 # logs it at the ERROR level
