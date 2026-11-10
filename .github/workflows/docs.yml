@@ -38,6 +38,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r docs/requirements.txt
 
+      # the site shows each notebook's saved outputs and never runs it
+      - name: Check the notebooks hold one clean run
+        run: python docs/check_notebooks.py
+
       - name: Build documentation
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
