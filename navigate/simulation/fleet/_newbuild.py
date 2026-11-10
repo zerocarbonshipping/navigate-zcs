@@ -264,15 +264,15 @@ def _calculate_delivery(
     FloatArray
         Delivered vessels per type.
     float
-        Share of the orders delivered; 1.0 when they carry no trade, as none is
-        deferred then.
+        Share of the orders delivered, between 0.0 and 1.0; 1.0 when they carry no
+        trade, as none is deferred then.
     """
     trade = np.dot(orders, cargo_miles)
 
     if trade <= 0.0:
         return np.zeros_like(orders), 1.0
 
-    share = min(trade_gap / trade, 1.0)
+    share = min(max(trade_gap / trade, 0.0), 1.0)
     delivery = share * orders
 
     attempted = np.sum(orders)
