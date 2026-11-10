@@ -32,8 +32,17 @@ def find_problems(path: Path) -> list[str]:
     problems = []
 
     # 'restart the kernel and run all cells' numbers the cells 1, 2, ... in
-    # order; a cell run twice, skipped or run out of order breaks the sequence
-    if [cell["execution_count"] for cell in code] != list(range(1, len(code) + 1)):
+    # order; a cell run twice, skipped or run out of order breaks the sequence.
+    # VS Code clears a cell's number when it is edited after the run, as the
+    # setup cell is when ROOT is set back to /content, so that one may be missing
+    expected = list(range(1, len(code) + 1))
+    counts = [
+        number
+        if cell["execution_count"] is None and is_setup(cell)
+        else cell["execution_count"]
+        for number, cell in zip(expected, code, strict=True)
+    ]
+    if counts != expected:
         problems.append(
             "not one run from a fresh kernel: restart the kernel and run all cells"
         )
@@ -53,10 +62,15 @@ def find_problems(path: Path) -> list[str]:
             problems.append(f"{name} shows an error")
         if "show(" in source and not has_plot:
             problems.append(f"{name} shows no plot")
-        if source.startswith("ROOT = ") and not source.startswith('ROOT = "/content"'):
+        if is_setup(cell) and not source.startswith('ROOT = "/content"'):
             problems.append(f"{name}: ROOT is not /content")
 
     return [f"{path}: {problem}" for problem in problems]
+
+
+def is_setup(cell: dict) -> bool:
+    """Tell whether a code cell is the setup cell, which sets ROOT."""
+    return "".join(cell["source"]).startswith("ROOT = ")
 
 
 if __name__ == "__main__":
