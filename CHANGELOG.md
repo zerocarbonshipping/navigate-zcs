@@ -68,6 +68,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   requested; they used to produce no column.
 
 ### Changed
+- A deck that needs the assumptions when no folder is given names the
+  folder of the clone Navigate was installed from, with the command that sets
+  `ASSUMPTIONS_DATA_DIR` on this system, or links the download of the
+  installed version's assumptions (the dev branch for an unreleased version).
 - `-p` writes the profile to `<name>.prof`, not `profile`, and an infeasible
   bunkering LP is written to `<name>_bunkering_infeasible.lp` and `.ilp`.
 - The deck is read in three phases - collect every file into declarations and
