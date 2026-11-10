@@ -567,7 +567,9 @@ class Simulation:
 
     def _calculate_fleet_evolution_expectations(self) -> None:
         for fleet in self.nodes.fleets.values():
-            calculate_fleet_evolution_expectation(fleet, self.timeline, self._idx)
+            calculate_fleet_evolution_expectation(
+                fleet, self.timeline, self._idx, scrapping_pending=True
+            )
 
     def _prepare_bunkering(self, bunker: BunkerAlgorithm) -> None:
         """
@@ -728,7 +730,9 @@ class Simulation:
             # pre-evolution transfer already served the cargo charter)
             transfer_technology_charter_rate(fleet, self._idx)
 
-            calculate_fleet_evolution_expectation(fleet, self.timeline, self._idx)
+            calculate_fleet_evolution_expectation(
+                fleet, self.timeline, self._idx, scrapping_pending=False
+            )
 
     @timed(TimingID.PRODUCER_EVOLUTION)
     def _perform_producer_evolution(self) -> None:
