@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import logging
-from itertools import compress
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -266,15 +265,15 @@ def _find_continued_increments(
     Find the plants of each increment still running once new plants are built.
 
     Increments decommissioned before new plants could be built do not count. As the
-    model is continuous, an increment straddling that boundary adds its share below
-    the boundary after the increments still running.
+    model is continuous, an increment straddling that boundary counts only its share
+    below the boundary, as in the decommissioning of plants.
 
     Parameters
     ----------
     plant
         The plant type of the increments.
     increments
-        Increments of the plant type, oldest first.
+        Increments of the plant type.
 
     Returns
     -------
@@ -282,27 +281,19 @@ def _find_continued_increments(
         The number of plants of each continued increment and the years since it was
         decided.
     """
-    lifetime = plant.lifetime.get()
-    lead_time = plant.lead_time.get()
-    boundary = lifetime - lead_time
+    boundary = plant.lifetime.get() - plant.lead_time.get()
 
-    ages = np.array([increment.age for increment in increments])
-    continued = lifetime - ages > lead_time
+    multipliers: list[float] = []
+    decided: list[float] = []
 
-    if not continued.any():
-        return np.empty(0), np.empty(0)
-
-    running = list(compress(increments, continued))
-    start = np.argmax(continued)
-
-    multipliers = [increment.multiplier for increment in running]
-    decided = [increment.decided for increment in running]
-
-    for increment in increments[start:]:
-        if not extends_past(increment, boundary):
+    for increment in increments:
+        if increment.age >= boundary:
             continue
 
-        share = calculate_share_below(increment, boundary)
+        share = 1.0
+        if extends_past(increment, boundary):
+            share = calculate_share_below(increment, boundary)
+
         multipliers.append(increment.multiplier * share)
         decided.append(increment.decided)
 
