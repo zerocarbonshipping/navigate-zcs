@@ -3,6 +3,7 @@
 
 sphinx
 myst-parser
+myst-nb
 pydata-sphinx-theme
 sphinx-design
 sphinx-copybutton
