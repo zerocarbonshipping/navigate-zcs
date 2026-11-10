@@ -9,15 +9,20 @@ Files sit at ``defaults/<NodeType>/<name>.inc`` and ``modules/<module>.inc``.
 
 from __future__ import annotations
 
+import json
+import sys
+from importlib.metadata import PackageNotFoundError, distribution
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from navigate.util import attribute_to_instance_name
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from navigate.exceptions import DeckError
     from navigate.parser._syntax import SourceLocation
+
+_DISTRIBUTION = "navigate-zcs"
+_REPOSITORY = "https://github.com/zerocarbonshipping/navigate-zcs"
 
 
 class Library:
@@ -63,9 +68,72 @@ class Library:
 
 
 def _unavailable_error(subject: str, source: SourceLocation) -> DeckError:
-    """Build the error for a request made with no assumptions folder given."""
-    return source.error(
+    """
+    Build the error for a request made with no assumptions folder given.
+
+    It names the folder of the clone Navigate came from with the command that
+    sets the environment variable on this system, or else links the download of
+    the installed version's assumptions.
+    """
+    message = (
         f"{subject} is requested but no assumptions directory is specified. "
         "Specify it with the -d/--data-dir flag or the ASSUMPTIONS_DATA_DIR "
-        "environment variable."
+        "environment variable.\n"
+    )
+
+    folder = _clone_assumptions()
+    if folder is not None:
+        if sys.platform == "win32":
+            command = f'setx ASSUMPTIONS_DATA_DIR "{folder}"'
+        else:
+            profile = "~/.zshrc" if sys.platform == "darwin" else "~/.bashrc"
+            command = f"echo 'export ASSUMPTIONS_DATA_DIR=\"{folder}\"' >> {profile}"
+        return source.error(
+            f"{message}The assumptions are in {folder}. To use them in every run, "
+            "set the environment variable once and open a new terminal:\n"
+            f"    {command}\n"
+            f'or pass the folder to this run with: -d "{folder}"'
+        )
+
+    try:
+        version: str | None = distribution(_DISTRIBUTION).version
+    except PackageNotFoundError:
+        version = None
+
+    # an unreleased version has no tag; the dev branch is where it comes from
+    if version is None or ".dev" in version:
+        what, ref = "the dev branch", "heads/dev"
+    else:
+        what, ref = f"Navigate {version}", f"tags/v{version}"
+
+    return source.error(
+        f"{message}Download the assumptions of {what}:\n"
+        f"    {_REPOSITORY}/archive/refs/{ref}.zip\n"
+        "unzip it and pass its assumptions folder with -d, or set "
+        "ASSUMPTIONS_DATA_DIR to it."
+    )
+
+
+def _clone_assumptions() -> Path | None:
+    """Return the assumptions folder of the clone Navigate came from, if any."""
+    # an editable install runs from the clone, this file at <clone>/navigate/parser/;
+    # 'pip install .' records the folder it installed from (PEP 610 'dir_info'),
+    # where an install from a wheel or a git URL records no folder
+    clones = [Path(__file__).resolve().parents[2]]
+    try:
+        record = distribution(_DISTRIBUTION).read_text("direct_url.json")
+    except PackageNotFoundError:
+        record = None
+
+    direct_url = json.loads(record) if record else {}
+    if "dir_info" in direct_url:
+        clones.append(Path.from_uri(direct_url["url"]))
+
+    return next(
+        (
+            clone / "assumptions"
+            for clone in clones
+            if (clone / "assumptions" / "defaults").is_dir()
+        ),
+        None,
     )
