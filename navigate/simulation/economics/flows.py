@@ -335,30 +335,6 @@ def build_cargo_flow(
     return rate * component.operating_flow
 
 
-def build_year_starts(
-    lead_time: float, lifetime: float, time_initial: float
-) -> FloatArray:
-    """
-    Build the start time of each calendar-year bin over an asset's horizon.
-
-    Parameters
-    ----------
-    lead_time
-        Lead time of the asset, in years.
-    lifetime
-        Lifetime of the asset, in years.
-    time_initial
-        Time of the investment decision, in days.
-
-    Returns
-    -------
-    FloatArray
-        Start time of each year over the horizon `lead_time + lifetime`, in days.
-    """
-    size = get_flow_size(lead_time, lifetime)
-    return time_initial + np.arange(size, dtype=float) * YEAR
-
-
 def build_operating_flows(
     lead_time: float, lifetime: float, time_initial: float
 ) -> tuple[FloatArray, FloatArray]:
@@ -386,7 +362,8 @@ def build_operating_flows(
         Start time of each year, in days, and the fraction of each year the asset
         operates.
     """
-    year_starts = build_year_starts(lead_time, lifetime, time_initial)
+    size = get_flow_size(lead_time, lifetime)
+    year_starts = time_initial + np.arange(size, dtype=float) * YEAR
 
     time_commence, time_end = _operating_window(lead_time, lifetime, time_initial)
     operating_flow = _overlap_years(year_starts, time_commence, time_end)
@@ -416,26 +393,31 @@ def get_flow_size(lead_time: float, lifetime: float) -> int:
     return math.ceil(_horizon(lead_time, lifetime))
 
 
-def trim_flow_to_lifetime(flow: FloatArray, lifetime: float) -> FloatArray:
+def trim_flow_to_window(flow: FloatArray, span: float, window: float) -> FloatArray:
     """
-    Trim a yearly flow to its first `lifetime` years, prorating a partial final year.
+    Trim a yearly flow over `span` years to the amount over its first `window` years.
+
+    Each year of the flow holds the amount over the part of it the span covers, so a
+    year the window cuts keeps the window's share of that part.
 
     Parameters
     ----------
     flow
-        Yearly flow covering at least `lifetime` years.
-    lifetime
-        Years to keep.
+        Yearly flow over `span` years, a partial final year holding its prorated amount.
+    span
+        Years the flow covers.
+    window
+        Years to keep, at most `span`.
 
     Returns
     -------
     FloatArray
         Trimmed copy; the input flow is left untouched.
     """
-    trimmed = flow[: get_flow_size(lead_time=0.0, lifetime=lifetime)].copy()
-    _prorate_final_year(trimmed, lifetime)
+    kept = expand_to_flow(window, 1.0)
+    spanned = expand_to_flow(span, 1.0)
 
-    return trimmed
+    return flow[: kept.size] * kept / spanned[: kept.size]
 
 
 def expand_to_flow(lifetime: float, value: float) -> FloatArray:
@@ -454,10 +436,10 @@ def expand_to_flow(lifetime: float, value: float) -> FloatArray:
     FloatArray
         A vector filled with `value`, the partial final year prorated.
     """
-    flow = np.full(get_flow_size(lead_time=0.0, lifetime=lifetime), value)
-    _prorate_final_year(flow, lifetime)
+    flows = build_operating_flows(lead_time=0.0, lifetime=lifetime, time_initial=0.0)
+    _, operating_flow = flows
 
-    return flow
+    return value * operating_flow
 
 
 def _bin_index(time: float, time_initial: float, size: int) -> int:
@@ -821,21 +803,3 @@ def _build_staircase_flow(
         flow += value(anchor) * overlap
 
     return flow
-
-
-def _prorate_final_year(flow: FloatArray, lifetime: float) -> None:
-    """
-    Scale the final year of a yearly flow by the fraction of it within the lifetime.
-
-    Parameters
-    ----------
-    flow
-        Yearly flow whose final year is prorated in place.
-    lifetime
-        Lifetime of the asset, in years.
-    """
-    years = round(lifetime, ROUND_OFF)
-    fraction = years - math.floor(years)
-
-    if fraction > 0.0:
-        flow[-1] *= fraction

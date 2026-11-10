@@ -29,7 +29,7 @@ from navigate.simulation.economics import (
     calculate_asset_shares,
     calculate_net_present_value,
     expand_to_flow,
-    trim_flow_to_lifetime,
+    trim_flow_to_window,
 )
 from navigate.simulation.fleet._composition import (
     get_multipliers,
@@ -60,6 +60,8 @@ class _ConversionTarget:
         Name of the destination vessel type.
     fuel_type
         Primary fuel type of the destination vessel type.
+    lead_time
+        Lead time of the destination vessel type, in years.
     lifetime
         Lifetime of the destination vessel type, in years.
     energy_per_vessel
@@ -74,6 +76,7 @@ class _ConversionTarget:
 
     name: str
     fuel_type: FuelTypeID
+    lead_time: float
     lifetime: float
     energy_per_vessel: float
     fuel_cost_flow: FloatArray
@@ -92,6 +95,8 @@ class _ConversionSource:
         Name of the source vessel type.
     fuel_type
         Primary fuel type of the source vessel type.
+    lead_time
+        Lead time of the source vessel type, in years.
     lifetime
         Lifetime of the source vessel type, in years.
     energy_per_vessel
@@ -107,6 +112,7 @@ class _ConversionSource:
 
     name: str
     fuel_type: FuelTypeID
+    lead_time: float
     lifetime: float
     energy_per_vessel: float
     fuel_cost_flow: FloatArray
@@ -460,6 +466,7 @@ def _extract_conversion_source(
     return _ConversionSource(
         vessel_from.name,
         vessel_from.primary_fuel_type,
+        vessel_from.lead_time.get(),
         vessel_from.lifetime.get(),
         vessel_from.expectation.get_total_energy(idx),
         vessel_from.expectation.get_fuel_cost_flow(),
@@ -495,6 +502,7 @@ def _extract_conversion_target(
     return _ConversionTarget(
         vessel_to.name,
         vessel_to.primary_fuel_type,
+        vessel_to.lead_time.get(),
         vessel_to.lifetime.get(),
         energy_per_vessel,
         vessel_to.expectation.get_fuel_cost_flow(),
@@ -555,6 +563,7 @@ def _evaluate_candidate(
         The evaluated candidate, its ``count`` still unset, or None when the
         destination type has no remaining lifetime or no fuel supply excess.
     """
+    source = cohort.source
     remaining_from = cohort.remaining_lifetime
     remaining_to = round(target.lifetime - cohort.mean_age, ROUND_OFF)
     if remaining_to <= 0.0:
@@ -566,11 +575,13 @@ def _evaluate_candidate(
     maximum_vessels = supply / target.energy_per_vessel
     limit = min(maximum_vessels / cohort.increment.multiplier, 1.0)
 
-    # fuel savings count over the window both the current and the converted
+    # fuel savings count over the years both the current and the converted
     # vessel type still serve; the conversion cost is a lump sum up front
-    common_window = min(remaining_from, remaining_to)
-    fuel_cost_from = trim_flow_to_lifetime(cohort.source.fuel_cost_flow, common_window)
-    fuel_cost_to = trim_flow_to_lifetime(target.fuel_cost_flow, common_window)
+    common_years = min(remaining_from, remaining_to)
+    span_from = source.lead_time + source.lifetime
+    span_to = target.lead_time + target.lifetime
+    fuel_cost_from = trim_flow_to_window(source.fuel_cost_flow, span_from, common_years)
+    fuel_cost_to = trim_flow_to_window(target.fuel_cost_flow, span_to, common_years)
     cash_flow = fuel_cost_from - fuel_cost_to
     cash_flow[0] -= target.cost
     metric = calculate_net_present_value(cash_flow, target.discount_rate)
