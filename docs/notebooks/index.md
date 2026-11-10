@@ -19,7 +19,7 @@ notebook_1/notebook_1
 
 Colab needs nothing installed and is recommended. To run a notebook locally instead, you need:
 
-- The notebook file.
+- The notebook `.ipynb` file.
 - Python 3.13
 - A fresh environment, `conda` or `venv`
 - A Jupyter kernel in that environment: `pip install ipykernel`
