@@ -104,3 +104,35 @@ jobs:
           publish_dir: site
           destination_dir: staging
           keep_files: false
+
+  # Pages serves the gh-pages branch that deploy assembles, but deploys it from
+  # here rather than from the branch: a deploy that hangs fails after five
+  # minutes, and a newer one cancels it instead of queueing behind it
+  pages:
+    needs: deploy   # skipped whenever deploy is, so never on PRs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write      # create the Pages deployment
+      id-token: write   # authenticate it
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    steps:
+      - name: Checkout the assembled site
+        uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+        with:
+          timeout: 300000   # ms; a healthy deploy takes under a minute
