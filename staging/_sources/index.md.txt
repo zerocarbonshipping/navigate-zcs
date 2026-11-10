@@ -13,6 +13,7 @@ SPDX-License-Identifier: CC-BY-4.0
 :hidden:
 
 tutorials/index
+notebooks/index
 reference_manual/index
 ```
 
@@ -40,9 +41,10 @@ emissions, and compliance costs through time, to browse as plots in
 
 ## About this documentation
 
-This site is organised into two parts. New users should start with the
-tutorials and work through them in order; the reference manual is there to look
-up specifics as you build your own decks.
+This site is organised into three parts. New users should start with the
+tutorials and work through them in order; the notebooks run a whole case in
+Jupyter, on Google Colab or your own machine; the reference manual is there to
+look up specifics as you build your own decks.
 
 ::::{grid} 1 1 2 2
 :gutter: 3
@@ -53,6 +55,14 @@ up specifics as you build your own decks.
 
 A guided path from installing Navigate and running your first single-vessel
 simulation through to modular, multi-scenario studies.
+:::
+
+:::{grid-item-card} Notebooks
+:link: notebooks/index
+:link-type: doc
+
+Workshop sessions that run a case end to end in a Jupyter notebook, shown here
+with the results of a run.
 :::
 
 :::{grid-item-card} Reference Manual
