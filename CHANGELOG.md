@@ -409,6 +409,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   plants of that fuel undervalued their delivery costs, also with the default
   export distribution, so a plant with a dearer delivery was chosen more often
   than its delivered cost justifies (#852).
+- A producer's fuel made by several plant types is no longer built up to that
+  many times its supply gap: its plants share the one gap, which changes the
+  results of decks with such fuels (#315).
 - A producer's `Development` at the first date counts the existing pipeline
   of every plant, not only of the last plant with a pipeline.
 - The warning for a plant of zero capacity states the initial capacity it

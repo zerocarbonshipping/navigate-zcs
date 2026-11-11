@@ -84,7 +84,8 @@ def perform_pipeline_planning(
 
     The plants built through inertia come first and cover part of the gap; the
     plants modelled from the uptake metrics share what is left of the development
-    limit.
+    limit. The plant types of a fuel share its supply gap, so together they build no
+    more than the gap.
 
     Parameters
     ----------
@@ -174,7 +175,7 @@ def _calculate_inertia_newbuilds(
     allowed = [producer.allow_plant[plant.name] for plant in producer.plants]
     uptakes = np.where(allowed, producer.current_uptake * decay, 0.0)
 
-    limits = _calculate_demand_limits(producer, development)
+    limits = _calculate_demand_limits(producer, uptakes, development)
     uptakes = calculate_constrained_uptakes(producer, uptakes, development, limits, idx)
     return development * uptakes
 
@@ -260,35 +261,69 @@ def _calculate_modelled_newbuilds(
         return np.zeros(len(producer.plants))
 
     uptakes = _calculate_modelled_uptakes(producer)
-    limits = _calculate_demand_limits(producer, development)
+    limits = _calculate_demand_limits(producer, uptakes, development)
     uptakes = calculate_constrained_uptakes(producer, uptakes, development, limits, idx)
     return development * uptakes
 
 
-def _calculate_demand_limits(producer: Producer, development: float) -> FloatArray:
+def _calculate_demand_limits(
+    producer: Producer, uptakes: FloatArray, development: float
+) -> FloatArray:
     """
-    Calculate each plant type's uptake limit from the plants its demand merits.
+    Calculate each plant type's uptake limit from its fuel's gap, shared by its plants.
+
+    A plant type's demand newbuilds state its fuel's gap as a number of its plants, so
+    its uptake fills the fraction development * uptake / newbuilds of the gap. The
+    plant types of a fuel share the gap in proportion to their uptakes, or evenly
+    where none of them has uptake, and their limits fill it unless one of them reaches
+    the whole development.
 
     Parameters
     ----------
     producer
         The producer.
+    uptakes
+        Uptake share of each plant type.
     development
         Number of plants built over the time step.
 
     Returns
     -------
     FloatArray
-        Uptake limit per plant type, zero for a plant type not allowed.
+        Uptake limit per plant type, zero for a plant type not allowed, without
+        demand, or without uptake where another plant type of its fuel has uptake.
     """
-    limits: list[float] = []
+    newbuilds = np.zeros(len(producer.plants))
+    spends = dict.fromkeys(producer.fuels, 0.0)
+    counts = dict.fromkeys(producer.fuels, 0)
 
-    for plant in producer.plants:
-        is_allowed = producer.allow_plant[plant.name]
-        newbuilds = plant.expectation.get_demand_newbuilds() if is_allowed else 0.0
-        limits.append(min(newbuilds / development, 1.0))
+    for p, plant in enumerate(producer.plants):
+        if producer.allow_plant[plant.name]:
+            newbuilds[p] = plant.expectation.get_demand_newbuilds()
 
-    return np.array(limits)
+        if newbuilds[p] > 0.0:
+            spends[plant.fuel.name] += development * uptakes[p] / newbuilds[p]
+            counts[plant.fuel.name] += 1
+
+    limits = np.zeros(len(producer.plants))
+
+    for p, plant in enumerate(producer.plants):
+        if newbuilds[p] == 0.0:
+            continue
+
+        fuel_name = plant.fuel.name
+
+        if spends[fuel_name] > 0.0:
+            # one factor per fuel scales its uptakes up to the gap, which keeps the
+            # split between its plant types that the intra-fuel choice made
+            limit = uptakes[p] / spends[fuel_name]
+        else:
+            # a fuel without uptake can still take surplus from the other fuels
+            limit = newbuilds[p] / (development * counts[fuel_name])
+
+        limits[p] = min(limit, 1.0)
+
+    return limits
 
 
 def _calculate_inter_fuel_metric(
