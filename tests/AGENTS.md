@@ -47,6 +47,8 @@ from current output. There are no golden baselines.
 
 ## Running
 
-`make test-unit`, `make test-e2e`, `make test-examples`, `make test-all`.
+`make test-unit`, `make test-e2e`, `make test-examples`, `make test-all`;
+`make check` runs lint and the unit suite. Each runs the checkout's own code
+and `assumptions/`; a git worktree needs its own `make pip-setup` first.
 `make compare-results BASE=<ref>` checks that a change meant to leave results
 alone leaves them alone; it is not a test suite.

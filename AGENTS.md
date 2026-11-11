@@ -76,16 +76,21 @@ decks too.
 - Python 3.13 only. Dependencies are plain pip and setuptools; there is no
   lock file. `make pip-setup` creates `.venv` and installs the package
   editable with the dev extras; `make conda-setup` does the same in a conda
-  environment named `nav`.
-- `make` runs its tools from the checkout's own `.venv` when one exists. A
-  second checkout, a git worktree included, needs its own `make pip-setup`,
-  or it imports the primary checkout's source.
+  environment named `nav`, and refuses while that environment runs another
+  checkout.
+- `make` runs its tools from the checkout's own `.venv` when one exists,
+  else from the conda environment `nav`. A second checkout, a git worktree
+  included, needs its own `make pip-setup`: the targets that import
+  `navigate` refuse to run another checkout's source. Every target reads
+  the checkout's own `assumptions/`, whatever `ASSUMPTIONS_DATA_DIR` says.
 - HiGHS is bundled and is the default solver. Gurobi is an optional extra
   that needs a commercial licence.
 - Run a deck with `navigate <deck>.nav -d ./assumptions`;
   `ASSUMPTIONS_DATA_DIR` replaces `-d`.
 - `make lint` runs `ruff check` and `ruff format --check` over `navigate/`
-  and `tests/`, `mypy` over `navigate/` only, and `reuse lint`.
+  and `tests/`, `mypy` over `navigate/` only, and `reuse lint`. `make fix`
+  applies ruff's fixes and formatting to `navigate/` only. `make check` runs
+  lint and the unit suite: the check before a pull request.
 - The test targets are `test-unit`, `test-e2e`, `test-examples` and
   `test-all`; `compare-results` compares the results of a fixed set of decks
   between this checkout and another ref. What each suite answers and its

@@ -85,32 +85,35 @@ dmypy.json
 *.ilp
 *.mps
 
-# Simulation outputs
-# Navigate renders figures and writes reports into plots*/ folders (plots,
-# plots_analysis, plots_debug, ...) inside each run directory. These rules are
-# scoped to the run trees so the source package navigate/output/plots/
-# stays tracked.
-/simulations/**/plots*/
-/simulations/examples/**/*.png
-/simulations/examples/**/*.pkl
-/simulations/examples/**/*.csv
-/simulations/examples/**/*.xlsx
-/simulations/examples/**/*.parquet
+# Claude Code's personal settings and its worktrees
+/.claude/settings.local.json
+/.claude/worktrees/
 
-/simulations/scenarios/**/*.png
-/simulations/scenarios/**/*.pkl
-/simulations/scenarios/**/*.xlsx
+# The profile of a --profile run, written wherever a deck runs
+*.prof
+
+# Simulation outputs
+/simulations/examples/**/*.parquet
 /simulations/scenarios/**/*.parquet
-/simulations/scenarios/debug_plots/
 
 /simulations/debug/*
 !/simulations/debug/.gitkeep
 
 # Test outputs
+/tests/**/*.parquet
+
+# Outputs of earlier Navigate versions, which checkouts may still hold
+/simulations/**/plots*/
+/simulations/examples/**/*.png
+/simulations/examples/**/*.pkl
+/simulations/examples/**/*.csv
+/simulations/examples/**/*.xlsx
+/simulations/scenarios/**/*.png
+/simulations/scenarios/**/*.pkl
+/simulations/scenarios/**/*.xlsx
+/simulations/scenarios/debug_plots/
 /tests/**/plots*/
 /tests/**/*.png
 /tests/**/*.pkl
 /tests/**/*.xlsx
-/tests/**/*.parquet
 /tests/**/output/
-!/tests/unit/output/
