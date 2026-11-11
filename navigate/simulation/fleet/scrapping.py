@@ -15,7 +15,7 @@ from navigate.simulation.fleet._composition import (
     extract_cargo_miles,
     get_trade_capacity,
 )
-from navigate.util import ROUND_OFF, YEAR
+from navigate.util import ROUND_OFF, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
@@ -97,6 +97,67 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int) -> flo
         )
 
     return scrapped_capacity
+
+
+def group_by_age(fleet: Fleet) -> list[list[tuple[int, int]]]:
+    """
+    Group the fleet's increments by age across vessel types, oldest first.
+
+    Scrapping takes the increments of one age together across vessel types. The ages
+    are compared rounded, so that round-off does not split an age group.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose increments are grouped.
+
+    Returns
+    -------
+    list[list[tuple[int, int]]]
+        (vessel, increment) indices of each age group, oldest group first.
+    """
+    groups: dict[float, list[tuple[int, int]]] = {}
+
+    for v, increments in enumerate(fleet.increments):
+        ages = np.round([increment.age for increment in increments], ROUND_OFF)
+        for i, age in enumerate(ages):
+            groups.setdefault(age, []).append((v, i))
+
+    return [groups[age] for age in sorted(groups, reverse=True)]
+
+
+def split_oldest_first(
+    capacities: FloatArray, capacity: float
+) -> tuple[int, float | None]:
+    """
+    Split a capacity to scrap over age groups, oldest group first.
+
+    The oldest groups are scrapped whole until what is left of the capacity fits in
+    the next group, which then has the same fraction of each of its increments
+    scrapped.
+
+    Parameters
+    ----------
+    capacities
+        Capacity of each age group, oldest first, in cargo-miles/year.
+    capacity
+        Capacity to scrap, in cargo-miles/year.
+
+    Returns
+    -------
+    tuple[int, float | None]
+        Number of the oldest groups scrapped whole, and the fraction of the next
+        group scrapped, or None when the capacity exceeds all groups.
+    """
+    remaining = capacity
+
+    for g, group_capacity in enumerate(capacities):
+        if group_capacity >= remaining:
+            return g, float(divide_nonzero(remaining, group_capacity))
+
+        remaining -= group_capacity
+
+    return len(capacities), None
 
 
 def _scrap_by_age(fleet: Fleet, idx: int) -> None:
@@ -239,45 +300,37 @@ def _scrap_oldest(
         Scrapped capacity, in cargo-miles/year, and the youngest age scrapped, in
         years, or None when nothing was scrapped in part.
     """
-    # the increments of one age are scrapped together across vessel types, so their
-    # (vessel, increment) indices are grouped by the rounded age
-    groups: dict[float, list[tuple[int, int]]] = {}
-    for v, increments in enumerate(fleet.increments):
-        ages = np.round([increment.age for increment in increments], ROUND_OFF)
-        for i, age in enumerate(ages):
-            groups.setdefault(age, []).append((v, i))
-
+    groups = group_by_age(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx)
-    scrap = fleet.results.scrap
 
-    remaining = capacity
-    youngest_age = None
+    capacities = np.zeros(len(groups))
+    for g, group in enumerate(groups):
+        capacities[g] = _group_capacity(fleet, group, cargo_miles)
+
+    whole, fraction = split_oldest_first(capacities, capacity)
+
+    scrap = fleet.results.scrap
     scrapped_counts = [0] * len(fleet.increments)
 
-    for age in sorted(groups, reverse=True):
-        group = groups[age]
-        group_capacity = _group_capacity(fleet, group, cargo_miles)
-
-        if group_capacity >= remaining:
-            # the age group covers what is left: scrap the same fraction of each of
-            # its increments
-            fraction = remaining / group_capacity
-            youngest_age = _scrap_in_part(fleet, group, fraction, idx)
-            remaining = 0.0
-            break
-
-        # what is left exceeds the age group's capacity: scrap all of its increments
-        remaining -= group_capacity
-
+    for group in groups[:whole]:
         for v, i in group:
             increment = fleet.increments[v][i]
             scrapped_counts[v] = i + 1
             scrap[fleet.vessels[v].name][idx] += increment.multiplier
 
+    # the increments scrapped in part are found by their index, so they are scrapped
+    # before the increments scrapped whole are removed
+    if fraction is None:
+        scrapped_capacity = float(np.sum(capacities))
+        youngest_age = None
+    else:
+        scrapped_capacity = capacity
+        youngest_age = _scrap_in_part(fleet, groups[whole], fraction, idx)
+
     for v, count in enumerate(scrapped_counts):
         fleet.increments[v] = fleet.increments[v][count:]
 
-    return capacity - remaining, youngest_age
+    return scrapped_capacity, youngest_age
 
 
 def _group_capacity(
