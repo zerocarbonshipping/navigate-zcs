@@ -177,8 +177,9 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     Returns
     -------
     VesselIncrement
-        The first increment, holding the cohort's total multiplier and its
-        multiplier-weighted package uptake and technology charter rate.
+        The first increment, holding the cohort's total multiplier and vessels
+        scrapped past the lifetime, and its multiplier-weighted package uptake and
+        technology charter rate.
     """
     survivor = cohort[0]
 
@@ -188,8 +189,10 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     weights = [increment.multiplier for increment in cohort]
     uptakes = [increment.package_uptake for increment in cohort]
     charter_rates = [increment.technology_charter_rate for increment in cohort]
+    scrapped = [increment.scrapped_past_lifetime for increment in cohort]
 
     survivor.multiplier = sum(weights)
+    survivor.scrapped_past_lifetime = sum(scrapped)
     survivor.package_uptake = np.average(uptakes, axis=0, weights=weights)
     survivor.technology_charter_rate = float(np.average(charter_rates, weights=weights))
 

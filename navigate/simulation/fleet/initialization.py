@@ -163,10 +163,6 @@ def _build_vessel_increments(fleet: Fleet, vessel_idx: int) -> list[VesselIncrem
         )
         increments.append(increment)
 
-    # the oldest cohort holds the baseline of partial age-based scrapping
-    if increments:
-        increments[0].baseline = increments[0].multiplier
-
     return increments
 
 

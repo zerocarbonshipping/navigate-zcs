@@ -4,8 +4,9 @@
 """
 Vintage-stock accounting over the asset cohorts of the fleet and fuel domains.
 
-What a domain adds to its cohorts, such as baseline or decided, and building its
-Increment subclass stay in that domain.
+What a domain adds to its cohorts, such as the vessels scrapped past the lifetime or
+the time since a plant was decided, and building its Increment subclass stay in that
+domain.
 """
 
 from __future__ import annotations
