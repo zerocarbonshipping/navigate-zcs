@@ -209,7 +209,8 @@ def _check_core(
     modules: set[str],
 ) -> Iterator[str]:
     """Yield a problem for each runtime import against the one-way rule of core."""
-    part = _core_part(name)
+    # classed by where the file lies, so a package's __init__.py falls in it
+    part = _core_part(".".join(location.with_suffix("").parts[1:]))
 
     if part is None:
         yield (
