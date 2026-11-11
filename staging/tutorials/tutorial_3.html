@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=fd10adb8"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/tutorial_3';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
@@ -544,7 +544,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </ol>
 </section>
 <section id="inc-files-0-includes-global">
-<h4><code class="docutils literal notranslate"><span class="pre">.inc</span></code> files (0_includes_global):<a class="headerlink" href="#inc-files-0-includes-global" title="Link to this heading">#</a></h4>
+<span id="inc-files-0_includes_global"></span><h4><code class="docutils literal notranslate"><span class="pre">.inc</span></code> files (0_includes_global):<a class="headerlink" href="#inc-files-0-includes-global" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">model_definition.inc</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">fleet_bulk.inc</span></code></p></li>
@@ -597,7 +597,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <h3>DEFINE File: Definition of the Fleets<a class="headerlink" href="#define-file-definition-of-the-fleets" title="Link to this heading">#</a></h3>
 <p>Open your Tutorial 2 <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file and copy the depicted nodes into their respective <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file.</p>
 <section id="fleet-bulk-inc">
-<h4><code class="docutils literal notranslate"><span class="pre">fleet_bulk.inc</span></code><a class="headerlink" href="#fleet-bulk-inc" title="Link to this heading">#</a></h4>
+<span id="fleet_bulkinc"></span><h4><code class="docutils literal notranslate"><span class="pre">fleet_bulk.inc</span></code><a class="headerlink" href="#fleet-bulk-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Copy the relevant section from T2DEF into the empty file.</p></li>
 <li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
@@ -611,7 +611,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </div>
 </section>
 <section id="fleet-container-inc">
-<h4><code class="docutils literal notranslate"><span class="pre">fleet_container.inc</span></code><a class="headerlink" href="#fleet-container-inc" title="Link to this heading">#</a></h4>
+<span id="fleet_containerinc"></span><h4><code class="docutils literal notranslate"><span class="pre">fleet_container.inc</span></code><a class="headerlink" href="#fleet-container-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Copy the relevant section from T2DEF into the empty file.</p></li>
 <li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
@@ -625,7 +625,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </div>
 </section>
 <section id="fleet-uptake-inc">
-<h4><code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code><a class="headerlink" href="#fleet-uptake-inc" title="Link to this heading">#</a></h4>
+<span id="fleet_uptakeinc"></span><h4><code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code><a class="headerlink" href="#fleet-uptake-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Assign the attributes <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> to all defined nodes of the type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
 <li><p>The star <code class="docutils literal notranslate"><span class="pre">*</span></code> is a ‘wildcard’. So, when we define the node <code class="docutils literal notranslate"><span class="pre">Fleet</span> <span class="pre">&quot;*&quot;</span></code> the listed attributes under it will apply to any node that has the node-type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
@@ -712,7 +712,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <li><p>Open your Tutorial 2 <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file and copy the depicted nodes into their respective .inc file:</p></li>
 </ol>
 <section id="fuel-inc">
-<h4><code class="docutils literal notranslate"><span class="pre">fuel.inc</span></code><a class="headerlink" href="#fuel-inc" title="Link to this heading">#</a></h4>
+<span id="fuelinc"></span><h4><code class="docutils literal notranslate"><span class="pre">fuel.inc</span></code><a class="headerlink" href="#fuel-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Copy the relevant section from T2DEF into the empty file:</p>
 <ul class="simple">
@@ -763,7 +763,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </div>
 </section>
 <section id="emissions-inc">
-<h4>‘emissions.inc’<a class="headerlink" href="#emissions-inc" title="Link to this heading">#</a></h4>
+<span id="emissionsinc"></span><h4>‘emissions.inc’<a class="headerlink" href="#emissions-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Copy the relevant section from T2DEF into the empty file.</p>
 <ul class="simple">
@@ -788,7 +788,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </div>
 </section>
 <section id="process-inc">
-<h4><code class="docutils literal notranslate"><span class="pre">process.inc</span></code><a class="headerlink" href="#process-inc" title="Link to this heading">#</a></h4>
+<span id="processinc"></span><h4><code class="docutils literal notranslate"><span class="pre">process.inc</span></code><a class="headerlink" href="#process-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Copy the relevant section from T2DEF into the empty file.</p>
 <ul class="simple">
@@ -826,7 +826,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </div>
 </section>
 <section id="feedstock-inc">
-<h4><code class="docutils literal notranslate"><span class="pre">feedstock.inc</span></code><a class="headerlink" href="#feedstock-inc" title="Link to this heading">#</a></h4>
+<span id="feedstockinc"></span><h4><code class="docutils literal notranslate"><span class="pre">feedstock.inc</span></code><a class="headerlink" href="#feedstock-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Copy the relevant section from T2DEF into the empty file.</p>
 <ul class="simple">
@@ -878,7 +878,7 @@ Follow the principle of Fuels, copy the Plant nodes for every fuel and place the
 </ol>
 </section>
 <section id="define-file-definition-of-producer-and-producer-uptake">
-<h3>DEFINE File: Definition of <code class="docutils literal notranslate"><span class="pre">Producer</span></code> and <code class="docutils literal notranslate"><span class="pre">producer_uptake</span></code><a class="headerlink" href="#define-file-definition-of-producer-and-producer-uptake" title="Link to this heading">#</a></h3>
+<span id="define-file-definition-of-producer-and-producer_uptake"></span><h3>DEFINE File: Definition of <code class="docutils literal notranslate"><span class="pre">Producer</span></code> and <code class="docutils literal notranslate"><span class="pre">producer_uptake</span></code><a class="headerlink" href="#define-file-definition-of-producer-and-producer-uptake" title="Link to this heading">#</a></h3>
 <ol class="arabic simple">
 <li><p>Create the listed files in your Tutorial 3 <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> folder.</p></li>
 <li><p>For producer, copy the node Producer <code class="docutils literal notranslate"><span class="pre">&quot;engineering_procurement_construction&quot;</span></code> and past into file <code class="docutils literal notranslate"><span class="pre">producer.inc</span></code> in <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code>
@@ -904,7 +904,7 @@ And the decision sensitivities to all fuel production plants.</p></li>
 <section id="create-nav-file-for-baseline-scenario">
 <h2>Create <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file for Baseline Scenario<a class="headerlink" href="#create-nav-file-for-baseline-scenario" title="Link to this heading">#</a></h2>
 <section id="id1">
-<h3>Recap Tutorial 2<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<span id="recap-tutorial-2-1"></span><h3>Recap Tutorial 2<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
 <p>Let’s recap what the finalised <code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> file looked like in tutorial 2. The DEFINE section includes only one file, the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is the .nav file for Tutorial 2. It is the same as Tutorial 1.</span>
 <span class="c1"># You should just make sure that your define and events files are correctly named</span>
@@ -924,7 +924,7 @@ And the decision sensitivities to all fuel production plants.</p></li>
 <p>The EVENTS section includes only one file, the events.inc file.</p>
 </section>
 <section id="compare-and-create-a-new-baseline-nav-file">
-<h3>Compare and Create a new <code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code> file<a class="headerlink" href="#compare-and-create-a-new-baseline-nav-file" title="Link to this heading">#</a></h3>
+<span id="compare-and-create-a-new-baselinenav-file"></span><h3>Compare and Create a new <code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code> file<a class="headerlink" href="#compare-and-create-a-new-baseline-nav-file" title="Link to this heading">#</a></h3>
 <p>For this tutorial 3, you have split the DEFINE file into smaller components. The EVENTS file contains the same but has been renamed to a more informative name describing what it contains.</p>
 <p>In order to run the baseline scenario in the model, you also need to modify the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file with the “instructions” on what files to include in the simulation.</p>
 <p>As we spread out the assumptions across many different files, all of them need to be included in tutorial 3’s <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file.</p>
@@ -1098,7 +1098,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <p>However, from the location of <code class="docutils literal notranslate"><span class="pre">scenario_100.nav</span></code>, it is 1 level ‘up’ to the folder 0_includes_local, which includes the relevant input file <code class="docutils literal notranslate"><span class="pre">scenario_100.inc</span></code>. This needs to be reflected in the code by single ‘dash’, i.e. you need to remove one <code class="docutils literal notranslate"><span class="pre">../</span></code> in the description of the file location.</p>
 </section>
 <section id="referencing-local-assumptions-in-scenario-100-nav">
-<h4>Referencing local assumptions in <code class="docutils literal notranslate"><span class="pre">Scenario_100.nav</span></code><a class="headerlink" href="#referencing-local-assumptions-in-scenario-100-nav" title="Link to this heading">#</a></h4>
+<span id="referencing-local-assumptions-in-scenario_100nav"></span><h4>Referencing local assumptions in <code class="docutils literal notranslate"><span class="pre">Scenario_100.nav</span></code><a class="headerlink" href="#referencing-local-assumptions-in-scenario-100-nav" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Correct the file so it can find the input files by removing one dash “../” in front of the file location of <code class="docutils literal notranslate"><span class="pre">scenario_100.inc</span></code>.</p>
 <ul class="simple">

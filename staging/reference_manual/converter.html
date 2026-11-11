@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=fd10adb8"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference_manual/converter';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
@@ -668,7 +668,7 @@ fuel cells, and motors.</p>
 <section id="commands">
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="set-consumption-ttw">
-<h3>set_consumption_ttw<a class="headerlink" href="#set-consumption-ttw" title="Link to this heading">#</a></h3>
+<span id="set_consumption_ttw"></span><h3>set_consumption_ttw<a class="headerlink" href="#set-consumption-ttw" title="Link to this heading">#</a></h3>
 <p>This command sets the emissions in the converter as a fraction of the amount of total fuel consumption. Hence, the command must specify a) the fuel type, b) the emission type, c) the fraction tons of emissions per ton of fuel consumed. The command is used to define emissions which do not pertain to the stoichiometric combustion process, but are converter specific, e.g., NOx or SOx.</p>
 <p>The value is per ton of fuel fed into the converter, so it already accounts for any slip set with <code class="docutils literal notranslate"><span class="pre">set_slip_fraction</span></code>. The fuel type must be one of the Converter’s MainFuelTypes or PilotFuelTypes.</p>
 <ul class="simple">
@@ -687,7 +687,7 @@ fuel cells, and motors.</p>
 </ul>
 </section>
 <section id="set-slip-fraction">
-<h3>set_slip_fraction<a class="headerlink" href="#set-slip-fraction" title="Link to this heading">#</a></h3>
+<span id="set_slip_fraction"></span><h3>set_slip_fraction<a class="headerlink" href="#set-slip-fraction" title="Link to this heading">#</a></h3>
 <p>This command sets the fraction of fuel mass that escapes unburned (slip) when using a specific fuel type, e.g., methane slip. Hence, the command must specify a) the fuel type, b) the fraction of fuel mass escaping unburned. The fuel type must be one of the Converter’s MainFuelTypes or PilotFuelTypes.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a></p></li>

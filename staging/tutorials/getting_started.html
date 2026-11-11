@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=fd10adb8"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/getting_started';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
@@ -487,14 +487,14 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>This tutorial also lives in the repository, under <code class="docutils literal notranslate"><span class="pre">docs/tutorials/</span></code>. You can open it and read along from there if you prefer.</p>
 <p>Before running a tutorial, download its files using the button on its page and extract the <code class="docutils literal notranslate"><span class="pre">tutorial_X</span></code> folder into the <code class="docutils literal notranslate"><span class="pre">navigate-zcs</span></code> folder opened in VS Code. In VS Code’s Explorer, right-click the extracted tutorial folder and select <strong>Open in Integrated Terminal</strong>. Run that tutorial’s <code class="docutils literal notranslate"><span class="pre">navigate</span></code> commands in this terminal rather than in the repository-root terminal used for installation.</p>
 <section id="assumptions-defaults-and-modules">
-<h3>Assumptions – Defaults and Modules<a class="headerlink" href="#assumptions-defaults-and-modules" title="Link to this heading">#</a></h3>
+<span id="assumptions--defaults-and-modules"></span><h3>Assumptions – Defaults and Modules<a class="headerlink" href="#assumptions-defaults-and-modules" title="Link to this heading">#</a></h3>
 <p><em>These are not needed for the tutorial simulations, however…</em></p>
 <p>Most of the Center’s larger simulations use a set of pre-configured input files from the <code class="docutils literal notranslate"><span class="pre">assumptions/</span></code> folder. When running Navigate and loading these modules, the location of the folder has to be known. This can be done once or with every run.</p>
 <p>To permanently link the assumptions, do the following:</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" data-sync-group="os" data-sync-id="windows" for="sd-tab-item-0">
-Windows</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" data-sync-group="os" data-sync-id="windows" for="sd-tab-item-0">
+Windows</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <p>Press Windows+R and paste the following to open the environment variables window:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rundll32</span> <span class="n">sysdm</span><span class="o">.</span><span class="n">cpl</span><span class="p">,</span><span class="n">EditEnvironmentVariables</span>
 </pre></div>
@@ -509,8 +509,8 @@ Windows</label><div class="sd-tab-content docutils">
 <p>Restart VS Code so that its terminal picks up the new variable.</p>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" data-sync-group="os" data-sync-id="unix" for="sd-tab-item-1">
-Mac/Linux</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" data-sync-group="os" data-sync-id="unix" for="sd-tab-item-1">
+Mac/Linux</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <p>In a terminal, run the following command after changing the path.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="s1">'export ASSUMPTIONS_DATA_DIR="/__YOUR__PATH__HERE!__/navigate-zcs/assumptions"'</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.zshrc
 </pre></div>

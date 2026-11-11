@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=fd10adb8"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/tutorial_1';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
@@ -455,7 +455,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>In this document, you have several action points. Mostly, these action points involve writing instructions to define nodes and their attributes, which you do by writing/copying the Navigate instructions from this document into your own working file.
 The input files created in this tutorial reflect the minimum input that you need to get Navigate to run a simulation and receive output.</p>
 <section id="the-tutorial-1-nav-file">
-<h2>The <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file<a class="headerlink" href="#the-tutorial-1-nav-file" title="Link to this heading">#</a></h2>
+<span id="the-tutorial_1nav-file"></span><h2>The <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file<a class="headerlink" href="#the-tutorial-1-nav-file" title="Link to this heading">#</a></h2>
 <p>In order to run a simulation in Navigate, you always need a “Navigate”-file, i.e. a file with the ending “.nav”. One can think of Navigate (built in Python) as the “program/an application” and of a .nav file as the “instructions” that we give to the program.</p>
 <p>Navigate consists of the DEFINE section and the EVENTS section. These two are dependent on each other and can therefore not run individually. As the .nav file are the “instructions” for Navigate, this <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file is the most important file to run our first simulation. Without it, you could not include the define.inc and events.inc files that you will create later.</p>
 <p>Open the <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file in your VS Code workspace.</p>
