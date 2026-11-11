@@ -54,7 +54,7 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["."]
 exclude = ["assumptions*", "simulations*", "tests*", "syntax*", "docs*",
-    "build*", "dist*", "*.egg-info*", "bdist*"]
+    "tools*", "build*", "dist*", "*.egg-info*", "bdist*"]
 
 [tool.setuptools.package-data]
 "navigate.app" = ["preamble.txt"]

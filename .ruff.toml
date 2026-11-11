@@ -45,6 +45,7 @@ extend-select = [
     "ERA001",  # no commented-out code
     "PLW2901", # a loop variable is not rebound in the loop body
     "PLW3301", # nested min/max calls are flattened into one
+    "TID252",  # imports are absolute (ban-relative-imports below)
 ]
 ignore = [
     "D105", # magic methods need no docstring
@@ -58,6 +59,9 @@ convention = "numpy"
 extend-immutable-calls = [
     "navigate.core.results.base_results.result",
 ]
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
 
 [lint.isort]
 required-imports = ["from __future__ import annotations"]

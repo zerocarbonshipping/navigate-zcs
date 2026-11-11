@@ -41,10 +41,11 @@ pip-setup:  ## Create venv and install package with dev dependencies (no conda r
 	fi
 	@.venv/bin/pip install -q -e ".[dev]"
 
-lint:  ## Run ruff, mypy, and REUSE checks
-	$(RUN) ruff check navigate tests
-	$(RUN) ruff format --check navigate tests
-	$(RUN) mypy navigate
+lint:  ## Run ruff, mypy, the layering and REUSE checks
+	$(RUN) ruff check navigate tests tools
+	$(RUN) ruff format --check navigate tests tools
+	$(RUN) mypy navigate tools
+	$(RUN) python tools/check_layering.py
 	$(RUN) reuse lint
 
 test-unit:  ## Unit + contract tests

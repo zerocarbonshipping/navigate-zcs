@@ -63,6 +63,7 @@ every change. The detail lives in the files it points to.
   from `syntax/vscode/` for the getting-started page.
 - `syntax/` — editor syntax highlighting for the DSL; `syntax/vscode/` is the
   VS Code extension's source.
+- `tools/` — the checks `make lint` runs that ruff and mypy cannot express.
 
 A run writes its output next to its deck, or into `--output-dir`:
 `*.parquet` and `*.log`; a run with `--set` puts them into `parquets/` and
@@ -84,8 +85,10 @@ decks too.
   that needs a commercial licence.
 - Run a deck with `navigate <deck>.nav -d ./assumptions`;
   `ASSUMPTIONS_DATA_DIR` replaces `-d`.
-- `make lint` runs `ruff check` and `ruff format --check` over `navigate/`
-  and `tests/`, `mypy` over `navigate/` only, and `reuse lint`.
+- `make lint` runs `ruff check` and `ruff format --check` over `navigate/`,
+  `tests/` and `tools/`, `mypy` over `navigate/` and `tools/`,
+  `tools/check_layering.py` (the layering of `ARCHITECTURE.md`) and
+  `reuse lint`.
 - The test targets are `test-unit`, `test-e2e`, `test-examples` and
   `test-all`; `compare-results` compares the results of a fixed set of decks
   between this checkout and another ref. What each suite answers and its

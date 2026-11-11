@@ -103,8 +103,9 @@ __main__                           → app
 A unit is a package or module under `navigate/` with a row, named by its
 dotted path; `__init__` is `navigate/__init__.py` and `simulation` is
 `simulation/__init__.py` alone. A file belongs to the longest unit that
-contains it; a unit imports itself and its row, nothing else from
-`navigate`. The foundation is `util/` and `exceptions.py`; the domains are
+contains it; a unit imports itself and the units right of the arrow in
+its row, nothing else from `navigate`, so units sharing a row do not
+import each other. The foundation is `util/` and `exceptions.py`; the domains are
 the five packages under `simulation/`. Every file must fall in a unit, so a
 new top-level module or package, or a new module or package directly under
 `simulation/`, needs a row here. No row may link two of `simulation.bunker`,
@@ -117,8 +118,13 @@ Inside `core/`, runtime imports run one way: `nodes/` imports
 `expectations/`, `results/` and the flat modules directly in `core/`;
 `expectations/`, `results/` and `general_nodes/` import only the flat
 modules; the flat modules import no subpackage, so one that needs a node
-class imports it under `TYPE_CHECKING`. Imports are absolute. No test
-enforces the table; review does, with type-only imports included.
+class imports it under `TYPE_CHECKING`, except `node_registry.py`, whose
+registries read the classes of `nodes/` and `general_nodes/` off their
+annotations at runtime. Imports are absolute (ruff `TID252`).
+`tools/check_layering.py`, run by `make lint`, is the arbiter of the table
+and of the rule inside `core/`: it holds both as data and checks every
+import against them, type-only imports included for the table. A change to
+the layering changes the script and this section together.
 
 Each package's `__init__.py` re-exports its externally consumed entry
 points; read it first. `simulation/`, `core/nodes/` and `core/general_nodes/`
