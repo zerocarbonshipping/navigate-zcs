@@ -24,7 +24,7 @@ class ProducerExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._export_distribution: dict[str, FloatArray]
+        self._export_shares: dict[str, dict[str, FloatArray]]
 
         self._plant_feed_consumption: dict[tuple[str, str], float]
         self._existing_feed: dict[str, float]
@@ -48,7 +48,7 @@ class ProducerExpectation(_Expectation):
     ) -> None:
         self._initialize_expectation(length)
 
-        self._export_distribution = self._default_dict_array(port_names)
+        self._export_shares = self._default_dict_dict_array(fuel_names, port_names)
 
         feed_names = [*feedstock_names, *process_names]
         self._plant_feed_consumption = self._default_tuple_dict_float(
@@ -68,10 +68,10 @@ class ProducerExpectation(_Expectation):
         self._reset_dict_float(self._existing_feed)
         self._reset_dict_float(self._pipeline_feed)
 
-    def set_export_distribution(
-        self, port_name: str, idx: int, distribution: FloatArray
+    def set_export_share(
+        self, fuel_name: str, port_name: str, idx: int, share: FloatArray
     ) -> None:
-        self._export_distribution[port_name][idx:] = distribution
+        self._export_shares[fuel_name][port_name][idx:] = share
 
     def set_plant_feed_consumption(
         self, plant_name: str, feed_name: str, consumption: float
@@ -106,13 +106,15 @@ class ProducerExpectation(_Expectation):
         self._expected_production[plant_name][idx:] = production
 
     @overload
-    def get_export_distribution(self, idx: int) -> dict[str, float]: ...
+    def get_export_shares(self, fuel_name: str, idx: int) -> dict[str, float]: ...
 
     @overload
-    def get_export_distribution(self, idx: slice) -> dict[str, FloatArray]: ...
+    def get_export_shares(
+        self, fuel_name: str, idx: slice
+    ) -> dict[str, FloatArray]: ...
 
-    def get_export_distribution(self, idx: Index) -> Mapping[str, FloatLike]:
-        return slice_dict(self._export_distribution, idx)
+    def get_export_shares(self, fuel_name: str, idx: Index) -> Mapping[str, FloatLike]:
+        return slice_dict(self._export_shares[fuel_name], idx)
 
     def get_plant_feed_consumption(self, plant_name: str, feed_name: str) -> float:
         return self._plant_feed_consumption[plant_name, feed_name]

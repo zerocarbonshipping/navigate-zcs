@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -29,6 +30,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
     from navigate.util.types_ import FloatArray
 
+logger = logging.getLogger(__name__)
+
 
 def calculate_port_expectations(
     ports: dict[str, Port], timeline: FloatArray, idx: int
@@ -52,24 +55,35 @@ def calculate_port_expectations(
 
 
 def calculate_export_expectations(
-    producers: dict[str, Producer], timeline: FloatArray, idx: int
+    producers: dict[str, Producer],
+    ports: dict[str, Port],
+    timeline: FloatArray,
+    idx: int,
 ) -> None:
     """
-    Calculate each producer's expected export distribution over the ports.
+    Calculate the share of each producer's fuels exported to each port.
 
     Parameters
     ----------
     producers
         All producers in the simulation.
+    ports
+        All ports in the simulation.
     timeline
         Simulation timeline, in days.
     idx
         Current time-step index.
     """
     times = timeline[idx:]
+    fuel_names: set[str] = set()
 
     for producer in producers.values():
-        _calculate_export_expectation(producer, times, idx)
+        fuel_names.update(producer.fuels)
+
+    allowed_ports = _allowed_ports_per_fuel(ports, fuel_names)
+
+    for producer in producers.values():
+        _calculate_export_expectation(producer, allowed_ports, times, idx)
 
 
 def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None:
@@ -107,25 +121,116 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
 
 
 def _calculate_export_expectation(
-    producer: Producer, times: FloatArray, idx: int
+    producer: Producer,
+    allowed_ports: dict[str, list[str]],
+    times: FloatArray,
+    idx: int,
 ) -> None:
-    """Set the producer's expected export distribution."""
-    if not producer.export_distribution:
-        return
+    """
+    Set the share of each of the producer's fuels exported to each port.
 
+    A fuel goes to the ports allowing it, by the producer's export weights normalized
+    over those ports, and equally among them where none of them carries a positive
+    weight. The other ports take none of it.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    allowed_ports
+        Names of the ports allowing each fuel the producers make.
+    times
+        Future times from the simulation timeline (timeline[idx:]), in days.
+    idx
+        Current time-step index.
+    """
     expectation = producer.expectation
-    exports: dict[str, FloatArray] = {}
+    weights: dict[str, FloatArray] = {}
 
     for key, value in producer.export_distribution.items():
-        exports[key] = value.get(times)
+        weights[key] = value.get(times)
 
-    # at steps where the total is not positive, ports share exports equally
-    total = sum(exports.values())
-    default = 1.0 / len(exports)
+    for fuel_name in producer.fuels:
+        allowed = allowed_ports[fuel_name]
 
-    for port_name, export in exports.items():
-        share = divide_nonzero(export, total, default=default)
-        expectation.set_export_distribution(port_name, idx, share)
+        if not allowed:
+            logger.debug(
+                'Fuel("%s") is not allowed for bunkering in any port. Any existing '
+                "production from %s is inaccessible during bunkering.",
+                fuel_name,
+                producer,
+            )
+
+        shares = _calculate_export_shares(weights, allowed)
+
+        for key, value in shares.items():
+            expectation.set_export_share(fuel_name, key, idx, value)
+
+
+def _allowed_ports_per_fuel(
+    ports: dict[str, Port], fuel_names: Collection[str]
+) -> dict[str, list[str]]:
+    """
+    List the names of the ports allowing each fuel to be bunkered.
+
+    Parameters
+    ----------
+    ports
+        All ports in the simulation.
+    fuel_names
+        Names of the fuels.
+
+    Returns
+    -------
+    dict[str, list[str]]
+        Names of the ports allowing each fuel.
+    """
+    allowed_ports: dict[str, list[str]] = {}
+
+    for fuel_name in fuel_names:
+        allowed_ports[fuel_name] = []
+
+        for port_name, port in ports.items():
+            if port.bunkering_allowed[fuel_name]:
+                allowed_ports[fuel_name].append(port_name)
+
+    return allowed_ports
+
+
+def _calculate_export_shares(
+    weights: dict[str, FloatArray], allowed: list[str]
+) -> dict[str, FloatArray]:
+    """
+    Calculate the share of a producer's export to each port.
+
+    The allowed ports share the export by their weights normalized over them, and
+    equally where none of them carries a positive weight. The other ports take none.
+
+    Parameters
+    ----------
+    weights
+        Export weight of the producer to every port in the simulation.
+    allowed
+        Names of the ports sharing the export.
+
+    Returns
+    -------
+    dict[str, FloatArray]
+        Share of the export to every port in the simulation.
+    """
+    shares = {port_name: np.zeros_like(weight) for port_name, weight in weights.items()}
+
+    if not allowed:
+        return shares
+
+    # at steps where the allowed ports carry no positive weight, they share it equally
+    total = sum(weights[port_name] for port_name in allowed)
+    default = 1.0 / len(allowed)
+
+    for port_name in allowed:
+        shares[port_name] = divide_nonzero(weights[port_name], total, default=default)
+
+    return shares
 
 
 def calculate_producer_evolution_expectation(

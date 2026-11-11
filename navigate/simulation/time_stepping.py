@@ -444,7 +444,9 @@ class Simulation:
         calculate_fleet_expectations(self.nodes.vessels, self.nodes.emissions)
 
         calculate_port_expectations(self.nodes.ports, self.timeline, self._idx)
-        calculate_export_expectations(self.nodes.producers, self.timeline, self._idx)
+        calculate_export_expectations(
+            self.nodes.producers, self.nodes.ports, self.timeline, self._idx
+        )
 
     def _update_vessel_operations(self) -> None:
         for fleet in self.nodes.fleets.values():
