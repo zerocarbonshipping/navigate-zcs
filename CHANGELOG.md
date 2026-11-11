@@ -353,6 +353,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   receive its whole production, shared by their `set_export_distribution`
   weights; with unequal weights they received more or less than was produced
   (#645).
+- `global.bunker_supply_mass` of a liquid-market fuel is the sum over the ports,
+  present at dates no port allows it without a bunkering limit; the
+  `global.bunkering_limit_*` series, never written, are no longer listed (#461).
 - A wildcard in a `Levy` or `Regulation` `Jurisdiction`, such as `Port("eu_*")`,
   that matches only ports on no route no longer fails with "No node of type
   'Port' matches the wildcard expression". The matched ports on no route are

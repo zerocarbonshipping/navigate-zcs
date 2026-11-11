@@ -31,8 +31,11 @@ def complete_port_results(results: PortResults) -> None:
         Port results, written for the whole run.
     """
     context = results.context
+    limit = results.bunkering_limit_mass
 
     _complete_fuel_infrastructure(results)
+
+    results.bunkering_limit_energy = context.calculate_energy(limit)
     results.equivalent_bunker_wtt = context.calculate_equivalent(results.bunker_wtt)
 
 
@@ -84,11 +87,9 @@ def _complete_fuel_infrastructure(results: PortResults | GlobalResults) -> None:
 
     bunker = context.calculate_energy(results.bunker_mass)
     supply = context.calculate_energy(results.bunker_supply_mass)
-    limit = context.calculate_energy(results.bunkering_limit_mass)
 
     results.bunker_energy = bunker
     results.bunker_supply_energy = supply
-    results.bunkering_limit_energy = limit
 
 
 def _complete_fuel_producer(results: ProducerResults | GlobalResults) -> None:
