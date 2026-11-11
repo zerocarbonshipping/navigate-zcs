@@ -180,13 +180,11 @@ def add_newbuilds(
         package_rates = calculate_package_charter_rates(packages, cost_flows, vessel)
         charter_rate = float(np.dot(package_uptake, package_rates))
 
-        baseline = None if increments else count
         increment = VesselIncrement(
             multiplier=count,
             age=0.0,
             age_span=dt,
             package_uptake=package_uptake.copy(),
-            baseline=baseline,
             technology_charter_rate=charter_rate,
         )
         increments.append(increment)

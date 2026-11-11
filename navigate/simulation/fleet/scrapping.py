@@ -101,7 +101,10 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int) -> flo
 
 def _scrap_by_age(fleet: Fleet, idx: int) -> None:
     """
-    Scrap the increments at the vessel lifetime, and any older part of the next one.
+    Scrap the increments at the vessel lifetime, and the part of the others beyond it.
+
+    Normally only the oldest increment left reaches past the lifetime, but a converted
+    increment keeps its source type's age and span and can reach past it too.
 
     Parameters
     ----------
@@ -121,12 +124,11 @@ def _scrap_by_age(fleet: Fleet, idx: int) -> None:
         for increment in increments[:expired]:
             scrapped_vessels += increment.multiplier
 
-        increments = _drop_oldest(increments, expired)
-        fleet.increments[v] = increments
+        surviving = increments[expired:]
+        for increment in surviving:
+            scrapped_vessels += _scrap_past_lifetime(increment, lifetime)
 
-        if increments:
-            scrapped_vessels += _scrap_past_lifetime(increments[0], lifetime)
-
+        fleet.increments[v] = surviving
         scrap[vessel.name][idx] += scrapped_vessels
 
 
@@ -143,14 +145,17 @@ def _count_expired(increments: list[VesselIncrement], lifetime: float) -> int:
     return count
 
 
-def _scrap_past_lifetime(oldest: VesselIncrement, lifetime: float) -> float:
+def _scrap_past_lifetime(increment: VesselIncrement, lifetime: float) -> float:
     """
-    Scrap the part of the oldest increment beyond the lifetime.
+    Scrap the part of an increment beyond the lifetime.
+
+    The share of the increment below the lifetime is taken of its size before any
+    such scrapping, so that the increment shrinks pro rata as it ages past it.
 
     Parameters
     ----------
-    oldest
-        Oldest increment of a vessel type.
+    increment
+        Increment of a vessel type.
     lifetime
         Vessel lifetime, in years.
 
@@ -159,20 +164,20 @@ def _scrap_past_lifetime(oldest: VesselIncrement, lifetime: float) -> float:
     float
         Vessels scrapped.
     """
-    baseline = oldest.baseline
-
-    if baseline is None or not extends_past(oldest, lifetime):
+    if not extends_past(increment, lifetime):
         return 0.0
 
     # the cohort's vessels are assumed to have entered uniformly over its age span
-    alpha = calculate_share_below(oldest, lifetime)
-    remaining = baseline * alpha
-    scrapping = oldest.multiplier - remaining
+    size_before = increment.multiplier + increment.scrapped_past_lifetime
+    share_below = calculate_share_below(increment, lifetime)
+    remaining = size_before * share_below
+    scrapping = increment.multiplier - remaining
 
-    # conversions out of the cohort can leave fewer vessels than the baseline share
-    # that remains, so the scrapping is floored at zero
+    # vessels converted from a shorter-lived type, and round-off, can leave the cohort
+    # scrapped beyond this lifetime's share, so the scrapping is floored at zero
     scrapping = max(scrapping, 0.0)
-    oldest.multiplier -= scrapping
+    increment.multiplier -= scrapping
+    increment.scrapped_past_lifetime += scrapping
 
     return scrapping
 
@@ -270,7 +275,7 @@ def _scrap_oldest(
             scrap[fleet.vessels[v].name][idx] += increment.multiplier
 
     for v, count in enumerate(scrapped_counts):
-        fleet.increments[v] = _drop_oldest(fleet.increments[v], count)
+        fleet.increments[v] = fleet.increments[v][count:]
 
     return capacity - remaining, youngest_age
 
@@ -319,9 +324,7 @@ def _scrap_in_part(
         increment = fleet.increments[v][i]
         to_scrap = increment.multiplier * fraction
         increment.multiplier -= to_scrap
-
-        if i == 0 and increment.baseline is not None:
-            increment.baseline -= to_scrap
+        increment.scrapped_past_lifetime *= 1.0 - fraction
 
         # vessels are scrapped from the oldest part of the uniform increment first,
         # which is inconsistent when several time-steps shorter than the increment's
@@ -331,17 +334,3 @@ def _scrap_in_part(
         scrap[fleet.vessels[v].name][idx] += to_scrap
 
     return youngest_age
-
-
-def _drop_oldest(
-    increments: list[VesselIncrement], count: int
-) -> list[VesselIncrement]:
-    """Drop the oldest increments; the new oldest takes its multiplier as baseline."""
-    if count == 0:
-        return increments
-
-    surviving = increments[count:]
-    if surviving:
-        surviving[0].baseline = surviving[0].multiplier
-
-    return surviving

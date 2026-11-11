@@ -52,15 +52,15 @@ class VesselIncrement(Increment):
         Width in years of the age bin the cohort spans.
     package_uptake
         Share of the cohort on each technology package, one entry per package.
-    baseline
-        Reference multiplier for partial age-based scrapping; only the oldest cohort
-        of a vessel type can hold one, and None marks a cohort that does not.
+    scrapped_past_lifetime
+        Vessels scrapped from the cohort's part past the vessel lifetime; with the
+        multiplier, the cohort's size before that scrapping.
     technology_charter_rate
         Levelized technology cost carried by the cohort, USD/year/vessel.
     """
 
     package_uptake: FloatArray
-    baseline: float | None = None
+    scrapped_past_lifetime: float = 0.0
     technology_charter_rate: float = 0.0
 
 

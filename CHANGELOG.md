@@ -409,6 +409,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Ships at their vessel type's `Lifetime` that are still in the fleet now
   bunker. The fleet's fuel demand, fuel expenses and emissions include them
   (#543).
+- Vessels past their vessel type's `Lifetime` are scrapped pro rata over their
+  cohort's age span also after fuel conversions into or out of the cohort,
+  secondary scrapping of part of it, and the fleet combining cohorts of equal age
+  or dropping near-empty ones. Before, they could be scrapped all at once, or stay
+  past the lifetime until the next cohort reached it (#565).
 - `set_power_transfer` (Technology) accepts a transfer above 1 MW; the value
   is a power in MW and was capped at 1.
 - `--solver auto` no longer fails with a traceback (#402).

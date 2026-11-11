@@ -186,6 +186,9 @@ class _ConversionProposal:
         Age of the cohort, in years.
     age_span
         Age-bin width of the cohort, in years.
+    scrapped_per_vessel
+        Vessels scrapped from the cohort's part past the lifetime per vessel left in
+        it; the converted vessels carry their share.
     candidates
         Evaluated candidates, keyed by destination vessel-type name.
     """
@@ -194,6 +197,7 @@ class _ConversionProposal:
     increment: VesselIncrement
     age: float
     age_span: float
+    scrapped_per_vessel: float
     candidates: dict[str, _ConversionCandidate]
 
 
@@ -284,11 +288,14 @@ def _propose_fuel_conversions(
         _choose_conversions(fleet, cohort, candidates)
         _debit_supply_excess(supply_excess, cohort.source, candidates)
 
+        increment = cohort.increment
+        scrapped_per_vessel = increment.scrapped_past_lifetime / increment.multiplier
         proposal = _ConversionProposal(
             cohort.source.name,
-            cohort.increment,
-            cohort.increment.age,
-            cohort.increment.age_span,
+            increment,
+            increment.age,
+            increment.age_span,
+            scrapped_per_vessel,
             candidates,
         )
         proposals.append(proposal)
@@ -758,11 +765,10 @@ def _apply_from_side(
     for proposal, name_to, candidate in _proposed_conversions(proposals):
         increment_from = proposal.increment
         count = candidate.count
+        scrapped = count * proposal.scrapped_per_vessel
 
         increment_from.multiplier -= count
-        if increment_from.baseline is not None:
-            increment_from.baseline -= count
-
+        increment_from.scrapped_past_lifetime -= scrapped
         fleet.results.fuel_conversions[proposal.name_from, name_to][idx] += count
 
         # the levelized charge is booked over the service window; the coverage
@@ -813,11 +819,12 @@ def _insert_converted_increment(
         along.
     proposal
         Proposal the vessels convert under; the converted increment takes its age and
-        age span.
+        age span, and its vessels' share of those scrapped past the lifetime.
     count
         Number of vessels converted.
     """
     idx_to = find_insertion_index(increments_to, proposal.age)
+    scrapped = count * proposal.scrapped_per_vessel
 
     # the carried technology charter rate rides along unchanged; the amortization window
     # and discount rate stay those of the source vessel type, a simplification of the
@@ -830,17 +837,10 @@ def _insert_converted_increment(
             proposal.age,
             proposal.age_span,
             package_uptake=increment_from.package_uptake.copy(),
+            scrapped_past_lifetime=scrapped,
             technology_charter_rate=increment_from.technology_charter_rate,
         ),
     )
-
-    # only the oldest cohort holds the baseline, so a new oldest cohort takes it over
-    if idx_to == 0:
-        if len(increments_to) > 1 and increments_to[1].baseline is not None:
-            increments_to[0].baseline = increments_to[1].baseline + count
-            increments_to[1].baseline = None
-        else:
-            increments_to[0].baseline = count
 
 
 def calculate_fuel_type_balance(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
