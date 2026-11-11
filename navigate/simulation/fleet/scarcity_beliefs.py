@@ -30,12 +30,12 @@ def update_vessel_scarcity_beliefs(
     """
     Update every vessel's per-leg shadow-price beliefs.
 
-    Each (energy-demand-type, leg) array of LP duals is smoothed on its own into the
-    expectation's beliefs by an exponential moving average. A slower belief serves
-    technology decisions, amortised over `technology_horizon`, and a faster one
-    operational speed management, over `speed_horizon`. Smoothing each leg on its own
-    keeps the LP's structure across legs, where shadow prices may differ in sign and
-    magnitude, while damping each leg's year-to-year volatility.
+    Each (energy-demand-type, leg) array of bunker LP energy prices is smoothed on its
+    own into the expectation's beliefs by an exponential moving average. A slower
+    belief serves technology decisions, amortised over `technology_horizon`, and a
+    faster one operational speed management, over `speed_horizon`. Smoothing each leg
+    on its own keeps the LP's structure across legs, where shadow prices may differ in
+    sign and magnitude, while damping each leg's year-to-year volatility.
 
     Parameters
     ----------
@@ -146,16 +146,16 @@ def _zip_legs(
 
 def _average_dual(beliefs: _SeaPortPaths, rhs: _SeaPortPaths, idx: int) -> float:
     """
-    Collapse the per-(energy-type, leg) belief duals into one energy-weighted average.
+    Collapse the per-(energy-type, leg) belief prices into one energy-weighted average.
 
-    Each leg and port dual is weighted by its energy-conservation RHS, the energy
+    Each leg and port price is weighted by its energy-conservation RHS, the energy
     demand it prices, so the result is the marginal value of energy the vessel faces.
 
     Parameters
     ----------
     beliefs
-        Smoothed duals at sea and in port, per energy demand type and leg or port, in
-        USD/GJ.
+        Smoothed energy prices at sea and in port, per energy demand type and leg or
+        port, in USD/GJ.
     rhs
         Energy-conservation RHS at sea and in port, shaped as `beliefs`, in GJ/year.
     idx

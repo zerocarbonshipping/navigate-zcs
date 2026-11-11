@@ -31,7 +31,7 @@ from navigate.simulation.bunker._solver import Constraint, Variable
 
 if TYPE_CHECKING:
     from navigate.core.general_nodes.bunker_options import BunkerOptions
-    from navigate.simulation.bunker._solver import Sense
+    from navigate.simulation.bunker._solver import Sense, Terms
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
@@ -78,13 +78,18 @@ class HighsModel:
 
         self._highs.setOptionValue("iis_time_limit", _IIS_SECONDS)
 
-        self._num_cols: int = 0
+        self._col_upper_bounds: list[float] = []
         self._row_senses: list[Sense] = []
         self._row_rhs: list[float] = []
         self._row_names: list[str] = []
 
+        # the last-written coefficients of each row, to skip redundant changeCoeff
+        # calls and to read a row without querying HiGHS
+        self._row_coefficients: list[dict[Variable, float]] = []
+
         # solution of the last solve
         self._col_values: FloatArray
+        self._col_duals: FloatArray
         self._row_duals: FloatArray
 
         # the IIS of the last compute_iis, None where HiGHS vouched for none
@@ -102,17 +107,15 @@ class HighsModel:
         self._pending_cost: dict[Variable, float] = {}
         self._pending_upper_bound: dict[Variable, float] = {}
 
-        # last-written coefficients, to skip redundant changeCoeff calls
-        self._coefficients: dict[tuple[Constraint, Variable], float] = {}
-
     def add_variable(self, name: str) -> Variable:
         """Add a non-negative continuous variable with a zero cost."""
-        variable = Variable(self._num_cols)
+        variable = Variable(len(self._col_upper_bounds))
 
         self._highs.addVar(0.0, highspy.kHighsInf)
         self._highs.passColName(variable, _lp_name(name))
-        self._num_cols += 1
         self._model_grew = True
+
+        self._col_upper_bounds.append(highspy.kHighsInf)
 
         return variable
 
@@ -128,6 +131,7 @@ class HighsModel:
         self._row_senses.append(sense)
         self._row_rhs.append(0.0)
         self._row_names.append(name)
+        self._row_coefficients.append({})
 
         return constraint
 
@@ -135,11 +139,11 @@ class HighsModel:
         self, constraint: Constraint, variable: Variable, value: float
     ) -> None:
         """Set the coefficient of a variable in a constraint."""
-        key = (constraint, variable)
-        if self._coefficients.get(key) == value:
+        coefficients = self._row_coefficients[constraint]
+        if coefficients.get(variable) == value:
             return
 
-        self._coefficients[key] = value
+        coefficients[variable] = value
         self._highs.changeCoeff(constraint, variable, value)
 
     def set_rhs(self, constraint: Constraint, value: float) -> None:
@@ -159,6 +163,7 @@ class HighsModel:
 
         The lower bound stays zero.
         """
+        self._col_upper_bounds[variable] = value
         self._pending_upper_bound[variable] = value
 
     def remove_variable(self, variable: Variable) -> None:
@@ -171,6 +176,8 @@ class HighsModel:
         self._highs.changeColBounds(variable, 0.0, 0.0)
         self._highs.changeColCost(variable, 0.0)
         self._highs.passColName(variable, f"removed_{variable}")
+
+        self._col_upper_bounds[variable] = 0.0
         self._pending_cost.pop(variable, None)
         self._pending_upper_bound.pop(variable, None)
 
@@ -217,6 +224,7 @@ class HighsModel:
 
         solution = self._highs.getSolution()
         self._col_values = np.array(solution.col_value)
+        self._col_duals = np.array(solution.col_dual)
         self._row_duals = np.array(solution.row_dual)
 
     @property
@@ -249,9 +257,26 @@ class HighsModel:
         dual: float = self._row_duals[constraint]
         return dual
 
+    def reduced_cost(self, variable: Variable) -> float:
+        """Return the reduced cost of a variable at the last solution."""
+        reduced_cost: float = self._col_duals[variable]
+        return reduced_cost
+
     def rhs(self, constraint: Constraint) -> float:
         """Return the right-hand side of a constraint."""
         return self._row_rhs[constraint]
+
+    def upper_bound(self, variable: Variable) -> float:
+        """Return the upper bound of a variable."""
+        return self._col_upper_bounds[variable]
+
+    def terms(self, constraint: Constraint) -> Terms:
+        """
+        Return the variables of a constraint with their coefficients.
+
+        A removed variable keeps its coefficient, fixed to zero by its bounds.
+        """
+        return list(self._row_coefficients[constraint].items())
 
     def compute_iis(self) -> list[str]:
         """
@@ -355,7 +380,7 @@ class HighsModel:
             return
 
         basis = self._basis
-        new_cols = self._num_cols - len(basis.col_status)
+        new_cols = len(self._col_upper_bounds) - len(basis.col_status)
         new_rows = len(self._row_names) - len(basis.row_status)
 
         if new_cols > 0 or new_rows > 0:
