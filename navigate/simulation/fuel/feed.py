@@ -53,9 +53,10 @@ def calculate_feed_delivery(
     """
     Calculate the delivery of a plant decided at each of the times, for a feed.
 
-    The feed gap is evaluated at these deliveries. They lie the feed's lead time
-    ahead, the shortest lead time of the plants using the feed, which keeps the gap
-    consistent with the feed constraint for every one of them.
+    The feed gap is evaluated at these deliveries. Each lies the feed's lead time
+    ahead: the shortest lead time at its decision of the plants using the feed, which
+    keeps the gap consistent with the feed constraint for every one of them. A lead
+    time falling faster than time advances leaves the deliveries out of order.
 
     Parameters
     ----------
@@ -73,16 +74,16 @@ def calculate_feed_delivery(
         plant uses the feed.
     """
     expectation = producer.expectation
-    lead_times: list[float] = []
+    lead_times: list[FloatArray] = []
 
     for plant in producer.plants:
         if expectation.get_plant_feed_consumption(plant.name, feed_name) > 0.0:
-            lead_times.append(plant.lead_time.get())
+            lead_times.append(plant.lead_time.get(times))
 
     if not lead_times:
         return None
 
-    delivery: FloatArray = times + min(lead_times) * YEAR
+    delivery: FloatArray = times + np.min(lead_times, axis=0) * YEAR
     return delivery
 
 

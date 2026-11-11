@@ -4,7 +4,8 @@
 """
 The rates plant increments carry over time, until their retirement.
 
-A plant runs from its delivery, and reserves its feed from its decision.
+A plant runs from its delivery and reserves its feed from its decision. Either ends
+with its retirement, which removes the rate uniformly over the window up to it.
 """
 
 from __future__ import annotations
@@ -59,7 +60,7 @@ def calculate_cohort_running(
     retirement = delivery + lifetime * YEAR
 
     entered = _spread_delivery(added, delivery, window, times)
-    return _calculate_increment_profile(added, entered, retirement, window, times)
+    return _calculate_running_profile(added, entered, retirement, window, times)
 
 
 def calculate_newbuild_running(
@@ -75,7 +76,7 @@ def calculate_newbuild_running(
     retirement = delivery + lifetime * YEAR
 
     entered = _spread_delivery(rate, delivery, window, times)
-    return _calculate_increment_profile(rate, entered, retirement, window, times)
+    return _calculate_running_profile(rate, entered, retirement, window, times)
 
 
 def calculate_cohort_reserved(
@@ -96,8 +97,7 @@ def calculate_cohort_reserved(
     delivery = now - increment.age * YEAR
     retirement = delivery + lifetime * YEAR
 
-    entered = _enter_at(added, 0, times)
-    return _calculate_increment_profile(added, entered, retirement, window, times)
+    return _calculate_reserved_profile(added, 0, retirement, window, times)
 
 
 def calculate_newbuild_reserved(
@@ -114,11 +114,10 @@ def calculate_newbuild_reserved(
     delivery = time + lead_time * YEAR
     retirement = delivery + lifetime * YEAR
 
-    entered = _enter_at(rate, t, times)
-    return _calculate_increment_profile(rate, entered, retirement, window, times)
+    return _calculate_reserved_profile(rate, t, retirement, window, times)
 
 
-def _calculate_increment_profile(
+def _calculate_running_profile(
     rate: float,
     entered: FloatArray,
     retirement: float,
@@ -126,7 +125,9 @@ def _calculate_increment_profile(
     times: FloatArray,
 ) -> FloatArray:
     """
-    Calculate the rate an increment carries at each of the times.
+    Calculate the rate an increment carries at each of the times, which are sorted.
+
+    It accumulates what enters and retires up to each time.
 
     Parameters
     ----------
@@ -150,21 +151,64 @@ def _calculate_increment_profile(
     return np.cumsum(entered - retired)
 
 
+def _calculate_reserved_profile(
+    rate: float,
+    entry: int,
+    retirement: float,
+    window: float,
+    times: FloatArray,
+) -> FloatArray:
+    """
+    Calculate the rate an increment reserves at each of the times, in any order.
+
+    It reserves the whole rate from the `entry`-th time on, less the share retired by
+    each time.
+
+    Parameters
+    ----------
+    rate
+        Rate the increment reserves, such as feed, in tons/year.
+    entry
+        Index of the first of the times the rate is reserved at.
+    retirement
+        Time the last of the rate retires at, in days.
+    window
+        Window over which the rate retires, in days.
+    times
+        Times the profile is evaluated at, in days.
+
+    Returns
+    -------
+    FloatArray
+        The rate reserved at each of the times, in tons/year.
+    """
+    is_entered = np.arange(times.size) >= entry
+    retired = _calculate_retired_share(retirement, window, times)
+    return rate * is_entered * (1.0 - retired)
+
+
+def _calculate_retired_share(
+    retirement: float, window: float, times: FloatArray
+) -> FloatArray:
+    """Calculate the share of a rate retired by each of the times, in any order."""
+    if window == 0.0:
+        return (times >= retirement).astype(float)
+
+    elapsed = times - (retirement - window)
+    share: FloatArray = np.clip(elapsed / window, 0.0, 1.0)
+    return share
+
+
 def _spread_delivery(
     rate: float, delivery: float, window: float, times: FloatArray
 ) -> FloatArray:
     """Spread the rate an increment enters with over the window up to its delivery."""
+    if delivery > 0.0:
+        return _spread_uniformly(rate, delivery, window, times)
+
     # an increment delivered by the simulation start enters in full at the first time
-    if delivery <= 0.0:
-        return _enter_at(rate, 0, times)
-
-    return _spread_uniformly(rate, delivery, window, times)
-
-
-def _enter_at(rate: float, index: int, times: FloatArray) -> FloatArray:
-    """Enter the whole rate at one of the times."""
     entered = np.zeros_like(times)
-    entered[index] = rate
+    entered[0] = rate
     return entered
 
 
