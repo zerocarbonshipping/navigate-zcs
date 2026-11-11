@@ -345,6 +345,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A plant cohort reaching the end of its life within the plant lead time had
+  its whole feed counted in the producer's feed gap on top of its share still
+  running then, which could block feed-limited plant builds and log a spurious
+  "more ... feed is being used than is available" warning (#472).
 - Where some ports do not allow a Producer's fuel, the ports that allow it
   receive its whole production, shared by their `set_export_distribution`
   weights; with unequal weights they received more or less than was produced
