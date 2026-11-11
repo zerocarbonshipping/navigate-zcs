@@ -737,6 +737,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   deliveries, which showed as negative `Newbuilds` and a negative "% delivered" in
   the log. Its due orders are postponed and, where `AllowSecondaryScrapping` is on,
   secondary scrapping removes the surplus (#493).
+- A finite `set_bunkering_limit` on a liquid-market fuel no longer stops all
+  bunkering of that fuel at the port: the limit is shared among the vessels
+  calling there, by their demand for the fuel's type (#463).
 
 ## [1.0.0] - 2026-07-16
 

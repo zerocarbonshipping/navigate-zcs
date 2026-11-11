@@ -595,9 +595,7 @@ class Simulation:
         calculate_potential_fuel_type_demand(self.nodes.fleets, self._idx)
 
     def _calculate_fair_share_fuel_supply(self, scope: BunkerScopeID) -> None:
-        calculate_fair_share_fuel_supply(
-            self.nodes.fleets, self._produced_fuels, self._idx, scope
-        )
+        calculate_fair_share_fuel_supply(self.nodes.fleets, self._idx, scope)
 
     def _calculate_shore_power_limits(self) -> None:
         calculate_shore_power_limits(self.nodes.fleets, self._idx)

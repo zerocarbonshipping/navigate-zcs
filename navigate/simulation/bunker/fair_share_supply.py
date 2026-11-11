@@ -13,20 +13,16 @@ from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker._indices import ScopeSteps
     from navigate.util.types_ import FloatLike
 
 
 def calculate_fair_share_fuel_supply(
-    fleets: dict[str, Fleet],
-    fuels: dict[str, Fuel],
-    idx: int,
-    scope: BunkerScopeID,
+    fleets: dict[str, Fleet], idx: int, scope: BunkerScopeID
 ) -> None:
     """
-    Calculate each vessel's fair share of each port's supply of the given fuels.
+    Calculate each vessel's fair share of each port's supply of the fuels it can use.
 
     A vessel's fair share is its potential demand for the fuel's type at the port, as a
     fraction of the demand of every vessel calling there, each counted by its
@@ -36,8 +32,6 @@ def calculate_fair_share_fuel_supply(
     ----------
     fleets
         All fleets in the simulation.
-    fuels
-        Fuels whose port supply is shared out, those with a liquid market excluded.
     idx
         Current time-step index.
     scope
@@ -48,7 +42,7 @@ def calculate_fair_share_fuel_supply(
 
     for fleet in fleets.values():
         for vessel in fleet.vessels:
-            _calculate_vessel_fair_shares(vessel, fuels, port_demand, idx, steps, scope)
+            _calculate_vessel_fair_shares(vessel, port_demand, idx, steps, scope)
 
 
 def _calculate_port_demand(
@@ -74,20 +68,16 @@ def _calculate_port_demand(
 
 def _calculate_vessel_fair_shares(
     vessel: Vessel,
-    fuels: dict[str, Fuel],
     port_demand: dict[tuple[str, FuelTypeID], FloatLike],
     idx: int,
     steps: ScopeSteps,
     scope: BunkerScopeID,
 ) -> None:
-    """Calculate the vessel's fair share of each port's supply of the given fuels."""
+    """Calculate the vessel's fair share of each port's supply of its usable fuels."""
     expectation = vessel.expectation
 
     for port in vessel.route.distinct_ports:
-        for name, fuel in fuels.items():
-            if name not in vessel.usable_fuels:
-                continue
-
+        for name, fuel in vessel.usable_fuels.items():
             key = (port.name, fuel.fuel_type)
             demand = expectation.get_potential_fuel_type_demand(*key, steps)
             share = divide_nonzero(demand, port_demand[key])
