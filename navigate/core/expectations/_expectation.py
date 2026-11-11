@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Collection, Iterable
 
     from navigate.util.types_ import FloatArray
 
@@ -56,6 +56,11 @@ class _Expectation:
         self, keys1: Iterable[K1], keys2: Iterable[K2], default: float = 0.0
     ) -> dict[tuple[K1, K2], FloatArray]:
         return self._default_dict_array(itertools.product(keys1, keys2), default)
+
+    def _default_dict_dict_array[K1, K2](
+        self, keys1: Iterable[K1], keys2: Collection[K2], default: float = 0.0
+    ) -> dict[K1, dict[K2, FloatArray]]:
+        return {key: self._default_dict_array(keys2, default) for key in keys1}
 
     def _default_dict_list_array[K](
         self, keys: Iterable[K], count: int, default: float = 0.0

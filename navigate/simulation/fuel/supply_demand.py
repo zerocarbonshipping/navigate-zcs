@@ -51,7 +51,7 @@ def calculate_development_potential(
         production = float(plant.expectation.get_production(idx))
         potential[plant.fuel.name] += newbuilds * production
 
-    # TODO: can easily loop over export distribution to include shares going to ports
+    # TODO: can easily loop over export shares to include shares going to ports
     for key, value in potential.items():
         producer.expectation.set_development_potential(key, value)
 

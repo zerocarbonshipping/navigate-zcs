@@ -395,6 +395,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The producer's expected feed consumption, and hence its feed-constrained
   build-out, was overstated further into the horizon; each year now counts
   only the feed of a plant invested in that year (#587).
+- Where a port does not allow a Producer's fuel, the Producer's choice between
+  plants of that fuel undervalued their delivery costs, also with the default
+  export distribution, so a plant with a dearer delivery was chosen more often
+  than its delivered cost justifies (#852).
 - A producer's `Development` at the first date counts the existing pipeline
   of every plant, not only of the last plant with a pipeline.
 - The warning for a plant of zero capacity states the initial capacity it

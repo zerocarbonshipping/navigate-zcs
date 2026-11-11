@@ -106,11 +106,11 @@ def perform_pipeline_planning(
     _calculate_inertia_feed_gaps(producer, inertia_newbuilds, idx)
     demand = _calculate_uncovered_demand(producer, inertia_newbuilds, idx)
 
-    export_distribution = producer.expectation.get_export_distribution(idx)
-
     for plant in producer.plants:
+        shares = producer.expectation.get_export_shares(plant.fuel.name, idx)
+
         _calculate_inter_fuel_metric(plant, demand, offtake_duration, timeline, idx)
-        _calculate_intra_fuel_metric(plant, export_distribution, idx)
+        _calculate_intra_fuel_metric(plant, shares, idx)
 
     # the utilization is the previous time step's, and the inertia already counts
     # against the development limit
@@ -376,30 +376,30 @@ def _calculate_evaluation_timeline(
 
 
 def _calculate_intra_fuel_metric(
-    plant: Plant, export_distribution: dict[str, float], idx: int
+    plant: Plant, shares: dict[str, float], idx: int
 ) -> None:
     """
     Calculate the business-case metric used to choose a plant within a fuel pathway.
 
-    This is based on the average delivered levelized cost of fuel for a given plant.
+    The metric is the plant's levelized cost of fuel delivered: its levelized
+    production cost plus its levelized delivery cost to each port, weighted by the
+    share of the fuel exported there.
 
     Parameters
     ----------
     plant
         Plant for which intra uptake metric is being calculated.
-    export_distribution
-        Fraction of fuel production that is exported to each port at the time step.
+    shares
+        Share of the plant's fuel exported to each port at the time step.
     idx
         Current time-step index.
     """
     expectation = plant.expectation
-    production_cost = expectation.get_levelized_production_cost(idx)
-    metric = 0.0
+    metric = expectation.get_levelized_production_cost(idx)
 
-    for port_name, export in export_distribution.items():
+    for port_name, share in shares.items():
         delivery_cost = expectation.get_levelized_delivery_cost(port_name, idx)
-        delivered_cost = production_cost + delivery_cost
-        metric += export * delivered_cost
+        metric += share * delivery_cost
 
     expectation.set_intra_fuel_metric(metric)
 
