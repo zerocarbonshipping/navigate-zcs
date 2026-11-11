@@ -8,8 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.results.base_results import BaseResults, Unit, accumulate, result
 
 if TYPE_CHECKING:
@@ -18,28 +16,20 @@ if TYPE_CHECKING:
 
 @dataclass(eq=False, repr=False)
 class _FuelInfrastructureResults(BaseResults):
-    """Fuel bunkered, supplied and permitted by capacity at a bunkering location."""
+    """Fuel bunkered and supplied at a bunkering location."""
 
     # each mass is written, its energy computed from it
     bunker_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
     bunker_supply_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
-    bunkering_limit_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
 
     bunker_energy: dict[str, FloatArray] = result(Unit.GJ_PER_YEAR)
     bunker_supply_energy: dict[str, FloatArray] = result(Unit.GJ_PER_YEAR)
-    bunkering_limit_energy: dict[str, FloatArray] = result(Unit.GJ_PER_YEAR)
 
     def _initialize_fuel_infrastructure(self) -> None:
         fuels = self.context.fuels
 
         self.bunker_mass = self._default_dict(fuels)
         self.bunker_supply_mass = self._default_dict(fuels)
-        self.bunkering_limit_mass = self._default_dict(fuels, default=np.nan)
-
-        # a liquid-market supply stays NaN where the fuel is allowed without a finite
-        # bunkering limit, as nothing bounds it
-        for fuel_name in self.context.liquid_market_fuels:
-            self.bunker_supply_mass[fuel_name] = self._default_array(default=np.nan)
 
     def add_fuel_infrastructure_results(
         self, results: _FuelInfrastructureResults
@@ -54,4 +44,3 @@ class _FuelInfrastructureResults(BaseResults):
         """
         accumulate(self.bunker_mass, results.bunker_mass)
         accumulate(self.bunker_supply_mass, results.bunker_supply_mass)
-        accumulate(self.bunkering_limit_mass, results.bunkering_limit_mass)
