@@ -405,6 +405,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The producer's expected feed consumption, and hence its feed-constrained
   build-out, was overstated further into the horizon; each year now counts
   only the feed of a plant invested in that year (#587).
+- A Producer's expected supply fell towards zero late in the horizon once its
+  plants retired, as their feed stayed counted against `set_feed_constraint`;
+  vessels then planned their late-horizon bunkering on oil (#316).
 - Where a port does not allow a Producer's fuel, the Producer's choice between
   plants of that fuel undervalued their delivery costs, also with the default
   export distribution, so a plant with a dearer delivery was chosen more often

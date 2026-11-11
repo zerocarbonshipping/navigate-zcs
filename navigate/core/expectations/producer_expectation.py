@@ -27,8 +27,6 @@ class ProducerExpectation(_Expectation):
         self._export_shares: dict[str, dict[str, FloatArray]]
 
         self._plant_feed_consumption: dict[tuple[str, str], float]
-        self._existing_feed: dict[str, float]
-        self._pipeline_feed: dict[str, float]
         self._feed_gap: dict[str, FloatArray]
 
         self._development_potential: dict[str, float]
@@ -54,8 +52,6 @@ class ProducerExpectation(_Expectation):
         self._plant_feed_consumption = self._default_tuple_dict_float(
             plant_names, feed_names
         )
-        self._existing_feed = self._default_dict_float(feed_names)
-        self._pipeline_feed = self._default_dict_float(feed_names)
         self._feed_gap = self._default_dict_array(feed_names, default=np.inf)
 
         self._development_potential = self._default_dict_float(fuel_names)
@@ -63,10 +59,6 @@ class ProducerExpectation(_Expectation):
 
         self._guaranteed_production = self._default_dict_array(plant_names)
         self._expected_production = self._default_dict_array(plant_names)
-
-    def reset_feed_totals(self) -> None:
-        self._reset_dict_float(self._existing_feed)
-        self._reset_dict_float(self._pipeline_feed)
 
     def set_export_share(
         self, fuel_name: str, port_name: str, idx: int, share: FloatArray
@@ -78,13 +70,7 @@ class ProducerExpectation(_Expectation):
     ) -> None:
         self._plant_feed_consumption[plant_name, feed_name] = consumption
 
-    def add_existing_feed(self, feed_name: str, feed: float) -> None:
-        self._existing_feed[feed_name] += feed
-
-    def add_pipeline_feed(self, feed_name: str, feed: float) -> None:
-        self._pipeline_feed[feed_name] += feed
-
-    def set_feed_gap(self, feed_name: str, idx: int, gap: FloatLike) -> None:
+    def set_feed_gap(self, feed_name: str, idx: int, gap: FloatArray) -> None:
         self._feed_gap[feed_name][idx:] = gap
 
     def set_development_potential(self, fuel_name: str, potential: float) -> None:
@@ -118,12 +104,6 @@ class ProducerExpectation(_Expectation):
 
     def get_plant_feed_consumption(self, plant_name: str, feed_name: str) -> float:
         return self._plant_feed_consumption[plant_name, feed_name]
-
-    def get_existing_feed(self, feed_name: str) -> float:
-        return self._existing_feed[feed_name]
-
-    def get_pipeline_feed(self, feed_name: str) -> float:
-        return self._pipeline_feed[feed_name]
 
     def get_feed_gap(self, feed_name: str, idx: int) -> float:
         gap: float = self._feed_gap[feed_name][idx]

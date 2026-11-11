@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The rates plant increments carry over time, from their delivery to retirement."""
+"""
+The rates plant increments carry over time, until their retirement.
+
+A plant runs from its delivery, and reserves its feed from its decision.
+"""
 
 from __future__ import annotations
 
@@ -71,6 +75,46 @@ def calculate_newbuild_running(
     retirement = delivery + lifetime * YEAR
 
     entered = _spread_delivery(rate, delivery, window, times)
+    return _calculate_increment_profile(rate, entered, retirement, window, times)
+
+
+def calculate_cohort_reserved(
+    increment: PlantIncrement,
+    rate: float,
+    lifetime: float,
+    now: float,
+    times: FloatArray,
+) -> FloatArray:
+    """
+    Calculate the rate a delivered or pipeline increment reserves.
+
+    It is decided already, so it reserves the whole rate from the first of the times;
+    its age counts back from `now`, the current time.
+    """
+    added = rate * increment.multiplier
+    window = increment.age_span * YEAR
+    delivery = now - increment.age * YEAR
+    retirement = delivery + lifetime * YEAR
+
+    entered = _enter_at(added, 0, times)
+    return _calculate_increment_profile(added, entered, retirement, window, times)
+
+
+def calculate_newbuild_reserved(
+    plant: Plant, rate: float, t: int, time: float, window: float, times: FloatArray
+) -> FloatArray:
+    """
+    Calculate the rate the newbuilds decided at `time` reserve.
+
+    They reserve the whole rate from the `t`-th of the times, their decision.
+    """
+    lifetime = plant.lifetime.get(time)
+    lead_time = plant.lead_time.get(time)
+
+    delivery = time + lead_time * YEAR
+    retirement = delivery + lifetime * YEAR
+
+    entered = _enter_at(rate, t, times)
     return _calculate_increment_profile(rate, entered, retirement, window, times)
 
 

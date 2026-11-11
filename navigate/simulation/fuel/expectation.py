@@ -12,10 +12,14 @@ import numpy as np
 
 from navigate.simulation.fuel._profiles import (
     calculate_cohort_running,
+    calculate_newbuild_reserved,
     calculate_newbuild_running,
     iterate_increments,
 )
-from navigate.simulation.fuel.feed import calculate_constrained_uptakes
+from navigate.simulation.fuel.feed import (
+    calculate_constrained_uptakes,
+    calculate_feed_delivery,
+)
 from navigate.util import (
     MWH_TO_GJ,
     TOLERANCE,
@@ -379,8 +383,8 @@ def _calculate_newbuild_production(
     """
     Calculate each plant's production from the newbuilds decided at future times.
 
-    The newbuilds decided at each time are added to the mix, and their feed
-    consumption constrains the uptakes at the times after.
+    The newbuilds decided at each time are added to the mix, and the feed they
+    reserve constrains the uptakes at the times after.
 
     Parameters
     ----------
@@ -401,7 +405,7 @@ def _calculate_newbuild_production(
     plants = producer.plants
     jump_start = producer.jump_start_fraction.get()
     profiles = np.zeros((len(plants), times.size))
-    feed_consumption = {key: np.zeros_like(times) for key in producer.feed_constraints}
+    reserved_feed = _ReservedFeed(producer, times)
 
     # without initial production the supply/demand interaction never starts, as
     # no supply is expected and thus no demand; a partially uniform uptake
@@ -431,7 +435,7 @@ def _calculate_newbuild_production(
         utilization = min(utilization + ramp_up, 1.0)
 
         development = utilization * producer.maximum_development.get(time) * dt
-        consumption = slice_dict(feed_consumption, t)
+        consumption = slice_dict(reserved_feed.reserved, t)
         constrained_uptakes = calculate_constrained_uptakes(
             producer, uptakes, development, limits, origin, consumption
         )
@@ -446,11 +450,40 @@ def _calculate_newbuild_production(
             profile = calculate_newbuild_running(plant, added, time, time_step, times)
             profiles[p] += profile
             mix.add(p, profile, expectation, origin)
-
-            # the feed gap moves everything forward by the lead time: it is the gap
-            # of what can enter the pipeline at 't', not the gap at 't + lead_time'
-            conversions = expectation.get_feed_conversions(origin)
-            for feed_name, conversion in conversions.items():
-                feed_consumption[feed_name][t:] += added * conversion
+            reserved_feed.add(plant, added, t, time, time_step, origin)
 
     return profiles
+
+
+class _ReservedFeed:
+    """Accumulate the feed the newbuilds reserve, per constrained feed."""
+
+    def __init__(self, producer: Producer, times: FloatArray) -> None:
+        self.deliveries: dict[str, FloatArray] = {}
+        self.reserved: dict[str, FloatArray] = {}
+
+        for feed_name, constraint in producer.feed_constraints.items():
+            if constraint is None:
+                continue
+
+            delivery = calculate_feed_delivery(producer, feed_name, times)
+            if delivery is not None:
+                self.deliveries[feed_name] = delivery
+                self.reserved[feed_name] = np.zeros_like(times)
+
+    def add(
+        self,
+        plant: Plant,
+        added: float,
+        t: int,
+        time: float,
+        window: float,
+        origin: int,
+    ) -> None:
+        """Reserve the feed of `added` production of `plant` decided at `time`."""
+        for feed_name, times in self.deliveries.items():
+            conversion = plant.expectation.get_feed_conversion(feed_name, origin)
+            feed = added * conversion
+
+            reserved = calculate_newbuild_reserved(plant, feed, t, time, window, times)
+            self.reserved[feed_name] += reserved
