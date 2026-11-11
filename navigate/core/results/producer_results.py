@@ -22,13 +22,16 @@ if TYPE_CHECKING:
 
 @dataclass(eq=False, repr=False)
 class ProducerResults(_PlantAggregateResults):
-    """Production, feedstock use and plant development of one fuel producer."""
+    """Production, feed use, feed availability and plant development of one producer."""
 
     # plants added to the development pipeline
     maximum_development: FloatArray = result(Unit.PLANTS_PER_YEAR)
     development: FloatArray = result(Unit.PLANTS_PER_YEAR, per_step=True)
 
     fair_share_fuel_fraction: dict[str, FloatArray] = result(Unit.DIMENSIONLESS)
+
+    # the limit of one producer, so there is no total over producers
+    feed_constraint: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
 
     def initialize(
         self,
@@ -57,3 +60,6 @@ class ProducerResults(_PlantAggregateResults):
         self.development = self._default_array()
 
         self.fair_share_fuel_fraction = self._default_dict(context.fuels)
+
+        feed_names = [*feedstock_names, *process_names]
+        self.feed_constraint = self._default_dict(feed_names, default=np.inf)
