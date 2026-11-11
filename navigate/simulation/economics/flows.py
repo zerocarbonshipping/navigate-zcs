@@ -715,11 +715,11 @@ def _add_initial_tied_capital_flow(component: Component, deposits: FloatArray) -
       1) Construction-in-Progress (CIP): cumulative initial CAPEX during construction
          bins before commencement.
       2) Straight-line depreciation from commencement (bin-start convention) with no
-         residual value, applied as two tranches:
+         residual value, applied as two tranches over the years each serves:
             - non-replaceable share: (1 - replace(time_initial)) depreciated from the
               commencement bin to the end of operation
             - replaceable share: replace(time_initial) depreciated over the component
-              lifetime locked at time_initial
+              lifetime locked at time_initial, cut at the end of operation
 
     Parameters
     ----------
@@ -744,7 +744,7 @@ def _add_initial_tied_capital_flow(component: Component, deposits: FloatArray) -
 
     tranches = [
         (basis * (1.0 - replaceable), lifetime_asset),
-        (basis * replaceable, lifetime_component),
+        (basis * replaceable, min(lifetime_component, lifetime_asset)),
     ]
     for tranche, lifetime in tranches:
         _add_straight_line_depreciation(component, commence_idx, tranche, lifetime)
@@ -789,7 +789,8 @@ def _add_recurring_capex_flow(
     Each replacement's CAPEX is locked at its replacement time and deposited into the
     calendar-year bin holding it, scaled by the share of the component lifetime that
     fits before the end of operation. Its tied up capital depreciates straight-line
-    from the bin start, over the component lifetime locked at the replacement.
+    from the bin start over the years it serves: the component lifetime locked at the
+    replacement, cut at the end of operation.
 
     Parameters
     ----------
@@ -805,13 +806,14 @@ def _add_recurring_capex_flow(
     for time_replace in cycle.replacement_times:
         lifetime = cycle.lifetime(time_replace)
         remaining = (component.time_end - time_replace) / YEAR
-        share = min(remaining / lifetime, 1.0)
+        service = min(lifetime, remaining)
+        share = service / lifetime
         capex_t = capex(time_replace) * cycle.replacement(time_replace) * share
 
         bin_idx = _bin_index(time_replace, component.time_initial, component.size)
         component.capex_flow[bin_idx] += capex_t
 
-        _add_straight_line_depreciation(component, bin_idx, capex_t, lifetime)
+        _add_straight_line_depreciation(component, bin_idx, capex_t, service)
 
 
 def _build_staircase_flow(
