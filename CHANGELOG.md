@@ -345,6 +345,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- `vessel_tied_capital` and `plant_tied_capital` now reach zero at the end of an
+  asset's operation when a component with its own lifetime outlives the asset or
+  has its last replacement cut short by that end; they stayed above zero (#313).
 - A plant cohort reaching the end of its life within the plant lead time had
   its whole feed counted in the producer's feed gap on top of its share still
   running then, which could block feed-limited plant builds and log a spurious
