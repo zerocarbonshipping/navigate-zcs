@@ -361,6 +361,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   'Port' matches the wildcard expression". The matched ports on no route are
   dropped with the warning a listed one gets, and a `Jurisdiction` left empty
   fails with the unassigned-attribute error as it does for listed ports (#822).
+- `global.feed_constraint`, never written, is no longer listed (#873).
 - An unbounded bunkering LP, or a solve that stops at a limit, now stops the run
   with an error naming the bunkering scope, instead of a `RecursionError` on
   HiGHS or a silent continuation on Gurobi (#368).

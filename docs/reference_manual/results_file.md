@@ -287,7 +287,7 @@ The energies are the masses times the fuel's `lower_heating_value`.
 | `global.production_energy`<br>`producer.production_energy` | `GJ/year` | fuel | Fuel produced. | Each fuel the plants produce |
 | `global.production_type_energy`<br>`producer.production_type_energy` | `GJ/year` | fuel type | `production_energy` summed by the fuels' type. | As `production_energy` |
 | `global.feed_mass`<br>`producer.feed_mass` | `t/year` | feed | Feed used. | Plants in production use the feed |
-| `global.feed_constraint`<br>`producer.feed_constraint` | `t/year` | feed | Availability of the feed. | The Producer has `set_feed_constraint` for the feed. Never in `global` |
+| `producer.feed_constraint` | `t/year` | feed | Availability of the feed. | The Producer has `set_feed_constraint` for the feed |
 | `global.plant_tied_capital`<br>`producer.plant_tied_capital` | `USD` | | Capital tied up in the plants, depreciated linearly. | Plants in production |
 
 ### Producer

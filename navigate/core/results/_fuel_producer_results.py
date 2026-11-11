@@ -8,8 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.results.base_results import BaseResults, Unit, accumulate, result
 
 if TYPE_CHECKING:
@@ -21,7 +19,7 @@ if TYPE_CHECKING:
 
 @dataclass(eq=False, repr=False)
 class _FuelProducerResults(BaseResults):
-    """Fuel produced, and feed used and available per feedstock and process."""
+    """Fuel produced and feed used per feedstock and process."""
 
     # the mass is written, the energy computed from it
     production_mass: dict[str, FloatArray] = field(init=False)
@@ -29,7 +27,6 @@ class _FuelProducerResults(BaseResults):
     production_type_energy: dict[FuelTypeID, FloatArray] = result(Unit.GJ_PER_YEAR)
 
     feed_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
-    feed_constraint: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
 
     def _initialize_fuel_producer(
         self, feedstock_names: Sequence[str], process_names: Sequence[str]
@@ -38,7 +35,6 @@ class _FuelProducerResults(BaseResults):
 
         feed_names = [*feedstock_names, *process_names]
         self.feed_mass = self._default_dict(feed_names)
-        self.feed_constraint = self._default_dict(feed_names, default=np.inf)
 
     def add_fuel_producer_results(self, results: _FuelProducerResults) -> None:
         """
@@ -52,4 +48,3 @@ class _FuelProducerResults(BaseResults):
         accumulate(self.production_mass, results.production_mass)
 
         accumulate(self.feed_mass, results.feed_mass)
-        accumulate(self.feed_constraint, results.feed_constraint)
