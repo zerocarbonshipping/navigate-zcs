@@ -66,20 +66,19 @@ def _calculate_energy_price(alg: BunkerAlgorithm, constraint: Constraint) -> flo
     first unit would be supplied is a dual value, and the solver may report any one of
     them. The price is then that upper end:
 
-        \pi_i + \min_j d_j / a_{ij}
+        \min_j (\pi_i + d_j / a_{ij})
 
-    over the variables j able to supply the row, those with a positive coefficient
-    a_{ij} and a positive upper bound, where d_j is the reduced cost of j. As
-    d_j = c_j - \sum_r a_{rj} \pi_r, \pi_i cancels: the price is the cost c_j of the
-    cheapest variable, net of the dual values of its other rows, per unit of energy.
-    A row no variable can supply keeps its dual value.
+    over the variables j able to supply more, those with a positive coefficient a_{ij}
+    and a value below their upper bound, where d_j is the reduced cost of j. It is the
+    cost of the cheapest variable able to supply more, net of the dual values of its
+    other rows, per GJ. A row no variable can supply more keeps its dual value.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     constraint
-        Energy-conservation row priced.
+        Energy-conservation row to price.
 
     Returns
     -------
@@ -88,15 +87,18 @@ def _calculate_energy_price(alg: BunkerAlgorithm, constraint: Constraint) -> flo
         is, in USD/GJ.
     """
     model = alg.model
+    tolerance = alg.options.solution_tolerance
     dual = model.dual(constraint)
 
-    if model.rhs(constraint) > alg.options.solution_tolerance:
+    if model.rhs(constraint) > tolerance:
         return dual
 
-    supply_costs: list[float] = []
+    prices: list[float] = []
 
     for variable, coefficient in model.terms(constraint):
-        if coefficient > 0.0 and model.upper_bound(variable) > 0.0:
-            supply_costs.append(model.reduced_cost(variable) / coefficient)
+        headroom = model.upper_bound(variable) - model.value(variable)
 
-    return dual + min(supply_costs, default=0.0)
+        if coefficient > 0.0 and headroom > tolerance:
+            prices.append(dual + model.reduced_cost(variable) / coefficient)
+
+    return min(prices, default=dual)

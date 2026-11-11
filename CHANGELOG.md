@@ -363,7 +363,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   HiGHS or a silent continuation on Gurobi (#368).
 - Technology and speed choices no longer value energy added where a vessel had
   no demand of that type, at sea or in port, at an arbitrary price such as 0:
-  it is priced at what supplying the first unit there would cost (#534).
+  that energy is now priced at what supplying its first unit would cost (#534).
 - A `FLEXIBLE` `Regulation` with `Measure = ABSOLUTE` and
   `AllowThresholdAdjustment = TRUE` (#561):
   - no longer reports `regulation.vessel_allowance`,

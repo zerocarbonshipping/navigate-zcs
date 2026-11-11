@@ -88,10 +88,11 @@ class GurobiModel:
         params.FeasibilityTol = options.solution_tolerance
         params.OptimalityTol = options.solution_tolerance
 
-        # the gurobipy columns and rows, indexed by handle, and the handle of each
-        # gurobipy column, to read the variables of a row
+        # the gurobipy columns and rows, indexed by handle
         self._columns: list[Any] = []
         self._rows: list[Any] = []
+
+        # the handle of each gurobipy column, to map a row's columns back to variables
         self._variables: dict[Any, Variable] = {}
 
     def add_variable(self, name: str) -> Variable:
