@@ -13,6 +13,7 @@ import numpy as np
 from navigate.core.enum_ import BunkerScopeID
 from navigate.simulation.fleet._composition import extract_cargo_miles, get_multiplier
 from navigate.simulation.fleet._newbuild import is_newbuild_allowed
+from navigate.simulation.fleet.scrapping import group_by_age, split_oldest_first
 from navigate.util import YEAR, divide_nonzero
 
 if TYPE_CHECKING:
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray, FloatLike
 
 
@@ -179,7 +181,8 @@ def calculate_fleet_evolution_expectation(
     """
     Calculate the multipliers of the existing and expected fleet from this time-step on.
 
-    The existing vessels decline by their expected scrapping; the trade gap this
+    The existing vessels decline as primary scrapping removes them: at the vessel
+    lifetime, or at the fleet's fixed scrap rate where it sets one. The trade gap this
     leaves is filled with newbuilds split by the memory-weighted recent uptake.
 
     Parameters
@@ -194,25 +197,15 @@ def calculate_fleet_evolution_expectation(
         Whether this time-step's scrapping is still to run. If not, the existing
         multipliers at the time-step are the vessels in the fleet.
     """
-    forward = np.s_[idx:]
-    years = timeline[forward] / YEAR
-    years_ahead = years - years[0]
+    first_pending = 0 if scrapping_pending else 1
+    rate = fleet.fixed_scrap_rate
 
-    existing = _existing_multipliers(fleet, years_ahead, scrapping_pending)
+    if rate is None:
+        forecast = _forecast_by_age(fleet, timeline, idx, first_pending)
+    else:
+        forecast = _forecast_at_fixed_rate(fleet, rate, timeline, idx, first_pending)
 
-    # the multipliers become cargo-miles to take the speed expectations into account
-    cargo_miles = extract_cargo_miles(fleet.vessels, forward)
-    existing_trade = existing * cargo_miles
-    gap = fleet.trade[forward] - np.sum(existing_trade, axis=0)
-
-    # a gap turned negative by falling trade is truncated to zero, which leaves more
-    # vessels than trade; where secondary scrapping is allowed this overestimates the
-    # fleet
-    gap = np.where(gap > 0.0, gap, 0.0)
-
-    split = _newbuild_split(fleet, idx)
-    newbuild_trade = np.outer(split, gap)
-    newbuild = newbuild_trade / cargo_miles
+    existing, newbuild = forecast
 
     # the expected bunkering needs a multiplier above zero for every allowed vessel
     # type in every nested time-step to return a result per vessel; a small jump
@@ -223,9 +216,8 @@ def calculate_fleet_evolution_expectation(
         absent = existing[v] + newbuild[v] == 0.0
         newbuild[v, absent] = jump_start[absent]
 
-    # the expected newbuilds need no scrapping of their own beyond the vessel
-    # lifetime: the vessels replacing them are expected to follow the same
-    # distribution
+    # the expected newbuilds need no scrapping of their own: the vessels replacing
+    # them are expected to follow the same distribution
     expected = existing + newbuild
 
     expectation = fleet.expectation
@@ -235,11 +227,48 @@ def calculate_fleet_evolution_expectation(
         expectation.set_multiplier(name, BunkerScopeID.EXPECTED, idx, expected[v])
 
 
-def _existing_multipliers(
-    fleet: Fleet, years_ahead: FloatArray, scrapping_pending: bool
+def _forecast_by_age(
+    fleet: Fleet, timeline: FloatArray, idx: int, first_pending: int
+) -> tuple[FloatArray, FloatArray]:
+    """
+    Forecast the existing vessels scrapped at their lifetime and the newbuilds.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose evolution is forecast.
+    timeline
+        Simulation timeline, in days.
+    idx
+        Current time-step index, where the forecast starts.
+    first_pending
+        Step of the horizon from which the scrapping is still to run.
+
+    Returns
+    -------
+    tuple[FloatArray, FloatArray]
+        Multipliers of the existing vessels and of the newbuilds, of each vessel type
+        (rows) over the horizon (columns).
+    """
+    forward = np.s_[idx:]
+    trade = fleet.trade[forward]
+    cargo_miles = extract_cargo_miles(fleet.vessels, forward)
+    split = _newbuild_split(fleet, idx)
+
+    years = timeline[forward] / YEAR
+    years_ahead = years - years[0]
+
+    existing = _existing_by_age(fleet, years_ahead, first_pending)
+    newbuild = _gap_newbuilds(trade, existing, cargo_miles, split)
+
+    return existing, newbuild
+
+
+def _existing_by_age(
+    fleet: Fleet, years_ahead: FloatArray, first_pending: int
 ) -> FloatArray:
     """
-    Return the multipliers of the existing vessels, declining by expected scrapping.
+    Return the multipliers of the existing vessels, scrapped at their lifetime.
 
     Parameters
     ----------
@@ -247,8 +276,8 @@ def _existing_multipliers(
         Fleet whose existing vessels are scrapped.
     years_ahead
         Years from the current time-step to each time-step of the horizon.
-    scrapping_pending
-        Whether the current time-step's scrapping is still to run.
+    first_pending
+        Step of the horizon from which the scrapping is still to run.
 
     Returns
     -------
@@ -273,12 +302,171 @@ def _existing_multipliers(
 
         # with no scrapping left to run at the current time-step, the vessels at or
         # past their lifetime stay in the fleet for it
-        if not scrapping_pending:
-            scrapped[0] = 0.0
+        scrapped[:first_pending] = 0.0
 
         existing[v] = get_multiplier(fleet, v) - scrapped
 
     return existing
+
+
+def _forecast_at_fixed_rate(
+    fleet: Fleet,
+    scrap_rate: ForecastInput,
+    timeline: FloatArray,
+    idx: int,
+    first_pending: int,
+) -> tuple[FloatArray, FloatArray]:
+    """
+    Forecast the existing vessels scrapped at the fixed rate and the newbuilds.
+
+    Each time-step scraps the rate's share of the capacity of the fleet expected at
+    the time-step before, oldest age group first across vessel types, as primary
+    scrapping does; the first time-step scrapped counts the fleet as it is. As the
+    expected fleet holds the newbuilds that fill each gap, the time-steps are
+    forecast one after another. All ages advance equally, so the age order holds
+    over the horizon. Scrapping left once the existing vessels are gone would only
+    scrap expected newbuilds, which the gap refills, so it is dropped.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose evolution is forecast.
+    scrap_rate
+        Share of the fleet's trade scrapped per year, fraction.
+    timeline
+        Simulation timeline, in days.
+    idx
+        Current time-step index, where the forecast starts.
+    first_pending
+        Step of the horizon from which the scrapping is still to run.
+
+    Returns
+    -------
+    tuple[FloatArray, FloatArray]
+        Multipliers of the existing vessels and of the newbuilds, of each vessel type
+        (rows) over the horizon (columns).
+    """
+    forward = np.s_[idx:]
+    trade = fleet.trade[forward]
+    rates = scrap_rate.get(timeline[forward])
+    split = _newbuild_split(fleet, idx)
+
+    # the time-steps are rows here, as the forecast runs one time-step at a time
+    cargo_miles = extract_cargo_miles(fleet.vessels, forward).T
+    existing = np.zeros_like(cargo_miles)
+    newbuild = np.zeros_like(cargo_miles)
+
+    grouped = _grouped_multipliers(fleet)
+    counted = np.sum(grouped, axis=0)
+
+    for k in range(trade.size):
+        is_pending = k >= first_pending
+
+        if is_pending:
+            time_step = timeline[idx + k] - timeline[idx + k - 1]
+            target = rates[k] * time_step / YEAR * np.dot(counted, cargo_miles[k])
+            grouped = _scrap_oldest_groups(grouped, cargo_miles[k], target)
+
+        existing[k] = np.sum(grouped, axis=0)
+        newbuild[k] = _gap_newbuilds(trade[k], existing[k], cargo_miles[k], split)
+
+        # a time-step whose evolution has run leaves its gap open, so the next
+        # scrapping counts its expected newbuilds only where it is still to run
+        counted = existing[k] + newbuild[k] if is_pending else existing[k]
+
+    return existing.T, newbuild.T
+
+
+def _grouped_multipliers(fleet: Fleet) -> FloatArray:
+    """
+    Return the multipliers of the fleet's age groups.
+
+    Parameters
+    ----------
+    fleet
+        Fleet whose increments are grouped.
+
+    Returns
+    -------
+    FloatArray
+        Multipliers of each age group (rows), oldest first, of each vessel type
+        (columns).
+    """
+    groups = group_by_age(fleet)
+    grouped = np.zeros((len(groups), len(fleet.vessels)))
+
+    for g, group in enumerate(groups):
+        for v, i in group:
+            grouped[g, v] += fleet.increments[v][i].multiplier
+
+    return grouped
+
+
+def _scrap_oldest_groups(
+    grouped: FloatArray, cargo_miles: FloatArray, capacity: float
+) -> FloatArray:
+    """
+    Return the age groups' multipliers left after scrapping a capacity, oldest first.
+
+    Parameters
+    ----------
+    grouped
+        Multipliers of each age group (rows), oldest first, of each vessel type
+        (columns).
+    cargo_miles
+        Cargo-miles of one vessel of each type, in cargo-miles/year.
+    capacity
+        Capacity to scrap, in cargo-miles/year.
+
+    Returns
+    -------
+    FloatArray
+        Multipliers of each age group left (rows), oldest first, of each vessel
+        type (columns).
+    """
+    whole, fraction = split_oldest_first(grouped @ cargo_miles, capacity)
+    left = grouped[whole:].copy()
+
+    if fraction is not None:
+        left[0] *= 1.0 - fraction
+
+    return left
+
+
+def _gap_newbuilds(
+    trade: FloatLike, existing: FloatArray, cargo_miles: FloatArray, split: FloatArray
+) -> FloatArray:
+    """
+    Return the multipliers of the newbuilds expected to fill the trade gap.
+
+    Parameters
+    ----------
+    trade
+        Trade of the fleet, in cargo-miles/year: at one time-step or over several.
+    existing
+        Multipliers of the existing vessels of each type: at one time-step, or one
+        row per type over several.
+    cargo_miles
+        Cargo-miles of one vessel of each type, in cargo-miles/year, in the shape of
+        ``existing``.
+    split
+        Share of the newbuilds of each vessel type.
+
+    Returns
+    -------
+    FloatArray
+        Multipliers of the newbuilds, in the shape of ``existing``.
+    """
+    # the multipliers become cargo-miles to take the speed expectations into account
+    gap = trade - np.sum(existing * cargo_miles, axis=0)
+
+    # a gap turned negative by falling trade is truncated to zero, which leaves more
+    # vessels than trade; where secondary scrapping is allowed this overestimates the
+    # fleet
+    gap = np.where(gap > 0.0, gap, 0.0)
+
+    newbuild_trade = np.multiply.outer(split, gap)
+    return newbuild_trade / cargo_miles
 
 
 def _newbuild_split(fleet: Fleet, idx: int) -> FloatArray:

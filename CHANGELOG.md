@@ -727,6 +727,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A fractional `LeadTime` plus `Lifetime` no longer prices a vessel or plant as
   operating to the next whole year; its `asset_charter_rate`, `cargo_charter_rate`,
   `instantaneous_freight_rate`, `investment_cost` and delivery costs change (#662).
+- The expected fleet of a `Fleet` with `FixedScrapRate` now scraps at that rate,
+  oldest vessels first, rather than at the vessel `Lifetime`; the expected fleet,
+  bunkering and fuel demand of such fleets change (#468).
 - On a timeline that is not yearly, a vessel's achieved `cargo_charter_rate` and
   `instantaneous_freight_rate`, and the fleet's freight rate, follow its presence in
   the fleet over its lead time and lifetime in years, not in as many time-steps (#854).
