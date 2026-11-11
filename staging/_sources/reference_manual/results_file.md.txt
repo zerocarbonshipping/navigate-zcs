@@ -265,11 +265,11 @@ The energies are the masses times the fuel's `lower_heating_value`.
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
 | `global.bunker_mass`<br>`port.bunker_mass` | `t/year` | fuel | Fuel bunkered. | Each fuel bunkered |
-| `global.bunker_supply_mass`<br>`port.bunker_supply_mass` | `t/year` | fuel | Fuel available for bunkering. | A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, missing at dates it allows the fuel without one and 0 at dates it does not allow it; never in `global` |
-| `global.bunkering_limit_mass`<br>`port.bunkering_limit_mass` | `t/year` | fuel | Limit the port's infrastructure puts on bunkering. | The Port has `set_bunkering_limit` for the fuel; missing at dates without one. Never in `global` |
+| `global.bunker_supply_mass`<br>`port.bunker_supply_mass` | `t/year` | fuel | Fuel available for bunkering. | A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, missing at dates it allows the fuel without one and 0 at dates it does not allow it; in `global`, missing at dates any port allows it without one |
+| `port.bunkering_limit_mass` | `t/year` | fuel | Limit the port's infrastructure puts on bunkering. | The Port has `set_bunkering_limit` for the fuel; missing at dates without one |
 | `global.bunker_energy`<br>`port.bunker_energy` | `GJ/year` | fuel | `bunker_mass` in energy. | As `bunker_mass` |
 | `global.bunker_supply_energy`<br>`port.bunker_supply_energy` | `GJ/year` | fuel | `bunker_supply_mass` in energy. | As `bunker_supply_mass` |
-| `global.bunkering_limit_energy`<br>`port.bunkering_limit_energy` | `GJ/year` | fuel | `bunkering_limit_mass` in energy. | As `bunkering_limit_mass` |
+| `port.bunkering_limit_energy` | `GJ/year` | fuel | `bunkering_limit_mass` in energy. | As `bunkering_limit_mass` |
 
 ### Port
 

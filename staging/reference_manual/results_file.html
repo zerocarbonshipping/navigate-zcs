@@ -1319,13 +1319,13 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
 <td><p>fuel</p></td>
 <td><p>Fuel available for bunkering.</p></td>
-<td><p>A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, missing at dates it allows the fuel without one and 0 at dates it does not allow it; never in <code class="docutils literal notranslate"><span class="pre">global</span></code></p></td>
+<td><p>A fuel from producers that reaches the port. A liquid-market fuel only at a port that allows it with a bunkering limit, missing at dates it allows the fuel without one and 0 at dates it does not allow it; in <code class="docutils literal notranslate"><span class="pre">global</span></code>, missing at dates any port allows it without one</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunkering_limit_mass</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunkering_limit_mass</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">port.bunkering_limit_mass</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
 <td><p>fuel</p></td>
 <td><p>Limit the port’s infrastructure puts on bunkering.</p></td>
-<td><p>The Port has <code class="docutils literal notranslate"><span class="pre">set_bunkering_limit</span></code> for the fuel; missing at dates without one. Never in <code class="docutils literal notranslate"><span class="pre">global</span></code></p></td>
+<td><p>The Port has <code class="docutils literal notranslate"><span class="pre">set_bunkering_limit</span></code> for the fuel; missing at dates without one</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunker_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunker_energy</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
@@ -1339,7 +1339,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p><code class="docutils literal notranslate"><span class="pre">bunker_supply_mass</span></code> in energy.</p></td>
 <td><p>As <code class="docutils literal notranslate"><span class="pre">bunker_supply_mass</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.bunkering_limit_energy</span></code><br><code class="docutils literal notranslate"><span class="pre">port.bunkering_limit_energy</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">port.bunkering_limit_energy</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
 <td><p>fuel</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bunkering_limit_mass</span></code> in energy.</p></td>
