@@ -10,7 +10,11 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import find_origin_indexes
+from navigate.simulation.fuel._profiles import (
+    calculate_cohort_running,
+    calculate_newbuild_running,
+    iterate_increments,
+)
 from navigate.simulation.fuel.feed import calculate_constrained_uptakes
 from navigate.util import (
     MWH_TO_GJ,
@@ -21,7 +25,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterator
+    from collections.abc import Collection
 
     from navigate.core.expectations import PlantExpectation
     from navigate.core.increment import PlantIncrement
@@ -351,51 +355,22 @@ def _calculate_cohort_production(
     FloatArray
         Production of each plant at each of the times from idx on, in tons/year.
     """
-    years = timeline / YEAR
     times = timeline[idx:]
     profiles = np.zeros((len(plants), times.size))
+    increments = iterate_increments(plants, cohorts, timeline, idx)
 
-    for p, plant, increment, origin in _iterate_increments(plants, cohorts, years, idx):
+    for p, plant, increment, origin in increments:
         production = plant.expectation.get_production(origin)
         decision = times[0] - increment.decided * YEAR
         lifetime = plant.lifetime.get()
         lifetime_then = plant.lifetime.get(decision)
 
-        profile = _calculate_cohort_profile(increment, production, lifetime, times)
-        weight = _calculate_cohort_profile(increment, production, lifetime_then, times)
+        profile = calculate_cohort_running(increment, production, lifetime, times)
+        weight = calculate_cohort_running(increment, production, lifetime_then, times)
         profiles[p] += profile
         mix.add(p, weight, plant.expectation, origin)
 
     return profiles
-
-
-def _iterate_increments(
-    plants: list[Plant],
-    cohorts: list[list[PlantIncrement]],
-    years: FloatArray,
-    idx: int,
-) -> Iterator[tuple[int, Plant, PlantIncrement, np.signedinteger]]:
-    """Yield each plant's increments with the time-step index each was decided at."""
-    for p, plant in enumerate(plants):
-        increments = cohorts[p]
-        if not increments:
-            continue
-
-        decided = np.array([increment.decided for increment in increments])
-        origins = find_origin_indexes(years, years[idx], decided)
-
-        for increment, origin in zip(increments, origins, strict=True):
-            yield p, plant, increment, origin
-
-
-def _calculate_cohort_profile(
-    increment: PlantIncrement, production: float, lifetime: float, times: FloatArray
-) -> FloatArray:
-    """Calculate a delivered or pipeline increment's production at each of the times."""
-    added = production * increment.multiplier
-    delivery = times[0] - increment.age * YEAR
-    window = increment.age_span * YEAR
-    return _calculate_increment_production(added, delivery, lifetime, window, times)
 
 
 def _calculate_newbuild_production(
@@ -468,7 +443,7 @@ def _calculate_newbuild_production(
             production = expectation.get_production(origin)
             added = development * constrained_uptakes[p] * production
 
-            profile = _calculate_newbuild_profile(plant, added, time, time_step, times)
+            profile = calculate_newbuild_running(plant, added, time, time_step, times)
             profiles[p] += profile
             mix.add(p, profile, expectation, origin)
 
@@ -479,91 +454,3 @@ def _calculate_newbuild_production(
                 feed_consumption[feed_name][t:] += added * conversion
 
     return profiles
-
-
-def _calculate_newbuild_profile(
-    plant: Plant, added: float, time: float, window: float, times: FloatArray
-) -> FloatArray:
-    """Calculate the production at each of the times of newbuilds decided at `time`."""
-    lifetime = plant.lifetime.get(time)
-    lead_time = plant.lead_time.get(time)
-
-    # the delivery of the last expected increment, as increments enter uniformly
-    # over the time step
-    delivery = time + lead_time * YEAR
-    return _calculate_increment_production(added, delivery, lifetime, window, times)
-
-
-def _calculate_increment_production(
-    production: float,
-    delivery: float,
-    lifetime: float,
-    window: float,
-    times: FloatArray,
-) -> FloatArray:
-    """
-    Calculate the production profile over time for a single increment.
-
-    Parameters
-    ----------
-    production
-        Production that will enter at the delivery date (sum of all plants being
-        delivered), in tons/year.
-    delivery
-        Time at which production was or will be delivered, in days.
-    lifetime
-        Time production stays in service after its delivery, in years.
-    window
-        Window over which production was or will be delivered, and will be
-        decommissioned, in days.
-    times
-        Future times from the simulation timeline (timeline[idx:]), in days.
-
-    Returns
-    -------
-    FloatArray
-        The production active at each of the times, in tons/year.
-    """
-    if delivery <= 0.0:
-        # an existing increment is already delivered, so all its production is
-        # assigned at t=0
-        delivered = np.zeros_like(times)
-        delivered[0] = production
-    else:
-        delivered = _spread_uniformly(production, delivery, window, times)
-
-    decommission = delivery + lifetime * YEAR
-    decommissioned = _spread_uniformly(production, decommission, window, times)
-
-    return np.cumsum(delivered - decommissioned)
-
-
-def _spread_uniformly(
-    production: float, end: float, window: float, times: FloatArray
-) -> FloatArray:
-    """
-    Spread production uniformly over the window from `end - window` to `end`.
-
-    Each time takes the part of the window since the previous time; the part
-    beyond the last time is left out.
-    """
-    # a remainder of the window below the tolerance is round-off
-    tolerance = 1e-5
-
-    spread = np.zeros_like(times)
-    start = end - window
-    remaining = window
-    t = np.argmax(start < times)
-
-    while remaining > tolerance:
-        if start >= times[-1]:
-            break
-
-        partial = min(times[t], end) - start
-        spread[t] = partial / window * production
-
-        t += 1
-        start += partial
-        remaining -= partial
-
-    return spread

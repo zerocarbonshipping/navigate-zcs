@@ -23,7 +23,7 @@ from navigate.simulation.economics import (
 )
 from navigate.simulation.fuel.feed import (
     calculate_constrained_uptakes,
-    calculate_feed_spend,
+    calculate_feed_spends,
 )
 from navigate.util import YEAR, calculate_step_inertia, divide_nonzero
 
@@ -84,8 +84,8 @@ def perform_pipeline_planning(
 
     The plants built through inertia come first and cover part of the gap; the
     plants modelled from the uptake metrics share what is left of the development
-    limit. The plant types of a fuel share its supply gap, so together they build no
-    more than the gap.
+    limit and of the feed. The plant types of a fuel share its supply gap, so
+    together they build no more than the gap.
 
     Parameters
     ----------
@@ -103,9 +103,8 @@ def perform_pipeline_planning(
     ramp_up = producer.maximum_ramp_up.get() * dt
     offtake_duration = producer.minimum_offtake_duration.get()
 
-    inertia_newbuilds = _calculate_inertia_newbuilds(producer, limit, time_step, idx)
-    _calculate_inertia_feed_gaps(producer, inertia_newbuilds, idx)
-    demand = _calculate_uncovered_demand(producer, inertia_newbuilds, idx)
+    inertia = _calculate_inertia_newbuilds(producer, limit, time_step, idx)
+    demand = _calculate_uncovered_demand(producer, inertia, idx)
 
     for plant in producer.plants:
         shares = producer.expectation.get_export_shares(plant.fuel.name, idx)
@@ -116,9 +115,9 @@ def perform_pipeline_planning(
     # the utilization is the previous time step's, and the inertia already counts
     # against the development limit
     utilization = min(producer.current_utilization + ramp_up, 1.0)
-    development = limit * utilization - np.sum(inertia_newbuilds)
-    modelled_newbuilds = _calculate_modelled_newbuilds(producer, development, idx)
-    newbuilds = inertia_newbuilds + modelled_newbuilds
+    development = limit * utilization - np.sum(inertia)
+    modelled = _calculate_modelled_newbuilds(producer, inertia, development, idx)
+    newbuilds = inertia + modelled
 
     # the new plants enter the pipeline one lead time ahead of delivery
     additions = zip(producer.plants, producer.pipeline, newbuilds, strict=True)
@@ -180,32 +179,6 @@ def _calculate_inertia_newbuilds(
     return development * uptakes
 
 
-def _calculate_inertia_feed_gaps(
-    producer: Producer, newbuilds: FloatArray, idx: int
-) -> None:
-    """
-    Take the feed the plants built through inertia use off the feed gaps.
-
-    Parameters
-    ----------
-    producer
-        The producer.
-    newbuilds
-        Number of plants of each type built through inertia.
-    idx
-        Current time-step index.
-    """
-    expectation = producer.expectation
-
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
-            continue
-
-        spend = calculate_feed_spend(producer, feed_name, newbuilds)
-        gap = expectation.get_feed_gap(feed_name, idx)
-        expectation.set_feed_gap(feed_name, idx, gap - spend)
-
-
 def _calculate_uncovered_demand(
     producer: Producer, newbuilds: FloatArray, idx: int
 ) -> dict[str, FloatArray]:
@@ -238,15 +211,19 @@ def _calculate_uncovered_demand(
 
 
 def _calculate_modelled_newbuilds(
-    producer: Producer, development: float, idx: int
+    producer: Producer, inertia: FloatArray, development: float, idx: int
 ) -> FloatArray:
     """
     Calculate the plants built from the uptake metrics.
+
+    They share the feed the plants built through inertia leave.
 
     Parameters
     ----------
     producer
         The producer.
+    inertia
+        Number of plants of each type built through inertia.
     development
         Number of plants left to build over the time step.
     idx
@@ -260,9 +237,12 @@ def _calculate_modelled_newbuilds(
     if development <= 0.0:
         return np.zeros(len(producer.plants))
 
+    feed_spends = calculate_feed_spends(producer, inertia)
     uptakes = _calculate_modelled_uptakes(producer)
     limits = _calculate_demand_limits(producer, uptakes, development)
-    uptakes = calculate_constrained_uptakes(producer, uptakes, development, limits, idx)
+    uptakes = calculate_constrained_uptakes(
+        producer, uptakes, development, limits, idx, feed_spends
+    )
     return development * uptakes
 
 

@@ -79,7 +79,7 @@ def calculate_constrained_uptakes(
     idx
         Current time-step index.
     additional_consumption
-        Potential additional consumption per feed at the given time-step index, in
+        Feed newbuilds left out of the feed gap take at the time step, per feed, in
         tons/year; none where omitted.
 
     Returns
@@ -171,6 +171,33 @@ def calculate_feed_spend(
         spend += consumption * count
 
     return spend
+
+
+def calculate_feed_spends(
+    producer: Producer, newbuilds: FloatArray
+) -> dict[str, float]:
+    """
+    Calculate the feed a number of new plants of each type use, per constrained feed.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    newbuilds
+        Number of new plants of each type.
+
+    Returns
+    -------
+    dict[str, float]
+        Feed used per constrained feed, in tons/year.
+    """
+    spends: dict[str, float] = {}
+
+    for feed_name, constraint in producer.feed_constraints.items():
+        if constraint is not None:
+            spends[feed_name] = calculate_feed_spend(producer, feed_name, newbuilds)
+
+    return spends
 
 
 def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
@@ -376,7 +403,7 @@ def _calculate_feed_limits(
     idx
         Current time-step index.
     additional_consumption
-        Potential additional consumption per feed at the given time-step index, in
+        Feed newbuilds left out of the feed gap take at the time step, per feed, in
         tons/year.
 
     Returns
