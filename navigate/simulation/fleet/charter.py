@@ -93,7 +93,9 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     idx
         Current time-step index.
     """
-    component = _build_fuel_component(vessel, timeline, idx)
+    # the vessel is ordered at this time-step and enters service after its lead time
+    lead_time = vessel.lead_time.get()
+    component = build_fuel_component(vessel, lead_time, timeline, idx)
     discount_rate = vessel.cost_of_capital.get(component.time_initial)
 
     expectation = vessel.expectation
@@ -118,7 +120,6 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     cargo_charter_rate = cost_npv / annuity_factor
     freight_rate = cost_npv / cargo_npv
 
-    expectation.set_fuel_cost_flow(fuel_cost_flow)
     expectation.set_freight_rate(idx, freight_rate)
 
     vessel.results.cargo_charter_rate[idx] = cargo_charter_rate
@@ -158,6 +159,52 @@ def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: int | slice) -> Floa
     flexibility = expectation.get_flexibility_expenses(idx)
 
     return fuel + remedial + flexibility
+
+
+def build_fuel_component(
+    vessel: Vessel, lead_time: float, timeline: FloatArray, idx: int
+) -> Component:
+    """
+    Build the component holding the expected fuel cost flow of one vessel.
+
+    The flow starts at this time-step and spans the lead time and the vessel type's
+    lifetime: a newbuild ordered now enters service after the vessel type's lead time,
+    a vessel already in service has none. The fuel and policy expenses over the
+    remaining timeline are interpolated onto the component's year grid; the unit
+    metric makes the variable OPEX equal that series.
+
+    Parameters
+    ----------
+    vessel
+        Vessel type providing the lifetime and the expected fuel and policy expenses.
+    lead_time
+        Years from this time-step until the vessel enters service.
+    timeline
+        Simulation timeline, in days.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    Component
+        Component holding the fuel cost flow.
+    """
+    lifetime = vessel.lifetime.get()
+    component = Component(lead_time, lifetime, timeline[idx])
+
+    forward = np.s_[idx:]
+    expenses = calculate_fuel_and_policy_expenses(vessel, forward)
+    times = timeline[forward]
+
+    def metric(time: float) -> float:
+        return 1.0
+
+    def price(time: FloatArray) -> FloatArray:
+        return np.interp(time, times, expenses)
+
+    add_variable_opex(component, metric, price)
+
+    return component
 
 
 def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
@@ -252,42 +299,3 @@ def _add_machinery_cost(
     add_capex(subcomponent, capex)
     add_fixed_opex(subcomponent, opex)
     component.add_component(subcomponent)
-
-
-def _build_fuel_component(vessel: Vessel, timeline: FloatArray, idx: int) -> Component:
-    """
-    Build the component holding a vessel's expected fuel cost flow.
-
-    The fuel and policy expenses over the remaining timeline are interpolated onto
-    the component's year grid; the unit metric makes the variable OPEX equal that
-    series.
-
-    Parameters
-    ----------
-    vessel
-        Vessel providing the expected fuel and policy expenses.
-    timeline
-        Simulation timeline, in days.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    Component
-        Component holding the fuel cost flow.
-    """
-    component = _initialize_vessel_component(vessel, timeline[idx])
-
-    forward = np.s_[idx:]
-    expenses = calculate_fuel_and_policy_expenses(vessel, forward)
-    times = timeline[forward]
-
-    def metric(time: float) -> float:
-        return 1.0
-
-    def price(time: FloatArray) -> FloatArray:
-        return np.interp(time, times, expenses)
-
-    add_variable_opex(component, metric, price)
-
-    return component

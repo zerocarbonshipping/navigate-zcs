@@ -106,8 +106,6 @@ class VesselExpectation(_Expectation):
         self._shore_power_capacity: FloatArray
         self._shore_power_limit_port: list[FloatArray]
 
-        self._fuel_cost_flow: FloatArray
-
         self._asset_charter_npv: FloatArray
         self._capex_npv: FloatArray
         self._asset_charter_rate: FloatArray
@@ -260,8 +258,6 @@ class VesselExpectation(_Expectation):
 
         self._shore_power_capacity = self._default_array()
         self._shore_power_limit_port = self._default_list_array(port_count)
-
-        self._fuel_cost_flow = self._default_array()
 
         self._asset_charter_npv = self._default_array()
         self._capex_npv = self._default_array()
@@ -489,9 +485,6 @@ class VesselExpectation(_Expectation):
         self, idx: int, limits: Iterable[FloatArray]
     ) -> None:
         _set_forward(self._shore_power_limit_port, idx, limits)
-
-    def set_fuel_cost_flow(self, flow: FloatArray) -> None:
-        self._fuel_cost_flow = flow
 
     def set_asset_charter_npv(self, idx: int, npv: float) -> None:
         self._asset_charter_npv[idx] = npv
@@ -758,9 +751,6 @@ class VesselExpectation(_Expectation):
 
     def get_shore_power_limit_port(self, idx: int) -> list[float]:
         return slice_list(self._shore_power_limit_port, idx)
-
-    def get_fuel_cost_flow(self) -> FloatArray:
-        return self._fuel_cost_flow
 
     def get_asset_charter_npv(self, idx: int) -> float:
         npv: float = self._asset_charter_npv[idx]

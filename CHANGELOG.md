@@ -386,6 +386,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A `set_newbuild_limit` that is not reached no longer lowers the vessel type's
   newbuild share, and one that is reached caps the share at the limit instead of
   below it, where a fuel type has more than one vessel type in the fleet (#654).
+- Fuel conversion to or from a vessel type with a `LeadTime` no longer counts the
+  lead time as years of service: it weighs the fuel costs from the conversion on,
+  over the years both vessel types still serve (#853).
 - The VS Code extension in `syntax/vscode/` highlights the current node types:
   `Plot` and `Technology` are highlighted, and names that are no longer node
   types are not (#608).
