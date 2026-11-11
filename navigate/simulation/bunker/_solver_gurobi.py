@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from navigate.core.general_nodes.bunker_options import BunkerOptions
-    from navigate.simulation.bunker._solver import Sense
+    from navigate.simulation.bunker._solver import Sense, Terms
 
 try:
     import gurobipy as grb
@@ -92,12 +92,16 @@ class GurobiModel:
         self._columns: list[Any] = []
         self._rows: list[Any] = []
 
+        # the handle of each gurobipy column, to map a row's columns back to variables
+        self._variables: dict[Any, Variable] = {}
+
     def add_variable(self, name: str) -> Variable:
         """Add a non-negative continuous variable with a zero cost."""
         variable = Variable(len(self._columns))
         column = self._model.addVar(vtype=grb.GRB.CONTINUOUS, name=name)
 
         self._columns.append(column)
+        self._variables[column] = variable
 
         return variable
 
@@ -186,10 +190,31 @@ class GurobiModel:
         dual: float = self._rows[constraint].Pi
         return dual
 
+    def reduced_cost(self, variable: Variable) -> float:
+        """Return the reduced cost of a variable at the last solution."""
+        reduced_cost: float = self._columns[variable].RC
+        return reduced_cost
+
     def rhs(self, constraint: Constraint) -> float:
         """Return the right-hand side of a constraint."""
         rhs: float = self._rows[constraint].RHS
         return rhs
+
+    def upper_bound(self, variable: Variable) -> float:
+        """Return the upper bound of a variable."""
+        upper_bound: float = self._columns[variable].UB
+        return upper_bound
+
+    def terms(self, constraint: Constraint) -> Terms:
+        """Return the variables of a constraint with their coefficients."""
+        expression = self._model.getRow(self._rows[constraint])
+        terms: Terms = []
+
+        for k in range(expression.size()):
+            variable = self._variables[expression.getVar(k)]
+            terms.append((variable, expression.getCoeff(k)))
+
+        return terms
 
     def compute_iis(self) -> list[str]:
         """Return the names of the constraints in an irreducible infeasible subset."""

@@ -69,8 +69,22 @@ class Model(Protocol):
     def dual(self, constraint: Constraint) -> float:
         """Return the dual value of a constraint at the last solution."""
 
+    def reduced_cost(self, variable: Variable) -> float:
+        """
+        Return the reduced cost of a variable at the last solution.
+
+        It is the variable's cost less the dual values of its constraints, each times
+        its coefficient there.
+        """
+
     def rhs(self, constraint: Constraint) -> float:
         """Return the right-hand side of a constraint."""
+
+    def upper_bound(self, variable: Variable) -> float:
+        """Return the upper bound of a variable."""
+
+    def terms(self, constraint: Constraint) -> Terms:
+        """Return the variables of a constraint with their coefficients."""
 
     def compute_iis(self) -> list[str]:
         """
