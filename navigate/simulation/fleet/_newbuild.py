@@ -99,6 +99,9 @@ def calculate_modelled_newbuilds(
     """
     Calculate the newbuilds per vessel type that fill a trade gap.
 
+    If no vessel type may be built as a newbuild, none are built and the trade gap
+    stays open.
+
     Parameters
     ----------
     fleet
@@ -118,6 +121,13 @@ def calculate_modelled_newbuilds(
         Delivered capacity, in cargo-miles/year.
     """
     allowed = is_newbuild_allowed(fleet)
+    if not allowed.any():
+        logger.info(
+            "%s: No vessel type may be built as a newbuild; the trade gap stays open.",
+            fleet,
+        )
+        return np.zeros(len(fleet.vessels)), 0.0
+
     vessels = list(itertools.compress(fleet.vessels, allowed))
     cargo_miles = extract_cargo_miles(vessels, idx)
 

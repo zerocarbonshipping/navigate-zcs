@@ -376,6 +376,7 @@ This flag supersedes both `set_newbuild_available` and `set_conversion_available
 This command sets a boolean flag indicating whether a specific vessel from the list is allowed as a newbuild in the fleet.
 
 If this command is set to FALSE the vessel cannot enter the fleet as a newbuild.
+A fleet with no vessel type available as a newbuild builds none, so trade beyond the capacity of its vessels goes uncarried.
 
 * **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Boolean`
