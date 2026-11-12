@@ -61,6 +61,10 @@ beyond these conventions is the writer's.
 - Read and write attributes directly. Do not add a method that only returns
   or assigns an attribute, except the DSL setters, the expectation accessors,
   and `.get`.
+- A node class keeps an explicit `__init__(self, name)` that hands the name
+  to its base, even where it does nothing else, so that every node is visibly
+  constructed with its name. It calls `super().__init__(name)`; a calculator,
+  which has a second base, calls `Node.__init__(self, name)` instead.
 - A dictionary an expectation or results class holds as state gets its full
   key set at initialization and never allocates a key on first write, so a
   missing key fails loudly instead of growing the dictionary. A dictionary
@@ -105,6 +109,11 @@ beyond these conventions is the writer's.
   attribute setter takes `value`, a command `key, value` or
   `key1, key2, value`. A local holding a converted key or value is named for
   what it holds (`energy_type`, `saving`).
+- An attribute setter `set_x` stores `self.x`, `set_table` aside (above). A
+  command sets one entry of many, so the dictionary it writes is named for the
+  collection while the setter stays singular: in the plural where the noun is
+  countable (`set_feed_constraint` writes `self.feed_constraints`), unchanged
+  where it is a mass noun (`set_process_capex` writes `self.process_capex`).
 - Deck-facing attribute names keep their DSL casing, Title case with acronyms
   as words (`Capex`, `LowerHeatingValue`), which `attribute_to_setter`
   (`navigate/util/naming.py`) splits at each capital into a setter name.
@@ -118,6 +127,12 @@ beyond these conventions is the writer's.
   through `as_scalar`. `NumberInput` serves as both. An optional attribute
   still unset after construction is `<alias> | None`; never fold `None` into
   an alias, as `None` on a DSL input means unassigned.
+- Where a kind a setter accepts breaks a method reading the attribute, the
+  method handles that kind and the setter is not narrowed, as what a deck may
+  write outranks a simpler setter: `simulation/fleet/power.py` handles an
+  `Expression` propulsion load, which it cannot read as a table. Never
+  evaluate an `Expression` as if it were a `Variable`, as it may wrap a
+  `Curve` or `Forecast`.
 - An attribute every deck must assign is marked `required=True` on its
   setter's `deck_attribute` decorator and declared in `__init__` by
   annotation alone (`self.start_date: np.datetime64`), with no value and no
@@ -149,15 +164,25 @@ beyond these conventions is the writer's.
   (`ARCHITECTURE.md`, Data-flow invariants); a field `post_process` writes
   raises `AttributeError` if read before. The `result(unit)` declarations are
   the code's only record of the results and their units.
-- Read a calculator or a `Scalar` (`ARCHITECTURE.md`, Vocabulary) only
-  through `.get`, which may take a variable number of inputs and may return a
-  default or a pre-computed value.
+- Read the value of a calculator or a `Scalar` (`ARCHITECTURE.md`,
+  Vocabulary) only through `.get`, which may take a variable number of inputs
+  and may return a default or a pre-computed value. A table calculator's
+  knots are no such value and are read directly, as its `.x` and `.y`:
+  `ages = distribution.x[::-1]`.
 
 ## Typing
 
 - Annotate a local variable only where mypy cannot infer its type, such as an
   empty container, a `None`-initialized accumulator, or a value from an
   untyped library.
+- Annotate a parameter with what its callers pass: a union `X | Y` whose
+  callers in `navigate/` all pass one arm narrows to that arm, and a test
+  passing the other arm is carried like any signature change
+  (`tests/AGENTS.md`).
+- Never annotate a parameter `object` to avoid a type-only import the
+  layering forbids; change what crosses the boundary instead:
+  `navigate/exceptions.py` may not import a node, so `UnassignedAttributeError`
+  takes `owner: str` and a node raises it with `str(self)`.
 
 ## Docstrings
 
@@ -245,6 +270,21 @@ its section layout; the rules below cover the content.
   attribute to the parser. `calculate_*` and expectation methods contain no
   checks; past validation, trust the types (mypy `warn_unreachable` flags a
   check the types already rule out).
+- Reject at validation any input that leaves the model without meaning;
+  never guard against it where it is used, as a guard at each use spreads a
+  default through the model. `set_vessels` takes at least one vessel, so no
+  reader meets a fleet without vessels. A zero a valid run reaches, such as
+  the energy of a vessel that spent none, is guarded where it arises
+  (Numerics; `divide_nonzero` in `navigate/util/numeric.py`).
+- Check a rule relating attributes an event can assign in
+  `check_consistency`, or in `check_requirements` where it decides whether
+  one is required (Nodes and the DSL), never in a setter: an event assigns
+  one attribute at a time, so attributes that must agree are out of step while
+  a date's assignments run. A calculator's `LowerBound` and `UpperBound` may
+  cross between two assignments; its `check_consistency` rejects bounds that
+  admit no value. A command may check its input against a DEFINE-only
+  attribute, which is set before any command runs and never changes after
+  (`ARCHITECTURE.md`, Node lifecycle).
 - In `navigate/`, confine dynamic attribute access (`hasattr`, `getattr`,
   `setattr`, `delattr`, `vars`, `__dict__`) to the boundary modules:
   `navigate/parser/` (DSL dispatch), `navigate/output/` (results by name) and

@@ -67,6 +67,11 @@ for both scopes, as nothing they read changes later in a step.
   - `economics/` (valuation and choice) and `cohort.py` serve fleet and fuel.
 - `core/`: the model definition only.
   - Node classes, which hold state and, for the calculators, value semantics.
+    A file in `nodes/` holds one class, a node class or a base shared by node
+    classes, and nothing else: no module-level helper or constant. Beyond a
+    calculator's value semantics, node methods stay thin, delegating rather
+    than computing. Logic or a table they need lives in a flat module of
+    `core/`.
   - `expectations/` and `results/`.
   - Flat modules for the DSL values, the registries, the sweeps and the node
     maps.
@@ -131,6 +136,13 @@ __main__                           → app
 A file belongs to the longest unit containing it. It imports only its own unit
 and the units right of that unit's arrow, type-only imports included. Units
 sharing a row do not import each other.
+
+The table says what a unit may import, not where code belongs. Code goes in
+the package of its topic, never in one chosen because every caller may import
+it: `simulation/economics/` holds valuation and choice, not whatever fleet and
+fuel share. Logic two domains share that has no home on its topic is a
+structure to rework upstream, raised with the owners, not a reason to use a
+package both may import.
 
 A new top-level module or package needs a row, as does a new module or package
 directly under `simulation/`.
