@@ -100,3 +100,6 @@ merging, releases and `main`, because they decide what users receive.
 Each fact lives in one document; the others point to it. A trap these documents
 missed, a statement found false, or a correction a reviewer had to make twice
 is fixed in the document that should have carried it, in the same pull request.
+A correction rewrites the rule it belongs to instead of adding a clause to it,
+and a rule is deleted once it states only what a writer does unprompted and
+the code shows without exception.
