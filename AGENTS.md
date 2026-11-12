@@ -52,7 +52,8 @@ merging, releases and `main`, because they decide what users receive.
 
 ## Map
 
-- `ARCHITECTURE.md` — the package map, the layering, the data-flow
+- `ARCHITECTURE.md` — the vocabulary, a run from deck to results file and
+  the shape of a time step, the package map, the layering, the data-flow
   invariants and the node lifecycle. Read it before changing code in
   `navigate/`. Its layering table is held by review alone; a task that needs
   the layering changed changes the table with the code.
