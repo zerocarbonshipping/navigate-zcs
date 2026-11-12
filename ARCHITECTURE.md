@@ -55,10 +55,10 @@ for both scopes, as nothing they read changes later in a step.
 ## Package map
 
 - `simulation/`: the model; `Simulation` orchestrates and does no model work.
-  - `fleet/` owns `Fleet` and `Vessel`, `fuel/` `Producer`, `Plant` and
-    `Port`, `policy/` `Regulation` and `Levy`. Each such `core/nodes/x.py`
-    has `core/expectations/x_expectation.py` and `core/results/x_results.py`;
-    its calculations live in its owning domain.
+  - `fleet/` owns `Fleet` and `Vessel`, `fuel/` owns `Producer`, `Plant` and
+    `Port`, `policy/` owns `Regulation` and `Levy`. Each such
+    `core/nodes/x.py` has `core/expectations/x_expectation.py` and
+    `core/results/x_results.py`; its calculations live in its owning domain.
   - `bunker/` owns no node; its settings are the general node `BunkerOptions`.
     It reads the LP's regulation inputs from the expectations `policy/` writes.
   - `economics/` (valuation and choice) and `cohort.py` serve fleet and fuel.
