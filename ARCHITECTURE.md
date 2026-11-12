@@ -69,10 +69,12 @@ for both scopes, as nothing they read changes later in a step.
   logging), `util/` and `exceptions.py`, as their docstrings say.
 
 Fleet, fuel and policy share a file layout: `initialization.py` (fleet and fuel
-only) sets up the first step's fleet or production, `expectation.py` writes
-what later phases and other domains read, `results.py` records results at the
-end of each step, and `post_process.py` derives results from those after the
-run; every other module is named for a concept of the domain.
+only) sets up the first step's fleet or production, `expectation.py` starts
+each step by deriving expectations from the deck's inputs and, in fleet and
+fuel, forecasts the fleets' or producers' own evolution, `results.py` records
+results at the end of each step, and `post_process.py` derives results from
+those after the run; every other module is named for a concept of the domain.
+A concept module writes every expectation it computes, deck-derived or not.
 
 A package's public names are what its `__init__.py` re-exports, imported from
 the package; a leading underscore means imported only inside the package.
