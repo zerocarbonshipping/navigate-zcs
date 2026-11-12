@@ -23,8 +23,7 @@ that the pull request stays one reviewable change. A rework changes structure,
 not what a deck computes: results move beyond rounding only where the task asks
 them to. Where a convention in these documents or a lint rule is wrong, change
 it for the whole repository, with the code that follows it in the same commit,
-never as an exception for one package or file. Put each decision a reviewer
-could have made differently under Decisions in the pull request.
+never as an exception for one package or file.
 
 None of this needs approval: creating a worktree and its environment, running
 any make target or deck, moving, renaming, rewriting or deleting code in
@@ -46,9 +45,6 @@ merging, releases and `main`, because they decide what users receive.
   source, and its readers, people and agents, did not write what they read.
 - No backward compatibility: a rename changes every caller, deck and
   assumption file in the same pull request and leaves no shim or alias.
-- Validation at the boundary, where deck input enters through the setters
-  and the `check_*` hooks; past it, code trusts the types.
-- A small test suite, on purpose: what earns a test is in `tests/AGENTS.md`.
 
 ## Map
 
@@ -62,63 +58,43 @@ merging, releases and `main`, because they decide what users receive.
 - `tests/AGENTS.md` — what earns a test, which suite it belongs in, what to do
   when one fails, and the two edits to tests an agent may make. Read it before
   proposing a test, when a test fails, and before editing anything in `tests/`.
-- `docs/AGENTS.md` — the user manual: what belongs in it, what holds it to
-  the code, how the tutorials and notebooks are built. Read it before editing
-  `docs/`, and whenever a change is visible to a deck author or in the output.
-- `assumptions/AGENTS.md` — the default library of model inputs: layout,
-  provenance, licence. Read it before editing anything in `assumptions/`.
-- `CONTRIBUTING.md` — the pull-request title, and what gets a changelog
-  entry (user-facing changes and bugs only). Read it before opening a pull
-  request.
-- `.agents/skills/` — `filing-issues` and `writing-pull-requests`, which every
-  issue and pull request follows: type, labels, base and body. Claude Code
-  reads them through the symlinks in `.claude/skills/`.
+- `docs/AGENTS.md` — the user manual. Read it before editing `docs/`, and
+  whenever a change is visible to a deck author or in the output.
+- `assumptions/AGENTS.md` — the assumption library. Read it before editing it.
+- `.agents/skills/` — the skills every issue and pull request follows.
 
 ## Environment and verifying a change
 
-- Where other sessions may be using the checkout, work in a git worktree of
-  your own, branched from `origin/dev`, and run `make pip-setup` there first
-  (a few minutes) for its own `.venv`. Without it, every make target that
-  imports `navigate` stops and says why: the conda environment `nav`, where
-  it exists, holds one editable install, and `make conda-setup` refuses to
-  repoint it to another checkout.
+- Where other sessions may use the checkout, work in a git worktree of your own
+  from `origin/dev`, and run `make pip-setup` there first (a few minutes).
 - Make targets read the checkout's own `assumptions/`, whatever
-  `ASSUMPTIONS_DATA_DIR` says. Outside make, use the worktree's
-  `.venv/bin/navigate` and pass `-d ./assumptions`: a `navigate` on the path
-  may run another checkout, and the CLI reads `ASSUMPTIONS_DATA_DIR` when `-d`
-  is missing.
-- `make check`, lint and the unit suite, is the check before a pull request:
-  under a minute with warm caches, a few minutes in a fresh worktree.
-  `make fix` applies ruff's fixes and formatting to `navigate/`; `make help`
-  lists every target.
+  `ASSUMPTIONS_DATA_DIR` says. Outside make, run the worktree's
+  `.venv/bin/navigate` with `-d ./assumptions`: a `navigate` on the path may
+  be another checkout's, and the CLI reads `ASSUMPTIONS_DATA_DIR` without `-d`.
+- `make check` is the check before a pull request: under a minute with warm
+  caches, a few minutes in a fresh worktree.
+- CI also runs the end-to-end suite and the examples on the built wheel, the
+  docs build, and, on a pull request labelled `maintenance`, Compare results.
 - The fastest whole run takes seconds:
   `.venv/bin/navigate simulations/examples/example_1/example_1.nav -d ./assumptions`.
-  `make test-e2e` and `make test-examples` take a few minutes each; the
-  reference scenarios in `simulations/scenarios/` take tens of minutes and are
-  not tests.
-- CI runs Lint, Build package, Run tests (the unit and end-to-end suites and
-  the examples, on the built wheel) and Documentation (notebook check, site
-  build) on every pull request, and Compare results on one labelled
-  `maintenance` (`writing-pull-requests` skill); `make compare-results` runs
-  that comparison locally.
+  `make test-e2e` and `test-examples` take a few minutes each; the reference
+  scenarios in `simulations/scenarios/` take tens of minutes and are not tests.
 
 ## Rules for every change
 
 - A pull request goes into `dev`, or into the integration branch of the
   larger effort it belongs to; never into `main`, the release branch.
-- Every new file carries an SPDX header, as the repository is under two
-  licences (`README.md`, License): code and tooling take Apache-2.0 and DSL
-  files CC-BY-4.0 wherever they sit; a document takes Apache-2.0 in `tests/`,
-  `syntax/`, `.agents/` and `.github/`, and CC-BY-4.0 elsewhere. A file that
-  cannot carry one gets an entry in `REUSE.toml`; `reuse lint` catches a
-  missing header, not a wrong licence.
+- Every new file carries an SPDX header (`README.md`, License): code and
+  tooling take Apache-2.0 and DSL files CC-BY-4.0 wherever they sit; a
+  document takes Apache-2.0 in `tests/`, `syntax/`, `.agents/` and `.github/`,
+  and CC-BY-4.0 elsewhere. A file that cannot carry one gets an entry in
+  `REUSE.toml`; `reuse lint` catches a missing header, not a wrong licence.
 - No lint or type suppression in code, targeted or blanket (`noqa`,
-  `type: ignore`): a suppression hides a disagreement with a rule from the
-  next reader. Fix the code, or change the rule in `.ruff.toml` or `mypy.ini`.
+  `type: ignore`): it hides a disagreement with a rule from the next reader.
+  Fix the code, or change the rule in `.ruff.toml` or `mypy.ini`.
 
 ## Keeping these documents true
 
-Each fact lives in one document, and the others point to it. A trap these
-documents did not warn of, a statement found false, or a correction a
-reviewer had to make twice is fixed in the document that should have carried
-it, in the same pull request.
+Each fact lives in one document; the others point to it. A trap these documents
+missed, a statement found false, or a correction a reviewer had to make twice
+is fixed in the document that should have carried it, in the same pull request.

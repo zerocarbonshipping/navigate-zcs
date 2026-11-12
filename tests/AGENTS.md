@@ -9,43 +9,30 @@ SPDX-License-Identifier: Apache-2.0
 
 A coding agent does not write, edit or delete a test, helper, fixture or test
 deck unless the user asks for that test. The suite is the owners' independent
-check on work done by agents, and a test written or adjusted by the agent
-whose change it checks no longer checks it independently.
-
-Two edits are exceptions, because they keep the suite running against the
-code as it now is without changing what it checks:
+check on work done by agents, and a test written or adjusted by the agent whose
+change it checks no longer checks it independently. Two edits are exceptions,
+because they keep the suite running against the code as it now is:
 
 - carrying a rename or a signature change of something the tests use, a
   function, class, module or DSL name, into the existing tests that use it;
-- keeping the attribute-coverage deck,
-  `tests/end_to_end/simulations/attribute_coverage/`, in step with the DSL
-  surface the node classes declare: using an attribute, command or ID value
-  that was added, and renaming or removing one that was renamed or removed.
+- keeping the attribute-coverage deck in step with the DSL surface the node
+  classes declare: using an attribute, command or ID value that was added, and
+  renaming or removing one that was renamed or removed.
 
 Neither edit changes what an assertion checks or any expected value. A renamed
 name inside an assertion is carried like any other use of it.
 
-## When a test fails
-
-A test is never changed to make it pass. The two exceptions are not such
-changes: after either, the tests check what they checked before.
-
-- It fails because something it uses was renamed or its signature changed:
-  carry the change into the test.
-- The attribute-coverage test fails because the deck misses or misnames part
-  of the DSL surface: bring the deck in step.
-- Any other failure, an assertion or expected value included: look for the
-  cause in the code under test first. If the code is wrong, fix it. If the
-  test fails because the task changes the behaviour it pins, leave the test as
-  it is and report the failure, and why the behaviour moved, in the pull
-  request; the owners decide what the test should now assert.
+A test is never changed to make it pass. For a failure neither exception
+covers, look for the cause in the code under test first. If the code is wrong,
+fix it. If the task changes the behaviour the test pins, leave the test as it
+is and report the failure, and why the behaviour moved, in the pull request;
+the owners decide what the test should now assert.
 
 ## Proposing a test
 
-Where a change makes a test worthwhile by the scope below, propose it in the
-pull request, under Limitations, where the owners review it: the decision it
-pins, the module it belongs in, and how its expected value is derived
-independently of the implementation. A human decides.
+Where a change makes a test worthwhile by the scope below, propose it under
+Limitations in the pull request: the decision it pins, its module, and how its
+expected value is derived independently of the implementation. A human decides.
 
 ## Scope
 
@@ -81,28 +68,9 @@ choreography.
 Expected values come from an independent oracle or domain reasoning, never
 from current output. There are no golden baselines.
 
-## What a proposal can build on
-
-- `unit/conftest.py` — `write_deck` and `read_deck` write a small deck from
-  its DEFINE and EVENTS text and parse it.
-- `helpers/parser_decks.py` — deck snippets and a default-library builder for
-  parser tests that run without the shipped assumptions.
-- `end_to_end/conftest.py` — `run_combination` runs a combination deck (a
-  base in `end_to_end/simulations/combinations/0_includes/` plus template
-  includes, `helpers/combinations.py`) and caches its results per module.
-- `helpers/simulation.py` — `run_simulation` runs a deck in-process and
-  `check_invariants` checks what every run must satisfy.
-- `helpers/deck_surface.py` and `helpers/reference_manual.py` — the deck
-  surface read off the node classes, and readers of the manual's pages.
-
 ## Running
 
-`make test-unit`, `make test-e2e`, `make test-examples`, `make test-all`;
-`make check` runs lint and the unit suite. Each runs the checkout's own code
-and `assumptions/`; a git worktree needs its own `make pip-setup` first.
-`make test-unit` stops at the first failure, `make test-e2e` runs on through
-all of them. To run one file outside make, set the assumptions too, since the
-helpers read `ASSUMPTIONS_DATA_DIR` before the checkout's own folder:
+To run one file outside make, set `ASSUMPTIONS_DATA_DIR`, which the helpers
+read before the checkout's own folder:
 `ASSUMPTIONS_DATA_DIR=$PWD/assumptions .venv/bin/python -m pytest <file>`.
-`make compare-results BASE=<ref>` checks that a change meant to leave results
-alone leaves them alone; it is not a test suite.
+`make compare-results BASE=<ref>` is a results comparison, not a test suite.
