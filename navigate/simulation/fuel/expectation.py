@@ -427,20 +427,19 @@ def _calculate_newbuild_production(
         previous = producer.expectation.get_guaranteed_production(plant.name, forward)
         gaps[fuel_idx[p]] -= guaranteed[p] - previous
 
-    # without initial production the supply/demand interaction never starts, as
-    # no supply is expected and thus no demand; a partially uniform uptake
-    # expectation weighted by the jump-start fraction starts it
-    allowed = np.array([producer.allow_plant[plant.name] for plant in plants])
-    uniform = np.zeros_like(producer.current_uptake)
-    uniform[allowed] = 1.0 / np.count_nonzero(allowed)
-    blend = (1.0 - jump_start) * producer.current_uptake + jump_start * uniform
-    fuel_blend = np.bincount(fuel_idx, weights=blend)[fuel_idx]
-    intra_shares = divide_nonzero(blend, fuel_blend)
+    # the allowed plant types of a fuel split its newbuilds by their current uptake,
+    # blended with an even split weighted by the jump-start fraction; a fuel not
+    # built in the last time step splits them evenly
+    limits = np.array([float(producer.allow_plant[plant.name]) for plant in plants])
+    even = divide_nonzero(limits, np.bincount(fuel_idx, weights=limits)[fuel_idx])
+    current = limits * producer.current_uptake
+    fuel_current = np.bincount(fuel_idx, weights=current)[fuel_idx]
+    built = np.where(fuel_current > 0.0, divide_nonzero(current, fuel_current), even)
+    intra_shares = (1.0 - jump_start) * built + jump_start * even
     spare_uptakes = divide_nonzero(intra_shares, np.sum(intra_shares))
-    limits = allowed.astype(float)
 
-    # likewise, without previous development the expectation needs a minimum of
-    # development potential to jump-start production
+    # without previous development the expectation needs a minimum of development
+    # potential to jump-start production
     current_utilization = producer.current_utilization
     utilization = current_utilization if current_utilization > 0.0 else jump_start
 
@@ -458,13 +457,22 @@ def _calculate_newbuild_production(
         utilization = min(utilization + ramp_up, 1.0)
 
         development = utilization * producer.maximum_development.get(time) * dt
-        newbuilds = np.zeros(len(plants))
+
+        # the production of a plant is locked when it is decided, not when it is
+        # delivered, so it is read at time 't'
+        outputs = np.array(
+            [plant.expectation.get_production(origin) for plant in plants]
+        )
+        fuel_gaps = np.zeros(len(plants))
 
         for p, plant in enumerate(plants):
             delivery = time + plant.lead_time.get(time) * YEAR
-            gap = max(np.interp(delivery, times, gaps[fuel_idx[p]]), 0.0)
-            production = plant.expectation.get_production(origin)
-            newbuilds[p] = intra_shares[p] * gap / production
+            fuel_gaps[p] = max(np.interp(delivery, times, gaps[fuel_idx[p]]), 0.0)
+
+        # as in planning, a fuel's gap is filled at its plant types' split, so it is
+        # read as plants of the output that split averages to
+        fuel_output = np.bincount(fuel_idx, weights=intra_shares * outputs)[fuel_idx]
+        newbuilds = divide_nonzero(intra_shares * fuel_gaps, fuel_output)
 
         # the fuels share the development their gaps leave evenly, so that supply
         # is expected beyond the demand and the demand can grow into it
@@ -476,11 +484,8 @@ def _calculate_newbuild_production(
         )
 
         for p, plant in enumerate(plants):
-            # the production of a plant is locked when it is decided, not when it
-            # is delivered, so it is read at time 't'
             expectation = plant.expectation
-            production = expectation.get_production(origin)
-            added = development * constrained_uptakes[p] * production
+            added = development * constrained_uptakes[p] * outputs[p]
 
             profile = calculate_newbuild_running(plant, added, time, time_step, times)
             profiles[p] += profile
