@@ -4,9 +4,9 @@
 """
 The reference trip a vessel's operation scales to a year, derived from its route.
 
-The derivation is the one reader of a route's operational inputs, and the one place
-that tells the route types apart: a LINER states its trip directly, while a TRAMP
-states a reference year, which becomes a trip of one voyage.
+The derivation is the simulation's one reader of a route's operational inputs, and
+its one place that tells the route types apart: a LINER states its trip directly,
+while a TRAMP states a reference year, which becomes a trip of one voyage.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ import numpy as np
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.nodes.curve import Curve
 from navigate.core.wrap import to_array
-from navigate.util import HOUR_TO_DAY, ROUND_OFF, YEAR, divide_nonzero
+from navigate.util import HOUR_TO_DAY, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -309,7 +309,7 @@ def _calculate_tramp_leg_miles(
     FloatArray
         Distance of each leg, in nautical miles/year.
     """
-    voyage_shares = _normalize_voyage_shares(route)
+    voyage_shares = route.get_voyage_shares()
 
     sea_days = time_at_sea * YEAR
     days_per_mile = np.sum(divide_nonzero(voyage_shares, speeds_leg)) * HOUR_TO_DAY
@@ -339,25 +339,3 @@ def _calculate_tramp_port_days(route: Route, time_at_sea: float) -> FloatArray:
     port_days = (1.0 - time_at_sea) * YEAR
 
     return call_shares * port_days
-
-
-def _normalize_voyage_shares(route: Route) -> FloatArray:
-    """
-    Normalize a tramp route's voyage shares to sum to unity, one per leg.
-
-    The shares are rounded in total, and split equally where they total zero.
-
-    Parameters
-    ----------
-    route
-        Tramp route holding the voyage shares.
-
-    Returns
-    -------
-    FloatArray
-        Voyage share of each leg, in the order of `Route.get_legs`.
-    """
-    shares = to_array(route.leg_voyage_shares)
-    total = np.round(np.sum(shares), ROUND_OFF)
-
-    return divide_nonzero(shares, total, default=1.0 / len(shares))

@@ -92,6 +92,7 @@ The following conditions apply to every route:
 * Each per-leg input is set for the route's legs only; see [Legs](#legs).
 * A required per-leg input left unset on any leg is an error naming the legs.
 * A command or attribute that does not apply to the route type is an error.
+* At every date, [set\_utilization](#set_utilization) must be above 0 on at least one leg the route sails, in a [sailing condition](#sailing-conditions) with a share of sea time above 0. On a `TRAMP`, a leg with a [set\_voyage\_distribution](#set_voyage_distribution) of 0 is not sailed, unless every leg's is 0.
 
 If RouteType is LINER:
 
@@ -174,6 +175,8 @@ The speed is the reference speed of the leg; [speed management](fleet.md#allowsp
 This command sets the cargo capacity utilization on a leg. It applies to both route types.
 
 A number, `Forecast`, `Variable` or expression gives the leg one utilization, which applies to every sailing condition of the leg. An expression may not reference a `Curve`.
+
+A leg may have a utilization of 0, a ballast leg, but the route must carry cargo on a leg it sails at every date; see [Conditions](#conditions).
 
 On a `TRAMP`, a `Curve` gives a utilization per speed: its x-values must equal those of the leg's speed `Curve` in [set\_speed](#set_speed), and its y-values are the utilization at each speed. The utilization belongs to the sailing condition, so it does not change when speed management moves the condition's speed. This is how ballast and laden sailing are expressed: the utilization at a speed is the mean over the time sailed at that speed, so a vessel laden half of that time and in ballast the other half has a utilization of 0.5. A `Curve` is an error on a `LINER`, where each leg has its own utilization, and on a leg sailed at one speed.
 

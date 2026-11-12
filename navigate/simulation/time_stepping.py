@@ -408,8 +408,12 @@ class Simulation:
         """Raise where a node's time-varying attributes contradict each other."""
         times = self.timeline[self._idx :]
         dates = self.dateline[self._idx :]
-        for node in self.nodes.all_nodes():
-            node.check_dynamic_consistency(times, dates)
+
+        try:
+            for node in self.nodes.all_nodes():
+                node.check_dynamic_consistency(times, dates)
+        except ValueError as error:
+            raise DeckError(str(error)) from None
 
     def _update_node_maps(self) -> None:
         """Rewrite the node maps that events can change."""
