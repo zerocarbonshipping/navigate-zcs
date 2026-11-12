@@ -637,7 +637,7 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <section id="jumpstartfraction">
 <h3>JumpStartFraction<a class="headerlink" href="#jumpstartfraction" title="Link to this heading">#</a></h3>
 <p>This attribute sets the jump-start fraction used to initiate the supply/demand interaction if there has been no production.</p>
-<p>The expected uptake of the producer’s plants blends the current uptake with an even split over the allowed plants, the even split weighted by the jump-start fraction. This blend applies in every time-step, so the fraction shapes the expectation also after production has started. While the development constraint has not been utilized, the jump-start fraction also stands in for its utilization.</p>
+<p>The producer’s expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel’s plants built in the last time step, blended with an even split weighted by the jump-start fraction; a fuel without plants built in the last time step splits them evenly. While the development constraint has not been utilized, the jump-start fraction also stands in for its utilization.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
