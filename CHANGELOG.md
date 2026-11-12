@@ -344,6 +344,10 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A retrofit is valued at the saving it adds to the vessel's current technology;
+  it was valued at the saving of the current technology instead, which undervalued
+  retrofits on a vessel without technology and overvalued those on one with some.
+  Retrofit uptake can rise or fall (#362).
 - A producer's choice of fuel pathway weighed the expected demand over a
   different span of years than the plant's cost, which favoured or penalized
   plants by the fractional part of their lead time and lifetime. The demand is

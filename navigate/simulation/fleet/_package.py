@@ -252,8 +252,10 @@ def calculate_retrofit_npv(
     Calculate the NPV of retrofitting from a package to each larger package.
 
     Entry ``step`` is the NPV of the jump from ``package_idx`` to
-    ``package_idx + step``: the saving flow of package ``package_idx``, trimmed to the
-    remaining lifetime, less the jump's incremental cost flow over the same years.
+    ``package_idx + step``: the saving the jump adds, trimmed to the remaining
+    lifetime, less the jump's incremental cost flow over the same years. Each package's
+    saving is measured against the empty package, so the saving a jump adds is the
+    target package's saving less the current package's.
 
     Parameters
     ----------
@@ -275,14 +277,15 @@ def calculate_retrofit_npv(
     FloatArray
         NPV of each retrofit step, in USD; zero for the stay option.
     """
-    package_saving = package_savings[package_idx]
-    savings_flow = trim_flow_to_window(package_saving, lifetime, remaining)
     n_steps = len(package_savings) - package_idx
     npv = np.zeros(n_steps)
 
     for step in range(1, n_steps):
-        step_cost = cost_flows[package_idx + step] - cost_flows[package_idx]
-        cash_flow = savings_flow - step_cost
+        target = package_idx + step
+        step_saving = package_savings[target] - package_savings[package_idx]
+        step_cost = cost_flows[target] - cost_flows[package_idx]
+
+        cash_flow = trim_flow_to_window(step_saving, lifetime, remaining) - step_cost
         npv[step] = calculate_net_present_value(cash_flow, discount_rate)
 
     return npv
