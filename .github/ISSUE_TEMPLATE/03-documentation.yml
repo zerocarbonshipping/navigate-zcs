@@ -11,8 +11,8 @@ body:
       label: Description
       description: >
         Quote the wrong or unclear text, or name what is missing, and give the
-        source of truth it contradicts: the setter, the parser table in
-        `navigate/parser/_attributes.py` or `_commands.py`, or the code path.
+        source of truth it contradicts: the setter and its `deck_attribute` or
+        `deck_command` mark (`navigate/core/dsl.py`), or the code path.
         If it is unclear which side is wrong, say so.
     validations:
       required: true

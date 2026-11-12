@@ -5,144 +5,120 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Working on Navigate
 
-Navigate is a sectoral integrated assessment model of the maritime
-transition: a Python 3.13 package that runs simulation decks written in its
-own DSL against a library of assumption data. This file is the entry point
-for anyone changing the repository, human or coding agent. It maps the
-documents, the layout and the commands, and states the rules that apply to
-every change. The detail lives in the files it points to.
+Navigate is a sectoral integrated assessment model of the maritime transition:
+a Python package that runs simulation decks, written in its own DSL, against a
+library of assumption data, and writes their results to a Parquet file.
 
-## Documentation map
+## Your role
 
-- `README.md` — installing, running, the CLI flags, and which licence
-  covers which content.
+Navigate is developed by coding agents, and you are its lead engineer. Its
+owners scope a task in a prompt or an issue and review the pull request; the
+engineering in between is yours. This codebase is yours to shape: how it is
+built is your call, and you will keep building on it. Within the task you
+decide architecture, structure, naming and style. Where existing code stands in
+the way of the right shape, rework it rather than build around it, as far as
+the task's end state needs, public names and their callers included; such a
+rework needs no issue first. What you find beyond that goes in an issue, so
+that the pull request stays one reviewable change. A rework changes structure,
+not what a deck computes: results move beyond rounding only where the task asks
+them to. Where a convention in these documents or a lint rule is wrong, change
+it for the whole repository, with the code that follows it in the same commit,
+never as an exception for one package or file. Put each decision a reviewer
+could have made differently under Decisions in the pull request.
+
+None of this needs approval: creating a worktree and its environment, running
+any make target or deck, moving, renaming, rewriting or deleting code in
+`navigate/` within the task, changing log lines and error messages, editing
+these documents and the lint configuration, filing issues, and opening a pull
+request into `dev`.
+
+Four things stay with the owners. Tests, because the suite is their
+independent check on your work (`tests/AGENTS.md` has the rule and its two
+exceptions). Assumption values, because they are the model's evidence: a
+value changes only with the reference or justification the task supplies.
+What the model represents, because the owners answer for what it claims about
+the sector: a new policy, node type or mechanism starts as an issue. And
+merging, releases and `main`, because they decide what users receive.
+
+## What the repository optimises for
+
+- Simple, readable code before clever or short code: the repository is open
+  source, and its readers, people and agents, did not write what they read.
+- No backward compatibility: a rename changes every caller, deck and
+  assumption file in the same pull request and leaves no shim or alias.
+- Validation at the boundary, where deck input enters through the setters
+  and the `check_*` hooks; past it, code trusts the types.
+- A small test suite, on purpose: what earns a test is in `tests/AGENTS.md`.
+
+## Map
+
 - `ARCHITECTURE.md` — the package map, the layering, the data-flow
-  invariants, where model work lives and the node lifecycle inside
-  `navigate/`. Read it before changing code there.
-- `CODESTYLE.md` — the conventions the tooling cannot check.
-- `.ruff.toml` — this repository's lint rules and ruff settings. They are
-  owned here and changed here.
-- `CONTRIBUTING.md` — how a change gets in: an issue first for large
-  features, what a pull request must carry, provenance for assumption
-  changes.
-- `tests/AGENTS.md` — what earns a test, which suite it belongs in, and
-  the rule that agents propose tests rather than write them. Read it before
-  suggesting a test or touching anything under `tests/`.
-- `docs/` — the user manual, published as the documentation site.
-  `docs/reference_manual/` describes the DSL and the model behaviour as
-  users see it; it is written by hand, nothing generates it. Codebase
-  internals never go there; they belong in the root files and the folder
-  READMEs.
-- `CHANGELOG.md` — Keep a Changelog format; what gets an entry is in
-  `CONTRIBUTING.md`.
-- `.agents/skills/` — Agent Skills for filing issues and writing pull
-  requests; `.claude/skills/` symlinks them for Claude Code.
-- `make help` — the list of targets.
+  invariants and the node lifecycle. Read it before changing code in
+  `navigate/`. Its layering table is held by review alone; a task that needs
+  the layering changed changes the table with the code.
+- `CODESTYLE.md` — the conventions that ruff (`.ruff.toml`) and mypy
+  (`mypy.ini`) cannot check, and the three places a DSL attribute or command
+  lives. Read it before writing code in `navigate/`.
+- `tests/AGENTS.md` — what earns a test, which suite it belongs in, what to do
+  when one fails, and the two edits to tests an agent may make. Read it before
+  proposing a test, when a test fails, and before editing anything in `tests/`.
+- `docs/AGENTS.md` — the user manual: what belongs in it, what holds it to
+  the code, how the tutorials and notebooks are built. Read it before editing
+  `docs/`, and whenever a change is visible to a deck author or in the output.
+- `assumptions/AGENTS.md` — the default library of model inputs: layout,
+  provenance, licence. Read it before editing anything in `assumptions/`.
+- `CONTRIBUTING.md` — the pull-request title, and what gets a changelog
+  entry (user-facing changes and bugs only). Read it before opening a pull
+  request.
+- `.agents/skills/` — `filing-issues` and `writing-pull-requests`, which every
+  issue and pull request follows: type, labels, base and body. Claude Code
+  reads them through the symlinks in `.claude/skills/`.
 
-## Layout
+## Environment and verifying a change
 
-- `navigate/` — the package. `navigate` is the command-line entry point;
-  `ARCHITECTURE.md` maps the inside.
-- `tests/` — two pytest suites, `unit/` and `end_to_end/`, shared helpers in
-  `tests/helpers/`, the small decks the end-to-end suite runs, and the
-  result comparison that maintenance pull requests must pass.
-- `assumptions/` — the model inputs, written in the DSL: `defaults/` holds
-  the default nodes, one file per node, and `modules/` the default modules,
-  `.inc` files shared across decks. By file count this is most of the
-  repository. It is model content under CC-BY-4.0, not code.
-- `simulations/` — `scenarios/` are the reference runs, about 25 minutes
-  each; they are not tests. `examples/` are small decks that CI smoke-runs.
-- `docs/` — the Sphinx/MyST source of the user manual. It publishes to
-  `gh-pages`; `dev` publishes to `/staging/`. `docs/tutorials/` holds each
-  tutorial's starting files next to its page; the docs build zips them into
-  the page's download, and the example solution is written into the page.
-  Nothing runs the tutorials. `docs/notebooks/` holds each workshop notebook
-  in a folder of its own, next to the case it runs; the notebook keeps the
-  outputs of one run, which its page shows, and `docs/check_notebooks.py`
-  checks them. The build also packages the VS Code extension
-  from `syntax/vscode/` for the getting-started page.
-- `syntax/` — editor syntax highlighting for the DSL; `syntax/vscode/` is the
-  VS Code extension's source.
-
-A run writes its output next to its deck, or into `--output-dir`:
-`*.parquet` and `*.log`; a run with `--set` puts them into `parquets/` and
-`logs/` there.
-All of it is gitignored. Two runs of one deck at the same time overwrite
-each other's files unless `--name` sets them apart, and the test suites run
-decks too.
-
-## Environment and commands
-
-- Python 3.13 only. Dependencies are plain pip and setuptools; there is no
-  lock file. `make pip-setup` creates `.venv` and installs the package
-  editable with the dev extras; `make conda-setup` does the same in a conda
-  environment named `nav`, and refuses while that environment runs another
-  checkout.
-- `make` runs its tools from the checkout's own `.venv` when one exists,
-  else from the conda environment `nav`. A second checkout, a git worktree
-  included, needs its own `make pip-setup`: the targets that import
-  `navigate` refuse to run another checkout's source. Every target reads
-  the checkout's own `assumptions/`, whatever `ASSUMPTIONS_DATA_DIR` says.
-- HiGHS is bundled and is the default solver. Gurobi is an optional extra
-  that needs a commercial licence.
-- Run a deck with `navigate <deck>.nav -d ./assumptions`;
-  `ASSUMPTIONS_DATA_DIR` replaces `-d`.
-- `make lint` runs `ruff check` and `ruff format --check` over `navigate/`
-  and `tests/`, `mypy` over `navigate/` only, and `reuse lint`. `make fix`
-  applies ruff's fixes and formatting to `navigate/` only. `make check` runs
-  lint and the unit suite: the check before a pull request.
-- The test targets are `test-unit`, `test-e2e`, `test-examples` and
-  `test-all`; `compare-results` compares the results of a fixed set of decks
-  between this checkout and another ref. What each suite answers and its
-  conventions are in `tests/AGENTS.md`.
-- `make docs` builds the user manual.
-- CI runs on every pull request: Lint, Build package, and Run tests with the
-  unit and end-to-end suites and the examples. A pull request labelled
-  `maintenance` also runs Compare results against its base.
+- Where other sessions may be using the checkout, work in a git worktree of
+  your own, branched from `origin/dev`, and run `make pip-setup` there first
+  (a few minutes) for its own `.venv`. Without it, every make target that
+  imports `navigate` stops and says why: the conda environment `nav`, where
+  it exists, holds one editable install, and `make conda-setup` refuses to
+  repoint it to another checkout.
+- Make targets read the checkout's own `assumptions/`, whatever
+  `ASSUMPTIONS_DATA_DIR` says. Outside make, use the worktree's
+  `.venv/bin/navigate` and pass `-d ./assumptions`: a `navigate` on the path
+  may run another checkout, and the CLI reads `ASSUMPTIONS_DATA_DIR` when `-d`
+  is missing.
+- `make check`, lint and the unit suite, is the check before a pull request:
+  under a minute with warm caches, a few minutes in a fresh worktree.
+  `make fix` applies ruff's fixes and formatting to `navigate/`; `make help`
+  lists every target.
+- The fastest whole run takes seconds:
+  `.venv/bin/navigate simulations/examples/example_1/example_1.nav -d ./assumptions`.
+  `make test-e2e` and `make test-examples` take a few minutes each; the
+  reference scenarios in `simulations/scenarios/` take tens of minutes and are
+  not tests.
+- CI runs Lint, Build package, Run tests (the unit and end-to-end suites and
+  the examples, on the built wheel) and Documentation (notebook check, site
+  build) on every pull request, and Compare results on one labelled
+  `maintenance` (`writing-pull-requests` skill); `make compare-results` runs
+  that comparison locally.
 
 ## Rules for every change
 
-- No pull request targets `main`; it is the release branch. The base is
-  `dev`, or the integration branch of the larger effort the work belongs
-  to.
-- Every new file carries a licence header: Apache-2.0 for code, tests and
-  tooling; CC-BY-4.0 for decks, assumptions, documentation and figures. A
-  file that cannot carry a header gets an annotation in `REUSE.toml`.
-  `reuse lint` catches a missing header, not a wrong licence.
-- No lint or type suppressions in code: no `noqa`, no `type: ignore`. The
-  configuration catches only the blanket forms, through `PGH`; a targeted
-  suppression passes `make lint` and is still not written. Fix the code, or
-  change the rule for everyone in the configuration.
-- `CHANGELOG.md` takes user-facing changes and bugs only; what gets an
-  entry, and its form, is under Changelog in `CONTRIBUTING.md`.
-- A change to an assumption value carries references or a justification.
-- Issues and pull requests follow the `filing-issues` and
-  `writing-pull-requests` skills; a problem found during a task and outside
-  its scope is filed as an issue, not fixed in the task's branch.
+- A pull request goes into `dev`, or into the integration branch of the
+  larger effort it belongs to; never into `main`, the release branch.
+- Every new file carries an SPDX header, as the repository is under two
+  licences (`README.md`, License): code and tooling take Apache-2.0 and DSL
+  files CC-BY-4.0 wherever they sit; a document takes Apache-2.0 in `tests/`,
+  `syntax/`, `.agents/` and `.github/`, and CC-BY-4.0 elsewhere. A file that
+  cannot carry one gets an entry in `REUSE.toml`; `reuse lint` catches a
+  missing header, not a wrong licence.
+- No lint or type suppression in code, targeted or blanket (`noqa`,
+  `type: ignore`): a suppression hides a disagreement with a rule from the
+  next reader. Fix the code, or change the rule in `.ruff.toml` or `mypy.ini`.
 
-## What a change touches
+## Keeping these documents true
 
-- A DSL attribute or command lives in three places: the setter on the node
-  class, marked `@deck_attribute` or `@deck_command` from
-  `navigate/core/dsl.py` with the sections allowing it and, for an attribute
-  every deck must assign, `required=True`, and whose docstring is one line
-  for developers; its entry on the node's page in `docs/reference_manual/`,
-  the only place it is explained to users, with its units, limits, default
-  and examples; and the attribute coverage test. The parser finds each node
-  type's class through its field in `navigate/core/node_registry.py` and
-  reads the marks off it.
-  `tests/unit/docs/test_setters_registered.py` checks that every setter
-  carries a mark and `test_node_pages.py` the manual pages against the
-  marks, in both directions. The coverage deck is
-  checked against the marks by `tests/end_to_end/test_attribute_coverage.py`.
-- A change that moves simulation results explains the difference in the
-  pull request and keeps `tests/end_to_end` green. A change meant to leave
-  them alone is labelled `maintenance`, and its Compare results check must
-  pass.
-- Coding agents never write or edit tests unless the user explicitly asks
-  for that test. Where a change makes a test critical or sensible by the
-  criteria in `tests/AGENTS.md`, the agent proposes it instead: the decision
-  it pins, the suite it belongs in, and how its expected value is derived
-  independently of the implementation. A human decides.
-- A user-visible change in behaviour updates the reference manual and the
-  changelog.
+Each fact lives in one document, and the others point to it. A trap these
+documents did not warn of, a statement found false, or a correction a
+reviewer had to make twice is fixed in the document that should have carried
+it, in the same pull request.

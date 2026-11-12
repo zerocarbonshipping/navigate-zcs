@@ -63,11 +63,20 @@ arbiter.
 
 ## Nodes and the DSL
 
-- Every attribute a deck can assign on a node or general node has a DSL
-  setter (`set_propulsion_load` on `Vessel`), sits in the node's `# external
-  variables` group and has an entry on the node's reference-manual page. The
-  `# internal variables` group holds what the model sets; none of it has a
-  DSL setter.
+- Every attribute a deck can assign on a node or general node, and every
+  command it can call, lives in three places. On the node class, as a DSL
+  setter (`set_propulsion_load` on `Vessel`) marked `deck_attribute` or
+  `deck_command` from `navigate/core/dsl.py` with the sections allowing it,
+  the attribute it sets sitting in the node's `# external variables` group.
+  On the node's page in `docs/reference_manual/`, as its entry, the only place
+  it is explained to users. In the attribute-coverage deck,
+  `tests/end_to_end/simulations/attribute_coverage/`, as one use of it, which
+  an agent keeps in step (`tests/AGENTS.md`). A missing place fails a check:
+  `tests/unit/docs/test_setters_registered.py` a `set_` or `add_` method
+  without a mark, `tests/unit/docs/test_node_pages.py` a page out of step
+  with the marks either way, and `tests/end_to_end/test_attribute_coverage.py`
+  a mark, or an ID value, the deck never uses. The `# internal variables`
+  group holds what the model sets; none of it has a DSL setter.
 - A DSL setter carries a docstring written for developers: one line naming
   what the setter stores, e.g. `"""Set the volumetric size of the tank."""`.
   It has no `Parameters` or `Examples` section, and no units, limits,

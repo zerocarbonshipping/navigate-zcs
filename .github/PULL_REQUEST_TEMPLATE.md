@@ -18,7 +18,7 @@ the issue's scope, and why. -->
 ## Results
 
 <!-- Delete unless simulation results move. What moves, by how much, and
-why. A maintenance pull request moves none. -->
+why. A pull request labelled maintenance moves none beyond rounding. -->
 
 ## Limitations
 

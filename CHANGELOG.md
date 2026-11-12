@@ -13,24 +13,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Breaking
-- The `Plot` and `Report` nodes, the built-in plots and the
-  `-s`/`--suppress-plots` flag are removed: a run writes its log and its
-  results file, which [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
-  opens to plot the results. A deck declaring a `Plot` or `Report` node, or
-  loading the `DefaultPlot`, `DefaultReport` or `DebugPlot` module, fails at
-  that line; delete those lines. The results the report properties gave are
-  attributes of the results file, listed on its reference-manual page.
-- Every row of a `Table` ends with a `;`, and the cells of a row are separated
-  by commas as in a list: `"01-01-2024", 1.0;`. A row without the `;` runs
-  into the next, a syntax error at the next row's first cell. The committed
-  assumptions, examples and tutorials are converted.
-- The default library has no `user` and `installation` branches: default
-  nodes sit at `<data_dir>/defaults/<NodeType>/` and modules at
-  `<data_dir>/modules/`. Move an assumptions folder of the old layout up one
-  level. A user file overlaying a default is replaced by an `Import` and the
-  reassignments in the deck, or by an own assumptions folder passed with `-d`.
-
 ### Added
 - `--set NAME=VALUE` fills in each `%NAME%` placeholder of the deck and its
   files, `Include` paths included, and stores the values as `params` in the
@@ -68,6 +50,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   requested; they used to produce no column.
 
 ### Changed
+- Every row of a `Table` ends with a `;`, and the cells of a row are separated
+  by commas as in a list: `"01-01-2024", 1.0;`. A row without the `;` runs
+  into the next, a syntax error at the next row's first cell. The committed
+  assumptions, examples and tutorials are converted.
+- The default library has no `user` and `installation` branches: default
+  nodes sit at `<data_dir>/defaults/<NodeType>/` and modules at
+  `<data_dir>/modules/`. Move an assumptions folder of the old layout up one
+  level. A user file overlaying a default is replaced by an `Import` and the
+  reassignments in the deck, or by an own assumptions folder passed with `-d`.
 - A deck that needs the assumptions when no folder is given names the
   folder of the clone Navigate was installed from, with the command that sets
   `ASSUMPTIONS_DATA_DIR` on this system, or links the download of the
@@ -278,6 +269,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Timetable` does for `Outside` (#814).
 
 ### Removed
+- The `Plot` and `Report` nodes, the built-in plots and the
+  `-s`/`--suppress-plots` flag are removed: a run writes its log and its
+  results file, which [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
+  opens to plot the results. A deck declaring a `Plot` or `Report` node, or
+  loading the `DefaultPlot`, `DefaultReport` or `DebugPlot` module, fails at
+  that line; delete those lines. The results the report properties gave are
+  attributes of the results file, listed on its reference-manual page.
 - Wildcards in enum arguments and enum lists, such as `set_slip_fraction(M*, 0.03)`
   or `MainFuelTypes = *`: name each member. An unquoted `*` is a syntax error.
 - Wildcard `Import`, such as `Import Converter "electrical_*"`: import each

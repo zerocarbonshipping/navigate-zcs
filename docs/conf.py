@@ -30,7 +30,8 @@ version = release
 language = 'en'
 locale_dirs = []
 
-exclude_patterns = ['_build', '_generated', 'Thumbs.db', '.DS_Store']
+# AGENTS.md is guidance for coding agents working on docs/, not a page
+exclude_patterns = ['_build', '_generated', 'Thumbs.db', '.DS_Store', 'AGENTS.md']
 
 extensions = [
     # MyST Markdown and notebooks; myst_nb sets up myst_parser itself, which

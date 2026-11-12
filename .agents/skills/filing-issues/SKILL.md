@@ -63,9 +63,8 @@ ones omitted, never "N/A".
   relative includes with the layout kept, e.g. the parent folder. In that
   environment, run `navigate <copy>/<deck>.nav -d <checkout>/assumptions`.
 - **documentation:** Code wrong: a bug. Several mismatches of one kind found
-  in one pass make one issue. The reference manual covers user-visible
-  behaviour only, no modelling derivations; internals belong in root files
-  and folder READMEs.
+  in one pass make one issue. What belongs in the reference manual:
+  `docs/AGENTS.md`.
 - **enhancement:** A DSL idea goes under Considerations as a known option.
 
 ## Create

@@ -18,6 +18,11 @@ counts, a narrative of the work, or restated changelog text.
 The type is the form in `.github/ISSUE_TEMPLATE/` whose top-level
 `description` fits the PR's main purpose; its `labels` is the label.
 Assumption-value update: enhancement, or bug if it corrects a wrong value.
+Reworded message a user sees: enhancement, or bug if the old text was wrong.
+Whatever the type, a PR meant to leave simulation results alone also carries
+`maintenance`: that label is what makes CI run Compare results, which fails
+on any difference beyond rounding. Rounding means the tolerance of that
+comparison, set in `tests/helpers/snapshot.py`.
 Title: `CONTRIBUTING.md`, Pull request expectations.
 
 ## Body
@@ -30,7 +35,8 @@ Title: `CONTRIBUTING.md`, Pull request expectations.
   Closing keywords do nothing in a PR into `dev`: once the PR has merged,
   close each addressed issue yourself (`gh issue close N`).
 - Decisions: genuine choices only; never invent a rejected alternative.
-- Limitations also lists the issues filed during the work.
+- Limitations also lists the issues filed during the work and the tests
+  proposed (`tests/AGENTS.md`).
 - Cite issues and PRs by number, never private plans, tickets or sessions.
 - CHANGELOG entry or not, and its form: `CONTRIBUTING.md`, Changelog.
 
