@@ -22,9 +22,13 @@ beyond these conventions is the writer's.
 - Give parameters, variables and attributes descriptive names, not single
   letters or opaque prefixes: `multipliers_total`, not `m` (ruff `E741` flags
   only `l`, `O`, `I`). Exempt are an integer index of a loop or comprehension
-  (`i`, `j`, `k`, `t`), but not an element or key variable, the axis variables
-  `x`, `y` of a table or interpolation, and the parameters of a DSL setter
-  (see Nodes and the DSL).
+  (`i`, `j`, `k`, `t`), the axis variables `x`, `y` of a table or
+  interpolation, the parameters of a DSL setter (see Nodes and the DSL), and
+  an element or key variable whose letter the surrounding code gives one
+  meaning: throughout `simulation/bunker/` the LP's subscripts keep the
+  letters of the equations in its docstrings (`v` vessel, `p` port, `f` fuel,
+  `c` converter). Without such context an element or key variable takes a
+  descriptive name.
 - Reserve a bare `idx` for the time-step index, or for the slice of time steps a
   getter takes in its place, and qualify every other index: `vessel_idx`,
   `plant_idx`. Bound to a name, the slice from the time step onward is
