@@ -10,23 +10,29 @@ SPDX-License-Identifier: Apache-2.0
 A coding agent does not write, edit or delete a test, helper, fixture or test
 deck unless the user asks for that test. The suite is the owners' independent
 check on work done by agents, and a test written or adjusted by the agent whose
-change it checks no longer checks it independently. Two edits are exceptions,
+change it checks no longer checks it independently. Three edits are exceptions,
 because they keep the suite running against the code as it now is:
 
 - carrying a rename or a signature change of something the tests use, a
   function, class, module or DSL name, into the existing tests that use it;
 - keeping the attribute-coverage deck in step with the DSL surface the node
   classes declare: using an attribute, command or ID value that was added, and
-  renaming or removing one that was renamed or removed.
+  renaming or removing one that was renamed or removed;
+- assigning a newly required attribute, one marked `required=True`, in the
+  existing test decks that build its node and in `BASE` of
+  `tests/unit/parser/test_required.py`, adding a node of its type to `BASE`,
+  reachable from a root, where the type had no required attribute before; the
+  pull request names the values assigned.
 
-Neither edit changes what an assertion checks or any expected value. A renamed
-name inside an assertion is carried like any other use of it.
+None of these edits changes what an assertion checks or any expected value. A
+renamed name inside an assertion is carried like any other use of it.
 
-A test is never changed to make it pass. For a failure neither exception
-covers, look for the cause in the code under test first. If the code is wrong,
-fix it. If the task changes the behaviour the test pins, leave the test as it
-is and report the failure, and why the behaviour moved, in the pull request;
-the owners decide what the test should now assert.
+A test is never changed to make it pass. For a failure no exception covers,
+look for the cause in the code under test first. If the code is wrong, fix it.
+If the task changes the behaviour the test pins, leave the test as it is and
+ask the owner before opening the pull request, saying which test fails, why
+the behaviour moved and what you propose it should assert; the owner decides,
+and may ask you to make the edit.
 
 ## Proposing a test
 

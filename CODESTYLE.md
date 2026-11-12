@@ -121,12 +121,14 @@ beyond these conventions is the writer's.
 - An attribute every deck must assign is marked `required=True` on its
   setter's `deck_attribute` decorator and declared in `__init__` by
   annotation alone (`self.start_date: np.datetime64`), with no value and no
-  `None`. The parser checks it before anything reads it (`ARCHITECTURE.md`,
-  Node lifecycle), so neither `check_requirements` nor any reader tests it
-  again. An internal attribute that a fixed initialization step sets before
-  any reader runs is declared the same way (`self.primary_fuel_type:
-  FuelTypeID`). An attribute required only under a condition on other
-  attributes stays `<alias> | None` and is tested in `check_requirements`.
+  `None`; the test edits a newly required attribute brings are in
+  `tests/AGENTS.md`. The parser checks it before anything reads it
+  (`ARCHITECTURE.md`, Node lifecycle), so neither `check_requirements` nor
+  any reader tests it again. An internal attribute that a fixed
+  initialization step sets before any reader runs is declared the same way
+  (`self.primary_fuel_type: FuelTypeID`). An attribute required only under a
+  condition on other attributes stays `<alias> | None` and is tested in
+  `check_requirements`.
 
 ## Dynamic state and results
 
