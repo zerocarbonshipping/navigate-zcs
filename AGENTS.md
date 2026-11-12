@@ -54,6 +54,9 @@ merging, releases and `main`, because they decide what users receive.
 - `CODESTYLE.md` — the conventions that ruff (`.ruff.toml`) and mypy
   (`mypy.ini`) cannot check, and the three places a DSL attribute or command
   lives. Read it before writing code in `navigate/`.
+- `CONTRIBUTING.md` — what gets a `CHANGELOG.md` entry and how a pull request
+  is titled. Read it before committing a change a deck author or a reader of
+  the output would notice.
 - `tests/AGENTS.md` — what earns a test, which suite it belongs in, what to do
   when one fails, and the edits to tests an agent may make. Read it before
   proposing a test, when a test fails, and before editing anything in `tests/`.
