@@ -13,7 +13,11 @@ import numpy as np
 from navigate.core.enum_ import BunkerScopeID
 from navigate.simulation.fleet._composition import extract_cargo_miles, get_multiplier
 from navigate.simulation.fleet._newbuild import is_newbuild_allowed
-from navigate.simulation.fleet.scrapping import group_by_age, split_oldest_first
+from navigate.simulation.fleet.scrapping import (
+    calculate_survivors,
+    group_by_age,
+    split_oldest_first,
+)
 from navigate.util import YEAR, divide_nonzero
 
 if TYPE_CHECKING:
@@ -181,9 +185,10 @@ def calculate_fleet_evolution_expectation(
     """
     Calculate the multipliers of the existing and expected fleet from this time-step on.
 
-    The existing vessels decline as primary scrapping removes them: at the vessel
-    lifetime, or at the fleet's fixed scrap rate where it sets one. The trade gap this
-    leaves is filled with newbuilds split by the memory-weighted recent uptake.
+    The existing vessels decline as primary scrapping removes them: each cohort over
+    its age span as it passes the vessel lifetime, or at the fleet's fixed scrap rate
+    where it sets one. The trade gap this leaves is filled with newbuilds split by the
+    memory-weighted recent uptake.
 
     Parameters
     ----------
@@ -231,7 +236,7 @@ def _forecast_by_age(
     fleet: Fleet, timeline: FloatArray, idx: int, first_pending: int
 ) -> tuple[FloatArray, FloatArray]:
     """
-    Forecast the existing vessels scrapped at their lifetime and the newbuilds.
+    Forecast the existing vessels scrapped by age and the newbuilds.
 
     Parameters
     ----------
@@ -255,27 +260,22 @@ def _forecast_by_age(
     cargo_miles = extract_cargo_miles(fleet.vessels, forward)
     split = _newbuild_split(fleet, idx)
 
-    years = timeline[forward] / YEAR
-    years_ahead = years - years[0]
-
-    existing = _existing_by_age(fleet, years_ahead, first_pending)
+    existing = _existing_by_age(fleet, timeline[forward], first_pending)
     newbuild = _gap_newbuilds(trade, existing, cargo_miles, split)
 
     return existing, newbuild
 
 
-def _existing_by_age(
-    fleet: Fleet, years_ahead: FloatArray, first_pending: int
-) -> FloatArray:
+def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> FloatArray:
     """
-    Return the multipliers of the existing vessels, scrapped at their lifetime.
+    Return the multipliers of the existing vessels, scrapped by age.
 
     Parameters
     ----------
     fleet
         Fleet whose existing vessels are scrapped.
-    years_ahead
-        Years from the current time-step to each time-step of the horizon.
+    times
+        Times of the horizon, from the current time-step on, in days.
     first_pending
         Step of the horizon from which the scrapping is still to run.
 
@@ -284,27 +284,21 @@ def _existing_by_age(
     FloatArray
         Multipliers of each vessel type (rows) over the horizon (columns).
     """
-    existing = np.zeros((len(fleet.vessels), years_ahead.size))
+    existing = np.zeros((len(fleet.vessels), times.size))
+    years_ahead = (times - times[0]) / YEAR
 
     for v, vessel in enumerate(fleet.vessels):
-        increments = fleet.increments[v]
-        if not increments:
-            continue
+        lifetimes = vessel.lifetime.get(times)
 
-        multipliers = np.array([increment.multiplier for increment in increments])
-        ages = np.array([increment.age for increment in increments])
-        lifetime = vessel.lifetime.get()
-
-        # each increment reaches its lifetime after lifetime - age years, oldest
-        # first, so the cumulative sum is the expected scrapping to date
-        cumulative = np.cumsum(multipliers)
-        scrapped = np.interp(years_ahead, lifetime - ages, cumulative, left=0.0)
+        # scrapping never returns vessels, so where the lifetime lengthens again an
+        # increment keeps the fewest vessels an earlier time-step left it
+        for increment in fleet.increments[v]:
+            survivors = calculate_survivors(increment, lifetimes, years_ahead)
+            existing[v] += np.minimum.accumulate(survivors)
 
         # with no scrapping left to run at the current time-step, the vessels at or
         # past their lifetime stay in the fleet for it
-        scrapped[:first_pending] = 0.0
-
-        existing[v] = get_multiplier(fleet, v) - scrapped
+        existing[v, :first_pending] = get_multiplier(fleet, v)
 
     return existing
 

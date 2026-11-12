@@ -11,7 +11,7 @@ domain.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
     from navigate.core.increment import Increment
     from navigate.core.types_ import CurveTableInput
-    from navigate.util.types_ import FloatArray, IntArray
+    from navigate.util.types_ import FloatArray, FloatLike, IntArray
 
 
 def split_by_age(
@@ -106,6 +106,54 @@ def calculate_share_below(increment: Increment, boundary: float) -> float:
         Share of the increment's assets younger than the boundary.
     """
     return (boundary - increment.age) / increment.age_span
+
+
+@overload
+def calculate_retired_share(
+    retirement: float, window: float, times: float
+) -> float: ...
+
+
+@overload
+def calculate_retired_share(
+    retirement: FloatLike, window: float, times: FloatArray
+) -> FloatArray: ...
+
+
+@overload
+def calculate_retired_share(
+    retirement: FloatArray, window: float, times: float
+) -> FloatArray: ...
+
+
+def calculate_retired_share(
+    retirement: FloatLike, window: float, times: FloatLike
+) -> FloatLike:
+    """
+    Calculate the share of a cohort retired by the given times.
+
+    The cohort retires uniformly over the window up to its retirement; a window of
+    zero retires it at once at the retirement.
+
+    Parameters
+    ----------
+    retirement
+        Time the last of the cohort retires at: one for all times, or one per time.
+    window
+        Window over which the cohort retires, in the units of the retirement.
+    times
+        Times the share is evaluated at, in the units of the retirement.
+
+    Returns
+    -------
+    FloatLike
+        Share of the cohort retired by each of the times.
+    """
+    if window == 0.0:
+        return np.heaviside(times - retirement, 1.0)
+
+    elapsed = times - (retirement - window)
+    return np.clip(elapsed / window, 0.0, 1.0)
 
 
 def find_insertion_index(increments: Sequence[Increment], age: float) -> int:

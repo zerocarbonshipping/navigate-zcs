@@ -374,6 +374,9 @@ decks.
 - Technology and speed choices no longer value energy added where a vessel had
   no demand of that type, at sea or in port, at an arbitrary price such as 0:
   that energy is now priced at what supplying its first unit would cost (#534).
+- The expected fleet of a `Fleet` without `FixedScrapRate` loses each cohort
+  over its age span, as scrapping does, and follows a changing `Lifetime`; it
+  dropped the oldest cohort whole, up to a step late (#332).
 - A `FLEXIBLE` `Regulation` with `Measure = ABSOLUTE` and
   `AllowThresholdAdjustment = TRUE` (#561):
   - no longer reports `regulation.vessel_allowance`,
