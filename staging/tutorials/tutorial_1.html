@@ -839,10 +839,12 @@ Define annual time-steps with a reference Date.</p></li>
 </section>
 <section id="interpret-the-results">
 <h2>Interpret the results<a class="headerlink" href="#interpret-the-results" title="Link to this heading">#</a></h2>
-<p>Navigate has written the results of the run to the file <code class="docutils literal notranslate"><span class="pre">tutorial_1.parquet</span></code> in the <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code> folder. Open it with <a class="reference external" href="https://github.com/zerocarbonshipping/lantern-zcs">Lantern</a>, which shows the results as plots in your browser; its README explains how to install it.</p>
+<p>Navigate has written the results of the run to the file <code class="docutils literal notranslate"><span class="pre">tutorial_1.parquet</span></code> in the <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code> folder. Open it with <a class="reference external" href="https://github.com/zerocarbonshipping/lantern-zcs">Lantern</a>, which shows the results as plots in your browser; you installed it in <a class="reference internal" href="getting_started.html"><span class="std std-doc">Setting up Navigate</span></a>. In the terminal of the <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code> folder, the one you ran <code class="docutils literal notranslate"><span class="pre">navigate</span></code> in, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lantern</span> <span class="n">tutorial_1</span><span class="o">.</span><span class="n">parquet</span>
 </pre></div>
 </div>
+<p>Lantern opens the viewer in your browser. If no window appears, open the address it prints in the terminal, <code class="docutils literal notranslate"><span class="pre">http://127.0.0.1:8050</span></code>. The viewer lists the plots; click one to show it, and hover over it to read its values.</p>
+<p>The terminal is busy for as long as the viewer runs. After another <code class="docutils literal notranslate"><span class="pre">navigate</span></code> run, click <strong>Refresh</strong> in the viewer to load the new results. Press Ctrl+C in the terminal to stop the viewer.</p>
 <p>Take a look through the plots, for example the absolute emissions, the global fuel mix and the bunker price at the port, and interpret the results.</p>
 </section>
 <section id="outlook">

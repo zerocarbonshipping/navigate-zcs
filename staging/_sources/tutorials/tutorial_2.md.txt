@@ -713,7 +713,13 @@ Date "01-01-2050"
 
 1. Use the terminal to navigate to the `tutorial_2` folder. Recall `cd path/to/folder` and `cd ..`
 2. Run the command `navigate tutorial_2.nav`
-3. Open the results file it wrote with [Lantern](https://github.com/zerocarbonshipping/lantern-zcs): `lantern tutorial_2.parquet`. Look through the plots, for example the absolute emissions, the global fuel mix, the plant production cost and the bunker price at the port, and interpret the results.
+3. Open the results file it wrote with [Lantern](https://github.com/zerocarbonshipping/lantern-zcs), in the same terminal:
+
+   ```
+   lantern tutorial_2.parquet
+   ```
+
+   As in Tutorial 1, the viewer opens in your browser, and Ctrl+C in the terminal stops it. Look through the plots, for example the absolute emissions, the global fuel mix, the plant production cost and the bunker price at the port, and interpret the results.
 
 ## Example solution
 

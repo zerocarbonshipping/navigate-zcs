@@ -56,6 +56,18 @@ You may also clone the repository or run `pip install navigate-zcs`; however, th
    pip install .
    ```
 
+6. Install Lantern, the viewer the tutorials use to show the results of a run as plots in your browser, in the same terminal:
+
+   ```bash
+   pip install lantern-zcs
+   ```
+
+   If you are working with the development version of Navigate (the `dev` branch, documented on the staging site), install Lantern's development version instead:
+
+   ```bash
+   pip install https://github.com/zerocarbonshipping/lantern-zcs/archive/refs/heads/dev.zip
+   ```
+
 This tutorial also lives in the repository, under `docs/tutorials/`. You can open it and read along from there if you prefer.
 
 Before running a tutorial, download its files using the button on its page and extract the `tutorial_X` folder into the `navigate-zcs` folder opened in VS Code. In VS Code's Explorer, right-click the extracted tutorial folder and select **Open in Integrated Terminal**. Run that tutorial's `navigate` commands in this terminal rather than in the repository-root terminal used for installation.
@@ -121,6 +133,7 @@ Download the VS Code extension
 
 - Navigate downloaded and open in VS Code (or an editor of your choice)
 - Navigate installed through the terminal (leave the terminal open)
+- Lantern installed through the same terminal
 - For your convenience, syntax highlighting set up.
 
 For reference, here is the file structure you should be seeing in your VS Code file explorer.
