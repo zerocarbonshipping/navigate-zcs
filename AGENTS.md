@@ -32,7 +32,7 @@ these documents and the lint configuration, filing issues, and opening a pull
 request into `dev`.
 
 Four things stay with the owners. Tests, because the suite is their
-independent check on your work (`tests/AGENTS.md` has the rule and its two
+independent check on your work (`tests/AGENTS.md` has the rule and its
 exceptions). Assumption values, because they are the model's evidence: a
 value changes only with the reference or justification the task supplies.
 What the model represents, because the owners answer for what it claims about
@@ -55,7 +55,7 @@ merging, releases and `main`, because they decide what users receive.
   (`mypy.ini`) cannot check, and the three places a DSL attribute or command
   lives. Read it before writing code in `navigate/`.
 - `tests/AGENTS.md` — what earns a test, which suite it belongs in, what to do
-  when one fails, and the two edits to tests an agent may make. Read it before
+  when one fails, and the edits to tests an agent may make. Read it before
   proposing a test, when a test fails, and before editing anything in `tests/`.
 - `docs/AGENTS.md` — the user manual. Read it before editing `docs/`, and
   whenever a change is visible to a deck author or in the output.

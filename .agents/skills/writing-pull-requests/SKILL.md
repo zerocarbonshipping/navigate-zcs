@@ -16,14 +16,16 @@ counts, a narrative of the work, or restated changelog text.
 ## Type, label, title
 
 The type is the form in `.github/ISSUE_TEMPLATE/` whose top-level
-`description` fits the PR's main purpose; its `labels` is the label.
+`description` fits the PR's main purpose; its `labels` is the PR's one label.
 Assumption-value update: enhancement, or bug if it corrects a wrong value.
 Reworded message a user sees: enhancement, or bug if the old text was wrong.
-Whatever the type, a PR that changes what a run executes (code, assumptions)
-and is meant to leave simulation results alone also carries `maintenance`; a
-text-only PR does not. That label is what makes CI run Compare results, which
-fails on any difference beyond rounding. Rounding means the tolerance of that
-comparison, set in `tests/helpers/snapshot.py`.
+`maintenance` promises that simulation results stay, and it is the only label
+under which CI runs Compare results, which fails on any difference beyond
+rounding (the tolerance set in `tests/helpers/snapshot.py`). A PR that moves
+results on purpose, or changes what the results file holds, is an enhancement
+or a bug, never maintenance. Under any other label CI does not compare
+results, so where such a PR is meant to leave them alone, run
+`make compare-results BASE=<ref>` against its base before opening it.
 Title: `CONTRIBUTING.md`, Pull request expectations.
 
 ## Body
@@ -51,7 +53,8 @@ Title: `CONTRIBUTING.md`, Pull request expectations.
 - **documentation:** Opening: what was wrong or missing. Why: who the error
   misled, or one line naming the source the old text contradicted.
 - **maintenance:** Opening: the end state. Why: what the old shape cost. A
-  deliberate output change is stated as the user-visible effect.
+  deliberate change to console or log output is stated as the user-visible
+  effect.
 - **performance:** Opening: the improvement with its scale. Directly under
   it, a before/after table on a named deck: same machine and solver, number
   of runs, base commit and branch, wall time or peak memory.

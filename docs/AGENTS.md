@@ -31,8 +31,9 @@ only the owners extend. Nothing else is checked: prose, examples and links are
 held by review.
 
 Nothing reruns the tutorials or refreshes the notebooks' outputs when the code
-or the assumptions change; `docs/check_notebooks.py` checks that a notebook's
-outputs come from one clean run.
+or the assumptions change: the owners refresh them before a release, so a pull
+request does not. `docs/check_notebooks.py` checks that a notebook's outputs
+come from one clean run.
 
 ## Building
 

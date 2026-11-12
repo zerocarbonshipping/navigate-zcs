@@ -76,9 +76,10 @@ An entry is one to three lines; related entries may share one bullet with a
 sub-list, each item one to three lines. It states what the user sees and, for
 a rename or removal, what to write instead, and it ends with the issue number
 if there is one. It goes under one of Keep a Changelog's headings and carries
-no "Breaking" label or heading: Navigate does not keep backwards
-compatibility, and a release may break old decks. How the change
-works belongs in the pull request, not the changelog.
+no "Breaking" label or heading, because Navigate keeps no backward
+compatibility: no shims and no deprecation periods; a breaking change is made
+outright, and any release may break old decks. How the change works belongs in
+the pull request, not the changelog.
 
 ## Testing
 
@@ -90,11 +91,10 @@ test: `tests/AGENTS.md` says when a change earns one and which suite it
 belongs in, and that coding agents propose tests rather than write them.
 
 Changes that alter simulation results should explain the difference in the
-pull request description. A pull request that changes code or assumptions and
-should not alter them carries the `maintenance` label; CI then runs a fixed set
-of decks on the pull request merged into its base and on that base, and fails
-on any difference beyond rounding, the tolerance the `writing-pull-requests`
-skill names. Run the same
+pull request description. A pull request labelled `maintenance` promises to
+leave them alone; CI then runs a fixed set of decks on the pull request merged
+into its base and on that base, and fails on any difference beyond rounding,
+the tolerance the `writing-pull-requests` skill names. Run the same
 comparison locally against the newest `dev` with `make compare-results`.
 
 ## Questions
