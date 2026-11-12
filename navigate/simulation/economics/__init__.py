@@ -25,7 +25,6 @@ from navigate.simulation.economics.flows import (
     trim_flow_to_window,
 )
 from navigate.simulation.economics.metric import (
-    calculate_age_levelized_cost,
     calculate_levelized_cost,
     calculate_net_present_value,
 )

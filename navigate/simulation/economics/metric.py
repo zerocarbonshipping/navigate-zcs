@@ -9,34 +9,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.economics.flows import get_flow_size
-
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
-
-
-def calculate_age_levelized_cost(
-    cost_flow: FloatArray, lifetime: float, discount_rate: float
-) -> float:
-    """
-    Calculate a cost levelized over the years of an asset's lifetime.
-
-    Parameters
-    ----------
-    cost_flow
-        Cost per year of age.
-    lifetime
-        Lifetime of the asset, in years.
-    discount_rate
-        Discount rate, the return on an alternative investment, in fraction/year.
-
-    Returns
-    -------
-    float
-        Discounted cost per discounted year of lifetime.
-    """
-    age_flow = np.ones(get_flow_size(lead_time=0.0, lifetime=lifetime))
-    return calculate_levelized_cost(cost_flow, age_flow, discount_rate)
 
 
 def calculate_levelized_cost(

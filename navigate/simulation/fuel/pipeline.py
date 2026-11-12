@@ -18,7 +18,8 @@ from navigate.simulation.cohort import (
     find_insertion_index,
 )
 from navigate.simulation.economics import (
-    calculate_age_levelized_cost,
+    build_operating_flows,
+    calculate_levelized_cost,
     calculate_two_axis_uptake,
 )
 from navigate.simulation.fuel.feed import (
@@ -316,9 +317,10 @@ def _calculate_inter_fuel_metric(
     """
     Calculate the business-case metric used to choose a fuel pathway.
 
-    This is based on the expected future gap between supply and demand and the number of
-    plants required to satisfy that gap, which also checks that there is sufficient
-    future offtake to merit building plants.
+    The metric is the expected unmet demand for the plant's fuel, as energy, per
+    discounted operating year of the plant: levelized on the same years and weights as
+    the plant's levelized production cost. The number of plants required to satisfy the
+    gap also checks that there is sufficient future offtake to merit building plants.
 
     Parameters
     ----------
@@ -336,18 +338,20 @@ def _calculate_inter_fuel_metric(
     """
     expectation = plant.expectation
     fuel = plant.fuel
+    lead_time = plant.lead_time.get()
     lifetime = plant.lifetime.get()
     lhv = fuel.lower_heating_value.get()
     discount_rate = plant.cost_of_capital.get()
     production = expectation.get_production(idx)
 
-    # the fair-share demand is re-sampled onto the plant's business cash-flow
-    # horizon, its operating years after the lead time
-    times = _calculate_evaluation_timeline(plant, timeline, idx)
-    operating_demand = np.interp(times, timeline, demand[fuel.name], left=0.0)
+    # the fair-share demand is re-sampled onto the calendar-year grid of the plant's
+    # cash flows, the one its levelized production cost is built on
+    year_starts, operating = build_operating_flows(lead_time, lifetime, timeline[idx])
+    yearly_demand = np.interp(year_starts, timeline, demand[fuel.name], left=0.0)
 
     # the lowest equivalent multiplier within the sufficient offtake duration is
-    # the most plants it makes sense to sanction
+    # the most plants it makes sense to sanction, among the years from commissioning
+    operating_demand = yearly_demand[ceil(lead_time) :]
     horizon = min(ceil(offtake_duration), ceil(lifetime), operating_demand.size)
     multipliers = operating_demand[:horizon] / production
     newbuilds = max(np.amin(multipliers), 0.0)
@@ -355,39 +359,11 @@ def _calculate_inter_fuel_metric(
     # the plant's discount rate discounts the demand: dwindling demand is worth less
     # than immediate demand, since the production can be sold to other industries
     # later on
-    energy = operating_demand * lhv
-    metric = calculate_age_levelized_cost(energy, lifetime, discount_rate)
+    energy = yearly_demand * lhv * operating
+    metric = calculate_levelized_cost(energy, operating, discount_rate)
 
     expectation.set_demand_newbuilds(newbuilds)
     expectation.set_inter_fuel_metric(metric)
-
-
-def _calculate_evaluation_timeline(
-    plant: Plant, timeline: FloatArray, idx: int
-) -> FloatArray:
-    """
-    Calculate the times at which a plant's cash flows are evaluated.
-
-    Parameters
-    ----------
-    plant
-        Plant for which evaluation timeline is built.
-    timeline
-        Simulation timeline, in days.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    FloatArray
-        Evaluation timeline, in days.
-    """
-    lifetime = plant.lifetime.get()
-    lead_time = plant.lead_time.get()
-    years = np.arange(ceil(lead_time), ceil(lifetime + lead_time), dtype=np.float64)
-    times: FloatArray = years * YEAR + timeline[idx]
-
-    return times
 
 
 def _calculate_intra_fuel_metric(
