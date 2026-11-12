@@ -19,9 +19,10 @@ The type is the form in `.github/ISSUE_TEMPLATE/` whose top-level
 `description` fits the PR's main purpose; its `labels` is the label.
 Assumption-value update: enhancement, or bug if it corrects a wrong value.
 Reworded message a user sees: enhancement, or bug if the old text was wrong.
-Whatever the type, a PR meant to leave simulation results alone also carries
-`maintenance`: that label is what makes CI run Compare results, which fails
-on any difference beyond rounding. Rounding means the tolerance of that
+Whatever the type, a PR that changes what a run executes (code, assumptions)
+and is meant to leave simulation results alone also carries `maintenance`; a
+text-only PR does not. That label is what makes CI run Compare results, which
+fails on any difference beyond rounding. Rounding means the tolerance of that
 comparison, set in `tests/helpers/snapshot.py`.
 Title: `CONTRIBUTING.md`, Pull request expectations.
 
