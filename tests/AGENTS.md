@@ -22,7 +22,8 @@ code as it now is without changing what it checks:
   surface the node classes declare: using an attribute, command or ID value
   that was added, and renaming or removing one that was renamed or removed.
 
-Neither edit touches an assertion or an expected value.
+Neither edit changes what an assertion checks or any expected value. A renamed
+name inside an assertion is carried like any other use of it.
 
 ## When a test fails
 
