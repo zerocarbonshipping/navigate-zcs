@@ -54,6 +54,9 @@ decks.
 - A producer's expected production follows each fuel's expected demand and
   spreads unused development evenly over its fuels, instead of following the
   plants built last; `JumpStartFraction` blends within a fuel only. (#882)
+- A `Converter`'s `PowerCapacity` must be above 0 (#907).
+- The default `other_electrical_power_capacity` is 0.1 MW instead of 0, so the
+  default "other" vessels carry 0.1 MW of electrical converter power and cost.
 - Every row of a `Table` ends with a `;`, and the cells of a row are separated
   by commas as in a list: `"01-01-2024", 1.0;`. A row without the `;` runs
   into the next, a syntax error at the next row's first cell. The committed
@@ -347,6 +350,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A vessel whose propulsion `PowerCapacity` allows no speed above 0 in a sailing
+  condition its route sails is a `PowerCapacityError` naming the vessel and the
+  condition; it ran with infinite or undefined rates, or crashed (#907).
 - A `Route` whose `set_utilization` is 0 on every leg it sails, at any date, is
   an error naming the route and the first such date; it ran with infinite or
   undefined freight rates and costs. A single leg may still be 0 (#412).
@@ -722,9 +728,6 @@ decks.
 - A Curve in a `Fleet`'s or `Producer`'s `InitialAgeDistribution` with a
   negative age or fraction is a deck error; it ran with assets entering in the
   future or negative asset counts (#214, #469).
-- A `set_power_transfer` whose source converter has no power capacity and no
-  demand transfers the curve's power at load 0; the sink's residual energy was
-  NaN (#481).
 - A producer's plant development ramps up by `MaximumRampUp` per year, as its
   own forecasts assume; with time steps shorter than a year it ramped up by
   the full yearly amount every step (#564).

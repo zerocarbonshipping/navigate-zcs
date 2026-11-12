@@ -62,7 +62,9 @@ class Converter(_Machinery):
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_power_capacity(self, value: ScalarArgument) -> None:
         """Set the power capacity of the converter."""
-        self.power_capacity = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
+        self.power_capacity = assign_value(
+            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
+        )
 
     @deck_attribute(SECTION_DEFINE)
     def set_minimum_load(self, value: ScalarArgument) -> None:

@@ -44,6 +44,8 @@ Vessel "bulk_carrier_capesize_oil" {
 
 This attribute sets the propulsion load level in MW. This is the power required to propel the vessel (at a given speed and draft potentially). The cargo utilization is used as a proxy for a vessel’s draft, i.e., high cargo utilization is indicative of a higher draft. If a float is assigned the load level is independent of speed and draft, if a Curve is assigned the load level is only a function of speed and if a Surface is assigned it is both a function of speed and draft.
 
+A Curve or Surface sets the vessel's technical speed limit in each sailing condition: the speed at which the load reaches the `PowerCapacity` of the vessel's `PropulsionConverter`. Where the table starts at 0 knots and the load there already reaches the power capacity, the limit is 0 knots, and the run stops with an error naming the vessel and each sailing condition its route sails at that limit.
+
 An expression assigned to this attribute is evaluated for the load, but it sets no technical speed limit and counts as non-convex, so the vessel's speed optimization logs a warning.
 
 * **Data type**: `Float`, `Curve`, `Surface`, `Variable`

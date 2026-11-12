@@ -59,7 +59,7 @@ class LPSolveError(NavigateError):
 
 
 class PowerCapacityError(NavigateError):
-    """Raised if a vessel's energy demand exceeds installed converter power capacity."""
+    """Raised if a vessel's installed converter power cannot serve its loads."""
 
 
 class ConvergenceError(NavigateError):
