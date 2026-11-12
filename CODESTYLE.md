@@ -9,9 +9,10 @@ Ruff and mypy cannot check these conventions; `ruff format` owns layout within
 statements. A parenthetical names a check covering part of a rule; where both
 speak, the configuration wins. Fix a wrong convention here and in its code in
 one repository-wide commit, never as an exception for one package or file
-(`AGENTS.md`, Your role). A per-file waiver in `.ruff.toml` is none: it fits a
-rule to its files' purpose, as its comment, this file or `ARCHITECTURE.md`
-says, and excuses no breach. Beyond these, taste is the writer's.
+(`AGENTS.md`, Your role). A per-file waiver in `.ruff.toml` is not such an
+exception: it fits a rule to what its files are for, as its comment, this file
+or `ARCHITECTURE.md` says, and excuses no code that breaks the rule. Taste
+beyond these conventions is the writer's.
 
 ## Naming
 
