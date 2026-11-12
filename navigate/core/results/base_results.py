@@ -4,8 +4,8 @@
 """
 BaseResults, the result marker, its units, and the functions that read and add results.
 
-BaseResults types any results object in the Report node (core/nodes/report.py) and
-the output writers.
+BaseResults types any results object in the results writer
+(output/results_writer.py).
 """
 
 from __future__ import annotations

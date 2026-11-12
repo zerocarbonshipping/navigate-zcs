@@ -6,7 +6,7 @@ Every DSL-shaped method on a node class is registered, and every entry resolves.
 
 The parser reaches an attribute through its `set_*` setter and a command through
 the method of the same name, so the node classes, not the registries, are where a
-new DSL entry starts. A setter left out of _attributes.py or _commands.py is
+new DSL entry starts. A setter without a deck_attribute or deck_command mark is
 unreachable from a deck and, since test_node_pages.py checks the manual against
 the registries, also undocumented. This closes the chain: method -> registry ->
 manual heading, in both directions.

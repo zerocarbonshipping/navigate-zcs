@@ -9,7 +9,7 @@ Navigate is a sectoral integrated assessment model for simulating the maritime i
 
 ## Installation
 
-Navigate supports python version 3.13 or newer to run.
+Navigate needs Python 3.13 or newer; it is tested on Python 3.13.
 It is recommended that Navigate is installed within an environment such as [conda](https://continuumio-docs.readthedocs-hosted.com/miniconda/) or [venv](https://docs.python.org/3/library/venv.html).
 
 ### Navigate + Assumptions & Simulations (Preferred)
@@ -22,6 +22,10 @@ It is recommended that Navigate is installed within an environment such as [cond
 
 #### Optional: Gurobi solver (commercial license)
 Navigate ships with the open-source [HiGHS](https://highs.dev/) solver and uses it by default — no further setup is needed. If you have a [Gurobi](https://www.gurobi.com/) license, you can install the faster Gurobi backend as an optional extra `pip install .[gurobi]`.
+
+### For development
+- Clone the repository and run `make pip-setup` in it, with `python3.13` on the path: it creates a `.venv` in the checkout with Navigate installed in editable mode and the development tools. `make conda-setup` does the same in a conda environment named `nav`.
+- [CONTRIBUTING.md](CONTRIBUTING.md) describes how a change gets in; [AGENTS.md](AGENTS.md) is the entry point for the coding agents that develop Navigate.
 
 
 ## Usage

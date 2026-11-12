@@ -4,8 +4,8 @@
 """
 Attribute coverage: one deck that touches the whole registered DSL surface.
 
-The static checks hold the deck to the registries in _attributes.py and
-_commands.py, and to the ID values a deck can write: an attribute, command or ID
+The static checks hold the deck to the deck_attribute and deck_command marks
+on the node classes, and to the ID values a deck can write: an attribute, command or ID
 value added to the model without a use in the deck would otherwise ship without
 ever being parsed or executed by a test. The deck exercises both DEFINE and
 EVENTS, so every SECTION_BOTH attribute and command is set at startup and updated
