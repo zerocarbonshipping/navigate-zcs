@@ -344,6 +344,10 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A producer's choice of fuel pathway weighed the expected demand over a
+  different span of years than the plant's cost, which favoured or penalized
+  plants by the fractional part of their lead time and lifetime. The demand is
+  now spread over the same years and weights as the cost.
 - `vessel_tied_capital` and `plant_tied_capital` now reach zero at the end of an
   asset's operation when a component with its own lifetime outlives the asset or
   has its last replacement cut short by that end; they stayed above zero (#313).
