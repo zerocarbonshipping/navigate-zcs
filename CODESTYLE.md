@@ -5,15 +5,13 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Code Style
 
-This document holds the conventions that ruff (`.ruff.toml`) and mypy
-(`mypy.ini`) cannot check; `ruff format` owns the layout within statements, a
-parenthetical names a check covering part of a rule, and the configuration is
-the arbiter where both speak. A convention found wrong is changed here and in
-the code it governs in one commit, repository-wide, never as an exception for
-one package or file (`AGENTS.md`, Your role). The per-file waivers in
-`.ruff.toml` are no such exceptions: each fits a rule to what those files are
-for, as its comment, this document or `ARCHITECTURE.md` says, and none excuses
-code that breaks a rule. Taste beyond these conventions is the writer's.
+Ruff and mypy cannot check these conventions; `ruff format` owns layout within
+statements. A parenthetical names a check covering part of a rule; where both
+speak, the configuration wins. Fix a wrong convention here and in its code in
+one repository-wide commit, never as an exception for one package or file
+(`AGENTS.md`, Your role). A per-file waiver in `.ruff.toml` is none: it fits a
+rule to its files' purpose, as its comment, this file or `ARCHITECTURE.md`
+says, and excuses no breach. Beyond these, taste is the writer's.
 
 ## Naming
 
