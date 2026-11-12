@@ -10,8 +10,16 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import find_origin_indexes
-from navigate.simulation.fuel.feed import calculate_constrained_uptakes
+from navigate.simulation.fuel._profiles import (
+    calculate_cohort_running,
+    calculate_newbuild_reserved,
+    calculate_newbuild_running,
+    iterate_increments,
+)
+from navigate.simulation.fuel.feed import (
+    calculate_constrained_uptakes,
+    calculate_feed_delivery,
+)
 from navigate.util import (
     MWH_TO_GJ,
     TOLERANCE,
@@ -21,7 +29,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterator
+    from collections.abc import Collection
 
     from navigate.core.expectations import PlantExpectation
     from navigate.core.increment import PlantIncrement
@@ -351,51 +359,22 @@ def _calculate_cohort_production(
     FloatArray
         Production of each plant at each of the times from idx on, in tons/year.
     """
-    years = timeline / YEAR
     times = timeline[idx:]
     profiles = np.zeros((len(plants), times.size))
+    increments = iterate_increments(plants, cohorts, timeline, idx)
 
-    for p, plant, increment, origin in _iterate_increments(plants, cohorts, years, idx):
+    for p, plant, increment, origin in increments:
         production = plant.expectation.get_production(origin)
         decision = times[0] - increment.decided * YEAR
         lifetime = plant.lifetime.get()
         lifetime_then = plant.lifetime.get(decision)
 
-        profile = _calculate_cohort_profile(increment, production, lifetime, times)
-        weight = _calculate_cohort_profile(increment, production, lifetime_then, times)
+        profile = calculate_cohort_running(increment, production, lifetime, times)
+        weight = calculate_cohort_running(increment, production, lifetime_then, times)
         profiles[p] += profile
         mix.add(p, weight, plant.expectation, origin)
 
     return profiles
-
-
-def _iterate_increments(
-    plants: list[Plant],
-    cohorts: list[list[PlantIncrement]],
-    years: FloatArray,
-    idx: int,
-) -> Iterator[tuple[int, Plant, PlantIncrement, np.signedinteger]]:
-    """Yield each plant's increments with the time-step index each was decided at."""
-    for p, plant in enumerate(plants):
-        increments = cohorts[p]
-        if not increments:
-            continue
-
-        decided = np.array([increment.decided for increment in increments])
-        origins = find_origin_indexes(years, years[idx], decided)
-
-        for increment, origin in zip(increments, origins, strict=True):
-            yield p, plant, increment, origin
-
-
-def _calculate_cohort_profile(
-    increment: PlantIncrement, production: float, lifetime: float, times: FloatArray
-) -> FloatArray:
-    """Calculate a delivered or pipeline increment's production at each of the times."""
-    added = production * increment.multiplier
-    delivery = times[0] - increment.age * YEAR
-    window = increment.age_span * YEAR
-    return _calculate_increment_production(added, delivery, lifetime, window, times)
 
 
 def _calculate_newbuild_production(
@@ -404,8 +383,8 @@ def _calculate_newbuild_production(
     """
     Calculate each plant's production from the newbuilds decided at future times.
 
-    The newbuilds decided at each time are added to the mix, and their feed
-    consumption constrains the uptakes at the times after.
+    The newbuilds decided at each time are added to the mix, and the feed they
+    reserve constrains the uptakes at the times after.
 
     Parameters
     ----------
@@ -426,7 +405,7 @@ def _calculate_newbuild_production(
     plants = producer.plants
     jump_start = producer.jump_start_fraction.get()
     profiles = np.zeros((len(plants), times.size))
-    feed_consumption = {key: np.zeros_like(times) for key in producer.feed_constraints}
+    reserved_feed = _ReservedFeed(producer, times)
 
     # without initial production the supply/demand interaction never starts, as
     # no supply is expected and thus no demand; a partially uniform uptake
@@ -456,7 +435,7 @@ def _calculate_newbuild_production(
         utilization = min(utilization + ramp_up, 1.0)
 
         development = utilization * producer.maximum_development.get(time) * dt
-        consumption = slice_dict(feed_consumption, t)
+        consumption = slice_dict(reserved_feed.reserved, t)
         constrained_uptakes = calculate_constrained_uptakes(
             producer, uptakes, development, limits, origin, consumption
         )
@@ -468,102 +447,43 @@ def _calculate_newbuild_production(
             production = expectation.get_production(origin)
             added = development * constrained_uptakes[p] * production
 
-            profile = _calculate_newbuild_profile(plant, added, time, time_step, times)
+            profile = calculate_newbuild_running(plant, added, time, time_step, times)
             profiles[p] += profile
             mix.add(p, profile, expectation, origin)
-
-            # the feed gap moves everything forward by the lead time: it is the gap
-            # of what can enter the pipeline at 't', not the gap at 't + lead_time'
-            conversions = expectation.get_feed_conversions(origin)
-            for feed_name, conversion in conversions.items():
-                feed_consumption[feed_name][t:] += added * conversion
+            reserved_feed.add(plant, added, t, time, time_step, origin)
 
     return profiles
 
 
-def _calculate_newbuild_profile(
-    plant: Plant, added: float, time: float, window: float, times: FloatArray
-) -> FloatArray:
-    """Calculate the production at each of the times of newbuilds decided at `time`."""
-    lifetime = plant.lifetime.get(time)
-    lead_time = plant.lead_time.get(time)
+class _ReservedFeed:
+    """Accumulate the feed the newbuilds reserve, per constrained feed."""
 
-    # the delivery of the last expected increment, as increments enter uniformly
-    # over the time step
-    delivery = time + lead_time * YEAR
-    return _calculate_increment_production(added, delivery, lifetime, window, times)
+    def __init__(self, producer: Producer, times: FloatArray) -> None:
+        self.deliveries: dict[str, FloatArray] = {}
+        self.reserved: dict[str, FloatArray] = {}
 
+        for feed_name, constraint in producer.feed_constraints.items():
+            if constraint is None:
+                continue
 
-def _calculate_increment_production(
-    production: float,
-    delivery: float,
-    lifetime: float,
-    window: float,
-    times: FloatArray,
-) -> FloatArray:
-    """
-    Calculate the production profile over time for a single increment.
+            delivery = calculate_feed_delivery(producer, feed_name, times)
+            if delivery is not None:
+                self.deliveries[feed_name] = delivery
+                self.reserved[feed_name] = np.zeros_like(times)
 
-    Parameters
-    ----------
-    production
-        Production that will enter at the delivery date (sum of all plants being
-        delivered), in tons/year.
-    delivery
-        Time at which production was or will be delivered, in days.
-    lifetime
-        Time production stays in service after its delivery, in years.
-    window
-        Window over which production was or will be delivered, and will be
-        decommissioned, in days.
-    times
-        Future times from the simulation timeline (timeline[idx:]), in days.
+    def add(
+        self,
+        plant: Plant,
+        added: float,
+        t: int,
+        time: float,
+        window: float,
+        origin: int,
+    ) -> None:
+        """Reserve the feed of `added` production of `plant` decided at `time`."""
+        for feed_name, times in self.deliveries.items():
+            conversion = plant.expectation.get_feed_conversion(feed_name, origin)
+            feed = added * conversion
 
-    Returns
-    -------
-    FloatArray
-        The production active at each of the times, in tons/year.
-    """
-    if delivery <= 0.0:
-        # an existing increment is already delivered, so all its production is
-        # assigned at t=0
-        delivered = np.zeros_like(times)
-        delivered[0] = production
-    else:
-        delivered = _spread_uniformly(production, delivery, window, times)
-
-    decommission = delivery + lifetime * YEAR
-    decommissioned = _spread_uniformly(production, decommission, window, times)
-
-    return np.cumsum(delivered - decommissioned)
-
-
-def _spread_uniformly(
-    production: float, end: float, window: float, times: FloatArray
-) -> FloatArray:
-    """
-    Spread production uniformly over the window from `end - window` to `end`.
-
-    Each time takes the part of the window since the previous time; the part
-    beyond the last time is left out.
-    """
-    # a remainder of the window below the tolerance is round-off
-    tolerance = 1e-5
-
-    spread = np.zeros_like(times)
-    start = end - window
-    remaining = window
-    t = np.argmax(start < times)
-
-    while remaining > tolerance:
-        if start >= times[-1]:
-            break
-
-        partial = min(times[t], end) - start
-        spread[t] = partial / window * production
-
-        t += 1
-        start += partial
-        remaining -= partial
-
-    return spread
+            reserved = calculate_newbuild_reserved(plant, feed, t, time, window, times)
+            self.reserved[feed_name] += reserved

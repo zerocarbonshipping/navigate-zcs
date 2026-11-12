@@ -10,14 +10,13 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.cohort import find_origin_index, find_origin_indexes
-from navigate.simulation.fuel.feed import calculate_feed_masses
 from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, IntArray
 
 
 def record_plant_results(plant: Plant, idx: int) -> None:
@@ -107,12 +106,44 @@ def _transfer_production_and_feed_mass(
 
         production_per_plant = plant.expectation.get_production(origins)
         production = np.sum(production_per_plant * multipliers)
-        feed_masses = calculate_feed_masses(plant, multipliers, origins)
+        feed_masses = _calculate_feed_masses(plant, multipliers, origins)
 
         results.production_mass[plant.fuel.name][idx] += production
 
         for key, value in feed_masses.items():
             results.feed_mass[key][idx] += value
+
+
+def _calculate_feed_masses(
+    plant: Plant, multipliers: FloatArray, origins: IntArray
+) -> dict[str, float]:
+    """
+    Calculate the feed mass a set of increments of a plant type uses, per feed.
+
+    Production and feed use are those of when the plants were decided.
+
+    Parameters
+    ----------
+    plant
+        The plant type of the increments.
+    multipliers
+        Number of plants in each increment.
+    origins
+        Time-step index at which each increment was decided.
+
+    Returns
+    -------
+    dict[str, float]
+        Feed mass per feed name, in tons/year.
+    """
+    production = plant.expectation.get_production(origins)
+    conversions = plant.expectation.get_feed_conversions(origins)
+
+    feed_masses: dict[str, float] = {}
+    for feed_name, conversion in conversions.items():
+        feed_masses[feed_name] = np.sum(production * conversion * multipliers)
+
+    return feed_masses
 
 
 def _transfer_plant_tied_capital(

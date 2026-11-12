@@ -5,23 +5,21 @@
 
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import (
-    calculate_share_below,
-    extends_past,
-    find_origin_indexes,
+from navigate.simulation.fuel._profiles import (
+    calculate_cohort_reserved,
+    iterate_increments,
 )
 from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.core.increment import PlantIncrement
-    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray, IntArray
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +28,11 @@ def calculate_feed_availability(
     producer: Producer, timeline: FloatArray, idx: int
 ) -> None:
     """
-    Calculate the gap between feed used and the available feed supply.
+    Calculate the gap between the feed supply and the feed reserved, over time.
 
-    Feed used covers both current and pipeline production.
+    A plant reserves its feed from its decision until its retirement. The gap at each
+    time is the supply for a plant decided then, after the feed reserved by the
+    existing and pipeline plants still in service by its delivery.
 
     Parameters
     ----------
@@ -43,16 +43,48 @@ def calculate_feed_availability(
     idx
         Current time-step index.
     """
-    years = timeline / YEAR
-    current_year = years[idx]
-
-    # the existing and pipeline feed below are summed from zero
-    producer.expectation.reset_feed_totals()
-
     _calculate_plant_feed_consumption(producer, idx)
-    _calculate_existing_feed(producer, years, current_year)
-    _calculate_pipeline_feed(producer, years, current_year)
     _calculate_feed_gaps(producer, timeline, idx)
+
+
+def calculate_feed_delivery(
+    producer: Producer, feed_name: str, times: FloatArray
+) -> FloatArray | None:
+    """
+    Calculate the delivery of a plant decided at each of the times, for a feed.
+
+    The feed gap is evaluated at these deliveries. Each lies the feed's lead time
+    ahead: the shortest lead time at its decision of the plants using the feed, which
+    keeps the gap consistent with the feed constraint for every one of them. A lead
+    time falling faster than time advances leaves the deliveries out of order.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    feed_name
+        Name of the feed.
+    times
+        Times the plants are decided at, in days.
+
+    Returns
+    -------
+    FloatArray | None
+        Delivery of a plant decided at each of the times, in days; None where no
+        plant uses the feed.
+    """
+    expectation = producer.expectation
+    lead_times: list[FloatArray] = []
+
+    for plant in producer.plants:
+        if expectation.get_plant_feed_consumption(plant.name, feed_name) > 0.0:
+            lead_times.append(plant.lead_time.get(times))
+
+    if not lead_times:
+        return None
+
+    delivery: FloatArray = times + np.min(lead_times, axis=0) * YEAR
+    return delivery
 
 
 def calculate_constrained_uptakes(
@@ -79,7 +111,7 @@ def calculate_constrained_uptakes(
     idx
         Current time-step index.
     additional_consumption
-        Potential additional consumption per feed at the given time-step index, in
+        Feed newbuilds left out of the feed gap take at the time step, per feed, in
         tons/year; none where omitted.
 
     Returns
@@ -109,38 +141,6 @@ def calculate_constrained_uptakes(
             return new_uptakes
 
         current_uptakes = new_uptakes
-
-
-def calculate_feed_masses(
-    plant: Plant, multipliers: FloatArray, origins: IntArray
-) -> dict[str, float]:
-    """
-    Calculate the feed mass a set of increments of a plant type uses, per feed.
-
-    Production and feed use are those of when the plants were decided.
-
-    Parameters
-    ----------
-    plant
-        The plant type of the increments.
-    multipliers
-        Number of plants in each increment.
-    origins
-        Time-step index at which each increment was decided.
-
-    Returns
-    -------
-    dict[str, float]
-        Feed mass per feed name, in tons/year.
-    """
-    production = plant.expectation.get_production(origins)
-    conversions = plant.expectation.get_feed_conversions(origins)
-
-    feed_masses: dict[str, float] = {}
-    for feed_name, conversion in conversions.items():
-        feed_masses[feed_name] = np.sum(production * conversion * multipliers)
-
-    return feed_masses
 
 
 def calculate_feed_spend(
@@ -173,6 +173,33 @@ def calculate_feed_spend(
     return spend
 
 
+def calculate_feed_spends(
+    producer: Producer, newbuilds: FloatArray
+) -> dict[str, float]:
+    """
+    Calculate the feed a number of new plants of each type use, per constrained feed.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    newbuilds
+        Number of new plants of each type.
+
+    Returns
+    -------
+    dict[str, float]
+        Feed used per constrained feed, in tons/year.
+    """
+    spends: dict[str, float] = {}
+
+    for feed_name, constraint in producer.feed_constraints.items():
+        if constraint is not None:
+            spends[feed_name] = calculate_feed_spend(producer, feed_name, newbuilds)
+
+    return spends
+
+
 def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
     """
     Set the feed a plant built at the time step uses, per constrained feed.
@@ -202,107 +229,9 @@ def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
             expectation.set_plant_feed_consumption(plant.name, feed_name, consumption)
 
 
-def _calculate_existing_feed(
-    producer: Producer, years: FloatArray, current_year: float
-) -> None:
-    """
-    Add the feed used by the plants still running once new plants are built.
-
-    Parameters
-    ----------
-    producer
-        The producer.
-    years
-        Simulation timeline, in years.
-    current_year
-        Current year of the simulation.
-    """
-    for plant, increments in zip(producer.plants, producer.increments, strict=True):
-        multipliers, decided = _find_continued_increments(plant, increments)
-
-        if not multipliers.size:
-            continue
-
-        origins = find_origin_indexes(years, current_year, decided)
-        feed_masses = calculate_feed_masses(plant, multipliers, origins)
-
-        for key, value in feed_masses.items():
-            producer.expectation.add_existing_feed(key, value)
-
-
-def _calculate_pipeline_feed(
-    producer: Producer, years: FloatArray, current_year: float
-) -> None:
-    """
-    Add the feed used by the plants in the pipeline.
-
-    Parameters
-    ----------
-    producer
-        The producer.
-    years
-        Simulation timeline, in years.
-    current_year
-        Current year of the simulation.
-    """
-    for plant, increments in zip(producer.plants, producer.pipeline, strict=True):
-        if not increments:
-            continue
-
-        multipliers = np.array([increment.multiplier for increment in increments])
-        decided = np.array([increment.decided for increment in increments])
-        origins = find_origin_indexes(years, current_year, decided)
-        feed_masses = calculate_feed_masses(plant, multipliers, origins)
-
-        for key, value in feed_masses.items():
-            producer.expectation.add_pipeline_feed(key, value)
-
-
-def _find_continued_increments(
-    plant: Plant, increments: list[PlantIncrement]
-) -> tuple[FloatArray, FloatArray]:
-    """
-    Find the plants of each increment still running once new plants are built.
-
-    Increments decommissioned before new plants could be built do not count. As the
-    model is continuous, an increment straddling that boundary counts only its share
-    below the boundary, as in the decommissioning of plants.
-
-    Parameters
-    ----------
-    plant
-        The plant type of the increments.
-    increments
-        Increments of the plant type.
-
-    Returns
-    -------
-    tuple[FloatArray, FloatArray]
-        The number of plants of each continued increment and the years since it was
-        decided.
-    """
-    boundary = plant.lifetime.get() - plant.lead_time.get()
-
-    multipliers: list[float] = []
-    decided: list[float] = []
-
-    for increment in increments:
-        if increment.age >= boundary:
-            continue
-
-        share = 1.0
-        if extends_past(increment, boundary):
-            share = calculate_share_below(increment, boundary)
-
-        multipliers.append(increment.multiplier * share)
-        decided.append(increment.decided)
-
-    return np.array(multipliers), np.array(decided)
-
-
 def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> None:
     """
-    Set the gap between the feed supply and the feed the plants use, per feed.
+    Set the gap between the feed supply and the feed reserved, per constrained feed.
 
     Parameters
     ----------
@@ -320,24 +249,17 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
         if constraint is None:
             continue
 
-        lead_times: list[float] = []
-        for plant in producer.plants:
-            if expectation.get_plant_feed_consumption(plant.name, feed_name) > 0.0:
-                lead_times.append(plant.lead_time.get())
-
-        if not lead_times:
+        delivery = calculate_feed_delivery(producer, feed_name, times)
+        if delivery is None:
             continue
 
-        # the availability gap uses the constraint one minimum lead time ahead;
-        # the minimum across plants guarantees consistency with the constraint
-        supply = constraint.get(times + min(lead_times) * YEAR)
-        existing = expectation.get_existing_feed(feed_name)
-        pipeline = expectation.get_pipeline_feed(feed_name)
-        gap = supply - (existing + pipeline)
+        supply = constraint.get(delivery)
+        reserved = _calculate_cohort_feed(producer, feed_name, delivery, timeline, idx)
+        gap = supply - reserved
 
         # an initial capacity of plants using more feed than the constraint allows
-        # over-demands the feed; this signals an issue in the input data, so it is
-        # flagged with a warning rather than corrected for internally
+        # over-demands the feed, an issue in the input data that the warning flags;
+        # the gap is floored at zero
         # TODO: Remove if scrapping for negatives gets implemented
         if gap[0] < -TOLERANCE:
             logger.warning(
@@ -347,9 +269,57 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
                 feed_name,
             )
 
-            gap = np.zeros_like(gap)
+        expectation.set_feed_gap(feed_name, idx, np.maximum(gap, 0.0))
 
-        expectation.set_feed_gap(feed_name, idx, gap)
+
+def _calculate_cohort_feed(
+    producer: Producer,
+    feed_name: str,
+    times: FloatArray,
+    timeline: FloatArray,
+    idx: int,
+) -> FloatArray:
+    """
+    Calculate the feed the existing and pipeline plants reserve at each of the times.
+
+    Each increment reserves the feed it was decided with.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    feed_name
+        Name of the feed.
+    times
+        Times the profile is evaluated at, in days.
+    timeline
+        Simulation timeline, in days.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    FloatArray
+        Feed reserved at each of the times, in tons/year.
+    """
+    plants = producer.plants
+    now = timeline[idx]
+    reserved = np.zeros_like(times)
+
+    increments = itertools.chain(
+        iterate_increments(plants, producer.increments, timeline, idx),
+        iterate_increments(plants, producer.pipeline, timeline, idx),
+    )
+
+    for _, plant, increment, origin in increments:
+        production = plant.expectation.get_production(origin)
+        conversion = plant.expectation.get_feed_conversion(feed_name, origin)
+        lifetime = plant.lifetime.get()
+
+        feed = production * conversion
+        reserved += calculate_cohort_reserved(increment, feed, lifetime, now, times)
+
+    return reserved
 
 
 def _calculate_feed_limits(
@@ -376,7 +346,7 @@ def _calculate_feed_limits(
     idx
         Current time-step index.
     additional_consumption
-        Potential additional consumption per feed at the given time-step index, in
+        Feed newbuilds left out of the feed gap take at the time step, per feed, in
         tons/year.
 
     Returns
