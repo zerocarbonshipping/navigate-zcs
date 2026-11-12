@@ -176,17 +176,14 @@ code that breaks the rule. Taste beyond these conventions is the writer's.
 Ruff `D` with the numpy convention decides where a docstring is required and
 its section layout; the rules below cover the content.
 
-- A summary states what the function does, plus a why the code cannot show,
-  and nothing more.
 - A `Parameters` section is optional; once present it lists every argument,
   each named without its type, which the signature carries, and described in
   one line where one line fits.
 - `Returns` takes the numpydoc shape, a type line with the description
   indented under it: the type repeats the return annotation, as numpydoc
   requires a type for each return value.
-- A module docstring states the purpose of the file, in one line where one
-  line fits. A module defining a class used outside its package also says
-  where the class is used.
+- The docstring of a module that defines a class used outside its package
+  says where the class is used.
 - A class docstring states the responsibility of the class in one line, and
   `__init__` never carries a docstring. A class callers instantiate directly
   (`Scalar`, the calculators) adds a `Parameters` section describing the
@@ -219,9 +216,8 @@ its section layout; the rules below cover the content.
 
 - Blank lines separate logical sections; statements forming one conceptual
   operation stay adjacent. In particular:
-  - Exit early through a guard clause (a short `if` ending in `return`,
-    `continue`, `break` or `raise`) instead of nesting the rest of the body,
-    and follow the guard with a blank line.
+  - A guard clause (a short `if` ending in `return`, `continue`, `break` or
+    `raise`) is followed by a blank line.
   - Logging calls, and statements that build a message for them, form their
     own section, with a blank line above and below.
   - The end of a block is no section break by itself: a block that belongs
