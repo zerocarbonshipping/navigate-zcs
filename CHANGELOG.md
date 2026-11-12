@@ -344,6 +344,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A run no longer crashes when a fleet needs newbuilds but none of its vessel
+  types may be built; it builds none and warns that it carried only part of
+  its trade (#357).
 - A retrofit is valued at the saving it adds to the vessel's current technology;
   it was valued at the saving of the current technology instead, which undervalued
   retrofits on a vessel without technology and overvalued those on one with some.
