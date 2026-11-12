@@ -99,7 +99,7 @@ This attribute sets the power capacity of the Converter.
   + `50`
   + `Variable("name")`
 * **Unit**: MW
-* **Minimum value**: 0
+* **Minimum value**: 0 (exclusive)
 * **Default**: None. Must be provided by the user.
 
 ### MainFuelTypes 

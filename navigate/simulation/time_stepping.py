@@ -60,6 +60,7 @@ from navigate.simulation.fleet import (
     update_vessel_ages,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
+    verify_speed_limits,
 )
 from navigate.simulation.fuel import (
     calculate_development_potential,
@@ -368,6 +369,9 @@ class Simulation:
         self._pre_assign_temporal()
         self._calculate_expectations()
 
+        # the operations clip each condition to its technical speed limit, which
+        # must leave the vessel a speed above 0 wherever it sails
+        self._verify_speed_limits()
         self._update_vessel_operations()
 
         # only events change the deck's inputs, so the derived expectations are
@@ -451,6 +455,10 @@ class Simulation:
         calculate_export_expectations(
             self.nodes.producers, self.nodes.ports, self.timeline, self._idx
         )
+
+    def _verify_speed_limits(self) -> None:
+        for fleet in self.nodes.fleets.values():
+            verify_speed_limits(fleet.vessels)
 
     def _update_vessel_operations(self) -> None:
         for fleet in self.nodes.fleets.values():

@@ -13,6 +13,7 @@ from navigate.core import Expression, Scalar
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.core.node_type import is_surface, is_variable
 from navigate.exceptions import PowerCapacityError
+from navigate.simulation.fleet._trip import derive_reference_trip
 from navigate.util import TOLERANCE, energy_to_power, power_to_energy
 
 if TYPE_CHECKING:
@@ -218,6 +219,61 @@ def _verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
         raise PowerCapacityError(
             f"{vessel}: energy demand exceeds installed converter power:\n{details}"
         )
+
+
+def verify_speed_limits(vessels: list[Vessel]) -> None:
+    """
+    Verify that each vessel's propulsion converter moves it in every condition it sails.
+
+    Parameters
+    ----------
+    vessels
+        Vessels whose technical speed limits are verified.
+
+    Raises
+    ------
+    PowerCapacityError
+        If any vessel's maximum speed is 0 in a condition it sails.
+    """
+    for vessel in vessels:
+        _verify_vessel_speed_limits(vessel)
+
+
+def _verify_vessel_speed_limits(vessel: Vessel) -> None:
+    """
+    Verify that a vessel's propulsion converter moves it in every condition it sails.
+
+    The reverse lookup of the power capacity clamps to the load's lowest speed, so where
+    the load at speed 0 already reaches the power capacity, the maximum speed is 0, at
+    which the vessel covers no distance.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose technical speed limits are verified.
+
+    Raises
+    ------
+    PowerCapacityError
+        If the maximum speed is 0 in a condition the vessel sails.
+    """
+    trip = derive_reference_trip(vessel.route)
+    _, speeds_max = calculate_technical_speed_limits(vessel, trip)
+
+    stalled = trip.sailed & (speeds_max <= 0.0)
+
+    if not np.any(stalled):
+        return
+
+    converter = vessel.propulsion_converter
+    power_capacity = converter.power_capacity.get()
+    labels = _name_conditions(vessel.route)
+
+    details = "\n".join(f"  {labels[index]}" for index in np.flatnonzero(stalled))
+    raise PowerCapacityError(
+        f"{vessel}: {converter} with {power_capacity:.2f} MW installed propels the"
+        f" vessel at no speed above 0 knots on:\n{details}"
+    )
 
 
 def get_total_power_capacity(vessel: Vessel) -> float:

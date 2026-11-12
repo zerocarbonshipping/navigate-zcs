@@ -33,7 +33,7 @@ from navigate.simulation.fleet.post_process import (
     complete_global_fleet_results,
     complete_vessel_results,
 )
-from navigate.simulation.fleet.power import verify_power_capacity
+from navigate.simulation.fleet.power import verify_power_capacity, verify_speed_limits
 from navigate.simulation.fleet.results import (
     record_fleet_results,
     record_vessel_results,

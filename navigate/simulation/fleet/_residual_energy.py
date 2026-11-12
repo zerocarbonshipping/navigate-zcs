@@ -266,7 +266,7 @@ def _calculate_converter_load(
     """Return the load of the converter serving a demand, fraction of capacity."""
     converter = vessel.get_converter(energy_id)
     capacity = converter.power_capacity.get()
-    return divide_nonzero(residual_power, capacity)
+    return residual_power / capacity
 
 
 def _calculate_power_transfer(curves: list[CurveInput], load: FloatArray) -> FloatArray:

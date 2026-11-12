@@ -2,5 +2,5 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Variable "other_electrical_power_capacity" {
-	Value = 0
+	Value = 0.1
 }
