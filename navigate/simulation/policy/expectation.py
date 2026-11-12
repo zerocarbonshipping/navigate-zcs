@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-step expectations of regulations and levies over the remaining timeline."""
+"""Expectations derived from the deck's inputs at the start of each step."""
 
 from __future__ import annotations
 

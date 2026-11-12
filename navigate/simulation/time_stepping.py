@@ -427,7 +427,7 @@ class Simulation:
             timetable.current_time = time
 
     def _calculate_expectations(self) -> None:
-        """Calculate the per-step expectations later phases and other domains read."""
+        """Calculate the deck-derived expectations at the start of the step."""
         emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
 
         calculate_policy_expectations(
