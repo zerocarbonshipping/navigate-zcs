@@ -31,6 +31,7 @@ Region "*" {
 
 	# transport emissions
 	set_transport_wtt("truck", "carbon_dioxide", Forecast("truck_emissions"))
+	set_transport_wtt("truck_wet_organics", "carbon_dioxide", <Forecast("truck_emissions") * Variable("feedstock_biogas_wet_mass_factor")>)
 
 	# hydrogen ---------------------------------------------------------------------------------------------------------
 

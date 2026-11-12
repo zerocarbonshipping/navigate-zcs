@@ -7,10 +7,10 @@ Plant "plant_methane_bio" {
 
 	Capacity = Forecast("methane_bio_plant_capacity")
 
-	LeadTime = Forecast("lead_time_plant_bio")
+	LeadTime = Forecast("lead_time_plant_methane_bio")
 	Lifetime = Forecast("lifetime_plant_methane_bio")
 	Uptime = Forecast("uptime_plant_bio")
 
-	set_feed_transport("feedstock_biogas", Transport("truck"))
+	set_feed_transport("feedstock_biogas", Transport("truck_wet_organics"))
 	set_feed_distance("feedstock_biogas", Forecast("distance_feedstock_biogas_to_methane_plant"))
 }

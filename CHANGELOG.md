@@ -17,6 +17,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `lifetime_plant_methane` with the electro-methane plants. The new Forecast
   carries the same value as before (30 years), so results do not change; the
   two plant families can now be given different lifetimes.
+- Bio plants read their lead time from one Forecast per plant
+  (`lead_time_plant_ethanol_bio`, `lead_time_plant_methanol_bio_gasification`,
+  `lead_time_plant_methane_bio`) instead of the shared `lead_time_plant_bio`,
+  which is removed. Each new Forecast carries the same value as before
+  (3 years), so results do not change.
+- Biogas feedstock (`feedstock_biogas`) moves on a new Transport
+  `truck_wet_organics`. Its emission factor is `truck_emissions` times the new
+  Variable `feedstock_biogas_wet_mass_factor` (wet ton per dry ton). The plant
+  feed mass is in dry tonnes and the truck moves wet tonnes. The Variable
+  carries 1.0, so results do not change until a value is supplied.
 
 ### Fixed
 - Parse errors now name keywords as the grammar spells them. Lark derives

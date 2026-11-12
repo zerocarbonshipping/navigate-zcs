@@ -7,7 +7,7 @@ Plant "plant_ethanol_bio" {
 
 	Capacity = Forecast("ethanol_bio_plant_capacity")
 
-	LeadTime = Forecast("lead_time_plant_bio")
+	LeadTime = Forecast("lead_time_plant_ethanol_bio")
 	Lifetime = Forecast("lifetime_plant_ethanol_bio")
 	Uptime = Forecast("uptime_plant_bio")
 

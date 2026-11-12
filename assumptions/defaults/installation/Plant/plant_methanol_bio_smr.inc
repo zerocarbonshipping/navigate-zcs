@@ -11,6 +11,6 @@ Plant "plant_methanol_bio_smr" {
 	Lifetime = Forecast("lifetime_plant_methanol_bio_smr")
 	Uptime = Forecast("uptime_plant_methanol_bio_smr")
 
-	set_feed_transport("feedstock_biogas", Transport("truck"))
+	set_feed_transport("feedstock_biogas", Transport("truck_wet_organics"))
 	set_feed_distance("feedstock_biogas", Forecast("distance_feedstock_biogas_to_methane_plant"))
 }
