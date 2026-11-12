@@ -103,7 +103,7 @@ class VesselExpectation(_Expectation):
         self._remedial_expenses: FloatArray
         self._flexibility_expenses: FloatArray
 
-        self._shore_power_capacity: FloatArray
+        self._shore_power_potential_port: list[FloatArray]
         self._shore_power_limit_port: list[FloatArray]
 
         self._asset_charter_npv: FloatArray
@@ -256,7 +256,7 @@ class VesselExpectation(_Expectation):
         self._remedial_expenses = self._default_array()
         self._flexibility_expenses = self._default_array()
 
-        self._shore_power_capacity = self._default_array()
+        self._shore_power_potential_port = self._default_list_array(port_count)
         self._shore_power_limit_port = self._default_list_array(port_count)
 
         self._asset_charter_npv = self._default_array()
@@ -478,8 +478,10 @@ class VesselExpectation(_Expectation):
     def add_flexibility_expenses(self, idx: int, expenses: FloatArray) -> None:
         self._flexibility_expenses[idx:] += expenses
 
-    def set_shore_power_capacity(self, idx: int, capacity: float) -> None:
-        self._shore_power_capacity[idx:] = capacity
+    def set_shore_power_potential_port(
+        self, idx: int, potentials: Iterable[float]
+    ) -> None:
+        _set_forward(self._shore_power_potential_port, idx, potentials)
 
     def set_shore_power_limit_port(
         self, idx: int, limits: Iterable[FloatArray]
@@ -746,8 +748,8 @@ class VesselExpectation(_Expectation):
     def get_flexibility_expenses(self, idx: Index) -> FloatLike:
         return self._flexibility_expenses[idx]
 
-    def get_shore_power_capacity(self, idx: slice) -> FloatArray:
-        return self._shore_power_capacity[idx]
+    def get_shore_power_potential_port(self, idx: slice) -> list[FloatArray]:
+        return slice_list(self._shore_power_potential_port, idx)
 
     def get_shore_power_limit_port(self, idx: int) -> list[float]:
         return slice_list(self._shore_power_limit_port, idx)
