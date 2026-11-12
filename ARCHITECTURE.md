@@ -117,7 +117,7 @@ Inside `core/`, runtime imports run one way: `nodes/` imports `expectations/`,
 import no subpackage, and one that needs a node class imports it under
 `TYPE_CHECKING`. The exception is `core/node_registry.py`, whose registries
 read the classes of `nodes/` and `general_nodes/` at runtime, by design.
-Imports are absolute.
+Imports are absolute (ruff `TID252`).
 
 Nothing checks the layering mechanically; review holds it. A task that needs
 the layering changed changes the table with the code.

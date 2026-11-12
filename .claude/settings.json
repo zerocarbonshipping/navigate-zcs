@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make help)",
+      "Bash(make pip-setup)",
+      "Bash(make lint)",
+      "Bash(make fix)",
+      "Bash(make check)",
+      "Bash(make test-unit)",
+      "Bash(make test-e2e)",
+      "Bash(make test-examples)",
+      "Bash(make test-all)",
+      "Bash(make compare-results)",
+      "Bash(make docs)",
+      "Bash(.venv/bin/ruff *)",
+      "Bash(.venv/bin/mypy *)",
+      "Bash(.venv/bin/pytest *)",
+      "Bash(.venv/bin/navigate *)"
+    ]
+  }
+}

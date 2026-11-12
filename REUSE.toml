@@ -31,6 +31,12 @@ path = "syntax/vscode/**/*.json"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "Apache-2.0"
 
+# Claude Code's shared project settings; strict JSON cannot carry comments.
+[[annotations]]
+path = ".claude/settings.json"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "Apache-2.0"
+
 # Documentation figures (binary images).
 [[annotations]]
 path = "docs/_static/*.png"

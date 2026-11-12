@@ -36,6 +36,14 @@ select = [
     "LOG", # flake8-logging: no root-logger calls, exc_info only in except handlers
     "RET", # flake8-return: no else after an exit, no assign-then-return
     "PTH", # flake8-use-pathlib: pathlib over os.path, os file calls and open()
+    "A",   # flake8-builtins: no name shadows a builtin or a standard-library module
+    "PLE", # pylint errors: code that fails at runtime (dunder returns, logging arity)
+    "PLW", # pylint warnings: no loop variable rebound in its body, no nested min/max
+    "PIE", # flake8-pie: no needless pass, spread or range start; unique enum values
+    "FURB", # refurb: the shorter idiom (or for if-else, sorted()[0] as min, ...)
+    "RSE", # flake8-raise: no parentheses on an exception raised without arguments
+    "FLY", # flynt: an f-string over joining a static list
+    "T10", # flake8-debugger: no breakpoint() or debugger imports
 ]
 extend-select = [
     "D213",    # multi-line docstring summaries start on the second line
@@ -43,8 +51,7 @@ extend-select = [
     "DOC102",  # every documented parameter exists in the signature
     "DOC202",  # no Returns section on a function that returns nothing
     "ERA001",  # no commented-out code
-    "PLW2901", # a loop variable is not rebound in the loop body
-    "PLW3301", # nested min/max calls are flattened into one
+    "TID252",  # imports are absolute (ban-relative-imports below)
 ]
 ignore = [
     "D105", # magic methods need no docstring
@@ -58,6 +65,10 @@ convention = "numpy"
 extend-immutable-calls = [
     "navigate.core.results.base_results.result",
 ]
+
+[lint.flake8-tidy-imports]
+# sibling-relative imports too, not only parent-relative ones
+ban-relative-imports = "all"
 
 [lint.isort]
 required-imports = ["from __future__ import annotations"]
