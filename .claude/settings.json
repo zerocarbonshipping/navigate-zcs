@@ -10,11 +10,12 @@
       "Bash(make test-e2e)",
       "Bash(make test-examples)",
       "Bash(make test-all)",
-      "Bash(make compare-results)",
+      "Bash(make compare-results *)",
       "Bash(make docs)",
       "Bash(.venv/bin/ruff *)",
       "Bash(.venv/bin/mypy *)",
       "Bash(.venv/bin/pytest *)",
+      "Bash(ASSUMPTIONS_DATA_DIR=* .venv/bin/python -m pytest *)",
       "Bash(.venv/bin/navigate *)"
     ]
   }
