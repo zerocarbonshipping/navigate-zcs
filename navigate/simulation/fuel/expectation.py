@@ -269,9 +269,8 @@ def calculate_producer_evolution_expectation(
 
     existing = _calculate_cohort_production(plants, in_service, mix, timeline, idx)
     pipeline = _calculate_cohort_production(plants, in_pipeline, mix, timeline, idx)
-    newbuild = _calculate_newbuild_production(producer, mix, times, idx)
-
     guaranteed = existing + pipeline
+    newbuild = _calculate_newbuild_production(producer, mix, guaranteed, times, idx)
     expected = guaranteed + newbuild
 
     for p, plant in enumerate(plants):
@@ -378,13 +377,19 @@ def _calculate_cohort_production(
 
 
 def _calculate_newbuild_production(
-    producer: Producer, mix: _ProductionMix, times: FloatArray, idx: int
+    producer: Producer,
+    mix: _ProductionMix,
+    guaranteed: FloatArray,
+    times: FloatArray,
+    idx: int,
 ) -> FloatArray:
     """
     Calculate each plant's production from the newbuilds decided at future times.
 
-    The newbuilds decided at each time are added to the mix, and the feed they
-    reserve constrains the uptakes at the times after.
+    The producer is expected to build each fuel up to its gap at delivery and to
+    spread the development the gaps leave evenly over its fuels. The newbuilds
+    decided at each time are added to the mix; they close the gaps of the times
+    after, and the feed they reserve constrains the uptakes at those times.
 
     Parameters
     ----------
@@ -392,6 +397,9 @@ def _calculate_newbuild_production(
         The producer.
     mix
         Production mix the newbuilds are added to.
+    guaranteed
+        Production of each plant from its existing and pipeline increments at each of
+        the times, in tons/year.
     times
         Future times from the simulation timeline (timeline[idx:]), in days.
     idx
@@ -403,9 +411,21 @@ def _calculate_newbuild_production(
         Production of each plant at each of the times, in tons/year.
     """
     plants = producer.plants
+    forward = np.s_[idx:]
     jump_start = producer.jump_start_fraction.get()
     profiles = np.zeros((len(plants), times.size))
     reserved_feed = _ReservedFeed(producer, times)
+    fuel_names = list(producer.fuels)
+    fuel_idx = [fuel_names.index(plant.fuel.name) for plant in plants]
+
+    # the fair-share demand predates the time step's planning, so the production
+    # the plants gained since their guaranteed production was last set comes off it
+    demand = producer.expectation.get_fair_share_demand()
+    gaps = np.array([demand[fuel_name][forward] for fuel_name in fuel_names])
+
+    for p, plant in enumerate(plants):
+        previous = producer.expectation.get_guaranteed_production(plant.name, forward)
+        gaps[fuel_idx[p]] -= guaranteed[p] - previous
 
     # without initial production the supply/demand interaction never starts, as
     # no supply is expected and thus no demand; a partially uniform uptake
@@ -413,7 +433,10 @@ def _calculate_newbuild_production(
     allowed = np.array([producer.allow_plant[plant.name] for plant in plants])
     uniform = np.zeros_like(producer.current_uptake)
     uniform[allowed] = 1.0 / np.count_nonzero(allowed)
-    uptakes = (1.0 - jump_start) * producer.current_uptake + jump_start * uniform
+    blend = (1.0 - jump_start) * producer.current_uptake + jump_start * uniform
+    fuel_blend = np.bincount(fuel_idx, weights=blend)[fuel_idx]
+    intra_shares = divide_nonzero(blend, fuel_blend)
+    spare_uptakes = divide_nonzero(intra_shares, np.sum(intra_shares))
     limits = allowed.astype(float)
 
     # likewise, without previous development the expectation needs a minimum of
@@ -435,6 +458,18 @@ def _calculate_newbuild_production(
         utilization = min(utilization + ramp_up, 1.0)
 
         development = utilization * producer.maximum_development.get(time) * dt
+        newbuilds = np.zeros(len(plants))
+
+        for p, plant in enumerate(plants):
+            delivery = time + plant.lead_time.get(time) * YEAR
+            gap = max(np.interp(delivery, times, gaps[fuel_idx[p]]), 0.0)
+            production = plant.expectation.get_production(origin)
+            newbuilds[p] = intra_shares[p] * gap / production
+
+        # the fuels share the development their gaps leave evenly, so that supply
+        # is expected beyond the demand and the demand can grow into it
+        newbuilds += max(development - np.sum(newbuilds), 0.0) * spare_uptakes
+        uptakes = divide_nonzero(newbuilds, np.sum(newbuilds))
         consumption = slice_dict(reserved_feed.reserved, t)
         constrained_uptakes = calculate_constrained_uptakes(
             producer, uptakes, development, limits, origin, consumption
@@ -449,6 +484,7 @@ def _calculate_newbuild_production(
 
             profile = calculate_newbuild_running(plant, added, time, time_step, times)
             profiles[p] += profile
+            gaps[fuel_idx[p]] -= profile
             mix.add(p, profile, expectation, origin)
             reserved_feed.add(plant, added, t, time, time_step, origin)
 

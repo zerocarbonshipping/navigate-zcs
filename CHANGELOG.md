@@ -51,6 +51,9 @@ decks.
   requested; they used to produce no column.
 
 ### Changed
+- A producer's expected production follows each fuel's expected demand and
+  spreads unused development evenly over its fuels, instead of following the
+  plants built last; `JumpStartFraction` blends within a fuel only. (#882)
 - Every row of a `Table` ends with a `;`, and the cells of a row are separated
   by commas as in a list: `"01-01-2024", 1.0;`. A row without the `;` runs
   into the next, a syntax error at the next row's first cell. The committed

@@ -141,7 +141,7 @@ This attribute sets the maximum ramp-up for the utilization of the development c
 
 This attribute sets the jump-start fraction used to initiate the supply/demand interaction if there has been no production.
 
-The expected uptake of the producer's plants blends the current uptake with an even split over the allowed plants, the even split weighted by the jump-start fraction. This blend applies in every time-step, so the fraction shapes the expectation also after production has started. While the development constraint has not been utilized, the jump-start fraction also stands in for its utilization.
+The producer's expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The plants of a fuel share its expected newbuilds by the current uptake blended with an even split over the allowed plants, the even split weighted by the jump-start fraction. While the development constraint has not been utilized, the jump-start fraction also stands in for its utilization.
 
 * **Data type**: `Float`, `Variable`
 * **Example values**:
