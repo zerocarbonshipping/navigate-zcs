@@ -562,6 +562,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <li><p>Each per-leg input is set for the route’s legs only; see <a class="reference internal" href="#legs">Legs</a>.</p></li>
 <li><p>A required per-leg input left unset on any leg is an error naming the legs.</p></li>
 <li><p>A command or attribute that does not apply to the route type is an error.</p></li>
+<li><p>At every date, <a class="reference internal" href="#set-utilization">set_utilization</a> must be above 0 on at least one leg the route sails, in a <a class="reference internal" href="#sailing-conditions">sailing condition</a> with a share of sea time above 0. On a <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>, a leg with a <a class="reference internal" href="#set-voyage-distribution">set_voyage_distribution</a> of 0 is not sailed, unless every leg’s is 0.</p></li>
 </ul>
 <p>If RouteType is LINER:</p>
 <ul class="simple">
@@ -653,6 +654,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <span id="set_utilization"></span><h3>set_utilization<a class="headerlink" href="#set-utilization" title="Link to this heading">#</a></h3>
 <p>This command sets the cargo capacity utilization on a leg. It applies to both route types.</p>
 <p>A number, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code> or expression gives the leg one utilization, which applies to every sailing condition of the leg. An expression may not reference a <code class="docutils literal notranslate"><span class="pre">Curve</span></code>.</p>
+<p>A leg may have a utilization of 0, a ballast leg, but the route must carry cargo on a leg it sails at every date; see <a class="reference internal" href="#conditions">Conditions</a>.</p>
 <p>On a <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>, a <code class="docutils literal notranslate"><span class="pre">Curve</span></code> gives a utilization per speed: its x-values must equal those of the leg’s speed <code class="docutils literal notranslate"><span class="pre">Curve</span></code> in <a class="reference internal" href="#set-speed">set_speed</a>, and its y-values are the utilization at each speed. The utilization belongs to the sailing condition, so it does not change when speed management moves the condition’s speed. This is how ballast and laden sailing are expressed: the utilization at a speed is the mean over the time sailed at that speed, so a vessel laden half of that time and in ballast the other half has a utilization of 0.5. A <code class="docutils literal notranslate"><span class="pre">Curve</span></code> is an error on a <code class="docutils literal notranslate"><span class="pre">LINER</span></code>, where each leg has its own utilization, and on a leg sailed at one speed.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Port name of the leg’s origin; supports wildcards)</p></li>
