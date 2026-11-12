@@ -52,11 +52,12 @@ merging, releases and `main`, because they decide what users receive.
 
 ## Map
 
-- `ARCHITECTURE.md` — the vocabulary, a run from deck to results file and
-  the shape of a time step, the package map, the layering, the data-flow
-  invariants and the node lifecycle. Read it before changing code in
-  `navigate/`. Its layering table is held by review alone; a task that needs
-  the layering changed changes the table with the code.
+- `ARCHITECTURE.md` — the vocabulary, where a run and a time step are
+  sequenced and why the step runs in its order, the package map and its
+  conventions, the layering, the data-flow invariants and the node
+  lifecycle. Read it before changing code in `navigate/`. Its layering table
+  is held by review alone; a task that needs the layering changed changes
+  the table with the code.
 - `CODESTYLE.md` — the conventions that ruff (`.ruff.toml`) and mypy
   (`mypy.ini`) cannot check, and the three places a DSL attribute or command
   lives. Read it before writing code in `navigate/`.
