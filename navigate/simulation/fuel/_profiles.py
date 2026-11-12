@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import find_origin_indexes
+from navigate.simulation.cohort import calculate_retired_share, find_origin_indexes
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
@@ -183,20 +183,8 @@ def _calculate_reserved_profile(
         The rate reserved at each of the times, in tons/year.
     """
     is_entered = np.arange(times.size) >= entry
-    retired = _calculate_retired_share(retirement, window, times)
+    retired = calculate_retired_share(retirement, window, times)
     return rate * is_entered * (1.0 - retired)
-
-
-def _calculate_retired_share(
-    retirement: float, window: float, times: FloatArray
-) -> FloatArray:
-    """Calculate the share of a rate retired by each of the times, in any order."""
-    if window == 0.0:
-        return (times >= retirement).astype(float)
-
-    elapsed = times - (retirement - window)
-    share: FloatArray = np.clip(elapsed / window, 0.0, 1.0)
-    return share
 
 
 def _spread_delivery(

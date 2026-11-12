@@ -6,11 +6,11 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
-from navigate.simulation.cohort import calculate_share_below, extends_past
+from navigate.simulation.cohort import calculate_retired_share
 from navigate.simulation.fleet._composition import (
     extract_cargo_miles,
     get_trade_capacity,
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.types_ import ForecastInput
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -160,12 +160,59 @@ def split_oldest_first(
     return len(capacities), None
 
 
+@overload
+def calculate_survivors(
+    increment: VesselIncrement, lifetime: float, years_ahead: float
+) -> float: ...
+
+
+@overload
+def calculate_survivors(
+    increment: VesselIncrement, lifetime: FloatLike, years_ahead: FloatArray
+) -> FloatArray: ...
+
+
+def calculate_survivors(
+    increment: VesselIncrement, lifetime: FloatLike, years_ahead: FloatLike
+) -> FloatLike:
+    """
+    Calculate the vessels of an increment that age-based scrapping leaves years ahead.
+
+    The increment's vessels are spread uniformly over its age span and scrapped as
+    they pass the lifetime. The share below the lifetime is taken of the increment's
+    size before any such scrapping, so that it shrinks pro rata as it ages past it.
+
+    Parameters
+    ----------
+    increment
+        Increment of a vessel type.
+    lifetime
+        Vessel lifetime, in years: one for all years ahead, or one per year ahead.
+    years_ahead
+        Years from the current time-step at which the vessels are counted.
+
+    Returns
+    -------
+    FloatLike
+        Vessels left at each of the years ahead.
+    """
+    size_before = increment.multiplier + increment.scrapped_past_lifetime
+    ages = increment.age + years_ahead
+    retired = calculate_retired_share(lifetime, increment.age_span, ages)
+
+    # vessels converted from a shorter-lived type, and round-off, can leave the cohort
+    # scrapped beyond this lifetime's share, so the survivors are capped at the
+    # vessels the increment holds
+    return np.minimum(increment.multiplier, size_before * (1.0 - retired))
+
+
 def _scrap_by_age(fleet: Fleet, idx: int) -> None:
     """
-    Scrap the increments at the vessel lifetime, and the part of the others beyond it.
+    Scrap the part of each increment beyond the vessel lifetime.
 
-    Normally only the oldest increment left reaches past the lifetime, but a converted
-    increment keeps its source type's age and span and can reach past it too.
+    An increment at or past the lifetime is scrapped whole and removed. A converted
+    increment keeps its source type's age and span, so any increment, not only the
+    oldest, can reach past the lifetime.
 
     Parameters
     ----------
@@ -179,39 +226,19 @@ def _scrap_by_age(fleet: Fleet, idx: int) -> None:
     for v, vessel in enumerate(fleet.vessels):
         lifetime = vessel.lifetime.get()
         increments = fleet.increments[v]
-        expired = _count_expired(increments, lifetime)
 
         scrapped_vessels = 0.0
-        for increment in increments[:expired]:
-            scrapped_vessels += increment.multiplier
-
-        surviving = increments[expired:]
-        for increment in surviving:
+        for increment in increments:
             scrapped_vessels += _scrap_past_lifetime(increment, lifetime)
 
+        surviving = [increment for increment in increments if increment.age < lifetime]
         fleet.increments[v] = surviving
         scrap[vessel.name][idx] += scrapped_vessels
-
-
-def _count_expired(increments: list[VesselIncrement], lifetime: float) -> int:
-    """Count the increments at or past the lifetime, oldest first."""
-    count = 0
-
-    for increment in increments:
-        if increment.age >= lifetime:
-            count += 1
-        else:
-            break
-
-    return count
 
 
 def _scrap_past_lifetime(increment: VesselIncrement, lifetime: float) -> float:
     """
     Scrap the part of an increment beyond the lifetime.
-
-    The share of the increment below the lifetime is taken of its size before any
-    such scrapping, so that the increment shrinks pro rata as it ages past it.
 
     Parameters
     ----------
@@ -225,19 +252,10 @@ def _scrap_past_lifetime(increment: VesselIncrement, lifetime: float) -> float:
     float
         Vessels scrapped.
     """
-    if not extends_past(increment, lifetime):
-        return 0.0
+    survivors = calculate_survivors(increment, lifetime, 0.0)
+    scrapping = increment.multiplier - survivors
 
-    # the cohort's vessels are assumed to have entered uniformly over its age span
-    size_before = increment.multiplier + increment.scrapped_past_lifetime
-    share_below = calculate_share_below(increment, lifetime)
-    remaining = size_before * share_below
-    scrapping = increment.multiplier - remaining
-
-    # vessels converted from a shorter-lived type, and round-off, can leave the cohort
-    # scrapped beyond this lifetime's share, so the scrapping is floored at zero
-    scrapping = max(scrapping, 0.0)
-    increment.multiplier -= scrapping
+    increment.multiplier = survivors
     increment.scrapped_past_lifetime += scrapping
 
     return scrapping
