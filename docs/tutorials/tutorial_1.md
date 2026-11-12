@@ -428,11 +428,15 @@ The elapsed time differs from run to run. If the run logged warnings, one more l
 
 ## Interpret the results
 
-Navigate has written the results of the run to the file `tutorial_1.parquet` in the `tutorial_1` folder. Open it with [Lantern](https://github.com/zerocarbonshipping/lantern-zcs), which shows the results as plots in your browser; its README explains how to install it.
+Navigate has written the results of the run to the file `tutorial_1.parquet` in the `tutorial_1` folder. Open it with [Lantern](https://github.com/zerocarbonshipping/lantern-zcs), which shows the results as plots in your browser; you installed it in [Setting up Navigate](getting_started.md). In the terminal of the `tutorial_1` folder, the one you ran `navigate` in, run:
 
 ```
 lantern tutorial_1.parquet
 ```
+
+Lantern opens the viewer in your browser. If no window appears, open the address it prints in the terminal, `http://127.0.0.1:8050`. The viewer lists the plots; click one to show it, and hover over it to read its values.
+
+The terminal is busy for as long as the viewer runs. After another `navigate` run, click **Refresh** in the viewer to load the new results. Press Ctrl+C in the terminal to stop the viewer.
 
 Take a look through the plots, for example the absolute emissions, the global fuel mix and the bunker price at the port, and interpret the results.
 

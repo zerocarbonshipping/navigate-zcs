@@ -694,7 +694,7 @@ The runs are listed in the sidebar. Ctrl-click (Cmd-click on a Mac) the other ru
 
 ### Exporting results for further analysis in Excel
 
-If you want to take results from Navigate into Excel to create your own graphs or make additional analysis, Lantern writes the rows of the results files to one CSV file, with a `run` column naming the scenario. From the `tutorial_3_scenarios` folder run:
+If you want to take results from Navigate into Excel to create your own graphs or make additional analysis, Lantern writes the rows of the results files to one CSV file, with a `run` column naming the scenario. Stop the viewer first with Ctrl+C in its terminal, then from the `tutorial_3_scenarios` folder run:
 
 ```bash
 lantern --data .

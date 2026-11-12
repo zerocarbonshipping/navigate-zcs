@@ -11,6 +11,6 @@ likely future decarbonization scenarios or expectations on future regulation.
 
 ## Runtime
 
-A full scenario run takes roughly 25 minutes on the bundled open-source HiGHS solver
+A full scenario run takes roughly 10 minutes on the bundled open-source HiGHS solver
 (faster with a licensed Gurobi installation, see `--solver`). For a quicker first run, start
 with the smaller decks in `simulations/examples/` or the tutorials.
