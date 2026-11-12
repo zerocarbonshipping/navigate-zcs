@@ -344,6 +344,11 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A `Route` whose `set_utilization` is 0 on every leg it sails, at any date, is
+  an error naming the route and the first such date; it ran with infinite or
+  undefined freight rates and costs. A single leg may still be 0 (#412).
+- A `Levy` whose `UpperThreshold` falls below its `LowerThreshold` stops the run
+  with an `Error:` line instead of a Python traceback.
 - A run no longer crashes when a fleet needs newbuilds but none of its vessel
   types may be built; it builds none and warns that it carried only part of
   its trade (#357).

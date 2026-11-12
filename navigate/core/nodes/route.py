@@ -27,8 +27,9 @@ from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, PORT, ROUTE, VARIABLE
 from navigate.core.nodes.curve import Curve
+from navigate.core.wrap import to_array
 from navigate.exceptions import DeckInsufficientError, UnassignedAttributeError
-from navigate.util import ROUND_OFF, matching_keys, unique_list
+from navigate.util import ROUND_OFF, divide_nonzero, matching_keys, unique_list
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -45,6 +46,7 @@ if TYPE_CHECKING:
         ScalarArgument,
         ScalarInput,
     )
+    from navigate.util.types_ import BoolArray, DateArray, FloatArray
 
 
 class Route(Node):
@@ -268,6 +270,27 @@ class Route(Node):
             for port in self.ports:
                 self.port_calls.setdefault(port.name, Scalar(1.0))
 
+    def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
+        # a vessel's freight and costs are spread over its cargo miles, which a
+        # ballast leg lacks but the route as a whole must have
+        carries_cargo = np.zeros(len(times), dtype=bool)
+        sailed = self._sailed_legs()
+        legs = zip(self.leg_speeds, self.leg_utilizations, sailed, strict=True)
+
+        for speed, utilization, is_sailed in legs:
+            if is_sailed:
+                carries_cargo |= self._carries_cargo_on_leg(speed, utilization, times)
+
+        empty = np.flatnonzero(~carries_cargo)
+
+        if empty.size:
+            date = dates[empty[0]]
+            raise ValueError(
+                f"{self}: 'set_utilization' is 0 wherever the route sails at"
+                f" {date}; a leg may be sailed without cargo, but the route must"
+                " carry cargo on at least one leg it sails at every time step."
+            )
+
     def _write_legs[V](
         self, pattern: tuple[str, str], value: V, inputs: dict[tuple[str, str], V]
     ) -> None:
@@ -424,6 +447,28 @@ class Route(Node):
                     " read; the number of sailing conditions on a leg is fixed."
                 )
 
+    def _sailed_legs(self) -> BoolArray:
+        """Tell which legs the route sails, in the order of get_legs."""
+        if self.route_type == RouteTypeID.LINER:
+            return np.ones(len(self.leg_speeds), dtype=bool)
+
+        return self.get_voyage_shares() > 0.0
+
+    def _carries_cargo_on_leg(
+        self, speed: CurveInput, utilization: CurveForecastInput, times: FloatArray
+    ) -> BoolArray:
+        """Tell at each time whether a leg carries cargo in a condition it sails."""
+        # check_consistency gives a utilization Curve a speed Curve listing the same
+        # speeds, so its utilization per sailing condition is constant over time
+        if isinstance(utilization, Curve) and isinstance(speed, Curve):
+            is_sailed = speed.get(speed.x) > 0.0
+            is_loaded = utilization.get(speed.x) > 0.0
+            return np.full(len(times), np.any(is_sailed & is_loaded))
+
+        # the one utilization holds in every sailing condition, and the shares of
+        # a speed Curve sum to 1, so the leg sails at least one
+        return utilization.get(times) > 0.0
+
     def get_legs(self) -> tuple[tuple[int, int], ...]:
         """
         Return the (origin, destination) stop indices of each leg, in canonical order.
@@ -475,6 +520,22 @@ class Route(Node):
             for leg, n_conditions in enumerate(self.conditions_per_leg)
             for entry in range(n_conditions)
         )
+
+    def get_voyage_shares(self) -> FloatArray:
+        """
+        Return the voyage shares of a TRAMP route, normalized to sum to unity.
+
+        The shares are rounded in total, and split equally where they total zero.
+
+        Returns
+        -------
+        FloatArray
+            Voyage share of each leg, in the order of `get_legs`.
+        """
+        shares = to_array(self.leg_voyage_shares)
+        total = np.round(np.sum(shares), ROUND_OFF)
+
+        return divide_nonzero(shares, total, default=1.0 / len(shares))
 
     def get_stops(self) -> range:
         """
