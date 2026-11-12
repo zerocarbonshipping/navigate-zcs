@@ -913,7 +913,8 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="set-newbuild-available">
 <span id="set_newbuild_available"></span><h3>set_newbuild_available<a class="headerlink" href="#set-newbuild-available" title="Link to this heading">#</a></h3>
 <p>This command sets a boolean flag indicating whether a specific vessel from the list is allowed as a newbuild in the fleet.</p>
-<p>If this command is set to FALSE the vessel cannot enter the fleet as a newbuild.</p>
+<p>If this command is set to FALSE the vessel cannot enter the fleet as a newbuild.
+A fleet with no vessel type available as a newbuild builds none, so trade beyond the capacity of its vessels goes uncarried.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
