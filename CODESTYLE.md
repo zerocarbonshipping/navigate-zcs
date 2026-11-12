@@ -234,12 +234,14 @@ its section layout; the rules below cover the content.
   return value it applies to, written `<description>, in <unit>.`: `Fuel
   price, in USD/GJ.` DSL setters are exempt; their units live in the reference
   manual.
-- Test computed floats for equality within a named tolerance constant
-  (`TOLERANCE` in `navigate/util/numeric.py`), through `abs`, `math.isclose`
-  or `np.isclose`: `abs(power_to - power_from) > TOLERANCE`. Exact `==`/`!=`
-  is allowed for a zero guard (skipping or masking an exact zero, or
-  protecting a division) and against an assigned value (a default, a
-  sentinel).
+- Test a computed float for zero or for equality within a named tolerance
+  constant (`TOLERANCE` in `navigate/util/numeric.py`), through `abs`,
+  `math.isclose` or `np.isclose`, so that a rounding residual takes the same
+  branch as an exact zero: `abs(multiplier) < TOLERANCE`,
+  `abs(power_to - power_from) > TOLERANCE`. Exact `==`/`!=` is allowed
+  against an assigned value (a default, a sentinel, a deck input), on a value
+  rounded to `ROUND_OFF`, and for a guard that only protects an operation
+  undefined at zero, such as a division.
 
 ## Validation and dynamic access
 

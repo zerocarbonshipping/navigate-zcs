@@ -37,7 +37,7 @@ from navigate.simulation.fleet._composition import (
     is_retrofit_cycle,
 )
 from navigate.simulation.fleet.charter import build_fuel_component
-from navigate.util import ROUND_OFF, YEAR
+from navigate.util import ROUND_OFF, TOLERANCE, YEAR
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -974,7 +974,7 @@ def _vessels_in_service(fleet: Fleet) -> Iterator[tuple[Vessel, float]]:
         The vessel type and its number of vessels.
     """
     for vessel, multiplier in zip(fleet.vessels, get_multipliers(fleet), strict=True):
-        if multiplier == 0.0:
+        if abs(multiplier) < TOLERANCE:
             continue
 
         yield vessel, multiplier
