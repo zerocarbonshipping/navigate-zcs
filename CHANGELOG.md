@@ -760,6 +760,12 @@ decks.
 - A finite `set_bunkering_limit` on a liquid-market fuel no longer stops all
   bunkering of that fuel at the port: the limit is shared among the vessels
   calling there, by their demand for the fuel's type (#463).
+- Shore power in port is capped per technology package, at the lesser of the
+  package's combined `ShorePowerCapacity` and the electrical load in port with
+  it, averaged over the vessels by the packages they carry. Averaging the
+  capacity and the load first overstated the cap where a vessel's fleet mixes
+  packages, such as half its vessels with shore power and half without; shore
+  power use and bunkering change there (#374).
 
 ## [1.0.0] - 2026-07-16
 

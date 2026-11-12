@@ -577,11 +577,11 @@ class Simulation:
         """
         Calculate the inputs of a bunkering run and verify the vessels it admits.
 
-        The times in port, electrical demands, shore-power capacities and cargo miles
-        are rewritten during the step, and the threshold adjustment of each bunkering
-        LP rewrites the regulation inputs of its own time step, so these inputs are
-        recalculated before each run. The LP takes energy demands as given, so the
-        demands must fit the installed converter power for it to be feasible.
+        The shore-power potentials and cargo miles are rewritten during the step, and
+        the threshold adjustment of each bunkering LP rewrites the regulation inputs
+        of its own time step, so these inputs are recalculated before each run. The LP
+        takes energy demands as given, so the demands must fit the installed converter
+        power for it to be feasible.
         """
         self._calculate_potential_fuel_type_demand()
         self._calculate_fair_share_fuel_supply(bunker.scope)

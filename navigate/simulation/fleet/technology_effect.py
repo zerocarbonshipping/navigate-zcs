@@ -21,7 +21,7 @@ from navigate.simulation.fleet._residual_energy import (
 )
 from navigate.simulation.fleet._trip import bind_conditions_to_legs, sum_energy_per_leg
 from navigate.simulation.fleet.operation import transfer_operational_savings
-from navigate.util import divide_nonzero, sum_per_key
+from navigate.util import divide_nonzero, power_to_energy, sum_per_key
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -51,14 +51,15 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
         sea, port = _calculate_operational_energy(vessel, idx)
         _transfer_operational_energy(vessel, sea, port, idx)
 
-        # a vessel type without technology uptake keeps its operational energy
+        # a vessel type without technology uptake keeps its operational energy and
+        # has no shore-power potential
         weights = _calculate_package_weights(increments, packages)
-        shore = 0.0
+        potential = np.zeros(len(vessel.route.ports))
         if weights:
-            sea, port, shore = _calculate_technology_effect(vessel, weights, idx)
+            sea, port, potential = _calculate_technology_effect(vessel, weights, idx)
 
         _transfer_residual_energy(vessel, sea, port, idx)
-        vessel.expectation.set_shore_power_capacity(idx, shore)
+        vessel.expectation.set_shore_power_potential_port(idx, potential)
 
 
 def _calculate_operational_energy(
@@ -176,9 +177,15 @@ def _calculate_package_weights(
 
 def _calculate_technology_effect(
     vessel: Vessel, weights: Mapping[TechnologyPackage, float], idx: int
-) -> tuple[dict[EnergyDemandID, FloatArray], dict[EnergyDemandID, FloatArray], float]:
+) -> tuple[
+    dict[EnergyDemandID, FloatArray], dict[EnergyDemandID, FloatArray], FloatArray
+]:
     """
-    Average the residual energy and shore power capacity over the vessel's packages.
+    Average the residual energy and shore-power potential over the vessel's packages.
+
+    The shore-power potential in a port is the most electrical energy the vessels'
+    packages can take from shore over a full connection: per package, the lesser of
+    its shore-power capacity over the time in port and its electrical demand there.
 
     Parameters
     ----------
@@ -198,25 +205,31 @@ def _calculate_technology_effect(
     dict[EnergyDemandID, FloatArray]
         Residual energy in port per energy demand type, one value per port call, in
         GJ/year.
-    float
-        Shore power capacity, in MW.
+    FloatArray
+        Shore-power potential, one value per port call, in GJ/year.
     """
+    times_port = np.asarray(vessel.expectation.get_time_port(idx), dtype=float)
+
     residuals_sea = []
     residuals_port = []
+    potentials = []
 
     for package in weights:
         residual_sea, residual_port = calculate_residual_energy(vessel, package, idx)
+        deliverable = power_to_energy(package.shore_power_capacity, times_port)
+        electrical = residual_port[EnergyDemandID.ELECTRICAL]
+
         residuals_sea.append(residual_sea)
         residuals_port.append(residual_port)
+        potentials.append(np.minimum(deliverable, electrical))
 
     package_weights = list(weights.values())
-    capacities = [package.shore_power_capacity for package in weights]
 
     sea = _average_per_key(residuals_sea, package_weights)
     port = _average_per_key(residuals_port, package_weights)
-    shore = float(np.average(capacities, weights=package_weights))
+    potential = np.average(potentials, axis=0, weights=package_weights)
 
-    return sea, port, shore
+    return sea, port, potential
 
 
 def _average_per_key(

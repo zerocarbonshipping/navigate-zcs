@@ -71,7 +71,7 @@ This attribute sets the fraction of CAPEX paid when part of the machinery is rep
 
 ### ShorePowerCapacity
 
-This attribute sets the vessel-side shore power connection capacity. A vessel's shore power use in a port is capped at the port's `ShorePowerConnectionShare` of its time in port, times the lesser of the combined capacity of its technologies and its electrical load in port.
+This attribute sets the vessel-side shore power connection capacity. A vessel's shore power use in a port is capped at the port's `ShorePowerConnectionShare` of its time in port, times the lesser of a technology package's combined capacity and the electrical load in port with that package, averaged over the vessels by the packages they carry.
 
 * **Data type**: `Float`, `Variable`
 * **Example values**:
