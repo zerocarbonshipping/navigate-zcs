@@ -11,14 +11,15 @@ from navigate.core.dsl import collect_deck_entries
 
 if TYPE_CHECKING:
     from navigate.core.dsl import DeckEntries
+    from navigate.core.enum_ import NodeTypeID
     from navigate.util.types_ import DateArray, FloatArray
 
 
 class Node:
     """Base class of the DSL nodes: a name and a type tag."""
 
-    # the node type keyword; each concrete node class sets its own
-    type: ClassVar[str]
+    # each concrete node class sets its own
+    type: ClassVar[NodeTypeID]
     # the deck attributes and commands the class's marked methods declare
     deck_attributes: ClassVar[DeckEntries] = {}
     deck_commands: ClassVar[DeckEntries] = {}

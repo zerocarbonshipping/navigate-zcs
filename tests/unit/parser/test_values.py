@@ -14,6 +14,7 @@ import numpy as np
 import pytest
 
 from navigate.core import Expression
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.expression import node_references
 from navigate.core.nodes.variable import Variable
 from navigate.exceptions import DeckError
@@ -46,10 +47,10 @@ def _value(text: str):
         ("INF", float("inf")),
         ("-INF", float("-inf")),
         # node references; a glob in the name is the same reference, flagged
-        ('Route("main")', NodeReference("Route", "main")),
-        ('Route("r_*")', NodeReference("Route", "r_*")),
-        ('Route("r?")', NodeReference("Route", "r?")),
-        ('Route("*")', NodeReference("Route", "*")),
+        ('Route("main")', NodeReference(NodeTypeID.ROUTE, "main")),
+        ('Route("r_*")', NodeReference(NodeTypeID.ROUTE, "r_*")),
+        ('Route("r?")', NodeReference(NodeTypeID.ROUTE, "r?")),
+        ('Route("*")', NodeReference(NodeTypeID.ROUTE, "*")),
         # identifiers: enum IDs and booleans stay strings for the setters
         ("OIL", "OIL"),
         ("TRUE", "TRUE"),
@@ -70,7 +71,7 @@ def _value(text: str):
         ("[1, [2, 3]]", [1.0, [2.0, 3.0]]),
         (
             '[Port("a"), Port("b")]',
-            [NodeReference("Port", "a"), NodeReference("Port", "b")],
+            [NodeReference(NodeTypeID.PORT, "a"), NodeReference(NodeTypeID.PORT, "b")],
         ),
         ("[OIL, METHANE]", ["OIL", "METHANE"]),
     ],
@@ -112,8 +113,8 @@ def test_an_expression_holds_its_node_references():
 
     assert isinstance(value, ExpressionSyntax)
     assert list(node_references(value.root)) == [
-        NodeReference("Forecast", "x"),
-        NodeReference("Variable", "y"),
+        NodeReference(NodeTypeID.FORECAST, "x"),
+        NodeReference(NodeTypeID.VARIABLE, "y"),
     ]
 
 

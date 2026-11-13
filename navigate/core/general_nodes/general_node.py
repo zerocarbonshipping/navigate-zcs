@@ -11,13 +11,14 @@ from navigate.core.dsl import collect_deck_entries
 
 if TYPE_CHECKING:
     from navigate.core.dsl import DeckEntries
+    from navigate.core.enum_ import NodeTypeID
 
 
 class GeneralNode:
     """Base class of the general nodes: at most one per deck, declared unnamed."""
 
-    # the general node keyword; each general node class sets its own
-    type: ClassVar[str]
+    # each general node class sets its own
+    type: ClassVar[NodeTypeID]
     # the deck attributes the marked setters declare; general nodes have no commands
     deck_attributes: ClassVar[DeckEntries] = {}
 
@@ -26,4 +27,4 @@ class GeneralNode:
         cls.deck_attributes, _ = collect_deck_entries(cls)
 
     def __repr__(self) -> str:
-        return self.type
+        return str(self.type)

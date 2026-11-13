@@ -12,15 +12,14 @@ from navigate.core import (
     assign_value,
     deck_attribute,
 )
-from navigate.core.enum_ import SolverBackendID, SolverMethodID
+from navigate.core.enum_ import NodeTypeID, SolverBackendID, SolverMethodID
 from navigate.core.general_nodes.general_node import GeneralNode
-from navigate.core.node_type import BUNKER_OPTIONS
 
 
 class BunkerOptions(GeneralNode):
     """Hold the settings of the LP solver and of the fair-share iteration."""
 
-    type = BUNKER_OPTIONS
+    type = NodeTypeID.BUNKER_OPTIONS
 
     def __init__(self) -> None:
         super().__init__()

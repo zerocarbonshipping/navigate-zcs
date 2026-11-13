@@ -32,6 +32,7 @@ from navigate.core.enum_ import (
     PORT_ENERGY_DEMANDS,
     EnergyDemandID,
     FuelTypeID,
+    NodeTypeID,
 )
 from navigate.core.node_registry import GENERAL_NODE_CLASS, NODE_CLASS
 from navigate.parser._syntax import (
@@ -65,21 +66,21 @@ ENUM_COMMAND_ARGUMENTS: dict[str, tuple[type[Enum] | tuple[Enum, ...], ...]] = {
 # names one solver and one method, and the coverage deck keeps AUTOMATIC so it
 # runs with or without a Gurobi licence
 EXCLUDED_IDS = {
-    ("BunkerOptions", "Solver", "GUROBI"),
-    ("BunkerOptions", "Solver", "HIGHS"),
-    ("BunkerOptions", "SolverMethod", "AUTOMATIC"),
-    ("BunkerOptions", "SolverMethod", "NON_DETERMINISTIC"),
+    (NodeTypeID.BUNKER_OPTIONS, "Solver", "GUROBI"),
+    (NodeTypeID.BUNKER_OPTIONS, "Solver", "HIGHS"),
+    (NodeTypeID.BUNKER_OPTIONS, "SolverMethod", "AUTOMATIC"),
+    (NodeTypeID.BUNKER_OPTIONS, "SolverMethod", "NON_DETERMINISTIC"),
 }
 
 # SECTION_BOTH attributes the deck cannot update in EVENTS: every attribute that
 # takes a Surface is DEFINE-only, so the parser pins every Surface and rejects
 # an EVENTS assignment to it
 EXCLUDED_EVENTS_ATTRIBUTES = {
-    ("Surface", "Table"),
-    ("Surface", "Addition"),
-    ("Surface", "Multiplier"),
-    ("Surface", "LowerBound"),
-    ("Surface", "UpperBound"),
+    (NodeTypeID.SURFACE, "Table"),
+    (NodeTypeID.SURFACE, "Addition"),
+    (NodeTypeID.SURFACE, "Multiplier"),
+    (NodeTypeID.SURFACE, "LowerBound"),
+    (NodeTypeID.SURFACE, "UpperBound"),
 }
 
 # a value no enum member is named, so a setter that rejects it as an unknown ID
@@ -100,8 +101,8 @@ class _DeckUse:
     """Every assignment and command the deck's includes make, with its section."""
 
     def __init__(self) -> None:
-        self.assignments: list[tuple[str, str, object, bool]] = []
-        self.commands: list[tuple[str, str, list[object], bool]] = []
+        self.assignments: list[tuple[NodeTypeID, str, object, bool]] = []
+        self.commands: list[tuple[NodeTypeID, str, list[object], bool]] = []
 
         nav_file = DECK_DIR / f"{DECK_DIR.name}.nav"
         deck = parse_deck_content(nav_file.read_text(encoding="utf-8"))
@@ -126,14 +127,16 @@ class _DeckUse:
                         (statement.node_type, item.name, item.args, in_events)
                     )
 
-    def attributes(self, *, events_only: bool = False) -> set[tuple[str, str]]:
+    def attributes(self, *, events_only: bool = False) -> set[tuple[NodeTypeID, str]]:
         return {
             (node_type, attribute)
             for node_type, attribute, _, in_events in self.assignments
             if in_events or not events_only
         }
 
-    def command_names(self, *, events_only: bool = False) -> set[tuple[str, str]]:
+    def command_names(
+        self, *, events_only: bool = False
+    ) -> set[tuple[NodeTypeID, str]]:
         return {
             (node_type, name)
             for node_type, name, _, in_events in self.commands
@@ -144,7 +147,7 @@ class _DeckUse:
 USE = _DeckUse()
 
 
-def _probe(node_type: str, attribute: str, value: str) -> str | None:
+def _probe(node_type: NodeTypeID, attribute: str, value: str) -> str | None:
     """Assign a value to a fresh node; return the error message, or None."""
     cls = NODE_CLASS.get(node_type) or GENERAL_NODE_CLASS[node_type]
     node = cls("probe") if node_type in NODE_CLASS else cls()
@@ -159,7 +162,7 @@ def _probe(node_type: str, attribute: str, value: str) -> str | None:
     return None
 
 
-def _id_attributes() -> dict[tuple[str, str], set[str]]:
+def _id_attributes() -> dict[tuple[NodeTypeID, str], set[str]]:
     """Map every attribute that takes an ID to the names its setter accepts."""
     domains = {}
 
@@ -221,11 +224,11 @@ def test_deck_uses_every_registered_attribute_and_command():
 
     assert not registered_attributes - USE.attributes(), (
         "registered attributes the coverage deck never assigns: "
-        f"{sorted(registered_attributes - USE.attributes())}"
+        f"{sorted(registered_attributes - USE.attributes(), key=str)}"
     )
     assert not registered_commands - USE.command_names(), (
         "registered commands the coverage deck never calls: "
-        f"{sorted(registered_commands - USE.command_names())}"
+        f"{sorted(registered_commands - USE.command_names(), key=str)}"
     )
 
 
@@ -250,26 +253,26 @@ def test_deck_updates_every_events_attribute_and_command_in_events():
 
     assert not missing_attributes, (
         f"attributes allowed in EVENTS the deck never updates there: "
-        f"{sorted(missing_attributes)}"
+        f"{sorted(missing_attributes, key=str)}"
     )
     assert not missing_commands, (
         f"commands allowed in EVENTS the deck never calls there: "
-        f"{sorted(missing_commands)}"
+        f"{sorted(missing_commands, key=str)}"
     )
 
 
 def test_probe_finds_the_id_attributes():
     # the probe must find at least the attributes the parser knows take an enum;
     # an empty map would make the value check below pass vacuously
-    assert ("Regulation", "Measure") in ID_ATTRIBUTES
-    assert ID_ATTRIBUTES[("Fuel", "FuelType")] == {
+    assert (NodeTypeID.REGULATION, "Measure") in ID_ATTRIBUTES
+    assert ID_ATTRIBUTES[(NodeTypeID.FUEL, "FuelType")] == {
         member.name for member in enum_.FuelTypeID
     }
 
 
 @pytest.mark.parametrize(
     "site",
-    sorted(ID_ATTRIBUTES) + sorted(ID_COMMAND_ARGUMENTS),
+    sorted(ID_ATTRIBUTES, key=str) + sorted(ID_COMMAND_ARGUMENTS),
     ids=str,
 )
 def test_deck_uses_every_id_value(site):

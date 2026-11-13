@@ -30,7 +30,7 @@ def _results_classes() -> dict[str, type]:
         results = getattr(node_class("probe"), "results", None)
 
         if results is not None:
-            classes[node_class.type.lower()] = type(results)
+            classes[str(node_class.type).lower()] = type(results)
 
     return classes
 

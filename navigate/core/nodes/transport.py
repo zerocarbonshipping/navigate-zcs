@@ -5,14 +5,14 @@
 
 from __future__ import annotations
 
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import TRANSPORT
 
 
 class Transport(Node):
     """A mode of transport that plants use to move feedstocks and fuels."""
 
-    type = TRANSPORT
+    type = NodeTypeID.TRANSPORT
 
     def __init__(self, name: str) -> None:
         super().__init__(name)

@@ -17,6 +17,7 @@ import pytest
 from helpers.deck_surface import NODE_COMMAND_SECTIONS
 from navigate.core.dsl import SECTION_DEFINE
 from navigate.core.enum_ import (
+    NodeTypeID,
     SectionID,
 )
 from navigate.core.node_registry import GENERAL_NODE_CLASS
@@ -79,7 +80,7 @@ def test_node_type_has_no_unknown_command(node_type):
 # expected: -> DeckError "... has no command 'Set_ttw'" (only set_ttw is known)
 def test_a_command_name_is_case_sensitive():
     with pytest.raises(DeckError, match="has no command 'Set_ttw'"):
-        deck_entry("Fuel", Command("Set_ttw"), DEFINE)
+        deck_entry(NodeTypeID.FUEL, Command("Set_ttw"), DEFINE)
 
 
 # ── the parser runs the check before any command ──────────────────────────────

@@ -17,18 +17,9 @@ from navigate.core import (
     deck_command,
     write_matching_keys,
 )
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.expectations import PlantExpectation
 from navigate.core.node import Node
-from navigate.core.node_type import (
-    FORECAST,
-    FUEL,
-    PLANT,
-    PROCESS,
-    REGION,
-    SOURCE,
-    TRANSPORT,
-    VARIABLE,
-)
 from navigate.core.results import PlantResults
 
 if TYPE_CHECKING:
@@ -47,7 +38,7 @@ if TYPE_CHECKING:
 class Plant(Node):
     """A plant type: its fuel, process, region, source, capacity and transport."""
 
-    type = PLANT
+    type = NodeTypeID.PLANT
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -83,29 +74,29 @@ class Plant(Node):
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_fuel(self, value: Fuel) -> None:
         """Set the fuel produced by the plant."""
-        self.fuel = assign_reference(value, FUEL)
+        self.fuel = assign_reference(value, NodeTypeID.FUEL)
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_process(self, value: Process) -> None:
         """Set the production process used by the plant."""
-        self.process = assign_reference(value, PROCESS)
+        self.process = assign_reference(value, NodeTypeID.PROCESS)
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_region(self, value: Region) -> None:
         """Set the region in which the plant is built."""
-        self.region = assign_reference(value, REGION)
+        self.region = assign_reference(value, NodeTypeID.REGION)
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_source(self, value: Source) -> None:
         """Set the energy source powering the plant."""
-        self.source = assign_reference(value, SOURCE)
+        self.source = assign_reference(value, NodeTypeID.SOURCE)
 
     @deck_attribute(required=True)
     def set_capacity(self, value: ForecastArgument) -> None:
         """Set the production capacity of the plant."""
         self.capacity = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -115,7 +106,7 @@ class Plant(Node):
         """Set the production uptime of the plant."""
         self.uptime = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             upper=1.0,
             inclusive_lower=False,
@@ -126,7 +117,7 @@ class Plant(Node):
         """Set the lifetime of the plant."""
         self.lifetime = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -135,14 +126,18 @@ class Plant(Node):
     def set_lead_time(self, value: ForecastArgument) -> None:
         """Set the planning-to-production lead time of the plant."""
         self.lead_time = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
     def set_cost_of_capital(self, value: ForecastArgument) -> None:
         """Set the cost of capital of the plant."""
         self.cost_of_capital = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     # external methods (DSL commands) --------------------------------------------------
@@ -150,7 +145,7 @@ class Plant(Node):
     def set_feed_transport(self, key: str, value: Transport) -> None:
         """Set the transport mode delivering a feedstock or process output."""
         write_matching_keys(
-            key, assign_reference(value, TRANSPORT), self.feed_transports
+            key, assign_reference(value, NodeTypeID.TRANSPORT), self.feed_transports
         )
 
     @deck_command()
@@ -158,7 +153,11 @@ class Plant(Node):
         """Set the distance a feedstock or process output is transported."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.feed_distances,
         )
 
@@ -166,7 +165,7 @@ class Plant(Node):
     def set_fuel_transport(self, key: str, value: Transport) -> None:
         """Set the transport mode delivering the produced fuel to a port."""
         write_matching_keys(
-            key, assign_reference(value, TRANSPORT), self.fuel_transports
+            key, assign_reference(value, NodeTypeID.TRANSPORT), self.fuel_transports
         )
 
     @deck_command()
@@ -174,7 +173,11 @@ class Plant(Node):
         """Set the distance the produced fuel is transported to a port."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.fuel_distances,
         )
 

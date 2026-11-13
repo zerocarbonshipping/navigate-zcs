@@ -15,6 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.expression import Expression, node_references
 from navigate.core.nodes.variable import Variable
 from navigate.exceptions import DeckError
@@ -36,7 +37,7 @@ def _expression(text: str, **values: float) -> Expression:
     }
 
     expression = Expression(syntax.text, syntax.root, nodes, _variable("owner", 0.0))
-    expression.set_allowed_types("Variable")
+    expression.set_allowed_types(NodeTypeID.VARIABLE)
     expression.check_consistency()
     return expression
 

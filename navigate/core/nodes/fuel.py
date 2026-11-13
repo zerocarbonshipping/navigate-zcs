@@ -18,9 +18,8 @@ from navigate.core import (
     deck_command,
     write_matching_keys,
 )
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import FuelTypeID, NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import FUEL, VARIABLE
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -31,7 +30,7 @@ if TYPE_CHECKING:
 class Fuel(Node):
     """A fuel: its type, market, heating value, density and TTW emission factors."""
 
-    type = FUEL
+    type = NodeTypeID.FUEL
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -67,14 +66,20 @@ class Fuel(Node):
     def set_lower_heating_value(self, value: ScalarArgument) -> None:
         """Set the lower heating value of the fuel."""
         self.lower_heating_value = assign_value(
-            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
+            as_scalar(value),
+            type_=NodeTypeID.VARIABLE,
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_mass_density(self, value: ScalarArgument) -> None:
         """Set the mass density of the fuel."""
         self.mass_density = assign_value(
-            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
+            as_scalar(value),
+            type_=NodeTypeID.VARIABLE,
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     # external methods (DSL commands) --------------------------------------------------
@@ -82,7 +87,9 @@ class Fuel(Node):
     def set_ttw(self, key: str, value: ScalarArgument) -> None:
         """Set the TTW emission factor of the fuel for an emission."""
         write_matching_keys(
-            key, assign_value(as_scalar(value), type_=VARIABLE, lower=0.0), self.ttw
+            key,
+            assign_value(as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0),
+            self.ttw,
         )
 
     # internal methods -----------------------------------------------------------------

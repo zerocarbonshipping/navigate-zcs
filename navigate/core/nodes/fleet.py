@@ -32,10 +32,14 @@ from navigate.core import (
     write_matching_key_pairs,
     write_matching_keys,
 )
-from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, SpeedAlignmentID
+from navigate.core.enum_ import (
+    PORT_ENERGY_DEMANDS,
+    EnergyDemandID,
+    NodeTypeID,
+    SpeedAlignmentID,
+)
 from navigate.core.expectations import FleetExpectation
 from navigate.core.node import Node
-from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.results import FleetResults
 from navigate.core.technology_package import PackageCostFlows, TechnologyPackage
@@ -66,7 +70,7 @@ logger = logging.getLogger(__name__)
 class Fleet(Node):
     """A segment of vessel types with its newbuild, scrap and retrofit decisions."""
 
-    type = FLEET
+    type = NodeTypeID.FLEET
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -134,27 +138,38 @@ class Fleet(Node):
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_vessels(self, value: Vessel | list[Vessel]) -> None:
         """Set the vessel types that exist for the fleet."""
-        self.vessels = assign_reference_list(value, VESSEL, min_length=1, unique=True)
+        self.vessels = assign_reference_list(
+            value, NodeTypeID.VESSEL, min_length=1, unique=True
+        )
 
     @deck_attribute()
     def set_memory(self, value: ForecastArgument) -> None:
         """Set the memory's exponential decay used in the newbuild uptake decision."""
         self.memory = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute()
     def set_inertia(self, value: ForecastArgument) -> None:
         """Set the inertia used in the uptake decision of newbuild vessels."""
         self.inertia = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute()
     def set_fixed_scrap_rate(self, value: ForecastArgument) -> None:
         """Set the fixed scrap rate of the fleet."""
         self.fixed_scrap_rate = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute()
@@ -165,13 +180,18 @@ class Fleet(Node):
     @deck_attribute(SECTION_DEFINE)
     def set_trade_growth(self, value: ForecastArgument) -> None:
         """Set the trade growth of the fleet."""
-        self.trade_growth = assign_value(as_scalar(value), type_=(FORECAST, VARIABLE))
+        self.trade_growth = assign_value(
+            as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
+        )
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_initial_vessels(self, value: ScalarArgument) -> None:
         """Set the initial number of vessels in the fleet."""
         self.initial_vessels = assign_value(
-            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
+            as_scalar(value),
+            type_=NodeTypeID.VARIABLE,
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     @deck_attribute(SECTION_DEFINE)
@@ -192,7 +212,7 @@ class Fleet(Node):
         entries: list[CurveTableArgument] = as_list(value)
         self.initial_age_distribution = assign_list(
             [as_scalar(entry) for entry in entries],
-            type_=CURVE,
+            type_=NodeTypeID.CURVE,
             lower=0.0,
             allow_expression=False,
         )
@@ -200,14 +220,16 @@ class Fleet(Node):
     @deck_attribute(SECTION_DEFINE)
     def set_technologies(self, value: Technology | list[Technology]) -> None:
         """Set the technologies that can be installed on the fleet's vessels."""
-        self.technologies = assign_reference_list(value, TECHNOLOGY, unique=True)
+        self.technologies = assign_reference_list(
+            value, NodeTypeID.TECHNOLOGY, unique=True
+        )
 
     @deck_attribute(required=True)
     def set_intra_fuel_sensitivity(self, value: ForecastArgument) -> None:
         """Set the within-fuel technology choice's sensitivity to LCOT."""
         self.intra_fuel_sensitivity = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -217,7 +239,7 @@ class Fleet(Node):
         """Set the fuel-type choice's sensitivity to LCOT."""
         self.inter_fuel_sensitivity = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -227,7 +249,7 @@ class Fleet(Node):
         """Set the technology package choice's sensitivity to its NPV."""
         self.technology_sensitivity = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -236,21 +258,27 @@ class Fleet(Node):
     def set_technology_cost_of_capital(self, value: ForecastArgument) -> None:
         """Set the cost of capital used for evaluating technology investments."""
         self.technology_cost_of_capital = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
     def set_technology_horizon(self, value: ForecastArgument) -> None:
         """Set the smoothing horizon of the technology energy-scarcity belief."""
         self.technology_horizon = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
     def set_speed_horizon(self, value: ForecastArgument) -> None:
         """Set the smoothing horizon of the speed energy-scarcity belief."""
         self.speed_horizon = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
@@ -258,7 +286,7 @@ class Fleet(Node):
         """Set how often a vessel can retrofit technology or convert fuel."""
         self.retrofit_frequency = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -269,7 +297,7 @@ class Fleet(Node):
         entries: list[ForecastArgument] = as_list(value)
         self.orderbooks = assign_list(
             [as_scalar(entry) for entry in entries],
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
         )
 
@@ -282,7 +310,10 @@ class Fleet(Node):
     def set_maximum_speed_change(self, value: ForecastArgument) -> None:
         """Set the maximum yearly speed change under speed management."""
         self.maximum_speed_change = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, allow_infinite=True
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            allow_infinite=True,
         )
 
     @deck_attribute()
@@ -300,7 +331,7 @@ class Fleet(Node):
         """Set the fuel-conversion choice's sensitivity to its NPV."""
         self.fuel_conversion_sensitivity = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -309,7 +340,9 @@ class Fleet(Node):
     def set_fuel_conversion_minimum_age(self, value: ForecastArgument) -> None:
         """Set the minimum age at which a vessel can convert fuel."""
         self.fuel_conversion_minimum_age = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
@@ -325,7 +358,11 @@ class Fleet(Node):
         """Set the cost of converting a vessel type to another."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.fuel_conversion_costs,
         )
 
@@ -337,7 +374,10 @@ class Fleet(Node):
         write_matching_key_pairs(
             (key1, key2),
             assign_value(
-                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+                upper=1.0,
             ),
             self.fuel_conversion_limits,
         )
@@ -369,7 +409,10 @@ class Fleet(Node):
         write_matching_keys(
             key,
             assign_value(
-                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+                upper=1.0,
             ),
             self.newbuild_limits,
         )
@@ -381,7 +424,9 @@ class Fleet(Node):
         """Set the initial technology uptake by vessel age."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(value, allow_scalar=False, type_=CURVE, lower=0.0, upper=1.0),
+            assign_value(
+                value, allow_scalar=False, type_=NodeTypeID.CURVE, lower=0.0, upper=1.0
+            ),
             self.initial_technology_shares,
         )
 
@@ -391,7 +436,10 @@ class Fleet(Node):
         write_matching_keys(
             key,
             assign_value(
-                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+                upper=1.0,
             ),
             self.newbuild_technology_limits,
         )
@@ -402,7 +450,10 @@ class Fleet(Node):
         write_matching_keys(
             key,
             assign_value(
-                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+                upper=1.0,
             ),
             self.retrofit_technology_limits,
         )
@@ -412,7 +463,10 @@ class Fleet(Node):
         """Set the energy fraction saved at sea through operational measures."""
         energy_type = assign_id(key, EnergyDemandID)
         saving = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
         write_matching_keys(energy_type, saving, self.operational_savings_sea)
@@ -422,7 +476,10 @@ class Fleet(Node):
         """Set the energy fraction saved in port through operational measures."""
         energy_type = assign_member(key, PORT_ENERGY_DEMANDS)
         saving = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
         write_matching_keys(energy_type, saving, self.operational_savings_port)

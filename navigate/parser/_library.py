@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 from navigate.util import attribute_to_instance_name
 
 if TYPE_CHECKING:
+    from navigate.core.enum_ import NodeTypeID
     from navigate.exceptions import DeckError
     from navigate.parser._syntax import SourceLocation
 
@@ -31,9 +32,9 @@ class Library:
     def __init__(self, data_dir: Path | None) -> None:
         self._root: Path | None = data_dir.resolve() if data_dir is not None else None
 
-    def default_file(self, node_type: str, name: str) -> Path | None:
+    def default_file(self, node_type: NodeTypeID, name: str) -> Path | None:
         """Return a default node's file, or None if the library has none."""
-        return self._file("defaults", node_type, f"{name}.inc")
+        return self._file("defaults", str(node_type), f"{name}.inc")
 
     def module_file(self, module: str) -> Path | None:
         """Return the file of a module named as a deck loads it, or None."""
@@ -41,7 +42,7 @@ class Library:
         return self._file("modules", f"{file_name}.inc")
 
     def missing_default_error(
-        self, node_type: str, name: str, source: SourceLocation
+        self, node_type: NodeTypeID, name: str, source: SourceLocation
     ) -> DeckError:
         """Build the error for a default node the library cannot supply."""
         if self._root is None:

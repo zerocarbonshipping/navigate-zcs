@@ -4,9 +4,11 @@
 """
 The syntax of the Navigate DSL: the AST ``grammar.lark`` is read into.
 
-Nothing here knows what a node is: a reference is a type and a name, and an
-expression is the evaluator tree of ``core.expression`` with references as its
-leaves. The build phase binds both once every declaration is known.
+A node-type keyword is read into its ``NodeTypeID`` here, and one naming no node
+type is rejected at its line. Beyond its type nothing here knows what a node is:
+a reference is a node type and a name, and an expression is the evaluator tree
+of ``core.expression`` with references as its leaves. The build phase binds
+both once every declaration is known.
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ from lark import Lark, Token, Transformer, v_args
 from lark.exceptions import UnexpectedCharacters, UnexpectedToken, VisitError
 from lark.lexer import PatternStr
 
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.expression import (
     BinaryOperation,
     Constant,
@@ -180,7 +183,7 @@ def _references(value: DeckValue) -> Iterator[tuple[NodeReference, bool]]:
 class NodeDeclaration:
     """Named node declaration, e.g. ``Vessel "my_ship" { ... }``."""
 
-    node_type: str
+    node_type: NodeTypeID
     name: str
     body: list[BodyItem]
     source: SourceLocation = field(default_factory=SourceLocation)
@@ -190,14 +193,14 @@ class NodeDeclaration:
 class GeneralNodeDeclaration:
     """Singleton node declaration, e.g. ``ModelDefinition { ... }``."""
 
-    node_type: str
+    node_type: NodeTypeID
     body: list[BodyItem]
     source: SourceLocation = field(default_factory=SourceLocation)
 
     @property
     def keyword(self) -> str:
         """The keyword opening the statement: the general node's type."""
-        return self.node_type
+        return str(self.node_type)
 
 
 @dataclass
@@ -206,7 +209,7 @@ class CopyStatement:
 
     keyword: ClassVar[str] = "Copy"
 
-    node_type: str
+    node_type: NodeTypeID
     copy_from: str
     copy_to: str
     source: SourceLocation = field(default_factory=SourceLocation)
@@ -218,7 +221,7 @@ class ImportStatement:
 
     keyword: ClassVar[str] = "Import"
 
-    node_type: str
+    node_type: NodeTypeID
     name: str
     source: SourceLocation = field(default_factory=SourceLocation)
 
@@ -278,6 +281,13 @@ class _NavTransformer(Transformer[Token, object]):
     def _source(self, line: int) -> SourceLocation:
         return SourceLocation(self._file, line, self._deck_line)
 
+    def _node_type(self, keyword: str, line: int) -> NodeTypeID:
+        try:
+            return NodeTypeID(keyword)
+        except ValueError:
+            message = f"'{keyword}' is not a recognized node type."
+            raise self._source(line).error(message) from None
+
     def __default_token__(self, token: Token) -> object:
         match token.type:
             case "QUOTED_STRING":
@@ -323,26 +333,28 @@ class _NavTransformer(Transformer[Token, object]):
 
     @v_args(meta=True, inline=True)
     def node_declaration(
-        self, meta: Meta, node_type: str, name: str, *body: BodyItem
+        self, meta: Meta, keyword: str, name: str, *body: BodyItem
     ) -> NodeDeclaration:
+        node_type = self._node_type(keyword, meta.line)
         return NodeDeclaration(node_type, name, list(body), self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def general_node_declaration(
-        self, meta: Meta, node_type: str, *body: BodyItem
+        self, meta: Meta, keyword: str, *body: BodyItem
     ) -> GeneralNodeDeclaration:
+        node_type = self._node_type(keyword, meta.line)
         return GeneralNodeDeclaration(node_type, list(body), self._source(meta.line))
 
     @v_args(meta=True, inline=True)
     def copy_statement(
-        self, meta: Meta, node_type: str, copy_from: str, copy_to: str
+        self, meta: Meta, keyword: str, copy_from: str, copy_to: str
     ) -> CopyStatement:
+        node_type = self._node_type(keyword, meta.line)
         return CopyStatement(node_type, copy_from, copy_to, self._source(meta.line))
 
     @v_args(meta=True, inline=True)
-    def import_statement(
-        self, meta: Meta, node_type: str, name: str
-    ) -> ImportStatement:
+    def import_statement(self, meta: Meta, keyword: str, name: str) -> ImportStatement:
+        node_type = self._node_type(keyword, meta.line)
         return ImportStatement(node_type, name, self._source(meta.line))
 
     @v_args(meta=True, inline=True)
@@ -369,8 +381,9 @@ class _NavTransformer(Transformer[Token, object]):
     def command(self, meta: Meta, name: str, arguments: list[DeckValue]) -> Command:
         return Command(name, arguments, self._source(meta.line))
 
-    def node_reference(self, node_type: str, name: str) -> NodeReference:
-        return NodeReference(node_type, name)
+    @v_args(meta=True, inline=True)
+    def node_reference(self, meta: Meta, keyword: str, name: str) -> NodeReference:
+        return NodeReference(self._node_type(keyword, meta.line), name)
 
     @v_args(meta=True, inline=True)
     def expression(self, meta: Meta, root: Evaluable) -> ExpressionSyntax:

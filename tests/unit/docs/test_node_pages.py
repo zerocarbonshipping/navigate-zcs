@@ -38,11 +38,16 @@ _COMMAND_SECTIONS = NODE_COMMAND_SECTIONS | {
     node: {} for node in GENERAL_NODE_ATTRIBUTE_SECTIONS
 }
 
-NODE_TYPES = sorted(NODE_CLASS | GENERAL_NODE_CLASS)
+NODE_TYPES = sorted(map(str, NODE_CLASS | GENERAL_NODE_CLASS))
 
 REGISTERED = {
-    **{(node, "Attributes"): set(names) for node, names in _ATTRIBUTE_SECTIONS.items()},
-    **{(node, "Commands"): set(names) for node, names in _COMMAND_SECTIONS.items()},
+    **{
+        (str(node), "Attributes"): set(names)
+        for node, names in _ATTRIBUTE_SECTIONS.items()
+    },
+    **{
+        (str(node), "Commands"): set(names) for node, names in _COMMAND_SECTIONS.items()
+    },
 }
 
 

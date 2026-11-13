@@ -16,8 +16,8 @@ from navigate.core import (
     check_lengths_match,
     deck_attribute,
 )
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
 if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 class Process(Node):
     """A production process turning feedstocks and process outputs into a new stream."""
 
-    type = PROCESS
+    type = NodeTypeID.PROCESS
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -40,7 +40,9 @@ class Process(Node):
     @deck_attribute(SECTION_DEFINE)
     def set_feeds(self, value: Feedstock | Process | list[Feedstock | Process]) -> None:
         """Set the feedstocks and processes whose outputs feed the process."""
-        self.feeds = assign_reference_list(value, (FEEDSTOCK, PROCESS), unique=True)
+        self.feeds = assign_reference_list(
+            value, (NodeTypeID.FEEDSTOCK, NodeTypeID.PROCESS), unique=True
+        )
 
     @deck_attribute()
     def set_conversions(self, value: ForecastArgument | list[ForecastArgument]) -> None:
@@ -48,7 +50,7 @@ class Process(Node):
         entries: list[ForecastArgument] = as_list(value)
         self.conversions = assign_list(
             [as_scalar(entry) for entry in entries],
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
         )
 

@@ -9,6 +9,39 @@ from enum import Enum, auto
 
 
 # external enums -----------------------------------------------------------------------
+class NodeTypeID(Enum):
+    """A node type, looked up and printed by its keyword rather than its member name."""
+
+    CONVERTER = "Converter"  # an energy converter of a vessel
+    CURVE = "Curve"  # a table of y against x
+    EMISSION = "Emission"  # an emission species
+    FEEDSTOCK = "Feedstock"  # a feedstock that processes consume
+    FLEET = "Fleet"  # a segment of vessel types and its decisions
+    FORECAST = "Forecast"  # a table of y against time
+    FUEL = "Fuel"  # a fuel vessels bunker
+    LEVY = "Levy"  # a levy on fuels by emission factor
+    PLANT = "Plant"  # a plant type producing a fuel
+    PORT = "Port"  # a port vessels bunker at
+    PROCESS = "Process"  # a fuel production process
+    PRODUCER = "Producer"  # a fuel producer
+    REGION = "Region"  # a fuel-producing region
+    REGULATION = "Regulation"  # a regulation holding vessels to an emission threshold
+    ROUTE = "Route"  # a route vessels sail
+    SOURCE = "Source"  # an energy source for fuel production
+    SURFACE = "Surface"  # a table of z against x and y
+    TANK = "Tank"  # an onboard fuel tank
+    TECHNOLOGY = "Technology"  # a technology installable on a vessel
+    TIMETABLE = "Timetable"  # a table of z against time and y
+    TRANSPORT = "Transport"  # a mode of transport for feedstocks and fuels
+    VARIABLE = "Variable"  # a single number
+    VESSEL = "Vessel"  # a vessel type
+    BUNKER_OPTIONS = "BunkerOptions"  # the general node of the bunkering settings
+    MODEL_DEFINITION = "ModelDefinition"  # the general node of the run's settings
+
+    def __str__(self) -> str:
+        return self.value
+
+
 class SectionID(Enum):
     """The section of a deck a declaration is read in."""
 

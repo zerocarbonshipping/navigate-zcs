@@ -36,6 +36,7 @@ from navigate.core.nodes.vessel import Vessel
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from navigate.core.enum_ import NodeTypeID
     from navigate.core.general_nodes.general_node import GeneralNode
     from navigate.core.node import Node
 
@@ -115,10 +116,14 @@ _GROUP_CLASS: dict[str, type[Node]] = {
 }
 
 # the field of Nodes holding each node type
-_GROUP_FIELD: dict[str, str] = {cls.type: name for name, cls in _GROUP_CLASS.items()}
+_GROUP_FIELD: dict[NodeTypeID, str] = {
+    cls.type: name for name, cls in _GROUP_CLASS.items()
+}
 
 # the class of each node type and general node
-NODE_CLASS: dict[str, type[Node]] = {cls.type: cls for cls in _GROUP_CLASS.values()}
-GENERAL_NODE_CLASS: dict[str, type[GeneralNode]] = {
+NODE_CLASS: dict[NodeTypeID, type[Node]] = {
+    cls.type: cls for cls in _GROUP_CLASS.values()
+}
+GENERAL_NODE_CLASS: dict[NodeTypeID, type[GeneralNode]] = {
     cls.type: cls for cls in get_type_hints(GeneralNodes).values()
 }

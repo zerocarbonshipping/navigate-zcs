@@ -21,7 +21,7 @@ from helpers.deck_surface import (
     NODE_ATTRIBUTE_SECTIONS,
 )
 from navigate.core.dsl import SECTION_DEFINE
-from navigate.core.enum_ import SectionID
+from navigate.core.enum_ import NodeTypeID, SectionID
 from navigate.exceptions import DeckError
 from navigate.parser._collect import deck_entry
 from navigate.parser._syntax import Assignment
@@ -113,7 +113,7 @@ def test_general_node_type_has_no_unknown_attribute(type_):
 # expected: -> DeckError "... has no attribute 'lifetime'" (only Lifetime is known)
 def test_an_attribute_name_is_case_sensitive():
     with pytest.raises(DeckError, match="has no attribute 'lifetime'"):
-        deck_entry("Vessel", Assignment("lifetime", 0.0), DEFINE)
+        deck_entry(NodeTypeID.VESSEL, Assignment("lifetime", 0.0), DEFINE)
 
 
 # ── the parser runs the check before the setter ───────────────────────────────

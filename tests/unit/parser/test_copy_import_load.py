@@ -16,8 +16,8 @@ from __future__ import annotations
 import pytest
 
 from helpers.parser_decks import emission_holding, variable, write_library
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.expression import Expression
-from navigate.core.node_type import MODEL_DEFINITION
 from navigate.exceptions import DeckError
 from navigate.parser.parser import Parser
 
@@ -156,10 +156,10 @@ class TestCopy:
             DeckError,
             match=(
                 r"^Error in deck file, line 1, include file '.*define\.inc', line 5: "
-                rf"'{MODEL_DEFINITION}' cannot be copied\.$"
+                rf"'{NodeTypeID.MODEL_DEFINITION}' cannot be copied\.$"
             ),
         ):
-            read_deck(f'Copy {MODEL_DEFINITION} "a" "b"\n')
+            read_deck(f'Copy {NodeTypeID.MODEL_DEFINITION} "a" "b"\n')
 
 
 class TestImport:

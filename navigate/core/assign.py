@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Protocol
 import numpy as np
 
 from navigate.core._bounds import Bounds
-from navigate.core.enum_ import ExtrapolateID
+from navigate.core.enum_ import ExtrapolateID, NodeTypeID
 from navigate.core.expression import Expression
 from navigate.core.node import Node
 from navigate.core.node_type import AcceptedNodeTypes, accepts_type, is_calculator
@@ -840,10 +840,10 @@ def _node_types_phrase(type_: AcceptedNodeTypes) -> str:
     """
     # an empty tuple is an implementation error rather than a deck error, so
     # the empty subscript below is not handled
-    if isinstance(type_, str):
+    if isinstance(type_, NodeTypeID):
         return f"nodes of type {type_}"
 
-    return "nodes of type {} or {}".format(", ".join(type_[:-1]), type_[-1])
+    return "nodes of type {} or {}".format(", ".join(map(str, type_[:-1])), type_[-1])
 
 
 def _missing_names(names: str) -> str:

@@ -15,8 +15,8 @@ from navigate.core import (
     write_matching_key_pairs,
     write_matching_keys,
 )
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 class Region(Node):
     """A fuel-producing region: its process, source, feedstock and transport inputs."""
 
-    type = REGION
+    type = NodeTypeID.REGION
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -69,7 +69,9 @@ class Region(Node):
         write_matching_keys(
             key,
             assign_value(
-                as_scalar(value), type_=(FORECAST, TIMETABLE, VARIABLE), lower=0.0
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.TIMETABLE, NodeTypeID.VARIABLE),
+                lower=0.0,
             ),
             self.process_capex,
         )
@@ -79,7 +81,10 @@ class Region(Node):
         """Set the OPEX of a production process."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, TIMETABLE, VARIABLE)),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.TIMETABLE, NodeTypeID.VARIABLE),
+            ),
             self.process_opex,
         )
 
@@ -88,7 +93,11 @@ class Region(Node):
         """Set the energy demand of a production process."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.process_energy,
         )
 
@@ -99,7 +108,7 @@ class Region(Node):
             key,
             assign_value(
                 as_scalar(value),
-                type_=(FORECAST, VARIABLE),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
                 lower=0.0,
                 inclusive_lower=False,
             ),
@@ -112,7 +121,10 @@ class Region(Node):
         write_matching_keys(
             key,
             assign_value(
-                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+                upper=1.0,
             ),
             self.process_replacement,
         )
@@ -122,7 +134,9 @@ class Region(Node):
         """Set the WTT emissions of a production process for an emission."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
+            assign_value(
+                as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
+            ),
             self.process_wtt,
         )
 
@@ -131,7 +145,11 @@ class Region(Node):
         """Set the CAPEX of a source."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.source_capex,
         )
 
@@ -140,7 +158,11 @@ class Region(Node):
         """Set the OPEX of a source."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.source_opex,
         )
 
@@ -149,7 +171,9 @@ class Region(Node):
         """Set the WTT emissions of a source for an emission."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
+            assign_value(
+                as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
+            ),
             self.source_wtt,
         )
 
@@ -158,7 +182,11 @@ class Region(Node):
         """Set the cost of a feedstock."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.feedstock_costs,
         )
 
@@ -167,7 +195,9 @@ class Region(Node):
         """Set the WTT emissions of a feedstock for an emission."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
+            assign_value(
+                as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
+            ),
             self.feedstock_wtt,
         )
 
@@ -176,7 +206,11 @@ class Region(Node):
         """Set the cost of a transport."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.transport_costs,
         )
 
@@ -185,7 +219,9 @@ class Region(Node):
         """Set the WTT emissions of a transport for an emission."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
+            assign_value(
+                as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
+            ),
             self.transport_wtt,
         )
 

@@ -17,9 +17,8 @@ from navigate.core import (
     assign_value,
     deck_attribute,
 )
-from navigate.core.enum_ import LevySchemeID
+from navigate.core.enum_ import LevySchemeID, NodeTypeID
 from navigate.core.expectations import LevyExpectation
-from navigate.core.node_type import FORECAST, LEVY, VARIABLE
 from navigate.core.nodes._policy import _Policy
 from navigate.core.results import LevyResults
 
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
 class Levy(_Policy):
     """A levy penalizing or subsidizing fuels by emission factor against thresholds."""
 
-    type = LEVY
+    type = NodeTypeID.LEVY
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -57,21 +56,27 @@ class Levy(_Policy):
     def set_level(self, value: ForecastArgument) -> None:
         """Set the levy level paid or received, depending on scheme."""
         self.level = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
     def set_lower_threshold(self, value: ForecastArgument) -> None:
         """Set the lower emission factor threshold of the levy."""
         self.lower_threshold = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
     def set_upper_threshold(self, value: ForecastArgument) -> None:
         """Set the upper emission factor threshold of the levy."""
         self.upper_threshold = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     # internal methods -----------------------------------------------------------------
