@@ -138,7 +138,7 @@ def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: int | slice) -> Floa
     """
     Calculate a vessel's expected fuel expenses plus its policy expenses.
 
-    The policy expenses are the remedial and the flexibility expenses.
+    The policy expenses are the levy, the remedial and the flexibility expenses.
 
     Parameters
     ----------
@@ -150,15 +150,16 @@ def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: int | slice) -> Floa
     Returns
     -------
     FloatLike
-        Fuel plus policy (remedial and flexibility) expenses, in USD/year.
+        Fuel plus policy (levy, remedial and flexibility) expenses, in USD/year.
     """
     expectation = vessel.expectation
 
     fuel = expectation.fuel_expenses[idx]
+    levy = expectation.levy_expenses[idx]
     remedial = expectation.remedial_expenses[idx]
     flexibility = expectation.flexibility_expenses[idx]
 
-    return fuel + remedial + flexibility
+    return fuel + levy + remedial + flexibility
 
 
 def build_fuel_component(

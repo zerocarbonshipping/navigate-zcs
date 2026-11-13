@@ -127,6 +127,7 @@ class VesselExpectation(_Expectation):
         self.fuel_expenses = self._path()
 
         # policy expenses (expected bunkering)
+        self.levy_expenses = self._path()
         self.remedial_expenses = self._path()
         self.flexibility_expenses = self._path()
 
@@ -148,6 +149,7 @@ class VesselExpectation(_Expectation):
 
         self.total_energy = self._path()
         self.fuel_expenses = self._path()
+        self.levy_expenses = self._path()
         self.remedial_expenses = self._path()
         self.flexibility_expenses = self._path()
 

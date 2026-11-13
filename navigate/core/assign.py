@@ -41,7 +41,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Hashable, Iterator, Sequence, Sized
+    from collections.abc import Collection, Hashable, Iterator, Mapping, Sequence, Sized
 
     from navigate.core.nodes.forecast import Forecast
 
@@ -775,6 +775,24 @@ def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
     for first in firsts:
         for second in seconds:
             assignment_dict[(first, second)] = value
+
+
+def in_seeded_order[K, V](inputs: Mapping[K, V | None]) -> tuple[V, ...]:
+    """
+    Return the assigned values of a command dictionary in the order it is seeded.
+
+    Parameters
+    ----------
+    inputs
+        Command dictionary; an entry still unassigned is left for the node's
+        check_requirements to report.
+
+    Returns
+    -------
+    tuple[V, ...]
+        The assigned values.
+    """
+    return tuple(value for value in inputs.values() if value is not None)
 
 
 def _failed_value_message(

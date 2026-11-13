@@ -350,6 +350,15 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A `Levy` enters the expenses a vessel type is expected to have, as the
+  reference manual states; it changed only the fuel a vessel was expected to
+  bunker. Decks with an active levy move: `investment_freight_rate`, the
+  expected `cargo_charter_rate`, the newbuild split, fuel conversions and speed
+  management (#910).
+- An event that changes what sets a port's bunker price, supply or WTT, such
+  as its handling cost, its bunkering limit or a producer's export
+  distribution, now moves the fleet and producer decisions at its own date;
+  they followed it a step late. Decks without such events are unchanged (#913).
 - A vessel type left with a rounding remainder of vessels, such as 1e-15,
   instead of exactly zero is treated as absent from its fleet; the remainder
   could shift the results of every later year. Decks in which one arose move,

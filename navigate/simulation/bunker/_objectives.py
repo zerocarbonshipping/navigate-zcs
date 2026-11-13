@@ -12,6 +12,7 @@ from navigate.core.enum_ import BunkerScopeID
 from navigate.util import TOLERANCE
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.port import Port
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
@@ -52,6 +53,33 @@ def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
         alg.model.set_cost(alg.remedial_factor_flexibility[r], cost)
 
 
+def calculate_levy_cost(
+    port: Port, vessel_name: str, fuel_name: str, idx: int
+) -> float:
+    """
+    Calculate the levy cost of a fuel a vessel bunkers at a port.
+
+    Parameters
+    ----------
+    port
+        Port whose imposed levies charge the fuel.
+    vessel_name
+        Name of the bunkering vessel.
+    fuel_name
+        Name of the bunkered fuel.
+    idx
+        Time-step index of the cost.
+
+    Returns
+    -------
+    float
+        Summed cost of the port's imposed levies, in USD/ton fuel.
+    """
+    key = (vessel_name, port.name, fuel_name)
+    cost: float = sum(levy.expectation.cost[key][idx] for levy in port.imposed_levies)
+    return cost
+
+
 def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """Set each bunker variable's cost: the multiplier times the price plus levies."""
     v = vessel.name
@@ -61,11 +89,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     for p, port in enumerate(vessel.route.ports):
         for f, fuel in vessel.bunkerable_fuels[p].items():
             price = port.expectation.bunker_price[f][alg.idx]
-
-            levy_cost = 0.0
-            for levy in port.imposed_levies:
-                levy_cost += levy.expectation.cost[v, port.name, f][alg.idx]
-
+            levy_cost = calculate_levy_cost(port, v, f, alg.idx)
             total_price = price + levy_cost
 
             alg.model.set_cost(alg.bunker[v, p, f], multiplier * total_price)

@@ -135,7 +135,7 @@ def calculate_constrained_uptakes(
 
         # the feed limits may not be looser than the demand-based limits
         new_limits = np.minimum(feed_limits, limits)
-        new_uptakes = _calculate_constrained_shares(uptakes, new_limits)
+        new_uptakes = _calculate_capped_uptakes(uptakes, new_limits)
 
         if np.sum(np.abs(current_uptakes - new_uptakes)) < tolerance:
             return new_uptakes
@@ -380,40 +380,36 @@ def _calculate_feed_limits(
     return limits
 
 
-def _calculate_constrained_shares(
-    uptakes: FloatArray, maximums: FloatArray
-) -> FloatArray:
+def _calculate_capped_uptakes(uptakes: FloatArray, limits: FloatArray) -> FloatArray:
     """
-    Redistribute discrete-choice shares that exceed their maximum allowed value.
+    Cap uptake shares at their limits and give the surplus to the headroom left.
 
-    Starts from the optimal allocation of a discrete choice model, redistributing shares
-    between options where an allocation exceeds its maximum allowed share.
+    An uptake above its limit is cut to it. The surplus fills the headroom of the other
+    plant types, the gap between a limit and its uptake, in proportion to that headroom,
+    so one pass leaves every plant type within its limit. A plant type without uptake
+    takes surplus too, which the demand limits rely on to let a fuel not yet built
+    grow. The total never rises: it stays where the headroom absorbs the surplus and
+    falls by the surplus left over where it cannot.
 
-    Notice that this method redistributes the surplus from constrained shares to the
-    other shares proportionally to the deficit of each share. Meaning the bigger the gap
-    to the maximum the larger the fraction of the surplus it receives.
-
-    TODO: Is this desired or should it be a perfectly equal share between the buckets
-    with deficit?
-    TODO: This probably requires an iterative algorithm to ensure redistribution does
-    not break maximums.
+    The capped logit in economics instead gives the surplus in proportion to each
+    share, which keeps an option without share at none and the total at one.
 
     Parameters
     ----------
     uptakes
-        Uptake shares across all options, must sum to unity.
-    maximums
-        Maximum possible share for each option. Does not need to sum to unity.
+        Uptake share of each plant type, summing to at most one.
+    limits
+        Uptake limit of each plant type, in any total.
 
     Returns
     -------
     FloatArray
-        Constrained uptake shares.
+        Uptake share of each plant type within its limit.
     """
-    surplus = np.maximum(uptakes - maximums, 0.0)
-    deficit = np.maximum(maximums - uptakes, 0.0)
+    surplus = np.maximum(uptakes - limits, 0.0)
+    headroom = np.maximum(limits - uptakes, 0.0)
 
-    fraction = min(float(divide_nonzero(np.sum(surplus), np.sum(deficit))), 1.0)
+    # the part of each headroom the surplus fills, at most all of it
+    filled = min(float(divide_nonzero(np.sum(surplus), np.sum(headroom))), 1.0)
 
-    has_surplus = surplus > 0.0
-    return np.where(has_surplus, maximums, uptakes + deficit * fraction)
+    return np.where(surplus > 0.0, limits, uptakes + headroom * filled)
