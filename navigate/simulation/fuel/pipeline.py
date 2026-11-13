@@ -61,16 +61,16 @@ def perform_pipeline_delivery(producer: Producer) -> None:
                 # delivered and the rest keeps its span up to zero; the delivered part
                 # keeps 'decided', so its origin index stays that of the increment
                 share = calculate_share_below(increment, 0.0)
-                remaining = increment.multiplier * share
+                remaining = increment.count * share
                 delivered = PlantIncrement(
-                    multiplier=increment.multiplier - remaining,
+                    count=increment.count - remaining,
                     age=0.0,
                     age_span=increment.age + increment.age_span,
                     decided=increment.decided,
                 )
 
                 operating.append(delivered)
-                increment.multiplier = remaining
+                increment.count = remaining
                 increment.age_span = -increment.age
 
         # the pipeline is sorted oldest first, so the fully delivered come first
@@ -129,7 +129,7 @@ def perform_pipeline_planning(
 
         age = -plant.lead_time.get()
         index = find_insertion_index(pipeline, age)
-        increment = PlantIncrement(multiplier=count, age=age, age_span=dt, decided=0.0)
+        increment = PlantIncrement(count=count, age=age, age_span=dt, decided=0.0)
         pipeline.insert(index, increment)
 
     total = np.sum(newbuilds)
@@ -349,12 +349,13 @@ def _calculate_inter_fuel_metric(
     year_starts, operating = build_operating_flows(lead_time, lifetime, timeline[idx])
     yearly_demand = np.interp(year_starts, timeline, demand[fuel.name], left=0.0)
 
-    # the lowest equivalent multiplier within the sufficient offtake duration is
-    # the most plants it makes sense to sanction, among the years from commissioning
+    # the lowest plant count the demand supports within the sufficient offtake
+    # duration is the most plants it makes sense to sanction, among the years from
+    # commissioning
     operating_demand = yearly_demand[ceil(lead_time) :]
     horizon = min(ceil(offtake_duration), ceil(lifetime), operating_demand.size)
-    multipliers = operating_demand[:horizon] / production
-    newbuilds = max(np.amin(multipliers), 0.0)
+    counts = operating_demand[:horizon] / production
+    newbuilds = max(np.amin(counts), 0.0)
 
     # the plant's discount rate discounts the demand: dwindling demand is worth less
     # than immediate demand, since the production can be sold to other industries

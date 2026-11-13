@@ -31,8 +31,8 @@ import numpy as np
 from navigate.core.enum_ import UtilityID
 from navigate.simulation.economics import build_operating_flows, calculate_asset_shares
 from navigate.simulation.fleet._composition import (
-    get_multipliers,
-    get_total_multiplier,
+    get_counts,
+    get_total_count,
     is_retrofit_cycle,
 )
 from navigate.simulation.fleet._marginal_saving import (
@@ -150,7 +150,7 @@ class _RetrofitProposal:
     @property
     def eligible_count(self) -> float:
         """Number of vessels able to make this jump."""
-        return self.increment.multiplier * self.eligible_share
+        return self.increment.count * self.eligible_share
 
     def first_adopting_step(self, technology_idx: int) -> int:
         """
@@ -248,7 +248,7 @@ def perform_technology_installation(
 
     # the fleet count before newbuilds is the denominator of both the retrofit and the
     # newbuild technology caps
-    multipliers_total = get_total_multiplier(fleet)
+    total_count = get_total_count(fleet)
     sensitivity = technology_sensitivity.get()
 
     proposals = []
@@ -257,7 +257,7 @@ def perform_technology_installation(
         fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(fleet, basis)
         proposals += _propose_retrofits(fleet, basis, time_step)
 
-    _reconcile_retrofit_technology_caps(fleet, proposals, time_step, multipliers_total)
+    _reconcile_retrofit_technology_caps(fleet, proposals, time_step, total_count)
     _apply_retrofits(proposals)
     _transfer_retrofit_uptake(fleet, proposals, idx)
 
@@ -491,13 +491,13 @@ def _reconcile_retrofit_technology_caps(
     fleet: Fleet,
     proposals: list[_RetrofitProposal],
     time_step: float,
-    multipliers_total: float,
+    total_count: float,
 ) -> None:
     """
     Scale the proposals' retrofit `choices` to the per-technology caps.
 
     For every technology, the retrofits adopting it this time-step must not exceed
-    `limit * multipliers_total * time_step / YEAR`. The cap aggregate weights each
+    `limit * total_count * time_step / YEAR`. The cap aggregate weights each
     proposal's tail sum by its `eligible_count`, the count `_apply_retrofits` will
     produce, and the displaced share moves to the stay option (see
     `_scale_tails_to_cap`).
@@ -516,11 +516,11 @@ def _reconcile_retrofit_technology_caps(
         when a technology it covers has a binding cap.
     time_step
         Current time-step size, in days.
-    multipliers_total
+    total_count
         Number of vessels in the fleet before newbuilds.
     """
     limits = fleet.retrofit_technology_limits
-    caps = _technology_caps(fleet, limits, time_step, multipliers_total)
+    caps = _technology_caps(fleet, limits, time_step, total_count)
 
     for i, cap in caps:
         contributions = []
@@ -533,15 +533,15 @@ def _reconcile_retrofit_technology_caps(
 
 
 def reconcile_newbuild_technology_caps(
-    fleet: Fleet, newbuilds: FloatArray, time_step: float, multipliers_total: float
+    fleet: Fleet, newbuilds: FloatArray, time_step: float, total_count: float
 ) -> None:
     """
     Scale `fleet.newbuild_package_uptake` to the per-technology caps.
 
     For every technology, the newbuild installs of it this time-step must not exceed
-    `limit * multipliers_total * time_step / YEAR`. The technologies run from
-    outermost to innermost in the CAPEX-sorted package order, as in the retrofit
-    reconciliation, and the displaced share moves to the no-technology package (see
+    `limit * total_count * time_step / YEAR`. The technologies run from outermost to
+    innermost in the CAPEX-sorted package order, as in the retrofit reconciliation,
+    and the displaced share moves to the no-technology package (see
     `_scale_tails_to_cap`), so each vessel's uptake still sums to 1.
 
     Parameters
@@ -553,11 +553,11 @@ def reconcile_newbuild_technology_caps(
         vessel's contribution to the cap aggregate.
     time_step
         Current time-step size, in days.
-    multipliers_total
+    total_count
         Number of vessels in the fleet before newbuilds.
     """
     limits = fleet.newbuild_technology_limits
-    caps = _technology_caps(fleet, limits, time_step, multipliers_total)
+    caps = _technology_caps(fleet, limits, time_step, total_count)
     uptakes = fleet.newbuild_package_uptake
 
     # package i + 1 is the first to hold technology i, as the packages are cumulative
@@ -576,7 +576,7 @@ def _technology_caps(
     fleet: Fleet,
     limits: dict[str, ForecastInput],
     time_step: float,
-    multipliers_total: float,
+    total_count: float,
 ) -> Iterator[tuple[int, float]]:
     """
     Yield each technology's cap this time-step, outermost technology first.
@@ -591,7 +591,7 @@ def _technology_caps(
         Yearly cap of each technology as a share of the fleet, fraction.
     time_step
         Current time-step size, in days.
-    multipliers_total
+    total_count
         Number of vessels in the fleet before newbuilds.
 
     Yields
@@ -600,12 +600,12 @@ def _technology_caps(
         Index of the technology in the CAPEX-sorted order, and its cap, number of
         vessels.
     """
-    if multipliers_total <= 0.0:
+    if total_count <= 0.0:
         return
 
     dt = time_step / YEAR
     technologies = get_technologies_by_capex(fleet.technology_packages)
-    budget = multipliers_total * dt
+    budget = total_count * dt
 
     for i in reversed(range(len(technologies))):
         yield i, limits[technologies[i].name].get() * budget
@@ -700,7 +700,7 @@ def _transfer_retrofit_uptake(
         return
 
     technologies = get_technologies_by_capex(fleet.technology_packages)
-    counts = np.zeros((len(fleet.vessels), len(technologies)))
+    adopting = np.zeros((len(fleet.vessels), len(technologies)))
 
     # `_apply_retrofits` only reads `choices`, so the reconciled tail sums are intact
     for proposal in proposals:
@@ -711,10 +711,10 @@ def _transfer_retrofit_uptake(
 
         for i in range(proposal.package_idx, len(technologies)):
             start = proposal.first_adopting_step(i)
-            counts[v, i] += count * np.sum(proposal.choices[start:])
+            adopting[v, i] += count * np.sum(proposal.choices[start:])
 
-    multipliers = np.array(get_multipliers(fleet))
-    shares = divide_nonzero(counts, multipliers[:, np.newaxis])
+    counts = np.array(get_counts(fleet))
+    shares = divide_nonzero(adopting, counts[:, np.newaxis])
     uptake = fleet.results.retrofit_technology_uptake
 
     for v, vessel in enumerate(fleet.vessels):
@@ -726,7 +726,7 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
     """
     Transfer the fleet-average carried charge to each vessel's expectation and results.
 
-    The average is the multiplier-weighted mean of the per-increment carried charges,
+    The average is the count-weighted mean of the per-increment carried charges,
     USD/year per vessel. It feeds the investment freight rate within the same
     time-step, as the cargo charter runs after technology installation, and the
     results keeps it as the realized series the instantaneous freight rate is
@@ -743,8 +743,8 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
         total = 0.0
         weight = 0.0
         for increment in increments:
-            total += increment.multiplier * increment.technology_charter_rate
-            weight += increment.multiplier
+            total += increment.count * increment.technology_charter_rate
+            weight += increment.count
 
         average = float(divide_nonzero(total, weight))
 

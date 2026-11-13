@@ -94,22 +94,22 @@ def _build_plant_increments(producer: Producer, plant_idx: int) -> list[PlantInc
     """
     plant = producer.plants[plant_idx]
     initial_capacity = producer.initial_capacity[plant_idx].get()
-    count = _calculate_initial_count(producer, plant, initial_capacity)
+    total_count = _calculate_initial_count(producer, plant, initial_capacity)
     distribution = producer.initial_age_distribution[plant_idx]
     lifetime = plant.lifetime.get()
     lead_time = plant.lead_time.get()
 
     # a NaN count, such as from an expression dividing by zero, builds no cohorts
-    if not count > 0.0:
+    if not total_count > 0.0:
         return []
 
-    # only positive multipliers are kept, to reduce overhead and to avoid round-off
-    # errors in the increment average properties
+    # only positive counts are kept, to reduce overhead and to avoid round-off errors
+    # in the increment average properties
     increments: list[PlantIncrement] = []
-    for age, span, multiplier in split_by_age(count, distribution, lifetime):
-        if multiplier > 0.0:
+    for age, span, count in split_by_age(total_count, distribution, lifetime):
+        if count > 0.0:
             increment = PlantIncrement(
-                multiplier=multiplier,
+                count=count,
                 age=float(age),
                 age_span=float(span),
                 decided=float(age) + lead_time,
@@ -225,7 +225,7 @@ def _build_plant_pipeline(
     for count, delivery, span in zip(counts, deliveries, spans, strict=True):
         age = -delivery
         increment = PlantIncrement(
-            multiplier=count,
+            count=count,
             age=age,
             age_span=span,
             decided=age + lead_time,
@@ -256,12 +256,12 @@ def _define_initial_development(producer: Producer) -> None:
     # TODO: this may need to be based on continuous compound growth?
     for p, increments in enumerate(producer.pipeline):
         decided = np.array([increment.decided for increment in increments])
-        multipliers = np.array([increment.multiplier for increment in increments])
+        counts = np.array([increment.count for increment in increments])
         weights = inertia ** np.maximum(decided, 0.0)
 
-        weighted_counts[p] = np.dot(multipliers, weights)
+        weighted_counts[p] = np.dot(counts, weights)
         weight_total += np.sum(weights)
-        count_total += np.sum(multipliers)
+        count_total += np.sum(counts)
 
     weighted_total = np.sum(weighted_counts)
     even_share = 1.0 / weighted_counts.size

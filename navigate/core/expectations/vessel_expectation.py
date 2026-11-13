@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 class VesselExpectation(_Expectation):
-    """Voyage, energy, bunkering and investment paths of a single vessel."""
+    """Voyage, energy, bunkering and investment paths of one vessel of the type."""
 
     def __init__(
         self,

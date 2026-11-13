@@ -55,7 +55,7 @@ def update_regulation_threshold_flexibility_constraints(alg: BunkerAlgorithm) ->
 
         for v, vessel in alg.vessels.items():
             is_policed = regulation.vessel_is_policed(v)
-            multiplier = alg.multipliers[v] if is_policed else 0.0
+            count = alg.counts[v] if is_policed else 0.0
 
             terms, emissions, energy = calculate_regulation_terms(
                 alg, vessel, regulation
@@ -67,7 +67,7 @@ def update_regulation_threshold_flexibility_constraints(alg: BunkerAlgorithm) ->
                 alg.regulation_energy_terms[r, v] = energy
 
             for variable, weight in terms:
-                model.set_coefficient(constraint, variable, weight * multiplier)
+                model.set_coefficient(constraint, variable, weight * count)
 
         model.set_coefficient(constraint, remedial_factor_flexibility[r], -1.0)
 
@@ -76,7 +76,7 @@ def update_regulation_rhs_flexibility(alg: BunkerAlgorithm) -> None:
     """
     Update the pooled right-hand sides of FLEXIBLE regulations.
 
-    The pool sums the allowances of the policed vessels, weighted by multipliers.
+    The pool sums the allowances of the policed vessels, weighted by their counts.
 
     Parameters
     ----------
@@ -93,6 +93,6 @@ def update_regulation_rhs_flexibility(alg: BunkerAlgorithm) -> None:
                 continue
 
             allowance = regulation.expectation.vessel_allowance[v][alg.idx]
-            rhs += allowance * alg.multipliers[v]
+            rhs += allowance * alg.counts[v]
 
         alg.regulation_rhs_flexibility[r] = rhs

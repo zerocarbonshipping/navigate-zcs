@@ -43,7 +43,11 @@ if TYPE_CHECKING:
 
 
 class Vessel(Node):
-    """A vessel type: its power demand, machinery, route, capacity and base cost."""
+    """
+    A vessel type: its power demand, machinery, route, capacity and base cost.
+
+    Its expectation and results hold the values of one vessel of the type.
+    """
 
     type = NodeTypeID.VESSEL
 

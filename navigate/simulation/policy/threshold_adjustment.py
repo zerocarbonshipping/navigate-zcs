@@ -36,7 +36,7 @@ _THRESHOLD_TOLERANCE = 1e-4
 def calculate_adjusted_regulation_thresholds(
     regulations: dict[str, Regulation],
     vessels: dict[str, Vessel],
-    multipliers: dict[str, float],
+    counts: dict[str, float],
     idx: int,
 ) -> bool:
     """
@@ -55,8 +55,8 @@ def calculate_adjusted_regulation_thresholds(
         All regulations in the simulation.
     vessels
         All vessels in the simulation.
-    multipliers
-        Multiplier of each vessel in the bunkering LP, in the LP's order, which the
+    counts
+        Count of each vessel type in the bunkering LP, in the LP's order, which the
         sums over the vessels follow.
     idx
         Time-step index of the bunkering LP.
@@ -72,7 +72,7 @@ def calculate_adjusted_regulation_thresholds(
         if not regulation.active:
             continue
 
-        policed = select_policed(regulation, multipliers)
+        policed = select_policed(regulation, counts)
 
         if not regulation.allow_threshold_adjustment:
             _unset_adjusted_thresholds(regulation, policed, idx)
@@ -174,12 +174,12 @@ def _calculate_shared_threshold(
     total_emissions = 0.0
     total_measure = 0.0
 
-    for vessel_name, multiplier in policed.items():
+    for vessel_name, count in policed.items():
         emissions = expectation.vessel_emissions[vessel_name][idx]
         measure = calculate_achieved_measure(regulation, vessel_name, idx)
 
-        total_emissions += multiplier * emissions
-        total_measure += multiplier * measure
+        total_emissions += count * emissions
+        total_measure += count * measure
 
     return _adjust_threshold(regulation, total_emissions, total_measure)
 
@@ -193,7 +193,7 @@ def _calculate_scaled_vessel_thresholds(
     """
     Scale the vessels' thresholds by one factor.
 
-    The factor is chosen so their multiplier-weighted sum is the shared threshold.
+    The factor is chosen so their count-weighted sum is the shared threshold.
     A pool whose thresholds sum to zero has nothing to scale: each vessel's threshold
     is adjusted to its own achieved emissions instead.
     """
@@ -201,9 +201,9 @@ def _calculate_scaled_vessel_thresholds(
 
     pooled_threshold = 0.0
 
-    for vessel_name, multiplier in policed.items():
+    for vessel_name, count in policed.items():
         threshold = expectation.vessel_threshold[vessel_name][idx]
-        pooled_threshold += multiplier * threshold
+        pooled_threshold += count * threshold
 
     # a pool whose thresholds are all zero allows no trading, so there is no split to
     # keep and each vessel is held to its own emissions

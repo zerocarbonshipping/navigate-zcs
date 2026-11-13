@@ -16,7 +16,7 @@ code that breaks the rule. Taste beyond these conventions follows the
 ## Naming
 
 - Name parameters, variables and attributes descriptively, never by a single
-  letter or an opaque prefix: `multipliers_total`, not `m`. The exceptions:
+  letter or an opaque prefix: `total_count`, not `n`. The exceptions:
   - an integer index of a loop or comprehension (`i`, `j`, `k`, `t`);
   - the axis variables `x`, `y` of a table or interpolation;
   - the parameters of a DSL setter (see Nodes and the DSL);
@@ -244,7 +244,7 @@ its section layout; the rules below cover the content.
 - Test a computed float for zero or for equality within a named tolerance
   constant (`TOLERANCE` in `navigate/util/numeric.py`), through `abs`,
   `math.isclose` or `np.isclose`, so that a rounding residual takes the same
-  branch as an exact zero: `abs(multiplier) < TOLERANCE`,
+  branch as an exact zero: `abs(count) < TOLERANCE`,
   `abs(power_to - power_from) > TOLERANCE`. Exact `==`/`!=` is allowed
   against an assigned value (a default, a sentinel, a deck input), on a value
   rounded to `ROUND_OFF`, and for a guard that only protects an operation
