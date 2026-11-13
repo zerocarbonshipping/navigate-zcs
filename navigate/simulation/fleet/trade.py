@@ -16,7 +16,7 @@ import numpy as np
 
 from navigate.simulation.fleet._composition import (
     consolidate_increments,
-    get_total_multiplier,
+    get_total_count,
     get_trade_capacity,
 )
 from navigate.simulation.fleet._newbuild import (
@@ -62,9 +62,9 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
 
     # each vessel type's newbuild budget; the fleet count stands in for yard capacity
     dt = time_step / YEAR
-    multipliers_total = get_total_multiplier(fleet)
+    total_count = get_total_count(fleet)
     limit_share = np.array([fleet.newbuild_limits[v.name].get() for v in fleet.vessels])
-    cap_count = limit_share * multipliers_total * dt
+    cap_count = limit_share * total_count * dt
 
     newbuilds, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
         fleet, trade_gap, cap_count, idx
@@ -85,7 +85,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
         trade_gap += perform_secondary_scrapping(fleet, trade_gap, idx)
 
     consolidate_increments(fleet)
-    reconcile_newbuild_technology_caps(fleet, newbuilds, time_step, multipliers_total)
+    reconcile_newbuild_technology_caps(fleet, newbuilds, time_step, total_count)
     add_newbuilds(fleet, newbuilds, time_step, idx)
     update_current_uptake(fleet, newbuilds, idx)
 

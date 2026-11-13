@@ -90,27 +90,27 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _is_admitted(multiplier: FloatLike) -> bool:
+def _is_admitted(count: FloatLike) -> bool:
     """
-    Check whether a vessel multiplier admits the vessel into a bunkering LP.
+    Check whether the count of a vessel type admits it into a bunkering LP.
 
-    A vessel enters the LP of its step only with a positive multiplier. Expected
-    bunkering needs a solution for every vessel type, as its results feed the uptake
-    metrics of the vessel; vessel types not in the fleet therefore carry a low
-    multiplier, so every vessel type enters the expected LPs, while existing bunkering
-    drops a vessel whose multiplier is zero.
+    A vessel type enters the LP of its step only with a positive count. Expected
+    bunkering needs a solution for every vessel type allowed as a newbuild, as its
+    results feed the uptake metrics of the vessel; such a type with no vessels in the
+    fleet therefore carries a low count, so it enters the expected LPs, while existing
+    bunkering drops a vessel type whose count is zero.
 
     Parameters
     ----------
-    multiplier
-        Multiplier of the vessel at one time-step or over several.
+    count
+        Number of vessels of the type at one time-step or over several.
 
     Returns
     -------
     bool
-        True if the multiplier is positive at any of the steps.
+        True if the count is positive at any of the steps.
     """
-    return bool(np.max(multiplier) > 0.0)
+    return bool(np.max(count) > 0.0)
 
 
 class BunkerAlgorithm:
@@ -179,7 +179,7 @@ class BunkerAlgorithm:
 
         # auxiliary
         self.vessels: dict[str, Vessel] = {}
-        self.multipliers: dict[str, float] = {}
+        self.counts: dict[str, float] = {}
 
         # dynamic properties updated at every time-step --------------------------------
 
@@ -262,8 +262,8 @@ class BunkerAlgorithm:
         self._reset_dynamic_properties()
         remove_redundant_fuels_from_ports(self)
 
-        for vessel, multiplier in self._vessel_multipliers(self.idx):
-            self._update_vessel(vessel, multiplier)
+        for vessel, count in self._vessel_counts(self.idx):
+            self._update_vessel(vessel, count)
 
         update_regulation_rhs_individual(self)
         update_regulation_rhs_flexibility(self)
@@ -326,39 +326,37 @@ class BunkerAlgorithm:
         Returns
         -------
         list[Vessel]
-            Vessels of every fleet with a positive multiplier in a built LP.
+            Vessels of every fleet with a positive count in a built LP.
         """
         steps = get_scope_steps(current_idx, self.scope)
         admitted: list[Vessel] = []
 
-        for vessel, multiplier in self._vessel_multipliers(steps):
-            if _is_admitted(multiplier):
+        for vessel, count in self._vessel_counts(steps):
+            if _is_admitted(count):
                 admitted.append(vessel)
 
         return admitted
 
-    def _vessel_multipliers(
-        self, steps: ScopeSteps
-    ) -> Iterator[tuple[Vessel, FloatLike]]:
+    def _vessel_counts(self, steps: ScopeSteps) -> Iterator[tuple[Vessel, FloatLike]]:
         """
-        Walk every vessel of the fleets with its multiplier in this scope.
+        Walk every vessel of the fleets with its count in this scope.
 
         Parameters
         ----------
         steps
-            Time-step index, or slice of indices, the multipliers are read at.
+            Time-step index, or slice of indices, the counts are read at.
 
         Yields
         ------
         tuple[Vessel, FloatLike]
-            Vessel and its multiplier at the steps.
+            Vessel and the number of vessels of its type at the steps.
         """
         for fleet in self.fleets.values():
             expectation = fleet.expectation
 
             for vessel in fleet.vessels:
-                multiplier = expectation.multiplier[vessel.name, self.scope][steps]
-                yield vessel, multiplier
+                count = expectation.count[vessel.name, self.scope][steps]
+                yield vessel, count
 
     def _reset_dynamic_properties(self) -> None:
         """Reset the containers recalculated at every time-step, so none goes stale."""
@@ -373,25 +371,25 @@ class BunkerAlgorithm:
             if value.active:
                 self.active_regulations[key] = value
 
-    def _update_vessel(self, vessel: Vessel, multiplier: FloatLike) -> None:
+    def _update_vessel(self, vessel: Vessel, count: FloatLike) -> None:
         """
-        Update a vessel in the LP if its multiplier admits it, or else drop it.
+        Update a vessel in the LP if its count admits it, or else drop it.
 
-        A zero multiplier, which only existing bunkering gives, drops a vessel that was
-        in the model at an earlier time-step.
+        A zero count, which only existing bunkering gives, drops a vessel that was in
+        the model at an earlier time-step.
 
         Parameters
         ----------
         vessel
             Vessel whose variables, objectives and constraints are updated.
-        multiplier
-            Multiplier of the vessel at the time-step being built.
+        count
+            Number of vessels of the type at the time-step being built.
         """
         v = vessel.name
 
-        if _is_admitted(multiplier):
+        if _is_admitted(count):
             self.vessels[v] = vessel
-            self.multipliers[v] = float(multiplier)
+            self.counts[v] = float(count)
 
             update_vessel_variables(self, vessel)
             update_vessel_objectives(self, vessel)

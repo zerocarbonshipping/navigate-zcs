@@ -547,16 +547,16 @@ class Simulation:
         self._update_ages()
 
         # the evolution expectations are calculated before the expected bunkering,
-        # so that vessels allowed in the current time step have a non-zero
-        # multiplier and the producers' supply follows the step's events
+        # so that vessels allowed in the current time step have a non-zero count
+        # and the producers' supply follows the step's events
         self._calculate_fleet_evolution_expectations()
         self._calculate_producer_evolution_expectations()
 
         self._prepare_bunkering(self._bunker_expected)
         self._perform_expected_bunkering()
 
-        # the fuel demand weights the expected bunkering with the expected
-        # multipliers the LPs ran with, which the fleet evolution below rewrites
+        # the fuel demand weights the expected bunkering with the expected counts
+        # the LPs ran with, which the fleet evolution below rewrites
         self._calculate_fleet_fuel_demand()
 
         # smooth the energy-conservation LP duals into scarcity belief paths
@@ -695,7 +695,7 @@ class Simulation:
         self, bunker: BunkerAlgorithm
     ) -> bool:
         return calculate_adjusted_regulation_thresholds(
-            self.nodes.regulations, self.nodes.vessels, bunker.multipliers, bunker.idx
+            self.nodes.regulations, self.nodes.vessels, bunker.counts, bunker.idx
         )
 
     @timed(TimingID.POLICY)
@@ -703,7 +703,7 @@ class Simulation:
         calculate_individual_remedial_expenses(
             self.nodes.regulations,
             self.nodes.vessels,
-            bunker.multipliers,
+            bunker.counts,
             bunker.scope,
             bunker.idx,
         )
@@ -713,7 +713,7 @@ class Simulation:
         calculate_flexibility_markets(
             self.nodes.regulations,
             self.nodes.vessels,
-            bunker.multipliers,
+            bunker.counts,
             bunker.scope,
             bunker.idx,
         )
@@ -828,7 +828,7 @@ class Simulation:
     @timed(TimingID.POLICY)
     def _calculate_regulation_compliance(self, bunker: BunkerAlgorithm) -> None:
         calculate_regulation_compliance(
-            self.nodes.regulations, bunker.multipliers, bunker.idx
+            self.nodes.regulations, bunker.counts, bunker.idx
         )
 
     def _calculate_fuel_type_balance(self) -> None:

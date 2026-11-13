@@ -46,7 +46,7 @@ def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
     for r, v in alg.regulation_rhs_individual:
         cost = alg.regulations[r].expectation.remedial_cost[alg.idx]
         remedial_factor = alg.remedial_factor_individual[r, v]
-        alg.model.set_cost(remedial_factor, alg.multipliers[v] * cost)
+        alg.model.set_cost(remedial_factor, alg.counts[v] * cost)
 
     for r in alg.regulation_rhs_flexibility:
         cost = alg.regulations[r].expectation.remedial_cost[alg.idx]
@@ -81,9 +81,9 @@ def calculate_levy_cost(
 
 
 def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """Set each bunker variable's cost: the multiplier times the price plus levies."""
+    """Set each bunker variable's cost: the count times the price plus levies."""
     v = vessel.name
-    multiplier = alg.multipliers[v]
+    count = alg.counts[v]
     is_existing = alg.scope == BunkerScopeID.EXISTING
 
     for p, port in enumerate(vessel.route.ports):
@@ -92,7 +92,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             levy_cost = calculate_levy_cost(port, v, f, alg.idx)
             total_price = price + levy_cost
 
-            alg.model.set_cost(alg.bunker[v, p, f], multiplier * total_price)
+            alg.model.set_cost(alg.bunker[v, p, f], count * total_price)
 
             # a zero or negative price on available supply is typically unintended
             if is_existing and total_price <= TOLERANCE:
@@ -109,13 +109,13 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
 
 def _update_shore_power_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """Set each shore-power variable's cost: the multiplier times the energy cost."""
+    """Set each shore-power variable's cost: the count times the energy cost."""
     v = vessel.name
-    multiplier = alg.multipliers[v]
+    count = alg.counts[v]
 
     for p, port in enumerate(vessel.route.ports):
         if (v, p) not in alg.shore_power:
             continue
 
         cost = port.expectation.shore_power_cost[alg.idx]
-        alg.model.set_cost(alg.shore_power[v, p], multiplier * cost)
+        alg.model.set_cost(alg.shore_power[v, p], count * cost)

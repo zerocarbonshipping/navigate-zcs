@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 def calculate_regulation_compliance(
-    regulations: dict[str, Regulation], multipliers: dict[str, float], idx: int
+    regulations: dict[str, Regulation], counts: dict[str, float], idx: int
 ) -> None:
     """
     Calculate the compliance, allowance and units of each active regulation.
@@ -33,8 +33,8 @@ def calculate_regulation_compliance(
     ----------
     regulations
         All regulations in the simulation.
-    multipliers
-        Multiplier of each vessel in the existing bunkering LP, in the LP's order,
+    counts
+        Count of each vessel type in the existing bunkering LP, in the LP's order,
         which the sums over the vessels follow.
     idx
         Time-step index of the bunkering LP.
@@ -43,12 +43,12 @@ def calculate_regulation_compliance(
         if not regulation.active:
             continue
 
-        _record_compliance(regulation, multipliers, idx)
-        _record_adjusted_thresholds(regulation, multipliers, idx)
+        _record_compliance(regulation, counts, idx)
+        _record_adjusted_thresholds(regulation, counts, idx)
 
 
 def _record_compliance(
-    regulation: Regulation, multipliers: dict[str, float], idx: int
+    regulation: Regulation, counts: dict[str, float], idx: int
 ) -> None:
     """Write the vessel and shared compliance, allowance and units to the results."""
     results = regulation.results
@@ -57,12 +57,12 @@ def _record_compliance(
     total_measure = 0.0
     total_allowance = 0.0
 
-    for vessel_name, multiplier in select_policed(regulation, multipliers).items():
+    for vessel_name, count in select_policed(regulation, counts).items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
 
-        total_emissions += multiplier * account.emissions
-        total_measure += multiplier * account.measure
-        total_allowance += multiplier * account.allowance
+        total_emissions += count * account.emissions
+        total_measure += count * account.measure
+        total_allowance += count * account.allowance
 
         # a vessel that spent no energy under INTENSITY, or has no regulated cargo
         # miles under a transport measure, has a zero measure
@@ -97,7 +97,7 @@ def _record_compliance(
 
 
 def _record_adjusted_thresholds(
-    regulation: Regulation, multipliers: dict[str, float], idx: int
+    regulation: Regulation, counts: dict[str, float], idx: int
 ) -> None:
     """
     Write the adjusted thresholds to the regulation's results.
@@ -108,7 +108,7 @@ def _record_adjusted_thresholds(
     expectation = regulation.expectation
     results = regulation.results
 
-    for vessel_name in select_policed(regulation, multipliers):
+    for vessel_name in select_policed(regulation, counts):
         threshold = expectation.adjusted_vessel_threshold[vessel_name][idx]
         if not np.isnan(threshold):
             results.adjusted_vessel_threshold[vessel_name][idx] = threshold

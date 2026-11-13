@@ -12,7 +12,7 @@ import numpy as np
 
 from navigate.core.increment import VesselIncrement
 from navigate.simulation.cohort import split_by_age
-from navigate.simulation.fleet._composition import extract_cargo_miles, get_multipliers
+from navigate.simulation.fleet._composition import extract_cargo_miles, get_counts
 from navigate.simulation.fleet._package import (
     build_technology_packages,
     calculate_package_charter_rates,
@@ -144,19 +144,19 @@ def _build_vessel_increments(fleet: Fleet, vessel_idx: int) -> list[VesselIncrem
         The increments of the type, oldest first.
     """
     vessel = fleet.vessels[vessel_idx]
-    count = fleet.initial_split[vessel_idx] * fleet.initial_vessels.get()
+    total_count = fleet.initial_split[vessel_idx] * fleet.initial_vessels.get()
     distribution = fleet.initial_age_distribution[vessel_idx]
     age_range = _calculate_initial_age_range(fleet, vessel)
     n_packages = fleet.get_number_of_packages()
 
     # a NaN count, such as from an expression dividing by zero, builds no cohorts
-    if not count > 0.0:
+    if not total_count > 0.0:
         return []
 
     increments: list[VesselIncrement] = []
-    for age, span, multiplier in split_by_age(count, distribution, age_range):
+    for age, span, count in split_by_age(total_count, distribution, age_range):
         increment = VesselIncrement(
-            multiplier=multiplier,
+            count=count,
             age=float(age),
             age_span=float(span),
             package_uptake=np.zeros(n_packages),
@@ -348,10 +348,10 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
         Simulation timeline, in days.
     """
     idx = 0
-    multipliers = get_multipliers(fleet)
+    counts = get_counts(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx)
     trade_growth = fleet.trade_growth.get(timeline)
 
-    initial_trade = np.dot(multipliers, cargo_miles)
+    initial_trade = np.dot(counts, cargo_miles)
     fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
     fleet.results.trade[idx] = fleet.trade[idx]

@@ -24,7 +24,7 @@ class Increment:
 
     Parameters
     ----------
-    multiplier
+    count
         Number of assets in the cohort.
     age
         Age of the cohort in years.
@@ -32,7 +32,7 @@ class Increment:
         Width in years of the age bin the cohort spans.
     """
 
-    multiplier: float
+    count: float
     age: float
     age_span: float
 
@@ -44,7 +44,7 @@ class VesselIncrement(Increment):
 
     Parameters
     ----------
-    multiplier
+    count
         Number of vessels in the cohort.
     age
         Age of the cohort in years.
@@ -54,7 +54,7 @@ class VesselIncrement(Increment):
         Share of the cohort on each technology package, one entry per package.
     scrapped_past_lifetime
         Vessels scrapped from the cohort's part past the vessel lifetime; with the
-        multiplier, the cohort's size before that scrapping.
+        count, the cohort's size before that scrapping.
     technology_charter_rate
         Levelized technology cost carried by the cohort, USD/year/vessel.
     """
@@ -71,7 +71,7 @@ class PlantIncrement(Increment):
 
     Parameters
     ----------
-    multiplier
+    count
         Number of plants in the cohort.
     age
         Age of the cohort in years, negative while it is still in the pipeline.

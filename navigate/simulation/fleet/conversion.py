@@ -9,7 +9,7 @@ The evaluation runs in three phases per fleet and time-step:
 1. ``_propose_fuel_conversions`` computes the proposed conversion counts and changes
    no fleet state.
 2. ``_reconcile_fuel_conversion_caps`` scales the proposals to the per-pair flow caps.
-3. ``_apply_fuel_conversions`` updates the fleet: multipliers, results and expenses.
+3. ``_apply_fuel_conversions`` updates the fleet: counts, results and expenses.
 
 The phases communicate through one ``_ConversionProposal`` per (from-type, increment)
 cohort, each holding a ``_ConversionCandidate`` per destination type.
@@ -32,8 +32,8 @@ from navigate.simulation.economics import (
     trim_flow_to_window,
 )
 from navigate.simulation.fleet._composition import (
-    get_multipliers,
-    get_total_multiplier,
+    get_counts,
+    get_total_count,
     is_retrofit_cycle,
 )
 from navigate.simulation.fleet.charter import build_fuel_component
@@ -289,7 +289,7 @@ def _propose_fuel_conversions(
         _debit_supply_excess(supply_excess, cohort.source, candidates)
 
         increment = cohort.increment
-        scrapped_per_vessel = increment.scrapped_past_lifetime / increment.multiplier
+        scrapped_per_vessel = increment.scrapped_past_lifetime / increment.count
         proposal = _ConversionProposal(
             cohort.source.name,
             increment,
@@ -326,7 +326,7 @@ def _reconcile_fuel_conversion_caps(
         Current time-step size, in days.
     """
     # counted before the newbuilds, which are inserted later in the same time-step
-    existing_total = get_total_multiplier(fleet)
+    existing_total = get_total_count(fleet)
     dt = time_step / YEAR
 
     pair_proposed: dict[tuple[str, str], float] = {}
@@ -434,7 +434,7 @@ def _eligible_cohorts(
             if remaining_lifetime <= 0.0:
                 continue
 
-            if increment.multiplier <= 0.0:
+            if increment.count <= 0.0:
                 continue
 
             yield _ConversionCohort(source, increment, mean_age, remaining_lifetime)
@@ -627,7 +627,7 @@ def _evaluate_candidate(
         return None
 
     maximum_vessels = supply / target.energy_per_vessel
-    limit = min(maximum_vessels / cohort.increment.multiplier, 1.0)
+    limit = min(maximum_vessels / cohort.increment.count, 1.0)
 
     # fuel savings count over the years from now that both the current and the
     # converted vessel type still serve; the conversion cost is a lump sum up front
@@ -682,7 +682,7 @@ def _choose_conversions(
     # store as conversion counts so reconciliation can scale per-pair without a
     # re-multiply; strict=False drops the BAU sentinel's share
     for candidate, share in zip(candidates.values(), shares, strict=False):
-        candidate.count = share * cohort.increment.multiplier
+        candidate.count = share * cohort.increment.count
 
 
 def _debit_supply_excess(
@@ -745,7 +745,7 @@ def _apply_from_side(
     idx: int,
 ) -> None:
     """
-    Decrement source-side multipliers, write the results, and book transition expenses.
+    Decrement source-side counts, write the results, and book transition expenses.
 
     Parameters
     ----------
@@ -767,7 +767,7 @@ def _apply_from_side(
         count = candidate.count
         scrapped = count * proposal.scrapped_per_vessel
 
-        increment_from.multiplier -= count
+        increment_from.count -= count
         increment_from.scrapped_past_lifetime -= scrapped
         fleet.results.fuel_conversions[proposal.name_from, name_to][idx] += count
 
@@ -881,10 +881,10 @@ def _calculate_fuel_type_capacity(fleet: Fleet) -> None:
     fleet
         Fleet whose fuel-type capacity is added.
     """
-    for vessel, multiplier in _vessels_in_service(fleet):
+    for vessel, count in _vessels_in_service(fleet):
         for converter in vessel.get_converters():
             converter_energy = vessel.expectation.spend_energy[converter.name]
-            fleet_energy = converter_energy * multiplier
+            fleet_energy = converter_energy * count
 
             # pilot fuel counts at its minimum share only: the figure tracks main
             # fuel, and counting all the energy a converter could burn as pilot
@@ -920,11 +920,11 @@ def _calculate_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     idx
         Current time-step index.
     """
-    for vessel, multiplier in _vessels_in_service(fleet):
+    for vessel, count in _vessels_in_service(fleet):
         for port, fuel in _port_fuels(vessel, fuels):
             mass = _get_supply_mass(vessel, port, fuel.name, idx)
             lhv = fuel.lower_heating_value.get()
-            supply = mass * lhv * multiplier
+            supply = mass * lhv * count
             fleet.expectation.fuel_type_supply[fuel.fuel_type] += supply
 
 
@@ -973,11 +973,11 @@ def _vessels_in_service(fleet: Fleet) -> Iterator[tuple[Vessel, float]]:
     tuple[Vessel, float]
         The vessel type and its number of vessels.
     """
-    for vessel, multiplier in zip(fleet.vessels, get_multipliers(fleet), strict=True):
-        if abs(multiplier) < TOLERANCE:
+    for vessel, count in zip(fleet.vessels, get_counts(fleet), strict=True):
+        if abs(count) < TOLERANCE:
             continue
 
-        yield vessel, multiplier
+        yield vessel, count
 
 
 def _port_fuels(vessel: Vessel, fuels: dict[str, Fuel]) -> Iterator[tuple[Port, Fuel]]:

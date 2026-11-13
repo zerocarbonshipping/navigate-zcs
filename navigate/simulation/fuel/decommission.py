@@ -57,7 +57,7 @@ def perform_decommissioning(producer: Producer) -> None:
         for increment in running:
             if extends_past(increment, lifetime):
                 share = calculate_share_below(increment, lifetime)
-                increment.multiplier *= share
+                increment.count *= share
                 increment.age_span = lifetime - increment.age
 
         producer.increments[p] = running

@@ -37,7 +37,7 @@ class _Market(NamedTuple):
 def calculate_flexibility_markets(
     regulations: dict[str, Regulation],
     vessels: dict[str, Vessel],
-    multipliers: dict[str, float],
+    counts: dict[str, float],
     scope: BunkerScopeID,
     idx: int,
 ) -> None:
@@ -55,8 +55,8 @@ def calculate_flexibility_markets(
         All regulations in the simulation.
     vessels
         All vessels in the simulation.
-    multipliers
-        Multiplier of each vessel in the bunkering LP, in the LP's order, which the
+    counts
+        Count of each vessel type in the bunkering LP, in the LP's order, which the
         sums over the vessels follow.
     scope
         Scope of the bunkering LP: the existing market goes to the results, the
@@ -69,7 +69,7 @@ def calculate_flexibility_markets(
         if not (regulation.active and is_flexible):
             continue
 
-        market = _clear_flexibility_market(regulation, multipliers, idx)
+        market = _clear_flexibility_market(regulation, counts, idx)
 
         if scope == BunkerScopeID.EXISTING:
             _record_market(regulation, vessels, market, idx)
@@ -127,7 +127,7 @@ def update_regulation_flexibility_beliefs(
 
 
 def _clear_flexibility_market(
-    regulation: Regulation, multipliers: dict[str, float], idx: int
+    regulation: Regulation, counts: dict[str, float], idx: int
 ) -> _Market:
     """Clear the flexibility market of one regulation; see the public function."""
     expectation = regulation.expectation
@@ -139,21 +139,21 @@ def _clear_flexibility_market(
     balances = {}
     total_non_compliance = 0.0
     total_surplus = 0.0
-    for vessel_name, multiplier in select_policed(regulation, multipliers).items():
+    for vessel_name, count in select_policed(regulation, counts).items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
         non_compliance = max(account.emissions - account.allowance, 0.0)
         surplus = max(account.allowance - account.emissions, 0.0)
 
         balances[vessel_name] = (non_compliance, surplus)
-        total_non_compliance += multiplier * non_compliance
-        total_surplus += multiplier * surplus
+        total_non_compliance += count * non_compliance
+        total_surplus += count * surplus
 
     # the non-compliance not remediated is covered by flexibility units
     total_flexibility = total_non_compliance - total_remedial
 
     # the share of the non-compliance remediated rather than covered by flexibility
     # units, capped at one against the numerical instability of vessels with a low
-    # multiplier (the jump-start fraction)
+    # count (the jump-start fraction)
     ratio = float(divide_nonzero(total_remedial, total_non_compliance, default=1.0))
     remedial_fraction = min(1.0, ratio)
 

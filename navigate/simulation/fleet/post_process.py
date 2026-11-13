@@ -6,9 +6,9 @@ The vessel, fleet and global results written after the run.
 
 The time steps write energy, fuel, emissions and expenses to the vessel results.
 Once the steps are done, each vessel's totals and savings are computed from them;
-each fleet folds its vessels in by their multipliers, computes its own totals and
-the achieved charter and freight rates; the global results, the fleets summed into
-them, compute their totals last.
+each fleet folds its vessels in by their counts, computes its own totals and the
+achieved charter and freight rates; the global results, the fleets summed into them,
+compute their totals last.
 """
 
 from __future__ import annotations
@@ -66,7 +66,7 @@ def complete_fleet_results(fleet: Fleet, timeline: FloatArray) -> None:
     """
     Fold the completed vessels into the fleet results and write the fleet's results.
 
-    The vessels' written values enter weighted by their multipliers; the fleet's
+    The vessels' written values enter weighted by their counts; the fleet's
     energies, baseline, savings, totals and technology uptake follow from them;
     last, each vessel's achieved charter and freight rates are computed from its
     completed expenses over the steps it was in the fleet, and the fleet's freight
@@ -102,7 +102,7 @@ def complete_global_fleet_results(results: GlobalResults) -> None:
 
 def _fold_vessels(fleet: Fleet) -> None:
     """
-    Fold the per-step vessel values into the fleet results by their multipliers.
+    Fold the per-step vessel values into the fleet results by their counts.
 
     Parameters
     ----------
@@ -136,7 +136,7 @@ def _transfer_in_fleet_flags(fleet: Fleet) -> None:
 
 def _transfer_fuel_consumer_results(fleet: Fleet) -> None:
     """
-    Add the multiplier-weighted vessel emissions, energy and fuel expenses to the fleet.
+    Add the count-weighted vessel emissions, energy and fuel expenses to the fleet.
 
     Parameters
     ----------
@@ -198,9 +198,9 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
     results = fleet.results
     vessel_map = {vessel.name: vessel for vessel in fleet.vessels}
 
-    for (name_from, name_to), multipliers in results.fuel_conversions.items():
+    for (name_from, name_to), counts in results.fuel_conversions.items():
         # conversions below tolerance are numerical residue, not decisions
-        converted = np.where(multipliers < TOLERANCE, 0.0, multipliers)
+        converted = np.where(counts < TOLERANCE, 0.0, counts)
 
         if not np.any(converted):
             continue
@@ -229,10 +229,10 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
 
 def _aggregate_reference_speed(fleet: Fleet) -> None:
     """
-    Average the vessels' reference speeds, weighted by their multipliers.
+    Average the vessels' reference speeds, weighted by their counts.
 
     A vessel without a reference speed at a step adds nothing to the speed total but
-    keeps its multiplier in the weight.
+    keeps its count in the weight.
 
     Parameters
     ----------
@@ -240,23 +240,23 @@ def _aggregate_reference_speed(fleet: Fleet) -> None:
         Fleet whose vessels' reference speeds are averaged.
     """
     results = fleet.results
-    multipliers = results.existing_vessels
+    counts = results.existing_vessels
     reference_total = np.zeros(results.reference_speed.size)
     weight = np.zeros(results.reference_speed.size)
 
     for vessel in fleet.vessels:
-        multiplier = multipliers[vessel.name]
+        count = counts[vessel.name]
         reference = vessel.results.reference_speed
 
-        reference_total += np.where(np.isnan(reference), 0.0, multiplier * reference)
-        weight += multiplier
+        reference_total += np.where(np.isnan(reference), 0.0, count * reference)
+        weight += count
 
     results.reference_speed[:] = divide_nonzero(reference_total, weight, default=np.nan)
 
 
 def _aggregate_operating_speeds(fleet: Fleet) -> None:
     """
-    Average the vessels' operating speeds, weighted by their multipliers.
+    Average the vessels' operating speeds, weighted by their counts.
 
     A vessel is left out at a step where its minimum, maximum or actual speed is NaN.
     A NaN optimal, lowest or highest speed on a vessel left in poisons only its own
@@ -268,7 +268,7 @@ def _aggregate_operating_speeds(fleet: Fleet) -> None:
         Fleet whose vessels' operating speeds are averaged.
     """
     results = fleet.results
-    multipliers = results.existing_vessels
+    counts = results.existing_vessels
     size = results.actual_speed.size
 
     minimum_total = np.zeros(size)
@@ -280,7 +280,7 @@ def _aggregate_operating_speeds(fleet: Fleet) -> None:
     weight = np.zeros(size)
 
     for vessel in fleet.vessels:
-        multiplier = multipliers[vessel.name]
+        count = counts[vessel.name]
         vessel_results = vessel.results
 
         minimum = vessel_results.minimum_speed
@@ -292,13 +292,13 @@ def _aggregate_operating_speeds(fleet: Fleet) -> None:
 
         defined = ~(np.isnan(minimum) | np.isnan(maximum) | np.isnan(actual))
 
-        minimum_total += np.where(defined, multiplier * minimum, 0.0)
-        maximum_total += np.where(defined, multiplier * maximum, 0.0)
-        actual_total += np.where(defined, multiplier * actual, 0.0)
-        optimal_total += np.where(defined, multiplier * optimal, 0.0)
-        lowest_total += np.where(defined, multiplier * lowest, 0.0)
-        highest_total += np.where(defined, multiplier * highest, 0.0)
-        weight += np.where(defined, multiplier, 0.0)
+        minimum_total += np.where(defined, count * minimum, 0.0)
+        maximum_total += np.where(defined, count * maximum, 0.0)
+        actual_total += np.where(defined, count * actual, 0.0)
+        optimal_total += np.where(defined, count * optimal, 0.0)
+        lowest_total += np.where(defined, count * lowest, 0.0)
+        highest_total += np.where(defined, count * highest, 0.0)
+        weight += np.where(defined, count, 0.0)
 
     results.minimum_speed[:] = divide_nonzero(minimum_total, weight, default=np.nan)
     results.maximum_speed[:] = divide_nonzero(maximum_total, weight, default=np.nan)
@@ -318,12 +318,12 @@ def _transfer_transport_work(fleet: Fleet) -> None:
         Fleet whose transport work is transferred.
     """
     results = fleet.results
-    multipliers = results.existing_vessels
+    counts = results.existing_vessels
     cargo_miles = np.zeros(results.cargo_miles.size)
 
     for vessel in fleet.vessels:
-        multiplier = multipliers[vessel.name]
-        cargo_miles += multiplier * vessel.expectation.cargo_miles
+        count = counts[vessel.name]
+        cargo_miles += count * vessel.expectation.cargo_miles
 
     results.cargo_miles[:] = cargo_miles
 
@@ -648,11 +648,11 @@ def _aggregate_fleet_freight_rate(fleet: Fleet) -> None:
     """
     Aggregate a fleet-level instantaneous freight rate, in USD/cargo-mile.
 
-    The fleet rate is the multiplier-weighted total achieved charter cost divided by the
-    multiplier-weighted cargo-miles delivered, making it the cargo-mile-consistent
+    The fleet rate is the count-weighted total achieved charter cost divided by the
+    count-weighted cargo-miles delivered, making it the cargo-mile-consistent
     counterpart of the per-vessel instantaneous freight rate. A vessel contributes at
-    every time-step where its cost is calculated unless its multiplier is zero or
-    negative; the rate is NaN wherever the weighted cargo-miles are not positive.
+    every time-step where its cost is calculated unless its count is zero or negative;
+    the rate is NaN wherever the weighted cargo-miles are not positive.
 
     Parameters
     ----------
@@ -660,21 +660,21 @@ def _aggregate_fleet_freight_rate(fleet: Fleet) -> None:
         Fleet whose vessels are aggregated.
     """
     results = fleet.results
-    multipliers = results.existing_vessels
+    counts = results.existing_vessels
     cost_total = np.zeros(results.instantaneous_freight_rate.size)
     cargo_total = np.zeros(results.instantaneous_freight_rate.size)
 
     for vessel in fleet.vessels:
-        multiplier = multipliers[vessel.name]
+        count = counts[vessel.name]
         charter_rate = vessel.results.cargo_charter_rate
         cargo_miles = vessel.expectation.cargo_miles
 
-        # a NaN multiplier stays active so it surfaces in the rate instead of
-        # being dropped silently
-        active = ~(multiplier <= 0.0) & vessel.results.cost_is_calculated
+        # a NaN count stays active so it surfaces in the rate instead of being
+        # dropped silently
+        active = ~(count <= 0.0) & vessel.results.cost_is_calculated
 
-        cost_total += np.where(active, multiplier * charter_rate, 0.0)
-        cargo_total += np.where(active, multiplier * cargo_miles, 0.0)
+        cost_total += np.where(active, count * charter_rate, 0.0)
+        cargo_total += np.where(active, count * cargo_miles, 0.0)
 
     results.instantaneous_freight_rate[:] = divide_nonzero(
         cost_total, cargo_total, default=np.nan
