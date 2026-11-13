@@ -49,8 +49,8 @@ def update_energy_conservation_constraints(
     legs = route.get_legs()
     stops = route.get_stops()
 
-    demands_sea = expectation.get_energy_sea_leg(alg.idx)
-    demands_port = expectation.get_energy_port(alg.idx)
+    demands_sea = expectation.energy_sea_leg.at[alg.idx]
+    demands_port = expectation.energy_port.at[alg.idx]
 
     for demand_type in EnergyDemandID:
         _update_sea_rows(alg, vessel, demand_type, demands_sea[demand_type], legs)
@@ -163,7 +163,7 @@ def _calculate_energy_per_ton(vessel: Vessel, converter: Converter) -> dict[str,
     """
     c = converter.name
     efficiency = converter.efficiency.get()
-    lhv = vessel.expectation.get_effective_lhv
+    lhv = vessel.expectation.effective_lhv
     fuels = vessel.fuels_per_converter[c]
 
-    return {f: efficiency * lhv(c, f) for f in fuels}
+    return {f: efficiency * lhv[c, f] for f in fuels}

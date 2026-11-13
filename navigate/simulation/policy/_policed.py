@@ -75,12 +75,12 @@ def calculate_vessel_account(
     """
     expectation = regulation.expectation
 
-    emissions = expectation.get_vessel_emissions(vessel_name, idx)
+    emissions = expectation.vessel_emissions[vessel_name][idx]
     measure = calculate_achieved_measure(regulation, vessel_name, idx)
     threshold = get_adjusted_threshold(regulation, vessel_name, idx)
 
     if np.isnan(threshold):
-        threshold = expectation.get_vessel_threshold(vessel_name, idx)
+        threshold = expectation.vessel_threshold[vessel_name][idx]
 
     return VesselAccount(emissions, measure, threshold * measure)
 
@@ -113,9 +113,11 @@ def get_adjusted_threshold(regulation: Regulation, vessel_name: str, idx: int) -
     is_absolute = regulation.measure == RegulationMeasureID.ABSOLUTE
 
     if is_flexible and not is_absolute:
-        return expectation.get_adjusted_shared_threshold(idx)
+        shared_threshold: float = expectation.adjusted_shared_threshold[idx]
+        return shared_threshold
 
-    return expectation.get_adjusted_vessel_threshold(vessel_name, idx)
+    threshold: float = expectation.adjusted_vessel_threshold[vessel_name][idx]
+    return threshold
 
 
 def calculate_achieved_measure(
@@ -143,9 +145,11 @@ def calculate_achieved_measure(
     # the energy, and with it the measure, of an intensity regulation is a result of
     # the bunkering
     if regulation.measure == RegulationMeasureID.INTENSITY:
-        return expectation.get_vessel_energy(vessel_name, idx) / TON_TO_KG
+        energy: float = expectation.vessel_energy[vessel_name][idx]
+        return energy / TON_TO_KG
 
-    return expectation.get_vessel_measure(vessel_name, idx)
+    measure: float = expectation.vessel_measure[vessel_name][idx]
+    return measure
 
 
 def normalize_by_measure(regulation: Regulation, value: float, measure: float) -> float:

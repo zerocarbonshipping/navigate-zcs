@@ -59,7 +59,7 @@ class Port(Node):
         self.shore_power_emission_factors: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------
-        self.expectation: PortExpectation = PortExpectation()
+        self.expectation: PortExpectation
         self.results: PortResults = PortResults()
 
         self.liquid_market_fuel: dict[str, bool] = {}
@@ -201,7 +201,7 @@ class Port(Node):
     def initialize_expectation(
         self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
     ) -> None:
-        self.expectation.initialize(length, fuels, emissions)
+        self.expectation = PortExpectation(length, fuels, emissions)
 
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)

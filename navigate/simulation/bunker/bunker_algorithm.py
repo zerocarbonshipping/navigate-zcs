@@ -357,7 +357,7 @@ class BunkerAlgorithm:
             expectation = fleet.expectation
 
             for vessel in fleet.vessels:
-                multiplier = expectation.get_multiplier(vessel.name, self.scope, steps)
+                multiplier = expectation.multiplier[vessel.name, self.scope][steps]
                 yield vessel, multiplier
 
     def _reset_dynamic_properties(self) -> None:

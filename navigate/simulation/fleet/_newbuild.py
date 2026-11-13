@@ -247,7 +247,7 @@ def update_current_uptake(fleet: Fleet, newbuilds: FloatArray, idx: int) -> None
         fleet.current_uptake = trade / np.dot(newbuilds, cargo_miles)
 
     shares = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))
-    fleet.expectation.set_uptakes(idx, shares)
+    fleet.expectation.uptakes[:, idx] = shares
 
 
 def _calculate_delivery(
@@ -360,7 +360,7 @@ def _calculate_modelled_uptake(
         Uptake share of each vessel type, fraction.
     """
     fuel_types = [vessel.primary_fuel_type for vessel in vessels]
-    metrics = [vessel.expectation.get_freight_rate(idx) for vessel in vessels]
+    metrics = [vessel.expectation.freight_rate[idx] for vessel in vessels]
 
     return calculate_two_axis_uptake(
         group_keys=fuel_types,

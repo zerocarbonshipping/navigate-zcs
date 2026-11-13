@@ -52,7 +52,7 @@ def calculate_jurisdiction_fractions(
     for route in routes.values():
         for port in route.ports:
             fraction = intra if port.name in jurisdiction else 0.0
-            expectation.set_port_fraction(port.name, idx, fraction)
+            expectation.port_fraction[port.name][idx:] = fraction
 
         for leg in route.get_leg_keys():
             inside = [name in jurisdiction for name in leg]
@@ -64,7 +64,7 @@ def calculate_jurisdiction_fractions(
             else:
                 fraction = extra
 
-            expectation.set_leg_fraction(leg, idx, fraction)
+            expectation.leg_fraction[leg][idx:] = fraction
 
 
 def calculate_regulation_measures(
@@ -97,7 +97,7 @@ def calculate_regulation_measures(
 
         for vessel_name, vessel in select_policed(regulation, vessels).items():
             measure = _calculate_vessel_measure(regulation, vessel, times, idx)
-            regulation.expectation.set_vessel_measure(vessel_name, idx, measure)
+            regulation.expectation.vessel_measure[vessel_name][idx:] = measure
 
 
 def _calculate_vessel_measure(
@@ -134,9 +134,9 @@ def _calculate_vessel_measure(
         return 0.0
 
     if regulation.measure == RegulationMeasureID.TRANSPORT:
-        cargo_miles = vessel.expectation.get_cargo_miles_leg(forward)
+        cargo_miles = vessel.expectation.cargo_miles_leg.at[forward]
     else:
-        cargo_miles = vessel.expectation.get_cargo_miles_leg_nominal(forward)
+        cargo_miles = vessel.expectation.cargo_miles_leg_nominal.at[forward]
 
     return _calculate_transport_measure(regulation, vessel, cargo_miles, times, idx)
 
@@ -178,10 +178,10 @@ def _calculate_transport_measure(
 
     regulated_cargo_miles = 0.0
     for leg, cargo_miles_leg in zip(legs, cargo_miles, strict=True):
-        fraction = expectation.get_leg_fraction(leg, forward)
+        fraction = expectation.leg_fraction[leg][forward]
         regulated_cargo_miles += fraction * cargo_miles_leg
 
-    capacity = expectation.get_vessel_capacity(vessel.name, forward)
+    capacity = expectation.vessel_capacity[vessel.name][forward]
     nominal_capacity = vessel.nominal_capacity.get(times)
     capacity_ratio = capacity / nominal_capacity
 

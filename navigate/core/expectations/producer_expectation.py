@@ -5,37 +5,21 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from itertools import product
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_dict
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Mapping
-
-    from navigate.util.types_ import FloatArray, FloatLike, Index
+    from collections.abc import Collection
 
 
 class ProducerExpectation(_Expectation):
     """Export shares, feed use, fair-share demand and production paths of a producer."""
 
-    def __init__(self) -> None:
-        super().__init__()
-
-        self._export_shares: dict[str, dict[str, FloatArray]]
-
-        self._plant_feed_consumption: dict[tuple[str, str], float]
-        self._feed_gap: dict[str, FloatArray]
-
-        self._development_potential: dict[str, float]
-        self._fair_share_demand: dict[str, FloatArray]
-
-        self._guaranteed_production: dict[str, FloatArray]
-        self._expected_production: dict[str, FloatArray]
-
-    def initialize(
+    def __init__(
         self,
         length: int,
         plant_names: Collection[str],
@@ -44,79 +28,18 @@ class ProducerExpectation(_Expectation):
         port_names: Collection[str],
         process_names: Collection[str],
     ) -> None:
-        self._initialize_expectation(length)
-
-        self._export_shares = self._default_dict_dict_array(fuel_names, port_names)
+        super().__init__(length)
 
         feed_names = [*feedstock_names, *process_names]
-        self._plant_feed_consumption = self._default_tuple_dict_float(
-            plant_names, feed_names
-        )
-        self._feed_gap = self._default_dict_array(feed_names, default=np.inf)
 
-        self._development_potential = self._default_dict_float(fuel_names)
-        self._fair_share_demand = self._default_dict_array(fuel_names)
+        # per fuel, then per port
+        self.export_share = {name: self._paths(port_names) for name in fuel_names}
 
-        self._guaranteed_production = self._default_dict_array(plant_names)
-        self._expected_production = self._default_dict_array(plant_names)
+        self.plant_feed_consumption = self._values(product(plant_names, feed_names))
+        self.feed_gap = self._paths(feed_names, default=np.inf)
 
-    def set_export_share(
-        self, fuel_name: str, port_name: str, idx: int, share: FloatArray
-    ) -> None:
-        self._export_shares[fuel_name][port_name][idx:] = share
+        self.development_potential = self._values(fuel_names)
+        self.fair_share_demand = self._paths(fuel_names)
 
-    def set_plant_feed_consumption(
-        self, plant_name: str, feed_name: str, consumption: float
-    ) -> None:
-        self._plant_feed_consumption[plant_name, feed_name] = consumption
-
-    def set_feed_gap(self, feed_name: str, idx: int, gap: FloatArray) -> None:
-        self._feed_gap[feed_name][idx:] = gap
-
-    def set_development_potential(self, fuel_name: str, potential: float) -> None:
-        self._development_potential[fuel_name] = potential
-
-    def set_fair_share_demand(
-        self, fuel_name: str, idx: int, demand: FloatLike
-    ) -> None:
-        self._fair_share_demand[fuel_name][idx:] = demand
-
-    def set_guaranteed_production(
-        self, plant_name: str, idx: int, production: FloatArray
-    ) -> None:
-        self._guaranteed_production[plant_name][idx:] = production
-
-    def set_expected_production(
-        self, plant_name: str, idx: int, production: FloatArray
-    ) -> None:
-        self._expected_production[plant_name][idx:] = production
-
-    @overload
-    def get_export_shares(self, fuel_name: str, idx: int) -> dict[str, float]: ...
-
-    @overload
-    def get_export_shares(
-        self, fuel_name: str, idx: slice
-    ) -> dict[str, FloatArray]: ...
-
-    def get_export_shares(self, fuel_name: str, idx: Index) -> Mapping[str, FloatLike]:
-        return slice_dict(self._export_shares[fuel_name], idx)
-
-    def get_plant_feed_consumption(self, plant_name: str, feed_name: str) -> float:
-        return self._plant_feed_consumption[plant_name, feed_name]
-
-    def get_feed_gap(self, feed_name: str, idx: int) -> float:
-        gap: float = self._feed_gap[feed_name][idx]
-        return gap
-
-    def get_development_potential(self, fuel_name: str) -> float:
-        return self._development_potential[fuel_name]
-
-    def get_fair_share_demand(self) -> dict[str, FloatArray]:
-        return self._fair_share_demand
-
-    def get_guaranteed_production(self, plant_name: str, idx: slice) -> FloatArray:
-        return self._guaranteed_production[plant_name][idx]
-
-    def get_expected_production(self, plant_name: str, idx: slice) -> FloatArray:
-        return self._expected_production[plant_name][idx]
+        self.guaranteed_production = self._paths(plant_names)
+        self.expected_production = self._paths(plant_names)

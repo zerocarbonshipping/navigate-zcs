@@ -274,8 +274,8 @@ def _propose_fuel_conversions(
     # debit this working copy so the DCM supply cap stays realistic
     supply_excess: dict[FuelTypeID, float] = {}
     for fuel_type in FuelTypeID:
-        supply = fleet.expectation.get_fuel_type_supply(fuel_type)
-        capacity = fleet.expectation.get_fuel_type_capacity(fuel_type)
+        supply = fleet.expectation.fuel_type_supply[fuel_type]
+        capacity = fleet.expectation.fuel_type_capacity[fuel_type]
         supply_excess[fuel_type] = supply - capacity
 
     proposals = []
@@ -492,9 +492,9 @@ def _extract_conversion_source(
         vessel_from.name,
         vessel_from.primary_fuel_type,
         vessel_from.lifetime.get(),
-        vessel_from.expectation.get_total_energy(idx),
+        vessel_from.expectation.total_energy[idx],
         fuel_cost_flows[vessel_from.name],
-        vessel_from.expectation.get_capex_npv(idx),
+        vessel_from.expectation.capex_npv[idx],
         targets,
     )
 
@@ -527,7 +527,7 @@ def _extract_conversion_target(
     """
     # a numpy scalar keeps the supply cap's division numpy division: a zero energy
     # gives an unbounded vessel count, not a ZeroDivisionError
-    energy_per_vessel = np.float64(vessel_to.expectation.get_total_energy(idx))
+    energy_per_vessel = np.float64(vessel_to.expectation.total_energy[idx])
 
     return _ConversionTarget(
         vessel_to.name,
@@ -883,7 +883,7 @@ def _calculate_fuel_type_capacity(fleet: Fleet) -> None:
     """
     for vessel, multiplier in _vessels_in_service(fleet):
         for converter in vessel.get_converters():
-            converter_energy = vessel.expectation.get_spend_energy(converter.name)
+            converter_energy = vessel.expectation.spend_energy[converter.name]
             fleet_energy = converter_energy * multiplier
 
             # pilot fuel counts at its minimum share only: the figure tracks main
@@ -898,10 +898,10 @@ def _calculate_fuel_type_capacity(fleet: Fleet) -> None:
             pilot_capacity = pilot_fuel_share * fleet_energy
 
             for fuel_type in converter.main_fuel_types:
-                fleet.expectation.add_fuel_type_capacity(fuel_type, main_capacity)
+                fleet.expectation.fuel_type_capacity[fuel_type] += main_capacity
 
             for fuel_type in converter.pilot_fuel_types:
-                fleet.expectation.add_fuel_type_capacity(fuel_type, pilot_capacity)
+                fleet.expectation.fuel_type_capacity[fuel_type] += pilot_capacity
 
 
 def _calculate_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
@@ -925,7 +925,7 @@ def _calculate_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
             mass = _get_supply_mass(vessel, port, fuel.name, idx)
             lhv = fuel.lower_heating_value.get()
             supply = mass * lhv * multiplier
-            fleet.expectation.add_fuel_type_supply(fuel.fuel_type, supply)
+            fleet.expectation.fuel_type_supply[fuel.fuel_type] += supply
 
 
 def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> float:
@@ -952,11 +952,11 @@ def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> fl
     float
         Fuel mass counting for one vessel, in tons.
     """
-    supply = port.expectation.get_bunker_supply(fuel_name, idx)
+    supply: float = port.expectation.bunker_supply[fuel_name][idx]
     if not np.isfinite(supply):
         return supply
 
-    return vessel.expectation.get_allocation_fuel_existing(port.name, fuel_name)
+    return vessel.expectation.allocation_fuel_existing[port.name, fuel_name]
 
 
 def _vessels_in_service(fleet: Fleet) -> Iterator[tuple[Vessel, float]]:

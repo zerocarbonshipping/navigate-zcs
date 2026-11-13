@@ -5,89 +5,36 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from itertools import product
+from typing import TYPE_CHECKING
+
+import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID, FuelTypeID
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import slice_dict
 
 if TYPE_CHECKING:
     from collections.abc import Collection
-
-    from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
 class FleetExpectation(_Expectation):
     """Vessel multipliers, fuel demand, uptakes and realized fuel-type totals."""
 
-    def __init__(self) -> None:
-        super().__init__()
-
-        self._multipliers: dict[tuple[str, BunkerScopeID], FloatArray]
-        self._fuel_demand: dict[str, FloatArray]
-
-        self._uptakes: FloatArray
-
-        self._fuel_type_capacity: dict[FuelTypeID, float]
-        self._fuel_type_supply: dict[FuelTypeID, float]
-
-    def initialize(
+    def __init__(
         self, length: int, vessel_names: Collection[str], fuel_names: Collection[str]
     ) -> None:
-        self._initialize_expectation(length)
+        super().__init__(length)
 
-        self._multipliers = self._default_tuple_dict_array(vessel_names, BunkerScopeID)
-        self._fuel_demand = self._default_dict_array(fuel_names)
+        self.multiplier = self._paths(product(vessel_names, BunkerScopeID))
+        self.fuel_demand = self._paths(fuel_names)
 
-        self._uptakes = self._default_2d_array(len(vessel_names))
+        # one row per vessel, one column per time step
+        self.uptakes = np.zeros((len(vessel_names), length))
 
-        self._fuel_type_capacity = self._default_dict_float(FuelTypeID)
-        self._fuel_type_supply = self._default_dict_float(FuelTypeID)
+        self.fuel_type_capacity = self._values(FuelTypeID)
+        self.fuel_type_supply = self._values(FuelTypeID)
 
     def reset_fuel_type_totals(self) -> None:
-        self._reset_dict_float(self._fuel_type_capacity)
-        self._reset_dict_float(self._fuel_type_supply)
-
-    def set_multiplier(
-        self, vessel_name: str, scope: BunkerScopeID, idx: int, multiplier: FloatArray
-    ) -> None:
-        self._multipliers[vessel_name, scope][idx:] = multiplier
-
-    def set_fuel_demand(self, fuel_name: str, idx: int, demand: FloatLike) -> None:
-        self._fuel_demand[fuel_name][idx:] = demand
-
-    def set_uptakes(self, idx: int, uptakes: FloatArray) -> None:
-        self._uptakes[:, idx] = uptakes
-
-    def add_fuel_type_capacity(self, fuel_type: FuelTypeID, capacity: float) -> None:
-        self._fuel_type_capacity[fuel_type] += capacity
-
-    def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float) -> None:
-        self._fuel_type_supply[fuel_type] += supply
-
-    @overload
-    def get_multiplier(
-        self, vessel_name: str, scope: BunkerScopeID, idx: int
-    ) -> float: ...
-
-    @overload
-    def get_multiplier(
-        self, vessel_name: str, scope: BunkerScopeID, idx: slice
-    ) -> FloatArray: ...
-
-    def get_multiplier(
-        self, vessel_name: str, scope: BunkerScopeID, idx: Index
-    ) -> FloatLike:
-        return self._multipliers[vessel_name, scope][idx]
-
-    def get_fuel_demand(self, idx: slice) -> dict[str, FloatArray]:
-        return slice_dict(self._fuel_demand, idx)
-
-    def get_uptakes(self, idx: int) -> FloatArray:
-        return self._uptakes[:, : idx + 1]
-
-    def get_fuel_type_capacity(self, fuel_type: FuelTypeID) -> float:
-        return self._fuel_type_capacity[fuel_type]
-
-    def get_fuel_type_supply(self, fuel_type: FuelTypeID) -> float:
-        return self._fuel_type_supply[fuel_type]
+        """Zero the fuel-type capacity and supply totals, summed anew each step."""
+        self.fuel_type_capacity = self._values(FuelTypeID)
+        self.fuel_type_supply = self._values(FuelTypeID)

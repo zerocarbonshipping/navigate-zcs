@@ -46,13 +46,13 @@ def _transfer_spend(alg: BunkerAlgorithm, v: str, c: str, f: str, spend: float) 
     expectation = vessel.expectation
 
     # the effective LHV accounts for slip
-    spend_energy = spend * expectation.get_effective_lhv(c, f)
-    expectation.add_spend_energy(c, spend_energy)
+    spend_energy = spend * expectation.effective_lhv[c, f]
+    expectation.spend_energy[c] += spend_energy
 
     # the recorded emissions always count the slip, whatever a policy counts
     for emission_name in alg.emissions:
-        ttw_consumption = expectation.get_ttw_consumption(c, f, emission_name)
-        ttw_slip = expectation.get_ttw_slip(c, f, emission_name)
+        ttw_consumption = expectation.ttw_consumption[c, f, emission_name]
+        ttw_slip = expectation.ttw_slip[c, f, emission_name]
 
         ttw_emissions = (ttw_consumption + ttw_slip) * spend
         vessel.results.ttw[f, emission_name][alg.idx] += ttw_emissions

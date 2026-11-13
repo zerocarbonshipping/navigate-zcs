@@ -66,8 +66,8 @@ def calculate_plant_production_expectations(
 
     # TODO: drop the forward calculation once the fuel market expectation is simplified
     for t, time in enumerate(timeline[idx:], start=idx):
-        lead_time = expectation.get_lead_time(t)
-        lifetime = expectation.get_lifetime(t)
+        lead_time = expectation.lead_time[t]
+        lifetime = expectation.lifetime[t]
 
         # the flow sizes depend on the lead time and lifetime alone, so an
         # unchanged pair reuses the component instead of reallocating it
@@ -109,10 +109,10 @@ def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) ->
     production = capacity * uptime
 
     expectation = plant.expectation
-    expectation.set_lifetime(idx, lifetime)
-    expectation.set_lead_time(idx, lead_time)
-    expectation.set_size(idx, size)
-    expectation.set_production(idx, production)
+    expectation.lifetime[idx:] = lifetime
+    expectation.lead_time[idx:] = lead_time
+    expectation.size[idx:] = size
+    expectation.production[idx:] = production
 
 
 def _build_component(
@@ -147,8 +147,8 @@ def _build_component(
         Component with zeroed flows.
     """
     # Python floats, as the flow sizing rounds them and numpy's round() can differ
-    lead_time = float(plant.expectation.get_lead_time(idx))
-    lifetime = float(plant.expectation.get_lifetime(idx))
+    lead_time = float(plant.expectation.lead_time[idx])
+    lifetime = float(plant.expectation.lifetime[idx])
 
     component = Component(lead_time, lifetime, time_initial, emission_names)
     component.attach_process_cycle(plant.region, process.name)
@@ -186,10 +186,10 @@ def _add_process_tree(
     expectation = plant.expectation
     time_initial = component.time_initial
 
-    size = expectation.get_size(idx)
-    production = expectation.get_production(idx)
+    size = expectation.size[idx]
+    production = expectation.production[idx]
 
-    expectation.add_feed_conversion(process.name, idx, conversion)
+    expectation.feed_conversion[process.name][idx] += conversion
 
     _add_process_flows(component, plant, process, size, production, conversion)
     _add_energy_flows(component, plant, process, production, conversion)
@@ -199,7 +199,7 @@ def _add_process_tree(
         feed_conversion = conversion * feed_ratio.get(time_initial)
 
         if is_feedstock(feed):
-            expectation.add_feed_conversion(feed.name, idx, feed_conversion)
+            expectation.feed_conversion[feed.name][idx] += feed_conversion
 
             _add_feedstock_flows(component, plant, feed, production, feed_conversion)
             _add_transport_flows(component, plant, feed, production, feed_conversion)
@@ -438,17 +438,17 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     expectation = plant.expectation
     commence_idx = component.get_commence_index()
 
-    production = expectation.get_production(idx)
+    production = expectation.production[idx]
     production_flow = build_production_flow(component, production)
 
     cost_flow = component.get_cost_flow()
     discount_rate = plant.cost_of_capital.get(component.time_initial)
     levelized_cost = calculate_levelized_cost(cost_flow, production_flow, discount_rate)
-    expectation.set_levelized_production_cost(idx, levelized_cost)
+    expectation.levelized_production_cost[idx] = levelized_cost
 
     # a copy, since the component is reused and refilled for the next step
     tied_capital = component.tied_capital_flow[commence_idx:].copy()
-    expectation.set_tied_capital(idx, tied_capital)
+    expectation.tied_capital[idx] = tied_capital
 
     # TODO: recertify the plant every year instead of at its first operating year,
     # which requires reworking the Producer node. Unlike the cost, which converts to a
@@ -458,4 +458,4 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     production_commence = production_flow[commence_idx]
     for emission_name, wtt_flow in component.wtt_flows.items():
         wtt = wtt_flow[commence_idx] / production_commence
-        expectation.set_production_wtt(emission_name, idx, wtt)
+        expectation.production_wtt[emission_name][idx] = wtt

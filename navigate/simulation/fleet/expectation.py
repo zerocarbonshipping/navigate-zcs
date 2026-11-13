@@ -66,7 +66,7 @@ def _calculate_effective_lhv(vessel: Vessel, converter: Converter, fuel: Fuel) -
     slip = converter.slip_fractions[fuel.fuel_type].get()
     effective_lhv = (1.0 - slip) * fuel.lower_heating_value.get()
 
-    vessel.expectation.set_effective_lhv(converter.name, fuel.name, effective_lhv)
+    vessel.expectation.effective_lhv[converter.name, fuel.name] = effective_lhv
 
 
 def _calculate_ttw(
@@ -91,8 +91,8 @@ def _calculate_ttw(
         ttw_slip = slip if emission.fuel_type == fuel_type else 0.0
 
         key = (converter.name, fuel.name, emission_name)
-        expectation.set_ttw_consumption(*key, ttw_consumption)
-        expectation.set_ttw_slip(*key, ttw_slip)
+        expectation.ttw_consumption[key] = ttw_consumption
+        expectation.ttw_slip[key] = ttw_slip
 
 
 def _converter_weights(converters: dict[str, Converter]) -> dict[str, float]:
@@ -136,13 +136,13 @@ def _calculate_mean_effective_lhv(
     lhv_sum = 0.0
 
     for converter_name, weight in weights.items():
-        effective_lhv = expectation.get_effective_lhv(converter_name, fuel.name)
+        effective_lhv = expectation.effective_lhv[converter_name, fuel.name]
         lhv_sum += weight * effective_lhv
 
     lhv = fuel.lower_heating_value.get()
     mean_lhv = lhv_sum / weight_total if weight_total > 0.0 else lhv
 
-    expectation.set_mean_effective_lhv(fuel.name, mean_lhv)
+    expectation.mean_effective_lhv[fuel.name] = mean_lhv
 
 
 def _calculate_mean_ttw(
@@ -166,8 +166,8 @@ def _calculate_mean_ttw(
         slip_sum = 0.0
 
         for converter_name, weight in weights.items():
-            consumption = expectation.get_ttw_consumption(converter_name, *key)
-            slip = expectation.get_ttw_slip(converter_name, *key)
+            consumption = expectation.ttw_consumption[converter_name, *key]
+            slip = expectation.ttw_slip[converter_name, *key]
 
             consumption_sum += weight * consumption
             slip_sum += weight * slip
@@ -175,8 +175,8 @@ def _calculate_mean_ttw(
         mean_consumption = consumption_sum / weight_total if weight_total > 0.0 else 0.0
         mean_slip = slip_sum / weight_total if weight_total > 0.0 else 0.0
 
-        expectation.set_mean_ttw_consumption(*key, mean_consumption)
-        expectation.set_mean_ttw_slip(*key, mean_slip)
+        expectation.mean_ttw_consumption[key] = mean_consumption
+        expectation.mean_ttw_slip[key] = mean_slip
 
 
 def calculate_fleet_evolution_expectation(
@@ -228,8 +228,8 @@ def calculate_fleet_evolution_expectation(
     expectation = fleet.expectation
     for v, vessel in enumerate(fleet.vessels):
         name = vessel.name
-        expectation.set_multiplier(name, BunkerScopeID.EXISTING, idx, existing[v])
-        expectation.set_multiplier(name, BunkerScopeID.EXPECTED, idx, expected[v])
+        expectation.multiplier[name, BunkerScopeID.EXISTING][idx:] = existing[v]
+        expectation.multiplier[name, BunkerScopeID.EXPECTED][idx:] = expected[v]
 
 
 def _forecast_by_age(
@@ -485,7 +485,7 @@ def _newbuild_split(fleet: Fleet, idx: int) -> FloatArray:
     FloatArray
         Share of the newbuilds of each vessel type.
     """
-    uptakes = fleet.expectation.get_uptakes(idx)
+    uptakes = fleet.expectation.uptakes[:, : idx + 1]
     recorded = np.any(uptakes != 0.0, axis=0)
 
     steps_back = idx - np.arange(idx + 1)
@@ -521,14 +521,14 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
 
     for vessel in fleet.vessels:
         expectation = vessel.expectation
-        multipliers = fleet.expectation.get_multiplier(vessel.name, scope, forward)
+        multipliers = fleet.expectation.multiplier[vessel.name, scope][forward]
 
         # the bunkered mass is per port, so a port the route calls more than once
         # counts once
         ports = vessel.route.distinct_ports
         for port, fuel_name in itertools.product(ports, fuels):
-            mass = expectation.get_bunker_mass_expected(port.name, fuel_name, forward)
+            mass = expectation.bunker_mass_expected[port.name, fuel_name][forward]
             demand[fuel_name] += multipliers * mass
 
     for key, value in demand.items():
-        fleet.expectation.set_fuel_demand(key, idx, value)
+        fleet.expectation.fuel_demand[key][idx:] = value

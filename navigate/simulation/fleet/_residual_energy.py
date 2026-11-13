@@ -9,7 +9,11 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import divide_nonzero, energy_to_power, power_to_energy
+from navigate.util import (
+    divide_nonzero,
+    energy_to_power,
+    power_to_energy,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -53,14 +57,14 @@ def calculate_residual_energy(
     """
     expectation = vessel.expectation
 
-    raw_demand_sea = _stack_steps(expectation.get_operational_energy_sea_condition(idx))
-    raw_demand_port = _stack_steps(expectation.get_operational_energy_port(idx))
+    raw_demand_sea = _stack_steps(expectation.operational_energy_sea_condition.at[idx])
+    raw_demand_port = _stack_steps(expectation.operational_energy_port.at[idx])
 
     if package.is_empty:
         return raw_demand_sea, raw_demand_port
 
-    times_sea = np.asarray(expectation.get_time_sea_condition(idx), dtype=float)
-    times_port = np.asarray(expectation.get_time_port(idx), dtype=float)
+    times_sea = np.asarray(expectation.time_sea_condition.at[idx], dtype=float)
+    times_port = np.asarray(expectation.time_port.at[idx], dtype=float)
 
     residual_sea = _calculate_residuals(vessel, package, times_sea, raw_demand_sea)
     residual_port = _calculate_residuals(vessel, package, times_port, raw_demand_port)

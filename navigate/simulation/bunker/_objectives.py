@@ -43,12 +43,12 @@ def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
         The algorithm instance.
     """
     for r, v in alg.regulation_rhs_individual:
-        cost = alg.regulations[r].expectation.get_remedial_cost(alg.idx)
+        cost = alg.regulations[r].expectation.remedial_cost[alg.idx]
         remedial_factor = alg.remedial_factor_individual[r, v]
         alg.model.set_cost(remedial_factor, alg.multipliers[v] * cost)
 
     for r in alg.regulation_rhs_flexibility:
-        cost = alg.regulations[r].expectation.get_remedial_cost(alg.idx)
+        cost = alg.regulations[r].expectation.remedial_cost[alg.idx]
         alg.model.set_cost(alg.remedial_factor_flexibility[r], cost)
 
 
@@ -60,11 +60,11 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     for p, port in enumerate(vessel.route.ports):
         for f, fuel in vessel.bunkerable_fuels[p].items():
-            price = port.expectation.get_bunker_price(f, alg.idx)
+            price = port.expectation.bunker_price[f][alg.idx]
 
             levy_cost = 0.0
             for levy in port.imposed_levies:
-                levy_cost += levy.expectation.get_cost((v, port.name, f), alg.idx)
+                levy_cost += levy.expectation.cost[v, port.name, f][alg.idx]
 
             total_price = price + levy_cost
 
@@ -72,7 +72,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
             # a zero or negative price on available supply is typically unintended
             if is_existing and total_price <= TOLERANCE:
-                supply = port.expectation.get_bunker_supply(f, alg.idx)
+                supply = port.expectation.bunker_supply[f][alg.idx]
 
                 if supply > 0.0:
                     logger.warning(
@@ -93,5 +93,5 @@ def _update_shore_power_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         if (v, p) not in alg.shore_power:
             continue
 
-        cost = port.expectation.get_shore_power_cost(alg.idx)
+        cost = port.expectation.shore_power_cost[alg.idx]
         alg.model.set_cost(alg.shore_power[v, p], multiplier * cost)

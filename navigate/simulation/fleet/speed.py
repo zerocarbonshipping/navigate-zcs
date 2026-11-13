@@ -146,9 +146,9 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
 
     # the actual speed moves from the mean speed set at the previous time-step; before
     # one is first set, the distribution-weighted current speed stands in
-    mu_ref = expectation.get_speed_mean()
+    mu_ref = expectation.speed_mean
     if np.isnan(mu_ref):
-        speeds_current = np.array(expectation.get_speeds_condition(idx), dtype=float)
+        speeds_current = np.array(expectation.speeds_condition.at[idx], dtype=float)
         mu_ref = float(np.average(speeds_current, weights=distribution))
 
     # the technical limits truncate each condition's speed, and those of the
@@ -160,18 +160,18 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
     )
 
     fuel_ref = calculate_fuel_and_policy_expenses(vessel, idx)
-    charter_rate = expectation.get_asset_charter_rate(idx)
+    charter_rate: float = expectation.asset_charter_rate[idx]
 
-    energy_sea_ref = expectation.get_energy_sea_condition(idx)
-    energy_port_ref = expectation.get_energy_port(idx)
-    raw_energy_sea = expectation.get_raw_energy_sea_condition(idx)
-    raw_energy_port = expectation.get_raw_energy_port(idx)
+    energy_sea_ref = expectation.energy_sea_condition.at[idx]
+    energy_port_ref = expectation.energy_port.at[idx]
+    raw_energy_sea = expectation.raw_energy_sea_condition.at[idx]
+    raw_energy_port = expectation.raw_energy_port.at[idx]
 
     savings_sea = calculate_energy_savings(energy_sea_ref, raw_energy_sea)
     savings_port = calculate_energy_savings(energy_port_ref, raw_energy_port)
 
-    fractions_sea = expectation.get_operational_saving_fraction_sea()
-    fractions_port = expectation.get_operational_saving_fraction_port()
+    fractions_sea = expectation.operational_saving_fraction_sea
+    fractions_port = expectation.operational_saving_fraction_port
 
     remaining_sea = {key: 1.0 - value for key, value in fractions_sea.items()}
     remaining_port = {key: 1.0 - value for key, value in fractions_port.items()}
@@ -243,12 +243,12 @@ def _anchor_speed(result: _SpeedResult) -> float:
     """
     expectation = result.vessel.expectation
 
-    if np.isnan(expectation.get_speed_anchor_reference()):
-        expectation.set_speed_anchor_reference(result.mu_route)
-        expectation.set_speed_anchor_optimal(result.mu_optimal)
+    if np.isnan(expectation.speed_anchor_reference):
+        expectation.speed_anchor_reference = result.mu_route
+        expectation.speed_anchor_optimal = result.mu_optimal
 
-    anchor_ref = expectation.get_speed_anchor_reference()
-    anchor_opt = expectation.get_speed_anchor_optimal()
+    anchor_ref = expectation.speed_anchor_reference
+    anchor_opt = expectation.speed_anchor_optimal
 
     return anchor_ref + (result.mu_optimal - anchor_opt)
 
@@ -324,7 +324,7 @@ def _finalize_vessel_speed(
 
     operations_actual = calculate_operations(vessel, trip, speeds_actual)
     transfer_operations(vessel, trip, operations_actual, idx)
-    vessel.expectation.set_speed_mean(mu_actual)
+    vessel.expectation.speed_mean = mu_actual
 
     results = vessel.results
     results.minimum_speed[idx] = np.min(speeds_min[sailed])

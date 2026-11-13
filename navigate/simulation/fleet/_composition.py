@@ -108,7 +108,7 @@ def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> FloatArray:
         Cargo-miles of one vessel of each type, in cargo-miles/year: one per vessel
         for a time-step, one row per vessel for a slice.
     """
-    return np.array([vessel.expectation.get_cargo_miles(idx) for vessel in vessels])
+    return np.array([vessel.expectation.cargo_miles[idx] for vessel in vessels])
 
 
 def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -> bool:

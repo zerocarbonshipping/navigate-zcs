@@ -61,7 +61,7 @@ class Regulation(_Policy):
         self.vessel_capacities: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
-        self.expectation: RegulationExpectation = RegulationExpectation()
+        self.expectation: RegulationExpectation
         self.results: RegulationResults = RegulationResults()
 
         # set on assignment, cleared once the unused-under-this-scheme warning fires
@@ -176,7 +176,9 @@ class Regulation(_Policy):
         self, length: int, routes: dict[str, Route], vessels: dict[str, Vessel]
     ) -> None:
         emission_names = [emission.name for emission in self.emissions]
-        self.expectation.initialize(length, emission_names, routes, vessels)
+        self.expectation = RegulationExpectation(
+            length, emission_names, routes, vessels
+        )
 
     def initialize_results(
         self, context: ResultsContext, vessel_names: Sequence[str]

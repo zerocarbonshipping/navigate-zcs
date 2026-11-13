@@ -45,7 +45,7 @@ def calculate_regulation_bunkering_inputs(
         expectation = regulation.expectation
 
         for vessel_name, vessel in vessels.items():
-            threshold = expectation.get_vessel_threshold(vessel_name, forward)
+            threshold = expectation.vessel_threshold[vessel_name][forward]
 
             calculate_vessel_spend_coefficients(regulation, vessel, threshold, forward)
 
@@ -77,8 +77,8 @@ def calculate_vessel_allowance(
     """
     expectation = regulation.expectation
 
-    measure = expectation.get_vessel_measure(vessel_name, idx)
-    expectation.set_vessel_allowance(vessel_name, idx, threshold * measure)
+    measure = expectation.vessel_measure[vessel_name][idx]
+    expectation.vessel_allowance[vessel_name][idx] = threshold * measure
 
 
 def calculate_vessel_spend_coefficients(
@@ -116,15 +116,15 @@ def calculate_vessel_spend_coefficients(
     for converter_name, fuel_names in vessel.fuels_per_converter.items():
         for fuel_name in fuel_names:
             fuel_key = (vessel_name, converter_name, fuel_name)
-            lhv = vessel.expectation.get_effective_lhv(converter_name, fuel_name)
-            emission = expectation.get_emission_coefficient(fuel_key, idx)
+            lhv = vessel.expectation.effective_lhv[converter_name, fuel_name]
+            emission = expectation.emission_coefficient[fuel_key][idx]
 
             spend = emission - threshold_term * lhv
-            expectation.set_spend_coefficient(fuel_key, idx, spend)
+            expectation.spend_coefficient[fuel_key][idx] = spend
 
     for port in vessel.route.distinct_ports:
         port_key = (vessel_name, port.name)
-        emission = expectation.get_shore_power_emission_coefficient(port.name, idx)
+        emission = expectation.shore_power_emission_coefficient[port.name][idx]
 
         spend = emission - threshold_term
-        expectation.set_shore_power_spend_coefficient(port_key, idx, spend)
+        expectation.shore_power_spend_coefficient[port_key][idx] = spend

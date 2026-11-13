@@ -260,33 +260,6 @@ def sum_by_second_key[K1, K2](
 
 
 @overload
-def slice_list(arrays: Sequence[FloatArray], idx: Step) -> list[float]: ...
-
-
-@overload
-def slice_list(arrays: Sequence[FloatArray], idx: Steps) -> list[FloatArray]: ...
-
-
-def slice_list(arrays: Sequence[FloatArray], idx: Index) -> Sequence[FloatLike]:
-    """
-    Slice each array in a list.
-
-    Parameters
-    ----------
-    arrays
-        Arrays to slice.
-    idx
-        One time-step, or several.
-
-    Returns
-    -------
-    Sequence[FloatLike]
-        Sliced arrays, in order.
-    """
-    return [array[idx] for array in arrays]
-
-
-@overload
 def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Step) -> dict[K, float]: ...
 
 
@@ -311,36 +284,3 @@ def slice_dict[K](dict_: Mapping[K, FloatArray], idx: Index) -> Mapping[K, Float
         Sliced arrays, by key.
     """
     return {key: value[idx] for key, value in dict_.items()}
-
-
-@overload
-def slice_dict_list[K](
-    dict_: Mapping[K, Sequence[FloatArray]], idx: Step
-) -> dict[K, list[float]]: ...
-
-
-@overload
-def slice_dict_list[K](
-    dict_: Mapping[K, Sequence[FloatArray]], idx: Steps
-) -> dict[K, list[FloatArray]]: ...
-
-
-def slice_dict_list[K](
-    dict_: Mapping[K, Sequence[FloatArray]], idx: Index
-) -> Mapping[K, Sequence[FloatLike]]:
-    """
-    Slice each array in each list of a dict of lists.
-
-    Parameters
-    ----------
-    dict_
-        Lists of arrays to slice.
-    idx
-        One time-step, or several.
-
-    Returns
-    -------
-    Mapping[K, Sequence[FloatLike]]
-        Sliced lists of arrays, by key.
-    """
-    return {key: slice_list(value, idx) for key, value in dict_.items()}

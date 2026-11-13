@@ -105,14 +105,14 @@ def _calculate_import_from_liquid_market(
 
         for fuel_name in fuels:
             allowed = port.bunkering_allowed[fuel_name]
-            limit = expectation.get_bunkering_limit(fuel_name, forward)
+            limit = expectation.bunkering_limit[fuel_name][forward]
 
             bunker_price = _calculate_bunker_price(port, fuel_name, zeros, forward)
             bunker_wtts = _calculate_bunker_wtts(port, fuel_name, zero_wtts, forward)
             bunker_supply = limit if allowed else zeros
 
             _set_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
-            expectation.set_bunker_supply(fuel_name, idx, bunker_supply)
+            expectation.bunker_supply[fuel_name][idx:] = bunker_supply
 
             if allowed:
                 _record_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
@@ -182,10 +182,10 @@ def _calculate_import_from_producers(
         # a port without a bunker price supplies nothing, so the optimizer cannot use
         # the fuel at zero cost
         for port_name, port in ports.items():
-            bunker_price = port.expectation.get_bunker_price(fuel_name, forward)
+            bunker_price = port.expectation.bunker_price[fuel_name][forward]
             bunker_supply = np.where(bunker_price > TOLERANCE, aligned[port_name], 0.0)
 
-            port.expectation.set_bunker_supply(fuel_name, idx, bunker_supply)
+            port.expectation.bunker_supply[fuel_name][idx:] = bunker_supply
             port.results.bunker_supply_mass[fuel_name][idx] = bunker_supply[0]
 
 
@@ -241,8 +241,8 @@ def _calculate_import_totals(
 
         for plant in producer.plants:
             fuel_name = plant.fuel.name
-            production = expectation.get_expected_production(plant.name, forward)
-            shares = expectation.get_export_shares(fuel_name, forward)
+            production = expectation.expected_production[plant.name][forward]
+            shares = expectation.export_share[fuel_name].at[forward]
 
             for port_name, share in shares.items():
                 supply = production * share
@@ -286,8 +286,8 @@ def _calculate_delivered_cost(
         Production plus delivery cost, in USD/t.
     """
     expectation = plant.expectation
-    production_cost = expectation.get_expected_production_cost(forward)
-    delivery_cost = expectation.get_levelized_delivery_cost(port_name, forward)
+    production_cost = expectation.expected_production_cost[forward]
+    delivery_cost = expectation.levelized_delivery_cost[port_name][forward]
     return production_cost + delivery_cost
 
 
@@ -314,10 +314,9 @@ def _calculate_delivered_wtts(
     expectation = plant.expectation
     wtts: dict[str, FloatLike] = {}
 
-    for emission_name in expectation.get_emissions():
-        production_wtt = expectation.get_expected_production_wtt(emission_name, forward)
-        delivery_wtt = expectation.get_delivery_wtt(port_name, emission_name, forward)
-        wtts[emission_name] = production_wtt + delivery_wtt
+    for emission_name, production_wtt in expectation.expected_production_wtt.items():
+        delivery_wtt = expectation.delivery_wtt[port_name, emission_name][forward]
+        wtts[emission_name] = production_wtt[forward] + delivery_wtt
 
     return wtts
 
@@ -346,10 +345,10 @@ def _set_bunker_terms(
         Current time-step index.
     """
     expectation = port.expectation
-    expectation.set_bunker_price(fuel_name, idx, bunker_price)
+    expectation.bunker_price[fuel_name][idx:] = bunker_price
 
     for key, value in bunker_wtts.items():
-        expectation.set_bunker_wtt(fuel_name, key, idx, value)
+        expectation.bunker_wtt[fuel_name, key][idx:] = value
 
 
 def _record_bunker_terms(
@@ -404,13 +403,13 @@ def _calculate_bunker_price(
     FloatArray
         Bunker price, in USD/t.
     """
-    overwrite = port.expectation.get_bunker_price_overwrite(fuel_name, forward)
+    overwrite = port.expectation.bunker_price_overwrite[fuel_name][forward]
     overwritten = port.bunker_price_overwrites[fuel_name] is not None
     price = overwrite if overwritten else fallback
 
     # the overwrite getter returns a view into stored state, so the handling cost is
     # added out of place rather than onto it
-    return price + port.expectation.get_handling_cost(fuel_name, forward)
+    return price + port.expectation.handling_cost[fuel_name][forward]
 
 
 def _calculate_bunker_wtts(
@@ -439,7 +438,7 @@ def _calculate_bunker_wtts(
 
     for emission_name, fallback in fallbacks.items():
         key = (fuel_name, emission_name)
-        overwrite = port.expectation.get_bunker_wtt_overwrite(*key, forward)
+        overwrite = port.expectation.bunker_wtt_overwrite[key][forward]
         overwritten = port.bunker_wtt_overwrites[key] is not None
         wtts[emission_name] = overwrite if overwritten else fallback
 
@@ -487,7 +486,7 @@ def _align_with_bunkering_limits(
 
     for port_name, port in ports.items():
         imported = imports[port_name]
-        limit = port.expectation.get_bunkering_limit(fuel_name, forward)
+        limit = port.expectation.bunkering_limit[fuel_name][forward]
 
         has_limit = np.isfinite(limit)
         has_import = imported > 0.0

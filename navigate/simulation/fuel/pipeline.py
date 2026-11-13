@@ -108,7 +108,7 @@ def perform_pipeline_planning(
     demand = _calculate_uncovered_demand(producer, inertia, idx)
 
     for plant in producer.plants:
-        shares = producer.expectation.get_export_shares(plant.fuel.name, idx)
+        shares = producer.expectation.export_share[plant.fuel.name].at[idx]
 
         _calculate_inter_fuel_metric(plant, demand, offtake_duration, timeline, idx)
         _calculate_intra_fuel_metric(plant, shares, idx)
@@ -201,10 +201,10 @@ def _calculate_uncovered_demand(
         Demand per fuel pathway not covered by the inertia, in tons/year.
     """
     # the getter returns the stored arrays, so the subtraction stays out of place
-    demand = dict(producer.expectation.get_fair_share_demand())
+    demand = dict(producer.expectation.fair_share_demand)
 
     for plant, count in zip(producer.plants, newbuilds, strict=True):
-        production = plant.expectation.get_production(idx) * count
+        production = plant.expectation.production[idx] * count
         fuel_name = plant.fuel.name
         demand[fuel_name] = demand[fuel_name] - production
 
@@ -280,7 +280,7 @@ def _calculate_demand_limits(
 
     for p, plant in enumerate(producer.plants):
         if producer.allow_plant[plant.name]:
-            newbuilds[p] = plant.expectation.get_demand_newbuilds()
+            newbuilds[p] = plant.expectation.demand_newbuilds
 
         if newbuilds[p] > 0.0:
             spends[plant.fuel.name] += development * uptakes[p] / newbuilds[p]
@@ -342,7 +342,7 @@ def _calculate_inter_fuel_metric(
     lifetime = plant.lifetime.get()
     lhv = fuel.lower_heating_value.get()
     discount_rate = plant.cost_of_capital.get()
-    production = expectation.get_production(idx)
+    production = expectation.production[idx]
 
     # the fair-share demand is re-sampled onto the calendar-year grid of the plant's
     # cash flows, the one its levelized production cost is built on
@@ -362,8 +362,8 @@ def _calculate_inter_fuel_metric(
     energy = yearly_demand * lhv * operating
     metric = calculate_levelized_cost(energy, operating, discount_rate)
 
-    expectation.set_demand_newbuilds(newbuilds)
-    expectation.set_inter_fuel_metric(metric)
+    expectation.demand_newbuilds = newbuilds
+    expectation.inter_fuel_metric = metric
 
 
 def _calculate_intra_fuel_metric(
@@ -386,13 +386,13 @@ def _calculate_intra_fuel_metric(
         Current time-step index.
     """
     expectation = plant.expectation
-    metric = expectation.get_levelized_production_cost(idx)
+    metric = expectation.levelized_production_cost[idx]
 
     for port_name, share in shares.items():
-        delivery_cost = expectation.get_levelized_delivery_cost(port_name, idx)
+        delivery_cost = expectation.levelized_delivery_cost[port_name][idx]
         metric += share * delivery_cost
 
-    expectation.set_intra_fuel_metric(metric)
+    expectation.intra_fuel_metric = metric
 
 
 def _calculate_modelled_uptakes(producer: Producer) -> FloatArray:
@@ -415,7 +415,7 @@ def _calculate_modelled_uptakes(producer: Producer) -> FloatArray:
     plants: list[Plant] = []
 
     for p, plant in enumerate(producer.plants):
-        is_in_demand = plant.expectation.get_inter_fuel_metric() > 0.0
+        is_in_demand = plant.expectation.inter_fuel_metric > 0.0
 
         if producer.allow_plant[plant.name] and is_in_demand:
             index.append(p)
@@ -425,8 +425,8 @@ def _calculate_modelled_uptakes(producer: Producer) -> FloatArray:
         return np.zeros(len(producer.plants))
 
     group_keys = [plant.fuel.name for plant in plants]
-    intra_metrics = [plant.expectation.get_intra_fuel_metric() for plant in plants]
-    inter_metrics = [plant.expectation.get_inter_fuel_metric() for plant in plants]
+    intra_metrics = [plant.expectation.intra_fuel_metric for plant in plants]
+    inter_metrics = [plant.expectation.inter_fuel_metric for plant in plants]
 
     uptakes = calculate_two_axis_uptake(
         group_keys=group_keys,

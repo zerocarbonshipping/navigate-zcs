@@ -18,8 +18,6 @@ from navigate.util.collections import (
     is_unique,
     list_intersection,
     slice_dict,
-    slice_dict_list,
-    slice_list,
     sum_by_first_key,
     sum_by_second_key,
     sum_nonempty_values,

@@ -88,7 +88,7 @@ class Producer(Node):
         self.export_distribution: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------
-        self.expectation: ProducerExpectation = ProducerExpectation()
+        self.expectation: ProducerExpectation
         self.results: ProducerResults = ProducerResults()
 
         # increments in service, and in the pipeline before their delivery
@@ -302,7 +302,7 @@ class Producer(Node):
         processes: dict[str, Process],
     ) -> None:
         plant_names = [plant.name for plant in self.plants]
-        self.expectation.initialize(
+        self.expectation = ProducerExpectation(
             length, plant_names, feedstocks, fuels, ports, processes
         )
 

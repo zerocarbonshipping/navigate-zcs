@@ -35,4 +35,4 @@ def transfer_allocation_fuel(alg: BunkerAlgorithm) -> None:
 
     for (v, port_name, f), allocation in alg.allocation_fuel.items():
         vessel = alg.vessels[v]
-        vessel.expectation.set_allocation_fuel_existing(port_name, f, allocation)
+        vessel.expectation.allocation_fuel_existing[port_name, f] = allocation

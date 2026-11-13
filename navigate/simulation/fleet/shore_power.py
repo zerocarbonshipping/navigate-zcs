@@ -33,7 +33,7 @@ def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
     for fleet in fleets.values():
         for vessel in fleet.vessels:
             limits = _calculate_vessel_limits(vessel, idx)
-            vessel.expectation.set_shore_power_limit_port(idx, limits)
+            vessel.expectation.shore_power_limit_port.at[idx:] = limits
 
 
 def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatArray]:
@@ -55,12 +55,12 @@ def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatArray]:
         Shore-power limit per port over the remaining horizon, in GJ/year.
     """
     forward = np.s_[idx:]
-    potentials = vessel.expectation.get_shore_power_potential_port(forward)
+    potentials = vessel.expectation.shore_power_potential_port.at[forward]
 
     limits = []
 
     for port, potential in zip(vessel.route.ports, potentials, strict=True):
-        share = port.expectation.get_shore_power_connection_share(forward)
+        share = port.expectation.shore_power_connection_share[forward]
         limits.append(share * potential)
 
     return limits

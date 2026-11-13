@@ -5,52 +5,48 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from itertools import product
+from typing import TYPE_CHECKING
 
-from navigate.core.expectations._policy_expectation import _PolicyExpectation
+from navigate.core.expectations._expectation import _Expectation
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Collection, Mapping
 
-    from navigate.util.types_ import FloatArray, FloatLike, Index
+    from navigate.core.nodes.vessel import Vessel
 
 
-class LevyExpectation(_PolicyExpectation[tuple[str, str, str]]):
+class LevyExpectation(_Expectation):
     """The level a levy charges and its cost per ton of each fuel a vessel bunkers."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(
+        self,
+        length: int,
+        emission_names: Collection[str],
+        fuel_names: Collection[str],
+        port_names: Collection[str],
+        vessels: Mapping[str, Vessel],
+    ) -> None:
+        super().__init__(length)
 
-        self._level: FloatArray
+        vessel_fuel_emissions: list[tuple[str, str, str]] = []
+        vessel_port_fuels: list[tuple[str, str, str]] = []
 
-        # keyed by (vessel_name, port_name, fuel_name)
-        self._cost: dict[tuple[str, str, str], FloatArray] = {}
+        for vessel_name, vessel in vessels.items():
+            for fuel_name in vessel.usable_fuels:
+                for emission_name in emission_names:
+                    key = (vessel_name, fuel_name, emission_name)
+                    vessel_fuel_emissions.append(key)
 
-    def initialize(self, length: int, emission_names: Collection[str]) -> None:
-        self._initialize_expectation(length)
-        self._initialize_policy_expectation(emission_names)
+                for port in vessel.route.distinct_ports:
+                    key = (vessel_name, port.name, fuel_name)
+                    vessel_port_fuels.append(key)
 
-        self._level = self._default_array()
+        self.global_warming_potential = self._values(emission_names)
 
-    def set_level(self, idx: int, level: FloatArray) -> None:
-        self._level[idx:] = level
+        self.wtt = self._paths(product(port_names, fuel_names, emission_names))
+        self.ttw_consumption = self._paths(vessel_fuel_emissions)
+        self.ttw_slip = self._paths(vessel_fuel_emissions)
 
-    def set_cost(self, key: tuple[str, str, str], idx: int, cost: FloatLike) -> None:
-        self._cost.setdefault(key, self._default_array())
-        self._cost[key][idx:] = cost
-
-    @overload
-    def get_level(self, idx: int) -> float: ...
-
-    @overload
-    def get_level(self, idx: slice) -> FloatArray: ...
-
-    def get_level(self, idx: Index) -> FloatLike:
-        return self._level[idx]
-
-    def get_cost(self, key: tuple[str, str, str], idx: int) -> float:
-        if key not in self._cost:
-            return 0.0
-
-        cost: float = self._cost[key][idx]
-        return cost
+        self.level = self._path()
+        self.cost = self._paths(vessel_port_fuels)

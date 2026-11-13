@@ -54,13 +54,13 @@ def _calculate_port_demand(
     for fleet in fleets.values():
         for vessel in fleet.vessels:
             expectation = vessel.expectation
-            multiplier = fleet.expectation.get_multiplier(vessel.name, scope, steps)
+            multiplier = fleet.expectation.multiplier[vessel.name, scope][steps]
 
             # the demand is held per port, so a port called at twice counts once
             for port in vessel.route.distinct_ports:
                 for fuel_type in FuelTypeID:
                     key = (port.name, fuel_type)
-                    demand = expectation.get_potential_fuel_type_demand(*key, steps)
+                    demand = expectation.potential_fuel_type_demand[key][steps]
                     port_demand[key] = port_demand.get(key, 0.0) + demand * multiplier
 
     return port_demand
@@ -79,12 +79,12 @@ def _calculate_vessel_fair_shares(
     for port in vessel.route.distinct_ports:
         for name, fuel in vessel.usable_fuels.items():
             key = (port.name, fuel.fuel_type)
-            demand = expectation.get_potential_fuel_type_demand(*key, steps)
+            demand = expectation.potential_fuel_type_demand[key][steps]
             share = divide_nonzero(demand, port_demand[key])
 
             # existing bunkering evaluates a single time-step, where the shares are
             # zero-dimensional arrays
             if scope == BunkerScopeID.EXISTING:
-                expectation.set_fair_share_fuel_existing(port.name, name, float(share))
+                expectation.fair_share_fuel_existing[port.name, name] = float(share)
             else:
-                expectation.set_fair_share_fuel_expected(port.name, name, idx, share)
+                expectation.fair_share_fuel_expected[port.name, name][idx:] = share

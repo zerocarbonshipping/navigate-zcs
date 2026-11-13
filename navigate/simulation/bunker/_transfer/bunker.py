@@ -50,11 +50,11 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         results = vessel.results
         multiplier = alg.multipliers[v]
 
-        price = port.expectation.get_bunker_price(f, idx)
+        price = port.expectation.bunker_price[f][idx]
         expenses = price * mass
 
         # kept for the inertia floor of the next time-step
-        vessel.expectation.add_bunker_mass_existing(port.name, f, mass)
+        vessel.expectation.bunker_mass_existing[port.name, f] += mass
 
         results.consumed_mass[f][idx] += mass
         results.converter_mass[vessel.primary_fuel_type][f][idx] += mass
@@ -62,13 +62,13 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         port.results.bunker_mass[f][idx] += multiplier * mass
 
         for emission_name in alg.emissions:
-            wtt = port.expectation.get_bunker_wtt(f, emission_name, idx)
+            wtt = port.expectation.bunker_wtt[f, emission_name][idx]
             results.wtt[f, emission_name][idx] += wtt * mass
 
         for levy in port.imposed_levies:
-            cost = levy.expectation.get_cost((v, port.name, f), idx)
+            cost = levy.expectation.cost[v, port.name, f][idx]
             collected = cost * mass
-            level = levy.expectation.get_level(idx)
+            level = levy.expectation.level[idx]
 
             levy.results.collected[idx] += collected * multiplier
             results.levy_expenses[f][idx] += collected
@@ -90,9 +90,9 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
         port = vessel.route.ports[p]
 
         energy = alg.fuels[f].lower_heating_value.get() * mass
-        price = port.expectation.get_bunker_price(f, idx)
+        price = port.expectation.bunker_price[f][idx]
         expenses = price * mass
 
-        vessel.expectation.add_total_energy(idx, energy)
-        vessel.expectation.add_fuel_expenses(idx, expenses)
-        vessel.expectation.add_bunker_mass_expected(port.name, f, idx, mass)
+        vessel.expectation.total_energy[idx] += energy
+        vessel.expectation.fuel_expenses[idx] += expenses
+        vessel.expectation.bunker_mass_expected[port.name, f][idx] += mass
