@@ -33,7 +33,7 @@ from navigate.exceptions import DeckInsufficientError, UnassignedAttributeError
 from navigate.util import (
     ROUND_OFF,
     divide_nonzero,
-    key_pair_name,
+    key_tuple_name,
     matching_keys,
     name_matches,
     unique_list,
@@ -317,7 +317,7 @@ class Route(Node):
 
         if not legs:
             raise ValueError(
-                f"is given {key_pair_name(pattern)}, which matches no leg of {self}"
+                f"is given {key_tuple_name(pattern)}, which matches no leg of {self}"
             )
 
         # every matched leg holds the same object: a Scalar answers a getter and
@@ -340,7 +340,7 @@ class Route(Node):
         missing = [key for key, value in inputs.items() if value is None]
 
         if missing:
-            legs = ", ".join(key_pair_name(key) for key in missing)
+            legs = ", ".join(key_tuple_name(key) for key in missing)
             raise DeckInsufficientError(
                 f"{self}: '{command}' is unassigned for the legs {legs}."
             )
@@ -372,7 +372,7 @@ class Route(Node):
         if repeated:
             raise ValueError(
                 f"{self}: A LINER may call at a port more than once, but may not sail"
-                f" the leg {key_pair_name(repeated[0])} more than once."
+                f" the leg {key_tuple_name(repeated[0])} more than once."
             )
 
         if self.time_at_sea is not None:
@@ -394,15 +394,15 @@ class Route(Node):
 
         if speed.x[0] <= 0.0:
             raise ValueError(
-                f"{self}: The speeds of {speed} on the leg {key_pair_name(key)} must be"
-                f" greater than 0, but the lowest is {speed.x[0]}."
+                f"{self}: The speeds of {speed} on the leg {key_tuple_name(key)}"
+                f" must be greater than 0, but the lowest is {speed.x[0]}."
             )
 
         # one Curve may serve many legs, so its shares are never rescaled
         total = round(float(np.sum(speed.get(speed.x))), ROUND_OFF)
         if total != 1.0:
             raise ValueError(
-                f"{self}: The shares of {speed} on the leg {key_pair_name(key)}"
+                f"{self}: The shares of {speed} on the leg {key_tuple_name(key)}"
                 f" must sum to 1, but sum to {total}."
             )
 
@@ -420,7 +420,7 @@ class Route(Node):
         if not isinstance(speed, Curve):
             raise ValueError(
                 f"{self}: {utilization} gives a utilization per speed on the leg"
-                f" {key_pair_name(key)}, but the leg is sailed at the one speed"
+                f" {key_tuple_name(key)}, but the leg is sailed at the one speed"
                 f" {speed}."
             )
 
@@ -428,7 +428,7 @@ class Route(Node):
         # the leg's speed Curve lists, wherever speed management moves them
         if not np.array_equal(utilization.x, speed.x):
             raise ValueError(
-                f"{self}: The speeds of {utilization} on the leg {key_pair_name(key)}"
+                f"{self}: The speeds of {utilization} on the leg {key_tuple_name(key)}"
                 f" must equal those of its speed Curve, {speed}."
             )
 
@@ -441,7 +441,7 @@ class Route(Node):
         if any(isinstance(node, Curve) for node in expression.calculators.values()):
             raise ValueError(
                 f"{self}: The expression <{expression}> given to '{command}' on the"
-                f" leg {key_pair_name(key)} references a Curve, but an expression is"
+                f" leg {key_tuple_name(key)} references a Curve, but an expression is"
                 " one value per leg; assign the Curve itself instead."
             )
 
@@ -454,7 +454,7 @@ class Route(Node):
         for key, count, count_define in legs:
             if count != count_define:
                 raise ValueError(
-                    f"{self}: The speed on the leg {key_pair_name(key)} has {count}"
+                    f"{self}: The speed on the leg {key_tuple_name(key)} has {count}"
                     f" sailing conditions, but had {count_define} once DEFINE was"
                     " read; the number of sailing conditions on a leg is fixed."
                 )

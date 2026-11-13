@@ -144,22 +144,22 @@ def key_name(key: str | Enum) -> str:
     return key.name if isinstance(key, Enum) else key
 
 
-def key_pair_name(key: tuple[str, str]) -> str:
+def key_tuple_name(key: tuple[str, ...]) -> str:
     """
-    Name a pair key the way a command's two key arguments write it.
+    Name a tuple key the way a command's key arguments write it.
 
     Parameters
     ----------
     key
-        The two names of the pair, such as a leg's origin and destination ports.
+        The names making up the key, such as a leg's origin and destination ports.
 
     Returns
     -------
     str
-        The names, quoted and in parentheses.
+        The names, quoted, comma-separated and in parentheses.
     """
-    first, second = key
-    return f'("{first}", "{second}")'
+    names = ", ".join(f'"{name}"' for name in key)
+    return f"({names})"
 
 
 def attribute_to_instance_name(attribute: str) -> str:
