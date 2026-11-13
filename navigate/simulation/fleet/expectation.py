@@ -18,7 +18,7 @@ from navigate.simulation.fleet.scrapping import (
     group_by_age,
     split_oldest_first,
 )
-from navigate.util import YEAR, divide_nonzero
+from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -218,7 +218,7 @@ def calculate_fleet_evolution_expectation(
     # TODO: make assignable?
     jump_start = 1e-3 * np.sum(existing + newbuild, axis=0)
     for v in np.flatnonzero(is_newbuild_allowed(fleet)):
-        absent = existing[v] + newbuild[v] == 0.0
+        absent = np.abs(existing[v] + newbuild[v]) < TOLERANCE
         newbuild[v, absent] = jump_start[absent]
 
     # the expected newbuilds need no scrapping of their own: the vessels replacing

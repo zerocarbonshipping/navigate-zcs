@@ -350,6 +350,10 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A vessel type left with a rounding remainder of vessels, such as 1e-15,
+  instead of exactly zero is treated as absent from its fleet; the remainder
+  could shift the results of every later year. Decks in which one arose move,
+  `business_as_usual` among them (#473).
 - A vessel whose propulsion `PowerCapacity` allows no speed above 0 in a sailing
   condition its route sails is a `PowerCapacityError` naming the vessel and the
   condition; it ran with infinite or undefined rates, or crashed (#907).
