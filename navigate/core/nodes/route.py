@@ -23,13 +23,21 @@ from navigate.core import (
     deck_command,
     write_matching_keys,
 )
+from navigate.core.assign import in_seeded_order
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, PORT, ROUTE, VARIABLE
 from navigate.core.nodes.curve import Curve
 from navigate.core.wrap import to_array
 from navigate.exceptions import DeckInsufficientError, UnassignedAttributeError
-from navigate.util import ROUND_OFF, divide_nonzero, matching_keys, unique_list
+from navigate.util import (
+    ROUND_OFF,
+    divide_nonzero,
+    key_pair_name,
+    matching_keys,
+    name_matches,
+    unique_list,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -223,15 +231,15 @@ class Route(Node):
 
         # the expectations are sized by the sailing conditions once DEFINE is read,
         # so the number on each leg is fixed from here on
-        self.conditions_per_leg = _count_conditions(_in_seeded_order(self.speeds))
+        self.conditions_per_leg = self._count_conditions()
 
     def apply_command_defaults(self) -> None:
         # initialize_dependencies seeds each dictionary in the order of get_legs
-        self.leg_speeds = _in_seeded_order(self.speeds)
-        self.leg_utilizations = _in_seeded_order(self.utilizations)
-        self.leg_distances = _in_seeded_order(self.distances)
-        self.leg_port_durations = _in_seeded_order(self.port_durations)
-        self.leg_voyage_shares = _in_seeded_order(self.voyage_shares)
+        self.leg_speeds = in_seeded_order(self.speeds)
+        self.leg_utilizations = in_seeded_order(self.utilizations)
+        self.leg_distances = in_seeded_order(self.distances)
+        self.leg_port_durations = in_seeded_order(self.port_durations)
+        self.leg_voyage_shares = in_seeded_order(self.voyage_shares)
 
     def check_consistency(self) -> None:
         if self.route_type == RouteTypeID.LINER:
@@ -301,12 +309,15 @@ class Route(Node):
         legs = []
 
         for origin, destination in inputs:
-            if _matches(pattern_from, origin) and _matches(pattern_to, destination):
+            origin_matches = name_matches(pattern_from, origin)
+            destination_matches = name_matches(pattern_to, destination)
+
+            if origin_matches and destination_matches:
                 legs.append((origin, destination))
 
         if not legs:
             raise ValueError(
-                f"is given {_name_leg(pattern)}, which matches no leg of {self}"
+                f"is given {key_pair_name(pattern)}, which matches no leg of {self}"
             )
 
         # every matched leg holds the same object: a Scalar answers a getter and
@@ -329,7 +340,7 @@ class Route(Node):
         missing = [key for key, value in inputs.items() if value is None]
 
         if missing:
-            legs = ", ".join(_name_leg(key) for key in missing)
+            legs = ", ".join(key_pair_name(key) for key in missing)
             raise DeckInsufficientError(
                 f"{self}: '{command}' is unassigned for the legs {legs}."
             )
@@ -361,7 +372,7 @@ class Route(Node):
         if repeated:
             raise ValueError(
                 f"{self}: A LINER may call at a port more than once, but may not sail"
-                f" the leg {_name_leg(repeated[0])} more than once."
+                f" the leg {key_pair_name(repeated[0])} more than once."
             )
 
         if self.time_at_sea is not None:
@@ -383,7 +394,7 @@ class Route(Node):
 
         if speed.x[0] <= 0.0:
             raise ValueError(
-                f"{self}: The speeds of {speed} on the leg {_name_leg(key)} must be"
+                f"{self}: The speeds of {speed} on the leg {key_pair_name(key)} must be"
                 f" greater than 0, but the lowest is {speed.x[0]}."
             )
 
@@ -391,8 +402,8 @@ class Route(Node):
         total = round(float(np.sum(speed.get(speed.x))), ROUND_OFF)
         if total != 1.0:
             raise ValueError(
-                f"{self}: The shares of {speed} on the leg {_name_leg(key)} must sum"
-                f" to 1, but sum to {total}."
+                f"{self}: The shares of {speed} on the leg {key_pair_name(key)}"
+                f" must sum to 1, but sum to {total}."
             )
 
     def _check_utilization(
@@ -409,14 +420,15 @@ class Route(Node):
         if not isinstance(speed, Curve):
             raise ValueError(
                 f"{self}: {utilization} gives a utilization per speed on the leg"
-                f" {_name_leg(key)}, but the leg is sailed at the one speed {speed}."
+                f" {key_pair_name(key)}, but the leg is sailed at the one speed"
+                f" {speed}."
             )
 
         # a utilization belongs to a sailing condition, so it is read at the speeds
         # the leg's speed Curve lists, wherever speed management moves them
         if not np.array_equal(utilization.x, speed.x):
             raise ValueError(
-                f"{self}: The speeds of {utilization} on the leg {_name_leg(key)}"
+                f"{self}: The speeds of {utilization} on the leg {key_pair_name(key)}"
                 f" must equal those of its speed Curve, {speed}."
             )
 
@@ -429,23 +441,31 @@ class Route(Node):
         if any(isinstance(node, Curve) for node in expression.calculators.values()):
             raise ValueError(
                 f"{self}: The expression <{expression}> given to '{command}' on the"
-                f" leg {_name_leg(key)} references a Curve, but an expression is"
+                f" leg {key_pair_name(key)} references a Curve, but an expression is"
                 " one value per leg; assign the Curve itself instead."
             )
 
     def _check_conditions_per_leg(self) -> None:
         """Raise where an event changes the number of sailing conditions on a leg."""
         keys = self.get_leg_keys()
-        conditions = _count_conditions(self.leg_speeds)
+        conditions = self._count_conditions()
         legs = zip(keys, conditions, self.conditions_per_leg, strict=True)
 
         for key, count, count_define in legs:
             if count != count_define:
                 raise ValueError(
-                    f"{self}: The speed on the leg {_name_leg(key)} has {count}"
+                    f"{self}: The speed on the leg {key_pair_name(key)} has {count}"
                     f" sailing conditions, but had {count_define} once DEFINE was"
                     " read; the number of sailing conditions on a leg is fixed."
                 )
+
+    def _count_conditions(self) -> tuple[int, ...]:
+        """Count the sailing conditions on each leg, one per speed its input lists."""
+        speeds = in_seeded_order(self.speeds)
+
+        return tuple(
+            len(speed.x) if isinstance(speed, Curve) else 1 for speed in speeds
+        )
 
     def _sailed_legs(self) -> BoolArray:
         """Tell which legs the route sails, in the order of get_legs."""
@@ -578,76 +598,3 @@ class Route(Node):
             return tuple((i, i + 1) for i in range(len(self.ports) - 1))
 
         return ()
-
-
-def _in_seeded_order[K, V](inputs: Mapping[K, V | None]) -> tuple[V, ...]:
-    """
-    Return the values of a command dictionary in the order it is seeded.
-
-    Parameters
-    ----------
-    inputs
-        Command dictionary, every entry assigned.
-
-    Returns
-    -------
-    tuple[V, ...]
-        The assigned values.
-    """
-    # check_requirements leaves no seeded entry unassigned, so the None test only
-    # narrows the type
-    return tuple(value for value in inputs.values() if value is not None)
-
-
-def _count_conditions(speeds: tuple[CurveInput, ...]) -> tuple[int, ...]:
-    """
-    Count the sailing conditions on each leg: one per speed its speed input lists.
-
-    Parameters
-    ----------
-    speeds
-        Speed input of each leg.
-
-    Returns
-    -------
-    tuple[int, ...]
-        Number of sailing conditions on each leg.
-    """
-    return tuple(len(speed.x) if isinstance(speed, Curve) else 1 for speed in speeds)
-
-
-def _matches(pattern: str, name: str) -> bool:
-    """
-    Check whether a name matches a pattern that may hold wildcards.
-
-    Parameters
-    ----------
-    pattern
-        Name or wildcard pattern.
-    name
-        Name to test.
-
-    Returns
-    -------
-    bool
-        Whether the pattern matches the name.
-    """
-    return bool(matching_keys(pattern, [name]))
-
-
-def _name_leg(key: tuple[str, str]) -> str:
-    """
-    Name a leg as a command addresses it.
-
-    Parameters
-    ----------
-    key
-        Port names of the leg's origin and destination.
-
-    Returns
-    -------
-    str
-        The leg's port names, quoted as the command arguments are.
-    """
-    origin, destination = key
-    return f'("{origin}", "{destination}")'

@@ -85,6 +85,25 @@ def matching_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> lis
         return []
 
 
+def name_matches(pattern: str, name: str) -> bool:
+    """
+    Check whether a name matches a pattern that may hold wildcards.
+
+    Parameters
+    ----------
+    pattern
+        Name or wildcard pattern.
+    name
+        Name to test.
+
+    Returns
+    -------
+    bool
+        Whether the pattern matches the name.
+    """
+    return bool(matching_keys(pattern, [name]))
+
+
 def name_contains_wildcards(name: str) -> bool:
     """
     Test whether a node name includes wildcard characters.
@@ -123,6 +142,24 @@ def key_name(key: str | Enum) -> str:
         Name of an enum member, the key itself otherwise.
     """
     return key.name if isinstance(key, Enum) else key
+
+
+def key_pair_name(key: tuple[str, str]) -> str:
+    """
+    Name a pair key the way a command's two key arguments write it.
+
+    Parameters
+    ----------
+    key
+        The two names of the pair, such as a leg's origin and destination ports.
+
+    Returns
+    -------
+    str
+        The names, quoted and in parentheses.
+    """
+    first, second = key
+    return f'("{first}", "{second}")'
 
 
 def attribute_to_instance_name(attribute: str) -> str:
