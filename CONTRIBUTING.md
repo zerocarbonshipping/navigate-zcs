@@ -107,10 +107,10 @@ model, open an issue and we will get back to you.
 
 The maintainers develop Navigate with coding agents, which work from the same
 documents as everyone else: `AGENTS.md` at the root, the `AGENTS.md` files in
-`tests/`, `docs/` and `assumptions/`, and the Agent Skills for issues and pull
-requests in `.agents/skills/`. Whether you use such tools is your choice; either
-way you answer for what you submit, so please do not add code or inputs you do
-not fully understand.
+`tests/`, `docs/` and `assumptions/`, and the Agent Skills for issues, pull
+requests and code in `.agents/skills/`. Whether you use such tools is your
+choice; either way you answer for what you submit, so please do not add code or
+inputs you do not fully understand.
 
 Do not add a `CLAUDE.md` or `CLAUDE.local.md`: where either exists, Claude Code
 stops reading the `AGENTS.md` files.
