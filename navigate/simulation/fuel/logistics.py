@@ -134,8 +134,8 @@ def _calculate_delivery_cost(
     # levelized cost of delivery is calculated per time step
     for t, time in enumerate(timeline[idx:], start=idx):
         # Python floats, as they key the cost rates and the flow sizing rounds them
-        lead_time = float(expectation.get_lead_time(t))
-        lifetime = float(expectation.get_lifetime(t))
+        lead_time = float(expectation.lead_time[t])
+        lifetime = float(expectation.lifetime[t])
 
         year_starts, operating_flow = build_operating_flows(lead_time, lifetime, time)
         discount_rate = plant.cost_of_capital.get(time)
@@ -148,7 +148,7 @@ def _calculate_delivery_cost(
 
             cost_flow = cost_rates[key] * distance.get(year_starts) * operating_flow
             cost = calculate_levelized_cost(cost_flow, operating_flow, discount_rate)
-            expectation.set_levelized_delivery_cost(port_name, t, cost)
+            expectation.levelized_delivery_cost[port_name][t] = cost
 
 
 def _calculate_delivery_wtt(
@@ -193,4 +193,4 @@ def _calculate_delivery_wtt(
                 wtt_rates[key] = rate.get(times)
 
             delivery_wtt = wtt_rates[key] * distances
-            expectation.set_delivery_wtt(port_name, emission_name, idx, delivery_wtt)
+            expectation.delivery_wtt[port_name, emission_name][idx:] = delivery_wtt

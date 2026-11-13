@@ -95,9 +95,9 @@ def _unset_adjusted_thresholds(
     expectation = regulation.expectation
 
     for vessel_name in policed:
-        expectation.set_adjusted_vessel_threshold(vessel_name, idx, np.nan)
+        expectation.adjusted_vessel_threshold[vessel_name][idx] = np.nan
 
-    expectation.set_adjusted_shared_threshold(idx, np.nan)
+    expectation.adjusted_shared_threshold[idx] = np.nan
 
 
 def _calculate_individual(
@@ -113,16 +113,16 @@ def _calculate_individual(
 
     for vessel_name in policed:
         # a compliant vessel keeps its original threshold
-        if expectation.get_vessel_remedial_units(vessel_name, idx) <= 0.0:
-            threshold = expectation.get_vessel_threshold(vessel_name, idx)
-            expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
+        if expectation.vessel_remedial_units[vessel_name][idx] <= 0.0:
+            threshold = expectation.vessel_threshold[vessel_name][idx]
+            expectation.adjusted_vessel_threshold[vessel_name][idx] = threshold
             continue
 
         _calculate_achieved_vessel_threshold(regulation, vessel_name, idx)
         _calculate_adjusted_bunkering_inputs(regulation, vessels[vessel_name], idx)
         is_adjusted = True
 
-    expectation.set_adjusted_shared_threshold(idx, np.nan)
+    expectation.adjusted_shared_threshold[idx] = np.nan
 
     return is_adjusted
 
@@ -139,16 +139,16 @@ def _calculate_flexible(
     # a compliant regulation keeps the original per-vessel thresholds and has no
     # fleet-level value, so downstream consumers fall back to the per-vessel targets
     # the LP solved against
-    if expectation.get_pooled_remedial_units(idx) <= 0.0:
+    if expectation.pooled_remedial_units[idx] <= 0.0:
         for vessel_name in policed:
-            threshold = expectation.get_vessel_threshold(vessel_name, idx)
-            expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
+            threshold = expectation.vessel_threshold[vessel_name][idx]
+            expectation.adjusted_vessel_threshold[vessel_name][idx] = threshold
 
-        expectation.set_adjusted_shared_threshold(idx, np.nan)
+        expectation.adjusted_shared_threshold[idx] = np.nan
         return False
 
     shared_threshold = _calculate_shared_threshold(regulation, policed, idx)
-    expectation.set_adjusted_shared_threshold(idx, shared_threshold)
+    expectation.adjusted_shared_threshold[idx] = shared_threshold
 
     # the shared threshold of an ABSOLUTE pool is the pool's total, not a value per
     # vessel, so the vessels' thresholds are scaled to it by one factor, which keeps
@@ -175,7 +175,7 @@ def _calculate_shared_threshold(
     total_measure = 0.0
 
     for vessel_name, multiplier in policed.items():
-        emissions = expectation.get_vessel_emissions(vessel_name, idx)
+        emissions = expectation.vessel_emissions[vessel_name][idx]
         measure = calculate_achieved_measure(regulation, vessel_name, idx)
 
         total_emissions += multiplier * emissions
@@ -202,7 +202,7 @@ def _calculate_scaled_vessel_thresholds(
     pooled_threshold = 0.0
 
     for vessel_name, multiplier in policed.items():
-        threshold = expectation.get_vessel_threshold(vessel_name, idx)
+        threshold = expectation.vessel_threshold[vessel_name][idx]
         pooled_threshold += multiplier * threshold
 
     # a pool whose thresholds are all zero allows no trading, so there is no split to
@@ -215,8 +215,8 @@ def _calculate_scaled_vessel_thresholds(
     factor = shared_threshold / pooled_threshold
 
     for vessel_name in policed:
-        threshold = expectation.get_vessel_threshold(vessel_name, idx)
-        expectation.set_adjusted_vessel_threshold(vessel_name, idx, factor * threshold)
+        threshold = expectation.vessel_threshold[vessel_name][idx]
+        expectation.adjusted_vessel_threshold[vessel_name][idx] = factor * threshold
 
 
 def _calculate_achieved_vessel_threshold(
@@ -225,11 +225,11 @@ def _calculate_achieved_vessel_threshold(
     """Adjust a vessel's threshold to what its own achieved emissions meet."""
     expectation = regulation.expectation
 
-    emissions = expectation.get_vessel_emissions(vessel_name, idx)
+    emissions = expectation.vessel_emissions[vessel_name][idx]
     measure = calculate_achieved_measure(regulation, vessel_name, idx)
 
     threshold = _adjust_threshold(regulation, emissions, measure)
-    expectation.set_adjusted_vessel_threshold(vessel_name, idx, threshold)
+    expectation.adjusted_vessel_threshold[vessel_name][idx] = threshold
 
 
 def _calculate_adjusted_bunkering_inputs(
@@ -240,7 +240,7 @@ def _calculate_adjusted_bunkering_inputs(
     expectation = regulation.expectation
 
     if regulation.measure != RegulationMeasureID.INTENSITY:
-        threshold = expectation.get_adjusted_vessel_threshold(vessel_name, idx)
+        threshold = expectation.adjusted_vessel_threshold[vessel_name][idx]
         calculate_vessel_allowance(regulation, vessel_name, threshold, idx)
         return
 

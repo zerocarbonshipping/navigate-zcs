@@ -48,12 +48,12 @@ def calculate_development_potential(
         newbuilds = _calculate_feasible_newbuilds(producer, plant, development, idx)
 
         # a Python float, as a builtin sum() adds up the development potentials
-        production = float(plant.expectation.get_production(idx))
+        production = float(plant.expectation.production[idx])
         potential[plant.fuel.name] += newbuilds * production
 
     # TODO: can easily loop over export shares to include shares going to ports
     for key, value in potential.items():
-        producer.expectation.set_development_potential(key, value)
+        producer.expectation.development_potential[key] = value
 
 
 def _calculate_feasible_newbuilds(
@@ -85,13 +85,13 @@ def _calculate_feasible_newbuilds(
         if constraint is None:
             continue
 
-        consumption = expectation.get_plant_feed_consumption(plant.name, feed_name)
+        consumption = expectation.plant_feed_consumption[plant.name, feed_name]
 
         if consumption == 0.0:
             continue
 
         # a Python float, as the newbuilds reach the builtin sum() of the potentials
-        gap = float(expectation.get_feed_gap(feed_name, idx))
+        gap = float(expectation.feed_gap[feed_name][idx])
         newbuilds = min(newbuilds, gap / consumption)
 
     return newbuilds
@@ -120,7 +120,7 @@ def calculate_expected_fuel_demand(
         Expected future demand of each fuel, in tons/year.
     """
     forward = np.s_[idx:]
-    demands = [fleet.expectation.get_fuel_demand(forward) for fleet in fleets.values()]
+    demands = [fleet.expectation.fuel_demand.at[forward] for fleet in fleets.values()]
     return add_dicts(*demands)
 
 
@@ -150,7 +150,7 @@ def calculate_expected_fuel_supply(
 
         for plant in producer.plants:
             fuel_name = plant.fuel.name
-            production = expectation.get_guaranteed_production(plant.name, forward)
+            production = expectation.guaranteed_production[plant.name][forward]
             supply[fuel_name] = supply.get(fuel_name, 0.0) + production
 
     return supply
@@ -204,7 +204,7 @@ def calculate_fair_share_demand(
         for producer_name, share in shares.items():
             producer = producers[producer_name]
             demand = fuel_gap * share
-            producer.expectation.set_fair_share_demand(fuel_name, idx, demand)
+            producer.expectation.fair_share_demand[fuel_name][idx:] = demand
             producer.results.fair_share_fuel_fraction[fuel_name][idx] = share
 
 
@@ -233,7 +233,7 @@ def _calculate_fair_shares(
         if not producer.can_produce(fuel_name):
             continue
 
-        potential = producer.expectation.get_development_potential(fuel_name)
+        potential = producer.expectation.development_potential[fuel_name]
         potentials[producer_name] = potential
 
     total = sum(potentials.values())

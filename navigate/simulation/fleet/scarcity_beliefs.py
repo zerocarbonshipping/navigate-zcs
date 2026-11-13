@@ -57,8 +57,8 @@ def update_vessel_scarcity_beliefs(
             expectation = vessel.expectation
 
             raw = (
-                expectation.get_energy_conservation_pi_sea(),
-                expectation.get_energy_conservation_pi_port(),
+                expectation.energy_conservation_pi_sea,
+                expectation.energy_conservation_pi_port,
             )
             technology, speed = _beliefs(expectation)
 
@@ -67,10 +67,10 @@ def update_vessel_scarcity_beliefs(
             )
             speed_sea, speed_port = _smooth(raw, speed, alpha_speed, idx)
 
-            expectation.set_belief_pi_sea_technology(idx, technology_sea)
-            expectation.set_belief_pi_port_technology(idx, technology_port)
-            expectation.set_belief_pi_sea_speed(idx, speed_sea)
-            expectation.set_belief_pi_port_speed(idx, speed_port)
+            expectation.belief_pi_sea_technology.at[idx:] = technology_sea
+            expectation.belief_pi_port_technology.at[idx:] = technology_port
+            expectation.belief_pi_sea_speed.at[idx:] = speed_sea
+            expectation.belief_pi_port_speed.at[idx:] = speed_port
 
 
 def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
@@ -93,8 +93,8 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
             results = vessel.results
 
             rhs = (
-                expectation.get_energy_conservation_rhs_sea(),
-                expectation.get_energy_conservation_rhs_port(),
+                expectation.energy_conservation_rhs_sea,
+                expectation.energy_conservation_rhs_port,
             )
             technology, speed = _beliefs(expectation)
 
@@ -108,12 +108,12 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
 def _beliefs(expectation: VesselExpectation) -> tuple[_SeaPortPaths, _SeaPortPaths]:
     """Return a vessel's technology and speed beliefs, each at sea and in port."""
     technology = (
-        expectation.get_belief_pi_sea_technology(),
-        expectation.get_belief_pi_port_technology(),
+        expectation.belief_pi_sea_technology,
+        expectation.belief_pi_port_technology,
     )
     speed = (
-        expectation.get_belief_pi_sea_speed(),
-        expectation.get_belief_pi_port_speed(),
+        expectation.belief_pi_sea_speed,
+        expectation.belief_pi_port_speed,
     )
     return technology, speed
 

@@ -25,7 +25,7 @@ code that breaks the rule. Taste beyond these conventions follows the
     letters of the equations in its docstrings (`v` vessel, `p` port, `f`
     fuel, `c` converter).
 - Reserve a bare `idx` for the time-step index, or for the slice of time steps a
-  getter takes in its place, and qualify every other index: `vessel_idx`,
+  function takes in its place, and qualify every other index: `vessel_idx`,
   `plant_idx`. Bound to a name, the slice from the time step onward is
   `forward = np.s_[idx:]`.
 - Use domain words, not abbreviations: `newbuild_technology`, not `nb_tech`.
@@ -46,13 +46,15 @@ code that breaks the rule. Taste beyond these conventions follows the
 
 - Define every instance attribute in `__init__` and annotate it there, never
   on the class body. Dataclass and `NamedTuple` fields, `Protocol` members,
-  enum members and `ClassVar` constants are the exceptions.
+  enum members and `ClassVar` constants are the exceptions, and so is the
+  annotation of an expectation field, whose allocator states its type
+  (Dynamic state and results).
 - An attribute definition carries no trailing comment: what there is to say
   about one attribute is a why (see Comments) or belongs in the class
   docstring. A group comment may head a run of attributes. An enum member
   carries exactly one trailing comment, stating what it stands for.
 - Read and write attributes directly: no method only returns or assigns an
-  attribute, except the DSL setters, the expectation accessors and `.get`.
+  attribute, except the DSL setters and `.get`.
 - A node class keeps an explicit `__init__(self, name)` that hands the name
   to its base, even where it does nothing else, so that every node is visibly
   constructed with its name. It calls `super().__init__(name)`; a calculator,
@@ -136,14 +138,19 @@ code that breaks the rule. Taste beyond these conventions follows the
 
 ## Dynamic state and results
 
-- An expectation accessor takes its keys, outermost first, then the time
-  step, the order a results field is indexed in; a setter or adder takes the
-  value last: `set_bunker_wtt(fuel_name, emission_name, idx, wtt)` mirrors
-  `get_bunker_wtt(fuel_name, emission_name, idx)`.
-- An expectation getter reads one key or the whole storage, never either
-  depending on its arguments: its key parameter has no default, and the
-  whole-storage read is a separate getter, named in the plural where the
-  keyed getter is singular. A time index may default to the full slice.
+- An expectation class (`navigate/core/expectations/`) defines each field in
+  one statement of its constructor: an allocator call that gives the field
+  its keys, its default and its type. Fields are written and read directly,
+  indexed by their keys, outermost first, then by the time step, the order a
+  results field is indexed in:
+  `expectation.bunker_wtt[fuel_name, emission_name][idx]`.
+- A write to a path (`ARCHITECTURE.md`, Vocabulary) states its reach in its
+  index, `[idx:]` or `[idx]`. A list or dict of paths takes the same index
+  through `at`, which reads or writes all its paths at once:
+  `expectation.energy_port.at[idx]`,
+  `expectation.time_port.at[idx:] = times`.
+- An expectation class has a method only for what an assignment cannot say:
+  a `reset_*` clears the fields one event clears together.
 - The results classes (`navigate/core/results/`) are dataclasses written and
   read as plain fields, sharing the run-wide timeline, fuel and emission
   constants and the conversions by them in `ResultsContext`. A time step
@@ -191,10 +198,9 @@ its section layout; the rules below cover the content.
   constructor arguments. A class only the framework constructs stays at one
   line; this covers every node except the calculators, as a node's inputs are
   DSL attributes documented in the reference manual.
-- A node's lifecycle methods and the methods of expectation classes need no
-  docstring. Ruff `D102` is waived for `nodes/`, `general_nodes/` and
-  `expectations/` under `navigate/core/` to allow that, so nothing flags a
-  DSL setter that lacks its docstring.
+- A node's lifecycle methods need no docstring. Ruff `D102` is waived for
+  `nodes/` and `general_nodes/` under `navigate/core/` to allow that, so
+  nothing flags a DSL setter that lacks its docstring.
 
 ## Comments
 
@@ -249,8 +255,8 @@ its section layout; the rules below cover the content.
 - Validate deck input in the `assign_*` functions (`navigate/core/assign.py`)
   the setters call and in the `check_*` hooks. An error names the node, the
   attribute and the offending value; an `assign_*` error leaves the node and
-  attribute to the parser. `calculate_*` and expectation methods contain no
-  checks; past validation, trust the types.
+  attribute to the parser. `calculate_*` functions contain no checks; past
+  validation, trust the types.
 - Reject at validation any input that leaves the model without meaning, and
   never guard against it where it is used, as a guard at each use spreads a
   default through the model: `set_vessels` takes at least one vessel, so no

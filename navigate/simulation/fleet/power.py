@@ -14,7 +14,11 @@ from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.core.node_type import is_surface, is_variable
 from navigate.exceptions import PowerCapacityError
 from navigate.simulation.fleet._trip import derive_reference_trip
-from navigate.util import TOLERANCE, energy_to_power, power_to_energy
+from navigate.util import (
+    TOLERANCE,
+    energy_to_power,
+    power_to_energy,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -193,10 +197,10 @@ def _verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     """
     expectation = vessel.expectation
 
-    times_sea = expectation.get_time_sea_condition(idx)
-    times_port = expectation.get_time_port(idx)
-    energies_sea = expectation.get_energy_sea_condition(idx)
-    energies_port = expectation.get_energy_port(idx)
+    times_sea = expectation.time_sea_condition.at[idx]
+    times_port = expectation.time_port.at[idx]
+    energies_sea = expectation.energy_sea_condition.at[idx]
+    energies_port = expectation.energy_port.at[idx]
 
     labels_sea = _name_conditions(vessel.route)
     labels_port = [f"port {port}" for port in vessel.route.ports]

@@ -323,7 +323,7 @@ def _transfer_transport_work(fleet: Fleet) -> None:
 
     for vessel in fleet.vessels:
         multiplier = multipliers[vessel.name]
-        cargo_miles += multiplier * vessel.expectation.get_cargo_miles()
+        cargo_miles += multiplier * vessel.expectation.cargo_miles
 
     results.cargo_miles[:] = cargo_miles
 
@@ -581,7 +581,7 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
         Simulation timeline, in days.
     """
     results = vessel.results
-    cargo_miles = vessel.expectation.get_cargo_miles()
+    cargo_miles = vessel.expectation.cargo_miles
     expenses = _sum_operating_expenses(vessel)
 
     for idx, time in enumerate(timeline):
@@ -603,7 +603,7 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
             continue
 
         discount = vessel.cost_of_capital.get(time)
-        asset_charter_npv = vessel.expectation.get_asset_charter_npv(idx)
+        asset_charter_npv = vessel.expectation.asset_charter_npv[idx]
 
         # costs and cargo resampled onto the operating years, zero during the lead time
         operating_cost = np.interp(year_starts, timeline, expenses) * operating_flow
@@ -667,7 +667,7 @@ def _aggregate_fleet_freight_rate(fleet: Fleet) -> None:
     for vessel in fleet.vessels:
         multiplier = multipliers[vessel.name]
         charter_rate = vessel.results.cargo_charter_rate
-        cargo_miles = vessel.expectation.get_cargo_miles()
+        cargo_miles = vessel.expectation.cargo_miles
 
         # a NaN multiplier stays active so it surfaces in the rate instead of
         # being dropped silently

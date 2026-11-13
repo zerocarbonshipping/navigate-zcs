@@ -76,9 +76,8 @@ known-first-party = ["helpers", "compare_results"]
 
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]
-# expectation and node lifecycle methods carry no docstrings; the DSL setters on
-# nodes do (see CODESTYLE.md)
-"navigate/core/expectations/*" = ["D102"]
+# node lifecycle methods carry no docstrings; the DSL setters on nodes do (see
+# CODESTYLE.md)
 "navigate/core/nodes/*" = ["D102"]
 "navigate/core/general_nodes/*" = ["D102"]
 # the registries read the node classes off their annotations at runtime

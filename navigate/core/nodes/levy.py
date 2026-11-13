@@ -23,6 +23,7 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.results import LevyResults
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.vessel import Vessel
     from navigate.core.results import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util.types_ import DateArray, FloatArray
@@ -43,7 +44,7 @@ class Levy(_Policy):
         self.upper_threshold: ForecastInput | None = None
 
         # internal variables -----------------------------------------------------------
-        self.expectation: LevyExpectation = LevyExpectation()
+        self.expectation: LevyExpectation
         self.results: LevyResults = LevyResults()
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -80,9 +81,14 @@ class Levy(_Policy):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize_expectation(self, length: int) -> None:
+    def initialize_expectation(self, length: int, vessels: dict[str, Vessel]) -> None:
         emission_names = [emission.name for emission in self.emissions]
-        self.expectation.initialize(length, emission_names)
+        fuel_names = [fuel.name for fuel in self.fuels]
+        port_names = [port.name for port in self.jurisdiction]
+
+        self.expectation = LevyExpectation(
+            length, emission_names, fuel_names, port_names, vessels
+        )
 
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)

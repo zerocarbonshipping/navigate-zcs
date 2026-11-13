@@ -33,12 +33,11 @@ def record_plant_results(plant: Plant, idx: int) -> None:
     expectation = plant.expectation
     results = plant.results
 
-    cost = expectation.get_levelized_production_cost(idx)
+    cost = expectation.levelized_production_cost[idx]
     results.investment_cost[idx] = cost
 
-    for emission_name in expectation.get_emissions():
-        wtt = expectation.get_production_wtt(emission_name, idx)
-        results.investment_wtt[emission_name][idx] = wtt
+    for emission_name, wtt in expectation.production_wtt.items():
+        results.investment_wtt[emission_name][idx] = wtt[idx]
 
 
 def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) -> None:
@@ -104,7 +103,7 @@ def _transfer_production_and_feed_mass(
         multipliers = np.array([increment.multiplier for increment in increments])
         origins = find_origin_indexes(years, current_year, decided)
 
-        production_per_plant = plant.expectation.get_production(origins)
+        production_per_plant = plant.expectation.production[origins]
         production = np.sum(production_per_plant * multipliers)
         feed_masses = _calculate_feed_masses(plant, multipliers, origins)
 
@@ -136,8 +135,8 @@ def _calculate_feed_masses(
     dict[str, float]
         Feed mass per feed name, in tons/year.
     """
-    production = plant.expectation.get_production(origins)
-    conversions = plant.expectation.get_feed_conversions(origins)
+    production = plant.expectation.production[origins]
+    conversions = plant.expectation.feed_conversion.at[origins]
 
     feed_masses: dict[str, float] = {}
     for feed_name, conversion in conversions.items():
@@ -169,7 +168,7 @@ def _transfer_plant_tied_capital(
         for increment in increments:
             # the costs are those of a plant that entered production 'age' years ago
             origin = find_origin_index(years, current_year, increment.age)
-            tied_capital_flow = plant.expectation.get_tied_capital(origin)
+            tied_capital_flow = plant.expectation.tied_capital[origin]
             tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age)
 
             results.plant_tied_capital[idx] += tied_capital * increment.multiplier

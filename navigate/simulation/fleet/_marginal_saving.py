@@ -11,7 +11,6 @@ import numpy as np
 
 from navigate.simulation.fleet._residual_energy import calculate_residual_energy
 from navigate.simulation.fleet._trip import sum_energy_per_leg
-from navigate.util import slice_dict_list
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -61,11 +60,11 @@ def calculate_marginal_technology_saving(
     residual_sea, residual_port = calculate_residual_energy(vessel, package, idx)
     residual_sea_leg = sum_energy_per_leg(condition_legs, residual_sea)
 
-    baseline_sea = expectation.get_operational_energy_sea_leg(idx)
-    baseline_port = expectation.get_operational_energy_port(idx)
+    baseline_sea = expectation.operational_energy_sea_leg.at[idx]
+    baseline_port = expectation.operational_energy_port.at[idx]
 
-    price_sea = slice_dict_list(expectation.get_belief_pi_sea_technology(), idx)
-    price_port = slice_dict_list(expectation.get_belief_pi_port_technology(), idx)
+    price_sea = expectation.belief_pi_sea_technology.at[idx]
+    price_port = expectation.belief_pi_port_technology.at[idx]
 
     saving_sea = _sum_savings(residual_sea_leg, baseline_sea, price_sea)
     saving_port = _sum_savings(residual_port, baseline_port, price_port)
@@ -111,11 +110,11 @@ def calculate_marginal_speed_saving(
 
     residual_sea_leg = sum_energy_per_leg(condition_legs, residual_sea)
 
-    baseline_sea = slice_dict_list(expectation.get_energy_conservation_rhs_sea(), idx)
-    baseline_port = slice_dict_list(expectation.get_energy_conservation_rhs_port(), idx)
+    baseline_sea = expectation.energy_conservation_rhs_sea.at[idx]
+    baseline_port = expectation.energy_conservation_rhs_port.at[idx]
 
-    price_sea = slice_dict_list(expectation.get_belief_pi_sea_speed(), idx)
-    price_port = slice_dict_list(expectation.get_belief_pi_port_speed(), idx)
+    price_sea = expectation.belief_pi_sea_speed.at[idx]
+    price_port = expectation.belief_pi_port_speed.at[idx]
 
     saving_sea = _sum_savings(residual_sea_leg, baseline_sea, price_sea)
     saving_port = _sum_savings(residual_port, baseline_port, price_port)

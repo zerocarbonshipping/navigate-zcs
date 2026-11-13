@@ -115,15 +115,15 @@ def update_regulation_flexibility_beliefs(
         horizon = regulation.flexibility_horizon.get()
 
         alpha = calculate_smoothing_alpha(horizon, timeline, idx)
-        raw_cost = expectation.get_flexibility_cost()
-        prior = expectation.get_belief_flexibility_cost()
+        raw_cost = expectation.flexibility_cost
+        prior = expectation.belief_flexibility_cost
         belief = smooth_belief_path(raw_cost, prior, alpha, idx)
-        expectation.set_belief_flexibility_cost(idx, belief)
+        expectation.belief_flexibility_cost[idx:] = belief
 
         for vessel_name, vessel in select_policed(regulation, vessels).items():
-            net_units = expectation.get_vessel_net_flexibility_units(vessel_name)
+            net_units = expectation.vessel_net_flexibility_units[vessel_name]
             expenses = net_units[idx:] * belief
-            vessel.expectation.add_flexibility_expenses(idx, expenses)
+            vessel.expectation.flexibility_expenses[idx:] += expenses
 
 
 def _clear_flexibility_market(
@@ -131,9 +131,9 @@ def _clear_flexibility_market(
 ) -> _Market:
     """Clear the flexibility market of one regulation; see the public function."""
     expectation = regulation.expectation
-    total_remedial = expectation.get_pooled_remedial_units(idx)
-    remedial_cost = expectation.get_remedial_cost(idx)
-    shadow_price = expectation.get_pooled_shadow_price(idx)
+    total_remedial = expectation.pooled_remedial_units[idx]
+    remedial_cost = expectation.remedial_cost[idx]
+    shadow_price = expectation.pooled_shadow_price[idx]
 
     # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance
     balances = {}
@@ -218,7 +218,7 @@ def _calculate_market_expectations(
 ) -> None:
     """Write a cleared flexibility market to the expectations."""
     expectation = regulation.expectation
-    expectation.set_flexibility_cost(idx, market.flexibility_cost)
+    expectation.flexibility_cost[idx] = market.flexibility_cost
 
     # the flexibility expenses and surplus revenue wait for the belief update, which
     # values the net flexibility units at the smoothed rather than the raw cost
@@ -228,5 +228,5 @@ def _calculate_market_expectations(
         remedial_expenses = units.remedial * market.remedial_cost
         net_units = units.flexibility - units.surplus
 
-        vessel.expectation.add_remedial_expenses(idx, remedial_expenses)
-        expectation.set_vessel_net_flexibility_units(vessel_name, idx, net_units)
+        vessel.expectation.remedial_expenses[idx] += remedial_expenses
+        expectation.vessel_net_flexibility_units[vessel_name][idx] = net_units

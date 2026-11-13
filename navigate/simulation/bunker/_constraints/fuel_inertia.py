@@ -55,7 +55,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     # the floor is scaled by the change in vessel multipliers, so that only the
     # vessels that actually bunkered previously are affected
     expectation = alg.fleets[vessel.fleet_assignment].expectation
-    multiplier_old = float(expectation.get_multiplier(v, alg.scope, alg.idx - 1))
+    multiplier_old = float(expectation.multiplier[v, alg.scope][alg.idx - 1])
     multiplier_scaling = min(multiplier_old / alg.multipliers[v], 1.0)
 
     scaling = multiplier_scaling * energy_scaling
@@ -107,10 +107,10 @@ def _get_previous_bunker_mass(
     expectation = vessel.expectation
 
     if alg.scope == BunkerScopeID.EXPECTED and alg.idx > alg.current_idx:
-        mass = expectation.get_bunker_mass_expected(port_name, fuel_name, alg.idx - 1)
+        mass = expectation.bunker_mass_expected[port_name, fuel_name][alg.idx - 1]
         return float(mass)
 
-    return expectation.get_bunker_mass_existing(port_name, fuel_name)
+    return expectation.bunker_mass_existing[port_name, fuel_name]
 
 
 def _calculate_total_demand(vessel: Vessel, idx: int) -> np.float64:
@@ -122,8 +122,8 @@ def _calculate_total_demand(vessel: Vessel, idx: int) -> np.float64:
     """
     expectation = vessel.expectation
 
-    energy_sea = expectation.get_energy_sea_leg(idx)
-    energy_port = expectation.get_energy_port(idx)
+    energy_sea = expectation.energy_sea_leg.at[idx]
+    energy_port = expectation.energy_port.at[idx]
 
     energies = np.concatenate([*energy_sea.values(), *energy_port.values()])
 

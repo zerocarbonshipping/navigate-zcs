@@ -101,7 +101,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
 
     update_residual_energy_demand(fleet, idx)
 
-    fleet.expectation.set_uptakes(idx, fleet.current_uptake)
+    fleet.expectation.uptakes[:, idx] = fleet.current_uptake
     calculate_fleet_evolution_expectation(fleet, timeline, idx, scrapping_pending=False)
 
     transfer_technology_charter_rate(fleet, idx)

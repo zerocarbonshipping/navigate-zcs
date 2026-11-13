@@ -63,12 +63,12 @@ def _record_remedial_expenses(
     """Write the remedial units and expenses of one regulation to the results."""
     results = regulation.results
     expectation = regulation.expectation
-    remedial_cost = expectation.get_remedial_cost(idx)
+    remedial_cost = expectation.remedial_cost[idx]
 
     for vessel_name, multiplier in select_policed(regulation, multipliers).items():
         vessel = vessels[vessel_name]
 
-        remedial_units = expectation.get_vessel_remedial_units(vessel_name, idx)
+        remedial_units = expectation.vessel_remedial_units[vessel_name][idx]
         remedial_expenses = remedial_units * remedial_cost
 
         # the regulation totals cover all the vessels the LP vessel represents
@@ -89,12 +89,12 @@ def _calculate_remedial_expenses(
 ) -> None:
     """Add the remedial expenses of one regulation to its vessels' expectations."""
     expectation = regulation.expectation
-    remedial_cost = expectation.get_remedial_cost(idx)
+    remedial_cost = expectation.remedial_cost[idx]
 
     for vessel_name in select_policed(regulation, multipliers):
         vessel = vessels[vessel_name]
 
-        remedial_units = expectation.get_vessel_remedial_units(vessel_name, idx)
+        remedial_units = expectation.vessel_remedial_units[vessel_name][idx]
         remedial_expenses = remedial_units * remedial_cost
 
-        vessel.expectation.add_remedial_expenses(idx, remedial_expenses)
+        vessel.expectation.remedial_expenses[idx] += remedial_expenses

@@ -79,7 +79,7 @@ def _calculate_regulation_forecasts(
     """Set the regulation's remedial cost and transport-measure vessel capacities."""
     expectation = regulation.expectation
 
-    expectation.set_remedial_cost(idx, regulation.remedial_cost.get(times))
+    expectation.remedial_cost[idx:] = regulation.remedial_cost.get(times)
 
     if regulation.measure in (
         RegulationMeasureID.TRANSPORT,
@@ -91,12 +91,12 @@ def _calculate_regulation_forecasts(
             else:
                 capacity = own_capacity.get(times)
 
-            expectation.set_vessel_capacity(vessel_name, idx, capacity)
+            expectation.vessel_capacity[vessel_name][idx:] = capacity
 
 
 def _calculate_levy_forecasts(levy: Levy, times: FloatArray, idx: int) -> None:
     """Set the levy's level."""
-    levy.expectation.set_level(idx, levy.level.get(times))
+    levy.expectation.level[idx:] = levy.level.get(times)
 
 
 def _calculate_global_warming_potentials(
@@ -117,4 +117,4 @@ def _calculate_global_warming_potentials(
             potential = own_potential
 
         gwp = potential.get(lifetime)
-        policy.expectation.set_global_warming_potential(emission_name, gwp)
+        policy.expectation.global_warming_potential[emission_name] = gwp

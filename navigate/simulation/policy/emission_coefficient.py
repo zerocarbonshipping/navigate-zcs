@@ -144,7 +144,7 @@ def _calculate_regulation_wtt(
                     wtt = _average_wtt_over_route(vessel.route, fuel, emission, idx)
 
                 factor = _apply_gwp(wtt, regulation, emission)
-                expectation.set_wtt((vessel_name, *key), idx, factor)
+                expectation.wtt[vessel_name, *key][idx:] = factor
 
 
 def _calculate_regulation_ttw(
@@ -185,8 +185,8 @@ def _calculate_regulation_ttw(
                 factor_consumption = _apply_gwp(consumption, regulation, emission)
                 factor_slip = _apply_gwp(slip, regulation, emission)
 
-                expectation.set_ttw_consumption(key, idx, factor_consumption)
-                expectation.set_ttw_slip(key, idx, factor_slip)
+                expectation.ttw_consumption[key][idx:] = factor_consumption
+                expectation.ttw_slip[key][idx:] = factor_slip
 
 
 def _calculate_regulation_emission_coefficients(
@@ -217,7 +217,7 @@ def _calculate_regulation_emission_coefficients(
             if np.isnan(coefficient).any():
                 continue
 
-            expectation.set_emission_coefficient(key, idx, coefficient)
+            expectation.emission_coefficient[key][idx:] = coefficient
 
 
 def _calculate_regulation_coefficient(
@@ -254,9 +254,9 @@ def _calculate_regulation_coefficient(
         key_wtt = (vessel_name, fuel_name, emission.name)
         key_ttw = (vessel_name, converter_name, fuel_name, emission.name)
 
-        wtt = expectation.get_wtt(key_wtt, forward)
-        ttw_consumption = expectation.get_ttw_consumption(key_ttw, forward)
-        ttw_slip = expectation.get_ttw_slip(key_ttw, forward)
+        wtt = expectation.wtt[key_wtt][forward]
+        ttw_consumption = expectation.ttw_consumption[key_ttw][forward]
+        ttw_slip = expectation.ttw_slip[key_ttw][forward]
 
         coefficient += wtt + ttw_consumption + ttw_slip
 
@@ -284,14 +284,14 @@ def _calculate_regulation_shore_power_coefficients(
     route_ports = (port for vessel in vessels.values() for port in vessel.route.ports)
 
     for port in unique_list(route_ports):
-        get_emission_factor = port.expectation.get_shore_power_emission_factor
+        emission_factor = port.expectation.shore_power_emission_factor
 
         coefficient = 0.0
         for emission in regulation.emissions:
-            factor = get_emission_factor(emission.name, forward)
+            factor = emission_factor[emission.name][forward]
             coefficient += _apply_gwp(factor, regulation, emission)
 
-        expectation.set_shore_power_emission_coefficient(port.name, idx, coefficient)
+        expectation.shore_power_emission_coefficient[port.name][idx:] = coefficient
 
 
 def _calculate_regulation_vessel_thresholds(
@@ -316,10 +316,10 @@ def _calculate_regulation_vessel_thresholds(
         # vessel, and the threshold written while it did would remain;
         # check_consistency guarantees every policed vessel a threshold
         if not regulation.vessel_is_policed(vessel_name) or threshold is None:
-            expectation.set_vessel_threshold(vessel_name, idx, 0.0)
+            expectation.vessel_threshold[vessel_name][idx:] = 0.0
             continue
 
-        expectation.set_vessel_threshold(vessel_name, idx, threshold.get(times))
+        expectation.vessel_threshold[vessel_name][idx:] = threshold.get(times)
 
 
 def _calculate_levy(
@@ -386,7 +386,7 @@ def _calculate_levy_wtt(levy: Levy, times: FloatArray, idx: int) -> None:
                     wtt = _estimate_port_wtt(port, fuel, emission, idx)
 
                 factor = _apply_gwp(wtt, levy, emission)
-                expectation.set_wtt((port.name, *key), idx, factor)
+                expectation.wtt[port.name, *key][idx:] = factor
 
 
 def _calculate_levy_ttw(
@@ -427,8 +427,8 @@ def _calculate_levy_ttw(
                 factor_consumption = _apply_gwp(consumption, levy, emission)
                 factor_slip = _apply_gwp(slip, levy, emission)
 
-                expectation.set_ttw_consumption(key, idx, factor_consumption)
-                expectation.set_ttw_slip(key, idx, factor_slip)
+                expectation.ttw_consumption[key][idx:] = factor_consumption
+                expectation.ttw_slip[key][idx:] = factor_slip
 
 
 def _calculate_levy_costs(
@@ -456,7 +456,7 @@ def _calculate_levy_costs(
     scheme = levy.scheme
     forward = np.s_[idx:]
 
-    level = expectation.get_level(forward)
+    level = expectation.level[forward]
     lower = levy.lower_threshold.get(times)
     upper = None if levy.upper_threshold is None else levy.upper_threshold.get(times)
 
@@ -468,7 +468,7 @@ def _calculate_levy_costs(
         is_policed = levy.vessel_is_policed(vessel_name)
 
         for fuel in _select_target_fuels(levy, vessel):
-            lhv = vessel.expectation.get_mean_effective_lhv(fuel.name)
+            lhv = vessel.expectation.mean_effective_lhv[fuel.name]
 
             for port in ports:
                 if not port.bunkering_allowed[fuel.name]:
@@ -479,7 +479,7 @@ def _calculate_levy_costs(
                 # zero rather than unwritten: an event can stop the levy policing
                 # the vessel, and the cost written while it did would remain
                 if not is_policed:
-                    expectation.set_cost(key, idx, 0.0)
+                    expectation.cost[key][idx:] = 0.0
                     continue
 
                 coefficient = _calculate_levy_coefficient(levy, key, idx)
@@ -491,7 +491,7 @@ def _calculate_levy_costs(
                     continue
 
                 coefficient = _apply_thresholds(coefficient, scheme, lhv, lower, upper)
-                expectation.set_cost(key, idx, level * coefficient)
+                expectation.cost[key][idx:] = level * coefficient
 
 
 def _calculate_levy_coefficient(
@@ -528,9 +528,9 @@ def _calculate_levy_coefficient(
         key_wtt = (port_name, fuel_name, emission.name)
         key_ttw = (vessel_name, fuel_name, emission.name)
 
-        wtt = expectation.get_wtt(key_wtt, forward)
-        ttw_consumption = expectation.get_ttw_consumption(key_ttw, forward)
-        ttw_slip = expectation.get_ttw_slip(key_ttw, forward)
+        wtt = expectation.wtt[key_wtt][forward]
+        ttw_consumption = expectation.ttw_consumption[key_ttw][forward]
+        ttw_slip = expectation.ttw_slip[key_ttw][forward]
 
         coefficient += wtt + ttw_consumption + ttw_slip
 
@@ -658,8 +658,8 @@ def _get_converter_ttw(
     expectation = vessel.expectation
     vessel_key = key[1:]
 
-    consumption = expectation.get_ttw_consumption(*vessel_key)
-    slip = expectation.get_ttw_slip(*vessel_key) if regulation.include_slip else 0.0
+    consumption = expectation.ttw_consumption[vessel_key]
+    slip = expectation.ttw_slip[vessel_key] if regulation.include_slip else 0.0
 
     return consumption, slip
 
@@ -691,8 +691,8 @@ def _get_mean_ttw(
     expectation = vessel.expectation
     vessel_key = key[1:]
 
-    consumption = expectation.get_mean_ttw_consumption(*vessel_key)
-    slip = expectation.get_mean_ttw_slip(*vessel_key) if levy.include_slip else 0.0
+    consumption = expectation.mean_ttw_consumption[vessel_key]
+    slip = expectation.mean_ttw_slip[vessel_key] if levy.include_slip else 0.0
 
     return consumption, slip
 
@@ -753,7 +753,7 @@ def _apply_gwp(
     FloatLike
         GWP-weighted emission factor, in the unit of `emission_factor`.
     """
-    gwp = policy.expectation.get_global_warming_potential(emission.name)
+    gwp = policy.expectation.global_warming_potential[emission.name]
 
     return emission_factor * gwp
 
@@ -842,16 +842,16 @@ def _estimate_port_wtt(
     key = (fuel.name, emission.name)
 
     if port.bunker_wtt_overwrites[key] is not None:
-        return port.expectation.get_bunker_wtt_overwrite(*key, forward)
+        return port.expectation.bunker_wtt_overwrite[key][forward]
 
     if not fuel.plants:
-        return np.full(port.expectation.get_shape(idx), np.nan)
+        return np.full(port.expectation.length - idx, np.nan)
 
     estimates = []
     for plant in fuel.plants:
         expectation = plant.expectation
-        production = expectation.get_production_wtt(emission.name, forward)
-        delivery = expectation.get_delivery_wtt(port.name, emission.name, forward)
+        production = expectation.production_wtt[emission.name][forward]
+        delivery = expectation.delivery_wtt[port.name, emission.name][forward]
         estimates.append(production + delivery)
 
     return np.stack(estimates).mean(axis=0)

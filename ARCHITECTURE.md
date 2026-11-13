@@ -18,7 +18,11 @@ only through `core` expectations and the bunkering LP. `Simulation` in
 - Calculator: a node evaluated through `.get` (`CALCULATOR_TYPES` in
   `core/node_type.py`); a `Scalar` (`core/scalar.py`) may stand in for one.
 - Expectation: `node.expectation` (`core/expectations/`), a domain-owned node's
-  state over the timeline, behind `set_*`, `add_*` and `get_*` accessors.
+  state over the timeline, held as plain fields.
+- Path: a quantity's value at every time step, the form most expectation
+  fields take, alone or in a list or dict of paths. Writing it at `[idx:]`
+  revises the outlook from a step on; writing it at `[idx]` records what one
+  step realised.
 - Results: `node.results` (`core/results/`) and the run-wide `GlobalResults`,
   what the results file reports: the fields declared with `result(unit)`.
 - Node map: a node attribute derived from other nodes' attributes, such as
@@ -174,8 +178,8 @@ the layering changed changes the table with the code.
 
 - A value computed during the time loop that one of fleet, fuel, policy and
   bunker reads from another lives on the node's `expectation`: the computing
-  domain writes it (`set_*`, `add_*`), the others read it (`get_*`). The one
-  other path is `Simulation` handing a value on as a call argument, such as the
+  domain writes the field, the others only read it. The one other route is
+  `Simulation` handing a value on as a call argument, such as the
   multipliers a bunkering LP ran with to the policy functions settling it.
 - The plain node attributes another domain reads are:
   - DSL inputs;
@@ -189,8 +193,8 @@ the layering changed changes the table with the code.
 - A node map that derives from DEFINE-only attributes is written once, by
   `Simulation.initialize`. A node map that derives from what events can change
   is written every time step.
-- An expectation getter returns what its writer stored, or its default for a
-  key never written, as `core` holds no model work. A quantity derived from
+- An expectation field holds what its writer stored, or the default its
+  constructor gave it, as `core` holds no model work. A quantity derived from
   stored values is computed in the domain that reads it. Where the parts of a
   sum are never read on their own, the writer stores the sum.
 - `results` is output for the results file, never a decision's input. A step

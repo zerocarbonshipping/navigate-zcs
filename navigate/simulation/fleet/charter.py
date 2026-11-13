@@ -65,10 +65,10 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     tied_capital = component.tied_capital_flow[commence_idx:]
 
     expectation = vessel.expectation
-    expectation.set_asset_charter_npv(idx, asset_charter_npv)
-    expectation.set_capex_npv(idx, capex_npv)
-    expectation.set_asset_charter_rate(idx, asset_charter_rate)
-    expectation.set_tied_capital(idx, tied_capital)
+    expectation.asset_charter_npv[idx] = asset_charter_npv
+    expectation.capex_npv[idx] = capex_npv
+    expectation.asset_charter_rate[idx] = asset_charter_rate
+    expectation.tied_capital[idx] = tied_capital
 
     vessel.results.asset_charter_rate[idx] = asset_charter_rate
 
@@ -99,9 +99,9 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     discount_rate = vessel.cost_of_capital.get(component.time_initial)
 
     expectation = vessel.expectation
-    asset_charter_npv = expectation.get_asset_charter_npv(idx)
-    technology_rate = expectation.get_technology_charter_rate(idx)
-    cargo_miles = expectation.get_cargo_miles()
+    asset_charter_npv = expectation.asset_charter_npv[idx]
+    technology_rate = expectation.technology_charter_rate[idx]
+    cargo_miles = expectation.cargo_miles
 
     fuel_cost_flow = component.get_cost_flow()
     operating_flow = component.operating_flow
@@ -120,7 +120,7 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     cargo_charter_rate = cost_npv / annuity_factor
     freight_rate = cost_npv / cargo_npv
 
-    expectation.set_freight_rate(idx, freight_rate)
+    expectation.freight_rate[idx] = freight_rate
 
     vessel.results.cargo_charter_rate[idx] = cargo_charter_rate
     vessel.results.investment_freight_rate[idx] = freight_rate
@@ -154,10 +154,10 @@ def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: int | slice) -> Floa
     """
     expectation = vessel.expectation
 
-    fuel = expectation.get_fuel_expenses(idx)
-    levy = expectation.get_levy_expenses(idx)
-    remedial = expectation.get_remedial_expenses(idx)
-    flexibility = expectation.get_flexibility_expenses(idx)
+    fuel = expectation.fuel_expenses[idx]
+    levy = expectation.levy_expenses[idx]
+    remedial = expectation.remedial_expenses[idx]
+    flexibility = expectation.flexibility_expenses[idx]
 
     return fuel + levy + remedial + flexibility
 

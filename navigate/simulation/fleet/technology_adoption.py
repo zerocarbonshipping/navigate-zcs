@@ -303,7 +303,7 @@ def _extract_adoption_basis(
 
     packages = fleet.technology_packages
     packages_saving = _calculate_packages_saving(vessel, packages, timeline, idx)
-    capex_npv = vessel.expectation.get_capex_npv(idx)
+    capex_npv = vessel.expectation.capex_npv[idx]
 
     return _AdoptionBasis(
         vessel,
@@ -748,5 +748,5 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
 
         average = float(divide_nonzero(total, weight))
 
-        vessel.expectation.set_technology_charter_rate(idx, average)
+        vessel.expectation.technology_charter_rate[idx] = average
         vessel.results.technology_cost[idx] = average

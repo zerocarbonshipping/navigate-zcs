@@ -264,7 +264,7 @@ class Simulation:
             fleet.initialize_expectation(length, nodes.fuels)
 
         for levy in nodes.levies.values():
-            levy.initialize_expectation(length)
+            levy.initialize_expectation(length, nodes.vessels)
 
         for plant in nodes.plants.values():
             plant.initialize_expectation(

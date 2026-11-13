@@ -77,7 +77,7 @@ class Vessel(Node):
         self.cost_of_capital: ForecastInput = Scalar(0.0)
 
         # internal variables -----------------------------------------------------------
-        self.expectation: VesselExpectation = VesselExpectation()
+        self.expectation: VesselExpectation
         self.results: VesselResults = VesselResults()
 
         # set by fleet initialization
@@ -237,7 +237,7 @@ class Vessel(Node):
     def initialize_expectation(
         self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
     ) -> None:
-        self.expectation.initialize(
+        self.expectation = VesselExpectation(
             length,
             self.route,
             fuels,

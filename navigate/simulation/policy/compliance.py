@@ -109,10 +109,10 @@ def _record_adjusted_thresholds(
     results = regulation.results
 
     for vessel_name in select_policed(regulation, multipliers):
-        threshold = expectation.get_adjusted_vessel_threshold(vessel_name, idx)
+        threshold = expectation.adjusted_vessel_threshold[vessel_name][idx]
         if not np.isnan(threshold):
             results.adjusted_vessel_threshold[vessel_name][idx] = threshold
 
-    shared_threshold = expectation.get_adjusted_shared_threshold(idx)
+    shared_threshold = expectation.adjusted_shared_threshold[idx]
     if not np.isnan(shared_threshold):
         results.adjusted_shared_threshold[idx] = shared_threshold

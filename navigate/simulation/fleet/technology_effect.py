@@ -21,7 +21,11 @@ from navigate.simulation.fleet._residual_energy import (
 )
 from navigate.simulation.fleet._trip import bind_conditions_to_legs, sum_energy_per_leg
 from navigate.simulation.fleet.operation import transfer_operational_savings
-from navigate.util import divide_nonzero, power_to_energy, sum_per_key
+from navigate.util import (
+    divide_nonzero,
+    power_to_energy,
+    sum_per_key,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -59,7 +63,7 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
             sea, port, potential = _calculate_technology_effect(vessel, weights, idx)
 
         _transfer_residual_energy(vessel, sea, port, idx)
-        vessel.expectation.set_shore_power_potential_port(idx, potential)
+        vessel.expectation.shore_power_potential_port.at[idx:] = potential
 
 
 def _calculate_operational_energy(
@@ -88,11 +92,11 @@ def _calculate_operational_energy(
     """
     expectation = vessel.expectation
 
-    raw_sea = expectation.get_raw_energy_sea_condition(idx)
-    raw_port = expectation.get_raw_energy_port(idx)
+    raw_sea = expectation.raw_energy_sea_condition.at[idx]
+    raw_port = expectation.raw_energy_port.at[idx]
 
-    saving_sea = expectation.get_operational_saving_fraction_sea()
-    saving_port = expectation.get_operational_saving_fraction_port()
+    saving_sea = expectation.operational_saving_fraction_sea
+    saving_port = expectation.operational_saving_fraction_port
 
     remaining_sea = {key: 1.0 - value for key, value in saving_sea.items()}
     remaining_port = {key: 1.0 - value for key, value in saving_port.items()}
@@ -131,9 +135,9 @@ def _transfer_operational_energy(
     condition_legs = bind_conditions_to_legs(vessel.route)
     sea_leg = sum_energy_per_leg(condition_legs, sea)
 
-    expectation.set_operational_energy_sea_condition(idx, sea)
-    expectation.set_operational_energy_sea_leg(idx, sea_leg)
-    expectation.set_operational_energy_port(idx, port)
+    expectation.operational_energy_sea_condition.at[idx:] = sea
+    expectation.operational_energy_sea_leg.at[idx:] = sea_leg
+    expectation.operational_energy_port.at[idx:] = port
 
     totals_sea = sum_per_key(sea)
     totals_port = sum_per_key(port)
@@ -208,7 +212,7 @@ def _calculate_technology_effect(
     FloatArray
         Shore-power potential, one value per port call, in GJ/year.
     """
-    times_port = np.asarray(vessel.expectation.get_time_port(idx), dtype=float)
+    times_port = np.asarray(vessel.expectation.time_port.at[idx], dtype=float)
 
     residuals_sea = []
     residuals_port = []
@@ -287,9 +291,9 @@ def _transfer_residual_energy(
     condition_legs = bind_conditions_to_legs(vessel.route)
     sea_leg = sum_energy_per_leg(condition_legs, sea)
 
-    expectation.set_energy_sea_condition(idx, sea)
-    expectation.set_energy_sea_leg(idx, sea_leg)
-    expectation.set_energy_port(idx, port)
+    expectation.energy_sea_condition.at[idx:] = sea
+    expectation.energy_sea_leg.at[idx:] = sea_leg
+    expectation.energy_port.at[idx:] = port
 
     totals_sea = sum_per_key(sea)
     totals_port = sum_per_key(port)
@@ -363,10 +367,10 @@ def _calculate_retrofit_ratios(
             multiplier = get_multiplier(fleet, v)
             expectation = vessel.expectation
 
-            energy_sea = expectation.get_energy_sea_condition(idx)
-            energy_port = expectation.get_energy_port(idx)
-            raw_energy_sea = expectation.get_raw_energy_sea_condition(idx)
-            raw_energy_port = expectation.get_raw_energy_port(idx)
+            energy_sea = expectation.energy_sea_condition.at[idx]
+            energy_port = expectation.energy_port.at[idx]
+            raw_energy_sea = expectation.raw_energy_sea_condition.at[idx]
+            raw_energy_port = expectation.raw_energy_port.at[idx]
 
             _accumulate_weighted(residual_sea, energy_sea, multiplier)
             _accumulate_weighted(residual_port, energy_port, multiplier)
@@ -460,8 +464,8 @@ def _calculate_approximation(
     """
     expectation = vessel.expectation
 
-    operational_sea = expectation.get_operational_energy_sea_condition(idx)
-    operational_port = expectation.get_operational_energy_port(idx)
+    operational_sea = expectation.operational_energy_sea_condition.at[idx]
+    operational_port = expectation.operational_energy_port.at[idx]
 
     sea = scale_per_key(operational_sea, ratio_sea)
     port = scale_per_key(operational_port, ratio_port)

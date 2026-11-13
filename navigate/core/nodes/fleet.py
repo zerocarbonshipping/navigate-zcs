@@ -121,7 +121,7 @@ class Fleet(Node):
         }
 
         # internal variables -----------------------------------------------------------
-        self.expectation: FleetExpectation = FleetExpectation()
+        self.expectation: FleetExpectation
         self.results: FleetResults = FleetResults()
 
         self.increments: list[list[VesselIncrement]]
@@ -548,7 +548,7 @@ class Fleet(Node):
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
         vessel_names = [vessel.name for vessel in self.vessels]
-        self.expectation.initialize(length, vessel_names, fuels)
+        self.expectation = FleetExpectation(length, vessel_names, fuels)
 
     def initialize_results(
         self,

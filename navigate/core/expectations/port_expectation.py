@@ -5,7 +5,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from itertools import product
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -14,139 +15,27 @@ from navigate.core.expectations._expectation import _Expectation
 if TYPE_CHECKING:
     from collections.abc import Collection
 
-    from navigate.util.types_ import FloatArray, FloatLike, Index
-
 
 class PortExpectation(_Expectation):
     """Bunker supply, price and emission paths a single port offers each fuel."""
 
-    def __init__(self) -> None:
-        super().__init__()
-
-        self._handling_cost: dict[str, FloatArray]
-        self._bunkering_limit: dict[str, FloatArray]
-
-        self._bunker_price_overwrite: dict[str, FloatArray]
-        self._bunker_wtt_overwrite: dict[tuple[str, str], FloatArray]
-
-        self._bunker_supply: dict[str, FloatArray]
-        self._bunker_price: dict[str, FloatArray]
-        self._bunker_wtt: dict[tuple[str, str], FloatArray]
-
-        self._shore_power_cost: FloatArray
-        self._shore_power_connection_share: FloatArray
-        self._shore_power_emission_factor: dict[str, FloatArray]
-
-    def initialize(
+    def __init__(
         self, length: int, fuel_names: Collection[str], emission_names: Collection[str]
     ) -> None:
-        self._initialize_expectation(length)
+        super().__init__(length)
 
-        self._handling_cost = self._default_dict_array(fuel_names)
-        self._bunkering_limit = self._default_dict_array(fuel_names, default=np.inf)
+        fuel_emissions = list(product(fuel_names, emission_names))
 
-        self._bunker_price_overwrite = self._default_dict_array(
-            fuel_names, default=np.nan
-        )
-        self._bunker_wtt_overwrite = self._default_tuple_dict_array(
-            fuel_names, emission_names, default=np.nan
-        )
+        self.handling_cost = self._paths(fuel_names)
+        self.bunkering_limit = self._paths(fuel_names, default=np.inf)
 
-        self._bunker_supply = self._default_dict_array(fuel_names)
-        self._bunker_price = self._default_dict_array(fuel_names)
-        self._bunker_wtt = self._default_tuple_dict_array(fuel_names, emission_names)
+        self.bunker_price_overwrite = self._paths(fuel_names, default=np.nan)
+        self.bunker_wtt_overwrite = self._paths(fuel_emissions, default=np.nan)
 
-        self._shore_power_cost = self._default_array()
-        self._shore_power_connection_share = self._default_array()
-        self._shore_power_emission_factor = self._default_dict_array(emission_names)
+        self.bunker_supply = self._paths(fuel_names)
+        self.bunker_price = self._paths(fuel_names)
+        self.bunker_wtt = self._paths(fuel_emissions)
 
-    def set_handling_cost(self, fuel_name: str, idx: int, cost: FloatArray) -> None:
-        self._handling_cost[fuel_name][idx:] = cost
-
-    def set_bunkering_limit(self, fuel_name: str, idx: int, limit: FloatArray) -> None:
-        self._bunkering_limit[fuel_name][idx:] = limit
-
-    def set_bunker_price_overwrite(
-        self, fuel_name: str, idx: int, overwrite: FloatArray
-    ) -> None:
-        self._bunker_price_overwrite[fuel_name][idx:] = overwrite
-
-    def set_bunker_wtt_overwrite(
-        self, fuel_name: str, emission_name: str, idx: int, overwrite: FloatArray
-    ) -> None:
-        self._bunker_wtt_overwrite[fuel_name, emission_name][idx:] = overwrite
-
-    def set_bunker_supply(self, fuel_name: str, idx: int, supply: FloatArray) -> None:
-        self._bunker_supply[fuel_name][idx:] = supply
-
-    def set_bunker_price(self, fuel_name: str, idx: int, price: FloatArray) -> None:
-        self._bunker_price[fuel_name][idx:] = price
-
-    def set_bunker_wtt(
-        self, fuel_name: str, emission_name: str, idx: int, wtt: FloatArray
-    ) -> None:
-        self._bunker_wtt[fuel_name, emission_name][idx:] = wtt
-
-    def set_shore_power_cost(self, idx: int, cost: FloatArray) -> None:
-        self._shore_power_cost[idx:] = cost
-
-    def set_shore_power_connection_share(self, idx: int, share: FloatArray) -> None:
-        self._shore_power_connection_share[idx:] = share
-
-    def set_shore_power_emission_factor(
-        self, emission_name: str, idx: int, factor: FloatArray
-    ) -> None:
-        self._shore_power_emission_factor[emission_name][idx:] = factor
-
-    def get_handling_cost(self, fuel_name: str, idx: slice) -> FloatArray:
-        return self._handling_cost[fuel_name][idx]
-
-    def get_bunkering_limit(self, fuel_name: str, idx: slice) -> FloatArray:
-        return self._bunkering_limit[fuel_name][idx]
-
-    def get_bunker_price_overwrite(self, fuel_name: str, idx: slice) -> FloatArray:
-        return self._bunker_price_overwrite[fuel_name][idx]
-
-    def get_bunker_wtt_overwrite(
-        self, fuel_name: str, emission_name: str, idx: slice
-    ) -> FloatArray:
-        return self._bunker_wtt_overwrite[fuel_name, emission_name][idx]
-
-    def get_bunker_supply(self, fuel_name: str, idx: int) -> float:
-        supply: float = self._bunker_supply[fuel_name][idx]
-        return supply
-
-    @overload
-    def get_bunker_price(self, fuel_name: str, idx: int) -> float: ...
-
-    @overload
-    def get_bunker_price(self, fuel_name: str, idx: slice) -> FloatArray: ...
-
-    def get_bunker_price(self, fuel_name: str, idx: Index) -> FloatLike:
-        return self._bunker_price[fuel_name][idx]
-
-    def get_bunker_wtt(self, fuel_name: str, emission_name: str, idx: int) -> float:
-        wtt: float = self._bunker_wtt[fuel_name, emission_name][idx]
-        return wtt
-
-    def get_shore_power_cost(self, idx: int) -> float:
-        cost: float = self._shore_power_cost[idx]
-        return cost
-
-    def get_shore_power_connection_share(self, idx: slice) -> FloatArray:
-        return self._shore_power_connection_share[idx]
-
-    @overload
-    def get_shore_power_emission_factor(
-        self, emission_name: str, idx: int
-    ) -> float: ...
-
-    @overload
-    def get_shore_power_emission_factor(
-        self, emission_name: str, idx: slice
-    ) -> FloatArray: ...
-
-    def get_shore_power_emission_factor(
-        self, emission_name: str, idx: Index
-    ) -> FloatLike:
-        return self._shore_power_emission_factor[emission_name][idx]
+        self.shore_power_cost = self._path()
+        self.shore_power_connection_share = self._path()
+        self.shore_power_emission_factor = self._paths(emission_names)

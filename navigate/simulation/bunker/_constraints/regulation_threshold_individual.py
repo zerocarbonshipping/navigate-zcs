@@ -83,5 +83,5 @@ def update_regulation_rhs_individual(alg: BunkerAlgorithm) -> None:
             if not regulation.vessel_is_policed(v):
                 continue
 
-            allowance = regulation.expectation.get_vessel_allowance(v, alg.idx)
+            allowance = regulation.expectation.vessel_allowance[v][alg.idx]
             alg.regulation_rhs_individual[r, v] = allowance

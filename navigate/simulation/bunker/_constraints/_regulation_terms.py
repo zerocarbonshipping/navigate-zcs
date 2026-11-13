@@ -81,7 +81,7 @@ def calculate_regulation_terms(
 
     port_weights = _calculate_weights(vessel, regulation, fuels_per_port_converter, idx)
     sea_weights = _calculate_weights(vessel, regulation, fuels_per_converter, idx)
-    port_fractions = [expectation.get_port_fraction(port.name, idx) for port in ports]
+    port_fractions = [expectation.port_fraction[port.name][idx] for port in ports]
 
     terms: list[_Term] = []
 
@@ -92,7 +92,7 @@ def calculate_regulation_terms(
 
     # at sea
     for (i, e), leg in zip(route.get_legs(), route.get_leg_keys(), strict=True):
-        fraction = expectation.get_leg_fraction(leg, idx)
+        fraction = expectation.leg_fraction[leg][idx]
 
         for (c, f), weights in sea_weights.items():
             terms.append(_Term(alg.spend_sea[v, c, f, i, e], fraction, weights))
@@ -102,8 +102,8 @@ def calculate_regulation_terms(
         if (v, p) not in alg.shore_power:
             continue
 
-        spend = expectation.get_shore_power_spend_coefficient((v, port.name), idx)
-        emission = expectation.get_shore_power_emission_coefficient(port.name, idx)
+        spend = expectation.shore_power_spend_coefficient[v, port.name][idx]
+        emission = expectation.shore_power_emission_coefficient[port.name][idx]
         weights = _Weights(spend, emission, 1.0)
 
         terms.append(_Term(alg.shore_power[v, p], fraction, weights))
@@ -148,14 +148,14 @@ def _calculate_weights(
     """
     v = vessel.name
     expectation = regulation.expectation
-    lhv = vessel.expectation.get_effective_lhv
+    lhv = vessel.expectation.effective_lhv
 
     weights: dict[tuple[str, str], _Weights] = {}
 
     for c, fuels in fuels_per_converter.items():
         for f in fuels:
-            spend = expectation.get_spend_coefficient((v, c, f), idx)
-            emission = expectation.get_emission_coefficient((v, c, f), idx)
-            weights[c, f] = _Weights(spend, emission, lhv(c, f))
+            spend = expectation.spend_coefficient[v, c, f][idx]
+            emission = expectation.emission_coefficient[v, c, f][idx]
+            weights[c, f] = _Weights(spend, emission, lhv[c, f])
 
     return weights

@@ -44,11 +44,11 @@ def calculate_potential_fuel_type_demand(fleets: dict[str, Fleet], idx: int) -> 
         for vessel in fleet.vessels:
             expectation = vessel.expectation
 
-            energy_sea_leg = expectation.get_operational_energy_sea_leg(forward)
-            energy_port = expectation.get_operational_energy_port(forward)
+            energy_sea_leg = expectation.operational_energy_sea_leg.at[forward]
+            energy_port = expectation.operational_energy_port.at[forward]
 
             demand = _calculate_vessel_demand(vessel, energy_sea_leg, energy_port)
-            expectation.set_potential_fuel_type_demand(idx, demand)
+            expectation.potential_fuel_type_demand.at[forward] = demand
 
 
 def _calculate_vessel_demand(

@@ -1,7 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Per-node containers for the dynamic state that crosses module boundaries."""
+"""
+Per-node containers for the dynamic state that crosses module boundaries.
+
+An expectation's constructor declares every field it holds, most of them paths:
+one value per time step. The domain that computes a field writes it and the
+others read it, both by indexing: ``[idx:]`` is the outlook from a step on,
+``[idx]`` what one step realised. A list or dict of paths takes the same index
+through ``at``, for all its paths at once.
+"""
 
 from __future__ import annotations
 

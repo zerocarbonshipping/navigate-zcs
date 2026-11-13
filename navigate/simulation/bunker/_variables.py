@@ -50,7 +50,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         for f in vessel.usable_fuels:
             add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank")
 
-    shore_power_limits = vessel.expectation.get_shore_power_limit_port(alg.idx)
+    shore_power_limits = vessel.expectation.shore_power_limit_port.at[alg.idx]
 
     for p, limit in enumerate(shore_power_limits):
         if limit > 0.0:

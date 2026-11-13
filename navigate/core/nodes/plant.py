@@ -63,7 +63,7 @@ class Plant(Node):
         self.fuel_distances: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
-        self.expectation: PlantExpectation = PlantExpectation()
+        self.expectation: PlantExpectation
         self.results: PlantResults = PlantResults()
 
         self.feed_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
@@ -234,7 +234,9 @@ class Plant(Node):
         ports: dict[str, Port],
         processes: dict[str, Process],
     ) -> None:
-        self.expectation.initialize(length, emissions, feedstocks, ports, processes)
+        self.expectation = PlantExpectation(
+            length, emissions, feedstocks, ports, processes
+        )
 
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)

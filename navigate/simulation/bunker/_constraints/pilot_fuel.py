@@ -151,7 +151,7 @@ def _calculate_pilot_coefficients(
     """
     c = converter.name
     fraction = converter.minimum_pilot_fuel.get()
-    lhv = vessel.expectation.get_effective_lhv
+    lhv = vessel.expectation.effective_lhv
     fuels = vessel.fuels_per_converter[c]
 
     coefficients: dict[str, float] = {}
@@ -159,6 +159,6 @@ def _calculate_pilot_coefficients(
     for f, fuel in fuels.items():
         is_pilot = fuel.fuel_type in converter.pilot_fuel_types
         weight = 1.0 - fraction if is_pilot else -fraction
-        coefficients[f] = weight * lhv(c, f)
+        coefficients[f] = weight * lhv[c, f]
 
     return coefficients

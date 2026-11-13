@@ -77,7 +77,7 @@ def calculate_feed_delivery(
     lead_times: list[FloatArray] = []
 
     for plant in producer.plants:
-        if expectation.get_plant_feed_consumption(plant.name, feed_name) > 0.0:
+        if expectation.plant_feed_consumption[plant.name, feed_name] > 0.0:
             lead_times.append(plant.lead_time.get(times))
 
     if not lead_times:
@@ -167,7 +167,7 @@ def calculate_feed_spend(
     spend = 0.0
 
     for plant, count in zip(producer.plants, newbuilds, strict=True):
-        consumption = expectation.get_plant_feed_consumption(plant.name, feed_name)
+        consumption = expectation.plant_feed_consumption[plant.name, feed_name]
         spend += consumption * count
 
     return spend
@@ -222,11 +222,11 @@ def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
         for plant in producer.plants:
             # Python floats, as the consumption divides the feed gaps into development
             # potentials, which a builtin sum() adds up
-            production = float(plant.expectation.get_production(idx))
-            conversion = float(plant.expectation.get_feed_conversion(feed_name, idx))
+            production = float(plant.expectation.production[idx])
+            conversion = float(plant.expectation.feed_conversion[feed_name][idx])
             consumption = production * conversion
 
-            expectation.set_plant_feed_consumption(plant.name, feed_name, consumption)
+            expectation.plant_feed_consumption[plant.name, feed_name] = consumption
 
 
 def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> None:
@@ -269,7 +269,7 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
                 feed_name,
             )
 
-        expectation.set_feed_gap(feed_name, idx, np.maximum(gap, 0.0))
+        expectation.feed_gap[feed_name][idx:] = np.maximum(gap, 0.0)
 
 
 def _calculate_cohort_feed(
@@ -312,8 +312,8 @@ def _calculate_cohort_feed(
     )
 
     for _, plant, increment, origin in increments:
-        production = plant.expectation.get_production(origin)
-        conversion = plant.expectation.get_feed_conversion(feed_name, origin)
+        production = plant.expectation.production[origin]
+        conversion = plant.expectation.feed_conversion[feed_name][origin]
         lifetime = plant.lifetime.get()
 
         feed = production * conversion
@@ -362,7 +362,7 @@ def _calculate_feed_limits(
         if constraint is None:
             continue
 
-        gap = expectation.get_feed_gap(feed_name, idx)
+        gap = expectation.feed_gap[feed_name][idx]
         additional = additional_consumption.get(feed_name, 0.0)
         spend = calculate_feed_spend(producer, feed_name, newbuilds)
         scaling = max((gap - additional) / spend, 0.0) if spend > 0.0 else 1.0
@@ -372,7 +372,7 @@ def _calculate_feed_limits(
             continue
 
         for p, plant in enumerate(producer.plants):
-            consumption = expectation.get_plant_feed_consumption(plant.name, feed_name)
+            consumption = expectation.plant_feed_consumption[plant.name, feed_name]
 
             if consumption * development > 0.0:
                 limits[p] = min(limits[p], uptakes[p] * scaling)

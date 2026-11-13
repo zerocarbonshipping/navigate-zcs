@@ -77,9 +77,9 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
             # the increment bears the costs of a vessel that entered the fleet
             # 'age' years ago
             origin = find_origin_index(years, current_year, age)
-            tied_capital_flow = expectation.get_tied_capital(origin)
+            tied_capital_flow = expectation.tied_capital[origin]
 
-            asset_charter_rate = expectation.get_asset_charter_rate(origin)
+            asset_charter_rate = expectation.asset_charter_rate[origin]
             tied_capital = interpolate_yearly_flow(tied_capital_flow, age)
             technology_charter_rate = increment.technology_charter_rate
 
@@ -129,7 +129,7 @@ def _transfer_fuel_type_capacity(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     for fuel_type in FuelTypeID:
-        capacity = fleet.expectation.get_fuel_type_capacity(fuel_type)
+        capacity = fleet.expectation.fuel_type_capacity[fuel_type]
         fleet.results.fuel_type_capacity[fuel_type][idx] += capacity
 
 

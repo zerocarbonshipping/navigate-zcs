@@ -100,18 +100,18 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
 
     for key, value in port.bunkering_limits.items():
         if value is not None:
-            expectation.set_bunkering_limit(key, idx, value.get(times))
+            expectation.bunkering_limit[key][idx:] = value.get(times)
 
     for key, value in port.handling_costs.items():
-        expectation.set_handling_cost(key, idx, value.get(times))
+        expectation.handling_cost[key][idx:] = value.get(times)
 
     for key, value in port.bunker_price_overwrites.items():
         if value is not None:
-            expectation.set_bunker_price_overwrite(key, idx, value.get(times))
+            expectation.bunker_price_overwrite[key][idx:] = value.get(times)
 
     for key, value in port.bunker_wtt_overwrites.items():
         if value is not None:
-            expectation.set_bunker_wtt_overwrite(*key, idx, value.get(times))
+            expectation.bunker_wtt_overwrite[key][idx:] = value.get(times)
 
     share = port.shore_power_connection_share.get(times)
 
@@ -121,11 +121,11 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
     for key, value in port.shore_power_emission_factors.items():
         factors[key] = value.get(times) / MWH_TO_GJ
 
-    expectation.set_shore_power_connection_share(idx, share)
-    expectation.set_shore_power_cost(idx, cost)
+    expectation.shore_power_connection_share[idx:] = share
+    expectation.shore_power_cost[idx:] = cost
 
     for key, value in factors.items():
-        expectation.set_shore_power_emission_factor(key, idx, value)
+        expectation.shore_power_emission_factor[key][idx:] = value
 
 
 def _calculate_export_expectation(
@@ -172,7 +172,7 @@ def _calculate_export_expectation(
         shares = _calculate_export_shares(weights, allowed)
 
         for key, value in shares.items():
-            expectation.set_export_share(fuel_name, key, idx, value)
+            expectation.export_share[fuel_name][key][idx:] = value
 
 
 def _allowed_ports_per_fuel(
@@ -264,7 +264,7 @@ def calculate_producer_evolution_expectation(
     in_pipeline = producer.pipeline
 
     # every plant carries the same emissions, so an arbitrary one names them
-    emission_names = plants[0].expectation.get_emissions()
+    emission_names = plants[0].expectation.production_wtt.keys()
     mix = _ProductionMix((len(plants), times.size), emission_names)
 
     existing = _calculate_cohort_production(plants, in_service, mix, timeline, idx)
@@ -276,12 +276,12 @@ def calculate_producer_evolution_expectation(
     for p, plant in enumerate(plants):
         cost, wtt = mix.calculate_averages(p)
 
-        producer.expectation.set_guaranteed_production(plant.name, idx, guaranteed[p])
-        producer.expectation.set_expected_production(plant.name, idx, expected[p])
-        plant.expectation.set_expected_production_cost(idx, cost)
+        producer.expectation.guaranteed_production[plant.name][idx:] = guaranteed[p]
+        producer.expectation.expected_production[plant.name][idx:] = expected[p]
+        plant.expectation.expected_production_cost[idx:] = cost
 
         for key, value in wtt.items():
-            plant.expectation.set_expected_production_wtt(key, idx, value)
+            plant.expectation.expected_production_wtt[key][idx:] = value
 
         if expected[p, 0] > TOLERANCE:
             plant.results.instantaneous_cost[idx] = cost[0]
@@ -309,11 +309,11 @@ class _ProductionMix:
         origin: int | np.signedinteger,
     ) -> None:
         """Add plant `p`'s production at the cost and WTT of its decision `origin`."""
-        self.cost[p] += production * expectation.get_levelized_production_cost(origin)
+        self.cost[p] += production * expectation.levelized_production_cost[origin]
         self.weight[p] += production
 
         for emission_name, wtt in self.wtt.items():
-            wtt[p] += production * expectation.get_production_wtt(emission_name, origin)
+            wtt[p] += production * expectation.production_wtt[emission_name][origin]
 
     def calculate_averages(self, p: int) -> tuple[FloatArray, dict[str, FloatArray]]:
         """Calculate plant `p`'s production-weighted average cost and WTT."""
@@ -363,7 +363,7 @@ def _calculate_cohort_production(
     increments = iterate_increments(plants, cohorts, timeline, idx)
 
     for p, plant, increment, origin in increments:
-        production = plant.expectation.get_production(origin)
+        production = plant.expectation.production[origin]
         decision = times[0] - increment.decided * YEAR
         lifetime = plant.lifetime.get()
         lifetime_then = plant.lifetime.get(decision)
@@ -420,11 +420,11 @@ def _calculate_newbuild_production(
 
     # the fair-share demand predates the time step's planning, so the production
     # the plants gained since their guaranteed production was last set comes off it
-    demand = producer.expectation.get_fair_share_demand()
+    demand = producer.expectation.fair_share_demand
     gaps = np.array([demand[fuel_name][forward] for fuel_name in fuel_names])
 
     for p, plant in enumerate(plants):
-        previous = producer.expectation.get_guaranteed_production(plant.name, forward)
+        previous = producer.expectation.guaranteed_production[plant.name][forward]
         gaps[fuel_idx[p]] -= guaranteed[p] - previous
 
     # the allowed plant types of a fuel split its newbuilds by their current uptake,
@@ -460,9 +460,7 @@ def _calculate_newbuild_production(
 
         # the production of a plant is locked when it is decided, not when it is
         # delivered, so it is read at time 't'
-        outputs = np.array(
-            [plant.expectation.get_production(origin) for plant in plants]
-        )
+        outputs = np.array([plant.expectation.production[origin] for plant in plants])
         fuel_gaps = np.zeros(len(plants))
 
         for p, plant in enumerate(plants):
@@ -523,7 +521,7 @@ class _ReservedFeed:
     ) -> None:
         """Reserve the feed of `added` production of `plant` decided at `time`."""
         for feed_name, times in self.deliveries.items():
-            conversion = plant.expectation.get_feed_conversion(feed_name, origin)
+            conversion = plant.expectation.feed_conversion[feed_name][origin]
             feed = added * conversion
 
             reserved = calculate_newbuild_reserved(plant, feed, t, time, window, times)

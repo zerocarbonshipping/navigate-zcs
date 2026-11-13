@@ -114,7 +114,7 @@ def update_operations(vessel: Vessel, allow_speed_management: bool, idx: int) ->
 
     if idx > 0 and allow_speed_management:
         # under speed management, the previous time-step's speed is the best proxy
-        speeds = np.array(vessel.expectation.get_speeds_condition(idx - 1), dtype=float)
+        speeds = np.array(vessel.expectation.speeds_condition.at[idx - 1], dtype=float)
 
     else:
         speeds_min, speeds_max = calculate_technical_speed_limits(vessel, trip)
@@ -179,17 +179,17 @@ def transfer_operations(
     expectation = vessel.expectation
     results = vessel.results
 
-    expectation.set_speeds_condition(idx, operations.speeds)
-    expectation.set_time_sea_condition(idx, operations.times_sea)
-    expectation.set_time_port(idx, operations.times_port)
-    expectation.set_voyages(idx, operations.voyages)
+    expectation.speeds_condition.at[idx] = operations.speeds
+    expectation.time_sea_condition.at[idx:] = operations.times_sea
+    expectation.time_port.at[idx:] = operations.times_port
+    expectation.voyages[idx:] = operations.voyages
 
-    expectation.set_cargo_miles(idx, operations.cargo_miles)
-    expectation.set_cargo_miles_leg(idx, operations.cargo_miles_leg)
-    expectation.set_cargo_miles_leg_nominal(idx, operations.cargo_miles_leg_nominal)
+    expectation.cargo_miles[idx:] = operations.cargo_miles
+    expectation.cargo_miles_leg.at[idx:] = operations.cargo_miles_leg
+    expectation.cargo_miles_leg_nominal.at[idx:] = operations.cargo_miles_leg_nominal
 
-    expectation.set_raw_energy_sea_condition(idx, operations.energy_sea)
-    expectation.set_raw_energy_port(idx, operations.energy_port)
+    expectation.raw_energy_sea_condition.at[idx:] = operations.energy_sea
+    expectation.raw_energy_port.at[idx:] = operations.energy_port
 
     energy_sea = sum_per_key(operations.energy_sea)
     energy_port = sum_per_key(operations.energy_port)
@@ -221,8 +221,8 @@ def transfer_operational_savings(fleet: Fleet) -> None:
     saving_port = to_floats(fleet.operational_savings_port)
 
     for vessel in fleet.vessels:
-        vessel.expectation.set_operational_saving_fraction_sea(saving_sea)
-        vessel.expectation.set_operational_saving_fraction_port(saving_port)
+        vessel.expectation.operational_saving_fraction_sea.update(saving_sea)
+        vessel.expectation.operational_saving_fraction_port.update(saving_port)
 
 
 def _calculate_trip(operations: Operations, trip: ReferenceTrip) -> None:
