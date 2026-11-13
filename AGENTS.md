@@ -63,7 +63,8 @@ merging, releases and `main`, because they decide what users receive.
 - `docs/AGENTS.md` — the user manual. Read it before editing `docs/`, and
   whenever a change is visible to a deck author or in the output.
 - `assumptions/AGENTS.md` — the assumption library. Read it before editing it.
-- `.agents/skills/` — the skills every issue and pull request follows.
+- `.agents/skills/` — the skills every issue, pull request and piece of code
+  follows.
 
 ## Environment and verifying a change
 
