@@ -64,9 +64,11 @@ for (vessel, increment) in fleet.iterate_increments(reverse=True):
     if not is_retrofit_cycle(age, frequency, dt):
         continue
 
-    age_mid = age + span / 2.0
-    lifetime = vessel.lifetime.get() - age_mid
+    age_mid = round(age + span / 2.0, ROUND_OFF)
+    if age_mid < minimum_age:
+        continue
 
+    lifetime = round(vessel.lifetime.get() - age_mid, ROUND_OFF)
     if lifetime <= 0.0:
         continue
 
