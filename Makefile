@@ -122,8 +122,11 @@ test-all: test-unit test-e2e test-examples  ## Full test suite (pytest suites + 
 # The base ref, by default the newest dev after a fetch, is checked out into a
 # worktree and installed into its own venv, so neither side imports the other's
 # source; each side runs its own decks against its own assumptions
-# (tests/compare_results.py). CI runs the same comparison on pull requests
-# labelled maintenance (.github/workflows/compare-results.yml). The head side
+# (tests/compare_results.py). The base installs with the versions the head's
+# environment holds, so the two sides differ only in their code and
+# assumptions: the bunker LP has ties, and another solver version can settle
+# them differently. CI runs the same comparison on pull requests labelled
+# maintenance (.github/workflows/compare-results.yml). The head side
 # runs on the interpreter own-environment probes, without -P: the script needs
 # its own folder, tests/, on sys.path, and the checkout root is never on it.
 BASE ?= origin/dev
@@ -134,7 +137,10 @@ compare-results: own-environment  ## Compare deck results with another ref: make
 	rm -rf $(COMPARE_DIR) && git worktree prune
 	git worktree add --detach $(COMPARE_DIR)/base $(BASE)
 	$(RUN) python -m venv $(COMPARE_DIR)/env
-	$(COMPARE_DIR)/env/bin/pip install -q $(COMPARE_DIR)/base
+	$(RUN) python -m pip list --format=freeze --exclude navigate-zcs \
+		> $(COMPARE_DIR)/constraints.txt
+	$(COMPARE_DIR)/env/bin/pip install -q -c $(COMPARE_DIR)/constraints.txt \
+		$(COMPARE_DIR)/base
 	$(COMPARE_DIR)/env/bin/python $(COMPARE_DIR)/base/tests/compare_results.py snapshot \
 		--assumptions $(COMPARE_DIR)/base/assumptions --out $(COMPARE_DIR)/snapshots/base
 	$(RUN) python tests/compare_results.py snapshot --out $(COMPARE_DIR)/snapshots/head
