@@ -98,8 +98,10 @@ class VesselExpectation(_Expectation):
         self._total_energy: FloatArray
         self._fuel_expenses: FloatArray
 
-        # policy expenses (expected bunkering): the remedial expenses of each expected
-        # LP, and the net flexibility expenses valued at the smoothed flexibility cost
+        # policy expenses (expected bunkering): the levy and remedial expenses of each
+        # expected LP, and the net flexibility expenses valued at the smoothed
+        # flexibility cost
+        self._levy_expenses: FloatArray
         self._remedial_expenses: FloatArray
         self._flexibility_expenses: FloatArray
 
@@ -253,6 +255,7 @@ class VesselExpectation(_Expectation):
         self._total_energy = self._default_array()
         self._fuel_expenses = self._default_array()
 
+        self._levy_expenses = self._default_array()
         self._remedial_expenses = self._default_array()
         self._flexibility_expenses = self._default_array()
 
@@ -271,6 +274,7 @@ class VesselExpectation(_Expectation):
 
         self._total_energy = self._default_array()
         self._fuel_expenses = self._default_array()
+        self._levy_expenses = self._default_array()
         self._remedial_expenses = self._default_array()
         self._flexibility_expenses = self._default_array()
 
@@ -471,6 +475,9 @@ class VesselExpectation(_Expectation):
 
     def add_fuel_expenses(self, idx: int, expenses: float) -> None:
         self._fuel_expenses[idx] += expenses
+
+    def add_levy_expenses(self, idx: int, expenses: float) -> None:
+        self._levy_expenses[idx] += expenses
 
     def add_remedial_expenses(self, idx: int, expenses: float) -> None:
         self._remedial_expenses[idx] += expenses
@@ -729,6 +736,15 @@ class VesselExpectation(_Expectation):
 
     def get_fuel_expenses(self, idx: Index) -> FloatLike:
         return self._fuel_expenses[idx]
+
+    @overload
+    def get_levy_expenses(self, idx: int) -> float: ...
+
+    @overload
+    def get_levy_expenses(self, idx: slice) -> FloatArray: ...
+
+    def get_levy_expenses(self, idx: Index) -> FloatLike:
+        return self._levy_expenses[idx]
 
     @overload
     def get_remedial_expenses(self, idx: int) -> float: ...
