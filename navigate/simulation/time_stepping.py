@@ -397,7 +397,6 @@ class Simulation:
             self._perform_evolution()
 
         self._approximate_missing_technology()
-        self._calculate_fuel_import()
 
         self._prepare_bunkering(self._bunker_existing)
         self._perform_existing_bunkering()
@@ -589,12 +588,15 @@ class Simulation:
         """
         Calculate the inputs of a bunkering run and verify the vessels it admits.
 
-        The shore-power potentials and cargo miles are rewritten during the step, and
-        the threshold adjustment of each bunkering LP rewrites the regulation inputs
-        of its own time step, so these inputs are recalculated before each run. The LP
-        takes energy demands as given, so the demands must fit the installed converter
-        power for it to be feasible.
+        The ports' bunker price, supply and WTT follow the step's events and the
+        producers' expected production, which the producer evolution rewrites between
+        the runs. The shore-power potentials and cargo miles are rewritten during the
+        step, and the threshold adjustment of each bunkering LP rewrites the
+        regulation inputs of its own time step. All these inputs are therefore
+        recalculated before each run. The LP takes energy demands as given, so the
+        demands must fit the installed converter power for it to be feasible.
         """
+        self._calculate_fuel_import()
         self._calculate_potential_fuel_type_demand()
         self._calculate_fair_share_fuel_supply(bunker.scope)
         self._calculate_shore_power_limits()
@@ -602,6 +604,16 @@ class Simulation:
         self._calculate_regulation_bunkering_inputs()
 
         self._verify_power_capacity(bunker)
+
+    def _calculate_fuel_import(self) -> None:
+        calculate_fuel_import_to_ports(
+            self.nodes.ports,
+            self.nodes.producers,
+            self.nodes.emissions,
+            self.nodes.fuels,
+            self.timeline,
+            self._idx,
+        )
 
     def _calculate_potential_fuel_type_demand(self) -> None:
         calculate_potential_fuel_type_demand(self.nodes.fleets, self._idx)
@@ -785,16 +797,6 @@ class Simulation:
         The estimate uses the fleet-average savings of the fleets that have them.
         """
         approximate_missing_technology(self.nodes.fleets, self._idx)
-
-    def _calculate_fuel_import(self) -> None:
-        calculate_fuel_import_to_ports(
-            self.nodes.ports,
-            self.nodes.producers,
-            self.nodes.emissions,
-            self.nodes.fuels,
-            self.timeline,
-            self._idx,
-        )
 
     def _perform_existing_bunkering(self) -> None:
         """Run the existing bunkering of this step and settle its regulations."""

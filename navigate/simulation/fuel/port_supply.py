@@ -112,10 +112,10 @@ def _calculate_import_from_liquid_market(
             bunker_supply = limit if allowed else zeros
 
             _set_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
+            _record_bunker_terms(
+                port, fuel_name, bunker_price, bunker_wtts, allowed, idx
+            )
             expectation.set_bunker_supply(fuel_name, idx, bunker_supply)
-
-            if allowed:
-                _record_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
 
             if np.isfinite(bunker_supply[0]):
                 port.results.bunker_supply_mass[fuel_name][idx] = bunker_supply[0]
@@ -171,9 +171,9 @@ def _calculate_import_from_producers(
             bunker_wtts = _calculate_bunker_wtts(port, fuel_name, wtts, forward)
 
             _set_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
-
-            if supplied:
-                _record_bunker_terms(port, fuel_name, bunker_price, bunker_wtts, idx)
+            _record_bunker_terms(
+                port, fuel_name, bunker_price, bunker_wtts, supplied, idx
+            )
 
     for fuel_name in fuels:
         imports = supplies[fuel_name]
@@ -357,10 +357,14 @@ def _record_bunker_terms(
     fuel_name: str,
     bunker_price: FloatArray,
     bunker_wtts: dict[str, FloatArray],
+    offered: bool,
     idx: int,
 ) -> None:
     """
     Write the bunker price and WTT of a fuel at the time step to the port's results.
+
+    They are 0 where the port does not offer the fuel. The import runs before each
+    bunkering run of the step and each overwrites the entry, so the last decides it.
 
     Parameters
     ----------
@@ -372,14 +376,16 @@ def _record_bunker_terms(
         Bunker price from the time step on, in USD/t.
     bunker_wtts
         Bunker WTT per emission from the time step on, in t/t.
+    offered
+        Whether the port offers the fuel at the time step.
     idx
         Current time-step index.
     """
     results = port.results
-    results.bunker_price[fuel_name][idx] = bunker_price[0]
+    results.bunker_price[fuel_name][idx] = bunker_price[0] if offered else 0.0
 
     for key, value in bunker_wtts.items():
-        results.bunker_wtt[fuel_name, key][idx] = value[0]
+        results.bunker_wtt[fuel_name, key][idx] = value[0] if offered else 0.0
 
 
 def _calculate_bunker_price(
