@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import BunkerScopeID
+from navigate.simulation.bunker._objectives import calculate_levy_cost
 
 if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
@@ -78,7 +79,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
 
 
 def _transfer_expected(alg: BunkerAlgorithm) -> None:
-    """Add the bunkered energy, expenses and mass to the vessel expectations."""
+    """Add the bunkered energy, mass and fuel and levy expenses to the expectations."""
     idx = alg.idx
 
     for (v, p, f), bunker in alg.bunker.items():
@@ -91,8 +92,9 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
 
         energy = alg.fuels[f].lower_heating_value.get() * mass
         price = port.expectation.get_bunker_price(f, idx)
-        expenses = price * mass
+        levy_cost = calculate_levy_cost(port, v, f, idx)
 
         vessel.expectation.add_total_energy(idx, energy)
-        vessel.expectation.add_fuel_expenses(idx, expenses)
+        vessel.expectation.add_fuel_expenses(idx, price * mass)
+        vessel.expectation.add_levy_expenses(idx, levy_cost * mass)
         vessel.expectation.add_bunker_mass_expected(port.name, f, idx, mass)
