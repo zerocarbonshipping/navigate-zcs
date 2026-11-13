@@ -546,10 +546,11 @@ class Simulation:
         # fleet or production capacity
         self._update_ages()
 
-        # the fleet evolution expectations are calculated before the expected
-        # bunkering so that vessels allowed in the current time step have a
-        # non-zero multiplier
+        # the evolution expectations are calculated before the expected bunkering,
+        # so that vessels allowed in the current time step have a non-zero
+        # multiplier and the producers' supply follows the step's events
         self._calculate_fleet_evolution_expectations()
+        self._calculate_producer_evolution_expectations()
 
         self._prepare_bunkering(self._bunker_expected)
         self._perform_expected_bunkering()
@@ -584,17 +585,30 @@ class Simulation:
                 fleet, self.timeline, self._idx, scrapping_pending=True
             )
 
+    def _calculate_producer_evolution_expectations(self) -> None:
+        """
+        Calculate each producer's evolution expectation with its planning pending.
+
+        The feed availability is recalculated first, so the feed consumption of the
+        plants follows the step's events.
+        """
+        for producer in self.nodes.producers.values():
+            calculate_feed_availability(producer, self.timeline, self._idx)
+            calculate_producer_evolution_expectation(
+                producer, self.timeline, self._idx, planning_pending=True
+            )
+
     def _prepare_bunkering(self, bunker: BunkerAlgorithm) -> None:
         """
         Calculate the inputs of a bunkering run and verify the vessels it admits.
 
         The ports' bunker price, supply and WTT follow the step's events and the
-        producers' expected production, which the producer evolution rewrites between
-        the runs. The shore-power potentials and cargo miles are rewritten during the
-        step, and the threshold adjustment of each bunkering LP rewrites the
-        regulation inputs of its own time step. All these inputs are therefore
-        recalculated before each run. The LP takes energy demands as given, so the
-        demands must fit the installed converter power for it to be feasible.
+        producers' expected production, recalculated before the expected run and again
+        after the producer evolution. The shore-power potentials and cargo miles are
+        rewritten during the step, and the threshold adjustment of each bunkering LP
+        rewrites the regulation inputs of its own time step. All these inputs are
+        therefore recalculated before each run. The LP takes energy demands as given,
+        so the demands must fit the installed converter power for it to be feasible.
         """
         self._calculate_fuel_import()
         self._calculate_potential_fuel_type_demand()
@@ -764,10 +778,11 @@ class Simulation:
         Progress each producer in time and plan its pipeline from its share of the gap.
 
         Each producer first decommissions its retired plants, takes delivery from its
-        pipeline, and updates its feed gap and development potential. The fuel
-        supply/demand gap is then shared out among the producers, and each plans new
-        plants into its pipeline, updates its feed gap again and recalculates its
-        evolution expectation.
+        pipeline, and updates its feed gap and development potential. The gap between
+        the expected fuel demand and the guaranteed production of the step's evolution
+        expectations is then shared out among the producers, and each plans new plants
+        into its pipeline, updates its feed gap again and recalculates its evolution
+        expectation with the planning done.
         """
         for producer in self.nodes.producers.values():
             perform_decommissioning(producer)
@@ -788,7 +803,9 @@ class Simulation:
             # the feed gap is updated again before the evolution expectation, to
             # account for the plants just added to the pipeline
             calculate_feed_availability(producer, self.timeline, self._idx)
-            calculate_producer_evolution_expectation(producer, self.timeline, self._idx)
+            calculate_producer_evolution_expectation(
+                producer, self.timeline, self._idx, planning_pending=False
+            )
 
     def _approximate_missing_technology(self) -> None:
         """

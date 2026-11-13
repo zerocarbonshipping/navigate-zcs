@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.cohort import find_origin_index, find_origin_indexes
-from navigate.util import YEAR, interpolate_yearly_flow
+from navigate.util import TOLERANCE, YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -44,6 +44,9 @@ def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) 
     """
     Write the producer's production, feed use, tied capital and limits to its results.
 
+    Its plants' results take the expected cost and WTT of the fuel they produce at
+    the step.
+
     Parameters
     ----------
     producer
@@ -56,6 +59,7 @@ def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) 
     _transfer_feed_constraints(producer, idx)
     _transfer_production_and_feed_mass(producer, timeline, idx)
     _transfer_plant_tied_capital(producer, timeline, idx)
+    _transfer_instantaneous_production(producer, idx)
 
     producer.results.maximum_development[idx] = producer.maximum_development.get()
 
@@ -172,6 +176,31 @@ def _transfer_plant_tied_capital(
             tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age)
 
             results.plant_tied_capital[idx] += tied_capital * increment.multiplier
+
+
+def _transfer_instantaneous_production(producer: Producer, idx: int) -> None:
+    """
+    Transfer the expected cost and WTT of the fuel each plant produces at the step.
+
+    A plant the producer expects no production from at the step stays missing.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    idx
+        Current time-step index.
+    """
+    for plant in producer.plants:
+        production = producer.expectation.expected_production[plant.name][idx]
+        expectation = plant.expectation
+        results = plant.results
+
+        if production > TOLERANCE:
+            results.instantaneous_cost[idx] = expectation.expected_production_cost[idx]
+
+            for emission_name, wtt in expectation.expected_production_wtt.items():
+                results.instantaneous_wtt[emission_name][idx] = wtt[idx]
 
 
 def record_port_results(port: Port, idx: int) -> None:

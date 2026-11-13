@@ -22,7 +22,6 @@ from navigate.simulation.fuel.feed import (
 )
 from navigate.util import (
     MWH_TO_GJ,
-    TOLERANCE,
     YEAR,
     divide_nonzero,
     slice_dict,
@@ -242,7 +241,7 @@ def _calculate_export_shares(
 
 
 def calculate_producer_evolution_expectation(
-    producer: Producer, timeline: FloatArray, idx: int
+    producer: Producer, timeline: FloatArray, idx: int, *, planning_pending: bool
 ) -> None:
     """
     Calculate the expected future evolution of production.
@@ -257,7 +256,12 @@ def calculate_producer_evolution_expectation(
         Simulation timeline, in days.
     idx
         Current time-step index.
+    planning_pending
+        Whether this time-step's pipeline planning is still to run. If not, the
+        plants it planned are in the pipeline, and the expected newbuilds start at
+        the next time-step.
     """
+    first_pending = 0 if planning_pending else 1
     times = timeline[idx:]
     plants = producer.plants
     in_service = producer.increments
@@ -270,7 +274,9 @@ def calculate_producer_evolution_expectation(
     existing = _calculate_cohort_production(plants, in_service, mix, timeline, idx)
     pipeline = _calculate_cohort_production(plants, in_pipeline, mix, timeline, idx)
     guaranteed = existing + pipeline
-    newbuild = _calculate_newbuild_production(producer, mix, guaranteed, times, idx)
+    newbuild = _calculate_newbuild_production(
+        producer, mix, guaranteed, timeline, idx, first_pending
+    )
     expected = guaranteed + newbuild
 
     for p, plant in enumerate(plants):
@@ -282,12 +288,6 @@ def calculate_producer_evolution_expectation(
 
         for key, value in wtt.items():
             plant.expectation.expected_production_wtt[key][idx:] = value
-
-        if expected[p, 0] > TOLERANCE:
-            plant.results.instantaneous_cost[idx] = cost[0]
-
-            for key, value in wtt.items():
-                plant.results.instantaneous_wtt[key][idx] = value[0]
 
 
 class _ProductionMix:
@@ -380,11 +380,12 @@ def _calculate_newbuild_production(
     producer: Producer,
     mix: _ProductionMix,
     guaranteed: FloatArray,
-    times: FloatArray,
+    timeline: FloatArray,
     idx: int,
+    first_pending: int,
 ) -> FloatArray:
     """
-    Calculate each plant's production from the newbuilds decided at future times.
+    Calculate each plant's production from the newbuilds still to be planned.
 
     The producer is expected to build each fuel up to its gap at delivery and to
     spread the development the gaps leave evenly over its fuels. The newbuilds
@@ -399,33 +400,37 @@ def _calculate_newbuild_production(
         Production mix the newbuilds are added to.
     guaranteed
         Production of each plant from its existing and pipeline increments at each of
-        the times, in tons/year.
-    times
-        Future times from the simulation timeline (timeline[idx:]), in days.
+        the times from idx on, in tons/year.
+    timeline
+        Simulation timeline, in days.
     idx
         Current time-step index.
+    first_pending
+        Step of the horizon from which the pipeline planning is still to run.
 
     Returns
     -------
     FloatArray
-        Production of each plant at each of the times, in tons/year.
+        Production of each plant at each of the times from idx on, in tons/year.
     """
     plants = producer.plants
     forward = np.s_[idx:]
+    times = timeline[forward]
     jump_start = producer.jump_start_fraction.get()
     profiles = np.zeros((len(plants), times.size))
     reserved_feed = _ReservedFeed(producer, times)
     fuel_names = list(producer.fuels)
     fuel_idx = [fuel_names.index(plant.fuel.name) for plant in plants]
 
-    # the fair-share demand predates the time step's planning, so the production
-    # the plants gained since their guaranteed production was last set comes off it
+    # the fair-share demand was measured against the producer's guaranteed
+    # production then, so the production its plants gained since comes off it
     demand = producer.expectation.fair_share_demand
-    gaps = np.array([demand[fuel_name][forward] for fuel_name in fuel_names])
+    baseline = producer.expectation.fair_share_baseline
+    targets = [demand[name][forward] + baseline[name][forward] for name in fuel_names]
+    gaps = np.array(targets)
 
-    for p, plant in enumerate(plants):
-        previous = producer.expectation.guaranteed_production[plant.name][forward]
-        gaps[fuel_idx[p]] -= guaranteed[p] - previous
+    for p, f in enumerate(fuel_idx):
+        gaps[f] -= guaranteed[p]
 
     # the allowed plant types of a fuel split its newbuilds by their current uptake,
     # blended with an even split weighted by the jump-start fraction; a fuel not
@@ -443,11 +448,11 @@ def _calculate_newbuild_production(
     current_utilization = producer.current_utilization
     utilization = current_utilization if current_utilization > 0.0 else jump_start
 
-    # t=0 is already in the pipeline from the current time step's planning
-    for t in range(1, times.size):
+    # the newbuilds of a time-step whose planning has run are in the pipeline
+    for t in range(first_pending, times.size):
         time = times[t]
         origin = idx + t
-        time_step = times[t] - times[t - 1]
+        time_step = timeline[origin] - timeline[origin - 1]
         dt = time_step / YEAR
 
         # the utilization is only accounted for if the model is ramp-up
