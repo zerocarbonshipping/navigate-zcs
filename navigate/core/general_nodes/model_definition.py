@@ -8,8 +8,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core import SECTION_DEFINE, assign_date, assign_value, deck_attribute
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.general_nodes.general_node import GeneralNode
-from navigate.core.node_type import MODEL_DEFINITION
 
 if TYPE_CHECKING:
     import numpy as np
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class ModelDefinition(GeneralNode):
     """Hold the simulation start date and the emission lifetime used for GWP."""
 
-    type = MODEL_DEFINITION
+    type = NodeTypeID.MODEL_DEFINITION
 
     def __init__(self) -> None:
         super().__init__()

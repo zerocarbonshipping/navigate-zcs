@@ -25,14 +25,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.core.node_type import (
-    EMISSION,
-    FLEET,
-    FUEL,
-    LEVY,
-    PRODUCER,
-    REGULATION,
-)
+from navigate.core.enum_ import NodeTypeID
 from navigate.parser._collect import Origin, matching
 from navigate.parser._syntax import Assignment, bulleted, item_references
 
@@ -43,10 +36,19 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PRODUCER, REGULATION)
+ROOT_TYPES = (
+    NodeTypeID.EMISSION,
+    NodeTypeID.FLEET,
+    NodeTypeID.FUEL,
+    NodeTypeID.LEVY,
+    NodeTypeID.PRODUCER,
+    NodeTypeID.REGULATION,
+)
 
 # the (node type, deck attribute) pairs whose references keep nothing alive
-NON_ACTIVATING = frozenset({(LEVY, "Jurisdiction"), (REGULATION, "Jurisdiction")})
+NON_ACTIVATING = frozenset(
+    {(NodeTypeID.LEVY, "Jurisdiction"), (NodeTypeID.REGULATION, "Jurisdiction")}
+)
 
 
 @dataclass
@@ -127,7 +129,7 @@ def _reach(collector: Collector, events: list[BoundEvent]) -> set[Key]:
 
 
 def _referenced(
-    collector: Collector, holder_type: str, items: list[BodyItem]
+    collector: Collector, holder_type: NodeTypeID, items: list[BodyItem]
 ) -> list[Key]:
     """Return the declarations the items of a node make part of the simulation."""
     library = collector.library
@@ -150,7 +152,7 @@ def _referenced(
     return referenced
 
 
-def _is_activating(holder_type: str, item: BodyItem) -> bool:
+def _is_activating(holder_type: NodeTypeID, item: BodyItem) -> bool:
     """Return whether an item's references make their targets part of the simulation."""
     if isinstance(item, Assignment):
         return (holder_type, item.attribute) not in NON_ACTIVATING
@@ -175,7 +177,7 @@ def _warn_unused(declarations: dict[Key, Declaration], reached: set[Key]) -> Non
         "them, so they take no part in the simulation:%s\nAssign them to a parent "
         "node or remove them from the deck.",
         len(unused),
-        ", ".join(ROOT_TYPES),
+        ", ".join(map(str, ROOT_TYPES)),
         bulleted(unused),
     )
 

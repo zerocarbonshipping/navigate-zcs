@@ -8,8 +8,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, overload
 
 from navigate.core import deck_attribute
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import TIMETABLE
 from navigate.core.nodes._table2d import _Table2D
 from navigate.core.table_data import TableData, build_table_2d_dated
 from navigate.util import is_date_array, timedelta_to_days
@@ -33,7 +33,7 @@ class Timetable(Node, _Table2D):
         Node name.
     """
 
-    type = TIMETABLE
+    type = NodeTypeID.TIMETABLE
 
     def __init__(self, name: str) -> None:
         Node.__init__(self, name)

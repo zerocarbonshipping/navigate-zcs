@@ -2,16 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Node-type names: the DSL keywords that declare nodes in `.nav`/`.inc` files.
+The calculator types, accepted node types and type guards over node types.
 
-Each node class, general nodes included, carries its keyword as its `type`
-class attribute, so the `is_*` type guards and the parser's per-type tables
-share a single vocabulary.
+A node type is a `NodeTypeID` member; each node class, general nodes included,
+carries its own as its `type` class attribute.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeIs
+
+from navigate.core.enum_ import NodeTypeID
 
 if TYPE_CHECKING:
     from navigate.core.node import Node
@@ -21,41 +22,19 @@ if TYPE_CHECKING:
     from navigate.core.nodes.variable import Variable
     from navigate.core.types_ import Calculator
 
-CONVERTER = "Converter"
-CURVE = "Curve"
-EMISSION = "Emission"
-FEEDSTOCK = "Feedstock"
-FLEET = "Fleet"
-FORECAST = "Forecast"
-FUEL = "Fuel"
-LEVY = "Levy"
-PLANT = "Plant"
-PORT = "Port"
-PROCESS = "Process"
-PRODUCER = "Producer"
-REGION = "Region"
-REGULATION = "Regulation"
-ROUTE = "Route"
-SOURCE = "Source"
-SURFACE = "Surface"
-TANK = "Tank"
-TECHNOLOGY = "Technology"
-TIMETABLE = "Timetable"
-TRANSPORT = "Transport"
-VARIABLE = "Variable"
-VESSEL = "Vessel"
-
-# general nodes
-BUNKER_OPTIONS = "BunkerOptions"
-MODEL_DEFINITION = "ModelDefinition"
-
-CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
+CALCULATOR_TYPES = (
+    NodeTypeID.CURVE,
+    NodeTypeID.FORECAST,
+    NodeTypeID.SURFACE,
+    NodeTypeID.TIMETABLE,
+    NodeTypeID.VARIABLE,
+)
 
 # the node type(s) an attribute accepts
-type AcceptedNodeTypes = str | tuple[str, ...]
+type AcceptedNodeTypes = NodeTypeID | tuple[NodeTypeID, ...]
 
 
-def accepts_type(accepted: AcceptedNodeTypes | None, node_type: str) -> bool:
+def accepts_type(accepted: AcceptedNodeTypes | None, node_type: NodeTypeID) -> bool:
     """
     Check whether an attribute accepting the given node types accepts a node type.
 
@@ -74,7 +53,7 @@ def accepts_type(accepted: AcceptedNodeTypes | None, node_type: str) -> bool:
     if accepted is None:
         return False
 
-    if isinstance(accepted, str):
+    if isinstance(accepted, NodeTypeID):
         return node_type == accepted
 
     return node_type in accepted
@@ -87,19 +66,19 @@ def is_calculator(node: Node) -> TypeIs[Calculator]:
 
 def is_feedstock(node: Node) -> TypeIs[Feedstock]:
     """Check whether the node is a Feedstock, narrowing its static type."""
-    return node.type == FEEDSTOCK
+    return node.type == NodeTypeID.FEEDSTOCK
 
 
 def is_process(node: Node) -> TypeIs[Process]:
     """Check whether the node is a Process, narrowing its static type."""
-    return node.type == PROCESS
+    return node.type == NodeTypeID.PROCESS
 
 
 def is_surface(node: Node) -> TypeIs[Surface]:
     """Check whether the node is a Surface, narrowing its static type."""
-    return node.type == SURFACE
+    return node.type == NodeTypeID.SURFACE
 
 
 def is_variable(node: Node) -> TypeIs[Variable]:
     """Check whether the node is a Variable, narrowing its static type."""
-    return node.type == VARIABLE
+    return node.type == NodeTypeID.VARIABLE

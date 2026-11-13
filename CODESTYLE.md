@@ -110,12 +110,12 @@ code that breaks the rule. Taste beyond these conventions follows the
   `navigate/core/types_.py`, and use those aliases at every attribute
   definition and setter parameter. The alias matches the node types the
   setter passes as `type_=` to its `assign_*` call (`ScalarInput` for
-  `type_=VARIABLE`). An attribute carries the storage kind (`*Input`), a
-  setter parameter the argument kind (`*Argument`), which has `float` where
-  the storage kind has `Scalar`, as the setter wraps it through `as_scalar`;
-  `NumberInput` serves as both. An optional attribute still unset after
-  construction is `<alias> | None`: never fold `None` into an alias, as `None`
-  on a DSL input means unassigned.
+  `type_=NodeTypeID.VARIABLE`). An attribute carries the storage kind
+  (`*Input`), a setter parameter the argument kind (`*Argument`), which has
+  `float` where the storage kind has `Scalar`, as the setter wraps it through
+  `as_scalar`; `NumberInput` serves as both. An optional attribute still unset
+  after construction is `<alias> | None`: never fold `None` into an alias, as
+  `None` on a DSL input means unassigned.
 - Where a kind a setter accepts breaks a method reading the attribute, the
   method handles that kind and the setter is not narrowed, as what a deck may
   write outranks a simpler setter: `simulation/fleet/power.py` handles an

@@ -17,9 +17,9 @@ from navigate.core import (
     write_matching_key_pairs,
     write_matching_keys,
 )
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.expectations import PortExpectation
 from navigate.core.node import Node
-from navigate.core.node_type import FORECAST, PORT, VARIABLE
 from navigate.core.results import PortResults
 
 if TYPE_CHECKING:
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 class Port(Node):
     """A port: the fuels bunkered there, their limits and costs, and shore power."""
 
-    type = PORT
+    type = NodeTypeID.PORT
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -70,14 +70,19 @@ class Port(Node):
     def set_shore_power_cost(self, value: ForecastArgument) -> None:
         """Set the shore power electricity tariff of the port."""
         self.shore_power_cost = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
     def set_shore_power_connection_share(self, value: ForecastArgument) -> None:
         """Set the fraction of port time with a shore power connection."""
         self.shore_power_connection_share = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     # external methods (DSL commands) --------------------------------------------------
@@ -93,7 +98,7 @@ class Port(Node):
             key,
             assign_value(
                 as_scalar(value),
-                type_=(FORECAST, VARIABLE),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
                 lower=0.0,
                 allow_infinite=True,
             ),
@@ -106,7 +111,10 @@ class Port(Node):
         write_matching_keys(
             key,
             assign_value(
-                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+                upper=1.0,
             ),
             self.bunkering_inertia,
         )
@@ -116,7 +124,11 @@ class Port(Node):
         """Set the storage and bunkering service cost of a fuel in the port."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.handling_costs,
         )
 
@@ -125,7 +137,11 @@ class Port(Node):
         """Set the overwrite price of a fuel in the port."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.bunker_price_overwrites,
         )
 
@@ -136,7 +152,9 @@ class Port(Node):
         """Set the overwrite WTT emissions of a fuel in the port for an emission."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
+            assign_value(
+                as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
+            ),
             self.bunker_wtt_overwrites,
         )
 
@@ -147,7 +165,11 @@ class Port(Node):
         """Set the shore power emission factor for an emission."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.shore_power_emission_factors,
         )
 

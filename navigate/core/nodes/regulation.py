@@ -19,9 +19,8 @@ from navigate.core import (
     deck_command,
     write_matching_keys,
 )
-from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
+from navigate.core.enum_ import NodeTypeID, RegulationMeasureID, RegulationSchemeID
 from navigate.core.expectations import RegulationExpectation
-from navigate.core.node_type import FORECAST, REGULATION, VARIABLE
 from navigate.core.nodes._policy import _Policy
 from navigate.core.results import RegulationResults
 
@@ -39,7 +38,7 @@ logger = logging.getLogger(__name__)
 class Regulation(_Policy):
     """A regulation holding policed vessels to an emission threshold in its measure."""
 
-    type = REGULATION
+    type = NodeTypeID.REGULATION
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -82,35 +81,48 @@ class Regulation(_Policy):
     def set_intra_fraction(self, value: ForecastArgument) -> None:
         """Set the fraction of emissions counted for intra-jurisdiction travel."""
         self.intra_fraction = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute()
     def set_inter_fraction(self, value: ForecastArgument) -> None:
         """Set the fraction of emissions counted for inter-jurisdiction travel."""
         self.inter_fraction = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute()
     def set_extra_fraction(self, value: ForecastArgument) -> None:
         """Set the fraction of emissions counted for extra-jurisdiction travel."""
         self.extra_fraction = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute()
     def set_remedial_cost(self, value: ForecastArgument) -> None:
         """Set the cost of purchasing a remedial compliance unit."""
         self.remedial_cost = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
     def set_flexibility_horizon(self, value: ForecastArgument) -> None:
         """Set the decision horizon smoothing the flexibility-cost belief."""
         self.flexibility_horizon = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
         self._flexibility_horizon_unreported = True
 
@@ -125,7 +137,11 @@ class Regulation(_Policy):
         """Set the threshold that a specific vessel must satisfy."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.vessel_thresholds,
         )
 
@@ -134,7 +150,11 @@ class Regulation(_Policy):
         """Set the capacity of a specific vessel for use in transport calculations."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.vessel_capacities,
         )
 

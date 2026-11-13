@@ -26,6 +26,7 @@ from navigate.util import name_contains_wildcards
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Mapping
 
+    from navigate.core.enum_ import NodeTypeID
     from navigate.core.general_nodes.general_node import GeneralNode
     from navigate.core.node import Node
     from navigate.core.node_type import AcceptedNodeTypes
@@ -60,7 +61,7 @@ _UNARY_OPERATORS: dict[str, _UnaryOperator] = {
 
 
 # a node named in a deck: its type and name
-type _NodeKey = tuple[str, str]
+type _NodeKey = tuple[NodeTypeID, str]
 
 # the calculators an expression's references evaluate through, by node key
 type _Calculators = Mapping[_NodeKey, Calculator]
@@ -98,7 +99,7 @@ class NodeReference:
     an expression tree it evaluates through the named node's getter.
     """
 
-    type: str
+    type: NodeTypeID
     name: str
 
     @property

@@ -150,7 +150,7 @@ BASE = [
 NAMES = {node_type: name for node_type, name, _ in BASE}
 
 REQUIRED = [
-    pytest.param(node_type, attribute, id=f"{node_type}.{attribute}")
+    pytest.param(str(node_type), attribute, id=f"{node_type}.{attribute}")
     for node_type, attributes in NODE_REQUIRED_ATTRIBUTES.items()
     for attribute in attributes
 ]

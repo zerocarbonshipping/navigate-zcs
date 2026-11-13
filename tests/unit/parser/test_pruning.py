@@ -22,9 +22,8 @@ import pytest
 import navigate.core.nodes
 from helpers.parser_decks import FLEET, FUEL
 from navigate.core.dsl import SECTION_DEFINE
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.node_registry import NODE_CLASS
-from navigate.core.node_type import CURVE, PORT, VARIABLE, VESSEL
-from navigate.core.node_type import FLEET as FLEET_TYPE
 from navigate.exceptions import DeckError
 from navigate.parser._collect import (
     Collector,
@@ -43,7 +42,7 @@ from navigate.parser._syntax import (
 )
 from navigate.util import attribute_to_setter
 
-NON_ROOT_TYPES = sorted(set(NODE_CLASS) - set(ROOT_TYPES))
+NON_ROOT_TYPES = sorted(set(NODE_CLASS) - set(ROOT_TYPES), key=str)
 
 
 def _reference(node_type, *names):
@@ -67,20 +66,30 @@ def _reachable(declarations, events=()):
 def _fleet_chain():
     """Return the declarations of a Fleet -> Vessel -> machinery and route chain."""
     return [
-        (FLEET_TYPE, "fleet", [Assignment("Vessels", _reference(VESSEL, "vessel"))]),
         (
-            VESSEL,
+            NodeTypeID.FLEET,
+            "fleet",
+            [Assignment("Vessels", _reference(NodeTypeID.VESSEL, "vessel"))],
+        ),
+        (
+            NodeTypeID.VESSEL,
             "vessel",
             [
-                Assignment("PropulsionConverter", _reference("Converter", "conv")),
-                Assignment("Tanks", _reference("Tank", "tank")),
-                Assignment("Route", _reference("Route", "route")),
+                Assignment(
+                    "PropulsionConverter", _reference(NodeTypeID.CONVERTER, "conv")
+                ),
+                Assignment("Tanks", _reference(NodeTypeID.TANK, "tank")),
+                Assignment("Route", _reference(NodeTypeID.ROUTE, "route")),
             ],
         ),
-        ("Converter", "conv", []),
-        ("Tank", "tank", []),
-        ("Route", "route", [Assignment("Ports", _reference(PORT, "port"))]),
-        (PORT, "port", []),
+        (NodeTypeID.CONVERTER, "conv", []),
+        (NodeTypeID.TANK, "tank", []),
+        (
+            NodeTypeID.ROUTE,
+            "route",
+            [Assignment("Ports", _reference(NodeTypeID.PORT, "port"))],
+        ),
+        (NodeTypeID.PORT, "port", []),
     ]
 
 
@@ -108,16 +117,20 @@ class TestPrune:
         declarations = [
             *_fleet_chain(),
             (
-                VESSEL,
+                NodeTypeID.VESSEL,
                 "orphan_vessel",
-                [Assignment("Route", _reference("Route", "orphan_route"))],
+                [Assignment("Route", _reference(NodeTypeID.ROUTE, "orphan_route"))],
             ),
             (
-                "Route",
+                NodeTypeID.ROUTE,
                 "orphan_route",
-                [Assignment("Ports", _reference(PORT, "port", "orphan_port"))],
+                [
+                    Assignment(
+                        "Ports", _reference(NodeTypeID.PORT, "port", "orphan_port")
+                    )
+                ],
             ),
-            (PORT, "orphan_port", []),
+            (NodeTypeID.PORT, "orphan_port", []),
         ]
 
         assert _reachable(declarations) == FLEET_CHAIN_KEYS
@@ -128,22 +141,42 @@ class TestPrune:
     def test_reference_cycles_terminate(self):
         declarations = [
             (
-                "Producer",
+                NodeTypeID.PRODUCER,
                 "producer",
-                [Assignment("Plants", _reference("Plant", "plant"))],
+                [Assignment("Plants", _reference(NodeTypeID.PLANT, "plant"))],
             ),
-            ("Plant", "plant", [Assignment("Process", _reference("Process", "a"))]),
-            ("Process", "a", [Assignment("Feeds", _reference("Process", "b"))]),
-            ("Process", "b", [Assignment("Feeds", _reference("Process", "a"))]),
-            ("Process", "c", [Assignment("Feeds", _reference("Process", "d"))]),
-            ("Process", "d", [Assignment("Feeds", _reference("Process", "c"))]),
+            (
+                NodeTypeID.PLANT,
+                "plant",
+                [Assignment("Process", _reference(NodeTypeID.PROCESS, "a"))],
+            ),
+            (
+                NodeTypeID.PROCESS,
+                "a",
+                [Assignment("Feeds", _reference(NodeTypeID.PROCESS, "b"))],
+            ),
+            (
+                NodeTypeID.PROCESS,
+                "b",
+                [Assignment("Feeds", _reference(NodeTypeID.PROCESS, "a"))],
+            ),
+            (
+                NodeTypeID.PROCESS,
+                "c",
+                [Assignment("Feeds", _reference(NodeTypeID.PROCESS, "d"))],
+            ),
+            (
+                NodeTypeID.PROCESS,
+                "d",
+                [Assignment("Feeds", _reference(NodeTypeID.PROCESS, "c"))],
+            ),
         ]
 
         assert _reachable(declarations) == [
-            ("Producer", "producer"),
-            ("Plant", "plant"),
-            ("Process", "a"),
-            ("Process", "b"),
+            (NodeTypeID.PRODUCER, "producer"),
+            (NodeTypeID.PLANT, "plant"),
+            (NodeTypeID.PROCESS, "a"),
+            (NodeTypeID.PROCESS, "b"),
         ]
 
     # input:    | EVENTS: Vessel "ghost" { Capex = Variable("var") }
@@ -152,18 +185,22 @@ class TestPrune:
     #              instead, var is reachable
     @pytest.mark.parametrize(
         ("target", "expected"),
-        [("vessel", [(VARIABLE, "var")]), ("ghost", [])],
+        [("vessel", [(NodeTypeID.VARIABLE, "var")]), ("ghost", [])],
         ids=["reachable_target", "unreachable_target"],
     )
     def test_an_events_reference_counts_only_from_a_reachable_target(
         self, target, expected
     ):
-        declarations = [*_fleet_chain(), (VARIABLE, "var", []), (VESSEL, "ghost", [])]
+        declarations = [
+            *_fleet_chain(),
+            (NodeTypeID.VARIABLE, "var", []),
+            (NodeTypeID.VESSEL, "ghost", []),
+        ]
         event = EventBlock(
             None,
-            VESSEL,
+            NodeTypeID.VESSEL,
             target,
-            [Assignment("Capex", _reference(VARIABLE, "var"))],
+            [Assignment("Capex", _reference(NodeTypeID.VARIABLE, "var"))],
             SourceLocation(),
         )
 
@@ -174,11 +211,14 @@ class TestPrune:
     def test_a_command_argument_keeps_its_reference(self):
         declarations = _fleet_chain()
         declarations[0][2].append(
-            Command("set_initial_technology_share", ["*", _reference(CURVE, "tc")])
+            Command(
+                "set_initial_technology_share",
+                ["*", _reference(NodeTypeID.CURVE, "tc")],
+            )
         )
-        declarations.append((CURVE, "tc", []))
+        declarations.append((NodeTypeID.CURVE, "tc", []))
 
-        assert _reachable(declarations) == [*FLEET_CHAIN_KEYS, (CURVE, "tc")]
+        assert _reachable(declarations) == [*FLEET_CHAIN_KEYS, (NodeTypeID.CURVE, "tc")]
 
     # input:    | Levy "levy" { Jurisdiction = [Port("port"), Port("other")] }
     #           | only port is on a route
@@ -187,14 +227,21 @@ class TestPrune:
         declarations = [
             *_fleet_chain(),
             (
-                "Levy",
+                NodeTypeID.LEVY,
                 "levy",
-                [Assignment("Jurisdiction", _reference(PORT, "port", "other"))],
+                [
+                    Assignment(
+                        "Jurisdiction", _reference(NodeTypeID.PORT, "port", "other")
+                    )
+                ],
             ),
-            (PORT, "other", []),
+            (NodeTypeID.PORT, "other", []),
         ]
 
-        assert _reachable(declarations) == [*FLEET_CHAIN_KEYS, ("Levy", "levy")]
+        assert _reachable(declarations) == [
+            *FLEET_CHAIN_KEYS,
+            (NodeTypeID.LEVY, "levy"),
+        ]
 
 
 GHOST_VESSEL = """
@@ -341,7 +388,7 @@ class TestNonActivating:
 
             owner = NODE_CLASS[owner_type]("pin")
             setter = getattr(owner, attribute_to_setter(attribute))
-            setter([NODE_CLASS[PORT]("target")])
+            setter([NODE_CLASS[NodeTypeID.PORT]("target")])
             assert isinstance(getattr(owner, attribute.lower()), list)
 
     # input:    | every assign_reference call with PORT in navigate/core/nodes and

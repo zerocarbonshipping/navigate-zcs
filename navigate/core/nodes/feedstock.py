@@ -5,14 +5,14 @@
 
 from __future__ import annotations
 
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import FEEDSTOCK
 
 
 class Feedstock(Node):
     """A feedstock that processes consume, regions price and plants transport."""
 
-    type = FEEDSTOCK
+    type = NodeTypeID.FEEDSTOCK
 
     def __init__(self, name: str) -> None:
         super().__init__(name)

@@ -56,6 +56,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from navigate.core.dsl import DeckEntry
+    from navigate.core.enum_ import NodeTypeID
     from navigate.exceptions import DeckError
     from navigate.parser._library import Library
     from navigate.parser._syntax import BodyItem, Directive, Statement
@@ -63,14 +64,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # a node declared by name: its type and name
-type Key = tuple[str, str]
+type Key = tuple[NodeTypeID, str]
 
 # the date a Start or Date keyword opens: None for Start, resolved once the start
 # date is known
 type StepDate = np.datetime64 | None
 
 
-def matching(keys: Collection[Key], node_type: str, pattern: str) -> list[Key]:
+def matching(keys: Collection[Key], node_type: NodeTypeID, pattern: str) -> list[Key]:
     """Return the keys of a node type whose name the pattern matches, in order."""
     if not name_contains_wildcards(pattern):
         key = (node_type, pattern)
@@ -80,7 +81,7 @@ def matching(keys: Collection[Key], node_type: str, pattern: str) -> list[Key]:
 
 
 def unmatched_wildcard_error(
-    node_type: str, pattern: str, source: SourceLocation
+    node_type: NodeTypeID, pattern: str, source: SourceLocation
 ) -> DeckError:
     """Build the error for a wildcard that matches no node of its type."""
     return source.error(
@@ -88,14 +89,14 @@ def unmatched_wildcard_error(
     )
 
 
-def deck_entry(node_type: str, item: BodyItem, section: SectionID) -> DeckEntry:
+def deck_entry(node_type: NodeTypeID, item: BodyItem, section: SectionID) -> DeckEntry:
     """
     Look up the mark of an item's attribute or command on its node type.
 
     Parameters
     ----------
     node_type
-        The node type or general node keyword the item is written on.
+        The node type or general node the item is written on.
     item
         The assignment or command.
     section
@@ -183,7 +184,7 @@ class Origin(Enum):
 class Declaration:
     """One node as the deck declares it: every body item naming it, in read order."""
 
-    node_type: str
+    node_type: NodeTypeID
     name: str
     body: list[BodyItem]
     origin: Origin
@@ -228,7 +229,7 @@ class EventBlock:
     """A node block under EVENTS, applied at its date to the nodes its name matches."""
 
     date: StepDate
-    node_type: str
+    node_type: NodeTypeID
     pattern: str
     body: list[BodyItem]
     source: SourceLocation
@@ -257,7 +258,7 @@ class Collector:
 
         # the deck as read, each in read order
         self.declarations: dict[Key, Declaration] = {}
-        self.general: dict[str, list[Assignment]] = {}
+        self.general: dict[NodeTypeID, list[Assignment]] = {}
         self.events: list[EventBlock] = []
         self.timeline: list[StepDate] = []
 
@@ -570,31 +571,26 @@ class Collector:
 # validation ---------------------------------------------------------------------------
 
 
-def _check_node_type(node_type: str, source: SourceLocation) -> None:
-    """Raise at the source unless the keyword is a node type, declared with a name."""
+def _check_node_type(node_type: NodeTypeID, source: SourceLocation) -> None:
+    """Raise at the source where a general node is declared with a name."""
     if node_type in GENERAL_NODE_CLASS:
         raise source.error(
             f"'{node_type}' is a general node and is declared without a name."
         )
 
-    if node_type not in NODE_CLASS:
-        raise source.error(f"'{node_type}' is not a recognized node type.")
 
-
-def _check_general_node_type(node_type: str, source: SourceLocation) -> None:
-    """Raise at the source unless the keyword is a general node, declared nameless."""
+def _check_general_node_type(node_type: NodeTypeID, source: SourceLocation) -> None:
+    """Raise at the source where a node type taking a name is declared without one."""
     if node_type in NODE_CLASS:
         raise source.error(f"'{node_type}' is a node type and is declared with a name.")
 
-    if node_type not in GENERAL_NODE_CLASS:
-        raise source.error(f"'{node_type}' is not a recognized node type.")
 
-
-def _check_item(node_type: str, item: BodyItem, section: SectionID) -> None:
+def _check_item(node_type: NodeTypeID, item: BodyItem, section: SectionID) -> None:
     """Raise at the item unless its name, section and references are allowed."""
     deck_entry(node_type, item, section)
 
     for reference, in_expression in item_references(item):
+        # a general node has no name, so no reference names one
         if reference.type not in NODE_CLASS:
             raise item.source.error(
                 f"'{reference.type}' is not a recognized node type."

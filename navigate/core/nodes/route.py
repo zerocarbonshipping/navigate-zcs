@@ -24,9 +24,8 @@ from navigate.core import (
     write_matching_keys,
 )
 from navigate.core.assign import in_seeded_order
-from navigate.core.enum_ import RouteTypeID
+from navigate.core.enum_ import NodeTypeID, RouteTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import CURVE, FORECAST, PORT, ROUTE, VARIABLE
 from navigate.core.nodes.curve import Curve
 from navigate.core.wrap import to_array
 from navigate.exceptions import DeckInsufficientError, UnassignedAttributeError
@@ -60,7 +59,7 @@ if TYPE_CHECKING:
 class Route(Node):
     """A route: its ports, and the legs and sailing conditions between them."""
 
-    type = ROUTE
+    type = NodeTypeID.ROUTE
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -103,14 +102,14 @@ class Route(Node):
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_ports(self, value: Port | list[Port]) -> None:
         """Set the list of ports available for bunkering on the route."""
-        self.ports = assign_reference_list(value, PORT, min_length=1)
+        self.ports = assign_reference_list(value, NodeTypeID.PORT, min_length=1)
 
     @deck_attribute()
     def set_time_at_sea(self, value: ForecastArgument) -> None:
         """Set the fraction of time spent at sea."""
         self.time_at_sea = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             upper=1.0,
             inclusive_lower=False,
@@ -124,13 +123,13 @@ class Route(Node):
 
         if isinstance(value, Curve):
             # a Curve's y is the share of the leg's sea time sailed at its x, the speed
-            speed = assign_value(value, type_=CURVE, lower=0.0, upper=1.0)
+            speed = assign_value(value, type_=NodeTypeID.CURVE, lower=0.0, upper=1.0)
         else:
-            # CURVE lets an expression referencing a Curve through the reference
-            # walk, so that check_consistency rejects it with its own message
+            # accepting Curve lets an expression referencing a Curve through the
+            # reference walk, so that check_consistency rejects it with its own message
             speed = assign_value(
                 as_scalar(value),
-                type_=(CURVE, VARIABLE),
+                type_=(NodeTypeID.CURVE, NodeTypeID.VARIABLE),
                 lower=0.0,
                 inclusive_lower=False,
             )
@@ -152,7 +151,7 @@ class Route(Node):
             (key1, key2),
             assign_value(
                 as_scalar(value),
-                type_=(CURVE, FORECAST, VARIABLE),
+                type_=(NodeTypeID.CURVE, NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
                 lower=0.0,
                 upper=1.0,
             ),
@@ -177,7 +176,11 @@ class Route(Node):
 
         self._write_legs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+            ),
             self.port_durations,
         )
 
@@ -190,7 +193,9 @@ class Route(Node):
 
         self._write_legs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0),
+            assign_value(
+                as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
+            ),
             self.voyage_shares,
         )
 
@@ -206,7 +211,7 @@ class Route(Node):
             key,
             assign_value(
                 as_scalar(value),
-                type_=(FORECAST, VARIABLE),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
                 lower=0.0,
                 inclusive_lower=False,
             ),

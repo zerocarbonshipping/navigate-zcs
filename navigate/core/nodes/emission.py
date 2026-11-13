@@ -15,9 +15,8 @@ from navigate.core import (
     assign_value,
     deck_attribute,
 )
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import FuelTypeID, NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import CURVE, EMISSION, VARIABLE
 
 if TYPE_CHECKING:
     from navigate.core.types_ import CurveArgument, CurveInput
@@ -26,7 +25,7 @@ if TYPE_CHECKING:
 class Emission(Node):
     """A species, its global warming potential and the fuel type whose slip emits it."""
 
-    type = EMISSION
+    type = NodeTypeID.EMISSION
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -40,7 +39,7 @@ class Emission(Node):
     def set_global_warming_potential(self, value: CurveArgument) -> None:
         """Set the Global Warming Potential (GWP) of the emission."""
         self.global_warming_potential = assign_value(
-            as_scalar(value), type_=(CURVE, VARIABLE), lower=0.0
+            as_scalar(value), type_=(NodeTypeID.CURVE, NodeTypeID.VARIABLE), lower=0.0
         )
 
     @deck_attribute(SECTION_DEFINE)

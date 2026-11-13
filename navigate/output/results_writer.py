@@ -148,7 +148,7 @@ def _results_by_node(
 
     for node in results.nodes.all_nodes():
         if hasattr(node, "results"):
-            yield node.type.lower(), node.name, node.results
+            yield str(node.type).lower(), node.name, node.results
 
 
 def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Series]:

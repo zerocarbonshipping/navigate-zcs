@@ -23,6 +23,7 @@ import numpy as np
 
 from navigate.core import Expression
 from navigate.core.dsl import required_attributes
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.expression import NodeReference, node_references
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
@@ -34,7 +35,6 @@ from navigate.core.lifecycle import (
 )
 from navigate.core.node import Node
 from navigate.core.node_registry import NODE_CLASS, GeneralNodes, Nodes
-from navigate.core.node_type import MODEL_DEFINITION
 from navigate.core.table_data import TableData
 from navigate.exceptions import DeckError, UnassignedAttributeError
 from navigate.parser._collect import matching, unmatched_wildcard_error
@@ -117,7 +117,7 @@ class Builder:
         GeneralNodes
             The record of the deck's general nodes.
         """
-        if MODEL_DEFINITION not in self._collector.general:
+        if NodeTypeID.MODEL_DEFINITION not in self._collector.general:
             raise DeckError("Error in simulation: 'ModelDefinition' must be defined.")
 
         model_definition, bunker_options = ModelDefinition(), BunkerOptions()

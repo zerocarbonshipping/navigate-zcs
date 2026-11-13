@@ -19,8 +19,7 @@ from navigate.core import (
     write_matching_key_pairs,
     write_matching_keys,
 )
-from navigate.core.enum_ import FuelTypeID
-from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
+from navigate.core.enum_ import FuelTypeID, NodeTypeID
 from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
@@ -36,7 +35,7 @@ if TYPE_CHECKING:
 class Converter(_Machinery):
     """An energy converter: its capacity, efficiency, fuel types and emissions."""
 
-    type = CONVERTER
+    type = NodeTypeID.CONVERTER
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -63,14 +62,17 @@ class Converter(_Machinery):
     def set_power_capacity(self, value: ScalarArgument) -> None:
         """Set the power capacity of the converter."""
         self.power_capacity = assign_value(
-            as_scalar(value), type_=VARIABLE, lower=0.0, inclusive_lower=False
+            as_scalar(value),
+            type_=NodeTypeID.VARIABLE,
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     @deck_attribute(SECTION_DEFINE)
     def set_minimum_load(self, value: ScalarArgument) -> None:
         """Set the minimum load as a fraction of power capacity."""
         self.minimum_load = assign_value(
-            as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0
+            as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
         )
 
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -91,14 +93,17 @@ class Converter(_Machinery):
     def set_minimum_pilot_fuel(self, value: ForecastArgument) -> None:
         """Set the minimum pilot fuel fraction required to use the converter."""
         self.minimum_pilot_fuel = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute(required=True)
     def set_efficiency(self, value: ScalarArgument) -> None:
         """Set the energy conversion efficiency of the converter."""
         self.efficiency = assign_value(
-            as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0
+            as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
@@ -106,7 +111,9 @@ class Converter(_Machinery):
     def set_slip_fraction(self, key: str, value: ScalarArgument) -> None:
         """Set the fraction of fuel mass escaping unburned for a fuel type."""
         fuel_type = assign_member(key, self.get_fuel_types())
-        slip = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
+        slip = assign_value(
+            as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
+        )
 
         write_matching_keys(fuel_type, slip, self.slip_fractions)
 
@@ -114,7 +121,7 @@ class Converter(_Machinery):
     def set_consumption_ttw(self, key1: str, key2: str, value: ScalarArgument) -> None:
         """Set a consumption-related emission for a fuel type in the converter."""
         fuel_type = assign_member(key1, self.get_fuel_types())
-        ttw = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
+        ttw = assign_value(as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0)
 
         write_matching_key_pairs((fuel_type, key2), ttw, self.consumption_ttw)
 

@@ -82,7 +82,7 @@ def page_for(node_type: str) -> Path:
     Parameters
     ----------
     node_type : str
-        A node-type name as navigate.core.node_type spells it, e.g. ``ModelDefinition``.
+        A node-type name as NodeTypeID spells it, e.g. ``ModelDefinition``.
 
     Returns
     -------

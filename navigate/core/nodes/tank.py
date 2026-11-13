@@ -14,8 +14,7 @@ from navigate.core import (
     assign_value,
     deck_attribute,
 )
-from navigate.core.enum_ import FuelTypeID
-from navigate.core.node_type import TANK, VARIABLE
+from navigate.core.enum_ import FuelTypeID, NodeTypeID
 from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
@@ -25,7 +24,7 @@ if TYPE_CHECKING:
 class Tank(_Machinery):
     """An onboard fuel tank: the fuel types it can hold and its volume."""
 
-    type = TANK
+    type = NodeTypeID.TANK
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -43,4 +42,4 @@ class Tank(_Machinery):
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_size(self, value: ScalarArgument) -> None:
         """Set the volumetric size of the tank."""
-        self.size = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
+        self.size = assign_value(as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0)

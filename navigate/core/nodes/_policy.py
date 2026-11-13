@@ -19,9 +19,8 @@ from navigate.core import (
     write_matching_key_pairs,
     write_matching_keys,
 )
-from navigate.core.enum_ import PolicyScopeID
+from navigate.core.enum_ import NodeTypeID, PolicyScopeID
 from navigate.core.node import Node
-from navigate.core.node_type import CURVE, EMISSION, FORECAST, FUEL, PORT, VARIABLE
 from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
@@ -77,19 +76,21 @@ class _Policy(Node):
     @deck_attribute(SECTION_DEFINE)
     def set_jurisdiction(self, value: Port | list[Port]) -> None:
         """Set the ports under the jurisdiction of the policy."""
-        self.jurisdiction = assign_reference_list(value, PORT)
+        self.jurisdiction = assign_reference_list(value, NodeTypeID.PORT)
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_emissions(self, value: Emission | list[Emission]) -> None:
         """Set the emissions targeted by the policy."""
         self.emissions = assign_reference_list(
-            value, EMISSION, min_length=1, unique=True
+            value, NodeTypeID.EMISSION, min_length=1, unique=True
         )
 
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_fuels(self, value: Fuel | list[Fuel]) -> None:
         """Set the fuels targeted by the policy."""
-        self.fuels = assign_reference_list(value, FUEL, min_length=1, unique=True)
+        self.fuels = assign_reference_list(
+            value, NodeTypeID.FUEL, min_length=1, unique=True
+        )
 
     @deck_attribute(SECTION_DEFINE)
     def set_scope(self, value: str) -> None:
@@ -100,7 +101,7 @@ class _Policy(Node):
     def set_emissions_lifetime(self, value: ScalarArgument) -> None:
         """Set the emissions lifetime used in the GWP calculation of emissions."""
         self.emissions_lifetime = assign_value(
-            as_scalar(value), type_=VARIABLE, lower=0.0
+            as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0
         )
 
     @deck_attribute()
@@ -121,7 +122,9 @@ class _Policy(Node):
         """Set the GWP of an emission under the policy."""
         write_matching_keys(
             key,
-            assign_value(as_scalar(value), type_=(CURVE, VARIABLE)),
+            assign_value(
+                as_scalar(value), type_=(NodeTypeID.CURVE, NodeTypeID.VARIABLE)
+            ),
             self.global_warming_potentials,
         )
 
@@ -130,7 +133,9 @@ class _Policy(Node):
         """Set the WTT emission factor of a fuel and emission under the policy."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
+            assign_value(
+                as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
+            ),
             self.fuel_wtt,
         )
 
@@ -139,7 +144,9 @@ class _Policy(Node):
         """Set the TTW emission factor of a fuel and emission under the policy."""
         write_matching_key_pairs(
             (key1, key2),
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
+            assign_value(
+                as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
+            ),
             self.fuel_ttw,
         )
 

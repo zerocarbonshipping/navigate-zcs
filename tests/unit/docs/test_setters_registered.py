@@ -39,7 +39,7 @@ INTERNAL_SETTERS = {
     "set_producer_assignment",
 }
 
-NODE_TYPES = sorted(CLASSES)
+NODE_TYPES = sorted(CLASSES, key=str)
 
 
 def _registered_methods(node_type: str) -> dict[str, str]:

@@ -24,9 +24,9 @@ from navigate.core import (
     deck_command,
     write_matching_keys,
 )
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.expectations import ProducerExpectation
 from navigate.core.node import Node
-from navigate.core.node_type import CURVE, FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.results import ProducerResults
 
 if TYPE_CHECKING:
@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 class Producer(Node):
     """A fuel producer: its buildable plants, pipeline, constraints and exports."""
 
-    type = PRODUCER
+    type = NodeTypeID.PRODUCER
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -106,14 +106,16 @@ class Producer(Node):
     @deck_attribute(SECTION_DEFINE, required=True)
     def set_plants(self, value: Plant | list[Plant]) -> None:
         """Set the list of plant types the producer can build."""
-        self.plants = assign_reference_list(value, PLANT, min_length=1, unique=True)
+        self.plants = assign_reference_list(
+            value, NodeTypeID.PLANT, min_length=1, unique=True
+        )
 
     @deck_attribute()
     def set_minimum_offtake_duration(self, value: ForecastArgument) -> None:
         """Set the minimum offtake duration required for building new plants."""
         self.minimum_offtake_duration = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -123,7 +125,7 @@ class Producer(Node):
         """Set the sensitivity of the fuel-pathway choice to expected demand."""
         self.fuel_demand_sensitivity = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -133,7 +135,7 @@ class Producer(Node):
         """Set the sensitivity of the plant choice to levelized cost of fuel."""
         self.fuel_cost_sensitivity = assign_value(
             as_scalar(value),
-            type_=(FORECAST, VARIABLE),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
@@ -142,7 +144,10 @@ class Producer(Node):
     def set_inertia(self, value: ForecastArgument) -> None:
         """Set the inertia used in the uptake decision of newbuild plants."""
         self.inertia = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute(SECTION_DEFINE)
@@ -152,7 +157,9 @@ class Producer(Node):
         """Set the initial capacity of each plant type."""
         entries: list[ScalarArgument] = as_list(value)
         self.initial_capacity = assign_list(
-            [as_scalar(entry) for entry in entries], type_=VARIABLE, lower=0.0
+            [as_scalar(entry) for entry in entries],
+            type_=NodeTypeID.VARIABLE,
+            lower=0.0,
         )
 
     @deck_attribute(SECTION_DEFINE)
@@ -163,7 +170,7 @@ class Producer(Node):
         entries: list[CurveTableArgument] = as_list(value)
         self.initial_age_distribution = assign_list(
             [as_scalar(entry) for entry in entries],
-            type_=CURVE,
+            type_=NodeTypeID.CURVE,
             lower=0.0,
             allow_expression=False,
         )
@@ -172,21 +179,26 @@ class Producer(Node):
     def set_maximum_development(self, value: ForecastArgument) -> None:
         """Set the maximum number of plants that can be developed per year."""
         self.maximum_development = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
         )
 
     @deck_attribute()
     def set_maximum_ramp_up(self, value: ForecastArgument) -> None:
         """Set the maximum ramp-up of the development constraint's utilization."""
         self.maximum_ramp_up = assign_value(
-            as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            as_scalar(value),
+            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+            lower=0.0,
+            upper=1.0,
         )
 
     @deck_attribute()
     def set_jump_start_fraction(self, value: ScalarArgument) -> None:
         """Set the jump-start fraction of the supply/demand interaction."""
         self.jump_start_fraction = assign_value(
-            as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0
+            as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
@@ -198,7 +210,7 @@ class Producer(Node):
             assign_value(
                 value,
                 allow_scalar=False,
-                type_=FORECAST,
+                type_=NodeTypeID.FORECAST,
                 lower=0.0,
                 allow_expression=False,
             ),
@@ -219,7 +231,7 @@ class Producer(Node):
             key,
             assign_value(
                 as_scalar(value),
-                type_=(FORECAST, VARIABLE),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
                 lower=0.0,
                 allow_infinite=True,
             ),
@@ -232,7 +244,10 @@ class Producer(Node):
         write_matching_keys(
             key,
             assign_value(
-                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+                as_scalar(value),
+                type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
+                lower=0.0,
+                upper=1.0,
             ),
             self.export_distribution,
         )

@@ -6,15 +6,14 @@
 from __future__ import annotations
 
 from navigate.core import SECTION_DEFINE, assign_id, deck_attribute
-from navigate.core.enum_ import SourceDependencyID
+from navigate.core.enum_ import NodeTypeID, SourceDependencyID
 from navigate.core.node import Node
-from navigate.core.node_type import SOURCE
 
 
 class Source(Node):
     """An energy source for fuel production, stand-alone or connected to a grid."""
 
-    type = SOURCE
+    type = NodeTypeID.SOURCE
 
     def __init__(self, name: str) -> None:
         super().__init__(name)

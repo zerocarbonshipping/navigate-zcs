@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core import assign_value, deck_attribute
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import VARIABLE
 from navigate.core.nodes._calculator import _Calculator
 
 if TYPE_CHECKING:
@@ -29,7 +29,7 @@ class Variable(Node, _Calculator):
         Node name.
     """
 
-    type = VARIABLE
+    type = NodeTypeID.VARIABLE
 
     def __init__(self, name: str) -> None:
         Node.__init__(self, name)

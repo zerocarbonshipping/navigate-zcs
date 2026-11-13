@@ -8,8 +8,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, overload
 
 from navigate.core import deck_attribute
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
-from navigate.core.node_type import CURVE
 from navigate.core.nodes._table1d import _Table1D
 from navigate.core.table_data import TableData, build_table_1d
 
@@ -27,7 +27,7 @@ class Curve(Node, _Table1D):
         Node name.
     """
 
-    type = CURVE
+    type = NodeTypeID.CURVE
 
     def __init__(self, name: str) -> None:
         Node.__init__(self, name)

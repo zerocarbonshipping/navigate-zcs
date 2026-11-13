@@ -15,6 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from navigate.core.enum_ import NodeTypeID
 from navigate.core.table_data import TableData
 from navigate.exceptions import DeckError
 from navigate.parser._syntax import (
@@ -111,10 +112,13 @@ def test_a_deck_holds_one_define_and_one_events_block_of_directives(text):
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ('Vessel "v" {\n}', NodeDeclaration("Vessel", "v", [], _at(1))),
-        ("ModelDefinition {\n}", GeneralNodeDeclaration("ModelDefinition", [], _at(1))),
-        ('Copy Vessel "a" "b"', CopyStatement("Vessel", "a", "b", _at(1))),
-        ('Import Vessel "a"', ImportStatement("Vessel", "a", _at(1))),
+        ('Vessel "v" {\n}', NodeDeclaration(NodeTypeID.VESSEL, "v", [], _at(1))),
+        (
+            "ModelDefinition {\n}",
+            GeneralNodeDeclaration(NodeTypeID.MODEL_DEFINITION, [], _at(1)),
+        ),
+        ('Copy Vessel "a" "b"', CopyStatement(NodeTypeID.VESSEL, "a", "b", _at(1))),
+        ('Import Vessel "a"', ImportStatement(NodeTypeID.VESSEL, "a", _at(1))),
         (
             'Date "01-01-2030"',
             DateStatement(np.datetime64("2030-01-01"), _at(1)),
@@ -157,7 +161,9 @@ def test_a_date_statement_takes_each_date_form(text):
         ("set_x()", Command("set_x", [], _at(2))),
         (
             'set_x("a", 2, OIL, Port("p"))',
-            Command("set_x", ["a", 2.0, "OIL", NodeReference("Port", "p")], _at(2)),
+            Command(
+                "set_x", ["a", 2.0, "OIL", NodeReference(NodeTypeID.PORT, "p")], _at(2)
+            ),
         ),
         (
             "Table = [\n 1, 2;\n 3, 4;\n]",
@@ -221,22 +227,35 @@ def test_a_node_type_starts_with_a_capital(text):
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ('Vessel2 "v" {\n}', NodeDeclaration("Vessel2", "v", [], _at(1))),
         (
             'Vessel "v" {\nlifetime = 1\n}',
             NodeDeclaration(
-                "Vessel", "v", [Assignment("lifetime", 1.0, _at(2))], _at(1)
+                NodeTypeID.VESSEL, "v", [Assignment("lifetime", 1.0, _at(2))], _at(1)
             ),
         ),
         (
             'Vessel "v" {\nSetFuel()\n}',
-            NodeDeclaration("Vessel", "v", [Command("SetFuel", [], _at(2))], _at(1)),
+            NodeDeclaration(
+                NodeTypeID.VESSEL, "v", [Command("SetFuel", [], _at(2))], _at(1)
+            ),
         ),
     ],
-    ids=["digits_in_node_type", "lowercase_attribute", "titlecase_command"],
+    ids=["lowercase_attribute", "titlecase_command"],
 )
 def test_casing_left_to_the_registries(text, expected):
     assert parse_include_content(text, file=FILE) == [expected]
+
+
+# input:    | Vessel2 "v" { }
+# expected: -> DeckError "include file 'f.inc', line 1: 'Vessel2' is not a recognized
+#              node type."; the grammar accepts digits in a node type, and the
+#              node-type vocabulary rejects a keyword naming none
+def test_an_unknown_node_type_is_rejected_where_it_is_read():
+    with pytest.raises(DeckError) as error:
+        parse_include_content('Vessel2 "v" {\n}', file=FILE)
+
+    expected = "include file 'f.inc', line 1: 'Vessel2' is not a recognized node type."
+    assert str(error.value) == expected
 
 
 # ── syntax errors ─────────────────────────────────────────────────────────────
