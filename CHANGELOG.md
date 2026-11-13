@@ -350,6 +350,15 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- An event on a `Plant` or `Producer`, such as a plant's `Uptime`, `Lifetime`
+  or costs, now moves the ports' fuel supply and price, and the fleet and
+  producer decisions, at its own date; they followed it a step late. The fleet
+  decisions now read the expected production at the step's own date, not the
+  step before. Decks without such events therefore move beyond rounding only
+  where one of these varies in time:
+  - a plant's `Lifetime`;
+  - a producer's `JumpStartFraction`;
+  - under `set_feed_constraint`, a plant's production or feed conversion (#928).
 - A `Levy` enters the expenses a vessel type is expected to have, as the
   reference manual states; it changed only the fuel a vessel was expected to
   bunker. Decks with an active levy move: `investment_freight_rate`, the

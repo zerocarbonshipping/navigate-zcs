@@ -50,7 +50,9 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     _define_initial_development(producer)
 
     calculate_feed_availability(producer, timeline, idx)
-    calculate_producer_evolution_expectation(producer, timeline, idx)
+    calculate_producer_evolution_expectation(
+        producer, timeline, idx, planning_pending=False
+    )
 
 
 def _build_initial_increments(producer: Producer) -> list[list[PlantIncrement]]:

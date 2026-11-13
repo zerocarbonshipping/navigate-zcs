@@ -41,5 +41,9 @@ class ProducerExpectation(_Expectation):
         self.development_potential = self._values(fuel_names)
         self.fair_share_demand = self._paths(fuel_names)
 
+        # the producer's guaranteed production its fair-share demand was measured
+        # against
+        self.fair_share_baseline = self._paths(fuel_names)
+
         self.guaranteed_production = self._paths(plant_names)
         self.expected_production = self._paths(plant_names)

@@ -142,16 +142,35 @@ def calculate_expected_fuel_supply(
     dict[str, FloatLike]
         Expected future supply of each fuel, in tons/year.
     """
+    supplies = [_calculate_own_supply(producer, idx) for producer in producers.values()]
+    return add_dicts(*supplies)
+
+
+def _calculate_own_supply(producer: Producer, idx: int) -> dict[str, FloatLike]:
+    """
+    Calculate the expected future supply of each fuel from one producer.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    dict[str, FloatLike]
+        Guaranteed production of each of the producer's fuels from idx on, in
+        tons/year.
+    """
     forward = np.s_[idx:]
+    expectation = producer.expectation
     supply: dict[str, FloatLike] = {}
 
-    for producer in producers.values():
-        expectation = producer.expectation
-
-        for plant in producer.plants:
-            fuel_name = plant.fuel.name
-            production = expectation.guaranteed_production[plant.name][forward]
-            supply[fuel_name] = supply.get(fuel_name, 0.0) + production
+    for plant in producer.plants:
+        fuel_name = plant.fuel.name
+        production = expectation.guaranteed_production[plant.name][forward]
+        supply[fuel_name] = supply.get(fuel_name, 0.0) + production
 
     return supply
 
@@ -187,6 +206,9 @@ def calculate_fair_share_demand(
     """
     Assign each producer a share of each fuel's gap in proportion to its potential.
 
+    Each share is stored with the producer's own supply of the fuel it was measured
+    against, so that the production the producer gains later can come off it.
+
     TODO: Can be improved with a regionality aspect
 
     Parameters
@@ -198,13 +220,21 @@ def calculate_fair_share_demand(
     idx
         Current time-step index.
     """
+    supplies: dict[str, dict[str, FloatLike]] = {}
+
+    for producer_name, producer in producers.items():
+        supplies[producer_name] = _calculate_own_supply(producer, idx)
+
     for fuel_name, fuel_gap in gap.items():
         shares = _calculate_fair_shares(producers, fuel_name)
 
         for producer_name, share in shares.items():
             producer = producers[producer_name]
             demand = fuel_gap * share
+            supply = supplies[producer_name][fuel_name]
+
             producer.expectation.fair_share_demand[fuel_name][idx:] = demand
+            producer.expectation.fair_share_baseline[fuel_name][idx:] = supply
             producer.results.fair_share_fuel_fraction[fuel_name][idx] = share
 
 
