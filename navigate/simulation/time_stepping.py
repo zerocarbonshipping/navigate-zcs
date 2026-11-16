@@ -367,7 +367,6 @@ class Simulation:
         # precalculated, so they can be read through .get() without the time
         # being passed to every method
         self._pre_assign_temporal()
-        self._calculate_expectations()
 
         # the operations clip each condition to its technical speed limit, which
         # must leave the vessel a speed above 0 wherever it sails
@@ -383,13 +382,6 @@ class Simulation:
         if is_first_step:
             self._initialize_existing_fleet()
             self._initialize_existing_production()
-
-        # nothing the policy emission coefficients, vessel thresholds and levy costs
-        # read (plant production and delivery WTT, port WTT overwrites, bunkering
-        # flags and shore-power emission factors, the vessels' effective LHVs, the
-        # levies' levels and the vessels each policy polices) changes later in the
-        # step, so one pass serves both bunkering runs
-        self._calculate_policy_emission_coefficients()
 
         self._calculate_asset_charter()
 
@@ -433,28 +425,6 @@ class Simulation:
         for timetable in self.nodes.timetables.values():
             timetable.current_time = time
 
-    def _calculate_expectations(self) -> None:
-        """Calculate the deck-derived expectations at the start of the step."""
-        emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
-
-        calculate_policy_expectations(
-            self.nodes.regulations,
-            self.nodes.levies,
-            self.nodes.emissions,
-            self.nodes.routes,
-            self.nodes.vessels,
-            emissions_lifetime,
-            self.timeline,
-            self._idx,
-        )
-
-        calculate_fleet_expectations(self.nodes.vessels, self.nodes.emissions)
-
-        calculate_port_expectations(self.nodes.ports, self.timeline, self._idx)
-        calculate_export_expectations(
-            self.nodes.producers, self.nodes.ports, self.timeline, self._idx
-        )
-
     def _verify_speed_limits(self) -> None:
         for fleet in self.nodes.fleets.values():
             verify_speed_limits(fleet.vessels)
@@ -468,13 +438,49 @@ class Simulation:
         """
         Recalculate the expectations derived from the deck's inputs alone.
 
-        They are written from this step to the end of the horizon. A calculation
-        belongs here only if it reads no simulation state and evaluates every
-        calculator at an explicit time.
+        They are written from this step to the end of the horizon, or as one value
+        where nothing they read varies in time. A calculation belongs here only if it
+        reads no simulation state and evaluates every calculator that varies in time
+        at an explicit time.
         """
+        self._calculate_policy_expectations()
+        self._calculate_fleet_expectations()
+        self._calculate_port_expectations()
+        self._calculate_export_expectations()
+
         # the logistics read the lead times and lifetimes the production writes
         self._calculate_plant_production_expectations()
         self._calculate_plant_logistics_expectations()
+
+        # the coefficients read the policies' levels and GWPs, the vessels' effective
+        # LHVs and TTW factors, the ports' WTT overwrites and shore-power emission
+        # factors, and the plants' production and delivery WTT, all written above
+        self._calculate_policy_emission_coefficients()
+
+    def _calculate_policy_expectations(self) -> None:
+        emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
+
+        calculate_policy_expectations(
+            self.nodes.regulations,
+            self.nodes.levies,
+            self.nodes.emissions,
+            self.nodes.routes,
+            self.nodes.vessels,
+            emissions_lifetime,
+            self.timeline,
+            self._idx,
+        )
+
+    def _calculate_fleet_expectations(self) -> None:
+        calculate_fleet_expectations(self.nodes.vessels, self.nodes.emissions)
+
+    def _calculate_port_expectations(self) -> None:
+        calculate_port_expectations(self.nodes.ports, self.timeline, self._idx)
+
+    def _calculate_export_expectations(self) -> None:
+        calculate_export_expectations(
+            self.nodes.producers, self.nodes.ports, self.timeline, self._idx
+        )
 
     @timed(TimingID.PLANT_PRODUCTION)
     def _calculate_plant_production_expectations(self) -> None:
@@ -499,6 +505,16 @@ class Simulation:
             self._idx,
         )
 
+    @timed(TimingID.POLICY)
+    def _calculate_policy_emission_coefficients(self) -> None:
+        calculate_policy_emission_coefficients(
+            self.nodes.regulations,
+            self.nodes.levies,
+            self.nodes.vessels,
+            self.timeline,
+            self._idx,
+        )
+
     def _initialize_existing_fleet(self) -> None:
         for vessel in self.nodes.vessels.values():
             determine_fuel_type(vessel)
@@ -512,16 +528,6 @@ class Simulation:
     def _initialize_existing_production(self) -> None:
         for producer in self.nodes.producers.values():
             initialize_existing_producer(producer, self.timeline)
-
-    @timed(TimingID.POLICY)
-    def _calculate_policy_emission_coefficients(self) -> None:
-        calculate_policy_emission_coefficients(
-            self.nodes.regulations,
-            self.nodes.levies,
-            self.nodes.vessels,
-            self.timeline,
-            self._idx,
-        )
 
     def _calculate_asset_charter(self) -> None:
         """

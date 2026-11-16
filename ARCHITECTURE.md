@@ -65,8 +65,10 @@ pruned, never constructed.
 up the existing fleet and production, evolution runs from the second on. The
 expected scope runs before the decisions it informs and the existing scope
 after them, each on inputs recalculated just before it, so the step's fuel goes
-to the fleet those decisions left. The emission coefficients are computed once
-for both scopes, as nothing they read changes later in a step.
+to the fleet those decisions left. The expectations derived from the deck's
+inputs alone, the emission coefficients among them, are recalculated only at
+the first step and at a step whose events change the inputs, and serve both
+scopes of every step until then.
 
 ## Package map
 
