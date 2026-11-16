@@ -58,7 +58,7 @@ The Parquet key-value metadata holds a JSON document under the key `navigate`:
 
 | Key | Content |
 |---|---|
-| `schema_version` | Version of this layout, currently `1`. It changes when a reader has to change. |
+| `schema_version` | Version of this layout, currently `1`; see [Schema version](#schema-version) |
 | `navigate_version` | Navigate version that wrote the file |
 | `deck` | Name of the run: the deck's file name without extension, or the name given with `--name` |
 | `created` | Time the file was written, UTC, ISO 8601 |
@@ -71,6 +71,21 @@ A per-ton result converts to per energy with the heating value of its fuel: a
 port's `bunker_price` divided by `lower_heating_value` of the fuel in `key1` is
 the price in currency/GJ, and a plant's `investment_cost` divided by the heating
 value of its `plant_fuel` is the cost in currency/GJ.
+
+### Schema version
+
+This page specifies the results file; the study files of
+[Horizon](https://github.com/zerocarbonshipping/horizon-zcs) extend it with
+keys of their own. An addition keeps `schema_version`: a new metadata key, a
+new entry in a metadata mapping, or a new result, key, unit label or column. A
+breaking change raises it by one: a metadata key, column or result removed or
+renamed, or a value whose meaning, unit or encoding changes.
+
+A reader ignores the keys and columns it does not know. It checks
+`schema_version` against the versions it reads, and otherwise stops with a
+message naming the version found, the versions it reads and the tool to
+upgrade. A reader that uses an optional key tests whether the key is present,
+not the version.
 
 ## Results
 
