@@ -95,7 +95,7 @@ class RegulationExpectation(_Expectation):
 
         # NaN where the threshold adjustment does not apply
         self.adjusted_vessel_threshold = self._paths(vessels, default=np.nan)  # measure
-        self.adjusted_shared_threshold = self._path(default=np.nan)  # measure
+        self.adjusted_shared_threshold = self._path(default=np.nan)  # measure (pool)
 
     def reset_expected_bunkering(self) -> None:
         """Clear the flexibility market outcomes of the expected bunkering LPs."""
