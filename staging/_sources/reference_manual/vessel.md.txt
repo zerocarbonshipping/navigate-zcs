@@ -208,25 +208,25 @@ This attribute defines the lead time of the vessel in years. The lead time is on
 
 ### Capex
 
-This attribute sets the base CAPEX of building the vessel, including its fuel supply system, in USD.
+This attribute sets the base CAPEX of building the vessel, including its fuel supply system, in currency.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `100e6`
   + `Forecast("name")`
-* **Unit**: USD
+* **Unit**: currency
 * **Minimum value**: 0
 * **Default**: 0
 
 ### Opex
 
-This attribute defines the base OPEX of maintaining the vessel, including its fuel supply system, in USD per year.
+This attribute defines the base OPEX of maintaining the vessel, including its fuel supply system, in currency per year.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `10e6`
   + `Forecast("name")`
-* **Unit**: USD per year
+* **Unit**: currency per year
 * **Minimum value**: 0
 * **Default**: 0
 

@@ -518,6 +518,20 @@ SPDX-License-Identifier: CC-BY-4.0
 <li><p><strong>Default</strong>: 100</p></li>
 </ul>
 </section>
+<section id="currency">
+<h3>Currency<a class="headerlink" href="#currency" title="Link to this heading">#</a></h3>
+<p>This attribute names the currency of every monetary input and result. Navigate converts no currency, so every monetary input of the deck must be in it, those it loads from the assumptions library included, which are in USD. The reference manual writes a monetary unit with <code class="docutils literal notranslate"><span class="pre">currency</span></code>, such as <code class="docutils literal notranslate"><span class="pre">currency/ton</span></code> for a bunker price, and the <a class="reference internal" href="results_file.html#metadata"><span class="std std-ref">results file</span></a> writes the currency in its place, such as <code class="docutils literal notranslate"><span class="pre">EUR/t</span></code>.</p>
+<ul class="simple">
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">String</span></code>, one word without a slash</p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;USD&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;EUR&quot;</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;USD&quot;</span></code></p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -571,6 +585,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#startdate">StartDate</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#emissionslifetime">EmissionsLifetime</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#currency">Currency</a></li>
 </ul>
 </li>
 </ul>

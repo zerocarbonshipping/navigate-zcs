@@ -355,7 +355,7 @@ as an example of a defined node.
 For each attribute, a number of relevant characteristics are listed:
 
 * Data type
-* Unit
+* Unit; a monetary unit names `currency`, the deck's [Currency](model_definition.md#currency)
 * Legal values
 * Example values
 * Minimum value

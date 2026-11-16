@@ -500,7 +500,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="shorepowercost">
 <h3>ShorePowerCost<a class="headerlink" href="#shorepowercost" title="Link to this heading">#</a></h3>
-<p>This attribute sets the shore power electricity tariff in the port in USD/MWh. It is converted internally to USD/GJ for consistency with the energy model.</p>
+<p>This attribute sets the shore power electricity tariff in the port in currency/MWh. It is converted internally to currency/GJ for consistency with the energy model.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -509,7 +509,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/MWh</p></li>
+<li><p><strong>Unit</strong>: currency/MWh</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
@@ -552,7 +552,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </section>
 <section id="set-handling-cost">
 <span id="set_handling_cost"></span><h3>set_handling_cost<a class="headerlink" href="#set-handling-cost" title="Link to this heading">#</a></h3>
-<p>This command sets the costs related to storage and the service of bunkering of a specific fuel in the port in USD/ton.</p>
+<p>This command sets the costs related to storage and the service of bunkering of a specific fuel in the port in currency/ton.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -562,7 +562,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;fuel_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/ton</p></li>
+<li><p><strong>Unit</strong>: currency/ton</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
@@ -606,7 +606,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </section>
 <section id="set-bunker-price-overwrite">
 <span id="set_bunker_price_overwrite"></span><h3>set_bunker_price_overwrite<a class="headerlink" href="#set-bunker-price-overwrite" title="Link to this heading">#</a></h3>
-<p>This command sets the price of a specific fuel in the port in USD/ton.</p>
+<p>This command sets the price of a specific fuel in the port in currency/ton.</p>
 <p>If an overwrite is set for a specific fuel, then the bottom-up calculation of production cost is ignored.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
@@ -617,7 +617,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;fuel_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/ton</p></li>
+<li><p><strong>Unit</strong>: currency/ton</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: Not set. The price is calculated bottom-up from production; for a liquid-market fuel it is 0.</p></li>
 </ul>

@@ -39,3 +39,13 @@ This attribute determines the emission lifetime used to calculate the Global War
 * **Unit**: Years
 * **Minimum value**: 0
 * **Default**: 100
+
+### Currency
+
+This attribute names the currency of every monetary input and result. Navigate converts no currency, so every monetary input of the deck must be in it, those it loads from the assumptions library included, which are in USD. The reference manual writes a monetary unit with `currency`, such as `currency/ton` for a bunker price, and the [results file](results_file.md#metadata) writes the currency in its place, such as `EUR/t`.
+
+* **Data type**: `String`, one word without a slash
+* **Example values**:
+  + `"USD"`
+  + `"EUR"`
+* **Default**: `"USD"`

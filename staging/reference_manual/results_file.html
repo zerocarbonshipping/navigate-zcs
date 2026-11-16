@@ -548,6 +548,9 @@ happened in a time step, <code class="docutils literal notranslate"><span class=
 <code class="docutils literal notranslate"><span class="pre">newbuild_power</span></code>, <code class="docutils literal notranslate"><span class="pre">scrapped_power</span></code>, <code class="docutils literal notranslate"><span class="pre">fuel_converted_power</span></code>, <code class="docutils literal notranslate"><span class="pre">development</span></code> and
 <code class="docutils literal notranslate"><span class="pre">computational_time</span></code>, are divided by the length of the step in years of 365.25
 days, the first step counting as one year.</p>
+<p>Money is in the deck’s <a class="reference internal" href="model_definition.html#currency"><span class="std std-ref">Currency</span></a>. The tables
+below write it <code class="docutils literal notranslate"><span class="pre">currency</span></code>; the file’s <code class="docutils literal notranslate"><span class="pre">units</span></code> name the currency itself, such as
+<code class="docutils literal notranslate"><span class="pre">USD/t</span></code>.</p>
 </section>
 <section id="metadata">
 <h2>Metadata<a class="headerlink" href="#metadata" title="Link to this heading">#</a></h2>
@@ -588,8 +591,8 @@ days, the first step counting as one year.</p>
 </div>
 <p>A per-ton result converts to per energy with the heating value of its fuel: a
 port’s <code class="docutils literal notranslate"><span class="pre">bunker_price</span></code> divided by <code class="docutils literal notranslate"><span class="pre">lower_heating_value</span></code> of the fuel in <code class="docutils literal notranslate"><span class="pre">key1</span></code> is
-the price in USD/GJ, and a plant’s <code class="docutils literal notranslate"><span class="pre">investment_cost</span></code> divided by the heating value
-of its <code class="docutils literal notranslate"><span class="pre">plant_fuel</span></code> is the cost in USD/GJ.</p>
+the price in currency/GJ, and a plant’s <code class="docutils literal notranslate"><span class="pre">investment_cost</span></code> divided by the heating
+value of its <code class="docutils literal notranslate"><span class="pre">plant_fuel</span></code> is the cost in currency/GJ.</p>
 </section>
 <section id="results">
 <h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
@@ -810,55 +813,55 @@ is the power of the oil-fuelled vessels.</p></li>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.fuel_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p>fuel</p></td>
 <td><p>Bunker price times the fuel bunkered.</p></td>
 <td><p>Each fuel bunkered</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.levy_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.levy_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.levy_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p>fuel</p></td>
 <td><p>Levies charged on the fuel bunkered; negative for a subsidy.</p></td>
 <td><p>A Levy charges a fuel bunkered in its Jurisdiction</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.fuel_related_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p>fuel</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fuel_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">levy_expenses</span></code>.</p></td>
 <td><p>Each fuel bunkered</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.remedial_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.remedial_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.remedial_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Cost of the remedial units the regulations require.</p></td>
 <td><p>Vessels miss a regulation’s threshold</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.flexibility_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.flexibility_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.flexibility_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Cost of the flexibility units bought from vessels that over-comply.</p></td>
 <td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> Regulation’s vessels trade units</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.surplus_revenue</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.surplus_revenue</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.surplus_revenue</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Revenue from the surplus units sold to vessels that under-comply.</p></td>
 <td><p>As <code class="docutils literal notranslate"><span class="pre">flexibility_expenses</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.regulation_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.regulation_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.regulation_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">remedial_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">flexibility_expenses</span></code> less <code class="docutils literal notranslate"><span class="pre">surplus_revenue</span></code>.</p></td>
 <td><p>Any of the three</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.total_fuel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.total_fuel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.total_fuel_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>All fuel expenses plus shore power expenses.</p></td>
 <td><p>Always</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.total_fuel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.total_fuel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.total_fuel_related_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">total_fuel_expenses</span></code> plus all levy expenses.</p></td>
 <td><p>Always</p></td>
@@ -958,7 +961,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p>Vessels call at a Port with a ShorePowerConnectionShare above 0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Cost of the shore power, at the port’s ShorePowerCost.</p></td>
 <td><p>As <code class="docutils literal notranslate"><span class="pre">shore_power_energy</span></code>, with a cost</p></td>
@@ -1010,37 +1013,37 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p>Fuel conversions</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.vessel_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.vessel_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Asset charter of the vessels: their acquisition cost, levelized.</p></td>
 <td><p>Always</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.technology_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.technology_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Levelized cost of the installed technologies.</p></td>
 <td><p>Technologies are installed</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.fuel_conversion_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.fuel_conversion_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Running cost of the fuel conversions made.</p></td>
 <td><p>Fuel conversions</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.vessel_related_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.vessel_related_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">vessel_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">technology_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">fuel_conversion_expenses</span></code>.</p></td>
 <td><p>Always</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">total_fuel_related_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">regulation_expenses</span></code> plus <code class="docutils literal notranslate"><span class="pre">vessel_related_expenses</span></code>.</p></td>
 <td><p>Always</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.vessel_tied_capital</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.vessel_tied_capital</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency</span></code></p></td>
 <td><p></p></td>
 <td><p>Capital tied up in the vessels, depreciated linearly.</p></td>
 <td><p>Always</p></td>
@@ -1193,7 +1196,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p>As <code class="docutils literal notranslate"><span class="pre">minimum_speed</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.instantaneous_freight_rate</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.instantaneous_freight_rate</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/cargo-mile</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/cargo-mile</span></code></p></td>
 <td><p></p></td>
 <td><p>For a vessel: the cost of a ship ordered at the date, levelized over the cargo-miles it carries. The cost is its asset charter plus the fuel, levy, regulation and technology expenses it actually has. For a fleet: the <code class="docutils literal notranslate"><span class="pre">cargo_charter_rate</span></code> of those vessels summed over the fleet, per cargo-mile they carry.</p></td>
 <td><p>Missing where the vessel type leaves the fleet within the ship’s lead time and lifetime; for a fleet, where none of its vessel types has a rate</p></td>
@@ -1233,37 +1236,37 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p>The vessel has a LeadTime</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.asset_charter_rate</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>What an operator pays the owner: the acquisition cost of a ship ordered at the date, levelized over its operating years.</p></td>
 <td><p>Always</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.cargo_charter_rate</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>What a cargo owner pays the operator: the asset charter rate plus the fuel, levy, regulation and technology expenses, levelized over the operating years. They are the expenses the ship actually has where <code class="docutils literal notranslate"><span class="pre">instantaneous_freight_rate</span></code> is present, and the ones expected when ordering elsewhere.</p></td>
 <td><p>Missing at the first date where <code class="docutils literal notranslate"><span class="pre">instantaneous_freight_rate</span></code> is</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.investment_freight_rate</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/cargo-mile</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/cargo-mile</span></code></p></td>
 <td><p></p></td>
 <td><p>Freight rate expected when ordering a ship at the date, which the newbuild choice weighs.</p></td>
 <td><p>Missing at the first date</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.technology_cost</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Levelized cost of the installed technologies, averaged over the fleet’s vessels of the type.</p></td>
 <td><p>Technologies are installed</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.investment_signal_technology</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/GJ</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/GJ</span></code></p></td>
 <td><p></p></td>
 <td><p>Energy-weighted average of the smoothed energy-conservation duals over the TechnologyHorizon: the value of a GJ saved, which drives technology installation.</p></td>
 <td><p>Missing at the first date</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vessel.investment_signal_speed</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/GJ</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/GJ</span></code></p></td>
 <td><p></p></td>
 <td><p>The same over the SpeedHorizon, which drives speed management.</p></td>
 <td><p>Missing at the first date</p></td>
@@ -1368,7 +1371,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p>The fuel is allowed at some date</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">port.bunker_price</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/t</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/t</span></code></p></td>
 <td><p>fuel</p></td>
 <td><p>Bunker price.</p></td>
 <td><p>A liquid-market fuel the port allows, or a fuel from producers that reaches the port; 0 at other dates</p></td>
@@ -1426,7 +1429,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p>The Producer has <code class="docutils literal notranslate"><span class="pre">set_feed_constraint</span></code> for the feed</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.plant_tied_capital</span></code><br><code class="docutils literal notranslate"><span class="pre">producer.plant_tied_capital</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency</span></code></p></td>
 <td><p></p></td>
 <td><p>Capital tied up in the plants, depreciated linearly.</p></td>
 <td><p>Plants in production</p></td>
@@ -1483,13 +1486,13 @@ is the power of the oil-fuelled vessels.</p></li>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plant.investment_cost</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/t</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/t</span></code></p></td>
 <td><p></p></td>
 <td><p>Levelized production cost of a plant invested in at the date.</p></td>
 <td><p>Always</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plant.instantaneous_cost</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/t</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/t</span></code></p></td>
 <td><p></p></td>
 <td><p>Production-weighted average cost of the plants of this type producing.</p></td>
 <td><p>Missing at dates the plant type is not expected to produce</p></td>
@@ -1525,13 +1528,13 @@ of its Measure. CO2-equivalents use its own global warming potentials.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.remedial_cost</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/tCO2e</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/tCO2e</span></code></p></td>
 <td><p></p></td>
 <td><p>Cost of a remedial unit, its RemedialCost.</p></td>
 <td><p>Always</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.flexibility_cost</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/tCO2e</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/tCO2e</span></code></p></td>
 <td><p></p></td>
 <td><p>Price of a flexibility unit.</p></td>
 <td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme</p></td>
@@ -1621,19 +1624,19 @@ of its Measure. CO2-equivalents use its own global warming potentials.</p>
 <td><p>Either of the two</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.surplus_revenue</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Revenue from the surplus units sold.</p></td>
 <td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.flexibility_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Cost of the flexibility units bought.</p></td>
 <td><p>A <code class="docutils literal notranslate"><span class="pre">FLEXIBLE</span></code> scheme</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regulation.remedial_expenses</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Cost of the remedial units.</p></td>
 <td><p>As <code class="docutils literal notranslate"><span class="pre">remedial_units</span></code></p></td>
@@ -1655,7 +1658,7 @@ of its Measure. CO2-equivalents use its own global warming potentials.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">levy.collected</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">USD/year</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Revenue collected; negative where the levy pays a subsidy.</p></td>
 <td><p>The Levy is Active and charges a fuel bunkered in its Jurisdiction</p></td>

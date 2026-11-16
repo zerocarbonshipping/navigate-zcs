@@ -876,7 +876,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </section>
 <section id="set-fuel-conversion-cost">
 <span id="set_fuel_conversion_cost"></span><h3>set_fuel_conversion_cost<a class="headerlink" href="#set-fuel-conversion-cost" title="Link to this heading">#</a></h3>
-<p>This command sets the cost of performing a fuel conversion from one vessel type to another, in USD. A pair of vessel types without a cost cannot be converted.</p>
+<p>This command sets the cost of performing a fuel conversion from one vessel type to another, in currency. A pair of vessel types without a cost cannot be converted.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Vessel name being converted from; supports wildcards)</p></li>
 <li><p><strong>Secondary key type</strong>: String (Vessel name being converted to; supports wildcards)</p></li>
@@ -887,7 +887,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;vessel_name_from&quot;,</span> <span class="pre">&quot;vessel_name_to&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD</p></li>
+<li><p><strong>Unit</strong>: currency</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: Not set. The pair cannot be converted.</p></li>
 </ul>

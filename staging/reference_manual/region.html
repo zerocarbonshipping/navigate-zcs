@@ -513,7 +513,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="set-process-capex">
 <span id="set_process_capex"></span><h3>set_process_capex<a class="headerlink" href="#set-process-capex" title="Link to this heading">#</a></h3>
-<p>This command sets the CAPEX associated with a production process in USD/ton.</p>
+<p>This command sets the CAPEX associated with a production process in currency/ton.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Timetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -523,14 +523,14 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;process_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/ton</p></li>
+<li><p><strong>Unit</strong>: currency/ton</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="set-process-opex">
 <span id="set_process_opex"></span><h3>set_process_opex<a class="headerlink" href="#set-process-opex" title="Link to this heading">#</a></h3>
-<p>This command sets the OPEX associated with a production process in USD/ton/year. Negative values are allowed, so that revenue from byproducts can be subtracted from the costs.</p>
+<p>This command sets the OPEX associated with a production process in currency/ton/year. Negative values are allowed, so that revenue from byproducts can be subtracted from the costs.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Timetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -540,7 +540,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;process_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/ton/year</p></li>
+<li><p><strong>Unit</strong>: currency/ton/year</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
@@ -615,7 +615,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </section>
 <section id="set-source-capex">
 <span id="set_source_capex"></span><h3>set_source_capex<a class="headerlink" href="#set-source-capex" title="Link to this heading">#</a></h3>
-<p>This command sets the CAPEX associated with a source in USD/MWh.</p>
+<p>This command sets the CAPEX associated with a source in currency/MWh.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Source name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -625,14 +625,14 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;source_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/MWh</p></li>
+<li><p><strong>Unit</strong>: currency/MWh</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="set-source-opex">
 <span id="set_source_opex"></span><h3>set_source_opex<a class="headerlink" href="#set-source-opex" title="Link to this heading">#</a></h3>
-<p>This command sets the OPEX associated with a source in USD/MWh/year.</p>
+<p>This command sets the OPEX associated with a source in currency/MWh/year.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Source name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -642,7 +642,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;source_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/MWh/year</p></li>
+<li><p><strong>Unit</strong>: currency/MWh/year</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
@@ -666,7 +666,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </section>
 <section id="set-feedstock-cost">
 <span id="set_feedstock_cost"></span><h3>set_feedstock_cost<a class="headerlink" href="#set-feedstock-cost" title="Link to this heading">#</a></h3>
-<p>This command sets the cost of a feedstock in USD/ton.</p>
+<p>This command sets the cost of a feedstock in currency/ton.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Feedstock name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -676,7 +676,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;feedstock_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/ton</p></li>
+<li><p><strong>Unit</strong>: currency/ton</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
@@ -700,7 +700,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </section>
 <section id="set-transport-cost">
 <span id="set_transport_cost"></span><h3>set_transport_cost<a class="headerlink" href="#set-transport-cost" title="Link to this heading">#</a></h3>
-<p>This command sets the cost associated with a transport in USD/ton-nautical mile.</p>
+<p>This command sets the cost associated with a transport in currency/ton-nautical mile.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Transport name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -710,7 +710,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;transport_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/ton-nautical mile</p></li>
+<li><p><strong>Unit</strong>: currency/ton-nautical mile</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>

@@ -48,6 +48,10 @@ happened in a time step, `newbuilds`, `scrap`, `fuel_conversions`,
 `computational_time`, are divided by the length of the step in years of 365.25
 days, the first step counting as one year.
 
+Money is in the deck's [Currency](model_definition.md#currency). The tables
+below write it `currency`; the file's `units` name the currency itself, such as
+`USD/t`.
+
 ## Metadata
 
 The Parquet key-value metadata holds a JSON document under the key `navigate`:
@@ -65,8 +69,8 @@ The Parquet key-value metadata holds a JSON document under the key `navigate`:
 
 A per-ton result converts to per energy with the heating value of its fuel: a
 port's `bunker_price` divided by `lower_heating_value` of the fuel in `key1` is
-the price in USD/GJ, and a plant's `investment_cost` divided by the heating value
-of its `plant_fuel` is the cost in USD/GJ.
+the price in currency/GJ, and a plant's `investment_cost` divided by the heating
+value of its `plant_fuel` is the cost in currency/GJ.
 
 ## Results
 
@@ -158,15 +162,15 @@ Some rules hold throughout:
 
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
-| `global.fuel_expenses`<br>`fleet.fuel_expenses`<br>`vessel.fuel_expenses` | `USD/year` | fuel | Bunker price times the fuel bunkered. | Each fuel bunkered |
-| `global.levy_expenses`<br>`fleet.levy_expenses`<br>`vessel.levy_expenses` | `USD/year` | fuel | Levies charged on the fuel bunkered; negative for a subsidy. | A Levy charges a fuel bunkered in its Jurisdiction |
-| `global.fuel_related_expenses`<br>`fleet.fuel_related_expenses`<br>`vessel.fuel_related_expenses` | `USD/year` | fuel | `fuel_expenses` plus `levy_expenses`. | Each fuel bunkered |
-| `global.remedial_expenses`<br>`fleet.remedial_expenses`<br>`vessel.remedial_expenses` | `USD/year` | | Cost of the remedial units the regulations require. | Vessels miss a regulation's threshold |
-| `global.flexibility_expenses`<br>`fleet.flexibility_expenses`<br>`vessel.flexibility_expenses` | `USD/year` | | Cost of the flexibility units bought from vessels that over-comply. | A `FLEXIBLE` Regulation's vessels trade units |
-| `global.surplus_revenue`<br>`fleet.surplus_revenue`<br>`vessel.surplus_revenue` | `USD/year` | | Revenue from the surplus units sold to vessels that under-comply. | As `flexibility_expenses` |
-| `global.regulation_expenses`<br>`fleet.regulation_expenses`<br>`vessel.regulation_expenses` | `USD/year` | | `remedial_expenses` plus `flexibility_expenses` less `surplus_revenue`. | Any of the three |
-| `global.total_fuel_expenses`<br>`fleet.total_fuel_expenses`<br>`vessel.total_fuel_expenses` | `USD/year` | | All fuel expenses plus shore power expenses. | Always |
-| `global.total_fuel_related_expenses`<br>`fleet.total_fuel_related_expenses`<br>`vessel.total_fuel_related_expenses` | `USD/year` | | `total_fuel_expenses` plus all levy expenses. | Always |
+| `global.fuel_expenses`<br>`fleet.fuel_expenses`<br>`vessel.fuel_expenses` | `currency/year` | fuel | Bunker price times the fuel bunkered. | Each fuel bunkered |
+| `global.levy_expenses`<br>`fleet.levy_expenses`<br>`vessel.levy_expenses` | `currency/year` | fuel | Levies charged on the fuel bunkered; negative for a subsidy. | A Levy charges a fuel bunkered in its Jurisdiction |
+| `global.fuel_related_expenses`<br>`fleet.fuel_related_expenses`<br>`vessel.fuel_related_expenses` | `currency/year` | fuel | `fuel_expenses` plus `levy_expenses`. | Each fuel bunkered |
+| `global.remedial_expenses`<br>`fleet.remedial_expenses`<br>`vessel.remedial_expenses` | `currency/year` | | Cost of the remedial units the regulations require. | Vessels miss a regulation's threshold |
+| `global.flexibility_expenses`<br>`fleet.flexibility_expenses`<br>`vessel.flexibility_expenses` | `currency/year` | | Cost of the flexibility units bought from vessels that over-comply. | A `FLEXIBLE` Regulation's vessels trade units |
+| `global.surplus_revenue`<br>`fleet.surplus_revenue`<br>`vessel.surplus_revenue` | `currency/year` | | Revenue from the surplus units sold to vessels that under-comply. | As `flexibility_expenses` |
+| `global.regulation_expenses`<br>`fleet.regulation_expenses`<br>`vessel.regulation_expenses` | `currency/year` | | `remedial_expenses` plus `flexibility_expenses` less `surplus_revenue`. | Any of the three |
+| `global.total_fuel_expenses`<br>`fleet.total_fuel_expenses`<br>`vessel.total_fuel_expenses` | `currency/year` | | All fuel expenses plus shore power expenses. | Always |
+| `global.total_fuel_related_expenses`<br>`fleet.total_fuel_related_expenses`<br>`vessel.total_fuel_related_expenses` | `currency/year` | | `total_fuel_expenses` plus all levy expenses. | Always |
 | `global.remedial_units`<br>`fleet.remedial_units`<br>`vessel.remedial_units` | `tCO2e/year` | regulation | Remedial units required, under the regulation's global warming potentials. | As `remedial_expenses` |
 | `global.levy_units`<br>`fleet.levy_units`<br>`vessel.levy_units` | `tCO2e/year` | levy | Emissions a levy charged: its charge over its Level. | A Levy with a positive Level charges |
 
@@ -190,7 +194,7 @@ The CO2-equivalents use the model's global warming potentials, which the
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
 | `global.shore_power_energy`<br>`fleet.shore_power_energy`<br>`vessel.shore_power_energy` | `GJ/year` | | Shore power drawn in port. | Vessels call at a Port with a ShorePowerConnectionShare above 0 |
-| `global.shore_power_expenses`<br>`fleet.shore_power_expenses`<br>`vessel.shore_power_expenses` | `USD/year` | | Cost of the shore power, at the port's ShorePowerCost. | As `shore_power_energy`, with a cost |
+| `global.shore_power_expenses`<br>`fleet.shore_power_expenses`<br>`vessel.shore_power_expenses` | `currency/year` | | Cost of the shore power, at the port's ShorePowerCost. | As `shore_power_energy`, with a cost |
 | `global.shore_power_emission`<br>`fleet.shore_power_emission`<br>`vessel.shore_power_emission` | `t/year` | emission | Emissions of the shore power, well-to-wake, one gas unweighted. Counted in `total_equivalent_wtw`, not in `equivalent_wtw`. | As `shore_power_energy`, with an emission factor |
 
 ### Fleet power and costs
@@ -201,12 +205,12 @@ The CO2-equivalents use the model's global warming potentials, which the
 | `global.newbuild_power`<br>`fleet.newbuild_power` | `MW/year` | fuel type | Installed power of the newbuilds. | Newbuilds |
 | `global.scrapped_power`<br>`fleet.scrapped_power` | `MW/year` | fuel type | Installed power scrapped. | Scrapping |
 | `global.fuel_converted_power`<br>`fleet.fuel_converted_power` | `MW/year` | fuel type, fuel type | Installed power fuel converted from one type to the other. | Fuel conversions |
-| `global.vessel_expenses`<br>`fleet.vessel_expenses` | `USD/year` | | Asset charter of the vessels: their acquisition cost, levelized. | Always |
-| `global.technology_expenses`<br>`fleet.technology_expenses` | `USD/year` | | Levelized cost of the installed technologies. | Technologies are installed |
-| `global.fuel_conversion_expenses`<br>`fleet.fuel_conversion_expenses` | `USD/year` | | Running cost of the fuel conversions made. | Fuel conversions |
-| `global.vessel_related_expenses`<br>`fleet.vessel_related_expenses` | `USD/year` | | `vessel_expenses` plus `technology_expenses` plus `fuel_conversion_expenses`. | Always |
-| `global.expenses`<br>`fleet.expenses` | `USD/year` | | `total_fuel_related_expenses` plus `regulation_expenses` plus `vessel_related_expenses`. | Always |
-| `global.vessel_tied_capital`<br>`fleet.vessel_tied_capital` | `USD` | | Capital tied up in the vessels, depreciated linearly. | Always |
+| `global.vessel_expenses`<br>`fleet.vessel_expenses` | `currency/year` | | Asset charter of the vessels: their acquisition cost, levelized. | Always |
+| `global.technology_expenses`<br>`fleet.technology_expenses` | `currency/year` | | Levelized cost of the installed technologies. | Technologies are installed |
+| `global.fuel_conversion_expenses`<br>`fleet.fuel_conversion_expenses` | `currency/year` | | Running cost of the fuel conversions made. | Fuel conversions |
+| `global.vessel_related_expenses`<br>`fleet.vessel_related_expenses` | `currency/year` | | `vessel_expenses` plus `technology_expenses` plus `fuel_conversion_expenses`. | Always |
+| `global.expenses`<br>`fleet.expenses` | `currency/year` | | `total_fuel_related_expenses` plus `regulation_expenses` plus `vessel_related_expenses`. | Always |
+| `global.vessel_tied_capital`<br>`fleet.vessel_tied_capital` | `currency` | | Capital tied up in the vessels, depreciated linearly. | Always |
 | `global.weighted_average_age`<br>`fleet.weighted_average_age` | `years` | fuel type | Power-weighted average age of the vessels. | Each fuel type in the fleet |
 | `global.fuel_type_capacity`<br>`fleet.fuel_type_capacity` | `GJ/year` | fuel type | Fuel the vessels could burn, at their minimum pilot fuel share. | Each fuel type the vessels can burn |
 
@@ -238,7 +242,7 @@ A fleet's speeds are its vessels' averaged by `existing_vessels`.
 | `fleet.optimal_speed`<br>`vessel.optimal_speed` | `knots` | | Speed that speed management aims for; `actual_speed` moves toward it by at most the MaximumSpeedChange. | As `minimum_speed` |
 | `fleet.lowest_speed`<br>`vessel.lowest_speed` | `knots` | | Lowest speed sailed on the route. | As `minimum_speed` |
 | `fleet.highest_speed`<br>`vessel.highest_speed` | `knots` | | Highest speed sailed on the route. | As `minimum_speed` |
-| `fleet.instantaneous_freight_rate`<br>`vessel.instantaneous_freight_rate` | `USD/cargo-mile` | | For a vessel: the cost of a ship ordered at the date, levelized over the cargo-miles it carries. The cost is its asset charter plus the fuel, levy, regulation and technology expenses it actually has. For a fleet: the `cargo_charter_rate` of those vessels summed over the fleet, per cargo-mile they carry. | Missing where the vessel type leaves the fleet within the ship's lead time and lifetime; for a fleet, where none of its vessel types has a rate |
+| `fleet.instantaneous_freight_rate`<br>`vessel.instantaneous_freight_rate` | `currency/cargo-mile` | | For a vessel: the cost of a ship ordered at the date, levelized over the cargo-miles it carries. The cost is its asset charter plus the fuel, levy, regulation and technology expenses it actually has. For a fleet: the `cargo_charter_rate` of those vessels summed over the fleet, per cargo-mile they carry. | Missing where the vessel type leaves the fleet within the ship's lead time and lifetime; for a fleet, where none of its vessel types has a rate |
 
 ### Vessel
 
@@ -247,12 +251,12 @@ A fleet's speeds are its vessels' averaged by `existing_vessels`.
 | `vessel.in_fleet` | `-` | | 1 where the fleet holds vessels of the type, 0 elsewhere. | The type is ever in the fleet |
 | `vessel.lifetime` | `years` | | Lifetime. | Always |
 | `vessel.lead_time` | `years` | | Lead time, used only in the levelized costs. | The vessel has a LeadTime |
-| `vessel.asset_charter_rate` | `USD/year` | | What an operator pays the owner: the acquisition cost of a ship ordered at the date, levelized over its operating years. | Always |
-| `vessel.cargo_charter_rate` | `USD/year` | | What a cargo owner pays the operator: the asset charter rate plus the fuel, levy, regulation and technology expenses, levelized over the operating years. They are the expenses the ship actually has where `instantaneous_freight_rate` is present, and the ones expected when ordering elsewhere. | Missing at the first date where `instantaneous_freight_rate` is |
-| `vessel.investment_freight_rate` | `USD/cargo-mile` | | Freight rate expected when ordering a ship at the date, which the newbuild choice weighs. | Missing at the first date |
-| `vessel.technology_cost` | `USD/year` | | Levelized cost of the installed technologies, averaged over the fleet's vessels of the type. | Technologies are installed |
-| `vessel.investment_signal_technology` | `USD/GJ` | | Energy-weighted average of the smoothed energy-conservation duals over the TechnologyHorizon: the value of a GJ saved, which drives technology installation. | Missing at the first date |
-| `vessel.investment_signal_speed` | `USD/GJ` | | The same over the SpeedHorizon, which drives speed management. | Missing at the first date |
+| `vessel.asset_charter_rate` | `currency/year` | | What an operator pays the owner: the acquisition cost of a ship ordered at the date, levelized over its operating years. | Always |
+| `vessel.cargo_charter_rate` | `currency/year` | | What a cargo owner pays the operator: the asset charter rate plus the fuel, levy, regulation and technology expenses, levelized over the operating years. They are the expenses the ship actually has where `instantaneous_freight_rate` is present, and the ones expected when ordering elsewhere. | Missing at the first date where `instantaneous_freight_rate` is |
+| `vessel.investment_freight_rate` | `currency/cargo-mile` | | Freight rate expected when ordering a ship at the date, which the newbuild choice weighs. | Missing at the first date |
+| `vessel.technology_cost` | `currency/year` | | Levelized cost of the installed technologies, averaged over the fleet's vessels of the type. | Technologies are installed |
+| `vessel.investment_signal_technology` | `currency/GJ` | | Energy-weighted average of the smoothed energy-conservation duals over the TechnologyHorizon: the value of a GJ saved, which drives technology installation. | Missing at the first date |
+| `vessel.investment_signal_speed` | `currency/GJ` | | The same over the SpeedHorizon, which drives speed management. | Missing at the first date |
 | `vessel.speed_energy_saving` | `-` | | 1 − `raw_energy` / `raw_energy` at the first date. | `raw_energy` changes |
 | `vessel.operational_energy_saving` | `-` | | 1 − `operational_energy` / `raw_energy` at the first date. | As above, or operational measures apply |
 | `vessel.technology_energy_saving` | `-` | | Equal to `technology_energy_intensity_saving`. | Technologies are installed |
@@ -276,7 +280,7 @@ The energies are the masses times the fuel's `lower_heating_value`.
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
 | `port.bunkering_allowed` | `-` | fuel | 1 where the port allows bunkering the fuel, 0 elsewhere. | The fuel is allowed at some date |
-| `port.bunker_price` | `USD/t` | fuel | Bunker price. | A liquid-market fuel the port allows, or a fuel from producers that reaches the port; 0 at other dates |
+| `port.bunker_price` | `currency/t` | fuel | Bunker price. | A liquid-market fuel the port allows, or a fuel from producers that reaches the port; 0 at other dates |
 | `port.bunker_wtt` | `t/t` | fuel, emission | Well-to-tank emissions per ton of the fuel bunkered, one gas unweighted. | As `bunker_price` |
 | `port.equivalent_bunker_wtt` | `tCO2e/t` | fuel, emission | `bunker_wtt` in CO2-equivalents. | As `bunker_price` |
 
@@ -288,7 +292,7 @@ The energies are the masses times the fuel's `lower_heating_value`.
 | `global.production_type_energy`<br>`producer.production_type_energy` | `GJ/year` | fuel type | `production_energy` summed by the fuels' type. | As `production_energy` |
 | `global.feed_mass`<br>`producer.feed_mass` | `t/year` | feed | Feed used. | Plants in production use the feed |
 | `producer.feed_constraint` | `t/year` | feed | Availability of the feed. | The Producer has `set_feed_constraint` for the feed |
-| `global.plant_tied_capital`<br>`producer.plant_tied_capital` | `USD` | | Capital tied up in the plants, depreciated linearly. | Plants in production |
+| `global.plant_tied_capital`<br>`producer.plant_tied_capital` | `currency` | | Capital tied up in the plants, depreciated linearly. | Plants in production |
 
 ### Producer
 
@@ -304,8 +308,8 @@ The fuel a plant makes is in the [metadata](#metadata) under `plant_fuel`.
 
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
-| `plant.investment_cost` | `USD/t` | | Levelized production cost of a plant invested in at the date. | Always |
-| `plant.instantaneous_cost` | `USD/t` | | Production-weighted average cost of the plants of this type producing. | Missing at dates the plant type is not expected to produce |
+| `plant.investment_cost` | `currency/t` | | Levelized production cost of a plant invested in at the date. | Always |
+| `plant.instantaneous_cost` | `currency/t` | | Production-weighted average cost of the plants of this type producing. | Missing at dates the plant type is not expected to produce |
 | `plant.equivalent_investment_wtt` | `tCO2e/t` | emission | Well-to-tank emissions per ton of fuel from a plant invested in at the date. | Each emission of the fuel |
 | `plant.equivalent_instantaneous_wtt` | `tCO2e/t` | emission | Production-weighted average well-to-tank emissions per ton of fuel. | As `instantaneous_cost` |
 
@@ -316,8 +320,8 @@ of its Measure. CO2-equivalents use its own global warming potentials.
 
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
-| `regulation.remedial_cost` | `USD/tCO2e` | | Cost of a remedial unit, its RemedialCost. | Always |
-| `regulation.flexibility_cost` | `USD/tCO2e` | | Price of a flexibility unit. | A `FLEXIBLE` scheme |
+| `regulation.remedial_cost` | `currency/tCO2e` | | Cost of a remedial unit, its RemedialCost. | Always |
+| `regulation.flexibility_cost` | `currency/tCO2e` | | Price of a flexibility unit. | A `FLEXIBLE` scheme |
 | `regulation.vessel_threshold` | `measure` | vessel | Threshold of each policed vessel type. | Each policed vessel type with a threshold |
 | `regulation.shared_threshold` | `measure` | | Threshold of the pool: the vessel thresholds averaged by measure; under `ABSOLUTE` their sum, weighted by the number of vessels of each type. | A `FLEXIBLE` scheme with an `ABSOLUTE` or `INTENSITY` Measure |
 | `regulation.adjusted_vessel_threshold` | `measure` | vessel | Threshold after adjustment for non-compliance. Under `INDIVIDUAL` a vessel that complies keeps its threshold; under `FLEXIBLE` every vessel keeps it while the pool complies, and under `FLEXIBLE` with an `ABSOLUTE` Measure every vessel's threshold is scaled by the same factor, or set to its own emissions where the pool's thresholds are all 0. | AllowThresholdAdjustment |
@@ -332,15 +336,15 @@ of its Measure. CO2-equivalents use its own global warming potentials.
 | `regulation.flexibility_units` | `tCO2e/year` | | Flexibility units used. | A `FLEXIBLE` scheme |
 | `regulation.remedial_units` | `tCO2e/year` | | Remedial units required. | Vessels, or a `FLEXIBLE` pool, miss the threshold |
 | `regulation.non_compliance_units` | `tCO2e/year` | | `flexibility_units` plus `remedial_units`. | Either of the two |
-| `regulation.surplus_revenue` | `USD/year` | | Revenue from the surplus units sold. | A `FLEXIBLE` scheme |
-| `regulation.flexibility_expenses` | `USD/year` | | Cost of the flexibility units bought. | A `FLEXIBLE` scheme |
-| `regulation.remedial_expenses` | `USD/year` | | Cost of the remedial units. | As `remedial_units` |
+| `regulation.surplus_revenue` | `currency/year` | | Revenue from the surplus units sold. | A `FLEXIBLE` scheme |
+| `regulation.flexibility_expenses` | `currency/year` | | Cost of the flexibility units bought. | A `FLEXIBLE` scheme |
+| `regulation.remedial_expenses` | `currency/year` | | Cost of the remedial units. | As `remedial_units` |
 
 ### Levy
 
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
-| `levy.collected` | `USD/year` | | Revenue collected; negative where the levy pays a subsidy. | The Levy is Active and charges a fuel bunkered in its Jurisdiction |
+| `levy.collected` | `currency/year` | | Revenue collected; negative where the levy pays a subsidy. | The Levy is Active and charges a fuel bunkered in its Jurisdiction |
 
 ### Run
 
