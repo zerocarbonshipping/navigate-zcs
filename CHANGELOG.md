@@ -350,6 +350,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- `plant_tied_capital` takes each plant's capital from the step it was decided
+  at; it took that of a plant decided one lead time later. Decks whose plants'
+  costs or `Capacity` change over time move in this result alone (#935).
 - An event on a `Plant` or `Producer`, such as a plant's `Uptime`, `Lifetime`
   or costs, now moves the ports' fuel supply and price, and the fleet and
   producer decisions, at its own date; they followed it a step late. The fleet

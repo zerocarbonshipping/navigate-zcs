@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import find_origin_index, find_origin_indexes
+from navigate.simulation.cohort import find_origin_indexes
+from navigate.simulation.fuel._profiles import iterate_increments
 from navigate.util import TOLERANCE, YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
@@ -155,6 +156,9 @@ def _transfer_plant_tied_capital(
     """
     Transfer the remaining tied-up capital per plant increment.
 
+    An increment ties up the capital of a plant decided when it was, at its age since
+    delivery.
+
     Parameters
     ----------
     producer
@@ -165,17 +169,14 @@ def _transfer_plant_tied_capital(
         Current time-step index.
     """
     results = producer.results
-    years = timeline / YEAR
-    current_year = years[idx]
+    plants = producer.plants
+    increments = iterate_increments(plants, producer.increments, timeline, idx)
 
-    for plant, increments in zip(producer.plants, producer.increments, strict=True):
-        for increment in increments:
-            # the costs are those of a plant that entered production 'age' years ago
-            origin = find_origin_index(years, current_year, increment.age)
-            tied_capital_flow = plant.expectation.tied_capital[origin]
-            tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age)
+    for _, plant, increment, origin in increments:
+        tied_capital_flow = plant.expectation.tied_capital[origin]
+        tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age)
 
-            results.plant_tied_capital[idx] += tied_capital * increment.count
+        results.plant_tied_capital[idx] += tied_capital * increment.count
 
 
 def _transfer_instantaneous_production(producer: Producer, idx: int) -> None:
