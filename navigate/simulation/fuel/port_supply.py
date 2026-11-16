@@ -284,7 +284,7 @@ def _calculate_delivered_cost(
     Returns
     -------
     FloatLike
-        Production plus delivery cost, in USD/t.
+        Production plus delivery cost, in currency/t.
     """
     expectation = plant.expectation
     production_cost = expectation.expected_production_cost[forward]
@@ -339,7 +339,7 @@ def _set_bunker_terms(
     fuel_name
         Name of the fuel.
     bunker_price
-        Bunker price, in USD/t.
+        Bunker price, in currency/t.
     bunker_wtts
         Bunker WTT per emission, in t/t.
     idx
@@ -373,7 +373,7 @@ def _record_bunker_terms(
     fuel_name
         Name of the fuel.
     bunker_price
-        Bunker price from the time step on, in USD/t.
+        Bunker price from the time step on, in currency/t.
     bunker_wtts
         Bunker WTT per emission from the time step on, in t/t.
     offered
@@ -401,14 +401,14 @@ def _calculate_bunker_price(
     fuel_name
         Name of the fuel.
     fallback
-        Price where the port sets no overwrite, in USD/t.
+        Price where the port sets no overwrite, in currency/t.
     forward
         Slice of the timeline from the current time step onwards.
 
     Returns
     -------
     FloatArray
-        Bunker price, in USD/t.
+        Bunker price, in currency/t.
     """
     overwrite = port.expectation.bunker_price_overwrite[fuel_name][forward]
     overwritten = port.bunker_price_overwrites[fuel_name] is not None

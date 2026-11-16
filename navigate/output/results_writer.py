@@ -22,6 +22,7 @@ import pyarrow.parquet as pq
 
 from navigate.core.results import (
     BaseResults,
+    Unit,
     per_step_results,
     result_names,
     result_units,
@@ -217,13 +218,23 @@ def _metadata(
 
 
 def _units(results: SimulationResults) -> dict[str, str]:
-    """Map every result of the run to its unit, sorted by name."""
+    """Map every result to its unit, in the deck's currency, sorted by name."""
+    currency = results.general_nodes.model_definition.currency
     units: dict[str, str] = {}
 
     for _, _, node_results in _results_by_node(results):
-        units |= result_units(type(node_results))
+        for name, unit in result_units(type(node_results)).items():
+            units[name] = _spell_currency(unit, currency)
 
     return dict(sorted(units.items()))
+
+
+def _spell_currency(unit: str, currency: str) -> str:
+    """Write a unit label with the deck's currency in place of `Unit.CURRENCY`."""
+    parts = unit.split("/")
+    spelled = [currency if part == Unit.CURRENCY.value else part for part in parts]
+
+    return "/".join(spelled)
 
 
 def _constants(results: SimulationResults) -> dict[str, Any]:

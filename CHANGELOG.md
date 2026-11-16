@@ -15,6 +15,9 @@ decks.
 ## [Unreleased]
 
 ### Added
+- `ModelDefinition` attribute `Currency`, `"USD"` by default, names the
+  currency of every monetary input and result; the results file's units carry
+  it, such as `EUR/t`, and the reference manual writes it `currency` (#793).
 - `--set NAME=VALUE` fills in each `%NAME%` placeholder of the deck and its
   files, `Include` paths included, and stores the values as `params` in the
   results file metadata. A deck may end in `.unc` as well as `.nav`.

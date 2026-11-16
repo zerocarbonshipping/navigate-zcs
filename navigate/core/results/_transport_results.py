@@ -31,7 +31,7 @@ class _TransportResults(BaseResults):
     lowest_speed: FloatArray = result(Unit.KNOTS)
     highest_speed: FloatArray = result(Unit.KNOTS)
 
-    instantaneous_freight_rate: FloatArray = result(Unit.USD_PER_CARGO_MILE)
+    instantaneous_freight_rate: FloatArray = result(Unit.CURRENCY_PER_CARGO_MILE)
 
     def _initialize_transport(self) -> None:
         self.cargo_miles = self._default_array()

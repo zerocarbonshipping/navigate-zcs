@@ -20,7 +20,7 @@ class LevyResults(BaseResults):
     """Revenue one levy collected over the timeline."""
 
     # negative where the levy pays out a subsidy
-    collected: FloatArray = result(Unit.USD_PER_YEAR)
+    collected: FloatArray = result(Unit.CURRENCY_PER_YEAR)
 
     def initialize(self, context: ResultsContext) -> None:
         """

@@ -70,10 +70,10 @@ class RegulationExpectation(_Expectation):
         self.shore_power_spend_coefficient = self._paths(vessel_ports)  # tCO2e/GJ
 
         # the belief is NaN until its first update: zero is a real shadow price
-        self.flexibility_cost = self._path()  # USD/tCO2e
-        self.belief_flexibility_cost = self._path(default=np.nan)  # USD/tCO2e
+        self.flexibility_cost = self._path()  # currency/tCO2e
+        self.belief_flexibility_cost = self._path(default=np.nan)  # currency/tCO2e
         self.vessel_net_flexibility_units = self._paths(vessels)  # tCO2e/year
-        self.remedial_cost = self._path()  # USD/tCO2e
+        self.remedial_cost = self._path()  # currency/tCO2e
 
         # a leg is keyed by the names of its departure and arrival port
         self.port_fraction = self._paths(port_names)  # -
@@ -91,7 +91,7 @@ class RegulationExpectation(_Expectation):
         self.vessel_energy = self._paths(vessels)  # GJ/year
         self.vessel_remedial_units = self._paths(vessels)  # tCO2e/year
         self.pooled_remedial_units = self._path()  # tCO2e/year, the pool's total
-        self.pooled_shadow_price = self._path()  # USD/tCO2e
+        self.pooled_shadow_price = self._path()  # currency/tCO2e
 
         # NaN where the threshold adjustment does not apply
         self.adjusted_vessel_threshold = self._paths(vessels, default=np.nan)  # measure

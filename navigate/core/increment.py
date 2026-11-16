@@ -56,7 +56,7 @@ class VesselIncrement(Increment):
         Vessels scrapped from the cohort's part past the vessel lifetime; with the
         count, the cohort's size before that scrapping.
     technology_charter_rate
-        Levelized technology cost carried by the cohort, USD/year/vessel.
+        Levelized technology cost carried by the cohort, currency/year/vessel.
     """
 
     package_uptake: FloatArray

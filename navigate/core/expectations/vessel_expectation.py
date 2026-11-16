@@ -93,16 +93,16 @@ class VesselExpectation(_Expectation):
         self.energy_port = per_port_call()  # GJ/year
 
         # energy conservation, at sea per leg, in port per port call
-        self.energy_conservation_pi_sea = per_leg()  # USD/GJ
-        self.energy_conservation_pi_port = per_port_call()  # USD/GJ
+        self.energy_conservation_pi_sea = per_leg()  # currency/GJ
+        self.energy_conservation_pi_port = per_port_call()  # currency/GJ
         self.energy_conservation_rhs_sea = per_leg()  # GJ/year
         self.energy_conservation_rhs_port = per_port_call()  # GJ/year
 
         # NaN until the first update: zero is a real shadow price, not a missing one
-        self.belief_pi_sea_technology = per_leg(default=np.nan)  # USD/GJ
-        self.belief_pi_port_technology = per_port_call(default=np.nan)  # USD/GJ
-        self.belief_pi_sea_speed = per_leg(default=np.nan)  # USD/GJ
-        self.belief_pi_port_speed = per_port_call(default=np.nan)  # USD/GJ
+        self.belief_pi_sea_technology = per_leg(default=np.nan)  # currency/GJ
+        self.belief_pi_port_technology = per_port_call(default=np.nan)  # currency/GJ
+        self.belief_pi_sea_speed = per_leg(default=np.nan)  # currency/GJ
+        self.belief_pi_port_speed = per_port_call(default=np.nan)  # currency/GJ
 
         self.effective_lhv = unset(converter_fuels)  # GJ/t
         self.ttw_consumption = unset(converter_fuel_emissions)  # t/t
@@ -127,24 +127,24 @@ class VesselExpectation(_Expectation):
 
         # bunker results (expected bunkering)
         self.total_energy = self._path()  # GJ/year of fuel and shore power
-        self.fuel_expenses = self._path()  # USD/year
+        self.fuel_expenses = self._path()  # currency/year
 
         # policy expenses (expected bunkering)
-        self.levy_expenses = self._path()  # USD/year
-        self.remedial_expenses = self._path()  # USD/year
-        self.flexibility_expenses = self._path()  # USD/year
+        self.levy_expenses = self._path()  # currency/year
+        self.remedial_expenses = self._path()  # currency/year
+        self.flexibility_expenses = self._path()  # currency/year
 
         self.shore_power_potential_port = self._path_list(port_calls)  # GJ/year
         self.shore_power_limit_port = self._path_list(port_calls)  # GJ/year
 
-        self.asset_charter_npv = self._path()  # USD
-        self.capex_npv = self._path()  # USD
-        self.asset_charter_rate = self._path()  # USD/year
-        self.freight_rate = self._path()  # USD/cargo-mile
-        self.technology_charter_rate = self._path()  # USD/year
+        self.asset_charter_npv = self._path()  # currency
+        self.capex_npv = self._path()  # currency
+        self.asset_charter_rate = self._path()  # currency/year
+        self.freight_rate = self._path()  # currency/cargo-mile
+        self.technology_charter_rate = self._path()  # currency/year
 
         # per time step, the capital a vessel ordered then ties up each year in service
-        self.tied_capital = [self._path() for _ in range(length)]  # USD
+        self.tied_capital = [self._path() for _ in range(length)]  # currency
 
     def reset_expected_bunkering(self) -> None:
         """Clear the bunker masses, energy and expenses of the expected bunkering."""

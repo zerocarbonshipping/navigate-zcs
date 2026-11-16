@@ -342,7 +342,7 @@ This command is only allowed in the `DEFINE` section.
 
 ### set\_fuel\_conversion\_cost
 
-This command sets the cost of performing a fuel conversion from one vessel type to another, in USD. A pair of vessel types without a cost cannot be converted.
+This command sets the cost of performing a fuel conversion from one vessel type to another, in currency. A pair of vessel types without a cost cannot be converted.
 
 * **Primary key type**: String (Vessel name being converted from; supports wildcards)
 * **Secondary key type**: String (Vessel name being converted to; supports wildcards)
@@ -350,7 +350,7 @@ This command sets the cost of performing a fuel conversion from one vessel type 
 * **Example values**:
   + `"vessel_name_from", "vessel_name_to", 10e6`
   + `"vessel_name_from", "vessel_name_to", Forecast("name")`
-* **Unit**: USD
+* **Unit**: currency
 * **Minimum value**: 0
 * **Default**: Not set. The pair cannot be converted.
 

@@ -631,7 +631,7 @@ def _sum_operating_expenses(vessel: Vessel) -> FloatArray:
     Returns
     -------
     FloatArray
-        Operating expenses at each time-step, in USD/year.
+        Operating expenses at each time-step, in currency/year.
     """
     results = vessel.results
     levy = sum_values(results.levy_expenses, results.context.timeline.shape)
@@ -646,7 +646,7 @@ def _sum_operating_expenses(vessel: Vessel) -> FloatArray:
 
 def _aggregate_fleet_freight_rate(fleet: Fleet) -> None:
     """
-    Aggregate a fleet-level instantaneous freight rate, in USD/cargo-mile.
+    Aggregate a fleet-level instantaneous freight rate, in currency/cargo-mile.
 
     The fleet rate is the count-weighted total achieved charter cost divided by the
     count-weighted cargo-miles delivered, making it the cargo-mile-consistent

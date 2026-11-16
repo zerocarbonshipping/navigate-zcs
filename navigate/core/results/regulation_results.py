@@ -24,8 +24,8 @@ class RegulationResults(BaseResults):
     """Thresholds, compliance and the units traded under one regulation."""
 
     # cost of one compliance unit
-    remedial_cost: FloatArray = result(Unit.USD_PER_TCO2E)
-    flexibility_cost: FloatArray = result(Unit.USD_PER_TCO2E)
+    remedial_cost: FloatArray = result(Unit.CURRENCY_PER_TCO2E)
+    flexibility_cost: FloatArray = result(Unit.CURRENCY_PER_TCO2E)
 
     # thresholds, in the measure unit of the regulation
     vessel_threshold: dict[str, FloatArray] = result(Unit.MEASURE)
@@ -54,9 +54,9 @@ class RegulationResults(BaseResults):
     non_compliance_units: FloatArray = result(Unit.TCO2E_PER_YEAR)
 
     # compliance expenses
-    surplus_revenue: FloatArray = result(Unit.USD_PER_YEAR)
-    flexibility_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    remedial_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    surplus_revenue: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    flexibility_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    remedial_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
 
     def initialize(self, context: ResultsContext, vessel_names: Sequence[str]) -> None:
         """

@@ -22,6 +22,7 @@ from navigate.core.assign import (
     assign_member,
     assign_reference,
     assign_reference_list,
+    assign_unit_label,
     assign_value,
     check_forecast_is_cumulative,
     check_lengths_match,

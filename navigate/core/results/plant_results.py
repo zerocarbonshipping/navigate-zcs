@@ -22,8 +22,8 @@ class PlantResults(BaseResults):
     """Production cost and well-to-tank emissions of the fuel one plant makes."""
 
     # cost of the fuel produced
-    investment_cost: FloatArray = result(Unit.USD_PER_TON)
-    instantaneous_cost: FloatArray = result(Unit.USD_PER_TON)
+    investment_cost: FloatArray = result(Unit.CURRENCY_PER_TON)
+    instantaneous_cost: FloatArray = result(Unit.CURRENCY_PER_TON)
 
     # well-to-tank emissions per ton of fuel: the emissions are written, their
     # CO2-equivalents computed from them

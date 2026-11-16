@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class _PlantAggregateResults(_FuelProducerResults):
     """Tied-up capital of the plants in a producer's results or the global results."""
 
-    plant_tied_capital: FloatArray = result(Unit.USD)
+    plant_tied_capital: FloatArray = result(Unit.CURRENCY)
 
     def _initialize_plant_aggregate(self) -> None:
         self.plant_tied_capital = self._default_array()

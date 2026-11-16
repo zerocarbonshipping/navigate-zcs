@@ -71,7 +71,8 @@ class PackageCostFlows:
     time
         Investment decision time the flows start at, days.
     by_horizon
-        Cost flow of each package, from empty to full, per horizon in years, USD/year.
+        Cost flow of each package, from empty to full, per horizon in years, in
+        currency/year.
     """
 
     time: float = field(init=False)

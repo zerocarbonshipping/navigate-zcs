@@ -383,6 +383,29 @@ def assign_date(assignment: np.datetime64) -> np.datetime64:
     return assignment
 
 
+def assign_unit_label(assignment: str) -> str:
+    """
+    Check whether the value assigned to a unit attribute is one word without a slash.
+
+    The results file composes the word into its unit labels, as in ``EUR/t``.
+
+    Parameters
+    ----------
+    assignment
+        The value passed to the setter.
+
+    Returns
+    -------
+    str
+        The word that was passed, so a setter assigns what it validated.
+    """
+    is_word = isinstance(assignment, str) and assignment.split() == [assignment]
+    if not is_word or "/" in assignment:
+        raise ValueError(_only_allows("one word without a slash", assignment))
+
+    return assignment
+
+
 def assign_bound(
     assignment: float | str,
     *,

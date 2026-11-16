@@ -240,13 +240,13 @@ its section layout; the rules below cover the content.
 
 - State a physical quantity's unit in the docstring entry of the parameter or
   return value it applies to, written `<description>, in <unit>.`: `Fuel
-  price, in USD/GJ.` DSL setters are exempt; their units live in the reference
-  manual. An expectation field states its unit in a trailing comment, in the
-  labels of `Unit` (`navigate/core/results/base_results.py`) where one fits:
-  `self.bunker_price = self._paths(fuel_names)  # USD/t`. A quantity counted
-  per time step rather than per year says so: `# t/step`. The class docstring
-  says whose values the fields hold, one vessel, one plant or a total; a field
-  that differs says so in its comment.
+  price, in currency/GJ.` DSL setters are exempt; their units live in the
+  reference manual. An expectation field states its unit in a trailing
+  comment, in the labels of `Unit` (`navigate/core/results/base_results.py`)
+  where one fits: `self.bunker_price = self._paths(fuel_names)  # currency/t`.
+  A quantity counted per time step rather than per year says so: `# t/step`.
+  The class docstring says whose values the fields hold, one vessel, one plant
+  or a total; a field that differs says so in its comment.
 - Test a computed float for zero or for equality within a named tolerance
   constant (`TOLERANCE` in `navigate/util/numeric.py`), through `abs`,
   `math.isclose` or `np.isclose`, so that a rounding residual takes the same

@@ -25,7 +25,7 @@ class PortResults(_FuelInfrastructureResults):
     """Bunkering permissions, limits, prices and well-to-tank emissions at one port."""
 
     bunkering_allowed: dict[str, BoolArray] = result(Unit.DIMENSIONLESS)
-    bunker_price: dict[str, FloatArray] = result(Unit.USD_PER_TON)
+    bunker_price: dict[str, FloatArray] = result(Unit.CURRENCY_PER_TON)
 
     # the bunkering limit's mass is written, its energy computed from it
     bunkering_limit_mass: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
