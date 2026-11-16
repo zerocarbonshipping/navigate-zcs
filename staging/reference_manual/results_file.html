@@ -563,7 +563,7 @@ below write it <code class="docutils literal notranslate"><span class="pre">curr
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code></p></td>
-<td><p>Version of this layout, currently <code class="docutils literal notranslate"><span class="pre">1</span></code>. It changes when a reader has to change.</p></td>
+<td><p>Version of this layout, currently <code class="docutils literal notranslate"><span class="pre">1</span></code>; see <a class="reference internal" href="#schema-version">Schema version</a></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">navigate_version</span></code></p></td>
 <td><p>Navigate version that wrote the file</p></td>
@@ -593,6 +593,20 @@ below write it <code class="docutils literal notranslate"><span class="pre">curr
 port’s <code class="docutils literal notranslate"><span class="pre">bunker_price</span></code> divided by <code class="docutils literal notranslate"><span class="pre">lower_heating_value</span></code> of the fuel in <code class="docutils literal notranslate"><span class="pre">key1</span></code> is
 the price in currency/GJ, and a plant’s <code class="docutils literal notranslate"><span class="pre">investment_cost</span></code> divided by the heating
 value of its <code class="docutils literal notranslate"><span class="pre">plant_fuel</span></code> is the cost in currency/GJ.</p>
+<section id="schema-version">
+<h3>Schema version<a class="headerlink" href="#schema-version" title="Link to this heading">#</a></h3>
+<p>This page specifies the results file; the study files of
+<a class="reference external" href="https://github.com/zerocarbonshipping/horizon-zcs">Horizon</a> extend it with
+keys of their own. An addition keeps <code class="docutils literal notranslate"><span class="pre">schema_version</span></code>: a new metadata key, a
+new entry in a metadata mapping, or a new result, key, unit label or column. A
+breaking change raises it by one: a metadata key, column or result removed or
+renamed, or a value whose meaning, unit or encoding changes.</p>
+<p>A reader ignores the keys and columns it does not know. It checks
+<code class="docutils literal notranslate"><span class="pre">schema_version</span></code> against the versions it reads, and otherwise stops with a
+message naming the version found, the versions it reads and the tool to
+upgrade. A reader that uses an optional key tests whether the key is present,
+not the version.</p>
+</section>
 </section>
 <section id="results">
 <h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
@@ -1740,7 +1754,10 @@ of its Measure. CO2-equivalents use its own global warming potentials.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table">Table</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metadata">Metadata</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metadata">Metadata</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#schema-version">Schema version</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#energy-demand">Energy demand</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fuel-consumption">Fuel consumption</a></li>
