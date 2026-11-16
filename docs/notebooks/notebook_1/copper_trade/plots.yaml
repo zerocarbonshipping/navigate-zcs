@@ -8,7 +8,7 @@
 customize_runs:
   example_4:     {name: reference, color: black_4}
   your_scenario: {name: your scenario, color: blue_8}
-  levers:        {name: all levers drawn, color: blue_8}
+  levers:        {name: study, color: blue_8}
 
 session:
   emissions:
