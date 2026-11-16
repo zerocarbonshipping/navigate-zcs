@@ -13,7 +13,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
-from navigate.simulation.fleet._composition import get_multipliers
+from navigate.simulation.fleet._composition import get_counts
 from navigate.simulation.fleet._marginal_saving import calculate_marginal_speed_saving
 from navigate.simulation.fleet._residual_energy import (
     calculate_energy_savings,
@@ -280,7 +280,7 @@ def _align_speeds(fleet: Fleet, mu_values: list[float]) -> list[float]:
             mu_aligned = max(mu_values)
 
         case SpeedAlignmentID.AVERAGE:
-            mu_aligned = float(np.average(mu_values, weights=get_multipliers(fleet)))
+            mu_aligned = float(np.average(mu_values, weights=get_counts(fleet)))
 
         case _:
             raise ValueError(f"Unknown speed alignment method: {fleet.speed_alignment}")

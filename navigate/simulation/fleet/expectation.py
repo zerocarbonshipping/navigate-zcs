@@ -183,7 +183,7 @@ def calculate_fleet_evolution_expectation(
     fleet: Fleet, timeline: FloatArray, idx: int, *, scrapping_pending: bool
 ) -> None:
     """
-    Calculate the multipliers of the existing and expected fleet from this time-step on.
+    Calculate the existing and expected vessel counts from this time-step on.
 
     The existing vessels decline as primary scrapping removes them: each cohort over
     its age span as it passes the vessel lifetime, or at the fleet's fixed scrap rate
@@ -200,7 +200,7 @@ def calculate_fleet_evolution_expectation(
         Current time-step index, where the expectation starts.
     scrapping_pending
         Whether this time-step's scrapping is still to run. If not, the existing
-        multipliers at the time-step are the vessels in the fleet.
+        counts at the time-step are the vessels in the fleet.
     """
     first_pending = 0 if scrapping_pending else 1
     rate = fleet.fixed_scrap_rate
@@ -212,7 +212,7 @@ def calculate_fleet_evolution_expectation(
 
     existing, newbuild = forecast
 
-    # the expected bunkering needs a multiplier above zero for every allowed vessel
+    # the expected bunkering needs a count above zero for every allowed vessel
     # type in every nested time-step to return a result per vessel; a small jump
     # start guarantees it while barely moving the fair shares of fuel
     # TODO: make assignable?
@@ -228,8 +228,8 @@ def calculate_fleet_evolution_expectation(
     expectation = fleet.expectation
     for v, vessel in enumerate(fleet.vessels):
         name = vessel.name
-        expectation.multiplier[name, BunkerScopeID.EXISTING][idx:] = existing[v]
-        expectation.multiplier[name, BunkerScopeID.EXPECTED][idx:] = expected[v]
+        expectation.count[name, BunkerScopeID.EXISTING][idx:] = existing[v]
+        expectation.count[name, BunkerScopeID.EXPECTED][idx:] = expected[v]
 
 
 def _forecast_by_age(
@@ -252,8 +252,8 @@ def _forecast_by_age(
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Multipliers of the existing vessels and of the newbuilds, of each vessel type
-        (rows) over the horizon (columns).
+        Number of existing vessels and of newbuilds of each vessel type (rows) over
+        the horizon (columns).
     """
     forward = np.s_[idx:]
     trade = fleet.trade[forward]
@@ -268,7 +268,7 @@ def _forecast_by_age(
 
 def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> FloatArray:
     """
-    Return the multipliers of the existing vessels, scrapped by age.
+    Return the existing vessel counts, scrapped by age.
 
     Parameters
     ----------
@@ -282,7 +282,7 @@ def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> Flo
     Returns
     -------
     FloatArray
-        Multipliers of each vessel type (rows) over the horizon (columns).
+        Number of vessels of each type (rows) over the horizon (columns).
     """
     existing = np.zeros((len(fleet.vessels), times.size))
     years_ahead = (times - times[0]) / YEAR
@@ -295,7 +295,7 @@ def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> Flo
 
             # with no scrapping left to run at the current time-step, the vessels at
             # or past their lifetime stay in the fleet for it
-            survivors[:first_pending] = increment.multiplier
+            survivors[:first_pending] = increment.count
 
             # scrapping never returns vessels, so where the lifetime lengthens again
             # an increment keeps the fewest vessels an earlier time-step left it
@@ -338,8 +338,8 @@ def _forecast_at_fixed_rate(
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Multipliers of the existing vessels and of the newbuilds, of each vessel type
-        (rows) over the horizon (columns).
+        Number of existing vessels and of newbuilds of each vessel type (rows) over
+        the horizon (columns).
     """
     forward = np.s_[idx:]
     trade = fleet.trade[forward]
@@ -351,7 +351,7 @@ def _forecast_at_fixed_rate(
     existing = np.zeros_like(cargo_miles)
     newbuild = np.zeros_like(cargo_miles)
 
-    grouped = _grouped_multipliers(fleet)
+    grouped = _grouped_counts(fleet)
     counted = np.sum(grouped, axis=0)
 
     for k in range(trade.size):
@@ -372,9 +372,9 @@ def _forecast_at_fixed_rate(
     return existing.T, newbuild.T
 
 
-def _grouped_multipliers(fleet: Fleet) -> FloatArray:
+def _grouped_counts(fleet: Fleet) -> FloatArray:
     """
-    Return the multipliers of the fleet's age groups.
+    Return the vessel counts of the fleet's age groups.
 
     Parameters
     ----------
@@ -384,7 +384,7 @@ def _grouped_multipliers(fleet: Fleet) -> FloatArray:
     Returns
     -------
     FloatArray
-        Multipliers of each age group (rows), oldest first, of each vessel type
+        Number of vessels in each age group (rows), oldest first, of each vessel type
         (columns).
     """
     groups = group_by_age(fleet)
@@ -392,7 +392,7 @@ def _grouped_multipliers(fleet: Fleet) -> FloatArray:
 
     for g, group in enumerate(groups):
         for v, i in group:
-            grouped[g, v] += fleet.increments[v][i].multiplier
+            grouped[g, v] += fleet.increments[v][i].count
 
     return grouped
 
@@ -401,12 +401,12 @@ def _scrap_oldest_groups(
     grouped: FloatArray, cargo_miles: FloatArray, capacity: float
 ) -> FloatArray:
     """
-    Return the age groups' multipliers left after scrapping a capacity, oldest first.
+    Return the age groups' vessel counts left after scrapping a capacity, oldest first.
 
     Parameters
     ----------
     grouped
-        Multipliers of each age group (rows), oldest first, of each vessel type
+        Number of vessels in each age group (rows), oldest first, of each vessel type
         (columns).
     cargo_miles
         Cargo-miles of one vessel of each type, in cargo-miles/year.
@@ -416,7 +416,7 @@ def _scrap_oldest_groups(
     Returns
     -------
     FloatArray
-        Multipliers of each age group left (rows), oldest first, of each vessel
+        Number of vessels left in each age group (rows), oldest first, of each vessel
         type (columns).
     """
     whole, fraction = split_oldest_first(grouped @ cargo_miles, capacity)
@@ -432,15 +432,15 @@ def _gap_newbuilds(
     trade: FloatLike, existing: FloatArray, cargo_miles: FloatArray, split: FloatArray
 ) -> FloatArray:
     """
-    Return the multipliers of the newbuilds expected to fill the trade gap.
+    Return the number of newbuilds expected to fill the trade gap.
 
     Parameters
     ----------
     trade
         Trade of the fleet, in cargo-miles/year: at one time-step or over several.
     existing
-        Multipliers of the existing vessels of each type: at one time-step, or one
-        row per type over several.
+        Number of existing vessels of each type: at one time-step, or one row per
+        type over several.
     cargo_miles
         Cargo-miles of one vessel of each type, in cargo-miles/year, in the shape of
         ``existing``.
@@ -450,9 +450,9 @@ def _gap_newbuilds(
     Returns
     -------
     FloatArray
-        Multipliers of the newbuilds, in the shape of ``existing``.
+        Number of newbuilds of each type, in the shape of ``existing``.
     """
-    # the multipliers become cargo-miles to take the speed expectations into account
+    # the vessel counts become cargo-miles to take the speed expectations into account
     gap = trade - np.sum(existing * cargo_miles, axis=0)
 
     # a gap turned negative by falling trade is truncated to zero, which leaves more
@@ -504,7 +504,7 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
     """
     Calculate the fleet's fuel demand over the horizon from the expected bunkering.
 
-    Each vessel's expected bunkered mass is weighted by its expected multiplier.
+    Each vessel's expected bunkered mass is weighted by its expected count.
 
     Parameters
     ----------
@@ -521,14 +521,14 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
 
     for vessel in fleet.vessels:
         expectation = vessel.expectation
-        multipliers = fleet.expectation.multiplier[vessel.name, scope][forward]
+        counts = fleet.expectation.count[vessel.name, scope][forward]
 
         # the bunkered mass is per port, so a port the route calls more than once
         # counts once
         ports = vessel.route.distinct_ports
         for port, fuel_name in itertools.product(ports, fuels):
             mass = expectation.bunker_mass_expected[port.name, fuel_name][forward]
-            demand[fuel_name] += multipliers * mass
+            demand[fuel_name] += counts * mass
 
     for key, value in demand.items():
         fleet.expectation.fuel_demand[key][idx:] = value

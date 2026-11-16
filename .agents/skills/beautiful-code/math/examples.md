@@ -59,7 +59,7 @@ for (vessel, increment) in fleet.iterate_increments(reverse=True):
 
     age = increment.age
     span = increment.span
-    mult = increment.multiplier
+    count = increment.count
 
     if not is_retrofit_cycle(age, frequency, dt):
         continue
@@ -72,7 +72,7 @@ for (vessel, increment) in fleet.iterate_increments(reverse=True):
     if lifetime <= 0.0:
         continue
 
-    if mult <= 0.0:
+    if count <= 0.0:
         continue
 ```
 
@@ -80,7 +80,7 @@ What makes it good:
 - The indexing is hidden inside `fleet.iterate_increments(reverse=True)`, so the code
   iterates over the objects themselves
 - Frequently used attributes are hoisted into short local names of roughly equal
-  length: `age`, `span`, `mult`. This shortens the code below, and a reader easily sees
+  length: `age`, `span`, `count`. This shortens the code below, and a reader easily sees
   that, for example, `age` is `increment.age`
 - Names are short but still descriptive: `dt` (known mathematical notation) instead of
   `time_step`, and `frequency` instead of `retrofit_frequency`
@@ -112,8 +112,8 @@ for v, vessel_from in enumerate(fleet.vessels):
         if remaining_lifetime_from <= 0.0:
             continue
 
-        multiplier = increment.multiplier
-        if multiplier <= 0:
+        count = increment.count
+        if count <= 0:
             continue
 ```
 

@@ -25,8 +25,8 @@ def calculate_fair_share_fuel_supply(
     Calculate each vessel's fair share of each port's supply of the fuels it can use.
 
     A vessel's fair share is its potential demand for the fuel's type at the port, as a
-    fraction of the demand of every vessel calling there, each counted by its
-    multiplier. The fair-share iteration of the bunkering starts from these shares.
+    fraction of the demand of every vessel calling there, each weighted by its count.
+    The fair-share iteration of the bunkering starts from these shares.
 
     Parameters
     ----------
@@ -54,14 +54,14 @@ def _calculate_port_demand(
     for fleet in fleets.values():
         for vessel in fleet.vessels:
             expectation = vessel.expectation
-            multiplier = fleet.expectation.multiplier[vessel.name, scope][steps]
+            count = fleet.expectation.count[vessel.name, scope][steps]
 
             # the demand is held per port, so a port called at twice counts once
             for port in vessel.route.distinct_ports:
                 for fuel_type in FuelTypeID:
                     key = (port.name, fuel_type)
                     demand = expectation.potential_fuel_type_demand[key][steps]
-                    port_demand[key] = port_demand.get(key, 0.0) + demand * multiplier
+                    port_demand[key] = port_demand.get(key, 0.0) + demand * count
 
     return port_demand
 

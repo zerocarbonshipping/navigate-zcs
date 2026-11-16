@@ -104,12 +104,12 @@ def _transfer_production_and_feed_mass(
             continue
 
         decided = np.array([increment.decided for increment in increments])
-        multipliers = np.array([increment.multiplier for increment in increments])
+        counts = np.array([increment.count for increment in increments])
         origins = find_origin_indexes(years, current_year, decided)
 
         production_per_plant = plant.expectation.production[origins]
-        production = np.sum(production_per_plant * multipliers)
-        feed_masses = _calculate_feed_masses(plant, multipliers, origins)
+        production = np.sum(production_per_plant * counts)
+        feed_masses = _calculate_feed_masses(plant, counts, origins)
 
         results.production_mass[plant.fuel.name][idx] += production
 
@@ -118,7 +118,7 @@ def _transfer_production_and_feed_mass(
 
 
 def _calculate_feed_masses(
-    plant: Plant, multipliers: FloatArray, origins: IntArray
+    plant: Plant, counts: FloatArray, origins: IntArray
 ) -> dict[str, float]:
     """
     Calculate the feed mass a set of increments of a plant type uses, per feed.
@@ -129,7 +129,7 @@ def _calculate_feed_masses(
     ----------
     plant
         The plant type of the increments.
-    multipliers
+    counts
         Number of plants in each increment.
     origins
         Time-step index at which each increment was decided.
@@ -144,7 +144,7 @@ def _calculate_feed_masses(
 
     feed_masses: dict[str, float] = {}
     for feed_name, conversion in conversions.items():
-        feed_masses[feed_name] = np.sum(production * conversion * multipliers)
+        feed_masses[feed_name] = np.sum(production * conversion * counts)
 
     return feed_masses
 
@@ -175,7 +175,7 @@ def _transfer_plant_tied_capital(
             tied_capital_flow = plant.expectation.tied_capital[origin]
             tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age)
 
-            results.plant_tied_capital[idx] += tied_capital * increment.multiplier
+            results.plant_tied_capital[idx] += tied_capital * increment.count
 
 
 def _transfer_instantaneous_production(producer: Producer, idx: int) -> None:

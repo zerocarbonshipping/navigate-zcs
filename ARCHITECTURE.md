@@ -27,9 +27,19 @@ only through `core` expectations and the bunkering LP. `Simulation` in
   what the results file reports: the fields declared with `result(unit)`.
 - Node map: a node attribute derived from other nodes' attributes, such as
   `Vessel.usable_fuels`, written by `core/node_maps.py` only.
-- Cohort: the assets of one age bin, an `Increment` (`core/increment.py`), in
-  service in `Fleet.increments` and `Producer.increments`, awaiting delivery in
-  `Producer.pipeline`; `simulation/cohort.py` accounts for them.
+- Cohort: the assets of one age bin, held with their count in an `Increment`
+  (`core/increment.py`), in service in `Fleet.increments` and
+  `Producer.increments`, awaiting delivery in `Producer.pipeline`;
+  `simulation/cohort.py` accounts for them.
+- Count: the number of vessels or plants a value stands for, fractional as
+  cohorts split and scrap in shares. A `Vessel` node is a vessel type and a
+  `Plant` node a plant type; their expectations, and a vessel's results, hold
+  the values of one vessel or plant. A total is such a value times a count: a
+  port's bunker mass adds each vessel's bunkered mass times its count, and a
+  fleet's results add its vessels' results weighted by their counts.
+  `FleetExpectation.count` holds each vessel type's count per bunkering scope;
+  in the expected scope a type allowed as a newbuild but with no vessels at a
+  step carries a small count, so that it enters the LP.
 - Time is measured in days or in years:
   - In days: `Simulation.timeline`, counted from the start date, and a step's
     size, from the date before (`Simulation._time_step_at`). The first step's
@@ -179,8 +189,8 @@ the layering changed changes the table with the code.
 - A value computed during the time loop that one of fleet, fuel, policy and
   bunker reads from another lives on the node's `expectation`: the computing
   domain writes the field, the others only read it. The one other route is
-  `Simulation` handing a value on as a call argument, such as the
-  multipliers a bunkering LP ran with to the policy functions settling it.
+  `Simulation` handing a value on as a call argument, such as the counts a
+  bunkering LP ran with to the policy functions settling it.
 - The plain node attributes another domain reads are:
   - DSL inputs;
   - what the lifecycle hooks derive from them (`Route.distinct_ports`);

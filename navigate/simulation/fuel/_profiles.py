@@ -54,7 +54,7 @@ def calculate_cohort_running(
 
     Its age counts back from the first of the times, the current time.
     """
-    added = rate * increment.multiplier
+    added = rate * increment.count
     window = increment.age_span * YEAR
     delivery = times[0] - increment.age * YEAR
     retirement = delivery + lifetime * YEAR
@@ -92,7 +92,7 @@ def calculate_cohort_reserved(
     It is decided already, so it reserves the whole rate from the first of the times;
     its age counts back from `now`, the current time.
     """
-    added = rate * increment.multiplier
+    added = rate * increment.count
     window = increment.age_span * YEAR
     delivery = now - increment.age * YEAR
     retirement = delivery + lifetime * YEAR

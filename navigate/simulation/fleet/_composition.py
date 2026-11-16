@@ -32,13 +32,13 @@ def get_trade_capacity(fleet: Fleet, idx: int) -> float:
     float
         Trade capacity of the fleet, in cargo-miles/year.
     """
-    multipliers = get_multipliers(fleet)
+    counts = get_counts(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx)
 
-    return float(np.dot(multipliers, cargo_miles))
+    return float(np.dot(counts, cargo_miles))
 
 
-def get_multipliers(fleet: Fleet) -> list[float]:
+def get_counts(fleet: Fleet) -> list[float]:
     """
     Return the number of vessels of each type in the fleet.
 
@@ -52,10 +52,10 @@ def get_multipliers(fleet: Fleet) -> list[float]:
     list[float]
         Number of vessels of each type.
     """
-    return [get_multiplier(fleet, v) for v in range(len(fleet.increments))]
+    return [get_count(fleet, v) for v in range(len(fleet.increments))]
 
 
-def get_total_multiplier(fleet: Fleet) -> float:
+def get_total_count(fleet: Fleet) -> float:
     """
     Return the number of vessels in the fleet.
 
@@ -69,10 +69,10 @@ def get_total_multiplier(fleet: Fleet) -> float:
     float
         Number of vessels of all types.
     """
-    return float(sum(get_multipliers(fleet)))
+    return float(sum(get_counts(fleet)))
 
 
-def get_multiplier(fleet: Fleet, vessel_idx: int) -> float:
+def get_count(fleet: Fleet, vessel_idx: int) -> float:
     """
     Return the number of vessels of one type in the fleet.
 
@@ -88,7 +88,7 @@ def get_multiplier(fleet: Fleet, vessel_idx: int) -> float:
     float
         Number of vessels of the type.
     """
-    return sum(increment.multiplier for increment in fleet.increments[vessel_idx])
+    return sum(increment.count for increment in fleet.increments[vessel_idx])
 
 
 def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> FloatArray:
@@ -159,7 +159,7 @@ def consolidate_increments(fleet: Fleet) -> None:
         consolidated: list[VesselIncrement] = []
 
         for cohort in cohorts.values():
-            if sum(increment.multiplier for increment in cohort) >= 1e-3:
+            if sum(increment.count for increment in cohort) >= 1e-3:
                 consolidated.append(_merge(cohort))
 
         fleet.increments[v] = consolidated
@@ -167,7 +167,7 @@ def consolidate_increments(fleet: Fleet) -> None:
 
 def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     """
-    Fold a cohort into its first increment, weighting by multiplier.
+    Fold a cohort into its first increment, weighting by count.
 
     Parameters
     ----------
@@ -177,23 +177,23 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     Returns
     -------
     VesselIncrement
-        The first increment, holding the cohort's total multiplier and vessels
-        scrapped past the lifetime, and its multiplier-weighted package uptake and
-        technology charter rate.
+        The first increment, holding the cohort's total count and vessels scrapped
+        past the lifetime, and its count-weighted package uptake and technology
+        charter rate.
     """
     survivor = cohort[0]
 
     if len(cohort) == 1:
         return survivor
 
-    weights = [increment.multiplier for increment in cohort]
+    counts = [increment.count for increment in cohort]
     uptakes = [increment.package_uptake for increment in cohort]
     charter_rates = [increment.technology_charter_rate for increment in cohort]
     scrapped = [increment.scrapped_past_lifetime for increment in cohort]
 
-    survivor.multiplier = sum(weights)
+    survivor.count = sum(counts)
     survivor.scrapped_past_lifetime = sum(scrapped)
-    survivor.package_uptake = np.average(uptakes, axis=0, weights=weights)
-    survivor.technology_charter_rate = float(np.average(charter_rates, weights=weights))
+    survivor.package_uptake = np.average(uptakes, axis=0, weights=counts)
+    survivor.technology_charter_rate = float(np.average(charter_rates, weights=counts))
 
     return survivor

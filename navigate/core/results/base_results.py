@@ -155,7 +155,7 @@ def per_step_results(cls: type[BaseResults]) -> frozenset[str]:
 def accumulate(
     target: FloatArray | dict[Any, Any],
     source: FloatArray | dict[Any, Any],
-    multiplier: FloatLike = 1.0,
+    weight: FloatLike = 1.0,
 ) -> None:
     """
     Add a field of one results object into the same field of another, key by key.
@@ -166,14 +166,14 @@ def accumulate(
         Field added into: a timeline, or a dict of timelines or of such dicts.
     source
         Field added, keyed as the target.
-    multiplier
-        Multiplier applied to the source; a scalar, or a weight per time step.
+    weight
+        Weight of the source; a scalar, or one per time step.
     """
     if isinstance(target, dict):
         for key, value in target.items():
-            accumulate(value, source[key], multiplier)
+            accumulate(value, source[key], weight)
     else:
-        target[:] += multiplier * source[:]
+        target[:] += weight * source[:]
 
 
 @dataclass(eq=False, repr=False)

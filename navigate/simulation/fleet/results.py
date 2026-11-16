@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.simulation.cohort import find_origin_index
-from navigate.simulation.fleet._composition import get_multiplier
+from navigate.simulation.fleet._composition import get_count
 from navigate.simulation.fleet._package import get_technologies_by_capex
 from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import YEAR, divide_nonzero, interpolate_yearly_flow
@@ -72,7 +72,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
 
         for increment in increments:
             age = increment.age
-            multiplier = increment.multiplier
+            count = increment.count
 
             # the increment bears the costs of a vessel that entered the fleet
             # 'age' years ago
@@ -83,9 +83,9 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
             tied_capital = interpolate_yearly_flow(tied_capital_flow, age)
             technology_charter_rate = increment.technology_charter_rate
 
-            results.vessel_expenses[idx] += asset_charter_rate * multiplier
-            results.vessel_tied_capital[idx] += tied_capital * multiplier
-            results.technology_expenses[idx] += technology_charter_rate * multiplier
+            results.vessel_expenses[idx] += asset_charter_rate * count
+            results.vessel_tied_capital[idx] += tied_capital * count
+            results.technology_expenses[idx] += technology_charter_rate * count
 
 
 def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
@@ -109,9 +109,9 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         fuel_type = vessel.primary_fuel_type
         power = get_total_power_capacity(vessel)
 
-        vessel_ages = [increment.age * increment.multiplier for increment in increments]
+        vessel_ages = [increment.age * increment.count for increment in increments]
         numerator = sum(vessel_ages) * power
-        denominator = get_multiplier(fleet, v) * power
+        denominator = get_count(fleet, v) * power
 
         results.weighted_age_numerator[fuel_type][idx] += numerator
         results.weighted_age_denominator[fuel_type][idx] += denominator
@@ -145,7 +145,7 @@ def _transfer_existing_vessels(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
     for v, vessel in enumerate(fleet.vessels):
-        fleet.results.existing_vessels[vessel.name][idx] = get_multiplier(fleet, v)
+        fleet.results.existing_vessels[vessel.name][idx] = get_count(fleet, v)
 
 
 def _transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
@@ -165,7 +165,7 @@ def _transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
     for v, vessel in enumerate(fleet.vessels):
         increments = fleet.increments[v]
         newbuild_package_uptake = fleet.newbuild_package_uptake[v]
-        multipliers_total = get_multiplier(fleet, v)
+        total_count = get_count(fleet, v)
 
         for i, technology in enumerate(technologies):
             # package i + 1 is the first to hold technology i, as the packages are
@@ -177,9 +177,9 @@ def _transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
             total = 0.0
             for increment in increments:
                 adopting_share = np.sum(increment.package_uptake[adopting])
-                total += increment.multiplier * adopting_share
+                total += increment.count * adopting_share
 
-            average = float(divide_nonzero(total, multipliers_total))
+            average = float(divide_nonzero(total, total_count))
 
             results.newbuild_technology_uptake[key][idx] = newbuild_uptake
             results.technology_uptake[key][idx] = average

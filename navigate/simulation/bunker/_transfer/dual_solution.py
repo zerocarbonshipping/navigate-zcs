@@ -42,7 +42,7 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     for (v, i, e, demand_type), constraint in alg.energy_conservation_sea.items():
         expectation = alg.vessels[v].expectation
         leg = leg_positions[v][i, e]
-        pi = _calculate_energy_price(alg, constraint) / alg.multipliers[v]
+        pi = _calculate_energy_price(alg, constraint) / alg.counts[v]
         rhs = alg.model.rhs(constraint)
 
         expectation.energy_conservation_pi_sea[demand_type][leg][idx] = pi
@@ -50,7 +50,7 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
 
     for (v, p, demand_type), constraint in alg.energy_conservation_port.items():
         expectation = alg.vessels[v].expectation
-        pi = _calculate_energy_price(alg, constraint) / alg.multipliers[v]
+        pi = _calculate_energy_price(alg, constraint) / alg.counts[v]
         rhs = alg.model.rhs(constraint)
 
         expectation.energy_conservation_pi_port[demand_type][p][idx] = pi
@@ -83,8 +83,8 @@ def _calculate_energy_price(alg: BunkerAlgorithm, constraint: Constraint) -> flo
     Returns
     -------
     float
-        Price of energy on the row, scaled by the vessel's multiplier as the objective
-        is, in USD/GJ.
+        Price of energy on the row, scaled by the vessel's count as the objective is,
+        in USD/GJ.
     """
     model = alg.model
     tolerance = alg.options.solution_tolerance

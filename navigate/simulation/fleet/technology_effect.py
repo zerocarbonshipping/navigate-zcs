@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
-from navigate.simulation.fleet._composition import get_multiplier
+from navigate.simulation.fleet._composition import get_count
 from navigate.simulation.fleet._residual_energy import (
     calculate_residual_energy,
     scale_per_key,
@@ -174,7 +174,7 @@ def _calculate_package_weights(
         uptake = zip(packages, increment.package_uptake, strict=True)
 
         for package, share in uptake:
-            weights[package] += increment.multiplier * share
+            weights[package] += increment.count * share
 
     return {package: weight for package, weight in weights.items() if weight > 0.0}
 
@@ -364,7 +364,7 @@ def _calculate_retrofit_ratios(
             continue
 
         for v, vessel in enumerate(fleet.vessels):
-            multiplier = get_multiplier(fleet, v)
+            count = get_count(fleet, v)
             expectation = vessel.expectation
 
             energy_sea = expectation.energy_sea_condition.at[idx]
@@ -372,10 +372,10 @@ def _calculate_retrofit_ratios(
             raw_energy_sea = expectation.raw_energy_sea_condition.at[idx]
             raw_energy_port = expectation.raw_energy_port.at[idx]
 
-            _accumulate_weighted(residual_sea, energy_sea, multiplier)
-            _accumulate_weighted(residual_port, energy_port, multiplier)
-            _accumulate_weighted(raw_sea, raw_energy_sea, multiplier)
-            _accumulate_weighted(raw_port, raw_energy_port, multiplier)
+            _accumulate_weighted(residual_sea, energy_sea, count)
+            _accumulate_weighted(residual_port, energy_port, count)
+            _accumulate_weighted(raw_sea, raw_energy_sea, count)
+            _accumulate_weighted(raw_port, raw_energy_port, count)
 
     ratio_sea = _divide_per_key(residual_sea, raw_sea)
     ratio_port = _divide_per_key(residual_port, raw_port)
@@ -386,7 +386,7 @@ def _calculate_retrofit_ratios(
 def _accumulate_weighted(
     totals: dict[EnergyDemandID, float],
     energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
-    multiplier: float,
+    count: float,
 ) -> None:
     """
     Add one vessel type's energy, times its number of vessels, to the running totals.
@@ -398,12 +398,12 @@ def _accumulate_weighted(
     energies
         Energy per energy demand type, one value per condition or port call, in
         GJ/year.
-    multiplier
+    count
         Number of vessels of the type.
     """
     for energy_id in totals:
         energy = np.asarray(energies[energy_id], dtype=float)
-        totals[energy_id] += multiplier * np.sum(energy)
+        totals[energy_id] += count * np.sum(energy)
 
 
 def _divide_per_key(

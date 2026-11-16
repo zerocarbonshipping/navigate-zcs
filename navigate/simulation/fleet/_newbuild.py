@@ -191,7 +191,7 @@ def add_newbuilds(
         charter_rate = float(np.dot(package_uptake, package_rates))
 
         increment = VesselIncrement(
-            multiplier=count,
+            count=count,
             age=0.0,
             age_span=dt,
             package_uptake=package_uptake.copy(),

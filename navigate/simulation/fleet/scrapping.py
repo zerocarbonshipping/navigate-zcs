@@ -196,14 +196,14 @@ def calculate_survivors(
     FloatLike
         Vessels left at each of the years ahead.
     """
-    size_before = increment.multiplier + increment.scrapped_past_lifetime
+    size_before = increment.count + increment.scrapped_past_lifetime
     ages = increment.age + years_ahead
     retired = calculate_retired_share(lifetime, increment.age_span, ages)
 
     # vessels converted from a shorter-lived type, and round-off, can leave the cohort
     # scrapped beyond this lifetime's share, so the survivors are capped at the
     # vessels the increment holds
-    return np.minimum(increment.multiplier, size_before * (1.0 - retired))
+    return np.minimum(increment.count, size_before * (1.0 - retired))
 
 
 def _scrap_by_age(fleet: Fleet, idx: int) -> None:
@@ -253,9 +253,9 @@ def _scrap_past_lifetime(increment: VesselIncrement, lifetime: float) -> float:
         Vessels scrapped.
     """
     survivors = calculate_survivors(increment, lifetime, 0.0)
-    scrapping = increment.multiplier - survivors
+    scrapping = increment.count - survivors
 
-    increment.multiplier = survivors
+    increment.count = survivors
     increment.scrapped_past_lifetime += scrapping
 
     return scrapping
@@ -328,13 +328,13 @@ def _scrap_oldest(
     whole, fraction = split_oldest_first(capacities, capacity)
 
     scrap = fleet.results.scrap
-    scrapped_counts = [0] * len(fleet.increments)
+    scrapped_increments = [0] * len(fleet.increments)
 
     for group in groups[:whole]:
         for v, i in group:
             increment = fleet.increments[v][i]
-            scrapped_counts[v] = i + 1
-            scrap[fleet.vessels[v].name][idx] += increment.multiplier
+            scrapped_increments[v] = i + 1
+            scrap[fleet.vessels[v].name][idx] += increment.count
 
     # the increments scrapped in part are found by their index, so they are scrapped
     # before the increments scrapped whole are removed
@@ -345,8 +345,8 @@ def _scrap_oldest(
         scrapped_capacity = capacity
         youngest_age = _scrap_in_part(fleet, groups[whole], fraction, idx)
 
-    for v, count in enumerate(scrapped_counts):
-        fleet.increments[v] = fleet.increments[v][count:]
+    for v, scrapped in enumerate(scrapped_increments):
+        fleet.increments[v] = fleet.increments[v][scrapped:]
 
     return scrapped_capacity, youngest_age
 
@@ -359,7 +359,7 @@ def _group_capacity(
 
     for v, i in group:
         increment = fleet.increments[v][i]
-        capacities.append(increment.multiplier * cargo_miles[v])
+        capacities.append(increment.count * cargo_miles[v])
 
     capacity: np.float64 = np.sum(capacities)
 
@@ -393,8 +393,8 @@ def _scrap_in_part(
 
     for v, i in group:
         increment = fleet.increments[v][i]
-        to_scrap = increment.multiplier * fraction
-        increment.multiplier -= to_scrap
+        to_scrap = increment.count * fraction
+        increment.count -= to_scrap
         increment.scrapped_past_lifetime *= 1.0 - fraction
 
         # vessels are scrapped from the oldest part of the uniform increment first,

@@ -49,7 +49,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
         results = vessel.results
-        multiplier = alg.multipliers[v]
+        count = alg.counts[v]
 
         price = port.expectation.bunker_price[f][idx]
         expenses = price * mass
@@ -60,7 +60,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         results.consumed_mass[f][idx] += mass
         results.converter_mass[vessel.primary_fuel_type][f][idx] += mass
         results.fuel_expenses[f][idx] += expenses
-        port.results.bunker_mass[f][idx] += multiplier * mass
+        port.results.bunker_mass[f][idx] += count * mass
 
         for emission_name in alg.emissions:
             wtt = port.expectation.bunker_wtt[f, emission_name][idx]
@@ -71,7 +71,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
             collected = cost * mass
             level = levy.expectation.level[idx]
 
-            levy.results.collected[idx] += collected * multiplier
+            levy.results.collected[idx] += collected * count
             results.levy_expenses[f][idx] += collected
 
             if level > 0.0:

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 def calculate_individual_remedial_expenses(
     regulations: dict[str, Regulation],
     vessels: dict[str, Vessel],
-    multipliers: dict[str, float],
+    counts: dict[str, float],
     scope: BunkerScopeID,
     idx: int,
 ) -> None:
@@ -34,8 +34,8 @@ def calculate_individual_remedial_expenses(
         All regulations in the simulation.
     vessels
         All vessels in the simulation.
-    multipliers
-        Multiplier of each vessel in the bunkering LP, in the LP's order, which the
+    counts
+        Count of each vessel type in the bunkering LP, in the LP's order, which the
         sums over the vessels follow.
     scope
         Scope of the bunkering LP: the existing expenses go to the results, the
@@ -49,15 +49,15 @@ def calculate_individual_remedial_expenses(
             continue
 
         if scope == BunkerScopeID.EXISTING:
-            _record_remedial_expenses(regulation, vessels, multipliers, idx)
+            _record_remedial_expenses(regulation, vessels, counts, idx)
         else:
-            _calculate_remedial_expenses(regulation, vessels, multipliers, idx)
+            _calculate_remedial_expenses(regulation, vessels, counts, idx)
 
 
 def _record_remedial_expenses(
     regulation: Regulation,
     vessels: dict[str, Vessel],
-    multipliers: dict[str, float],
+    counts: dict[str, float],
     idx: int,
 ) -> None:
     """Write the remedial units and expenses of one regulation to the results."""
@@ -65,14 +65,14 @@ def _record_remedial_expenses(
     expectation = regulation.expectation
     remedial_cost = expectation.remedial_cost[idx]
 
-    for vessel_name, multiplier in select_policed(regulation, multipliers).items():
+    for vessel_name, count in select_policed(regulation, counts).items():
         vessel = vessels[vessel_name]
 
         remedial_units = expectation.vessel_remedial_units[vessel_name][idx]
         remedial_expenses = remedial_units * remedial_cost
 
         # the regulation totals cover all the vessels the LP vessel represents
-        total_remedial_units = multiplier * remedial_units
+        total_remedial_units = count * remedial_units
         total_remedial_expenses = total_remedial_units * remedial_cost
 
         results.remedial_units[idx] += total_remedial_units
@@ -84,14 +84,14 @@ def _record_remedial_expenses(
 def _calculate_remedial_expenses(
     regulation: Regulation,
     vessels: dict[str, Vessel],
-    multipliers: dict[str, float],
+    counts: dict[str, float],
     idx: int,
 ) -> None:
     """Add the remedial expenses of one regulation to its vessels' expectations."""
     expectation = regulation.expectation
     remedial_cost = expectation.remedial_cost[idx]
 
-    for vessel_name in select_policed(regulation, multipliers):
+    for vessel_name in select_policed(regulation, counts):
         vessel = vessels[vessel_name]
 
         remedial_units = expectation.vessel_remedial_units[vessel_name][idx]

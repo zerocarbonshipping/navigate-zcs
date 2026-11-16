@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class PlantExpectation(_Expectation):
-    """Production, cost, emission and uptake-decision paths of a single plant."""
+    """Production, cost, emission and uptake-decision paths of one plant of the type."""
 
     def __init__(
         self,

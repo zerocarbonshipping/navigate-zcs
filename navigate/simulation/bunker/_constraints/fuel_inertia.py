@@ -52,13 +52,13 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     demand_old = _calculate_total_demand(vessel, alg.idx - 1)
     energy_scaling = min(demand_new / demand_old, 1.0)
 
-    # the floor is scaled by the change in vessel multipliers, so that only the
+    # the floor is scaled by the change in the vessel type's count, so that only the
     # vessels that actually bunkered previously are affected
     expectation = alg.fleets[vessel.fleet_assignment].expectation
-    multiplier_old = float(expectation.multiplier[v, alg.scope][alg.idx - 1])
-    multiplier_scaling = min(multiplier_old / alg.multipliers[v], 1.0)
+    previous_count = float(expectation.count[v, alg.scope][alg.idx - 1])
+    count_scaling = min(previous_count / alg.counts[v], 1.0)
 
-    scaling = multiplier_scaling * energy_scaling
+    scaling = count_scaling * energy_scaling
 
     rows = alg.fuel_inertia
     bunker = alg.bunker

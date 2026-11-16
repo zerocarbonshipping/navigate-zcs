@@ -130,8 +130,8 @@ def _update_fair_share_allocation(
 
         A_v = s_v / (\sum_{u \in B} m_u s_u) * (S - \sum_{u \notin B} m_u b_u)
 
-    where B is the set of bounded vessels, s the fair share, m the vessel multiplier
-    and b the fuel mass bunkered at the port, summed over its calls, in the previous
+    where B is the set of bounded vessels, s the fair share, m the vessel count and
+    b the fuel mass bunkered at the port, summed over its calls, in the previous
     solve; A_v is zero where the sum over B is within the solution tolerance. An
     unbounded vessel is released, A_v = b_v, where a bounded vessel can take up the
     supply it frees, and stays unbounded from then on.
@@ -160,7 +160,7 @@ def _update_fair_share_allocation(
     unbounded: dict[tuple[str, str, str], float] = {}
 
     # per (port name, fuel): the bounded fair shares and the unbounded bunkered fuel,
-    # each times its vessel multiplier and summed over the vessels
+    # each times its vessel count and summed over the vessels
     shares: dict[tuple[str, str], float] = {}
     consumed: dict[tuple[str, str], float] = {}
 
@@ -168,7 +168,7 @@ def _update_fair_share_allocation(
         v, port_name, f = key
         vessel = alg.vessels[v]
         port_fuel = (port_name, f)
-        multiplier = alg.multipliers[v]
+        count = alg.counts[v]
 
         in_use = alg.allocation_fuel[key] > tol
         binding = abs(alg.model.dual(alg.fair_share_fuel[key])) > tol
@@ -176,12 +176,12 @@ def _update_fair_share_allocation(
         if key not in released and in_use and binding:
             fair_share = _get_fair_share(alg, vessel, port_name, f)
             bounded[key] = fair_share
-            shares[port_fuel] = shares.get(port_fuel, 0.0) + fair_share * multiplier
+            shares[port_fuel] = shares.get(port_fuel, 0.0) + fair_share * count
         else:
             stops = stops_per_port[v][port_name]
             bunkered = sum(previous[v, p, f] for p in stops)
             unbounded[key] = bunkered
-            consumed[port_fuel] = consumed.get(port_fuel, 0.0) + bunkered * multiplier
+            consumed[port_fuel] = consumed.get(port_fuel, 0.0) + bunkered * count
 
     for key, fair_share in bounded.items():
         _, port_name, f = key

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     """
-    Remove a vessel, its multiplier and its LP variables and constraints.
+    Remove a vessel, its count and its LP variables and constraints.
 
     Parameters
     ----------
@@ -31,7 +31,7 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
         Name of vessel being removed from the model.
     """
     del alg.vessels[v]
-    del alg.multipliers[v]
+    del alg.counts[v]
 
     model = alg.model
 

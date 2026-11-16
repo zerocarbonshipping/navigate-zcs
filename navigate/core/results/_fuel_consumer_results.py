@@ -137,7 +137,7 @@ class _FuelConsumerResults(BaseResults):
         self.shore_power_emission = self._default_dict(emissions)
 
     def add_fuel_consumer_results(
-        self, results: _FuelConsumerResults, multiplier: FloatLike = 1.0
+        self, results: _FuelConsumerResults, weight: FloatLike = 1.0
     ) -> None:
         """
         Add another fuel consumer's results into this one.
@@ -146,37 +146,35 @@ class _FuelConsumerResults(BaseResults):
         ----------
         results
             Consumer results from another node.
-        multiplier
-            Multiplier on the other results; a scalar, or a weight per time step.
+        weight
+            Weight of the other results; a scalar, or one per time step.
         """
-        accumulate(self.raw_energy_sea, results.raw_energy_sea, multiplier)
-        accumulate(self.raw_energy_port, results.raw_energy_port, multiplier)
+        accumulate(self.raw_energy_sea, results.raw_energy_sea, weight)
+        accumulate(self.raw_energy_port, results.raw_energy_port, weight)
 
+        accumulate(self.operational_energy_sea, results.operational_energy_sea, weight)
         accumulate(
-            self.operational_energy_sea, results.operational_energy_sea, multiplier
-        )
-        accumulate(
-            self.operational_energy_port, results.operational_energy_port, multiplier
+            self.operational_energy_port, results.operational_energy_port, weight
         )
 
-        accumulate(self.energy_sea, results.energy_sea, multiplier)
-        accumulate(self.energy_port, results.energy_port, multiplier)
+        accumulate(self.energy_sea, results.energy_sea, weight)
+        accumulate(self.energy_port, results.energy_port, weight)
 
-        accumulate(self.consumed_mass, results.consumed_mass, multiplier)
-        accumulate(self.converter_mass, results.converter_mass, multiplier)
+        accumulate(self.consumed_mass, results.consumed_mass, weight)
+        accumulate(self.converter_mass, results.converter_mass, weight)
 
-        accumulate(self.fuel_expenses, results.fuel_expenses, multiplier)
-        accumulate(self.levy_expenses, results.levy_expenses, multiplier)
-        accumulate(self.remedial_expenses, results.remedial_expenses, multiplier)
-        accumulate(self.flexibility_expenses, results.flexibility_expenses, multiplier)
-        accumulate(self.surplus_revenue, results.surplus_revenue, multiplier)
+        accumulate(self.fuel_expenses, results.fuel_expenses, weight)
+        accumulate(self.levy_expenses, results.levy_expenses, weight)
+        accumulate(self.remedial_expenses, results.remedial_expenses, weight)
+        accumulate(self.flexibility_expenses, results.flexibility_expenses, weight)
+        accumulate(self.surplus_revenue, results.surplus_revenue, weight)
 
-        accumulate(self.remedial_units, results.remedial_units, multiplier)
-        accumulate(self.levy_units, results.levy_units, multiplier)
+        accumulate(self.remedial_units, results.remedial_units, weight)
+        accumulate(self.levy_units, results.levy_units, weight)
 
-        accumulate(self.wtt, results.wtt, multiplier)
-        accumulate(self.ttw, results.ttw, multiplier)
+        accumulate(self.wtt, results.wtt, weight)
+        accumulate(self.ttw, results.ttw, weight)
 
-        accumulate(self.shore_power_energy, results.shore_power_energy, multiplier)
-        accumulate(self.shore_power_expenses, results.shore_power_expenses, multiplier)
-        accumulate(self.shore_power_emission, results.shore_power_emission, multiplier)
+        accumulate(self.shore_power_energy, results.shore_power_energy, weight)
+        accumulate(self.shore_power_expenses, results.shore_power_expenses, weight)
+        accumulate(self.shore_power_emission, results.shore_power_emission, weight)

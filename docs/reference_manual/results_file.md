@@ -319,7 +319,7 @@ of its Measure. CO2-equivalents use its own global warming potentials.
 | `regulation.remedial_cost` | `USD/tCO2e` | | Cost of a remedial unit, its RemedialCost. | Always |
 | `regulation.flexibility_cost` | `USD/tCO2e` | | Price of a flexibility unit. | A `FLEXIBLE` scheme |
 | `regulation.vessel_threshold` | `measure` | vessel | Threshold of each policed vessel type. | Each policed vessel type with a threshold |
-| `regulation.shared_threshold` | `measure` | | Threshold of the pool: the vessel thresholds averaged by measure; under `ABSOLUTE` their multiplier-weighted sum. | A `FLEXIBLE` scheme with an `ABSOLUTE` or `INTENSITY` Measure |
+| `regulation.shared_threshold` | `measure` | | Threshold of the pool: the vessel thresholds averaged by measure; under `ABSOLUTE` their sum, weighted by the number of vessels of each type. | A `FLEXIBLE` scheme with an `ABSOLUTE` or `INTENSITY` Measure |
 | `regulation.adjusted_vessel_threshold` | `measure` | vessel | Threshold after adjustment for non-compliance. Under `INDIVIDUAL` a vessel that complies keeps its threshold; under `FLEXIBLE` every vessel keeps it while the pool complies, and under `FLEXIBLE` with an `ABSOLUTE` Measure every vessel's threshold is scaled by the same factor, or set to its own emissions where the pool's thresholds are all 0. | AllowThresholdAdjustment |
 | `regulation.adjusted_shared_threshold` | `measure` | | Threshold of the pool after adjustment. | A `FLEXIBLE` scheme with AllowThresholdAdjustment; missing at dates the pool complies |
 | `regulation.vessel_allowance` | `tCO2e/year` | vessel | Emissions allowed per vessel. | Policed vessel types in a fleet that call at a port of the Jurisdiction |
