@@ -58,8 +58,8 @@ ones omitted, never "N/A".
 ## Per type
 
 - **bug:** Reproduce on a copy outside the repo. Includes resolve relative
-  to the deck's own directory, and scenario and end-to-end test decks
-  include `../0_includes/*.inc`: copy everything the deck reaches through
+  to the deck's own directory, and scenario decks include
+  `../0_includes/*.inc`: copy everything the deck reaches through
   relative includes with the layout kept, e.g. the parent folder. In that
   environment, run `navigate <copy>/<deck>.nav -d <checkout>/assumptions`.
 - **documentation:** Code wrong: a bug. Several mismatches of one kind found
