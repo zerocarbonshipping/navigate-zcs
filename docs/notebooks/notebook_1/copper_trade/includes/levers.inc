@@ -20,8 +20,6 @@ Regulation "fuel_eu" {
     # under 1 is stricter
     set_vessel_threshold("*", <Forecast("fuel_eu_target_reduction") * %FUELEU_TARGET%>)
     RemedialCost = <Variable("fuel_eu_remedial_cost") * %FUELEU_PENALTY%>
-    # FALSE takes every ship out of FuelEU; EU ETS stays
-    set_include_vessel("*", %FUELEU%)
 }
 
 # ---- fuel production ----
