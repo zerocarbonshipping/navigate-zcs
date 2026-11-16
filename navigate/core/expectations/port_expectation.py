@@ -26,16 +26,18 @@ class PortExpectation(_Expectation):
 
         fuel_emissions = list(product(fuel_names, emission_names))
 
-        self.handling_cost = self._paths(fuel_names)  # USD/t
+        self.handling_cost = self._paths(fuel_names)  # currency/t
         self.bunkering_limit = self._paths(fuel_names, default=np.inf)  # t/year
 
-        self.bunker_price_overwrite = self._paths(fuel_names, default=np.nan)  # USD/t
+        self.bunker_price_overwrite = self._paths(
+            fuel_names, default=np.nan
+        )  # currency/t
         self.bunker_wtt_overwrite = self._paths(fuel_emissions, default=np.nan)  # t/t
 
         self.bunker_supply = self._paths(fuel_names)  # t/year
-        self.bunker_price = self._paths(fuel_names)  # USD/t
+        self.bunker_price = self._paths(fuel_names)  # currency/t
         self.bunker_wtt = self._paths(fuel_emissions)  # t/t
 
-        self.shore_power_cost = self._path()  # USD/GJ
+        self.shore_power_cost = self._path()  # currency/GJ
         self.shore_power_connection_share = self._path()  # -
         self.shore_power_emission_factor = self._paths(emission_names)  # t/GJ

@@ -49,5 +49,5 @@ class LevyExpectation(_Expectation):
         self.ttw_consumption = self._paths(vessel_fuel_emissions)  # tCO2e/t
         self.ttw_slip = self._paths(vessel_fuel_emissions)  # tCO2e/t
 
-        self.level = self._path()  # USD/tCO2e
-        self.cost = self._paths(vessel_port_fuels)  # USD/t
+        self.level = self._path()  # currency/tCO2e
+        self.cost = self._paths(vessel_port_fuels)  # currency/t

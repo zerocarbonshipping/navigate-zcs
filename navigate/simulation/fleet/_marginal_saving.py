@@ -53,7 +53,7 @@ def calculate_marginal_technology_saving(
     Returns
     -------
     FloatArray
-        Marginal cost saving at each of the time-steps, in USD/year.
+        Marginal cost saving at each of the time-steps, in currency/year.
     """
     expectation = vessel.expectation
 
@@ -104,7 +104,7 @@ def calculate_marginal_speed_saving(
     Returns
     -------
     float
-        Marginal cost saving, in USD/year.
+        Marginal cost saving, in currency/year.
     """
     expectation = vessel.expectation
 
@@ -140,12 +140,12 @@ def _sum_savings(
     baseline_energy
         Baseline energy per energy demand type and step, in GJ/year.
     shadow_prices
-        Shadow price per energy demand type and step, in USD/GJ.
+        Shadow price per energy demand type and step, in currency/GJ.
 
     Returns
     -------
     FloatLike
-        Cost saved, in USD/year.
+        Cost saved, in currency/year.
     """
     saving: FloatLike = 0.0
 

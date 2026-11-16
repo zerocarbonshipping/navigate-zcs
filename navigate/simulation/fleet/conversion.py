@@ -67,11 +67,11 @@ class _ConversionTarget:
         Energy demand of one destination vessel, in GJ/year.
     fuel_cost_flow
         Expected yearly fuel cost flow of one destination vessel in service from now,
-        over the vessel type's lifetime, in USD/year.
+        over the vessel type's lifetime, in currency/year.
     discount_rate
         Discount rate of the destination vessel type, its cost of capital.
     cost
-        Lump-sum cost of converting one vessel along the lane, in USD.
+        Lump-sum cost of converting one vessel along the lane, in currency.
     """
 
     name: str
@@ -100,9 +100,9 @@ class _ConversionSource:
         Energy demand of one source vessel, in GJ/year.
     fuel_cost_flow
         Expected yearly fuel cost flow of one source vessel in service from now, over
-        the vessel type's lifetime, in USD/year.
+        the vessel type's lifetime, in currency/year.
     capex_npv
-        Summed ship CAPEX NPV, in USD; it non-dimensionalizes the conversion NPV in
+        Summed ship CAPEX NPV, in currency; it non-dimensionalizes the conversion NPV in
         the DCM.
     targets
         Destinations of the open conversion lanes, keyed by vessel-type name.
@@ -150,11 +150,11 @@ class _ConversionCandidate:
     target
         Invariants of the destination vessel type.
     metric
-        Net present value of converting one vessel, in USD.
+        Net present value of converting one vessel, in currency.
     limit
         Supply-capped share limit passed to the DCM.
     charge
-        Levelized conversion cost per converted vessel, in USD/year.
+        Levelized conversion cost per converted vessel, in currency/year.
     window
         Levelization window, the destination type's remaining lifetime, in years.
     count
@@ -461,7 +461,7 @@ def _extract_conversion_source(
         Vessel types by name.
     fuel_cost_flows
         Expected yearly fuel cost flow of one vessel in service from now, over its
-        vessel type's lifetime, by vessel-type name, in USD/year.
+        vessel type's lifetime, by vessel-type name, in currency/year.
     vessel_from
         Source vessel type.
     idx
@@ -514,7 +514,7 @@ def _extract_conversion_target(
         Destination vessel type.
     fuel_cost_flow
         Expected yearly fuel cost flow of one destination vessel in service from now,
-        over the vessel type's lifetime, in USD/year.
+        over the vessel type's lifetime, in currency/year.
     conversion_cost
         Cost of converting one vessel along the lane.
     idx
@@ -559,7 +559,7 @@ def _build_fuel_cost_flow(vessel: Vessel, timeline: FloatArray, idx: int) -> Flo
     Returns
     -------
     FloatArray
-        Yearly fuel cost flow, in USD/year.
+        Yearly fuel cost flow, in currency/year.
     """
     component = build_fuel_component(vessel, lead_time=0.0, timeline=timeline, idx=idx)
     return component.get_cost_flow()

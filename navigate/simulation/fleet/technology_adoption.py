@@ -74,7 +74,7 @@ class _AdoptionBasis:
     vessel_idx
         Index of the vessel in ``fleet.vessels`` and ``fleet.increments``.
     packages_saving
-        Marginal-saving cash flow of each package, in USD/year.
+        Marginal-saving cash flow of each package, in currency/year.
     discount_rate
         Discount rate of the adoption decision: the technology cost of capital,
         falling back to the vessel's, fraction.
@@ -83,7 +83,7 @@ class _AdoptionBasis:
         consistently with the freight-rate NPVs, while the adoption decision keeps
         the technology rate.
     capex_npv
-        Summed ship CAPEX NPV, in USD; it non-dimensionalizes the NPVs in the DCM.
+        Summed ship CAPEX NPV, in currency; it non-dimensionalizes the NPVs in the DCM.
     sensitivity
         Odds ratio of the adoption choice.
     """
@@ -103,7 +103,7 @@ class _AdoptionBasis:
         Parameters
         ----------
         npv
-            NPV of each option, in USD.
+            NPV of each option, in currency.
 
         Returns
         -------
@@ -137,7 +137,7 @@ class _RetrofitProposal:
     eligible_share
         Share of the increment at ``package_idx`` at propose time, fraction.
     annual_costs
-        Levelized charge of each retrofit step, in USD/year per vessel.
+        Levelized charge of each retrofit step, in currency/year per vessel.
     """
 
     vessel_idx: int
@@ -339,7 +339,7 @@ def _calculate_packages_saving(
     Returns
     -------
     list[FloatArray]
-        Saving flow of each package, in USD/year.
+        Saving flow of each package, in currency/year.
     """
     lifetime = vessel.lifetime.get()
     forward = np.s_[idx:]
@@ -462,7 +462,7 @@ def _retrofit_cohorts(
     ------
     tuple[VesselIncrement, int, list[FloatArray]]
         Each cohort, its remaining lifetime, in years, and the cost flow of each
-        package over that lifetime, in USD/year.
+        package over that lifetime, in currency/year.
     """
     packages = fleet.technology_packages
     frequency = fleet.retrofit_frequency.get()
@@ -727,7 +727,7 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
     Transfer the fleet-average carried charge to each vessel's expectation and results.
 
     The average is the count-weighted mean of the per-increment carried charges,
-    USD/year per vessel. It feeds the investment freight rate within the same
+    currency/year per vessel. It feeds the investment freight rate within the same
     time-step, as the cargo charter runs after technology installation, and the
     results keeps it as the realized series the instantaneous freight rate is
     post-processed from.

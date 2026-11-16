@@ -26,13 +26,13 @@ Port "asia" {
 
 ### ShorePowerCost
 
-This attribute sets the shore power electricity tariff in the port in USD/MWh. It is converted internally to USD/GJ for consistency with the energy model.
+This attribute sets the shore power electricity tariff in the port in currency/MWh. It is converted internally to currency/GJ for consistency with the energy model.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `80`
   + `Forecast("name")`
-* **Unit**: USD/MWh
+* **Unit**: currency/MWh
 * **Minimum value**: 0
 * **Default**: 0
 
@@ -66,14 +66,14 @@ A Producer's export aimed at a port that does not allow the fuel goes to the por
 
 ### set\_handling\_cost
 
-This command sets the costs related to storage and the service of bunkering of a specific fuel in the port in USD/ton.
+This command sets the costs related to storage and the service of bunkering of a specific fuel in the port in currency/ton.
 
 * **Primary key type**: String (Fuel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", 50`
   + `"fuel_name", Forecast("name")`
-* **Unit**: USD/ton
+* **Unit**: currency/ton
 * **Minimum value**: 0
 * **Default**: 0
 
@@ -110,7 +110,7 @@ The inertia refers to the fraction of the amount bunkered in the previous time-s
 
 ### set\_bunker\_price\_overwrite
 
-This command sets the price of a specific fuel in the port in USD/ton.
+This command sets the price of a specific fuel in the port in currency/ton.
 
 If an overwrite is set for a specific fuel, then the bottom-up calculation of production cost is ignored.
 
@@ -119,7 +119,7 @@ If an overwrite is set for a specific fuel, then the bottom-up calculation of pr
 * **Example values**:
   + `"fuel_name", 600`
   + `"fuel_name", Forecast("name")`
-* **Unit**: USD/ton
+* **Unit**: currency/ton
 * **Minimum value**: 0
 * **Default**: Not set. The price is calculated bottom-up from production; for a liquid-market fuel it is 0.
 

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from navigate.core.results.base_results import (
     BaseResults,
+    Unit,
     per_step_results,
     result_names,
     result_units,

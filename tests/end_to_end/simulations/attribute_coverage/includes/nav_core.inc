@@ -4,13 +4,14 @@
 # General nodes: ModelDefinition, BunkerOptions
 #
 # Attributes covered:
-#   ModelDefinition: StartDate, EmissionsLifetime
+#   ModelDefinition: StartDate, EmissionsLifetime, Currency
 #   BunkerOptions:   Solver, SolverMethod, SolutionTolerance, Threads,
 #                    FairShareMaximumIterations, FairShareTolerance
 
 ModelDefinition {
 	StartDate = "01/01/2024"
 	EmissionsLifetime = 20
+	Currency = "EUR"
 }
 
 BunkerOptions {

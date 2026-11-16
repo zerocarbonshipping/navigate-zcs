@@ -114,7 +114,7 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
 
     share = port.shore_power_connection_share.get(times)
 
-    # convert from USD/MWh to USD/GJ, and ton/MWh to ton/GJ
+    # convert from currency/MWh to currency/GJ, and ton/MWh to ton/GJ
     cost = port.shore_power_cost.get(times) / MWH_TO_GJ
     factors: dict[str, FloatArray] = {}
     for key, value in port.shore_power_emission_factors.items():

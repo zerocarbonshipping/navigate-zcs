@@ -73,7 +73,7 @@ def calculate_levy_cost(
     Returns
     -------
     float
-        Summed cost of the port's imposed levies, in USD/ton fuel.
+        Summed cost of the port's imposed levies, in currency/t.
     """
     key = (vessel_name, port.name, fuel_name)
     cost: float = sum(levy.expectation.cost[key][idx] for levy in port.imposed_levies)

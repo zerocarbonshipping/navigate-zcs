@@ -168,7 +168,7 @@ def get_package_cost_flows(
     Returns
     -------
     list[FloatArray]
-        Cost flow of each package, in USD/year; zero for the empty package.
+        Cost flow of each package, in currency/year; zero for the empty package.
     """
     key = round(horizon, ROUND_OFF)
     flows = package_cost_flows.by_horizon.get(key)
@@ -220,16 +220,16 @@ def calculate_newbuild_npv(
     Parameters
     ----------
     package_savings
-        Yearly saving flow of each package over the vessel lifetime, in USD/year.
+        Yearly saving flow of each package over the vessel lifetime, in currency/year.
     cost_flows
-        Cost flow of each package over the vessel lifetime, in USD/year.
+        Cost flow of each package over the vessel lifetime, in currency/year.
     discount_rate
         Discount rate of the investment, fraction.
 
     Returns
     -------
     FloatArray
-        NPV of each package, in USD; zero for the empty package.
+        NPV of each package, in currency; zero for the empty package.
     """
     npv = np.zeros(len(package_savings))
 
@@ -262,9 +262,9 @@ def calculate_retrofit_npv(
     package_idx
         Package the vessels currently sit at.
     package_savings
-        Yearly saving flow of each package over the vessel lifetime, in USD/year.
+        Yearly saving flow of each package over the vessel lifetime, in currency/year.
     cost_flows
-        Cost flow of each package over the remaining lifetime, in USD/year.
+        Cost flow of each package over the remaining lifetime, in currency/year.
     lifetime
         Vessel lifetime, in years.
     remaining
@@ -275,7 +275,7 @@ def calculate_retrofit_npv(
     Returns
     -------
     FloatArray
-        NPV of each retrofit step, in USD; zero for the stay option.
+        NPV of each retrofit step, in currency; zero for the stay option.
     """
     n_steps = len(package_savings) - package_idx
     npv = np.zeros(n_steps)
@@ -309,7 +309,7 @@ def calculate_retrofit_charter_rates(
     package_idx
         Package the vessels currently sit at.
     cost_flows
-        Cost flow of each package over the remaining lifetime, in USD/year.
+        Cost flow of each package over the remaining lifetime, in currency/year.
     remaining
         Remaining vessel lifetime, in years.
     discount_rate
@@ -318,8 +318,8 @@ def calculate_retrofit_charter_rates(
     Returns
     -------
     FloatArray
-        Constant yearly charge of each retrofit step, in USD/year; zero for the stay
-        option.
+        Constant yearly charge of each retrofit step, in currency/year; zero for the
+        stay option.
     """
     n_steps = len(cost_flows) - package_idx
     rates = np.zeros(n_steps)
@@ -354,7 +354,7 @@ def calculate_package_charter_rates(
     Returns
     -------
     FloatArray
-        Constant yearly charge per package, in USD/year.
+        Constant yearly charge per package, in currency/year.
     """
     lifetime = vessel.lifetime.get()
     discount_rate = vessel.cost_of_capital.get()
@@ -369,7 +369,7 @@ def _levelize_package_cost(
     cost_flow: FloatArray, horizon: float, discount_rate: float
 ) -> float:
     """
-    Levelize a technology cost flow into a USD/year charge over a horizon.
+    Levelize a technology cost flow into a yearly charge over a horizon.
 
     The cost flow spans the horizon with its last partial year prorated, as
     ``get_package_cost_flows`` builds it. It is divided by the NPV of the operating-year
@@ -390,7 +390,7 @@ def _levelize_package_cost(
     Returns
     -------
     float
-        Constant yearly charge, in USD/year.
+        Constant yearly charge, in currency/year.
     """
     # the leveling flow prorates the final partial year as the cost flow does, so
     # the charge is recovered over exactly the horizon

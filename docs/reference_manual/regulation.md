@@ -168,7 +168,7 @@ This attribute sets the cost of a remedial compliance unit. A vessel that does n
 * **Example values**:
   + `500`
   + `Forecast("name")`
-* **Unit**: USD/ton emission
+* **Unit**: currency/ton emission
 * **Minimum value**: 0
 * **Default**: 0
 

@@ -29,15 +29,15 @@ class VesselResults(_FuelConsumerResults, _TransportResults):
     lead_time: FloatArray = result(Unit.YEARS)
 
     # investment signals: energy-weighted mean of the smoothed energy-conservation duals
-    investment_signal_technology: FloatArray = result(Unit.USD_PER_GJ)
-    investment_signal_speed: FloatArray = result(Unit.USD_PER_GJ)
+    investment_signal_technology: FloatArray = result(Unit.CURRENCY_PER_GJ)
+    investment_signal_speed: FloatArray = result(Unit.CURRENCY_PER_GJ)
 
-    technology_cost: FloatArray = result(Unit.USD_PER_YEAR)
+    technology_cost: FloatArray = result(Unit.CURRENCY_PER_YEAR)
 
     # freight and charter rates
-    asset_charter_rate: FloatArray = result(Unit.USD_PER_YEAR)
-    cargo_charter_rate: FloatArray = result(Unit.USD_PER_YEAR)
-    investment_freight_rate: FloatArray = result(Unit.USD_PER_CARGO_MILE)
+    asset_charter_rate: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    cargo_charter_rate: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    investment_freight_rate: FloatArray = result(Unit.CURRENCY_PER_CARGO_MILE)
 
     # savings against the year-0 raw energy
     speed_energy_saving: FloatArray = result(Unit.DIMENSIONLESS)

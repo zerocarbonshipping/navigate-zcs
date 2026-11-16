@@ -77,8 +77,8 @@ def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
     """
     Store each vessel's investment signal: its beliefs' energy-weighted average dual.
 
-    The technology and speed beliefs each give one signal, in USD/GJ, written to the
-    vessel results for output.
+    The technology and speed beliefs each give one signal, in currency/GJ, written to
+    the vessel results for output.
 
     Parameters
     ----------
@@ -155,7 +155,7 @@ def _average_dual(beliefs: _SeaPortPaths, rhs: _SeaPortPaths, idx: int) -> float
     ----------
     beliefs
         Smoothed duals at sea and in port, per energy demand type and leg or port, in
-        USD/GJ.
+        currency/GJ.
     rhs
         Energy-conservation RHS at sea and in port, shaped as `beliefs`, in GJ/year.
     idx
@@ -164,7 +164,7 @@ def _average_dual(beliefs: _SeaPortPaths, rhs: _SeaPortPaths, idx: int) -> float
     Returns
     -------
     float
-        Energy-weighted average dual, in USD/GJ, or ``np.nan`` when there is no
+        Energy-weighted average dual, in currency/GJ, or ``np.nan`` when there is no
         demand.
     """
     weighted_sum = 0.0

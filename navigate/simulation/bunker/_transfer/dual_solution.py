@@ -84,7 +84,7 @@ def _calculate_energy_price(alg: BunkerAlgorithm, constraint: Constraint) -> flo
     -------
     float
         Price of energy on the row, scaled by the vessel's count as the objective is,
-        in USD/GJ.
+        in currency/GJ.
     """
     model = alg.model
     tolerance = alg.options.solution_tolerance

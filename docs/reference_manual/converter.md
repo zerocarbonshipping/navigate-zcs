@@ -37,7 +37,7 @@ This attribute represents the CAPEX (capital expenditure) for installing the mac
 * **Example values**:
   + `1e6`
   + `Forecast("name")`
-* **Unit**: USD/MW
+* **Unit**: currency/MW
 * **Minimum value**: 0
 * **Default**: 0
 
@@ -49,7 +49,7 @@ This attribute represents the OPEX (operational expenditure) for maintaining the
 * **Example values**:
   + `1e4`
   + `Forecast("name")`
-* **Unit**: USD/MW/year
+* **Unit**: currency/MW/year
 * **Minimum value**: 0
 * **Default**: 0
 

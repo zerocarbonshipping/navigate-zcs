@@ -38,7 +38,8 @@ class Unit(Enum):
     which matches the fleet's trade. ``measure`` stands for the unit of the
     regulation's measure: tCO2e/year for ABSOLUTE, gCO2e/MJ for INTENSITY,
     gCO2e/cargo-mile for TRANSPORT and gCO2e/nominal cargo-mile for
-    TRANSPORT_NOMINAL.
+    TRANSPORT_NOMINAL. ``currency`` stands for the deck's currency, the
+    ModelDefinition's Currency, which the results file writes in its place.
     """
 
     GJ_PER_YEAR = "GJ/year"  # gigajoules per year
@@ -49,12 +50,12 @@ class Unit(Enum):
     TCO2E_PER_YEAR = "tCO2e/year"  # tons of CO2-equivalent per year
     TCO2E_PER_TON = "tCO2e/t"  # tons of CO2-equivalent per ton of fuel
     GCO2E_PER_MJ = "gCO2e/MJ"  # grams of CO2-equivalent per MJ, equal to kg/GJ
-    USD = "USD"  # money
-    USD_PER_YEAR = "USD/year"  # money per year
-    USD_PER_GJ = "USD/GJ"  # money per gigajoule
-    USD_PER_TON = "USD/t"  # money per ton of fuel
-    USD_PER_TCO2E = "USD/tCO2e"  # money per ton of CO2-equivalent
-    USD_PER_CARGO_MILE = "USD/cargo-mile"  # money per cargo-mile
+    CURRENCY = "currency"  # money
+    CURRENCY_PER_YEAR = "currency/year"  # money per year
+    CURRENCY_PER_GJ = "currency/GJ"  # money per gigajoule
+    CURRENCY_PER_TON = "currency/t"  # money per ton of fuel
+    CURRENCY_PER_TCO2E = "currency/tCO2e"  # money per ton of CO2-equivalent
+    CURRENCY_PER_CARGO_MILE = "currency/cargo-mile"  # money per cargo-mile
     CARGO_MILES_PER_YEAR = "cargo-miles/year"  # cargo-miles per year
     KNOTS = "knots"  # nautical miles per hour
     VESSELS = "vessels"  # a number of vessels

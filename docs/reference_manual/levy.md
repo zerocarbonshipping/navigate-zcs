@@ -105,7 +105,7 @@ This attribute determines the level of the penalty or subsidy, paid per ton of e
 * **Example values**:
   + `100`
   + `Forecast("name")`
-* **Unit**: USD/ton emission
+* **Unit**: currency/ton emission
 * **Minimum value**: 0
 * **Default**: 0
 

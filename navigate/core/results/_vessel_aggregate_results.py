@@ -33,12 +33,12 @@ class _VesselAggregateResults(_FuelConsumerResults):
     )
 
     # expenses
-    vessel_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    technology_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    fuel_conversion_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    vessel_related_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    vessel_tied_capital: FloatArray = result(Unit.USD)
+    vessel_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    technology_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    fuel_conversion_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    vessel_related_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    vessel_tied_capital: FloatArray = result(Unit.CURRENCY)
 
     # power-weighted average age, kept as a summable numerator and denominator
     weighted_age_numerator: dict[FuelTypeID, FloatArray] = field(init=False)

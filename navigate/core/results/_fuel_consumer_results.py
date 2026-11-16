@@ -63,15 +63,15 @@ class _FuelConsumerResults(BaseResults):
     pilot_fuel_share: dict[FuelTypeID, FloatArray] = result(Unit.DIMENSIONLESS)
 
     # expenses
-    fuel_expenses: dict[str, FloatArray] = result(Unit.USD_PER_YEAR)
-    levy_expenses: dict[str, FloatArray] = result(Unit.USD_PER_YEAR)
-    fuel_related_expenses: dict[str, FloatArray] = result(Unit.USD_PER_YEAR)
-    remedial_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    flexibility_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    surplus_revenue: FloatArray = result(Unit.USD_PER_YEAR)
-    regulation_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    total_fuel_expenses: FloatArray = result(Unit.USD_PER_YEAR)
-    total_fuel_related_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    fuel_expenses: dict[str, FloatArray] = result(Unit.CURRENCY_PER_YEAR)
+    levy_expenses: dict[str, FloatArray] = result(Unit.CURRENCY_PER_YEAR)
+    fuel_related_expenses: dict[str, FloatArray] = result(Unit.CURRENCY_PER_YEAR)
+    remedial_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    flexibility_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    surplus_revenue: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    regulation_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    total_fuel_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    total_fuel_related_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
 
     # CO2-equivalents under the policy's own global warming potential; a levy unit is
     # the levy collected over its level
@@ -99,7 +99,7 @@ class _FuelConsumerResults(BaseResults):
     # shore power: a WTW-lumped emission per gas, unweighted and with no fuel
     # attribution
     shore_power_energy: FloatArray = result(Unit.GJ_PER_YEAR)
-    shore_power_expenses: FloatArray = result(Unit.USD_PER_YEAR)
+    shore_power_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
     shore_power_emission: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
 
     def _initialize_fuel_consumer(

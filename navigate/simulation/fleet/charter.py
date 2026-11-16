@@ -29,7 +29,7 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     """
     Calculate the asset charter metrics of a vessel ordered at this time-step.
 
-    The asset charter rate, in USD/year, is what a ship operator would pay a ship
+    The asset charter rate, in currency/year, is what a ship operator would pay a ship
     owner: the asset cost levelized over the vessel's operating years. Technology
     costs are left out: they enter the cargo charter metrics as the fleet-average
     carried technology charge, and the post-processed instantaneous freight rate
@@ -79,9 +79,9 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
 
     The total cost NPV adds the fuel cost NPV, which covers the bunker and policy
     expenses, and the carried technology charge to the asset charter NPV already
-    calculated for this time-step. The cargo charter rate, in USD/year, is what a
+    calculated for this time-step. The cargo charter rate, in currency/year, is what a
     cargo owner would pay a ship operator: the total cost levelized over the
-    operating years. The freight rate, in USD/cargo-mile, levelizes it over the
+    operating years. The freight rate, in currency/cargo-mile, levelizes it over the
     cargo-miles delivered.
 
     Parameters
@@ -110,7 +110,7 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     fuel_npv = calculate_net_present_value(fuel_cost_flow, discount_rate)
     cargo_npv = calculate_net_present_value(cargo_flow, discount_rate)
 
-    # present value of one USD/year over the operating years, lead time excluded
+    # present value of 1 currency/year over the operating years, lead time excluded
     annuity_factor = calculate_net_present_value(operating_flow, discount_rate)
 
     # the fleet-average carried technology charge is locked at this step like fixed
@@ -150,7 +150,7 @@ def calculate_fuel_and_policy_expenses(vessel: Vessel, idx: int | slice) -> Floa
     Returns
     -------
     FloatLike
-        Fuel plus policy (levy, remedial and flexibility) expenses, in USD/year.
+        Fuel plus policy (levy, remedial and flexibility) expenses, in currency/year.
     """
     expectation = vessel.expectation
 
