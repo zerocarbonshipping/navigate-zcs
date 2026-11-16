@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class ProducerExpectation(_Expectation):
-    """Export shares, feed use, fair-share demand and production paths of a producer."""
+    """Export shares, feed use, fair-share demand and production of a whole producer."""
 
     def __init__(
         self,
@@ -31,19 +31,20 @@ class ProducerExpectation(_Expectation):
         super().__init__(length)
 
         feed_names = [*feedstock_names, *process_names]
+        plant_feeds = list(product(plant_names, feed_names))
 
         # per fuel, then per port
-        self.export_share = {name: self._paths(port_names) for name in fuel_names}
+        self.export_share = {name: self._paths(port_names) for name in fuel_names}  # -
 
-        self.plant_feed_consumption = self._values(product(plant_names, feed_names))
-        self.feed_gap = self._paths(feed_names, default=np.inf)
+        self.plant_feed_consumption = self._values(plant_feeds)  # t/year, one plant
+        self.feed_gap = self._paths(feed_names, default=np.inf)  # t/year
 
-        self.development_potential = self._values(fuel_names)
-        self.fair_share_demand = self._paths(fuel_names)
+        self.development_potential = self._values(fuel_names)  # t/year, added this step
+        self.fair_share_demand = self._paths(fuel_names)  # t/year
 
         # the producer's guaranteed production its fair-share demand was measured
         # against
-        self.fair_share_baseline = self._paths(fuel_names)
+        self.fair_share_baseline = self._paths(fuel_names)  # t/year
 
-        self.guaranteed_production = self._paths(plant_names)
-        self.expected_production = self._paths(plant_names)
+        self.guaranteed_production = self._paths(plant_names)  # t/year
+        self.expected_production = self._paths(plant_names)  # t/year

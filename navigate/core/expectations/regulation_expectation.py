@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class RegulationExpectation(_Expectation):
-    """The inputs a regulation gives the bunkering LP and the results it gets back."""
+    """What a regulation gives the bunkering LP per vessel and gets back from it."""
 
     def __init__(
         self,
@@ -56,47 +56,46 @@ class RegulationExpectation(_Expectation):
                         key = (*fuel_key, emission_name)
                         vessel_converter_fuel_emissions.append(key)
 
-        self.global_warming_potential = self._values(emission_names)
+        self.global_warming_potential = self._values(emission_names)  # tCO2e/t emission
 
-        self.wtt = self._paths(vessel_fuel_emissions)
-        self.ttw_consumption = self._paths(vessel_converter_fuel_emissions)
-        self.ttw_slip = self._paths(vessel_converter_fuel_emissions)
+        self.wtt = self._paths(vessel_fuel_emissions)  # tCO2e/t
+        self.ttw_consumption = self._paths(vessel_converter_fuel_emissions)  # tCO2e/t
+        self.ttw_slip = self._paths(vessel_converter_fuel_emissions)  # tCO2e/t
 
         # the threshold adjustment rewrites the spend coefficients at its LP's step
-        self.emission_coefficient = self._paths(vessel_converter_fuels)
-        self.spend_coefficient = self._paths(vessel_converter_fuels)
+        self.emission_coefficient = self._paths(vessel_converter_fuels)  # tCO2e/t
+        self.spend_coefficient = self._paths(vessel_converter_fuels)  # tCO2e/t
 
-        self.shore_power_emission_coefficient = self._paths(port_names)
-        self.shore_power_spend_coefficient = self._paths(vessel_ports)
+        self.shore_power_emission_coefficient = self._paths(port_names)  # tCO2e/GJ
+        self.shore_power_spend_coefficient = self._paths(vessel_ports)  # tCO2e/GJ
 
         # the belief is NaN until its first update: zero is a real shadow price
-        self.flexibility_cost = self._path()
-        self.belief_flexibility_cost = self._path(default=np.nan)
-        self.vessel_net_flexibility_units = self._paths(vessels)
-        self.remedial_cost = self._path()
+        self.flexibility_cost = self._path()  # USD/tCO2e
+        self.belief_flexibility_cost = self._path(default=np.nan)  # USD/tCO2e
+        self.vessel_net_flexibility_units = self._paths(vessels)  # tCO2e/year
+        self.remedial_cost = self._path()  # USD/tCO2e
 
         # a leg is keyed by the names of its departure and arrival port
-        self.port_fraction = self._paths(port_names)
-        self.leg_fraction = self._paths(legs)
+        self.port_fraction = self._paths(port_names)  # -
+        self.leg_fraction = self._paths(legs)  # -
 
-        # per vessel; threshold in the regulation's unit, kg emission/GJ under INTENSITY
-        self.vessel_threshold = self._paths(vessels)
-        self.vessel_capacity = self._paths(vessels)
-        self.vessel_measure = self._paths(vessels)
+        self.vessel_threshold = self._paths(vessels)  # measure
+        self.vessel_capacity = self._paths(vessels)  # cargo units
+        self.vessel_measure = self._paths(vessels)  # tCO2e/year per measure
 
         # the threshold adjustment rewrites the allowance at its LP's step
-        self.vessel_allowance = self._paths(vessels)
+        self.vessel_allowance = self._paths(vessels)  # tCO2e/year
 
         # results of the bunkering LP of each time step
-        self.vessel_emissions = self._paths(vessels)
-        self.vessel_energy = self._paths(vessels)
-        self.vessel_remedial_units = self._paths(vessels)
-        self.pooled_remedial_units = self._path()
-        self.pooled_shadow_price = self._path()
+        self.vessel_emissions = self._paths(vessels)  # tCO2e/year
+        self.vessel_energy = self._paths(vessels)  # GJ/year
+        self.vessel_remedial_units = self._paths(vessels)  # tCO2e/year
+        self.pooled_remedial_units = self._path()  # tCO2e/year, the pool's total
+        self.pooled_shadow_price = self._path()  # USD/tCO2e
 
         # NaN where the threshold adjustment does not apply
-        self.adjusted_vessel_threshold = self._paths(vessels, default=np.nan)
-        self.adjusted_shared_threshold = self._path(default=np.nan)
+        self.adjusted_vessel_threshold = self._paths(vessels, default=np.nan)  # measure
+        self.adjusted_shared_threshold = self._path(default=np.nan)  # measure
 
     def reset_expected_bunkering(self) -> None:
         """Clear the flexibility market outcomes of the expected bunkering LPs."""

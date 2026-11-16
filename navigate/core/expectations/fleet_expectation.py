@@ -18,21 +18,21 @@ if TYPE_CHECKING:
 
 
 class FleetExpectation(_Expectation):
-    """Vessel counts, fuel demand, uptakes and realized fuel-type totals."""
+    """Fleet-wide vessel counts, fuel demand, uptakes and realized fuel-type totals."""
 
     def __init__(
         self, length: int, vessel_names: Collection[str], fuel_names: Collection[str]
     ) -> None:
         super().__init__(length)
 
-        self.count = self._paths(product(vessel_names, BunkerScopeID))
-        self.fuel_demand = self._paths(fuel_names)
+        self.count = self._paths(product(vessel_names, BunkerScopeID))  # vessels
+        self.fuel_demand = self._paths(fuel_names)  # t/year
 
         # one row per vessel, one column per time step
-        self.uptakes = np.zeros((len(vessel_names), length))
+        self.uptakes = np.zeros((len(vessel_names), length))  # -
 
-        self.fuel_type_capacity = self._values(FuelTypeID)
-        self.fuel_type_supply = self._values(FuelTypeID)
+        self.fuel_type_capacity = self._values(FuelTypeID)  # GJ/year
+        self.fuel_type_supply = self._values(FuelTypeID)  # GJ/year
 
     def reset_fuel_type_totals(self) -> None:
         """Zero the fuel-type capacity and supply totals, summed anew each step."""

@@ -29,32 +29,32 @@ class PlantExpectation(_Expectation):
 
         feed_names = [*feedstock_names, *process_names]
 
-        self.lifetime = self._path()
-        self.lead_time = self._path()
+        self.lifetime = self._path()  # years
+        self.lead_time = self._path()  # years
 
-        self.size = self._path()
-        self.production = self._path()
+        self.size = self._path()  # t/day
+        self.production = self._path()  # t/year
 
         # feed per mass of fuel
-        self.feed_conversion = self._paths(feed_names)
+        self.feed_conversion = self._paths(feed_names)  # t/t
 
-        self.levelized_production_cost = self._path()
-        self.levelized_delivery_cost = self._paths(port_names)
+        self.levelized_production_cost = self._path()  # USD/t
+        self.levelized_delivery_cost = self._paths(port_names)  # USD/t
 
-        # per time step, the tied-up capital flow of a plant decided then
-        self.tied_capital = [self._path() for _ in range(length)]
+        # per time step, the capital a plant decided then ties up each year in service
+        self.tied_capital = [self._path() for _ in range(length)]  # USD
 
-        self.production_wtt = self._paths(emission_names)
-        self.delivery_wtt = self._paths(product(port_names, emission_names))
+        self.production_wtt = self._paths(emission_names)  # t/t
+        self.delivery_wtt = self._paths(product(port_names, emission_names))  # t/t
 
         # production-weighted properties across plants
-        self.expected_production_cost = self._path()
-        self.expected_production_wtt = self._paths(emission_names)
+        self.expected_production_cost = self._path()  # USD/t
+        self.expected_production_wtt = self._paths(emission_names)  # t/t
 
         # uptake decision
-        self.demand_newbuilds = 0.0
-        self.inter_fuel_metric = 0.0
-        self.intra_fuel_metric = 0.0
+        self.demand_newbuilds = 0.0  # plants
+        self.inter_fuel_metric = 0.0  # GJ/year of unmet demand for the fuel
+        self.intra_fuel_metric = 0.0  # USD/t
 
     def reset_feed_conversion(self, idx: int) -> None:
         """
