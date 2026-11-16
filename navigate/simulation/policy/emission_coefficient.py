@@ -269,6 +269,9 @@ def _calculate_regulation_shore_power_coefficients(
     """
     Calculate the regulation's shore-power emission coefficient at each route port.
 
+    The grid electricity emits upstream of the vessel, so a TTW regulation counts none
+    of the port's well-to-wake shore-power emission factor.
+
     Parameters
     ----------
     regulation
@@ -281,13 +284,15 @@ def _calculate_regulation_shore_power_coefficients(
     expectation = regulation.expectation
     forward = np.s_[idx:]
 
+    is_ttw = regulation.scope == PolicyScopeID.TTW
+    counted_emissions = [] if is_ttw else regulation.emissions
     route_ports = (port for vessel in vessels.values() for port in vessel.route.ports)
 
     for port in unique_list(route_ports):
         emission_factor = port.expectation.shore_power_emission_factor
 
         coefficient = 0.0
-        for emission in regulation.emissions:
+        for emission in counted_emissions:
             factor = emission_factor[emission.name][forward]
             coefficient += _apply_gwp(factor, regulation, emission)
 

@@ -350,6 +350,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A `Regulation` with `Scope = TTW` no longer counts the shore-power grid's
+  emissions, set by `set_shore_power_emission_factor`; they arise upstream of
+  the vessel. Decks with shore power under a TTW regulation move (#936).
 - `plant_tied_capital` takes each plant's capital from the step it was decided
   at; it took that of a plant decided one lead time later. Decks whose plants'
   costs or `Capacity` change over time move in this result alone (#935).
