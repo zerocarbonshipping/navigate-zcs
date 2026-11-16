@@ -43,8 +43,12 @@ class VesselExpectation(_Expectation):
         per_leg = partial(self._path_lists, EnergyDemandID, legs)
         per_port_call = partial(self._path_lists, PORT_ENERGY_DEMANDS, port_calls)
 
+        # NaN until the first step sets them
+        unset = partial(self._values, default=np.nan)
+
         port_names = [port.name for port in route.distinct_ports]
         port_fuels = list(product(port_names, fuel_names))
+        port_fuel_types = list(product(port_names, FuelTypeID))
         usable_fuel_emissions = list(product(usable_fuel_names, emission_names))
 
         # each converter with each fuel it burns, and for the TTW each emission too
@@ -59,89 +63,88 @@ class VesselExpectation(_Expectation):
                     key = (converter_name, fuel_name, emission_name)
                     converter_fuel_emissions.append(key)
 
-        self.voyages = self._path()
+        self.voyages = self._path()  # voyages/year
 
-        self.cargo_miles = self._path()
-        self.cargo_miles_leg = self._path_list(legs)
-        self.cargo_miles_leg_nominal = self._path_list(legs)
+        self.cargo_miles = self._path()  # cargo-miles/year
+        self.cargo_miles_leg = self._path_list(legs)  # cargo-miles/year
+        self.cargo_miles_leg_nominal = self._path_list(legs)  # cargo-miles/year
 
-        self.speed_mean = np.nan
-        self.speed_anchor_reference = np.nan
-        self.speed_anchor_optimal = np.nan
-        self.speeds_condition = self._path_list(conditions)
+        self.speed_mean = np.nan  # knots
+        self.speed_anchor_reference = np.nan  # knots
+        self.speed_anchor_optimal = np.nan  # knots
+        self.speeds_condition = self._path_list(conditions)  # knots
 
-        self.time_sea_condition = self._path_list(conditions)
-        self.time_port = self._path_list(port_calls)
+        self.time_sea_condition = self._path_list(conditions)  # days/year
+        self.time_port = self._path_list(port_calls)  # days/year
 
-        # energies, at sea per condition and per leg, in port per port call
-        self.raw_energy_sea_condition = per_condition()
-        self.raw_energy_port = per_port_call()
+        # converter output, at sea per condition and per leg, in port per port call
+        self.raw_energy_sea_condition = per_condition()  # GJ/year
+        self.raw_energy_port = per_port_call()  # GJ/year
 
-        self.operational_energy_sea_condition = per_condition()
-        self.operational_energy_sea_leg = per_leg()
-        self.operational_energy_port = per_port_call()
+        self.operational_energy_sea_condition = per_condition()  # GJ/year
+        self.operational_energy_sea_leg = per_leg()  # GJ/year
+        self.operational_energy_port = per_port_call()  # GJ/year
 
-        self.operational_saving_fraction_sea = self._values(EnergyDemandID)
-        self.operational_saving_fraction_port = self._values(PORT_ENERGY_DEMANDS)
+        self.operational_saving_fraction_sea = self._values(EnergyDemandID)  # -
+        self.operational_saving_fraction_port = self._values(PORT_ENERGY_DEMANDS)  # -
 
-        self.energy_sea_condition = per_condition()
-        self.energy_sea_leg = per_leg()
-        self.energy_port = per_port_call()
+        self.energy_sea_condition = per_condition()  # GJ/year
+        self.energy_sea_leg = per_leg()  # GJ/year
+        self.energy_port = per_port_call()  # GJ/year
 
         # energy conservation, at sea per leg, in port per port call
-        self.energy_conservation_pi_sea = per_leg()
-        self.energy_conservation_pi_port = per_port_call()
-        self.energy_conservation_rhs_sea = per_leg()
-        self.energy_conservation_rhs_port = per_port_call()
+        self.energy_conservation_pi_sea = per_leg()  # USD/GJ
+        self.energy_conservation_pi_port = per_port_call()  # USD/GJ
+        self.energy_conservation_rhs_sea = per_leg()  # GJ/year
+        self.energy_conservation_rhs_port = per_port_call()  # GJ/year
 
         # NaN until the first update: zero is a real shadow price, not a missing one
-        self.belief_pi_sea_technology = per_leg(default=np.nan)
-        self.belief_pi_port_technology = per_port_call(default=np.nan)
-        self.belief_pi_sea_speed = per_leg(default=np.nan)
-        self.belief_pi_port_speed = per_port_call(default=np.nan)
+        self.belief_pi_sea_technology = per_leg(default=np.nan)  # USD/GJ
+        self.belief_pi_port_technology = per_port_call(default=np.nan)  # USD/GJ
+        self.belief_pi_sea_speed = per_leg(default=np.nan)  # USD/GJ
+        self.belief_pi_port_speed = per_port_call(default=np.nan)  # USD/GJ
 
-        # NaN until the first step sets them
-        self.effective_lhv = self._values(converter_fuels, default=np.nan)
-        self.ttw_consumption = self._values(converter_fuel_emissions, default=np.nan)
-        self.ttw_slip = self._values(converter_fuel_emissions, default=np.nan)
+        self.effective_lhv = unset(converter_fuels)  # GJ/t
+        self.ttw_consumption = unset(converter_fuel_emissions)  # t/t
+        self.ttw_slip = unset(converter_fuel_emissions)  # t/t
 
         # the vessel's means over its converters
-        self.mean_effective_lhv = self._values(usable_fuel_names, default=np.nan)
-        self.mean_ttw_consumption = self._values(usable_fuel_emissions, default=np.nan)
-        self.mean_ttw_slip = self._values(usable_fuel_emissions, default=np.nan)
+        self.mean_effective_lhv = unset(usable_fuel_names)  # GJ/t
+        self.mean_ttw_consumption = unset(usable_fuel_emissions)  # t/t
+        self.mean_ttw_slip = unset(usable_fuel_emissions)  # t/t
 
-        self.bunker_mass_expected = self._paths(port_fuels)
-        self.bunker_mass_existing = self._values(port_fuels)
-        self.spend_energy = self._values(fuels_per_converter)
+        self.bunker_mass_expected = self._paths(port_fuels)  # t/year
+        self.bunker_mass_existing = self._values(port_fuels)  # t/year
+        self.spend_energy = self._values(fuels_per_converter)  # GJ/year of fuel
 
         # potential fuel-type demand at each port of the route
-        self.potential_fuel_type_demand = self._paths(product(port_names, FuelTypeID))
+        self.potential_fuel_type_demand = self._paths(port_fuel_types)  # GJ/year
 
         # fair-share fuel supply, and the existing bunkering's allocation of it
-        self.fair_share_fuel_existing = self._values(port_fuels)
-        self.fair_share_fuel_expected = self._paths(port_fuels)
-        self.allocation_fuel_existing = self._values(port_fuels)
+        self.fair_share_fuel_existing = self._values(port_fuels)  # -
+        self.fair_share_fuel_expected = self._paths(port_fuels)  # -
+        self.allocation_fuel_existing = self._values(port_fuels)  # t/year
 
         # bunker results (expected bunkering)
-        self.total_energy = self._path()
-        self.fuel_expenses = self._path()
+        self.total_energy = self._path()  # GJ/year of fuel and shore power
+        self.fuel_expenses = self._path()  # USD/year
 
         # policy expenses (expected bunkering)
-        self.levy_expenses = self._path()
-        self.remedial_expenses = self._path()
-        self.flexibility_expenses = self._path()
+        self.levy_expenses = self._path()  # USD/year
+        self.remedial_expenses = self._path()  # USD/year
+        self.flexibility_expenses = self._path()  # USD/year
 
-        self.shore_power_potential_port = self._path_list(port_calls)
-        self.shore_power_limit_port = self._path_list(port_calls)
+        self.shore_power_potential_port = self._path_list(port_calls)  # GJ/year
+        self.shore_power_limit_port = self._path_list(port_calls)  # GJ/year
 
-        self.asset_charter_npv = self._path()
-        self.capex_npv = self._path()
-        self.asset_charter_rate = self._path()
-        self.freight_rate = self._path()
-        self.technology_charter_rate = self._path()
+        self.asset_charter_npv = self._path()  # USD
+        self.capex_npv = self._path()  # USD
+        self.asset_charter_rate = self._path()  # USD/year
+        self.freight_rate = self._path()  # USD/cargo-mile
+        self.technology_charter_rate = self._path()  # USD/year
 
-        # per time step, the tied-up capital flow of a vessel ordered then
-        self.tied_capital = [self._path() for _ in range(length)]
+        # per time step, the capital a vessel ordered then ties up each year in service
+        self.tied_capital = [self._path() for _ in range(length)]  # USD
 
     def reset_expected_bunkering(self) -> None:
         """Clear the bunker masses, energy and expenses of the expected bunkering."""

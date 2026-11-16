@@ -950,7 +950,7 @@ def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> fl
     Returns
     -------
     float
-        Fuel mass counting for one vessel, in tons.
+        Fuel mass counting for one vessel, in tons/year.
     """
     supply: float = port.expectation.bunker_supply[fuel_name][idx]
     if not np.isfinite(supply):
