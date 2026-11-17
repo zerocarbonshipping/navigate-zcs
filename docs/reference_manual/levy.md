@@ -8,6 +8,8 @@ SPDX-License-Identifier: CC-BY-4.0
 A `Levy` node defines a regulatory measure that works on a per ton of emissions basis. Examples of levies are
 CO<sub>2</sub>-taxes and subsidy schemes.
 
+A levy charges the fuel bunkered and the shore power drawn in its `Jurisdiction`. The emissions of shore power are those of the grid, set with `set_shore_power_emission_factor` on the [Port](port.md), and count as WTT: a levy with `Scope = TTW` counts none of them.
+
 Example:
 
 ```python
@@ -63,7 +65,7 @@ This attribute specifies the emission(s) being targeted by the policy. Use the w
 
 ### Fuels 
 
-This attribute specifies the fuel(s) being targeted by the policy. This can be used to e.g., limit a subsidy scheme to only subsidize e-fuels. Use the wildcard `Fuel("*")` to target every fuel defined in the simulation.
+This attribute specifies the fuel(s) being targeted by the policy. This can be used to e.g., limit a subsidy scheme to only subsidize e-fuels. Use the wildcard `Fuel("*")` to target every fuel defined in the simulation. Shore power is no fuel, and the levy charges it whatever this list holds.
 
 * **Data type**: List of `Fuel` nodes
 * **Example values**:
@@ -113,7 +115,7 @@ This attribute determines the level of the penalty or subsidy, paid per ton of e
 
 This attribute sets the lower emission intensity threshold of the levy. If ‘Scheme’ is SUBSIDY or BOTH, then values below the threshold are subsidized, if set to PENALTY or BOTH, then values above the threshold are penalized.
 
-The emission intensity is per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction its converter lets escape unburned (`set_slip_fraction` on the `Converter`). A levy applies per fuel at port, so the slip is averaged over the vessel's converters able to burn the fuel, weighted by power capacity over efficiency. A `Regulation` with ‘Measure’ INTENSITY uses the same basis.
+The emission intensity is per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction its converter lets escape unburned (`set_slip_fraction` on the `Converter`). A levy applies per fuel at port, so the slip is averaged over the vessel's converters able to burn the fuel, weighted by power capacity over efficiency. The intensity of shore power is per GJ drawn. A `Regulation` with ‘Measure’ INTENSITY uses the same basis.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:

@@ -38,7 +38,7 @@ def calculate_policy_emission_coefficients(
     WTT and TTW emission factors add up to its emission factors, and these, summed over
     its emissions, to the emission coefficients that convert a ton of fuel to a ton of
     emissions. A levy's coefficients, priced at its level, give its cost per ton of
-    fuel.
+    fuel and per GJ of shore power.
 
     Reads the plants' production and delivery WTT, the ports' shore-power emission
     factors, the vessels' effective LHVs and the levies' levels of the current time
@@ -269,9 +269,6 @@ def _calculate_regulation_shore_power_coefficients(
     """
     Calculate the regulation's shore-power emission coefficient at each route port.
 
-    The grid electricity emits upstream of the vessel, so a TTW regulation counts none
-    of the port's well-to-wake shore-power emission factor.
-
     Parameters
     ----------
     regulation
@@ -282,20 +279,10 @@ def _calculate_regulation_shore_power_coefficients(
         Current time-step index.
     """
     expectation = regulation.expectation
-    forward = np.s_[idx:]
-
-    is_ttw = regulation.scope == PolicyScopeID.TTW
-    counted_emissions = [] if is_ttw else regulation.emissions
     route_ports = (port for vessel in vessels.values() for port in vessel.route.ports)
 
     for port in unique_list(route_ports):
-        emission_factor = port.expectation.shore_power_emission_factor
-
-        coefficient = 0.0
-        for emission in counted_emissions:
-            factor = emission_factor[emission.name][forward]
-            coefficient += _apply_gwp(factor, regulation, emission)
-
+        coefficient = _calculate_shore_power_coefficient(regulation, port, idx)
         expectation.shore_power_emission_coefficient[port.name][idx:] = coefficient
 
 
@@ -440,11 +427,12 @@ def _calculate_levy_costs(
     levy: Levy, vessels: dict[str, Vessel], times: FloatArray, idx: int
 ) -> None:
     """
-    Calculate the levy's cost per ton of each fuel a vessel bunkers in its ports.
+    Calculate the levy's cost per ton of fuel and per GJ of shore power to a vessel.
 
-    The cost is the levy's level times the fuel's threshold-adjusted emission
-    coefficient, from the current time step onward, and zero for a vessel the levy
-    does not police.
+    The cost is the levy's level times the threshold-adjusted emission coefficient of
+    the fuel or the port's shore power, from the current time step onward, and zero
+    for a vessel the levy does not police. Shore power is no fuel, so the levy charges
+    it whichever fuels it targets.
 
     Parameters
     ----------
@@ -465,12 +453,25 @@ def _calculate_levy_costs(
     lower = levy.lower_threshold.get(times)
     upper = None if levy.upper_threshold is None else levy.upper_threshold.get(times)
 
+    # a GJ drawn is a GJ of effective energy, so the thresholds apply at an LHV of 1
+    shore_power_costs = {}
+    for port in levy.jurisdiction:
+        coefficient = _calculate_shore_power_coefficient(levy, port, idx)
+        coefficient = _apply_thresholds(coefficient, scheme, 1.0, lower, upper)
+        shore_power_costs[port.name] = level * coefficient
+
     for vessel_name, vessel in vessels.items():
         ports = list_intersection(vessel.route.distinct_ports, levy.jurisdiction)
         if not ports:
             continue
 
+        # zero rather than unwritten where the levy does not police the vessel: an
+        # event can stop it policing, and the costs written while it did would remain
         is_policed = levy.vessel_is_policed(vessel_name)
+
+        for port in ports:
+            cost = shore_power_costs[port.name] if is_policed else 0.0
+            expectation.shore_power_cost[vessel_name, port.name][idx:] = cost
 
         for fuel in _select_target_fuels(levy, vessel):
             lhv = vessel.expectation.mean_effective_lhv[fuel.name]
@@ -481,8 +482,6 @@ def _calculate_levy_costs(
 
                 key = (vessel_name, port.name, fuel.name)
 
-                # zero rather than unwritten: an event can stop the levy policing
-                # the vessel, and the cost written while it did would remain
                 if not is_policed:
                     expectation.cost[key][idx:] = 0.0
                     continue
@@ -860,3 +859,25 @@ def _estimate_port_wtt(
         estimates.append(production + delivery)
 
     return np.stack(estimates).mean(axis=0)
+
+
+def _calculate_shore_power_coefficient(
+    policy: Levy | Regulation, port: Port, idx: int
+) -> FloatLike:
+    """
+    Calculate a policy's shore-power emission coefficient at a port, in ton emission/GJ.
+
+    The grid emits upstream of the vessel, so its emissions count as WTT.
+    """
+    if policy.scope == PolicyScopeID.TTW:
+        return 0.0
+
+    emission_factor = port.expectation.shore_power_emission_factor
+    forward = np.s_[idx:]
+    coefficient = 0.0
+
+    for emission in policy.emissions:
+        factor = emission_factor[emission.name][forward]
+        coefficient += _apply_gwp(factor, policy, emission)
+
+    return coefficient

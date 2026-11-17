@@ -80,6 +80,14 @@ def calculate_levy_cost(
     return cost
 
 
+def calculate_shore_power_levy_cost(port: Port, vessel_name: str, idx: int) -> float:
+    """Calculate the port's levy cost of a vessel's shore power, in currency/GJ."""
+    key = (vessel_name, port.name)
+    levies = port.imposed_levies
+    cost: float = sum(levy.expectation.shore_power_cost[key][idx] for levy in levies)
+    return cost
+
+
 def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """Set each bunker variable's cost: the count times the price plus levies."""
     v = vessel.name
@@ -109,7 +117,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
 
 def _update_shore_power_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """Set each shore-power variable's cost: the count times the energy cost."""
+    """Set each shore-power variable's cost: the count times the cost plus levies."""
     v = vessel.name
     count = alg.counts[v]
 
@@ -118,4 +126,7 @@ def _update_shore_power_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             continue
 
         cost = port.expectation.shore_power_cost[alg.idx]
-        alg.model.set_cost(alg.shore_power[v, p], count * cost)
+        levy_cost = calculate_shore_power_levy_cost(port, v, alg.idx)
+        total_cost = cost + levy_cost
+
+        alg.model.set_cost(alg.shore_power[v, p], count * total_cost)

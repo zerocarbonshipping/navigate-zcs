@@ -468,7 +468,7 @@ def _complete_expenses(results: _ConsumerResults) -> None:
     levy_expenses = results.levy_expenses
 
     total_fuel = sum_values(fuel_expenses, shape) + results.shore_power_expenses
-    total_levy = sum_values(levy_expenses, shape)
+    total_levy = sum_values(levy_expenses, shape) + results.shore_power_levy_expenses
     related = {key: fuel_expenses[key] + levy_expenses[key] for key in fuel_expenses}
 
     results.fuel_related_expenses = related
@@ -634,11 +634,9 @@ def _sum_operating_expenses(vessel: Vessel) -> FloatArray:
         Operating expenses at each time-step, in currency/year.
     """
     results = vessel.results
-    levy = sum_values(results.levy_expenses, results.context.timeline.shape)
 
     return (
-        results.total_fuel_expenses
-        + levy
+        results.total_fuel_related_expenses
         + results.regulation_expenses
         + results.technology_cost
     )

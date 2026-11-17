@@ -54,6 +54,10 @@ decks.
   requested; they used to produce no column.
 
 ### Changed
+- A `Levy` charges the shore power drawn in its `Jurisdiction`, whatever its
+  `Fuels`, counting the grid's emissions as WTT, so a TTW levy counts none;
+  new result `shore_power_levy_expenses`. Decks with shore power under a levy
+  move (#939).
 - A producer's expected production follows each fuel's expected demand and
   spreads unused development evenly over its fuels, instead of following the
   plants built last; `JumpStartFraction` blends within a fuel only. (#882)

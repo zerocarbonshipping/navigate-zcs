@@ -100,6 +100,7 @@ class _FuelConsumerResults(BaseResults):
     # attribution
     shore_power_energy: FloatArray = result(Unit.GJ_PER_YEAR)
     shore_power_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
+    shore_power_levy_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
     shore_power_emission: dict[str, FloatArray] = result(Unit.TON_PER_YEAR)
 
     def _initialize_fuel_consumer(
@@ -134,6 +135,7 @@ class _FuelConsumerResults(BaseResults):
 
         self.shore_power_energy = self._default_array()
         self.shore_power_expenses = self._default_array()
+        self.shore_power_levy_expenses = self._default_array()
         self.shore_power_emission = self._default_dict(emissions)
 
     def add_fuel_consumer_results(
@@ -177,4 +179,7 @@ class _FuelConsumerResults(BaseResults):
 
         accumulate(self.shore_power_energy, results.shore_power_energy, weight)
         accumulate(self.shore_power_expenses, results.shore_power_expenses, weight)
+        accumulate(
+            self.shore_power_levy_expenses, results.shore_power_levy_expenses, weight
+        )
         accumulate(self.shore_power_emission, results.shore_power_emission, weight)
