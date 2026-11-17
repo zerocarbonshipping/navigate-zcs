@@ -32,7 +32,10 @@ DEFINE {
     Load DefaultCalibration
 
     # ---- levers ----
-    Include "includes/eu_scope_%EU_SCOPE%.inc"
+    # the switches set_include_vessel and Jurisdiction take only TRUE/FALSE and
+    # ports, so 0/1 picks a file
+    Include "includes/eu_whole_voyage_%EU_WHOLE_VOYAGE%.inc"
+    Include "includes/fuel_eu_%FUELEU%.inc"
     Include "includes/levers.inc"
 }
 
