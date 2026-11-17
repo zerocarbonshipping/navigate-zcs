@@ -34,7 +34,7 @@ def calculate_fleet_expectations(
     vessels: dict[str, Vessel], emissions: dict[str, Emission]
 ) -> None:
     """
-    Calculate the vessel expectations set once at the start of the step.
+    Calculate the vessel expectations derived from the converters and fuels.
 
     For every vessel and usable fuel, each converter able to burn the fuel gets the
     fuel's effective lower heating value, net of slip, and the TTW emissions of
