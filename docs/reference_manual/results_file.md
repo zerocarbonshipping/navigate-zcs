@@ -210,6 +210,7 @@ The CO2-equivalents use the model's global warming potentials, which the
 |---|---|---|---|---|
 | `global.shore_power_energy`<br>`fleet.shore_power_energy`<br>`vessel.shore_power_energy` | `GJ/year` | | Shore power drawn in port. | Vessels call at a Port with a ShorePowerConnectionShare above 0 |
 | `global.shore_power_expenses`<br>`fleet.shore_power_expenses`<br>`vessel.shore_power_expenses` | `currency/year` | | Cost of the shore power, at the port's ShorePowerCost. | As `shore_power_energy`, with a cost |
+| `global.shore_power_levy_expenses`<br>`fleet.shore_power_levy_expenses`<br>`vessel.shore_power_levy_expenses` | `currency/year` | | Levies charged on the shore power drawn; negative for a subsidy. Counted in `total_fuel_related_expenses`. | A Levy charges shore power drawn in its Jurisdiction |
 | `global.shore_power_emission`<br>`fleet.shore_power_emission`<br>`vessel.shore_power_emission` | `t/year` | emission | Emissions of the shore power, well-to-wake, one gas unweighted. Counted in `total_equivalent_wtw`, not in `equivalent_wtw`. | As `shore_power_energy`, with an emission factor |
 
 ### Fleet power and costs
@@ -359,7 +360,7 @@ of its Measure. CO2-equivalents use its own global warming potentials.
 
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
-| `levy.collected` | `currency/year` | | Revenue collected; negative where the levy pays a subsidy. | The Levy is Active and charges a fuel bunkered in its Jurisdiction |
+| `levy.collected` | `currency/year` | | Revenue collected; negative where the levy pays a subsidy. | The Levy is Active and charges a fuel bunkered or shore power drawn in its Jurisdiction |
 
 ### Run
 
