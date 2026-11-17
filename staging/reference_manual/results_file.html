@@ -980,7 +980,13 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p>Cost of the shore power, at the port’s ShorePowerCost.</p></td>
 <td><p>As <code class="docutils literal notranslate"><span class="pre">shore_power_energy</span></code>, with a cost</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_emission</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_emission</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_emission</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_levy_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_levy_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_levy_expenses</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
+<td><p></p></td>
+<td><p>Levies charged on the shore power drawn; negative for a subsidy. Counted in <code class="docutils literal notranslate"><span class="pre">total_fuel_related_expenses</span></code>.</p></td>
+<td><p>A Levy charges shore power drawn in its Jurisdiction</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_emission</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_emission</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_emission</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
 <td><p>emission</p></td>
 <td><p>Emissions of the shore power, well-to-wake, one gas unweighted. Counted in <code class="docutils literal notranslate"><span class="pre">total_equivalent_wtw</span></code>, not in <code class="docutils literal notranslate"><span class="pre">equivalent_wtw</span></code>.</p></td>
@@ -1675,7 +1681,7 @@ of its Measure. CO2-equivalents use its own global warming potentials.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Revenue collected; negative where the levy pays a subsidy.</p></td>
-<td><p>The Levy is Active and charges a fuel bunkered in its Jurisdiction</p></td>
+<td><p>The Levy is Active and charges a fuel bunkered or shore power drawn in its Jurisdiction</p></td>
 </tr>
 </tbody>
 </table>

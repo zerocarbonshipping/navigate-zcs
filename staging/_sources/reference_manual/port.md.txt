@@ -142,7 +142,7 @@ The overwrite also sets the WTT that regulations and levies assume for the fuel 
 
 ### set\_shore\_power\_emission\_factor
 
-This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ. A regulation with `Scope = TTW` counts none of it, as the grid emits upstream of the vessel.
+This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ. Regulations and levies count it as WTT emissions, as the grid emits upstream of the vessel: one with `Scope = TTW` counts none of it.
 
 * **Primary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`

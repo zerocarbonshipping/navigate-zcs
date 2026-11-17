@@ -643,7 +643,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </section>
 <section id="set-shore-power-emission-factor">
 <span id="set_shore_power_emission_factor"></span><h3>set_shore_power_emission_factor<a class="headerlink" href="#set-shore-power-emission-factor" title="Link to this heading">#</a></h3>
-<p>This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ. A regulation with <code class="docutils literal notranslate"><span class="pre">Scope</span> <span class="pre">=</span> <span class="pre">TTW</span></code> counts none of it, as the grid emits upstream of the vessel.</p>
+<p>This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ. Regulations and levies count it as WTT emissions, as the grid emits upstream of the vessel: one with <code class="docutils literal notranslate"><span class="pre">Scope</span> <span class="pre">=</span> <span class="pre">TTW</span></code> counts none of it.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
