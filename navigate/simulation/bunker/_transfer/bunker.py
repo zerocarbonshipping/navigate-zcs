@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import BunkerScopeID
-from navigate.simulation.bunker._objectives import calculate_levy_cost
+from navigate.core.enum_ import BunkerScopeID, ExpenseID
+from navigate.simulation.bunker._costs import calculate_bunker_costs
 
 if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
@@ -50,16 +50,15 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         port = vessel.route.ports[p]
         results = vessel.results
         count = alg.counts[v]
-
-        price = port.expectation.bunker_price[f][idx]
-        expenses = price * mass
+        costs = calculate_bunker_costs(port, v, f, idx)
 
         # kept for the inertia floor of the next time-step
         vessel.expectation.bunker_mass_existing[port.name, f] += mass
 
         results.consumed_mass[f][idx] += mass
         results.converter_mass[vessel.primary_fuel_type][f][idx] += mass
-        results.fuel_expenses[f][idx] += expenses
+        results.fuel_expenses[f][idx] += costs[ExpenseID.FUEL] * mass
+        results.levy_expenses[f][idx] += costs[ExpenseID.FUEL_LEVY] * mass
         port.results.bunker_mass[f][idx] += count * mass
 
         for emission_name in alg.emissions:
@@ -72,14 +71,13 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
             level = levy.expectation.level[idx]
 
             levy.results.collected[idx] += collected * count
-            results.levy_expenses[f][idx] += collected
 
             if level > 0.0:
                 results.levy_units[levy.name][idx] += collected / level
 
 
 def _transfer_expected(alg: BunkerAlgorithm) -> None:
-    """Add the bunkered energy, mass and fuel and levy expenses to the expectations."""
+    """Add the bunkered energy, mass and expenses to the expectations."""
     idx = alg.idx
 
     for (v, p, f), bunker in alg.bunker.items():
@@ -89,12 +87,13 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
 
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
+        expectation = vessel.expectation
 
         energy = alg.fuels[f].lower_heating_value.get() * mass
-        price = port.expectation.bunker_price[f][idx]
-        levy_cost = calculate_levy_cost(port, v, f, idx)
+        costs = calculate_bunker_costs(port, v, f, idx)
 
-        vessel.expectation.total_energy[idx] += energy
-        vessel.expectation.fuel_expenses[idx] += price * mass
-        vessel.expectation.levy_expenses[idx] += levy_cost * mass
-        vessel.expectation.bunker_mass_expected[port.name, f][idx] += mass
+        expectation.total_energy[idx] += energy
+        expectation.bunker_mass_expected[port.name, f][idx] += mass
+
+        for expense, cost in costs.items():
+            expectation.expenses[expense][idx] += cost * mass

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
+from navigate.core.enum_ import BunkerScopeID, ExpenseID, RegulationSchemeID
 from navigate.simulation.policy._policed import select_policed
 
 if TYPE_CHECKING:
@@ -97,4 +97,4 @@ def _calculate_remedial_expenses(
         remedial_units = expectation.vessel_remedial_units[vessel_name][idx]
         remedial_expenses = remedial_units * remedial_cost
 
-        vessel.expectation.remedial_expenses[idx] += remedial_expenses
+        vessel.expectation.expenses[ExpenseID.REMEDIAL][idx] += remedial_expenses

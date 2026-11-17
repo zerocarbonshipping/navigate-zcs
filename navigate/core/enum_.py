@@ -180,6 +180,26 @@ class BunkerScopeID(Enum):
     EXISTING = auto()  # final pass solved for the fleet as it currently stands
 
 
+# a vessel's operating expenses are these terms and its carried technology charge;
+# each sum of them takes every term, but where decided here:
+# - the bunkering LP prices every term but FLEXIBILITY, as the flexibility units are
+#   a transfer between the vessels of a regulation's pool;
+# - the expected expenses value the flexibility units at the smoothed flexibility
+#   cost, the achieved ones at the cost the market cleared at;
+# - the LP leaves the technology charge out, as no bunkering choice changes it, and
+#   so does the fuel conversion, as converted vessels carry their charge along;
+#   the cargo charter and the achieved rates add it, speed management does not
+class ExpenseID(Enum):
+    """A term of the fuel and policy expenses that a vessel's bunkering settles."""
+
+    FUEL = auto()  # the fuel bunkered, at the port's bunker price
+    FUEL_LEVY = auto()  # the levies on the fuel bunkered
+    SHORE_POWER = auto()  # the shore power drawn, at the port's shore-power cost
+    SHORE_POWER_LEVY = auto()  # the levies on the shore power drawn
+    REMEDIAL = auto()  # the remedial units, at the regulation's remedial cost
+    FLEXIBILITY = auto()  # the flexibility units bought, less the surplus units sold
+
+
 class SolveStatusID(Enum):
     """How the last solve of the bunkering linear program ended."""
 

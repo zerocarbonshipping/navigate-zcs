@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import BunkerScopeID
-from navigate.simulation.bunker._objectives import calculate_shore_power_levy_cost
+from navigate.core.enum_ import BunkerScopeID, ExpenseID
+from navigate.simulation.bunker._costs import calculate_shore_power_costs
 
 if TYPE_CHECKING:
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
@@ -46,12 +46,14 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         expectation = port.expectation
         results = vessel.results
         count = alg.counts[v]
+        costs = calculate_shore_power_costs(port, v, idx)
 
-        cost = expectation.shore_power_cost[idx]
-        expenses = cost * energy
+        expenses = costs[ExpenseID.SHORE_POWER] * energy
+        levy_expenses = costs[ExpenseID.SHORE_POWER_LEVY] * energy
 
         results.shore_power_energy[idx] += energy
         results.shore_power_expenses[idx] += expenses
+        results.shore_power_levy_expenses[idx] += levy_expenses
 
         for emission_name in alg.emissions:
             wtw = expectation.shore_power_emission_factor[emission_name][idx]
@@ -63,14 +65,13 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
             level = levy.expectation.level[idx]
 
             levy.results.collected[idx] += collected * count
-            results.shore_power_levy_expenses[idx] += collected
 
             if level > 0.0:
                 results.levy_units[levy.name][idx] += collected / level
 
 
 def _transfer_expected(alg: BunkerAlgorithm) -> None:
-    """Add the shore-power energy, expenses and levy expenses to the expectations."""
+    """Add the shore-power energy and expenses to the expectations."""
     idx = alg.idx
 
     for (v, p), shore_power in alg.shore_power.items():
@@ -80,10 +81,10 @@ def _transfer_expected(alg: BunkerAlgorithm) -> None:
 
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
+        expectation = vessel.expectation
+        costs = calculate_shore_power_costs(port, v, idx)
 
-        cost = port.expectation.shore_power_cost[idx]
-        levy_cost = calculate_shore_power_levy_cost(port, v, idx)
+        expectation.total_energy[idx] += energy
 
-        vessel.expectation.total_energy[idx] += energy
-        vessel.expectation.fuel_expenses[idx] += cost * energy
-        vessel.expectation.levy_expenses[idx] += levy_cost * energy
+        for expense, cost in costs.items():
+            expectation.expenses[expense][idx] += cost * energy

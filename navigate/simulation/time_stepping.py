@@ -220,8 +220,7 @@ class Simulation:
             "Post-process model after end of simulation", extra={"heading": True}
         )
 
-        # every vessel before any fleet: a fleet's achieved rates read its vessels'
-        # completed expenses, and a vessel may be kept without a fleet
+        # every vessel on its own, as a vessel may be kept without a fleet
         for vessel in self.nodes.vessels.values():
             complete_vessel_results(vessel)
 

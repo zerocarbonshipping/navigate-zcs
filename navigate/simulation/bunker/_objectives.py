@@ -9,10 +9,13 @@ import logging
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import BunkerScopeID
+from navigate.simulation.bunker._costs import (
+    calculate_bunker_costs,
+    calculate_shore_power_costs,
+)
 from navigate.util import TOLERANCE
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.port import Port
     from navigate.core.nodes.vessel import Vessel
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
@@ -53,52 +56,16 @@ def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
         alg.model.set_cost(alg.remedial_factor_flexibility[r], cost)
 
 
-def calculate_levy_cost(
-    port: Port, vessel_name: str, fuel_name: str, idx: int
-) -> float:
-    """
-    Calculate the levy cost of a fuel a vessel bunkers at a port.
-
-    Parameters
-    ----------
-    port
-        Port whose imposed levies charge the fuel.
-    vessel_name
-        Name of the bunkering vessel.
-    fuel_name
-        Name of the bunkered fuel.
-    idx
-        Time-step index of the cost.
-
-    Returns
-    -------
-    float
-        Summed cost of the port's imposed levies, in currency/t.
-    """
-    key = (vessel_name, port.name, fuel_name)
-    cost: float = sum(levy.expectation.cost[key][idx] for levy in port.imposed_levies)
-    return cost
-
-
-def calculate_shore_power_levy_cost(port: Port, vessel_name: str, idx: int) -> float:
-    """Calculate the port's levy cost of a vessel's shore power, in currency/GJ."""
-    key = (vessel_name, port.name)
-    levies = port.imposed_levies
-    cost: float = sum(levy.expectation.shore_power_cost[key][idx] for levy in levies)
-    return cost
-
-
 def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """Set each bunker variable's cost: the count times the price plus levies."""
+    """Set each bunker variable's cost: the count times the fuel's cost per ton."""
     v = vessel.name
     count = alg.counts[v]
     is_existing = alg.scope == BunkerScopeID.EXISTING
 
     for p, port in enumerate(vessel.route.ports):
         for f, fuel in vessel.bunkerable_fuels[p].items():
-            price = port.expectation.bunker_price[f][alg.idx]
-            levy_cost = calculate_levy_cost(port, v, f, alg.idx)
-            total_price = price + levy_cost
+            costs = calculate_bunker_costs(port, v, f, alg.idx)
+            total_price = sum(costs.values())
 
             alg.model.set_cost(alg.bunker[v, p, f], count * total_price)
 
@@ -117,7 +84,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
 
 def _update_shore_power_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """Set each shore-power variable's cost: the count times the cost plus levies."""
+    """Set each shore-power variable's cost: the count times the cost per GJ."""
     v = vessel.name
     count = alg.counts[v]
 
@@ -125,8 +92,7 @@ def _update_shore_power_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         if (v, p) not in alg.shore_power:
             continue
 
-        cost = port.expectation.shore_power_cost[alg.idx]
-        levy_cost = calculate_shore_power_levy_cost(port, v, alg.idx)
-        total_cost = cost + levy_cost
+        costs = calculate_shore_power_costs(port, v, alg.idx)
+        total_cost = sum(costs.values())
 
         alg.model.set_cost(alg.shore_power[v, p], count * total_cost)
