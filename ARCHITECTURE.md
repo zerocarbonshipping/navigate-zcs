@@ -190,7 +190,7 @@ the layering changed changes the table with the code.
 
 - A value computed during the time loop that one of fleet, fuel, policy and
   bunker reads from another lives on the node's `expectation`: the computing
-  domain writes the field, the others only read it. The one other route is
+  domain writes it, the others only read it. The one other route is
   `Simulation` handing a value on as a call argument, such as the counts a
   bunkering LP ran with to the policy functions settling it.
 - The plain node attributes another domain reads are:

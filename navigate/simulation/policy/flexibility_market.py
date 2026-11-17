@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
-from navigate.core.enum_ import BunkerScopeID, RegulationSchemeID
+from navigate.core.enum_ import BunkerScopeID, ExpenseID, RegulationSchemeID
 from navigate.simulation.policy._policed import calculate_vessel_account, select_policed
 from navigate.util import calculate_smoothing_alpha, divide_nonzero, smooth_belief_path
 
@@ -123,7 +123,7 @@ def update_regulation_flexibility_beliefs(
         for vessel_name, vessel in select_policed(regulation, vessels).items():
             net_units = expectation.vessel_net_flexibility_units[vessel_name]
             expenses = net_units[idx:] * belief
-            vessel.expectation.flexibility_expenses[idx:] += expenses
+            vessel.expectation.expenses[ExpenseID.FLEXIBILITY][idx:] += expenses
 
 
 def _clear_flexibility_market(
@@ -228,5 +228,5 @@ def _calculate_market_expectations(
         remedial_expenses = units.remedial * market.remedial_cost
         net_units = units.flexibility - units.surplus
 
-        vessel.expectation.remedial_expenses[idx] += remedial_expenses
+        vessel.expectation.expenses[ExpenseID.REMEDIAL][idx] += remedial_expenses
         expectation.vessel_net_flexibility_units[vessel_name][idx] = net_units

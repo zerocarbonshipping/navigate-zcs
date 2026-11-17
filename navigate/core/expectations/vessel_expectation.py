@@ -11,7 +11,12 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
+from navigate.core.enum_ import (
+    PORT_ENERGY_DEMANDS,
+    EnergyDemandID,
+    ExpenseID,
+    FuelTypeID,
+)
 from navigate.core.expectations._expectation import _Expectation
 
 if TYPE_CHECKING:
@@ -125,14 +130,9 @@ class VesselExpectation(_Expectation):
         self.fair_share_fuel_expected = self._paths(port_fuels)  # -
         self.allocation_fuel_existing = self._values(port_fuels)  # t/year
 
-        # bunker results (expected bunkering)
+        # what the expected bunkering supplies, and its fuel and policy expenses
         self.total_energy = self._path()  # GJ/year of fuel and shore power
-        self.fuel_expenses = self._path()  # currency/year
-
-        # policy expenses (expected bunkering)
-        self.levy_expenses = self._path()  # currency/year
-        self.remedial_expenses = self._path()  # currency/year
-        self.flexibility_expenses = self._path()  # currency/year
+        self.expenses = self._paths(ExpenseID)  # currency/year
 
         self.shore_power_potential_port = self._path_list(port_calls)  # GJ/year
         self.shore_power_limit_port = self._path_list(port_calls)  # GJ/year
@@ -151,10 +151,7 @@ class VesselExpectation(_Expectation):
         self.bunker_mass_expected = self._paths(self.bunker_mass_expected)
 
         self.total_energy = self._path()
-        self.fuel_expenses = self._path()
-        self.levy_expenses = self._path()
-        self.remedial_expenses = self._path()
-        self.flexibility_expenses = self._path()
+        self.expenses = self._paths(ExpenseID)
 
     def reset_bunker_mass_existing(self) -> None:
         """Zero the bunker masses of the existing bunkering."""

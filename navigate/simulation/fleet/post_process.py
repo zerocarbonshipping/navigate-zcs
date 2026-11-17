@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import PORT_ENERGY_DEMANDS
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, ExpenseID
 from navigate.simulation.economics import (
     build_operating_flows,
     calculate_net_present_value,
@@ -44,9 +44,8 @@ def complete_vessel_results(vessel: Vessel) -> None:
     """
     Write the results of a vessel that combine its written ones.
 
-    Runs over every vessel before any fleet is completed: a fleet's achieved rates
-    read its vessels' completed expenses, and a vessel kept without a fleet is
-    completed all the same.
+    Runs over every vessel, so that a vessel kept without a fleet is completed all
+    the same.
 
     Parameters
     ----------
@@ -64,19 +63,19 @@ def complete_vessel_results(vessel: Vessel) -> None:
 
 def complete_fleet_results(fleet: Fleet, timeline: FloatArray) -> None:
     """
-    Fold the completed vessels into the fleet results and write the fleet's results.
+    Fold the vessels into the fleet results and write the fleet's results.
 
     The vessels' written values enter weighted by their counts; the fleet's
     energies, baseline, savings, totals and technology uptake follow from them;
     last, each vessel's achieved charter and freight rates are computed from its
-    completed expenses over the steps it was in the fleet, and the fleet's freight
-    rate from those. Runs before the fleet is merged into the global results, which
-    sums the baseline energy written here.
+    expenses over the steps it was in the fleet, and the fleet's freight rate from
+    those. Runs before the fleet is merged into the global results, which sums the
+    baseline energy written here.
 
     Parameters
     ----------
     fleet
-        Fleet, its vessels completed.
+        Fleet, its vessels' results written for the whole run.
     timeline
         Simulation timeline, in days.
     """
@@ -463,22 +462,48 @@ def _pilot_fuel_share(results: _ConsumerResults) -> dict[FuelTypeID, FloatArray]
 
 
 def _complete_expenses(results: _ConsumerResults) -> None:
-    shape = results.context.timeline.shape
+    expenses = _achieved_expenses(results)
     fuel_expenses = results.fuel_expenses
     levy_expenses = results.levy_expenses
 
-    total_fuel = sum_values(fuel_expenses, shape) + results.shore_power_expenses
-    total_levy = sum_values(levy_expenses, shape) + results.shore_power_levy_expenses
+    total_fuel = expenses[ExpenseID.FUEL] + expenses[ExpenseID.SHORE_POWER]
+    total_levy = expenses[ExpenseID.FUEL_LEVY] + expenses[ExpenseID.SHORE_POWER_LEVY]
+    regulation = expenses[ExpenseID.REMEDIAL] + expenses[ExpenseID.FLEXIBILITY]
     related = {key: fuel_expenses[key] + levy_expenses[key] for key in fuel_expenses}
 
     results.fuel_related_expenses = related
     results.total_fuel_expenses = total_fuel
     results.total_fuel_related_expenses = total_fuel + total_levy
-    results.regulation_expenses = (
-        results.remedial_expenses
-        + results.flexibility_expenses
-        - results.surplus_revenue
-    )
+    results.regulation_expenses = regulation
+
+
+def _sum_fuel_and_policy_expenses(results: _ConsumerResults) -> FloatArray:
+    shape = results.context.timeline.shape
+    return sum_values(_achieved_expenses(results), shape)
+
+
+def _achieved_expenses(results: _ConsumerResults) -> dict[ExpenseID, FloatArray]:
+    return {expense: _achieved_expense(results, expense) for expense in ExpenseID}
+
+
+def _achieved_expense(results: _ConsumerResults, expense: ExpenseID) -> FloatArray:
+    # the results that hold each term; mypy reports a missing return for a term
+    # without its case
+    shape = results.context.timeline.shape
+
+    match expense:
+        case ExpenseID.FUEL:
+            return sum_values(results.fuel_expenses, shape)
+        case ExpenseID.FUEL_LEVY:
+            return sum_values(results.levy_expenses, shape)
+        case ExpenseID.SHORE_POWER:
+            return results.shore_power_expenses
+        case ExpenseID.SHORE_POWER_LEVY:
+            return results.shore_power_levy_expenses
+        case ExpenseID.REMEDIAL:
+            return results.remedial_expenses
+        case ExpenseID.FLEXIBILITY:
+            return results.flexibility_expenses - results.surplus_revenue
 
 
 def _complete_emissions(results: _ConsumerResults) -> None:
@@ -513,17 +538,15 @@ def _complete_vessel_aggregate(results: _AggregateResults) -> None:
     age = {key: divide_nonzero(numerator[key], denominator[key]) for key in numerator}
     results.weighted_average_age = age
 
-    # after the fuel consumer results, which the expenses total
-    results.vessel_related_expenses = (
+    fuel_and_policy = _sum_fuel_and_policy_expenses(results)
+    vessel_related = (
         results.vessel_expenses
         + results.technology_expenses
         + results.fuel_conversion_expenses
     )
-    results.expenses = (
-        results.total_fuel_related_expenses
-        + results.regulation_expenses
-        + results.vessel_related_expenses
-    )
+
+    results.vessel_related_expenses = vessel_related
+    results.expenses = fuel_and_policy + vessel_related
 
 
 def _fleet_technology_uptake(results: FleetResults) -> dict[str, FloatArray]:
@@ -621,7 +644,7 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
 
 def _sum_operating_expenses(vessel: Vessel) -> FloatArray:
     """
-    Sum the vessel's achieved fuel, levy, regulation and technology expenses.
+    Sum the vessel's achieved fuel and policy expenses and its technology charge.
 
     Parameters
     ----------
@@ -634,12 +657,7 @@ def _sum_operating_expenses(vessel: Vessel) -> FloatArray:
         Operating expenses at each time-step, in currency/year.
     """
     results = vessel.results
-
-    return (
-        results.total_fuel_related_expenses
-        + results.regulation_expenses
-        + results.technology_cost
-    )
+    return _sum_fuel_and_policy_expenses(results) + results.technology_cost
 
 
 def _aggregate_fleet_freight_rate(fleet: Fleet) -> None:
