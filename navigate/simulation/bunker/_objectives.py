@@ -81,23 +81,7 @@ def calculate_levy_cost(
 
 
 def calculate_shore_power_levy_cost(port: Port, vessel_name: str, idx: int) -> float:
-    """
-    Calculate the levy cost of the shore power a vessel draws at a port.
-
-    Parameters
-    ----------
-    port
-        Port whose imposed levies charge the shore power.
-    vessel_name
-        Name of the vessel drawing the shore power.
-    idx
-        Time-step index of the cost.
-
-    Returns
-    -------
-    float
-        Summed cost of the port's imposed levies, in currency/GJ.
-    """
+    """Calculate the port's levy cost of a vessel's shore power, in currency/GJ."""
     key = (vessel_name, port.name)
     levies = port.imposed_levies
     cost: float = sum(levy.expectation.shore_power_cost[key][idx] for levy in levies)
