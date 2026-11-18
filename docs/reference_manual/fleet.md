@@ -247,7 +247,7 @@ If the orderbook is a forecast, it must be non-strictly increasing (meaning that
 
 This attribute sets the flag for whether speed management is allowed.
 
-Speed management dynamically optimizes the speed profile of each vessel type based on a cost optimal approach between adding newbuilds to the model versus the change in fuel expenses.
+Speed management dynamically optimizes the speed profile of each vessel type based on a cost optimal approach between adding newbuilds to the model, at their charter and the fleet's average technology cost per vessel, versus the change in fuel expenses.
 
 * **Data type**: `Boolean`
 * **Default**: FALSE

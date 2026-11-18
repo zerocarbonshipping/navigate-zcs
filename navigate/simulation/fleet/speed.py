@@ -159,8 +159,12 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
         speeds_min[sailed], speeds_max[sailed], trip.speeds[sailed]
     )
 
+    # each vessel chartered in for a lower speed costs its asset charter and the
+    # fleet-average carried technology charge, as in the cargo charter
     fuel_ref = calculate_fuel_and_policy_expenses(vessel, idx)
-    charter_rate: float = expectation.asset_charter_rate[idx]
+    charter_rate: float = (
+        expectation.asset_charter_rate[idx] + expectation.technology_charter_rate[idx]
+    )
 
     energy_sea_ref = expectation.energy_sea_condition.at[idx]
     energy_port_ref = expectation.energy_port.at[idx]

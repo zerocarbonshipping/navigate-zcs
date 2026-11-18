@@ -261,8 +261,8 @@ def perform_technology_installation(
     _apply_retrofits(proposals)
     _transfer_retrofit_uptake(fleet, proposals, idx)
 
-    # transfer the fleet-average carried technology charge before the cargo
-    # charter reads it later in the same timestep
+    # transfer the fleet-average carried technology charge before speed management
+    # and the cargo charter read it later in the same timestep
     transfer_technology_charter_rate(fleet, idx)
 
 
@@ -727,9 +727,9 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
     Transfer the fleet-average carried charge to each vessel's expectation and results.
 
     The average is the count-weighted mean of the per-increment carried charges,
-    currency/year per vessel. It feeds the investment freight rate within the same
-    time-step, as the cargo charter runs after technology installation, and the
-    results keeps it as the realized series the instantaneous freight rate is
+    currency/year per vessel. It feeds speed management and the investment freight
+    rate within the same time-step, as both run after technology installation, and
+    the results keeps it as the realized series the instantaneous freight rate is
     post-processed from.
 
     Parameters
