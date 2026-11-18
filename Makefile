@@ -98,13 +98,17 @@ own-environment:
 		   exit 1 ;; \
 	esac
 
+# TESTS selects part of a suite in place of its folder, a file or a test:
+# make test-unit TESTS=tests/unit/parser/test_required.py
+# The suites run under -q here rather than in pyproject addopts, where a
+# caller's own -q would make it -qq, which drops pytest's count line.
 test-unit: own-environment  ## Unit + contract tests
-	$(RUN) $(PYTHON) -m pytest tests/unit/
+	$(RUN) $(PYTHON) -m pytest -q $(or $(TESTS),tests/unit/)
 
 # --maxfail=0 overrides the -x in pyproject addopts: one failing combination
 # must not mask the others behind it.
 test-e2e: own-environment  ## End-to-end deck tests (attribute coverage + input combinations)
-	$(RUN) $(PYTHON) -m pytest tests/end_to_end/ --maxfail=0
+	$(RUN) $(PYTHON) -m pytest -q $(or $(TESTS),tests/end_to_end/) --maxfail=0
 
 # A run's console output shows only when the run fails.
 test-examples: own-environment  ## Run simulations/examples

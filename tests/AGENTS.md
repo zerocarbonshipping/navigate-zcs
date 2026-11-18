@@ -76,7 +76,8 @@ from current output. There are no golden baselines.
 
 ## Running
 
-To run one file outside make, set `ASSUMPTIONS_DATA_DIR`, which the helpers
-read before the checkout's own folder:
-`ASSUMPTIONS_DATA_DIR=$PWD/assumptions .venv/bin/python -m pytest <file>`.
-`make compare-results BASE=<ref>` is a results comparison, not a test suite.
+Run one file or test through its suite's target, `make test-unit TESTS=<file>`
+or `make test-e2e TESTS=<file>::<test>`: the helpers read
+`ASSUMPTIONS_DATA_DIR` before the checkout's own folder, and make sets it to
+the checkout's. `make compare-results BASE=<ref>` is a results comparison, not
+a test suite.
