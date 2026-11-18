@@ -357,6 +357,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- Speed management counts each added vessel's technology cost, the fleet's
+  average per vessel, besides its charter, as the freight rate does. Fleets with
+  speed management and technologies sail faster and move (#949).
 - A `Regulation` with `Scope = TTW` no longer counts the shore-power grid's
   emissions, set by `set_shore_power_emission_factor`; they arise upstream of
   the vessel. Decks with shore power under a TTW regulation move (#936).

@@ -770,7 +770,8 @@ class Simulation:
 
             # refresh the fleet-average carried technology charge after evolution, so
             # it reflects this time step's scrapping, conversions and newbuilds (the
-            # pre-evolution transfer already served the cargo charter)
+            # pre-evolution transfer already served speed management and the cargo
+            # charter)
             transfer_technology_charter_rate(fleet, self._idx)
 
             calculate_fleet_evolution_expectation(

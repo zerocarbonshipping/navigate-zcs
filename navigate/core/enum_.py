@@ -188,7 +188,7 @@ class BunkerScopeID(Enum):
 #   cost, the achieved ones at the cost the market cleared at;
 # - the LP leaves the technology charge out, as no bunkering choice changes it, and
 #   so does the fuel conversion, as converted vessels carry their charge along;
-#   the cargo charter and the achieved rates add it, speed management does not
+#   the cargo charter, speed management and the achieved rates add it
 class ExpenseID(Enum):
     """A term of the fuel and policy expenses that a vessel's bunkering settles."""
 
