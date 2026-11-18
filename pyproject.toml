@@ -68,4 +68,5 @@ testpaths = ["tests"]
 # only the test tree, never the repo root: root would shadow the installed
 # wheel with the source checkout in CI's wheel-validation job
 pythonpath = ["tests"]
-addopts = "-x --tb=short -q --import-mode=importlib"
+# no -q: the make targets add it (Makefile, test-unit)
+addopts = "-x --tb=short --import-mode=importlib"
