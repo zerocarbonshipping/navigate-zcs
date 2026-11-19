@@ -19,6 +19,7 @@ from navigate.core._bounds import Bounds
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.variable import Variable
 from navigate.core.table_data import TableData
+from navigate.exceptions import DeckError
 
 
 def _variable(value: float) -> Variable:
@@ -96,7 +97,7 @@ def test_a_value_on_an_exclusive_bound_raises(make_node, args, owner):
     node = make_node()
     node.set_internal_bounds(Bounds(0.0, np.inf, inclusive_lower=False))
 
-    with pytest.raises(ValueError, match=rf"{owner}: must be > 0\.0, but got 0\.0"):
+    with pytest.raises(DeckError, match=rf"{owner}: must be > 0\.0, but got 0\.0"):
         node.get(*args)
 
 
@@ -122,7 +123,7 @@ def test_a_nan_value_raises_whatever_the_bounds(x):
     curve.set_table(TableData(rows=[[0.0, 1.0], [1.0, np.inf]]))
     curve.build_table()
 
-    with pytest.raises(ValueError, match=r'Curve\("c"\): must be a number, but got'):
+    with pytest.raises(DeckError, match=r'Curve\("c"\): must be a number, but got'):
         curve.get(x)
 
 

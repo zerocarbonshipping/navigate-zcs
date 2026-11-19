@@ -19,7 +19,7 @@ class NavigateError(Exception):
 
 class DeckError(NavigateError):
     """
-    Raised for a mistake in the input deck the parser reads.
+    Raised for a mistake in the input deck, found while it is read or while it runs.
 
     The message names the deck line and the include file and line the mistake
     was written at, where the parser knows them.

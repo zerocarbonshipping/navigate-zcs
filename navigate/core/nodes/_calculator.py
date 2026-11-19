@@ -12,6 +12,7 @@ import numpy as np
 
 from navigate.core import Expression, assign_bound, assign_value, deck_attribute
 from navigate.core._bounds import Bounds
+from navigate.exceptions import DeckError
 from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
@@ -211,14 +212,14 @@ class _Calculator:
 
         Raises
         ------
-        ValueError
+        DeckError
             If the value, or any entry of it, is NaN, or at or beyond an exclusive
             bound.
         """
         try:
             return self._applied_bounds.clamp(value)
         except ValueError as error:
-            raise ValueError(f"{self}: {error}") from None
+            raise DeckError(f"{self}: {error}") from None
 
     def _update_applied_bounds(self) -> None:
         """
