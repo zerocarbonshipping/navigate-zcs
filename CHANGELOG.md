@@ -357,6 +357,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A Curve, Forecast, Surface, Timetable, Variable or expression whose value
+  reaches an exclusive minimum or maximum, or is NaN, during a run stops it with
+  an `Error:` line naming the node instead of a Python traceback (#908).
 - Speed management counts each added vessel's technology cost, the fleet's
   average per vessel, besides its charter, as the freight rate does. Fleets with
   speed management and technologies sail faster and move (#949).

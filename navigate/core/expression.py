@@ -21,6 +21,7 @@ import numpy as np
 
 from navigate.core._bounds import Bounds
 from navigate.core.node_type import accepts_type, is_calculator
+from navigate.exceptions import DeckError
 from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
@@ -246,7 +247,7 @@ class Expression:
 
         Raises
         ------
-        ValueError
+        DeckError
             If the value, or any entry of it, is NaN, or at or beyond an
             exclusive internal bound.
         """
@@ -255,7 +256,7 @@ class Expression:
         try:
             value = self._internal_bounds.clamp(evaluated)
         except ValueError as error:
-            raise ValueError(f"{self._owner}: {error}") from None
+            raise DeckError(f"{self._owner}: {error}") from None
 
         # a float result is broadcast so an expression over scalars answers
         # an array input the way one over arrays does
