@@ -27,7 +27,7 @@ ScenarioParameter "EU_WHOLE_VOYAGE" { values = ["0", "1"], active = FALSE }
 Horizon {
     UncFilePath = "example_4.unc"
     OutputPath = "study"
-    NumberOfSamples = 30
+    NumberOfSamples = 15
     SamplingMethod = LHS
     RandomSeed = 42
 }
