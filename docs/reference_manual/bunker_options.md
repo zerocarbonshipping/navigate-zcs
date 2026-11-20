@@ -19,6 +19,12 @@ BunkerOptions {
 }
 ```
 
+## Equally cheap solutions
+
+A bunkering problem often has several solutions of the same cost, such as a fuel that costs the same in two ports of a route. Navigate chooses one of them, with its prices, by the names of the vessels, ports, fuels, converters and regulations involved, and not by the solver backend, its version, its method or the order the problem is built in: the choice is arbitrary but fixed, and renaming a node can change the results.
+
+The choice has limits. Whether two solutions are equally cheap is judged within the [SolutionTolerance](#solutiontolerance), and where their costs differ by about that tolerance, which of them a run returns can depend on the solver. Where the solver cannot carry the choice through, it returns one of the equally cheap solutions by its own rules. The results of a deck can therefore still differ between solver backends, versions and methods.
+
 ## Attributes
 
 ### Solver
@@ -31,7 +37,7 @@ This attribute selects the solver backend for the bunker algorithm. AUTOMATIC us
 
 ### SolverMethod
 
-This attribute selects the LP solution method. It is passed to Gurobi as its `Method` parameter; the HiGHS backend ignores it.
+This attribute selects the LP solution method. It is passed to Gurobi as its `Method` parameter; the HiGHS backend ignores it. It changes how fast a bunkering problem is solved and, apart from the limits described under [Equally cheap solutions](#equally-cheap-solutions), not which solution is returned.
 
 * **Data type**: `ID`
 * **Legal values**: [SolverMethodID](appendix_ids.md#solvermethodid)

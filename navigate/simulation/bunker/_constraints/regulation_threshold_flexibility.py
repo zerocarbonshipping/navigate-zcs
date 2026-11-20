@@ -47,7 +47,7 @@ def update_regulation_threshold_flexibility_constraints(alg: BunkerAlgorithm) ->
 
     for r, rhs in alg.regulation_rhs_flexibility.items():
         constraint = get_constraint(
-            alg, rows, r, "<=", "regulation_threshold_flexibility"
+            alg, rows, r, "<=", "regulation_threshold_flexibility", priced=True
         )
         model.set_rhs(constraint, rhs)
 
