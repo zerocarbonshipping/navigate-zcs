@@ -49,7 +49,7 @@ def update_mass_sufficient_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
     for f, converters in vessel.converters_per_fuel.items():
         for i, e in tank_departures:
             key = (v, i, f)
-            constraint = get_constraint(alg, rows, key, ">=", "mass_sufficient")
+            constraint = get_constraint(alg, rows, key, ">=", "mass_sufficient", route)
 
             model.set_coefficient(constraint, mass_tank[v, i, f], voyages)
 

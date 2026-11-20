@@ -33,28 +33,28 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     for p, fuels in enumerate(vessel.bunkerable_fuels):
         for f in fuels:
-            add_variable(alg, alg.bunker, (v, p, f), "bunker")
+            add_variable(alg, alg.bunker, (v, p, f), "bunker", route)
 
     for c, fuels in fuels_per_converter.items():
         for f in fuels:
             for leg in legs:
-                add_variable(alg, alg.spend_sea, (v, c, f, *leg), "spend_sea")
+                add_variable(alg, alg.spend_sea, (v, c, f, *leg), "spend_sea", route)
 
     # only the converters serving port energy demands spend in port
     for c, fuels in vessel.fuels_per_port_converter.items():
         for f in fuels:
             for p in stops:
-                add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
+                add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port", route)
 
     for p in route.get_tank_stops():
         for f in vessel.usable_fuels:
-            add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank")
+            add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank", route)
 
     shore_power_limits = vessel.expectation.shore_power_limit_port.at[alg.idx]
 
     for p, limit in enumerate(shore_power_limits):
         if limit > 0.0:
-            add_variable(alg, alg.shore_power, (v, p), "shore_power")
+            add_variable(alg, alg.shore_power, (v, p), "shore_power", route)
 
         # a connection whose limit fell to zero keeps its variable, bounded at zero
         if (v, p) in alg.shore_power:

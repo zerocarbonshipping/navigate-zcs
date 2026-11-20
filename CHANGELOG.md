@@ -241,6 +241,16 @@ decks.
 - A path written with `./` or a doubled `/` in an `Include` or a report
   `Directory` now appears normalised in error and log messages, such as
   `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
+- Among equally cheap bunkering solutions, the one returned follows the node
+  names and, within the limits the `BunkerOptions` page gives, no longer the
+  solver, its version and build order (#499):
+  - results move where the optimum or its prices were not unique, and a
+    renamed node can move them;
+  - a run takes 10 to 15% longer.
+- The infeasible-bunkering error message and `bunkering_infeasible.ilp`/`.lp`
+  name a constraint or variable by its quoted node names, as
+  `tank_capacity("vessel","port",0,"tank")`, where `"port",0` is the vessel's
+  first call at the port; the parts were joined by underscores.
 - An empty `Vessels`, `Plants`, `Tanks`, `Ports`, `Emissions` or `Fuels` list,
   or a fuel type repeated in `MainFuelTypes` or `PilotFuelTypes`, is rejected
   at its line, also on a node the deck does not use.
