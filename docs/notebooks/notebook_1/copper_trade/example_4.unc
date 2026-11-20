@@ -35,6 +35,7 @@ DEFINE {
     # the switches set_include_vessel and Jurisdiction take only TRUE/FALSE and
     # ports, so 0/1 picks a file
     Include "includes/eu_whole_voyage_%EU_WHOLE_VOYAGE%.inc"
+    Include "includes/eu_ets_%EU_ETS%.inc"
     Include "includes/fuel_eu_%FUELEU%.inc"
     Include "includes/levers.inc"
 }

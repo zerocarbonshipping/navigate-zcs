@@ -21,13 +21,14 @@ ContinuousParameter "TRADE_GROWTH" = TRIANGULAR(0.0, 1.0, 2.0)
 # Held at the reference unless switched on with active = TRUE. A scenario
 # parameter that is active runs the whole study once for each of its values.
 ContinuousParameter "TECHNOLOGY_LIMIT" = UNIFORM(0.0, 1.0) { default = 1.0, active = FALSE }
+ScenarioParameter "EU_ETS" { values = ["1", "0"], active = FALSE }
 ScenarioParameter "FUELEU" { values = ["1", "0"], active = FALSE }
 ScenarioParameter "EU_WHOLE_VOYAGE" { values = ["0", "1"], active = FALSE }
 
 Horizon {
     UncFilePath = "example_4.unc"
     OutputPath = "study"
-    NumberOfSamples = 30
+    NumberOfSamples = 15
     SamplingMethod = LHS
     RandomSeed = 42
 }
