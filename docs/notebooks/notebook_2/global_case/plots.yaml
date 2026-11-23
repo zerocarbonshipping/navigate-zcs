@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The plots Session 2 draws with Lantern, which reads this catalogue when it is
+# started in this folder. The entries follow Lantern's own plots.yaml.
+
+# the runs the notebook writes: STEP 3's coarse runs are the reference of STEP 4,
+# in grey; STEP 5's yearly runs take the colours of Lantern's own catalogue;
+# STEP 4's runs show under their own names
+customize_runs:
+  basecase_no_regulation:            {name: no regulation, color: black_4}
+  basecase_mid_regulation:           {name: mid regulation, color: black_4}
+  basecase_strong_regulation:        {name: strong regulation, color: black_4}
+  business_as_usual:                 {name: business as usual, color: black_4}
+  basecase_no_regulation_yearly:     {name: no regulation, color: yellow_5}
+  basecase_mid_regulation_yearly:    {name: mid regulation, color: blue_5}
+  basecase_strong_regulation_yearly: {name: strong regulation, color: green_5}
+  business_as_usual_yearly:          {name: business as usual, color: black_5}
+  your_scenario:                     {name: your scenario, color: blue_8}
+
+session:
+  emissions:
+    title: Well-to-wake emissions
+    total: true
+    series: global.total_equivalent_wtw
+
+  fuel_consumed:
+    title: Fuel consumed
+    draw: stack
+    label: shore_power
+    series:
+      - global.consumed_energy
+      - global.shore_power_energy
+
+  # per transport work: the fleets' cargo-miles are tonne-nautical-miles, and the
+  # scale turns USD per tonne-nautical-mile into USD per 1,000 tonne-km (1,000 / 1.852)
+  expenses:
+    title: What the ships paid per tonne-km
+    unit: USD per 1,000 t-km
+    draw: stack
+    split_by: attribute
+    per: fleet.cargo_miles
+    scale: 539.96
+    series:
+      - fleet.vessel_expenses
+      - fleet.fuel_conversion_expenses
+      - fleet.technology_expenses
+      - fleet.total_fuel_expenses
+      - fleet.levy_expenses
+      - fleet.regulation_expenses
+
+  expenses_total:
+    title: What the ships paid in total, per tonne-km
+    unit: USD per 1,000 t-km
+    total: true
+    per: fleet.cargo_miles
+    scale: 539.96
+    series: fleet.expenses

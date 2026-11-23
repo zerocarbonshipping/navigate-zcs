@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# BASECASE_MID_REGULATION - simulations/scenarios/basecase_mid_regulation, on the coarse grid
+# (--set GRID=coarse) or year by year (--set GRID=yearly), with Session 2's
+# levers as %NAME% placeholders: every multiplier and switch at 1 gives the
+# scenario itself.
+
+DEFINE {
+    Load DefaultModelDefinition
+
+    # fleets
+    Load DefaultFleet
+
+    # voyages
+    Load DefaultPort
+
+    # fuels
+    Load DefaultEmission
+    Load DefaultFeedstock
+    Load DefaultFuel
+    Load DefaultProducer
+    Load DefaultPlant
+    Load DefaultRegion
+    Load DefaultSource
+    Load DefaultTransport
+
+    # regulations
+    Load DefaultRegulation
+    Include "includes/mid_regulation.inc"
+
+    # calibration
+    Load DefaultCalibration
+
+    # levers
+    Include "includes/levers.inc"
+    Include "includes/eu_levers.inc"
+    Include "includes/global_standard_levers.inc"
+
+    # switches: 0 or 1 picks a file
+    Include "includes/eu_ets_%EU_ETS%.inc"
+    Include "includes/fuel_eu_%FUELEU%.inc"
+    Include "includes/eu_worldwide_%EU_WORLDWIDE%.inc"
+    Include "includes/global_standard_%GLOBAL_STANDARD%.inc"
+}
+
+EVENTS {
+    Load DefaultConverterAvailable
+    Include "includes/time_steps_%GRID%.inc"
+}

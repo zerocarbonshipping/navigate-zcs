@@ -68,17 +68,18 @@ def find_problems(path: Path) -> list[str]:
             problems.append(f"{name} has no output")
         if has_error or ERROR_TEXT.search(text):
             problems.append(f"{name} shows an error")
-        if "show(" in source and not has_plot:
+        # the setup cell defines show() rather than calling it
+        if "show(" in source and not has_plot and not is_setup(cell):
             problems.append(f"{name} shows no plot")
-        if is_setup(cell) and not source.startswith('ROOT = "/content"'):
+        if is_setup(cell) and 'ROOT = "/content"' not in source.splitlines():
             problems.append(f"{name}: ROOT is not /content")
 
     return [f"{path}: {problem}" for problem in problems]
 
 
 def is_setup(cell: dict) -> bool:
-    """Tell whether a code cell is the setup cell, which sets ROOT."""
-    return "".join(cell["source"]).startswith("ROOT = ")
+    """Tell whether a code cell is the setup cell, which sets ROOT under its Colab title."""
+    return any(line.startswith("ROOT = ") for line in "".join(cell["source"]).splitlines())
 
 
 if __name__ == "__main__":
