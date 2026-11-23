@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/examples.css?v=242b7742" />
   
   <!-- So that users can add custom icons -->
@@ -46,7 +46,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=fd10adb8"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'workshop/03-how-a-navigate-model-is-built';</script>
@@ -476,7 +476,7 @@
 <p><em>San Antonio to Rotterdam via the Panama Canal: the two bunker ports, the
 voyage, and the possible fuel plants.</em></p>
 <section id="what-you-ll-do">
-<h2>What you’ll do<a class="headerlink" href="#what-you-ll-do" title="Link to this heading">#</a></h2>
+<span id="what-youll-do"></span><h2>What you’ll do<a class="headerlink" href="#what-you-ll-do" title="Link to this heading">#</a></h2>
 <p><strong>Part 1: Build the simulation.</strong> See how a case like this is expressed using Navigate’s library of components.</p>
 <p><strong>Part 2: Explore the input data.</strong> Look at the numerical assumptions that will drive the answer.</p>
 </section>
@@ -1870,7 +1870,7 @@ or demand difference, and how much of last year’s choices they repeat</p></li>
 </section>
 <hr class="docutils" />
 <section id="data-about-the-fleet">
-<h3>1. Data about the fleet<a class="headerlink" href="#data-about-the-fleet" title="Link to this heading">#</a></h3>
+<span id="1-data-about-the-fleet"></span><h3>1. Data about the fleet<a class="headerlink" href="#data-about-the-fleet" title="Link to this heading">#</a></h3>
 <p>The most important data that will affect how the fleet ends up being designed are:</p>
 <ul class="simple">
 <li><p>the ship retrofitting costs from one fuel to another</p></li>
@@ -2290,7 +2290,7 @@ class. This deck offers all seven, each with its own cost and saving:</p>
 </section>
 <hr class="docutils" />
 <section id="data-about-the-fuels">
-<h3>2. Data about the fuels<a class="headerlink" href="#data-about-the-fuels" title="Link to this heading">#</a></h3>
+<span id="2-data-about-the-fuels"></span><h3>2. Data about the fuels<a class="headerlink" href="#data-about-the-fuels" title="Link to this heading">#</a></h3>
 <p>The most important data related to fuels are:</p>
 <ul class="simple">
 <li><p>the market price of the fuels bought on a liquid market, such as fuel oil and LNG</p></li>
@@ -2948,7 +2948,7 @@ carries a penalty at the far one.</p>
 </section>
 <hr class="docutils" />
 <section id="data-about-the-regulations">
-<h3>3. Data about the regulations<a class="headerlink" href="#data-about-the-regulations" title="Link to this heading">#</a></h3>
+<span id="3-data-about-the-regulations"></span><h3>3. Data about the regulations<a class="headerlink" href="#data-about-the-regulations" title="Link to this heading">#</a></h3>
 <p>The most important data about a regulation are:</p>
 <ul class="simple">
 <li><p>the <strong>price</strong> it puts on emissions, for a scheme that prices them</p></li>
@@ -3576,7 +3576,7 @@ panel, Navigate’s estimate of the emissions.</p>
 </section>
 <hr class="docutils" />
 <section id="data-about-the-decision-processes">
-<h3>4. Data about the decision processes<a class="headerlink" href="#data-about-the-decision-processes" title="Link to this heading">#</a></h3>
+<span id="4-data-about-the-decision-processes"></span><h3>4. Data about the decision processes<a class="headerlink" href="#data-about-the-decision-processes" title="Link to this heading">#</a></h3>
 <p>The most important data about how the owners and the producers decide are:</p>
 <ul class="simple">
 <li><p>the <strong>decision sensitivities</strong>: how sharply the owners respond to a cost difference, and the producers to a difference in expected demand or cost</p></li>
@@ -3649,18 +3649,14 @@ far from 1 means nearly all of them pick the cheapest.</p>
 <p>For the choice of fuel type for a newbuild ship, with <span class="math notranslate nohighlight">\(c_i\)</span> the levelised cost per cargo-mile of a new ship of fuel type <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(s_i\)</span> its share of the newbuilds and <span class="math notranslate nohighlight">\(S\)</span> the value of
 <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code>:</p>
 <div class="math notranslate nohighlight">
-\[
-\frac{s_i}{s_j} = \left(\frac{c_i}{c_j}\right)^{-\beta},
-\qquad \beta = -\frac{\ln S}{\ln 1.1}
-\]</div>
+\[\frac{s_i}{s_j} = \left(\frac{c_i}{c_j}\right)^{-\beta},
+\qquad \beta = -\frac{\ln S}{\ln 1.1}\]</div>
 <p>Retrofits work the same way, but on NPV rather than cost. When a ship reaches a
 retrofit cycle, each possible conversion is weighed against keeping the ship as
 it is. With <span class="math notranslate nohighlight">\(\mathrm{NPV}_i\)</span> the net present value of conversion <span class="math notranslate nohighlight">\(i\)</span> (the fuel and compliance savings over the ship’s remaining life, minus the conversion cost), CAPEX the capital cost of a new ship of its type and <span class="math notranslate nohighlight">\(S\)</span> the value of <code class="docutils literal notranslate"><span class="pre">FuelConversionSensitivity</span></code>:</p>
 <div class="math notranslate nohighlight">
-\[
-\frac{s_i}{s_\mathrm{keep}} = e^{\beta \, \mathrm{NPV}_i / \mathrm{CAPEX}},
-\qquad \beta = \frac{\ln S}{0.05}
-\]</div>
+\[\frac{s_i}{s_\mathrm{keep}} = e^{\beta \, \mathrm{NPV}_i / \mathrm{CAPEX}},
+\qquad \beta = \frac{\ln S}{0.05}\]</div>
 </details>
 <p>The figure below draws both formulas for a choice between two options. The bold
 line is the deck’s value, and the dashed lines show less and more decisive owners.</p>
@@ -3775,19 +3771,15 @@ build is shared between fuels by demand. With <span class="math notranslate nohi
 fuel <span class="math notranslate nohighlight">\(i\)</span> over a plant’s lifetime, discounted so the first years count most, <span class="math notranslate nohighlight">\(s_i\)</span>
 its share of the build and <span class="math notranslate nohighlight">\(S\)</span> the value of <code class="docutils literal notranslate"><span class="pre">FuelDemandSensitivity</span></code>:</p>
 <div class="math notranslate nohighlight">
-\[
-\frac{s_i}{s_j} = \left(\frac{D_i}{D_j}\right)^{\beta},
-\qquad \beta = \frac{\ln S}{\ln 1.1}
-\]</div>
+\[\frac{s_i}{s_j} = \left(\frac{D_i}{D_j}\right)^{\beta},
+\qquad \beta = \frac{\ln S}{\ln 1.1}\]</div>
 <p>With this deck’s 1.25, a fuel with 10 % more expected demand gets 1.25 times the
 odds. Then each fuel’s share is split between the plants that make it, by cost.
 With <span class="math notranslate nohighlight">\(c_p\)</span> the levelised cost of the fuel that plant <span class="math notranslate nohighlight">\(p\)</span> delivers to the ports, <span class="math notranslate nohighlight">\(s_p\)</span>
 its share and <span class="math notranslate nohighlight">\(S\)</span> the value of <code class="docutils literal notranslate"><span class="pre">FuelCostSensitivity</span></code>:</p>
 <div class="math notranslate nohighlight">
-\[
-\frac{s_p}{s_q} = \left(\frac{c_p}{c_q}\right)^{-\beta},
-\qquad \beta = -\frac{\ln S}{\ln 1.1}
-\]</div>
+\[\frac{s_p}{s_q} = \left(\frac{c_p}{c_q}\right)^{-\beta},
+\qquad \beta = -\frac{\ln S}{\ln 1.1}\]</div>
 </details></section>
 </section>
 <section id="workshop-sessions">

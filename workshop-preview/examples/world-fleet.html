@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/examples.css?v=242b7742" />
   
   <!-- So that users can add custom icons -->
@@ -46,7 +46,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=fd10adb8"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples/world-fleet';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
@@ -515,8 +515,8 @@ draws this figure and lets you move the scenarios’ assumptions.</p>
 library’s modules.</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-basecase_mid_regulation.nav</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+basecase_mid_regulation.nav</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
 <span class="c1"># SPDX-License-Identifier: CC-BY-4.0</span>
 
@@ -561,8 +561,8 @@ basecase_mid_regulation.nav</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-mid_regulation.inc</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+mid_regulation.inc</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-text">0_includes/mid_regulation.inc</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
@@ -618,8 +618,8 @@ mid_regulation.inc</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
-strong_regulation.inc</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+strong_regulation.inc</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-text">0_includes/strong_regulation.inc</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
@@ -680,8 +680,8 @@ strong_regulation.inc</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-3">
-Coarse grid</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-3-content" class="sd-tab-label" for="sd-tab-item-3">
+Coarse grid</label><div class="sd-tab-content docutils" id="sd-tab-item-3-content">
 <div class="literal-block-wrapper docutils container" id="id3">
 <div class="code-block-caption"><span class="caption-text">workshop_whatif/workshop_basecase_mid_regulation.nav</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</span>
@@ -936,23 +936,23 @@ are, and if you are far off, what in your deck could explain it.
 <p class="sd-card-text"><em>The global fuel standard of the mid-regulation scenario (grey) and the same standard started five years later, with the same 2050 target (blue).</em></p>
 <p class="sd-card-text"><strong>Build it from the full prompt of “Session 2’s reference scenario”, with these differences:</strong></p>
 <ul class="simple">
-<li><p class="sd-card-text">Do not rebuild the world:
+<li><p>Do not rebuild the world:
 this study runs the mid-regulation deck already there, on the coarse grid of
 <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/workshop_whatif/</span></code> (a few minutes a run).</p></li>
-<li><p class="sd-card-text">Folder <code class="docutils literal notranslate"><span class="pre">simulations/user/my_global_study/</span></code>. <code class="docutils literal notranslate"><span class="pre">reference.nav</span></code> is a copy of
+<li><p>Folder <code class="docutils literal notranslate"><span class="pre">simulations/user/my_global_study/</span></code>. <code class="docutils literal notranslate"><span class="pre">reference.nav</span></code> is a copy of
 <code class="docutils literal notranslate"><span class="pre">workshop_whatif/workshop_basecase_mid_regulation.nav</span></code>, with its two Include
 paths rewritten so they still point at the original files. <code class="docutils literal notranslate"><span class="pre">delayed.nav</span></code> is the
 same, except that it includes your own copy of
 <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/0_includes/mid_regulation.inc</span></code>, as
 <code class="docutils literal notranslate"><span class="pre">includes/gfs_delayed.inc</span></code>. The two decks differ in that one line only, and
 nothing in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code> changes.</p></li>
-<li><p class="sd-card-text">In that copy, move every date of <code class="docutils literal notranslate"><span class="pre">gfs_target_reduction</span></code> and <code class="docutils literal notranslate"><span class="pre">gfs_remedial_unit</span></code>
+<li><p>In that copy, move every date of <code class="docutils literal notranslate"><span class="pre">gfs_target_reduction</span></code> and <code class="docutils literal notranslate"><span class="pre">gfs_remedial_unit</span></code>
 that falls before 2050 by [THE DELAY, e.g. five years], and leave the 2050 rows
 where they are. Mark each moved row with a comment giving its reference date.
 The delay is the only INVENTED value.</p></li>
-<li><p class="sd-card-text">A start moved to 2028 or 2029 falls between two steps of the coarse grid:
+<li><p>A start moved to 2028 or 2029 falls between two steps of the coarse grid:
 building-a-deck.md says what to do.</p></li>
-<li><p class="sd-card-text">Report, instead of the template’s comparison, side by side: the well-to-wake
+<li><p>Report, instead of the template’s comparison, side by side: the well-to-wake
 emissions at every time step; their sum over 2026-2050, weighting each step by
 the years it stands for (say how), and the extra Mt CO2e the delay costs; the
 share of energy by fuel in 2030, 2038 and 2050, and whether the delayed run
@@ -976,22 +976,22 @@ extra (+6.1 %). the full prompt that passed is in the repository’s history, co
 <p class="sd-card-text"><strong>Variant of “Session 2’s reference scenario” above.</strong> No geography here: the Center’s reference scenarios model twenty-three vessel classes on the library’s own global operating profiles, and the only “places” are two abstract ports that exist so the EU measures know what they cover. This prompt keeps two or three classes of your choice, imported whole from the library with their own fleets, orderbooks and technologies, against the library’s full fuel-supply chain in five regions and under EU ETS and FuelEU. Expect several minutes per run.</p>
 <p class="sd-card-text"><strong>Build it from the full prompt of “Session 2’s reference scenario”, with these differences:</strong></p>
 <ul class="simple">
-<li><p class="sd-card-text">Fleets: two or three classes of the user’s choice (for example
+<li><p>Fleets: two or three classes of the user’s choice (for example
 <code class="docutils literal notranslate"><span class="pre">tanker_127k_dwt</span></code> and <code class="docutils literal notranslate"><span class="pre">bulk_carrier_80k_dwt</span></code>), each imported whole with
 <code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">Fleet</span> <span class="pre">&quot;...&quot;</span></code>, so it brings its own vessels, age distribution,
 orderbook, technologies and retrofit costs. Not <code class="docutils literal notranslate"><span class="pre">Load</span> <span class="pre">DefaultFleet</span></code>.</p></li>
-<li><p class="sd-card-text">Geography: none of your own. Load DefaultVoyage for the per-class operating
+<li><p>Geography: none of your own. Load DefaultVoyage for the per-class operating
 profiles, and DefaultPort for the library’s two abstract ports.</p></li>
-<li><p class="sd-card-text">Regulation: the EU ETS and FuelEU at their library settings
+<li><p>Regulation: the EU ETS and FuelEU at their library settings
 (DefaultRegulation). No global fuel standard: leave out
 <code class="docutils literal notranslate"><span class="pre">includes/regulation.inc</span></code>.</p></li>
-<li><p class="sd-card-text">EVENTS: with fewer than the library’s twenty-three fleets, do not load
+<li><p>EVENTS: with fewer than the library’s twenty-three fleets, do not load
 DefaultConverterAvailable (building-a-deck.md says why), and say in the header
 that every vessel type is orderable from year one. Use DefaultTimeStepYearly
 rather than the coarse grid. Expect five to ten minutes a run.</p></li>
-<li><p class="sd-card-text">Every number comes from the library: if you find yourself writing one, stop and
+<li><p>Every number comes from the library: if you find yourself writing one, stop and
 say why the library has none.</p></li>
-<li><p class="sd-card-text">Report, instead of the template’s comparison: the fuel mix at both ends of the
+<li><p>Report, instead of the template’s comparison: the fuel mix at both ends of the
 horizon.</p></li>
 </ul>
 <p class="sd-card-text"><strong>Limits.</strong> Fewer fleets than the library’s twenty-three (building-a-deck.md says
