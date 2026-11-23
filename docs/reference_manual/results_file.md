@@ -197,7 +197,7 @@ The CO2-equivalents use the model's global warming potentials, which the
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
 | `global.equivalent_wtt`<br>`fleet.equivalent_wtt`<br>`vessel.equivalent_wtt` | `tCO2e/year` | fuel, emission | Well-to-tank emissions of the fuel bunkered. | Each fuel bunkered and emission it has |
-| `global.equivalent_ttw`<br>`fleet.equivalent_ttw`<br>`vessel.equivalent_ttw` | `tCO2e/year` | fuel, emission | Tank-to-wake emissions of the fuel burnt. | As `equivalent_wtt` |
+| `global.equivalent_ttw`<br>`fleet.equivalent_ttw`<br>`vessel.equivalent_ttw` | `tCO2e/year` | fuel, emission | Tank-to-wake emissions of the fuel burnt. Fuels with the same FuelType, LowerHeatingValue and TTW emission factors share a vessel's emissions from them in proportion to the mass burnt of each. | As `equivalent_wtt` |
 | `global.equivalent_wtw`<br>`fleet.equivalent_wtw`<br>`vessel.equivalent_wtw` | `tCO2e/year` | fuel, emission | `equivalent_wtt` plus `equivalent_ttw`. | As `equivalent_wtt` |
 | `global.total_equivalent_wtw`<br>`fleet.total_equivalent_wtw`<br>`vessel.total_equivalent_wtw` | `tCO2e/year` | | All of `equivalent_wtw` plus the shore power emissions. | Always |
 | `global.intensity_total_equivalent_wtt`<br>`fleet.intensity_total_equivalent_wtt`<br>`vessel.intensity_total_equivalent_wtt` | `gCO2e/MJ` | | Total well-to-tank emissions per `total_consumed_energy`. | Always |

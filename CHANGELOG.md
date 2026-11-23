@@ -357,6 +357,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- `equivalent_ttw` and `equivalent_wtw` split a vessel's emissions between fuels
+  of one fuel type, heating value and TTW factors by the mass burnt of each, not
+  by the solver's choice of converter. Only that split moves, where two are burnt.
 - A Curve, Forecast, Surface, Timetable, Variable or expression whose value
   reaches an exclusive minimum or maximum, or is NaN, during a run stops it with
   an `Error:` line naming the node instead of a Python traceback (#908).
