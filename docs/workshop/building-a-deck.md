@@ -12,6 +12,10 @@ shares: how Navigate works, where the deck goes, where its numbers may come from
 and what to report. Read all of it before writing any file. Where the prompt and
 this page disagree, the prompt wins.
 
+Then read `simulations/user/my-notes.md` if it exists: the lessons of the person's
+earlier builds (the last section, *Improving this page*, says how they are kept). Apply them too;
+where one contradicts this page, follow this page and tell the person.
+
 ## First: find Navigate and check that it runs
 
 This page needs an assistant that can read files and run commands on the person's
@@ -377,8 +381,7 @@ end your report with a section headed **Prompt bank entry**, ready to paste:
 
 If no entry was close, or the deck needed a structure that none of them has, also
 write the full prompt that rebuilds the deck as it now is, in the style of the
-bank's full prompts. Tell the person that Step 7 of Session 5 says where to send
-the entry.
+bank's full prompts.
 
 ## Then offer an explanation notebook
 
@@ -458,6 +461,11 @@ Check that no output shows an error, a local path or a user name.
 
 End your report with a short section headed **For building-a-deck.md**: anything
 you had to work out, or got wrong first, that this page should have told you,
-written as the sentence you would add here. Leave it out if there is nothing. The
-person can then propose it to the workshop authors, by an issue or a pull request
-on this file, so the next deck is built with it.
+written as the sentence you would add here. Leave it out if there is nothing.
+
+Then add those sentences to `simulations/user/my-notes.md`, creating it if it is
+missing, each with the date and the case it came from. git does not track that
+folder, so the notes stay on the person's machine, and your next build reads them.
+Skip a lesson the file already holds, and keep the file under 50 lines: when it
+grows longer, merge the lessons that say the same thing. Tell the person in one
+line what you added.

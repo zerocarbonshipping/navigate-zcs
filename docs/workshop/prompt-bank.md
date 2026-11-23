@@ -84,13 +84,13 @@ and the entry says so up front:
   Regulation (building-a-deck.md says why not a `Levy`).
 - **Geography**: no distances, port handling costs or bunker transport costs.
 
-## Adding your case
+## Adding a case
 
-The bank grows from the cases people build. When a deck runs, the assistant ends
+The bank grows from the cases the workshop authors build and test. When a deck runs, the assistant ends
 its report with a **prompt bank entry** (building-a-deck.md says what goes in
 it): the index line, the model it took, the case sheet written as the
 differences from that model, the test result, and its notes for
-building-a-deck.md. Paste it into [a new issue](https://github.com/zerocarbonshipping/navigate-zcs/issues/new?title=Prompt%20bank%20entry%3A%20%3Cyour%20case%3E&body=Paste%20here%20the%20%22Prompt%20bank%20entry%22%20section%20that%20ends%20your%20assistant%27s%20report%3A%0A%0A-%20Index%20line%20%28family%2C%20question%2C%20scale%2C%20ships%2C%20policy%2C%20what%20the%20case%20changes%2C%20built%20on%29%3A%0A-%20Model%20taken%3A%0A-%20Case%20sheet%2C%20as%20the%20differences%20from%20that%20model%3A%0A-%20Test%20result%20%28exit%20code%2C%20warnings%2C%20errors%3B%20first-year%20WTW%20intensity%20and%20energy%29%3A%0A-%20For%20building-a-deck.md%3A%0A).
+building-a-deck.md.
 
 The workshop authors then:
 

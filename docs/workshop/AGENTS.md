@@ -164,9 +164,11 @@ the case sheet and the model's full prompt. This process was chosen on
 2026-10-28 over writing a full prompt for approval: in six cold builds it was as
 accurate, with a third of the text to approve.
 
-The bank grows from contributions. A participant's assistant ends its report with
-a prompt bank entry (building-a-deck.md says what it holds), which the participant
-pastes into an issue. Add it as a variant of its model by default, and as a full
+The bank grows from the cases the workshop authors build and test. The assistant
+ends its report with a prompt bank entry (building-a-deck.md says what it holds).
+Participants are not asked to send theirs: since 2026-11-23 Session 5 no longer
+links to a new issue, which would put one issue per participant in the
+repository's list. Add an entry as a variant of its model by default, and as a full
 entry only when it needs a structure or a fix that no entry has; fold its notes
 into building-a-deck.md; promote a variant that several people build to a full
 entry. A report that says "none close" marks a family or a template the bank
@@ -188,7 +190,10 @@ instructions forbid opening it; the prompt itself does not.
 
 Check that every instruction of the start-up prompt (the family and model
 before the questions, the case sheet, the new folder and its `_2`, no change to
-existing files, INVENTED marking, the prompt bank entry) is obeyed by the build.
+existing files, INVENTED marking, the prompt bank entry, the lessons added to
+`simulations/user/my-notes.md`) is obeyed by the build. A test starts without
+`my-notes.md` (a fresh worktree has none, since git ignores `simulations/user/`),
+or it is not cold.
 Keep the start-up prompt as short as a participant could write it, and shorten
 it only with a chain test showing the cut breaks nothing. The rules Session 5's prompts share live in
 `building-a-deck.md`: change them there, not in each prompt, and test the chain
