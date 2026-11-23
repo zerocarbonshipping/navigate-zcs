@@ -4,19 +4,14 @@
 # The plots Session 2 draws with Lantern, which reads this catalogue when it is
 # started in this folder. The entries follow Lantern's own plots.yaml.
 
-# the runs the notebook writes: STEP 3's coarse runs are the reference of STEP 4,
-# in grey; STEP 5's yearly runs take the colours of Lantern's own catalogue;
-# STEP 4's runs show under their own names
+# the runs the notebook writes: STEP 3's reference scenarios, on either time grid,
+# take the colours of Lantern's own catalogue; STEP 4's runs show under their own names
 customize_runs:
-  basecase_no_regulation:            {name: no regulation, color: black_4}
-  basecase_mid_regulation:           {name: mid regulation, color: black_4}
-  basecase_strong_regulation:        {name: strong regulation, color: black_4}
-  business_as_usual:                 {name: business as usual, color: black_4}
-  basecase_no_regulation_yearly:     {name: no regulation, color: yellow_5}
-  basecase_mid_regulation_yearly:    {name: mid regulation, color: blue_5}
-  basecase_strong_regulation_yearly: {name: strong regulation, color: green_5}
-  business_as_usual_yearly:          {name: business as usual, color: black_5}
-  your_scenario:                     {name: your scenario, color: blue_8}
+  basecase_no_regulation:     {name: no regulation, color: yellow_5}
+  basecase_mid_regulation:    {name: mid regulation, color: blue_5}
+  basecase_strong_regulation: {name: strong regulation, color: green_5}
+  business_as_usual:          {name: business as usual, color: black_5}
+  your_scenario:              {name: your scenario, color: blue_8}
 
 session:
   emissions:

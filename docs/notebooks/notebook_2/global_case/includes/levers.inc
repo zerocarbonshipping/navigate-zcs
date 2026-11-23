@@ -70,6 +70,12 @@ Forecast "used_cooking_oil_share_shipping" {
     Multiplier = %BIOMASS_SHARE_FOR_SHIPPING%
 }
 
+# the biogenic CO2 pool, which e-methanol is made from; shipping may use its share of it
+Import Forecast "carbon_dioxide_biogenic_availability"
+Forecast "carbon_dioxide_biogenic_availability" {
+    Multiplier = %BIOGENIC_CO2_AVAILABILITY%
+}
+
 # the plants (not bio-fuel plants) that may be built a year
 Import Forecast "epc_global_capacity_mid"
 Forecast "epc_global_capacity_mid" {
