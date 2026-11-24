@@ -155,9 +155,13 @@ def split_oldest_first(
     for g, group_capacity in enumerate(capacities):
         left = float(drop_negligible(remaining - group_capacity, capacity))
 
-        # the group takes the rest of the capacity, all of it only beyond rounding
+        # the group takes the rest of the capacity, in part where it holds more
         if remaining == 0.0 or left < 0.0:
             return g, float(divide_nonzero(remaining, group_capacity))
+
+        # and whole where it holds the rest to rounding
+        if left == 0.0:
+            return g, 1.0
 
         remaining = left
 
