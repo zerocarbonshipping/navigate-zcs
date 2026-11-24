@@ -381,8 +381,10 @@ def _complete_energy(results: _ConsumerResults) -> None:
 
 
 def _saving(energy: FloatArray, reference: FloatLike) -> FloatArray:
-    # no saving where there is no reference to save against
-    return 1.0 - divide_nonzero(energy, reference, default=1.0)
+    # no saving where there is no reference to save against, nor where the energy
+    # equals it to rounding
+    saving = 1.0 - divide_nonzero(energy, reference, default=1.0)
+    return drop_negligible(saving, 1.0)
 
 
 def _complete_savings(results: _ConsumerResults) -> None:
