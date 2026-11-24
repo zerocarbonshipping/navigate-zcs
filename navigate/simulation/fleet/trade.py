@@ -84,7 +84,8 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     elif trade_gap < 0.0 and fleet.allow_secondary_scrapping:
         trade_gap += perform_secondary_scrapping(fleet, trade_gap, idx)
 
-    # orderbook bookkeeping and the tails of the uptake leave rounding residue
+    # a count negligible against the fleet is no vessel, whether a rounding residue or
+    # the tail of a logit: it would never be in service, so no cohort is built from it
     newbuilds = drop_negligible(newbuilds, total_count + np.sum(newbuilds))
 
     consolidate_increments(fleet)

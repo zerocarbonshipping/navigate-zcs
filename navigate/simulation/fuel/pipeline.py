@@ -27,6 +27,7 @@ from navigate.util import (
     calculate_step_inertia,
     divide_nonzero,
     drop_negligible,
+    subtract,
 )
 
 if TYPE_CHECKING:
@@ -57,7 +58,9 @@ def perform_pipeline_delivery(producer: Producer) -> None:
             share = calculate_share_below(increment, 0.0)
 
             if share == 0.0:
-                # the age already counts the time since delivery
+                # the age already counts the time since delivery; one short of zero
+                # only to rounding is delivered at zero
+                increment.age = max(increment.age, 0.0)
                 operating.append(increment)
 
             elif share == 1.0:
@@ -122,11 +125,11 @@ def perform_pipeline_planning(
     # the utilization is the previous time step's, and the inertia already counts
     # against the development limit
     utilization = min(producer.current_utilization + ramp_up, 1.0)
-    available = limit * utilization
-    development = float(drop_negligible(available - np.sum(inertia), available))
+    development = float(subtract(limit * utilization, np.sum(inertia)))
     modelled = _calculate_modelled_newbuilds(producer, inertia, development, idx)
 
-    # a count negligible against the step's total is a rounding residue, not a plant
+    # a count negligible against the step's total is no plant, whether a rounding
+    # residue or the tail of a logit, so no cohort is built from it
     newbuilds = inertia + modelled
     newbuilds = drop_negligible(newbuilds, np.sum(newbuilds))
 
@@ -220,9 +223,7 @@ def _calculate_uncovered_demand(
     uncovered: dict[str, FloatArray] = {}
 
     for fuel_name, fuel_demand in demand.items():
-        fuel_production = production[fuel_name]
-        scale = np.maximum(np.abs(fuel_demand), fuel_production)
-        uncovered[fuel_name] = drop_negligible(fuel_demand - fuel_production, scale)
+        uncovered[fuel_name] = subtract(fuel_demand, production[fuel_name])
 
     return uncovered
 
@@ -280,8 +281,7 @@ def _calculate_demand_limits(
     producer
         The producer.
     uptakes
-        Uptake share of each plant type; one negligible against a whole share, such
-        as the tail of a logit, counts as no uptake.
+        Uptake share of each plant type.
     development
         Number of plants built over the time step.
 
@@ -291,7 +291,6 @@ def _calculate_demand_limits(
         Uptake limit per plant type, zero for a plant type not allowed, without
         demand, or without uptake where another plant type of its fuel has uptake.
     """
-    uptakes = drop_negligible(uptakes, 1.0)
     newbuilds = np.zeros(len(producer.plants))
     spends = dict.fromkeys(producer.fuels, 0.0)
     counts = dict.fromkeys(producer.fuels, 0)

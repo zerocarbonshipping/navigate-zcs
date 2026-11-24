@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.nodes.curve import Curve
-from navigate.util import find_nearest_index, find_nearest_indices, is_negligible
+from navigate.util import drop_negligible, find_nearest_index, find_nearest_indices
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -93,13 +93,12 @@ def calculate_share_below(increment: Increment, boundary: float) -> float:
     oldest = increment.age + increment.age_span
     scale = max(abs(youngest), abs(oldest))
 
-    below = boundary - youngest
-    above = oldest - boundary
-
-    if below <= 0.0 or is_negligible(below, scale):
+    below = float(drop_negligible(boundary - youngest, scale))
+    if below <= 0.0:
         return 0.0
 
-    if above <= 0.0 or is_negligible(above, scale):
+    above = float(drop_negligible(oldest - boundary, scale))
+    if above <= 0.0:
         return 1.0
 
     # the boundary lies inside the span, which is then positive
@@ -131,19 +130,17 @@ def calculate_retired_share(
     FloatArray
         Share of the cohort retired by each of the times.
     """
-    if window == 0.0:
-        return np.heaviside(times - retirement, 1.0)
-
     start = retirement - window
     scale = np.maximum(np.abs(start), np.abs(retirement))
 
-    elapsed = times - start
-    remaining = retirement - times
+    elapsed = drop_negligible(times - start, scale)
+    remaining = drop_negligible(retirement - times, scale)
 
-    retired = np.clip(elapsed / window, 0.0, 1.0)
-    retired = np.where(is_negligible(remaining, scale), 1.0, retired)
+    if window == 0.0:
+        return np.heaviside(elapsed, 1.0)
 
-    return np.where(is_negligible(elapsed, scale), 0.0, retired)
+    retired = np.where(remaining > 0.0, elapsed / window, 1.0)
+    return np.clip(retired, 0.0, 1.0)
 
 
 def find_insertion_index(increments: Sequence[Increment], age: float) -> int:

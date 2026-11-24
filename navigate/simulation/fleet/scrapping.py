@@ -15,7 +15,7 @@ from navigate.simulation.fleet._composition import (
     extract_cargo_miles,
     get_trade_capacity,
 )
-from navigate.util import ROUND_OFF, YEAR, divide_nonzero
+from navigate.util import ROUND_OFF, YEAR, divide_nonzero, drop_negligible
 
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
@@ -134,7 +134,8 @@ def split_oldest_first(
 
     The oldest groups are scrapped whole until what is left of the capacity fits in
     the next group, which then has the same fraction of each of its increments
-    scrapped.
+    scrapped. What is left is exact zero once it is negligible against the capacity,
+    so a group it fills to rounding is scrapped whole, with nothing split off.
 
     Parameters
     ----------
@@ -152,10 +153,13 @@ def split_oldest_first(
     remaining = capacity
 
     for g, group_capacity in enumerate(capacities):
-        if group_capacity >= remaining:
+        left = float(drop_negligible(remaining - group_capacity, capacity))
+
+        # the group takes the rest of the capacity, all of it only beyond rounding
+        if remaining == 0.0 or left < 0.0:
             return g, float(divide_nonzero(remaining, group_capacity))
 
-        remaining -= group_capacity
+        remaining = left
 
     return len(capacities), None
 
