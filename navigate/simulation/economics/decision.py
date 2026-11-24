@@ -198,8 +198,9 @@ def _uniform_at_min(values: FloatArray) -> FloatArray:
     """
     shares = np.zeros_like(values)
 
-    # the values may be negative, so the largest magnitude scales the ties
-    at_min = is_negligible(values - np.min(values), np.max(np.abs(values)))
+    # each value is tied with the minimum on the scale of the two
+    minimum = np.min(values)
+    at_min = is_negligible(values - minimum, np.maximum(np.abs(values), abs(minimum)))
     shares[at_min] = 1.0 / np.count_nonzero(at_min)
 
     return shares

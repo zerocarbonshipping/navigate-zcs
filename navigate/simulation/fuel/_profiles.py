@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.cohort import calculate_retired_share, find_origin_indexes
-from navigate.util import YEAR
+from navigate.util import YEAR, drop_negligible
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -147,8 +147,9 @@ def _calculate_running_profile(
     FloatArray
         The rate carried at each of the times, in tons/year.
     """
+    # once all of the rate has retired, the sum is zero to rounding
     retired = _spread_uniformly(rate, retirement, window, times)
-    return np.cumsum(entered - retired)
+    return drop_negligible(np.cumsum(entered - retired), rate)
 
 
 def _calculate_reserved_profile(

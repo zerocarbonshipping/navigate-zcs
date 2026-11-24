@@ -146,8 +146,11 @@ def _clear_flexibility_market(
     total_surplus = 0.0
     for vessel_name, count in select_policed(regulation, counts).items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
-        non_compliance = max(account.emissions - account.allowance, 0.0)
-        surplus = max(account.allowance - account.emissions, 0.0)
+        excess = account.emissions - account.allowance
+        scale = max(abs(account.emissions), abs(account.allowance))
+        excess = float(drop_negligible(excess, scale))
+        non_compliance = max(excess, 0.0)
+        surplus = max(-excess, 0.0)
 
         balances[vessel_name] = (non_compliance, surplus)
         total_non_compliance += count * non_compliance
