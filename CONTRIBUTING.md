@@ -97,6 +97,28 @@ into its base and on that base, and fails on any difference beyond rounding,
 the tolerance the `writing-pull-requests` skill names. Run the same
 comparison locally against the newest `dev` with `make compare-results`.
 
+## Horizon and Lantern
+
+The companion tools [Horizon](https://github.com/zerocarbonshipping/horizon-zcs)
+and [Lantern](https://github.com/zerocarbonshipping/lantern-zcs) keep no guide
+of their own: this guide and [`CODESTYLE.md`](CODESTYLE.md) are theirs, read
+for their repository.
+
+- Their README names the checks a pull request passes, in place of
+  `make check` and the test suites; their package docstring or README maps
+  their code, in place of `ARCHITECTURE.md`.
+- Their `CHANGELOG.md` records what a user of the tool would notice: a
+  command-line argument, a key of the files it reads, what it writes or
+  prints, and its installation requirements. The rest of Changelog holds as
+  written.
+- Of `CODESTYLE.md`, the sections Nodes and the DSL, Dynamic state and
+  results, and Validation and dynamic access are Navigate's alone, as is any
+  rule naming a Navigate module (`RunLog`, `TOLERANCE`).
+- Their `pyproject.toml` configures ruff with Navigate's rule set at a line
+  length of 128, and mypy as Navigate's `mypy.ini` does.
+- They have no pull request template, no `AGENTS.md` and no results
+  comparison.
+
 ## Questions
 
 Issues are the preferred way to ask. Whether you are unsure if a change needs

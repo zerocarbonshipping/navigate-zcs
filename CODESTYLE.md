@@ -11,7 +11,9 @@ configuration wins. A per-file waiver in `.ruff.toml` is not an exception for
 one package or file (`AGENTS.md`, Your role): it fits a rule to what its files
 are for, as its comment, this file or `ARCHITECTURE.md` says, and excuses no
 code that breaks the rule. Taste beyond these conventions follows the
-`beautiful-code` skill in `.agents/skills/`.
+`beautiful-code` skill in `.agents/skills/`. Horizon and Lantern follow these
+conventions too, apart from what `CONTRIBUTING.md`, Horizon and Lantern, sets
+aside.
 
 ## Naming
 
