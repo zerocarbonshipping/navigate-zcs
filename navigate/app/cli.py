@@ -17,8 +17,9 @@ import traceback
 from pathlib import Path
 
 from navigate.app.logs import LOG_LEVELS, RunLog, print_preamble
-from navigate.driver import SOLVER_BACKENDS, run_deck
+from navigate.driver import SCHEMA_VERSION, SOLVER_BACKENDS, run_deck
 from navigate.exceptions import NavigateError
+from navigate.util import navigate_version
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
 
@@ -89,7 +90,17 @@ def _run_name(value: str) -> str:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="Navigate")
+    # the raw formatter keeps the --version line, which Horizon reads, on one line
+    parser = argparse.ArgumentParser(
+        prog="Navigate", formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=_version_line(),
+        help="Print the Navigate version and the results file schema it writes, "
+        "then exit.",
+    )
     parser.add_argument(
         "-p",
         "--profile",
@@ -207,6 +218,7 @@ def main() -> int:
 
 def _run(args: argparse.Namespace, run_log: RunLog) -> None:
     print_preamble()
+    logger.info("%s", _version_line())
     run = functools.partial(
         run_deck,
         args.filename,
@@ -231,6 +243,17 @@ def _run(args: argparse.Namespace, run_log: RunLog) -> None:
 
         run_log.log_summary()
         run_log.print_notice()
+
+
+def _version_line() -> str:
+    """
+    Name the Navigate version and the results schema it writes.
+
+    --version prints this line and the log records it. Horizon reads it to check the
+    Navigate it runs, so it keeps this form.
+    """
+    version = navigate_version() or "unknown"
+    return f"Navigate {version}, results schema {SCHEMA_VERSION}"
 
 
 def _params_by_name(

@@ -69,7 +69,9 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
 
         for p in tank_stops:
             key = (v, p, f)
-            constraint = get_constraint(alg, rows, key, "==", "mass_conservation")
+            constraint = get_constraint(
+                alg, rows, key, "==", "mass_conservation", route
+            )
 
             model.set_coefficient(constraint, mass_tank[v, p, f], voyages)
 

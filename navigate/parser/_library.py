@@ -15,14 +15,13 @@ from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from navigate.util import attribute_to_instance_name
+from navigate.util import DISTRIBUTION, attribute_to_instance_name, navigate_version
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import NodeTypeID
     from navigate.exceptions import DeckError
     from navigate.parser._syntax import SourceLocation
 
-_DISTRIBUTION = "navigate-zcs"
 _REPOSITORY = "https://github.com/zerocarbonshipping/navigate-zcs"
 
 
@@ -96,10 +95,7 @@ def _unavailable_error(subject: str, source: SourceLocation) -> DeckError:
             f'or pass the folder to this run with: -d "{folder}"'
         )
 
-    try:
-        version: str | None = distribution(_DISTRIBUTION).version
-    except PackageNotFoundError:
-        version = None
+    version = navigate_version()
 
     # an unreleased version has no tag; the dev branch is where it comes from
     if version is None or ".dev" in version:
@@ -122,7 +118,7 @@ def _clone_assumptions() -> Path | None:
     # where an install from a wheel or a git URL records no folder
     clones = [Path(__file__).resolve().parents[2]]
     try:
-        record = distribution(_DISTRIBUTION).read_text("direct_url.json")
+        record = distribution(DISTRIBUTION).read_text("direct_url.json")
     except PackageNotFoundError:
         record = None
 

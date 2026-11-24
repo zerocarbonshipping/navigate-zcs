@@ -19,11 +19,11 @@ This ID describes the type of energy demand that is targeted by a certain techno
 
 ## ExtrapolateID
 
-The Extrapolate ID describes the method used for extrapolating in Curves and Forecasts.
+The Extrapolate ID describes the method used for extrapolating in Curves, Forecasts, Surfaces and Timetables.
 
 | ID | Description |
 | --- | --- |
-| FALSE | Do not allow extrapolation. Error is thrown if attempting. |
+| FALSE | Do not allow extrapolation: a lookup outside the table stops the run with an error naming the node. |
 | FLAT | Extrapolate flat from the closest value in the table. |
 | LINEAR | Linear extrapolation from the last two values in the table. |
 
@@ -126,13 +126,13 @@ These IDs select the solver backend used to solve the bunker algorithm's linear 
 
 ## SolverMethodID
 
-These IDs select the LP solution method used by the solver backend. The values mirror Gurobi's `Method` parameter; the HiGHS backend uses its hybrid interior-point method regardless of this setting.
+These IDs select the LP solution method used by the solver backend. The values mirror Gurobi's `Method` parameter; the HiGHS backend chooses its method itself, regardless of this setting. The method changes how fast a bunkering problem is solved and, apart from the limits described under [Equally cheap solutions](bunker_options.md#equally-cheap-solutions), not which solution is returned.
 
 | ID | Description |
 | --- | --- |
 | AUTOMATIC | Let the solver choose the algorithm automatically. |
-| DETERMINISTIC | Deterministic concurrent solve; results are reproducible from run to run. |
-| NON\_DETERMINISTIC | Non-deterministic concurrent solve; may be faster but can vary from run to run. |
+| DETERMINISTIC | Deterministic concurrent solve: several methods run at once, in a way that repeats exactly from run to run. |
+| NON\_DETERMINISTIC | Non-deterministic concurrent solve: several methods run at once and the first to finish ends the solve; may be faster, and which method finishes first can vary from run to run. |
 
 ## SpeedAlignmentID
 

@@ -60,6 +60,11 @@ ignore = [
 [lint.pydocstyle]
 convention = "numpy"
 
+[lint.pep8-naming]
+# a method declared for an external class whose stubs omit it keeps that class's
+# casing (CODESTYLE.md, Naming)
+extend-ignore-names = ["changeRowsBounds"]
+
 [lint.flake8-bugbear]
 # this returns the dataclasses.field that declares a result
 extend-immutable-calls = [

@@ -49,8 +49,9 @@ def calculate_regulation_terms(
     fraction of its port or leg, e its emission coefficient and k its spend
     coefficient, all read from the regulation's expectation, and \lambda its
     effective lower heating value (1 for shore power, already in GJ/year). T enters
-    the threshold constraints; M and Q are evaluated at the solution, for the
-    regulation's compliance and flexibility market.
+    the threshold constraints and M the regulated-emissions rule (_rules.py); M and
+    Q are evaluated at the solution, for the regulation's compliance and
+    flexibility market.
 
     A variable whose fraction is 0 stays in the list at weight 0, so between
     builds the list only grows, as the vessel's variables do.

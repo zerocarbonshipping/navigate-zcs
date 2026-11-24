@@ -24,6 +24,11 @@ NOTEBOOKS = Path(__file__).parent / "notebooks"
 # logs it at the ERROR level
 ERROR_TEXT = re.compile(r"^(Traceback|Error:)|- ERROR -", re.MULTILINE)
 
+# a line of a cell that runs a shell command or a magic, such as !navigate or
+# %pip, and a line that calls show() rather than defining it
+SHELL_COMMAND = re.compile(r"^\s*[!%]", re.MULTILINE)
+SHOW_CALL = re.compile(r"^show\(", re.MULTILINE)
+
 HOW_TO_REFRESH = """
 To refresh a notebook's outputs:
   1. Set ROOT in its setup cell to a folder of your own.
@@ -64,11 +69,13 @@ def find_problems(path: Path) -> list[str]:
         has_error = any(output["output_type"] == "error" for output in outputs)
         has_plot = any("text/html" in output.get("data", {}) for output in outputs)
 
-        if not outputs:
+        # a cell that runs a command shows what it printed; one that only
+        # defines helpers prints nothing, and one that calls show() draws
+        if SHELL_COMMAND.search(source) and not outputs:
             problems.append(f"{name} has no output")
         if has_error or ERROR_TEXT.search(text):
             problems.append(f"{name} shows an error")
-        if "show(" in source and not has_plot:
+        if SHOW_CALL.search(source) and not has_plot:
             problems.append(f"{name} shows no plot")
         if is_setup(cell) and not source.startswith('ROOT = "/content"'):
             problems.append(f"{name}: ROOT is not /content")
