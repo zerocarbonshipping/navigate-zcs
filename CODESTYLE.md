@@ -264,12 +264,15 @@ its section layout; the rules below cover the content.
   as `== 0.0`. A value is zero in substance within `RELATIVE_TOLERANCE`
   (`navigate/util/numeric.py`) of its scale, the magnitude of what it was
   computed from: the trade for a trade gap, the fleet's total for a vessel
-  type's count, the larger operand of a difference. Never test a computed
-  value against an absolute amount, which is a residual in one deck and a
-  real value in another. Drop a residual where it arises, at a difference of
-  near-equal operands (`drop_negligible(trade - capacity, trade)`), so the
-  tests downstream read an exact zero; elsewhere test with `is_negligible`,
-  an equality as the difference of its sides. A sign or exact test stays on
+  type's count. Never test whether a computed value is zero against an
+  absolute amount, which is a residual in one deck and a real value in
+  another. Drop a residual where it arises, so the tests downstream read an
+  exact zero: a difference through `subtract`, against the larger operand,
+  or through `drop_negligible` against another scale
+  (`drop_negligible(trade - capacity, trade)`). Test a one-sided bound by its
+  dropped excess, `drop_negligible(energy - limit, limit) > 0.0`, not by
+  widening the bound. Elsewhere, test with `is_negligible`; a solver's output
+  is tested against the solver's own tolerance. A sign or exact test stays on
   a value whose residual was dropped, where its branches agree at zero
   (`max(gap, 0.0)`), in a guard that only protects an operation undefined at
   zero, such as a division, against an assigned value (a default, a
