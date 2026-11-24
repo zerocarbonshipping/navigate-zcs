@@ -514,12 +514,12 @@ def _complete_emissions(results: _ConsumerResults) -> None:
     ttw = results.ttw
     wtw = {key: wtt[key] + ttw[key] for key in wtt}
 
-    results.equivalent_wtt = context.calculate_equivalent(wtt)
-    results.equivalent_ttw = context.calculate_equivalent(ttw)
-    results.equivalent_wtw = context.calculate_equivalent(wtw)
+    results.equivalent_wtt = context.calculate_emission_equivalent(wtt)
+    results.equivalent_ttw = context.calculate_emission_equivalent(ttw)
+    results.equivalent_wtw = context.calculate_emission_equivalent(wtw)
 
-    # shore power emissions are a WTW lump with no (fuel, emission) attribution, so
-    # they enter the WTW total but not the per-key results
+    # shore power emissions are a WTW lump with no WTT and TTW split, so they enter
+    # the WTW total but not equivalent_wtw, the sum of the WTT and TTW results
     shore_power = context.calculate_emission_equivalent(results.shore_power_emission)
     total_shore_power = sum_values(shore_power, shape)
     total_wtt = sum_values(results.equivalent_wtt, shape)

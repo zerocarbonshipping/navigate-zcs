@@ -54,6 +54,10 @@ decks.
   requested; they used to produce no column.
 
 ### Changed
+- The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of
+  vessels, fleets and the global results are keyed by emission alone, summed
+  over the fuels: the split between fuels followed the solver where two fuels
+  burn alike in converters of different slip.
 - A `Levy` charges the shore power drawn in its `Jurisdiction`, whatever its
   `Fuels`, counting the grid's emissions as WTT, so a TTW levy counts none;
   new result `shore_power_levy_expenses`. Decks with shore power under a levy
