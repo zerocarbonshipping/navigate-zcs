@@ -21,6 +21,9 @@ from navigate.simulation.bunker._cleanup import (
     remove_redundant_regulations,
     remove_redundant_vessel,
 )
+from navigate.simulation.bunker._constraints.bunker_below_peak import (
+    update_bunker_below_peak_constraints,
+)
 from navigate.simulation.bunker._constraints.bunkered_equals_spent import (
     update_bunkered_equals_spent_constraints,
 )
@@ -53,6 +56,7 @@ from navigate.simulation.bunker._objectives import (
     update_regulation_objectives,
     update_vessel_objectives,
 )
+from navigate.simulation.bunker._rules import update_selection_rules
 from navigate.simulation.bunker._transfer.allocation_fuel import (
     transfer_allocation_fuel,
 )
@@ -204,6 +208,7 @@ class BunkerAlgorithm:
 
         # vessel variables
         self.bunker: dict[tuple[str, int, str], Variable] = {}
+        self.bunker_peak: dict[tuple[str, str], Variable] = {}
         self.spend_sea: dict[tuple[str, str, str, int, int], Variable] = {}
         self.spend_port: dict[tuple[str, str, str, int], Variable] = {}
         self.mass_tank: dict[tuple[str, int, str], Variable] = {}
@@ -212,6 +217,7 @@ class BunkerAlgorithm:
         # regulation variables
         self.remedial_factor_individual: dict[tuple[str, str], Variable] = {}
         self.remedial_factor_flexibility: dict[str, Variable] = {}
+        self.pooled_term: dict[tuple[str, str], Variable] = {}
 
         # vessel constraints
         self.energy_conservation_sea: dict[
@@ -226,11 +232,13 @@ class BunkerAlgorithm:
         self.mass_sufficient: dict[tuple[str, int, str], Constraint] = {}
         self.tank_capacity: dict[tuple[str, int, str], Constraint] = {}
         self.bunkered_equals_spent: dict[tuple[str, str], Constraint] = {}
+        self.bunker_below_peak: dict[tuple[str, int, str], Constraint] = {}
         self.fuel_inertia: dict[tuple[str, str, str], Constraint] = {}
 
         # regulation constraints
         self.regulation_threshold_individual: dict[tuple[str, str], Constraint] = {}
         self.regulation_threshold_flexibility: dict[str, Constraint] = {}
+        self.pooled_term_definition: dict[tuple[str, str], Constraint] = {}
 
         # fair-share constraints
         self.fair_share_fuel: dict[tuple[str, str, str], Constraint] = {}
@@ -287,9 +295,11 @@ class BunkerAlgorithm:
         """
         Solve the LP with fair-share iterations.
 
-        The constraint rebuilds between the iterations count as build time; optimize
-        books the solves themselves.
+        The selection rules are set first, on the model as it is built, for every
+        solve of the iterations. Setting them and the constraint rebuilds between
+        the iterations count as build time; optimize books the solves themselves.
         """
+        update_selection_rules(self)
         self.fair_share_converged = run_fair_share_solve(self)
 
     @timed(TimingID.LP_TRANSFER)
@@ -415,6 +425,7 @@ class BunkerAlgorithm:
         update_tank_capacity_constraints(self, vessel)
 
         update_bunkered_equals_spent_constraints(self, vessel)
+        update_bunker_below_peak_constraints(self, vessel)
 
     def _log_fair_share_convergence(self) -> None:
         """Log the outcome of the last fair-share iterations, with their statistics."""

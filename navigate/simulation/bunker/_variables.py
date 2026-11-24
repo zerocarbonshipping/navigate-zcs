@@ -8,6 +8,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.simulation.bunker._build import add_variable
+from navigate.simulation.bunker._constraints.regulation_threshold_flexibility import (
+    is_pooled,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -33,28 +36,29 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     for p, fuels in enumerate(vessel.bunkerable_fuels):
         for f in fuels:
-            add_variable(alg, alg.bunker, (v, p, f), "bunker")
+            add_variable(alg, alg.bunker, (v, p, f), "bunker", route)
+            add_variable(alg, alg.bunker_peak, (v, f), "bunker_peak")
 
     for c, fuels in fuels_per_converter.items():
         for f in fuels:
             for leg in legs:
-                add_variable(alg, alg.spend_sea, (v, c, f, *leg), "spend_sea")
+                add_variable(alg, alg.spend_sea, (v, c, f, *leg), "spend_sea", route)
 
     # only the converters serving port energy demands spend in port
     for c, fuels in vessel.fuels_per_port_converter.items():
         for f in fuels:
             for p in stops:
-                add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port")
+                add_variable(alg, alg.spend_port, (v, c, f, p), "spend_port", route)
 
     for p in route.get_tank_stops():
         for f in vessel.usable_fuels:
-            add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank")
+            add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank", route)
 
     shore_power_limits = vessel.expectation.shore_power_limit_port.at[alg.idx]
 
     for p, limit in enumerate(shore_power_limits):
         if limit > 0.0:
-            add_variable(alg, alg.shore_power, (v, p), "shore_power")
+            add_variable(alg, alg.shore_power, (v, p), "shore_power", route)
 
         # a connection whose limit fell to zero keeps its variable, bounded at zero
         if (v, p) in alg.shore_power:
@@ -63,7 +67,12 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
 def update_regulation_variables(alg: BunkerAlgorithm) -> None:
     """
-    Add the remedial factor variables of the regulations that do not exist yet.
+    Add the regulation variables that do not exist yet.
+
+    A regulation has a remedial factor per policed vessel or per pool. A FLEXIBLE
+    one also has the term of each vessel it pools, a free variable, as the term of
+    a vessel below an INTENSITY threshold is negative
+    (regulation_threshold_flexibility).
 
     Parameters
     ----------
@@ -72,9 +81,15 @@ def update_regulation_variables(alg: BunkerAlgorithm) -> None:
     """
     individual = alg.remedial_factor_individual
     flexibility = alg.remedial_factor_flexibility
+    pooled_terms = alg.pooled_term
 
     for key in alg.regulation_rhs_individual:
         add_variable(alg, individual, key, "remedial_factor_individual")
 
     for key in alg.regulation_rhs_flexibility:
         add_variable(alg, flexibility, key, "remedial_factor_flexibility")
+
+    for r in alg.regulation_rhs_flexibility:
+        for v in alg.vessels:
+            if is_pooled(alg, r, v):
+                add_variable(alg, pooled_terms, (r, v), "pooled_term", free=True)

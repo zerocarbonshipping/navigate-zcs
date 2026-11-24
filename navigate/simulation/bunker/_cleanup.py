@@ -10,6 +10,9 @@ from typing import TYPE_CHECKING
 from navigate.simulation.bunker._constraints.fair_share_fuel import (
     is_fair_share_constrained,
 )
+from navigate.simulation.bunker._constraints.regulation_threshold_flexibility import (
+    is_pooled,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -36,6 +39,7 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     model = alg.model
 
     _remove_vessel_elements(v, alg.bunker, model.remove_variable)
+    _remove_vessel_elements(v, alg.bunker_peak, model.remove_variable)
     _remove_vessel_elements(v, alg.spend_sea, model.remove_variable)
     _remove_vessel_elements(v, alg.spend_port, model.remove_variable)
     _remove_vessel_elements(v, alg.mass_tank, model.remove_variable)
@@ -49,6 +53,7 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     _remove_vessel_elements(v, alg.mass_sufficient, model.remove_constraint)
     _remove_vessel_elements(v, alg.tank_capacity, model.remove_constraint)
     _remove_vessel_elements(v, alg.bunkered_equals_spent, model.remove_constraint)
+    _remove_vessel_elements(v, alg.bunker_below_peak, model.remove_constraint)
     _remove_vessel_elements(v, alg.fuel_inertia, model.remove_constraint)
     _remove_vessel_elements(v, alg.fair_share_fuel, model.remove_constraint)
 
@@ -65,6 +70,13 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
     for v, p, f in list(alg.bunker):
         if f not in alg.vessels[v].bunkerable_fuels[p]:
             alg.model.remove_variable(alg.bunker.pop((v, p, f)))
+            alg.model.remove_constraint(alg.bunker_below_peak.pop((v, p, f)))
+
+    still_bunkerable = {(v, f) for v, _, f in alg.bunker}
+
+    for key in list(alg.bunker_peak):
+        if key not in still_bunkerable:
+            alg.model.remove_variable(alg.bunker_peak.pop(key))
 
     for v, port_name, f in list(alg.fuel_inertia):
         port = alg.ports[port_name]
@@ -81,7 +93,7 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
 
 def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
     """
-    Remove the remedial factors and threshold constraints of regulations gone.
+    Remove the variables and constraints of regulations and of pooled vessels gone.
 
     Parameters
     ----------
@@ -97,6 +109,11 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
         if key not in alg.regulation_rhs_flexibility:
             alg.model.remove_variable(alg.remedial_factor_flexibility.pop(key))
             alg.model.remove_constraint(alg.regulation_threshold_flexibility.pop(key))
+
+    for r, v in list(alg.pooled_term):
+        if not is_pooled(alg, r, v):
+            alg.model.remove_variable(alg.pooled_term.pop((r, v)))
+            alg.model.remove_constraint(alg.pooled_term_definition.pop((r, v)))
 
 
 def _remove_vessel_elements[K: VesselKey, E: (Variable, Constraint)](

@@ -36,7 +36,8 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     """
     v = vessel.name
     tanks = vessel.tanks
-    tank_stops = vessel.route.get_tank_stops()
+    route = vessel.route
+    tank_stops = route.get_tank_stops()
 
     volume_per_ton: dict[str, dict[str, float]] = {}
 
@@ -51,7 +52,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
         for tank in tanks:
             t = tank.name
             key = (v, p, t)
-            constraint = get_constraint(alg, rows, key, "<=", "tank_capacity")
+            constraint = get_constraint(alg, rows, key, "<=", "tank_capacity", route)
             model.set_rhs(constraint, tank.size.get())
 
             for f, coefficient in volume_per_ton[t].items():

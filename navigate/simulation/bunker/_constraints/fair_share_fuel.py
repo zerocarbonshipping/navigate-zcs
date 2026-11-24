@@ -49,7 +49,9 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
                 continue
 
             key = (v, port.name, f)
-            constraint = get_constraint(alg, rows, key, "<=", "fair_share_fuel")
+            constraint = get_constraint(
+                alg, rows, key, "<=", "fair_share_fuel", priced=True
+            )
 
             model.set_rhs(constraint, alg.allocation_fuel[key])
             model.set_coefficient(constraint, bunker[v, p, f], 1.0)
