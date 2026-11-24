@@ -18,7 +18,7 @@ from navigate.simulation.economics import calculate_two_axis_uptake
 from navigate.simulation.fleet._composition import extract_cargo_miles
 from navigate.simulation.fleet._package import calculate_package_charter_rates
 from navigate.util import (
-    TOLERANCE,
+    RELATIVE_TOLERANCE,
     YEAR,
     divide_nonzero,
     drop_negligible,
@@ -86,7 +86,7 @@ def calculate_orderbook_newbuilds(
     delivery += new_delivery
 
     # deliveries beyond the newbuild budget are postponed as well
-    over = delivery > cap_count + TOLERANCE
+    over = delivery > cap_count * (1.0 + RELATIVE_TOLERANCE)
     excess = np.where(over, delivery - cap_count, 0.0)
     capped = delivery - excess
     fleet.orders_delivered -= excess
@@ -333,7 +333,7 @@ def _calculate_inertia_newbuilds(
 
     # the newbuild budget caps inertia without redistribution: the trade it leaves
     # goes to the modelled newbuilds
-    over = newbuilds > cap_count + TOLERANCE
+    over = newbuilds > cap_count * (1.0 + RELATIVE_TOLERANCE)
     capped = np.where(over, cap_count, newbuilds)
 
     attempted = np.sum(newbuilds)

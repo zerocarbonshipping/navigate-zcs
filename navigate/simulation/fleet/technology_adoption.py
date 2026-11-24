@@ -47,7 +47,7 @@ from navigate.simulation.fleet._package import (
     update_packages,
 )
 from navigate.simulation.fleet._trip import bind_conditions_to_legs
-from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero
+from navigate.util import RELATIVE_TOLERANCE, ROUND_OFF, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -634,7 +634,7 @@ def _scale_tails_to_cap(contributions: list[_CapContribution], cap: float) -> No
     for contribution in contributions:
         aggregate += contribution.weight * contribution.adopting_share
 
-    if aggregate <= cap + TOLERANCE:
+    if aggregate <= cap * (1.0 + RELATIVE_TOLERANCE):
         return
 
     scale = cap / aggregate
