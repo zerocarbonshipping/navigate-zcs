@@ -753,7 +753,7 @@ SPDX-License-Identifier: CC-BY-4.0
 </section>
 <section id="solvermethodid">
 <h2>SolverMethodID<a class="headerlink" href="#solvermethodid" title="Link to this heading">#</a></h2>
-<p>These IDs select the LP solution method used by the solver backend. The values mirror Gurobi’s <code class="docutils literal notranslate"><span class="pre">Method</span></code> parameter; the HiGHS backend uses its hybrid interior-point method regardless of this setting.</p>
+<p>These IDs select the LP solution method used by the solver backend. The values mirror Gurobi’s <code class="docutils literal notranslate"><span class="pre">Method</span></code> parameter; the HiGHS backend chooses its method itself, regardless of this setting. The method changes how fast a bunkering problem is solved and, apart from the limits described under <a class="reference internal" href="bunker_options.html#equally-cheap-solutions"><span class="std std-ref">Equally cheap solutions</span></a>, not which solution is returned.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>ID</p></th>
@@ -765,10 +765,10 @@ SPDX-License-Identifier: CC-BY-4.0
 <td><p>Let the solver choose the algorithm automatically.</p></td>
 </tr>
 <tr class="row-odd"><td><p>DETERMINISTIC</p></td>
-<td><p>Deterministic concurrent solve; results are reproducible from run to run.</p></td>
+<td><p>Deterministic concurrent solve: several methods run at once, in a way that repeats exactly from run to run.</p></td>
 </tr>
 <tr class="row-even"><td><p>NON_DETERMINISTIC</p></td>
-<td><p>Non-deterministic concurrent solve; may be faster but can vary from run to run.</p></td>
+<td><p>Non-deterministic concurrent solve: several methods run at once and the first to finish ends the solve; may be faster, and which method finishes first can vary from run to run.</p></td>
 </tr>
 </tbody>
 </table>
