@@ -7,9 +7,6 @@
 # way DefaultPlant does it for its own copies; lead times, lifetimes, capacities
 # and process economics come from the library. Loading DefaultPlant itself would
 # bring in the fuels of all its other plants too.
-# A second electrolyser route for e-ammonia was tried, to give one fuel two
-# competing plants under one producer. It stalls the 2038 solve, so it is left
-# out.
 
 # ---- fossil (global commodities, no production chain modelled) --------------
 Import Fuel "fossil_fuel_oil"
