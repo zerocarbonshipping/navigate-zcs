@@ -66,7 +66,9 @@ class Timetable(Node, _Table2D):
 
         x, y, z = self._pending_table
 
+        self._x_dates = None
         if is_date_array(x):
+            self._x_dates = (x[0], x[-1])
             x = timedelta_to_days(x - start_date)
 
         self._check_table(x, y, z)
