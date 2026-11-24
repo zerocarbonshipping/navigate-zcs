@@ -507,7 +507,7 @@ SPDX-License-Identifier: CC-BY-4.0
 </section>
 <section id="extrapolateid">
 <h2>ExtrapolateID<a class="headerlink" href="#extrapolateid" title="Link to this heading">#</a></h2>
-<p>The Extrapolate ID describes the method used for extrapolating in Curves and Forecasts.</p>
+<p>The Extrapolate ID describes the method used for extrapolating in Curves, Forecasts, Surfaces and Timetables.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>ID</p></th>
@@ -516,7 +516,7 @@ SPDX-License-Identifier: CC-BY-4.0
 </thead>
 <tbody>
 <tr class="row-even"><td><p>FALSE</p></td>
-<td><p>Do not allow extrapolation. Error is thrown if attempting.</p></td>
+<td><p>Do not allow extrapolation: a lookup outside the table stops the run with an error naming the node.</p></td>
 </tr>
 <tr class="row-odd"><td><p>FLAT</p></td>
 <td><p>Extrapolate flat from the closest value in the table.</p></td>
