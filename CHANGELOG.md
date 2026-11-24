@@ -248,6 +248,37 @@ change.
 - A path written with `./` or a doubled `/` in an `Include` or a report
   `Directory` now appears normalised in error and log messages, such as
   `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
+- Among equally cheap bunkering solutions, the one returned follows three
+  rules and, within the limits the `BunkerOptions` page gives, no longer the
+  solver, its version and build order (#499):
+  - vessel types that could each cut the same emissions at the same cost
+    under a binding `FLEXIBLE` `Regulation` each take the same share of their
+    own room, so two identical types count the same emissions per vessel;
+  - then a vessel's emissions under a `Regulation` are the least its fuels
+    allow;
+  - then the largest amount of a fuel it bunkers at one stop is as small as
+    it can be, so it bunkers the same amount at stops that sell the fuel at
+    the same price where nothing else limits them;
+  - results move where the optimum or its prices were not unique; the page
+    lists the five choices the rules leave to the solver;
+  - `bunkering_infeasible.lp` holds a `bunker_peak` variable per vessel and
+    fuel with its `bunker_below_peak` constraints, which serve the rule on
+    the largest amount and limit no bunkering;
+  - it also holds a `pooled_term` variable per `FLEXIBLE` regulation and
+    vessel with its `pooled_term_definition` constraint: what the threshold
+    constraint adds up;
+  - a run takes 10 to 25% longer than in the release before this change.
+- The fair-share iterations of the bunker algorithm end once the amount of
+  each fuel a vessel bunkers at each port settles, its calls at the port
+  taken together; a split that moved between two calls at one port kept them
+  going. The convergence statistics in the log count per vessel, port and fuel.
+- Remedial units below the `SolutionTolerance` count as none: a rounding
+  residual above zero used to be reported and charged, and with
+  `AllowThresholdAdjustment` to adjust the thresholds and solve again.
+- The infeasible-bunkering error message and `bunkering_infeasible.ilp`/`.lp`
+  name a constraint or variable by its quoted node names, as
+  `tank_capacity("vessel","port",0,"tank")`, where `"port",0` is the vessel's
+  first call at the port; the parts were joined by underscores.
 - An empty `Vessels`, `Plants`, `Tanks`, `Ports`, `Emissions` or `Fuels` list,
   or a fuel type repeated in `MainFuelTypes` or `PilotFuelTypes`, is rejected
   at its line, also on a node the deck does not use.

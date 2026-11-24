@@ -574,6 +574,28 @@ class Route(Node):
         """
         return range(len(self.ports))
 
+    def get_stop_labels(self) -> tuple[tuple[str, int], ...]:
+        """
+        Return the port name and call number that identify each stop of the route.
+
+        The call number counts the earlier stops at the same port, so the label of a
+        stop, unlike its index, does not change with where the route lists the other
+        ports.
+
+        Returns
+        -------
+        tuple[tuple[str, int], ...]
+            Port name and call number of each stop, in the order of `get_stops`.
+        """
+        labels = []
+        calls: Counter[str] = Counter()
+
+        for port in self.ports:
+            labels.append((port.name, calls[port.name]))
+            calls[port.name] += 1
+
+        return tuple(labels)
+
     def get_tank_stops(self) -> tuple[int, ...]:
         """
         Return the stops at which the bunkering tracks the fuel held in the tank.

@@ -12,12 +12,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.core.enum_ import EnergyDemandID
+
 if TYPE_CHECKING:
-    from navigate.core.enum_ import EnergyDemandID
+    from collections.abc import Sequence
+
+    from navigate.core.nodes.route import Route
     from navigate.simulation.bunker._solver import Constraint, Sense, Variable
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
-# a part of an LP element's key: a node name, a route index or an energy demand type
+# a part of an LP element's key: a node name, a stop index or an energy demand type
 type _KeyPart = str | int | EnergyDemandID
 
 # the key of an LP element within its family: a single name, or the parts the element
@@ -31,6 +35,9 @@ def add_variable[K: _ElementKey](
     container: dict[K, Variable],
     key: K,
     name: str,
+    route: Route | None = None,
+    *,
+    free: bool = False,
 ) -> None:
     """
     Add a continuous variable under a key, unless one already exists there.
@@ -44,13 +51,18 @@ def add_variable[K: _ElementKey](
     key
         Key of the variable within the family.
     name
-        Base name of the variable family; the key elements are appended
-        underscore-separated to name a new variable.
+        Name of the variable family, which with the key names a new variable.
+    route
+        Route whose stops the integers in the key index; None for a key that holds
+        no stop.
+    free
+        Whether the variable has no bound either way; it is non-negative otherwise.
     """
     if key in container:
         return
 
-    container[key] = alg.model.add_variable(_full_name(name, key))
+    full_name = _full_name(name, key, route)
+    container[key] = alg.model.add_variable(full_name, free=free)
 
 
 def get_constraint[K: _ElementKey](
@@ -59,6 +71,9 @@ def get_constraint[K: _ElementKey](
     key: K,
     sense: Sense,
     name: str,
+    route: Route | None = None,
+    *,
+    priced: bool = False,
 ) -> Constraint:
     """
     Return the constraint stored under a key, creating an empty one if absent.
@@ -80,8 +95,13 @@ def get_constraint[K: _ElementKey](
     sense
         One of "==", "<=", ">=".
     name
-        Base name of the constraint family; the key elements are appended
-        underscore-separated to name a new constraint.
+        Name of the constraint family, which with the key names a new constraint.
+    route
+        Route whose stops the integers in the key index; None for a key that holds
+        no stop.
+    priced
+        Whether the bunker reads the constraint's dual; only a priced constraint's
+        dual is selected by a solve and can be read.
 
     Returns
     -------
@@ -91,30 +111,61 @@ def get_constraint[K: _ElementKey](
     if key in container:
         return container[key]
 
-    constraint = alg.model.add_constraint(sense, _full_name(name, key))
+    full_name = _full_name(name, key, route)
+    constraint = alg.model.add_constraint(sense, full_name, priced=priced)
     container[key] = constraint
     return constraint
 
 
-def _full_name(name: str, key: _ElementKey) -> str:
+def _full_name(name: str, key: _ElementKey, route: Route | None) -> str:
     """
-    Return the name of an LP model element.
+    Return the name of an LP model element, as ``bunker("vessel","port",0,"fuel")``.
 
-    The key elements are appended underscore-separated to the family name.
+    Distinct elements get distinct names, as the error message of an infeasible LP
+    names the limiting constraints by them. A node name is therefore quoted: it
+    may hold any character but a double quote, also the one that separates the
+    parts.
+
+    A stop is named by its port and call number (``Route.get_stop_labels``), which
+    a deck author can find on the route, not by its index.
 
     Parameters
     ----------
     name
-        Base name of the element family.
+        Name of the element family.
     key
-        Key of the element within the family; a scalar key is a single element.
+        Key of the element within the family; a scalar key is a single part.
+    route
+        Route whose stops the integers in the key index; None for a key that holds
+        no stop.
 
     Returns
     -------
     str
-        The family name and key elements joined by underscores.
+        The family name, then the key parts in parentheses, separated by commas.
     """
     if not isinstance(key, tuple):
         key = (key,)
 
-    return "_".join((name, *map(str, key)))
+    stop_labels = () if route is None else route.get_stop_labels()
+    parts = ",".join(_format_key_part(part, stop_labels) for part in key)
+
+    return f"{name}({parts})"
+
+
+def _format_key_part(part: _KeyPart, stop_labels: Sequence[tuple[str, int]]) -> str:
+    """
+    Return a key part as it stands in a name.
+
+    A node name is quoted and an energy demand type bare. A stop index is two parts,
+    the port name and the call number of its label in ``stop_labels``.
+    """
+    if isinstance(part, str):
+        return f'"{part}"'
+
+    if isinstance(part, EnergyDemandID):
+        return part.name
+
+    port_name, call = stop_labels[part]
+
+    return f'"{port_name}",{call}'

@@ -23,9 +23,15 @@ aside.
   - the axis variables `x`, `y` of a table or interpolation;
   - the parameters of a DSL setter (see Nodes and the DSL);
   - an element or key variable whose letter the surrounding code gives one
-    meaning: throughout `simulation/bunker/` the LP's subscripts keep the
-    letters of the equations in its docstrings (`v` vessel, `p` port, `f`
-    fuel, `c` converter).
+    meaning: in the code of `simulation/bunker/` that builds the LP and
+    transfers its solution, the LP's subscripts keep the letters of the
+    equations in its docstrings (`v` vessel, `p` port, `f` fuel, `c`
+    converter);
+  - a quantity of a mathematical method, which keeps the letter the method's
+    module docstring defines, in the code that implements the method and in
+    the fields of a class that holds its quantities: in
+    `simulation/bunker/_selection.py` and the `Program` it works on, `c` is
+    the costs of a linear program and `x` its values.
 - Reserve a bare `idx` for the time-step index, or for the slice of time steps a
   function takes in its place, and qualify every other index: `vessel_idx`,
   `plant_idx`. Bound to a name, the slice from the time step onward is
@@ -41,7 +47,10 @@ aside.
   an attribute or method is its class. `tests/`, which tests white-box, is
   exempt.
 - Keep an external API's casing only where it is called, and bind the result
-  to a snake_case name: `solution = self._highs.getSolution()`.
+  to a snake_case name: `solution = self._highs.getSolution()`. A method an
+  external class has and its stubs omit is declared under its own casing, on
+  a subclass under `TYPE_CHECKING`, and listed in ruff's
+  `extend-ignore-names`: `_Highs` in `simulation/bunker/_solver_highs.py`.
 - If a function can only be named with "and", split it.
 
 ## Classes and attributes
