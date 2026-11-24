@@ -20,7 +20,6 @@ from navigate.simulation.bunker._constraints.fuel_inertia import (
     update_fuel_inertia_constraints,
 )
 from navigate.simulation.bunker._optimize import optimize
-from navigate.util import index_map
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -33,6 +32,12 @@ logger = logging.getLogger(__name__)
 def run_fair_share_solve(alg: BunkerAlgorithm) -> bool:
     """
     Solve the LP, then iterate the fair-share allocations until the solution settles.
+
+    The solution has settled where the norm of the changes from one solve to the
+    next is below the fair-share tolerance. The changes are those of the fuel each
+    vessel bunkers at each port, which is what the allocations are in. How a
+    vessel splits a fuel between two calls at one port is not part of them: no
+    allocation reads the split.
 
     Parameters
     ----------
@@ -52,7 +57,7 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> bool:
     alg.fair_share_convergence_statistics = {"Non-zero (%)": [], "Norm": [], "Max": []}
 
     for iteration in range(1, alg.options.fair_share_maximum_iterations + 1):
-        previous = _get_bunker_solution(alg)
+        previous = _get_port_bunker(alg)
 
         _update_fair_share_allocation(alg, previous, released)
         _update_fair_share_constraints(alg)
@@ -117,7 +122,7 @@ def _update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
 
 def _update_fair_share_allocation(
     alg: BunkerAlgorithm,
-    previous: dict[tuple[str, int, str], float],
+    previous: dict[tuple[str, str, str], float],
     released: set[tuple[str, str, str]],
 ) -> None:
     r"""
@@ -131,28 +136,22 @@ def _update_fair_share_allocation(
         A_v = s_v / (\sum_{u \in B} m_u s_u) * (S - \sum_{u \notin B} m_u b_u)
 
     where B is the set of bounded vessels, s the fair share, m the vessel count and
-    b the fuel mass bunkered at the port, summed over its calls, in the previous
-    solve; A_v is zero where the sum over B is within the solution tolerance. An
-    unbounded vessel is released, A_v = b_v, where a bounded vessel can take up the
-    supply it frees, and stays unbounded from then on.
+    b the fuel mass bunkered at the port in the previous solve; A_v is zero where
+    the sum over B is within the solution tolerance. An unbounded vessel is
+    released, A_v = b_v, where a bounded vessel can take up the supply it frees,
+    and stays unbounded from then on.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     previous
-        Bunker solution of the previous solve, in tons/year.
+        Fuel mass each vessel bunkered at each port in the previous solve, in
+        tons/year.
     released
         Keys of the allocations released so far, extended in place.
     """
     tol = alg.options.solution_tolerance
-
-    # the route stops of each port a vessel calls, a port called twice holding two
-    stops_per_port: dict[str, dict[str, list[int]]] = {}
-
-    for v, vessel in alg.vessels.items():
-        port_names = [port.name for port in vessel.route.ports]
-        stops_per_port[v] = index_map(port_names)
 
     # per (vessel, port name, fuel): the fair share of a bounded vessel, and the fuel
     # an unbounded vessel bunkered at the port
@@ -178,8 +177,7 @@ def _update_fair_share_allocation(
             bounded[key] = fair_share
             shares[port_fuel] = shares.get(port_fuel, 0.0) + fair_share * count
         else:
-            stops = stops_per_port[v][port_name]
-            bunkered = sum(previous[v, p, f] for p in stops)
+            bunkered = previous[key]
             unbounded[key] = bunkered
             consumed[port_fuel] = consumed.get(port_fuel, 0.0) + bunkered * count
 
@@ -210,24 +208,25 @@ def _update_fair_share_allocation(
 
 
 def _calculate_bunker_change(
-    alg: BunkerAlgorithm, previous: dict[tuple[str, int, str], float]
+    alg: BunkerAlgorithm, previous: dict[tuple[str, str, str], float]
 ) -> FloatArray:
     """
-    Return the absolute change of each bunker variable since the previous solve.
+    Return the absolute change of the fuel bunkered since the previous solve.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     previous
-        Bunker solution of the previous solve, in tons/year.
+        Fuel mass each vessel bunkered at each port in the previous solve, in
+        tons/year.
 
     Returns
     -------
     FloatArray
-        Absolute change, in tons/year, in the key order of the bunker variables.
+        Absolute change per vessel, port and fuel, in tons/year.
     """
-    current = _get_bunker_solution(alg)
+    current = _get_port_bunker(alg)
 
     current_bunker = list(current.values())
     previous_bunker = [previous[key] for key in current]
@@ -237,7 +236,7 @@ def _calculate_bunker_change(
 
 def _update_convergence_statistics(alg: BunkerAlgorithm, change: FloatArray) -> None:
     """
-    Append the share of changed bunker variables and the norm and maximum change.
+    Append the share of changed bunker masses and the norm and maximum change.
 
     A scope without bunker variables, as when no vessel is left to bunker, changes
     nothing.
@@ -247,7 +246,8 @@ def _update_convergence_statistics(alg: BunkerAlgorithm, change: FloatArray) -> 
     alg
         The algorithm instance.
     change
-        Absolute change of each bunker variable since the previous solve, in tons/year.
+        Absolute change per vessel, port and fuel since the previous solve, in
+        tons/year.
     """
     non_zero = np.count_nonzero(change >= alg.options.fair_share_tolerance)
     non_zero_fraction = non_zero / change.size if change.size else 0.0
@@ -289,9 +289,9 @@ def _get_fair_share(
     return float(share)
 
 
-def _get_bunker_solution(alg: BunkerAlgorithm) -> dict[tuple[str, int, str], float]:
+def _get_port_bunker(alg: BunkerAlgorithm) -> dict[tuple[str, str, str], float]:
     """
-    Return the bunker solution of the last solve.
+    Return the fuel mass each vessel bunkers at each port in the last solve.
 
     Parameters
     ----------
@@ -300,7 +300,15 @@ def _get_bunker_solution(alg: BunkerAlgorithm) -> dict[tuple[str, int, str], flo
 
     Returns
     -------
-    dict[tuple[str, int, str], float]
-        Fuel mass of each bunker variable, in tons/year, in their key order.
+    dict[tuple[str, str, str], float]
+        Fuel mass per vessel, port name and fuel, in tons/year, summed over the
+        calls of the vessel at the port.
     """
-    return {key: alg.model.value(bunker) for key, bunker in alg.bunker.items()}
+    port_bunker: dict[tuple[str, str, str], float] = {}
+
+    for (v, p, f), bunker in alg.bunker.items():
+        port = alg.vessels[v].route.ports[p]
+        key = (v, port.name, f)
+        port_bunker[key] = port_bunker.get(key, 0.0) + alg.model.value(bunker)
+
+    return port_bunker

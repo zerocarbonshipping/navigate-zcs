@@ -83,6 +83,7 @@ def _update_sea_rows(
         Origin and destination stop indices of each leg of the vessel's route.
     """
     v = vessel.name
+    route = vessel.route
     converter = vessel.get_converter(demand_type)
     c = converter.name
     energy_per_ton = _calculate_energy_per_ton(vessel, converter)
@@ -93,7 +94,9 @@ def _update_sea_rows(
 
     for leg, (i, e) in enumerate(legs):
         key = (v, i, e, demand_type)
-        constraint = get_constraint(alg, rows, key, "==", "energy_conservation_sea")
+        constraint = get_constraint(
+            alg, rows, key, "==", "energy_conservation_sea", route, priced=True
+        )
         model.set_rhs(constraint, demand[leg])
 
         for f, coefficient in energy_per_ton.items():
@@ -124,6 +127,7 @@ def _update_port_rows(
         Stop indices of the vessel's route.
     """
     v = vessel.name
+    route = vessel.route
     converter = vessel.get_converter(demand_type)
     c = converter.name
     energy_per_ton = _calculate_energy_per_ton(vessel, converter)
@@ -135,7 +139,9 @@ def _update_port_rows(
 
     for p in stops:
         key = (v, p, demand_type)
-        constraint = get_constraint(alg, rows, key, "==", "energy_conservation_port")
+        constraint = get_constraint(
+            alg, rows, key, "==", "energy_conservation_port", route, priced=True
+        )
         model.set_rhs(constraint, demand[p])
 
         for f, coefficient in energy_per_ton.items():

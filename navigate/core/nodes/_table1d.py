@@ -14,6 +14,7 @@ from scipy.interpolate import interp1d
 from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribute
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
 from navigate.core.nodes._calculator import _Calculator
+from navigate.exceptions import DeckError
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
@@ -45,6 +46,8 @@ class _Table1D(_Calculator):
         self._table: interp1d
         self._fill_values: tuple[NumberInput, NumberInput] | None
         self._signs: FloatArray | None
+        # the first and last date of a dated table, whose 'x' counts days
+        self._x_dates: tuple[np.datetime64, np.datetime64] | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
@@ -75,6 +78,9 @@ class _Table1D(_Calculator):
     def calculate(self, x: FloatArray) -> FloatArray: ...
 
     def calculate(self, x: FloatLike) -> FloatLike:
+        if self.extrapolate == ExtrapolateID.FALSE:
+            self._refuse_lookup_outside(x)
+
         # interp1d is untyped; it answers in the shape of its input
         table_value: FloatLike = self._table(x)
 
@@ -158,18 +164,15 @@ class _Table1D(_Calculator):
             case Interpolate1DID.NEAREST_UP:
                 return "nearest-up"
 
-    def _interp1d_fill_value(self) -> float | str | None:
+    def _interp1d_fill_value(self) -> float | str:
         match self.extrapolate:
-            case ExtrapolateID.FLAT:
-                # a placeholder: 'calculate' fills in the flat values
+            case ExtrapolateID.FLAT | ExtrapolateID.FALSE:
+                # a placeholder: 'calculate' fills in the flat values, or rejects
+                # a lookup outside the table before it is read
                 return np.nan
 
             case ExtrapolateID.LINEAR:
                 return "extrapolate"
-
-            case ExtrapolateID.FALSE:
-                # out-of-range lookups raise, so no fill value is needed
-                return None
 
     def _flat_fill_values(self) -> tuple[NumberInput, NumberInput] | None:
         if self.extrapolate != ExtrapolateID.FLAT:
@@ -217,6 +220,19 @@ class _Table1D(_Calculator):
         # np.where answers a scalar input with a 0-d array
         return filled if isinstance(x, np.ndarray) else float(filled)
 
+    def _refuse_lookup_outside(self, x: FloatLike) -> None:
+        """
+        Reject a lookup outside the table, which 'Extrapolate = FALSE' does not extend.
+
+        A NaN lookup passes, as it reads a NaN value, which the bounds reject.
+        """
+        if np.any((x < self.x[0]) | (x > self.x[-1])):
+            first, last = self._x_dates or (self.x[0], self.x[-1])
+            raise DeckError(
+                f"{self}: 'Extrapolate' is FALSE, but the table is read outside its"
+                f" x-values {first} to {last}."
+            )
+
     def _set_table(self, x: FloatArray, y: FloatArray) -> None:
         self._check_interpolate_extrapolate_consistency()
 
@@ -238,7 +254,7 @@ class _Table1D(_Calculator):
             x,
             y,
             kind=self._interp1d_kind(),
-            bounds_error=self.extrapolate == ExtrapolateID.FALSE,
+            bounds_error=False,
             fill_value=self._interp1d_fill_value(),
         )
 

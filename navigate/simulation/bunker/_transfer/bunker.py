@@ -63,7 +63,7 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
 
         for emission_name in alg.emissions:
             wtt = port.expectation.bunker_wtt[f, emission_name][idx]
-            results.wtt[f, emission_name][idx] += wtt * mass
+            results.wtt[emission_name][idx] += wtt * mass
 
         for levy in port.imposed_levies:
             cost = levy.expectation.cost[v, port.name, f][idx]

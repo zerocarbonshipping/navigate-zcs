@@ -78,21 +78,21 @@ class _FuelConsumerResults(BaseResults):
     remedial_units: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
     levy_units: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
 
-    # emissions, keyed by (fuel, emission): the tons of each emission are written,
-    # the CO2-equivalents computed from them; the intensities are the totals per
-    # total energy consumed
-    wtt: dict[tuple[str, str], FloatArray] = field(init=False)
-    ttw: dict[tuple[str, str], FloatArray] = field(init=False)
+    # emissions, keyed by emission and summed over the fuels, as the bunkering LP
+    # splits fuels that burn alike between converters of different slip arbitrarily:
+    # the tons of each emission are written, the CO2-equivalents computed from them;
+    # the intensities are the totals per total energy consumed
+    wtt: dict[str, FloatArray] = field(init=False)
+    ttw: dict[str, FloatArray] = field(init=False)
 
-    equivalent_wtt: dict[tuple[str, str], FloatArray] = result(Unit.TCO2E_PER_YEAR)
+    equivalent_wtt: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
     intensity_total_equivalent_wtt: FloatArray = result(Unit.GCO2E_PER_MJ)
 
-    equivalent_ttw: dict[tuple[str, str], FloatArray] = result(Unit.TCO2E_PER_YEAR)
+    equivalent_ttw: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
     intensity_total_equivalent_ttw: FloatArray = result(Unit.GCO2E_PER_MJ)
 
-    # the total includes the shore power emissions, which have no
-    # (fuel, emission) attribution
-    equivalent_wtw: dict[tuple[str, str], FloatArray] = result(Unit.TCO2E_PER_YEAR)
+    # the total includes the shore power emissions, which have no WTT and TTW split
+    equivalent_wtw: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
     total_equivalent_wtw: FloatArray = result(Unit.TCO2E_PER_YEAR)
     intensity_total_equivalent_wtw: FloatArray = result(Unit.GCO2E_PER_MJ)
 
@@ -130,8 +130,8 @@ class _FuelConsumerResults(BaseResults):
         self.remedial_units = self._default_dict(regulation_names)
         self.levy_units = self._default_dict(levy_names)
 
-        self.wtt = self._default_tuple_dict(fuels, emissions)
-        self.ttw = self._default_tuple_dict(fuels, emissions)
+        self.wtt = self._default_dict(emissions)
+        self.ttw = self._default_dict(emissions)
 
         self.shore_power_energy = self._default_array()
         self.shore_power_expenses = self._default_array()

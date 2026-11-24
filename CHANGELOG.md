@@ -7,14 +7,17 @@ SPDX-License-Identifier: CC-BY-4.0
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-Version numbers carry no compatibility promise, as any release may break old
-decks.
+A patch release keeps every deck running; any other release may break old
+decks. `CONTRIBUTING.md`, Versions and releases, says what each release may
+change.
 
 <!-- What gets an entry: CONTRIBUTING.md, Changelog. -->
 
 ## [Unreleased]
 
 ### Added
+- `navigate --version` prints the Navigate version and the results file schema
+  it writes, and the log file names both in its first line.
 - `ModelDefinition` attribute `Currency`, `"USD"` by default, names the
   currency of every monetary input and result; the results file's units carry
   it, such as `EUR/t`, and the reference manual writes it `currency` (#793).
@@ -54,6 +57,10 @@ decks.
   requested; they used to produce no column.
 
 ### Changed
+- The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of
+  vessels, fleets and the global results are keyed by emission alone, summed
+  over the fuels: the split between fuels followed the solver where two fuels
+  burn alike in converters of different slip.
 - A `Levy` charges the shore power drawn in its `Jurisdiction`, whatever its
   `Fuels`, counting the grid's emissions as WTT, so a TTW levy counts none;
   new result `shore_power_levy_expenses`. Decks with shore power under a levy
@@ -241,6 +248,37 @@ decks.
 - A path written with `./` or a doubled `/` in an `Include` or a report
   `Directory` now appears normalised in error and log messages, such as
   `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
+- Among equally cheap bunkering solutions, the one returned follows three
+  rules and, within the limits the `BunkerOptions` page gives, no longer the
+  solver, its version and build order (#499):
+  - vessel types that could each cut the same emissions at the same cost
+    under a binding `FLEXIBLE` `Regulation` each take the same share of their
+    own room, so two identical types count the same emissions per vessel;
+  - then a vessel's emissions under a `Regulation` are the least its fuels
+    allow;
+  - then the largest amount of a fuel it bunkers at one stop is as small as
+    it can be, so it bunkers the same amount at stops that sell the fuel at
+    the same price where nothing else limits them;
+  - results move where the optimum or its prices were not unique; the page
+    lists the five choices the rules leave to the solver;
+  - `bunkering_infeasible.lp` holds a `bunker_peak` variable per vessel and
+    fuel with its `bunker_below_peak` constraints, which serve the rule on
+    the largest amount and limit no bunkering;
+  - it also holds a `pooled_term` variable per `FLEXIBLE` regulation and
+    vessel with its `pooled_term_definition` constraint: what the threshold
+    constraint adds up;
+  - a run takes 10 to 25% longer than in the release before this change.
+- The fair-share iterations of the bunker algorithm end once the amount of
+  each fuel a vessel bunkers at each port settles, its calls at the port
+  taken together; a split that moved between two calls at one port kept them
+  going. The convergence statistics in the log count per vessel, port and fuel.
+- Remedial units below the `SolutionTolerance` count as none: a rounding
+  residual above zero used to be reported and charged, and with
+  `AllowThresholdAdjustment` to adjust the thresholds and solve again.
+- The infeasible-bunkering error message and `bunkering_infeasible.ilp`/`.lp`
+  name a constraint or variable by its quoted node names, as
+  `tank_capacity("vessel","port",0,"tank")`, where `"port",0` is the vessel's
+  first call at the port; the parts were joined by underscores.
 - An empty `Vessels`, `Plants`, `Tanks`, `Ports`, `Emissions` or `Fuels` list,
   or a fuel type repeated in `MainFuelTypes` or `PilotFuelTypes`, is rejected
   at its line, also on a node the deck does not use.
@@ -357,6 +395,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A Curve, Forecast, Surface or Timetable with `Extrapolate = FALSE` read
+  outside its table stops the run with an `Error:` line naming the node and the
+  table's range as the deck wrote it, instead of a Python traceback.
 - A Curve, Forecast, Surface, Timetable, Variable or expression whose value
   reaches an exclusive minimum or maximum, or is NaN, during a run stops it with
   an `Error:` line naming the node instead of a Python traceback (#908).

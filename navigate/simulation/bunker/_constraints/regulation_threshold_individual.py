@@ -23,10 +23,10 @@ def update_regulation_threshold_individual_constraints(alg: BunkerAlgorithm) -> 
 
     For each regulation r and policed vessel v:
 
-        E_{r,v} - w_{r,v} <= R_{r,v}
+        T_{r,v} - w_{r,v} <= R_{r,v}
 
-    where E is T of calculate_regulation_terms, the vessel's fuel spend and shore
-    power weighted by regulation coefficients and jurisdiction fractions (for an
+    where T is the term of calculate_regulation_terms, the vessel's fuel spend and
+    shore power weighted by regulation coefficients and jurisdiction fractions (for an
     intensity measure the coefficients fold in the threshold), w the remedial
     units bought for the vessel, and R the threshold-derived bound
     (update_regulation_rhs_individual). The remedial variable keeps the model
@@ -51,7 +51,7 @@ def update_regulation_threshold_individual_constraints(alg: BunkerAlgorithm) -> 
 
         terms, emissions, energy = calculate_regulation_terms(alg, vessel, regulation)
 
-        # kept for transferring the regulation solution after the solve
+        # kept for the selection rules and the transfer of the regulation solution
         alg.regulation_emission_terms[key] = emissions
         alg.regulation_energy_terms[key] = energy
 

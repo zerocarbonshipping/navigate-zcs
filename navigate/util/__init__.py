@@ -4,8 +4,8 @@
 """
 Domain-agnostic helpers.
 
-Collections, dates, naming, numerics, timings and units; the type aliases are
-imported from ``navigate.util.types_`` directly.
+Collections, dates, naming, numerics, the installed package, timings and units;
+the type aliases are imported from ``navigate.util.types_`` directly.
 """
 
 from __future__ import annotations
@@ -58,6 +58,7 @@ from navigate.util.numeric import (
     smooth_belief_path,
     step_lengths,
 )
+from navigate.util.package import DISTRIBUTION, navigate_version
 from navigate.util.timings import Timings, timed
 from navigate.util.units import (
     HOUR_TO_DAY,
