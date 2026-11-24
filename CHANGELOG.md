@@ -433,10 +433,11 @@ change.
   distribution, now moves the fleet and producer decisions at its own date;
   they followed it a step late. Decks without such events are unchanged (#913).
 - A rounding remainder, such as 1e-15, left in a vessel type's count, a
-  fleet's trade gap, a fuel's or feed's gap or a plant type's newbuilds is
-  treated as zero. It could add vessels or plants of that size, admit a vessel
-  type to the bunkering, or split a fuel's newbuilds differently, and shift the
-  results of every later year. A vessel type counts as in its fleet when its
+  fleet's trade gap, a fuel's or feed's gap or a plant type's newbuilds, or
+  split off a cohort whose age reaches its lifetime or delivery only to
+  rounding, is treated as zero. It could add, scrap or keep vessels or plants
+  of that size, admit a vessel type to the bunkering, or split a fuel's
+  newbuilds differently, and shift the results of every later year. A vessel type counts as in its fleet when its
   count is more than 1e-12 of the fleet's, where it needed 1e-5 vessels; a
   real count below 1e-5 vessels now counts. Decks in which a remainder arose
   or a count lay between the two move, `business_as_usual`,

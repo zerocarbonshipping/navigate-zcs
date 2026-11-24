@@ -210,9 +210,9 @@ def _scrap_by_age(fleet: Fleet, idx: int) -> None:
     """
     Scrap the part of each increment beyond the vessel lifetime.
 
-    An increment at or past the lifetime is scrapped whole and removed. A converted
-    increment keeps its source type's age and span, so any increment, not only the
-    oldest, can reach past the lifetime.
+    An increment at or past the lifetime, or within rounding of it, is scrapped whole
+    and removed. A converted increment keeps its source type's age and span, so any
+    increment, not only the oldest, can reach past the lifetime.
 
     Parameters
     ----------
@@ -231,7 +231,7 @@ def _scrap_by_age(fleet: Fleet, idx: int) -> None:
         for increment in increments:
             scrapped_vessels += _scrap_past_lifetime(increment, lifetime)
 
-        surviving = [increment for increment in increments if increment.age < lifetime]
+        surviving = [increment for increment in increments if increment.count > 0.0]
         fleet.increments[v] = surviving
         scrap[vessel.name][idx] += scrapped_vessels
 

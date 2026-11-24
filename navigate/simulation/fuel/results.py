@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.simulation.cohort import find_origin_indexes
 from navigate.simulation.fuel._profiles import iterate_increments
-from navigate.util import YEAR, interpolate_yearly_flow, is_negligible
+from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -192,17 +192,12 @@ def _transfer_instantaneous_production(producer: Producer, idx: int) -> None:
     idx
         Current time-step index.
     """
-    productions = producer.expectation.expected_production.at[idx]
-    total = sum(productions.values())
-
     for plant in producer.plants:
-        production = productions[plant.name]
+        production = producer.expectation.expected_production[plant.name][idx]
         expectation = plant.expectation
         results = plant.results
 
-        # splitting an increment at delivery or retirement can leave a plant only a
-        # rounding residue of one, which produces nothing in substance
-        if not is_negligible(production, total):
+        if production > 0.0:
             results.instantaneous_cost[idx] = expectation.expected_production_cost[idx]
 
             for emission_name, wtt in expectation.expected_production_wtt.items():

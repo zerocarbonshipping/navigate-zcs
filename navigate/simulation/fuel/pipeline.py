@@ -12,11 +12,7 @@ import numpy as np
 
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import PlantIncrement
-from navigate.simulation.cohort import (
-    calculate_share_below,
-    extends_past,
-    find_insertion_index,
-)
+from navigate.simulation.cohort import calculate_share_below, find_insertion_index
 from navigate.simulation.economics import (
     build_operating_flows,
     calculate_levelized_cost,
@@ -44,28 +40,33 @@ def perform_pipeline_delivery(producer: Producer) -> None:
     Deliver plants from the pipeline that have passed their lead time.
 
     Pipeline increments use negative ages (time since delivery, negative = not yet
-    delivered). After aging with += dt, delivered increments have age >= 0 and
-    transfer directly to active production without sign-flipping.
+    delivered). After aging with += dt, an increment whose age reaches zero, to
+    rounding, transfers whole to active production without sign-flipping, and one
+    whose age span reaches past zero is split.
 
     Parameters
     ----------
     producer
         The producer.
     """
-    for operating, pipeline in zip(producer.increments, producer.pipeline, strict=True):
-        fully_delivered = 0
+    for p, pipeline in enumerate(producer.pipeline):
+        operating = producer.increments[p]
+        waiting = []
 
         for increment in pipeline:
-            if increment.age >= 0.0:
+            share = calculate_share_below(increment, 0.0)
+
+            if share == 0.0:
                 # the age already counts the time since delivery
                 operating.append(increment)
-                fully_delivered += 1
 
-            elif extends_past(increment, 0.0):
+            elif share == 1.0:
+                waiting.append(increment)
+
+            else:
                 # plants enter uniformly over the age span, so the part past zero is
                 # delivered and the rest keeps its span up to zero; the delivered part
                 # keeps 'decided', so its origin index stays that of the increment
-                share = calculate_share_below(increment, 0.0)
                 remaining = increment.count * share
                 delivered = PlantIncrement(
                     count=increment.count - remaining,
@@ -77,9 +78,9 @@ def perform_pipeline_delivery(producer: Producer) -> None:
                 operating.append(delivered)
                 increment.count = remaining
                 increment.age_span = -increment.age
+                waiting.append(increment)
 
-        # the pipeline is sorted oldest first, so the fully delivered come first
-        del pipeline[:fully_delivered]
+        producer.pipeline[p] = waiting
 
 
 def perform_pipeline_planning(
