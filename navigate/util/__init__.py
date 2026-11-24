@@ -44,15 +44,18 @@ from navigate.util.naming import (
     setter_to_attribute,
 )
 from navigate.util.numeric import (
+    RELATIVE_TOLERANCE,
     ROUND_OFF,
     TOLERANCE,
     calculate_compound_growth,
     calculate_smoothing_alpha,
     calculate_step_inertia,
     divide_nonzero,
+    drop_negligible,
     find_nearest_index,
     find_nearest_indices,
     interpolate_yearly_flow,
+    is_negligible,
     is_nondecreasing,
     is_strictly_increasing,
     smooth_belief_path,
