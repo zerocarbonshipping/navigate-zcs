@@ -365,10 +365,11 @@ def _calculate_inter_fuel_metric(
     # cash flows, the one its levelized production cost is built on
     year_starts, operating = build_operating_flows(lead_time, lifetime, timeline[idx])
     # interpolating across a change of sign can leave a residue where the demand
-    # crosses zero
+    # crosses zero, negligible against the demands interpolated between
     fuel_demand = demand[fuel.name]
     yearly_demand = np.interp(year_starts, timeline, fuel_demand, left=0.0)
-    yearly_demand = drop_negligible(yearly_demand, np.max(np.abs(fuel_demand)))
+    scale = np.interp(year_starts, timeline, np.abs(fuel_demand), left=0.0)
+    yearly_demand = drop_negligible(yearly_demand, scale)
 
     # the lowest plant count the demand supports within the sufficient offtake
     # duration is the most plants it makes sense to sanction, among the years from
