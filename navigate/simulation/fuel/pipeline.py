@@ -26,7 +26,12 @@ from navigate.simulation.fuel.feed import (
     calculate_constrained_uptakes,
     calculate_feed_spends,
 )
-from navigate.util import YEAR, calculate_step_inertia, divide_nonzero
+from navigate.util import (
+    YEAR,
+    calculate_step_inertia,
+    divide_nonzero,
+    drop_negligible,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -116,9 +121,13 @@ def perform_pipeline_planning(
     # the utilization is the previous time step's, and the inertia already counts
     # against the development limit
     utilization = min(producer.current_utilization + ramp_up, 1.0)
-    development = limit * utilization - np.sum(inertia)
+    available = limit * utilization
+    development = float(drop_negligible(available - np.sum(inertia), available))
     modelled = _calculate_modelled_newbuilds(producer, inertia, development, idx)
+
+    # a count negligible against the step's total is a rounding residue, not a plant
     newbuilds = inertia + modelled
+    newbuilds = drop_negligible(newbuilds, np.sum(newbuilds))
 
     # the new plants enter the pipeline one lead time ahead of delivery
     additions = zip(producer.plants, producer.pipeline, newbuilds, strict=True)
@@ -198,17 +207,23 @@ def _calculate_uncovered_demand(
     Returns
     -------
     dict[str, FloatArray]
-        Demand per fuel pathway not covered by the inertia, in tons/year.
+        Demand per fuel pathway not covered by the inertia, in tons/year; exactly zero
+        where the inertia covers it to rounding.
     """
-    # the getter returns the stored arrays, so the subtraction stays out of place
-    demand = dict(producer.expectation.fair_share_demand)
+    demand = producer.expectation.fair_share_demand
+    production = dict.fromkeys(demand, 0.0)
 
     for plant, count in zip(producer.plants, newbuilds, strict=True):
-        production = plant.expectation.production[idx] * count
-        fuel_name = plant.fuel.name
-        demand[fuel_name] = demand[fuel_name] - production
+        production[plant.fuel.name] += plant.expectation.production[idx] * count
 
-    return demand
+    uncovered: dict[str, FloatArray] = {}
+
+    for fuel_name, fuel_demand in demand.items():
+        fuel_production = production[fuel_name]
+        scale = np.maximum(np.abs(fuel_demand), fuel_production)
+        uncovered[fuel_name] = drop_negligible(fuel_demand - fuel_production, scale)
+
+    return uncovered
 
 
 def _calculate_modelled_newbuilds(
@@ -264,7 +279,8 @@ def _calculate_demand_limits(
     producer
         The producer.
     uptakes
-        Uptake share of each plant type.
+        Uptake share of each plant type; one negligible against a whole share, such
+        as the tail of a logit, counts as no uptake.
     development
         Number of plants built over the time step.
 
@@ -274,6 +290,7 @@ def _calculate_demand_limits(
         Uptake limit per plant type, zero for a plant type not allowed, without
         demand, or without uptake where another plant type of its fuel has uptake.
     """
+    uptakes = drop_negligible(uptakes, 1.0)
     newbuilds = np.zeros(len(producer.plants))
     spends = dict.fromkeys(producer.fuels, 0.0)
     counts = dict.fromkeys(producer.fuels, 0)

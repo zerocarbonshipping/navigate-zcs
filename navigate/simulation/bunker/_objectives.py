@@ -13,7 +13,6 @@ from navigate.simulation.bunker._costs import (
     calculate_bunker_costs,
     calculate_shore_power_costs,
 )
-from navigate.util import TOLERANCE
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -70,7 +69,7 @@ def _update_bunker_costs(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             alg.model.set_cost(alg.bunker[v, p, f], count * total_price)
 
             # a zero or negative price on available supply is typically unintended
-            if is_existing and total_price <= TOLERANCE:
+            if is_existing and total_price <= 0.0:
                 supply = port.expectation.bunker_supply[f][alg.idx]
 
                 if supply > 0.0:

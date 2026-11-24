@@ -15,7 +15,7 @@ from navigate.simulation.fuel._profiles import (
     calculate_cohort_reserved,
     iterate_increments,
 )
-from navigate.util import TOLERANCE, YEAR, divide_nonzero
+from navigate.util import YEAR, divide_nonzero, drop_negligible
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
@@ -255,13 +255,15 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
 
         supply = constraint.get(delivery)
         reserved = _calculate_cohort_feed(producer, feed_name, delivery, timeline, idx)
-        gap = supply - reserved
+
+        # the supply may be unbounded, so the finite reservation scales the gap
+        gap = drop_negligible(supply - reserved, reserved)
 
         # an initial capacity of plants using more feed than the constraint allows
         # over-demands the feed, an issue in the input data that the warning flags;
         # the gap is floored at zero
         # TODO: Remove if scrapping for negatives gets implemented
-        if gap[0] < -TOLERANCE:
+        if gap[0] < 0.0:
             logger.warning(
                 "%s: %s tons/year more '%s' feed is being used than is available.",
                 producer,
