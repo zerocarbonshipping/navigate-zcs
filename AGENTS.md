@@ -86,7 +86,9 @@ merging, releases and `main`, because they decide what users receive.
 ## Rules for every change
 
 - A pull request goes into `dev`, or into the integration branch of the
-  larger effort it belongs to; never into `main`, the release branch.
+  larger effort it belongs to; never into `main`, the release branch,
+  except a patch the owners ask for (`CONTRIBUTING.md`, Versions and
+  releases).
 - Every new file carries an SPDX header (`README.md`, License): code and
   tooling take Apache-2.0 and DSL files CC-BY-4.0 wherever they sit; a
   document takes Apache-2.0 in `tests/`, `syntax/`, `.agents/` and `.github/`,

@@ -85,7 +85,17 @@ A reader ignores the keys and columns it does not know. It checks
 `schema_version` against the versions it reads, and otherwise stops with a
 message naming the version found, the versions it reads and the tool to
 upgrade. A reader that uses an optional key tests whether the key is present,
-not the version.
+not the version. A study file also carries `study_schema_version`, which
+versions Horizon's own keys and its `run` column the same way.
+
+`navigate --version` names the schema a Navigate writes:
+
+| `schema_version` | Written by | Change |
+| --- | --- | --- |
+| 1 | Navigate 1.1.0 and later | The first results file. |
+
+A results file from a development build before Navigate 1.1.0 is not read, as
+those builds used the numbers 1 to 3 for layouts that have since changed.
 
 ## Results
 
