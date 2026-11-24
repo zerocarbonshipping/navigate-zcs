@@ -70,6 +70,31 @@ def drop_negligible(value: npt.ArrayLike, scale: npt.ArrayLike) -> FloatArray:
     return np.where(is_negligible(value, scale), 0.0, value)
 
 
+def subtract(minuend: npt.ArrayLike, subtrahend: npt.ArrayLike) -> FloatArray:
+    """
+    Subtract two values, exactly zero where they are equal to rounding.
+
+    The difference is dropped where it is negligible against the larger magnitude of
+    the operands. The operands are finite: against an infinite one, every finite
+    difference is negligible.
+
+    Parameters
+    ----------
+    minuend
+        Value subtracted from, scalar or array.
+    subtrahend
+        Value subtracted, scalar or array, in the minuend's unit.
+
+    Returns
+    -------
+    FloatArray
+        The difference, with the broadcast shape of the inputs (0-d for scalar
+        inputs).
+    """
+    scale = np.maximum(np.abs(minuend), np.abs(subtrahend))
+    return drop_negligible(np.subtract(minuend, subtrahend), scale)
+
+
 def divide_nonzero(
     numerator: npt.ArrayLike, denominator: npt.ArrayLike, default: float = 0.0
 ) -> FloatArray:

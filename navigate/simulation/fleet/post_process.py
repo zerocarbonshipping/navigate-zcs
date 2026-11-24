@@ -29,7 +29,7 @@ from navigate.simulation.fleet.power import get_total_power_capacity
 from navigate.util import (
     divide_nonzero,
     drop_negligible,
-    is_negligible,
+    subtract,
     sum_nonempty_values,
     sum_values,
 )
@@ -220,7 +220,7 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
         power_from = get_total_power_capacity(vessel_from)
         power_to = get_total_power_capacity(vessel_to)
 
-        if not is_negligible(power_to - power_from, max(power_to, power_from)):
+        if subtract(power_to, power_from) != 0.0:
             logger.warning(
                 "%s: Fuel conversion occurred with different installed power %s (%s) "
                 "to %s (%s).",

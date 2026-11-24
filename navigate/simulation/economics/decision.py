@@ -13,7 +13,7 @@ import numpy as np
 from scipy.optimize import brentq
 
 from navigate.core.enum_ import UtilityID
-from navigate.util import RELATIVE_TOLERANCE, index_map, is_negligible
+from navigate.util import drop_negligible, index_map, subtract
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
@@ -198,9 +198,7 @@ def _uniform_at_min(values: FloatArray) -> FloatArray:
     """
     shares = np.zeros_like(values)
 
-    # each value is tied with the minimum on the scale of the two
-    minimum = np.min(values)
-    at_min = is_negligible(values - minimum, np.maximum(np.abs(values), abs(minimum)))
+    at_min = subtract(values, np.min(values)) == 0.0
     shares[at_min] = 1.0 / np.count_nonzero(at_min)
 
     return shares
@@ -295,11 +293,12 @@ def _calculate_limited_shares(
             f"({shares.size})"
         )
 
+    # shares and limits are fractions of a whole, the scale of their rounding
     limits = np.clip(limits, 0.0, 1.0)
 
     # infeasible: even saturating every option cannot reach a unit total
     total_limit = np.sum(limits)
-    if total_limit < 1.0 - RELATIVE_TOLERANCE:
+    if drop_negligible(total_limit - 1.0, 1.0) < 0.0:
         message = (
             f"sum of limits ({total_limit:.4f}) is below 1; allocation is infeasible "
             "and every option has been saturated to its limit"
@@ -307,7 +306,7 @@ def _calculate_limited_shares(
         return limits, message
 
     # no effective constraint
-    if not np.any(shares > limits + RELATIVE_TOLERANCE):
+    if not np.any(drop_negligible(shares - limits, 1.0) > 0.0):
         return shares, ""
 
     return _calculate_redistributed_shares(shares, limits), ""
@@ -340,7 +339,7 @@ def _calculate_redistributed_shares(
     saturated = np.zeros_like(shares, dtype=bool)
 
     for _ in range(shares.size):
-        over = (shares > limits + RELATIVE_TOLERANCE) & ~saturated
+        over = (drop_negligible(shares - limits, 1.0) > 0.0) & ~saturated
         if not np.any(over):
             break
 

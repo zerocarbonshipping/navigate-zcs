@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import YEAR, add_dicts, drop_negligible
+from navigate.util import YEAR, add_dicts, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -201,10 +201,7 @@ def calculate_expected_fuel_gap(
     gaps: dict[str, FloatLike] = {}
 
     for name in fuels:
-        fuel_demand = demand.get(name, 0.0)
-        fuel_supply = supply.get(name, 0.0)
-        scale = np.maximum(np.abs(fuel_demand), np.abs(fuel_supply))
-        gaps[name] = drop_negligible(fuel_demand - fuel_supply, scale)
+        gaps[name] = subtract(demand.get(name, 0.0), supply.get(name, 0.0))
 
     return gaps
 

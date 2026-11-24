@@ -12,8 +12,8 @@ from navigate.simulation.policy._policed import calculate_vessel_account, select
 from navigate.util import (
     calculate_smoothing_alpha,
     divide_nonzero,
-    drop_negligible,
     smooth_belief_path,
+    subtract,
 )
 
 if TYPE_CHECKING:
@@ -146,9 +146,7 @@ def _clear_flexibility_market(
     total_surplus = 0.0
     for vessel_name, count in select_policed(regulation, counts).items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
-        excess = account.emissions - account.allowance
-        scale = max(abs(account.emissions), abs(account.allowance))
-        excess = float(drop_negligible(excess, scale))
+        excess = float(subtract(account.emissions, account.allowance))
         non_compliance = max(excess, 0.0)
         surplus = max(-excess, 0.0)
 
@@ -157,9 +155,7 @@ def _clear_flexibility_market(
         total_surplus += count * surplus
 
     # the non-compliance not remediated is covered by flexibility units
-    uncovered = total_non_compliance - total_remedial
-    scale = max(total_non_compliance, total_remedial)
-    total_flexibility = float(drop_negligible(uncovered, scale))
+    total_flexibility = float(subtract(total_non_compliance, total_remedial))
 
     # the share of the non-compliance covered by flexibility units rather than
     # remediated, none where the remedial units cover it all

@@ -18,11 +18,11 @@ from navigate.simulation.economics import calculate_two_axis_uptake
 from navigate.simulation.fleet._composition import extract_cargo_miles
 from navigate.simulation.fleet._package import calculate_package_charter_rates
 from navigate.util import (
-    RELATIVE_TOLERANCE,
     YEAR,
     divide_nonzero,
     drop_negligible,
     is_negligible,
+    subtract,
 )
 
 if TYPE_CHECKING:
@@ -77,8 +77,8 @@ def calculate_orderbook_newbuilds(
     trade_gap -= np.dot(delivery, cargo_miles)
 
     # new orders the trade gap leaves undelivered are postponed to the next time-step
-    cumulative = to_array(fleet.orderbooks)
-    new_orders = cumulative - fleet.orders_delivered - fleet.orders_postponed
+    ordered = fleet.orders_delivered + fleet.orders_postponed
+    new_orders = subtract(to_array(fleet.orderbooks), ordered)
     due = np.where(allowed, new_orders, 0.0)
     new_delivery, share = _calculate_delivery(fleet, due, cargo_miles, trade_gap)
     fleet.orders_postponed += (1.0 - share) * new_orders
@@ -86,8 +86,7 @@ def calculate_orderbook_newbuilds(
     delivery += new_delivery
 
     # deliveries beyond the newbuild budget are postponed as well
-    over = delivery > cap_count * (1.0 + RELATIVE_TOLERANCE)
-    excess = np.where(over, delivery - cap_count, 0.0)
+    excess = np.maximum(drop_negligible(delivery - cap_count, cap_count), 0.0)
     capped = delivery - excess
     fleet.orders_delivered -= excess
     fleet.orders_postponed += excess
@@ -142,7 +141,7 @@ def calculate_modelled_newbuilds(
         fleet, current_uptake, cargo_miles, trade_gap, cap_count[allowed]
     )
     gap_left = trade_gap - np.dot(inertia, cargo_miles)
-    trade_gap = float(drop_negligible(gap_left, trade_gap))
+    trade_gap = float(drop_negligible(gap_left, fleet.trade[idx]))
 
     # the DCM bounds shares of the trade gap, so the remaining count budget becomes
     # each vessel type's share of the gap, clamped to [0, 1]
@@ -333,8 +332,7 @@ def _calculate_inertia_newbuilds(
 
     # the newbuild budget caps inertia without redistribution: the trade it leaves
     # goes to the modelled newbuilds
-    over = newbuilds > cap_count * (1.0 + RELATIVE_TOLERANCE)
-    capped = np.where(over, cap_count, newbuilds)
+    capped = np.minimum(newbuilds, cap_count)
 
     attempted = np.sum(newbuilds)
     delivered = np.sum(capped)

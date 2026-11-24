@@ -44,7 +44,6 @@ from navigate.util.naming import (
     setter_to_attribute,
 )
 from navigate.util.numeric import (
-    RELATIVE_TOLERANCE,
     ROUND_OFF,
     calculate_compound_growth,
     calculate_smoothing_alpha,
@@ -59,6 +58,7 @@ from navigate.util.numeric import (
     is_strictly_increasing,
     smooth_belief_path,
     step_lengths,
+    subtract,
 )
 from navigate.util.package import DISTRIBUTION, navigate_version
 from navigate.util.timings import Timings, timed
