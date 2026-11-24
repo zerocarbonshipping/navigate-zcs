@@ -13,12 +13,13 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
-from importlib.metadata import PackageNotFoundError, version
 from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING, Self, override
 
 from tabulate import tabulate
+
+from navigate.util import navigate_version
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -215,10 +216,7 @@ class _RunLogFormatter(logging.Formatter):
 
 def print_preamble() -> None:
     """Print the banner and the package version to the console."""
-    try:
-        package_version = version("navigate-zcs")
-    except PackageNotFoundError:
-        package_version = "Debug"
+    package_version = navigate_version() or "Debug"
 
     path = Path(__file__).parent / "preamble.txt"
     preamble = path.read_text()

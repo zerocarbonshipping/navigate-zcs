@@ -41,6 +41,8 @@ Title: `CONTRIBUTING.md`, Pull request expectations.
 - Limitations also lists the issues filed during the work and the tests
   proposed (`tests/AGENTS.md`).
 - Cite issues and PRs by number, never private plans, tickets or sessions.
+- A change to a contract Horizon or Lantern reads links their issues and
+  pull requests: `CONTRIBUTING.md`, Versions and releases.
 - CHANGELOG entry or not, and its form: `CONTRIBUTING.md`, Changelog.
 
 ## Per type
@@ -67,7 +69,8 @@ Title: `CONTRIBUTING.md`, Pull request expectations.
   reaches `main`, the default branch, at release.
 - Body in a file outside the repo; push; then
   `gh pr create --base <base> --title "<title>" --label <label> --body-file <file>`.
-- Base: `dev` or the effort's integration branch, never `main`.
+- Base: `dev` or the effort's integration branch, never `main`, except a
+  patch the owners ask for (`CONTRIBUTING.md`, Versions and releases).
 - Every title, body or base edit reruns CI (`edited` trigger): edit only to
   fix wrong content or to retarget.
 - Substance hard to find, e.g. mixed with moves or renames: post a

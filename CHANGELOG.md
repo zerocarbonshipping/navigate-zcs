@@ -7,14 +7,17 @@ SPDX-License-Identifier: CC-BY-4.0
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-Version numbers carry no compatibility promise, as any release may break old
-decks.
+A patch release keeps every deck running; any other release may break old
+decks. `CONTRIBUTING.md`, Versions and releases, says what each release may
+change.
 
 <!-- What gets an entry: CONTRIBUTING.md, Changelog. -->
 
 ## [Unreleased]
 
 ### Added
+- `navigate --version` prints the Navigate version and the results file schema
+  it writes, and the log file names both in its first line.
 - `ModelDefinition` attribute `Currency`, `"USD"` by default, names the
   currency of every monetary input and result; the results file's units carry
   it, such as `EUR/t`, and the reference manual writes it `currency` (#793).

@@ -41,7 +41,8 @@ values, so that the provenance of the model inputs stays traceable.
 ## Pull request expectations
 
 - Target `dev`, or the integration branch of the larger effort the change
-  belongs to; never `main`, the release branch.
+  belongs to; never `main`, the release branch, except for a patch release
+  (Versions and releases).
 - Keep each pull request one reviewable change: the rework the change needs
   belongs in it, unrelated fixes and refactors in pull requests of their own.
 - Fill in the pull request template.
@@ -78,8 +79,8 @@ a rename or removal, what to write instead, and it ends with the issue number
 if there is one. It goes under one of Keep a Changelog's headings and carries
 no "Breaking" label or heading, because Navigate keeps no backward
 compatibility: no shims and no deprecation periods; a breaking change is made
-outright, and any release may break old decks. How the change works belongs in
-the pull request, not the changelog.
+outright, and any minor release may break old decks (Versions and releases).
+How the change works belongs in the pull request, not the changelog.
 
 ## Testing
 
@@ -118,6 +119,50 @@ for their repository.
   length of 128, and mypy as Navigate's `mypy.ini` does.
 - They have no pull request template, no `AGENTS.md` and no results
   comparison.
+
+## Versions and releases
+
+Navigate, Horizon and Lantern release on their own. They share three
+contracts, each versioned by the tool that writes it:
+
+| Contract | Written by | Read by | Version |
+| --- | --- | --- | --- |
+| Results file | Navigate | Horizon, Lantern | `schema_version`, see [Results file](docs/reference_manual/results_file.md#schema-version) |
+| Study file | Horizon | Lantern | `study_schema_version` |
+| Command line: `--set`, `--name`, `--output-dir`, `--version`, the `parquets` subfolder and the exit codes | Navigate | Horizon | the oldest Navigate Horizon runs |
+
+A version is `MAJOR.MINOR.PATCH`:
+
+- A patch release fixes. It changes no contract, and every deck the release
+  before it ran still runs.
+- A minor release adds: a result, a key, an option, or a reader for a new
+  contract version. Any minor release of Navigate may break old decks.
+- A major release is a tool's own redesign.
+
+A change that breaks a contract raises its version and reaches users readers
+first. The readers release a version that reads both the old and the new
+number, then the writer releases one that writes the new number, and the
+readers drop the old number in a later minor release. The writer's pull request
+links an issue and a pull request in each reader's repository.
+
+Each tool checks a contract version before it relies on it: Horizon runs
+`navigate --version` before it starts a run, and a reader checks the version of
+each file it opens. A mismatch stops with a message naming the version found,
+the versions supported and the tool to upgrade.
+
+A release is a tagged GitHub release, which publishes the package to PyPI. The
+owners make it:
+
+1. Set the version in `pyproject.toml` and `CITATION.cff`, for Navigate also in
+   `docs/_static/switcher.json`, and date the `CHANGELOG.md` section. Its first
+   line names the contract versions: "Writes results schema 1." for Navigate,
+   "Runs Navigate 1.1 or later; reads results schema 1; writes study schema 1."
+   for Horizon, "Reads results schema 1 and study schema 1." for Lantern.
+2. Merge into `main`: `dev` for a minor or major release, or for a patch, a
+   branch from `main` that holds only the fix.
+3. Tag the merge `vX.Y.Z` and publish a GitHub release from the tag, with the
+   changelog section as its notes.
+4. Merge `main` back into `dev`.
 
 ## Questions
 

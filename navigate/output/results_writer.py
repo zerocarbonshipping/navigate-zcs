@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 import logging
 from datetime import UTC, datetime
-from importlib.metadata import PackageNotFoundError, version
 from typing import TYPE_CHECKING, Any, NamedTuple
 
 import numpy as np
@@ -27,7 +26,13 @@ from navigate.core.results import (
     result_names,
     result_units,
 )
-from navigate.util import TOLERANCE, dates_to_years, key_name, step_lengths
+from navigate.util import (
+    TOLERANCE,
+    dates_to_years,
+    key_name,
+    navigate_version,
+    step_lengths,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
@@ -207,7 +212,7 @@ def _metadata(
 
     return {
         "schema_version": SCHEMA_VERSION,
-        "navigate_version": _navigate_version(),
+        "navigate_version": navigate_version() or "unknown",
         "deck": run_name,
         "created": datetime.now(UTC).isoformat(timespec="seconds"),
         "params": dict(params),
@@ -249,11 +254,3 @@ def _constants(results: SimulationResults) -> dict[str, Any]:
         "global_warming_potential": context.global_warming_potential,
         "emissions_lifetime": definition.emissions_lifetime,
     }
-
-
-def _navigate_version() -> str:
-    try:
-        return version("navigate-zcs")
-
-    except PackageNotFoundError:
-        return "unknown"

@@ -53,6 +53,7 @@ The following options are available when running Navigate. See them in the comma
 | `--output-dir DIR`              | Folder the log, results, profile and infeasible-LP files are written to, created if missing. Default: the deck's folder.                                                                  |
 | `-l LEVEL`, `--log-level LEVEL` | Set the log level for the `.log` file. With `DEBUG`, a failed run also prints the full traceback to the console.                                                                                                                                                  |
 | `--solver {auto,gurobi,highs}`  | Solver backend. `auto` tries Gurobi then falls back to HiGHS. Without the flag, the deck's `BunkerOptions` `Solver` applies.                                                                                                                                      |
+| `--version`                     | Print the Navigate version and the results file schema it writes, then exit. |
 | `-p`, `--profile`               | Profile the run, write the statistics to the file `<name>.prof` in the output folder and print the 100 functions with the highest cumulative time. A profiled run prints no warning count.                                                   |
 
 ## Tutorials and Example Simulations
