@@ -357,6 +357,9 @@ decks.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A Curve, Forecast, Surface or Timetable with `Extrapolate = FALSE` read
+  outside its table stops the run with an `Error:` line naming the node and the
+  table's range as the deck wrote it, instead of a Python traceback.
 - A Curve, Forecast, Surface, Timetable, Variable or expression whose value
   reaches an exclusive minimum or maximum, or is NaN, during a run stops it with
   an `Error:` line naming the node instead of a Python traceback (#908).

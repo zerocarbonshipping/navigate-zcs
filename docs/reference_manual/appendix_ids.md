@@ -19,11 +19,11 @@ This ID describes the type of energy demand that is targeted by a certain techno
 
 ## ExtrapolateID
 
-The Extrapolate ID describes the method used for extrapolating in Curves and Forecasts.
+The Extrapolate ID describes the method used for extrapolating in Curves, Forecasts, Surfaces and Timetables.
 
 | ID | Description |
 | --- | --- |
-| FALSE | Do not allow extrapolation. Error is thrown if attempting. |
+| FALSE | Do not allow extrapolation: a lookup outside the table stops the run with an error naming the node. |
 | FLAT | Extrapolate flat from the closest value in the table. |
 | LINEAR | Linear extrapolation from the last two values in the table. |
 

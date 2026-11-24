@@ -20,6 +20,7 @@ from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.surface import Surface
 from navigate.core.nodes.timetable import Timetable
 from navigate.core.table_data import TableData
+from navigate.exceptions import DeckError
 
 INF = np.inf
 
@@ -97,7 +98,7 @@ def test_curve_flat_extrapolation_holds_a_value(
 # an end value instead of an error.
 @pytest.mark.parametrize("x", [-1.0, 3.0], ids=["below", "above"])
 def test_curve_without_extrapolation_refuses_a_lookup_outside(x):
-    with pytest.raises(ValueError, match="interpolation range"):
+    with pytest.raises(DeckError, match="outside its x-values"):
         _curve("FALSE").get(x)
 
 
@@ -123,10 +124,10 @@ def test_surface_extrapolates_by_its_mode(extrapolate, outside, expected):
 
 
 # reads a Surface with Extrapolate = FALSE outside its grid and expects an error.
-# catches: the 2D table built with bounds checks off, so an off-grid lookup
-# returns a made-up value instead of failing.
+# catches: the lookup check skipped for a Surface, so an off-grid lookup returns
+# a made-up value instead of failing.
 def test_surface_without_extrapolation_refuses_a_lookup_outside():
-    with pytest.raises(ValueError, match="out of bounds"):
+    with pytest.raises(DeckError, match="outside its x-values"):
         _surface("FALSE").get(3.0, 0.0)
 
 
