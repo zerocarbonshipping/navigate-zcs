@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# FUELEU = 1 - FuelEU covers every ship, as in fuel_eu.inc.
+# NO_EU_ETS = 1 - every ship taken out of EU ETS; FuelEU stays.
 
-Regulation "fuel_eu" {
-    set_include_vessel("*", TRUE)
+Regulation "eu_ets" {
+    set_include_vessel("*", FALSE)
 }

@@ -4,10 +4,11 @@
 # The plots Session 1 draws with Lantern, which reads this catalogue when it is
 # started in this folder. The entries follow Lantern's own plots.yaml.
 
-# the runs the notebook writes; scenarios and studies show under their own names
+# the runs the notebook writes; STEP 3's scenarios show under their own names
 customize_runs:
   example_4:     {name: reference, color: black_4}
   your_scenario: {name: your scenario, color: blue_8}
+  levers:        {name: study, color: blue_8}
 
 session:
   emissions:
