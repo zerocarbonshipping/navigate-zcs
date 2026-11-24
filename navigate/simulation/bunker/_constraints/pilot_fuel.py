@@ -80,6 +80,7 @@ def _update_sea_rows(
         Origin and destination stop indices of each leg of the vessel's route.
     """
     v = vessel.name
+    route = vessel.route
 
     rows = alg.pilot_fuel_sea
     spend_sea = alg.spend_sea
@@ -87,7 +88,7 @@ def _update_sea_rows(
 
     for i, e in legs:
         key = (v, c, i, e)
-        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_sea")
+        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_sea", route)
 
         for f, coefficient in coefficients.items():
             model.set_coefficient(constraint, spend_sea[v, c, f, i, e], coefficient)
@@ -117,6 +118,7 @@ def _update_port_rows(
         Stop indices of the vessel's route.
     """
     v = vessel.name
+    route = vessel.route
 
     rows = alg.pilot_fuel_port
     spend_port = alg.spend_port
@@ -124,7 +126,7 @@ def _update_port_rows(
 
     for p in stops:
         key = (v, c, p)
-        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_port")
+        constraint = get_constraint(alg, rows, key, ">=", "pilot_fuel_port", route)
 
         for f, coefficient in coefficients.items():
             model.set_coefficient(constraint, spend_port[v, c, f, p], coefficient)

@@ -55,4 +55,4 @@ def _transfer_spend(alg: BunkerAlgorithm, v: str, c: str, f: str, spend: float) 
         ttw_slip = expectation.ttw_slip[c, f, emission_name]
 
         ttw_emissions = (ttw_consumption + ttw_slip) * spend
-        vessel.results.ttw[f, emission_name][alg.idx] += ttw_emissions
+        vessel.results.ttw[emission_name][alg.idx] += ttw_emissions

@@ -5,5 +5,5 @@
 
 from __future__ import annotations
 
-from navigate.output.results_writer import write_results
+from navigate.output.results_writer import SCHEMA_VERSION, write_results
 from navigate.output.simulation_results import SimulationResults

@@ -6,3 +6,4 @@
 from __future__ import annotations
 
 from navigate.driver.run import SOLVER_BACKENDS, run_deck
+from navigate.output import SCHEMA_VERSION

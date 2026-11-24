@@ -23,18 +23,27 @@ def update_regulation_threshold_flexibility_constraints(alg: BunkerAlgorithm) ->
 
     For each regulation r:
 
-        \sum_{v policed} M_v E_{r,v} - w_r <= R_r
+        \sum_{v policed} n_v T_{r,v} - w_r <= R_r
 
-    where E is a vessel's T of calculate_regulation_terms (see
-    regulation_threshold_individual), M the number of vessels it represents, w the
+    where T is a vessel's term of calculate_regulation_terms (see
+    regulation_threshold_individual), n the number of vessels it represents, w the
     remedial units bought for the pool, and R the pooled threshold bound
     (update_regulation_rhs_flexibility). Vessels over their individual target are
     balanced by vessels under it; only the pooled excess is priced through the
     remedial variable.
 
-    The row is rewritten in place each build: every variable it has ever held for
-    a vessel still in the model is written again, at weight 0 where its
-    jurisdiction fraction is 0 or its vessel is not policed.
+    T is a variable of its own here, free and defined by a constraint per policed
+    vessel:
+
+        \sum_t \phi_t k_t z_t - T_{r,v} = 0
+
+    so that the selection among equally cheap solutions can hold the term of a
+    vessel by the bounds of one variable (_rules.py).
+
+    The rows are rewritten in place each build: every variable the definition of
+    a term has ever held is written again, at weight 0 where its jurisdiction
+    fraction is 0. The term of a vessel that left the pool is removed with its
+    definition (_cleanup.py).
 
     Parameters
     ----------
@@ -42,34 +51,64 @@ def update_regulation_threshold_flexibility_constraints(alg: BunkerAlgorithm) ->
         The algorithm instance.
     """
     rows = alg.regulation_threshold_flexibility
-    remedial_factor_flexibility = alg.remedial_factor_flexibility
+    definitions = alg.pooled_term_definition
     model = alg.model
 
     for r, rhs in alg.regulation_rhs_flexibility.items():
         constraint = get_constraint(
-            alg, rows, r, "<=", "regulation_threshold_flexibility"
+            alg, rows, r, "<=", "regulation_threshold_flexibility", priced=True
         )
         model.set_rhs(constraint, rhs)
+        model.set_coefficient(constraint, alg.remedial_factor_flexibility[r], -1.0)
 
+    for key, pooled_term in alg.pooled_term.items():
+        r, v = key
+        vessel = alg.vessels[v]
         regulation = alg.regulations[r]
 
-        for v, vessel in alg.vessels.items():
-            is_policed = regulation.vessel_is_policed(v)
-            count = alg.counts[v] if is_policed else 0.0
+        terms, emissions, energy = calculate_regulation_terms(alg, vessel, regulation)
 
-            terms, emissions, energy = calculate_regulation_terms(
-                alg, vessel, regulation
-            )
+        # kept for the selection rules and the transfer of the regulation solution
+        alg.regulation_emission_terms[key] = emissions
+        alg.regulation_energy_terms[key] = energy
 
-            # kept for transferring the regulation solution after the solve
-            if is_policed:
-                alg.regulation_emission_terms[r, v] = emissions
-                alg.regulation_energy_terms[r, v] = energy
+        definition = get_constraint(
+            alg, definitions, key, "==", "pooled_term_definition"
+        )
 
-            for variable, weight in terms:
-                model.set_coefficient(constraint, variable, weight * count)
+        for variable, weight in terms:
+            model.set_coefficient(definition, variable, weight)
 
-        model.set_coefficient(constraint, remedial_factor_flexibility[r], -1.0)
+        model.set_coefficient(definition, pooled_term, -1.0)
+        model.set_coefficient(rows[r], pooled_term, alg.counts[v])
+
+
+def is_pooled(alg: BunkerAlgorithm, regulation_name: str, vessel_name: str) -> bool:
+    """
+    Check whether a regulation of the LP pools a vessel of the LP.
+
+    Parameters
+    ----------
+    alg
+        The algorithm instance.
+    regulation_name
+        Name of the regulation.
+    vessel_name
+        Name of the vessel.
+
+    Returns
+    -------
+    bool
+        True if the regulation is active and FLEXIBLE, the vessel is in the LP and
+        the regulation polices it.
+    """
+    if regulation_name not in alg.regulation_rhs_flexibility:
+        return False
+
+    if vessel_name not in alg.vessels:
+        return False
+
+    return alg.regulations[regulation_name].vessel_is_policed(vessel_name)
 
 
 def update_regulation_rhs_flexibility(alg: BunkerAlgorithm) -> None:

@@ -14,36 +14,87 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 import highspy
 import numpy as np
 from highspy import (
-    HighsBasisStatus,
     HighsModelStatus,
     HighsStatus,
     IisStatus,
     IisStrategy,
 )
+from scipy import sparse
 
 from navigate.core.enum_ import SolveStatusID
-from navigate.simulation.bunker._solver import Constraint, Variable
+from navigate.simulation.bunker._selection import Selection
+from navigate.simulation.bunker._solver import Program, Variable
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.core.general_nodes.bunker_options import BunkerOptions
-    from navigate.simulation.bunker._solver import Sense, Terms
-    from navigate.util.types_ import FloatArray
+    from navigate.simulation.bunker._solver import (
+        Constraint,
+        MinimizingRule,
+        Pool,
+        Sense,
+        Simplex,
+    )
+    from navigate.util.types_ import FloatArray, IntArray
 
 logger = logging.getLogger(__name__)
 
-# the two solve strategies; interior point solutions keep the fair-share
-# iterations stable, simplex warm-starts cheaply from a saved basis
-_INTERIOR_POINT = {"solver": "ipm", "run_crossover": "on", "presolve": "on"}
-_SIMPLEX = {"solver": "simplex", "run_crossover": "off", "presolve": "off"}
+_PRIMAL = highspy.simplex_constants.kSimplexStrategyPrimal.value
+_DUAL = highspy.simplex_constants.kSimplexStrategyDual.value
+
+
+class _Strategy(NamedTuple):
+    """The options of HiGHS that differ between two runs, as one run takes them."""
+
+    solver: str = "simplex"
+    simplex_strategy: int = _DUAL
+    presolve: str = "off"
+    run_crossover: str = "off"
+    cost_perturbation: float = 1.0
+    smallest_feasibility_tolerance: bool = False
+    smallest_optimality_tolerance: bool = False
+
+
+# the strategies of a solve's first run: interior point needs no basis, so it runs
+# on a model that grew; dual simplex starts from the basis of the last solve, in
+# few pivots. Dual simplex is also the run before an IIS.
+_INTERIOR_POINT = _Strategy(solver="ipm", presolve="on", run_crossover="on")
+_DUAL_SIMPLEX = _Strategy()
+
+# the strategies of the selection's runs: the runs of the rules are primal, the
+# direction run is dual, and each takes the smallest tolerance on what the
+# selection sets (VectorModel.run). The direction run starts from duals
+# that its costs make feasible, which a perturbation of the costs would undo, and
+# a perturbed run ends without a status once in some hundred solves.
+_STRATEGIES: dict[Simplex, _Strategy] = {
+    "primal": _Strategy(simplex_strategy=_PRIMAL, smallest_optimality_tolerance=True),
+    "dual": _Strategy(cost_perturbation=0.0, smallest_feasibility_tolerance=True),
+}
 
 # the IIS and the simplex run before it can take minutes on a large model and only
 # delay the error message; a minute is long enough for the models that finish
 _IIS_SECONDS = 60.0
+
+
+class _Highs(highspy.Highs):
+    """HiGHS with its change of many row bounds declared."""
+
+    # highspy has the method, and the stubs of the pinned 1.15.1 leave it out
+    if TYPE_CHECKING:
+
+        def changeRowsBounds(
+            self,
+            num_rows: int,
+            rows: IntArray,
+            lower_bounds: FloatArray,
+            upper_bounds: FloatArray,
+        ) -> HighsStatus: ...
 
 
 class HighsModel:
@@ -62,11 +113,13 @@ class HighsModel:
     def __init__(self, name: str, options: BunkerOptions) -> None:
         tolerance = options.solution_tolerance
 
-        self._highs: highspy.Highs = highspy.Highs()
+        self._highs: _Highs = _Highs()
         self._highs.setOptionValue("output_flag", False)
         self._highs.setOptionValue("threads", options.threads)
-        self._highs.setOptionValue("primal_feasibility_tolerance", tolerance)
-        self._highs.setOptionValue("dual_feasibility_tolerance", tolerance)
+
+        # the feasibility and optimality tolerance of a run, unless its strategy
+        # takes the smallest
+        self._tolerance: float = tolerance
 
         # an IIS found from the LP itself and reduced to an irreducible set; the
         # default light strategy returns no rows at all
@@ -78,27 +131,36 @@ class HighsModel:
 
         self._highs.setOptionValue("iis_time_limit", _IIS_SECONDS)
 
-        self._col_upper_bounds: list[float] = []
+        self._selection: Selection[highspy.HighsBasis] = Selection(tolerance)
+
         self._row_senses: list[Sense] = []
         self._row_rhs: list[float] = []
+
+        # the names of the columns and rows, passed to HiGHS only where it reads
+        # them, into an IIS or a file: HiGHS copies the names it holds in every run
+        self._column_names: list[str] = []
         self._row_names: list[str] = []
 
         # the last-written coefficients of each row, to skip redundant changeCoeff
-        # calls and to read a row without querying HiGHS
+        # calls
         self._row_coefficients: list[dict[Variable, float]] = []
 
-        # solution of the last solve
-        self._col_values: FloatArray
-        self._col_duals: FloatArray
-        self._row_duals: FloatArray
+        # the coefficients as last read from HiGHS, None once any changed
+        self._coefficients: sparse.csr_array | None = None
+
+        # the costs and bounds HiGHS holds while a selection runs, as last read or
+        # set, to pass it only those that change
+        self._program: Program
+
+        # status of the first run of the last solve; HiGHS resets its own on every
+        # change of the model, also those the selection makes and takes back
+        self._status: HighsModelStatus = HighsModelStatus.kNotset
 
         # the IIS of the last compute_iis, None where HiGHS vouched for none
         self._iis_model: highspy.HighsModel | None = None
 
-        # warm-start state: interior point runs when rows or columns were added
-        # since the last solve, a simplex warm start from the saved basis
-        # otherwise; removing only changes bounds and so does not count as growth
-        self._basis: highspy.HighsBasis | None = None
+        # whether rows or columns were added since the last solve; removing only
+        # changes bounds and so does not count as growth
         self._model_grew: bool = True
 
         # deferred row-bound, cost and upper-bound changes, applied when the model
@@ -107,26 +169,33 @@ class HighsModel:
         self._pending_cost: dict[Variable, float] = {}
         self._pending_upper_bound: dict[Variable, float] = {}
 
-    def add_variable(self, name: str) -> Variable:
-        """Add a non-negative continuous variable with a zero cost."""
-        variable = Variable(len(self._col_upper_bounds))
+    def add_variable(self, name: str, *, free: bool = False) -> Variable:
+        """Add a continuous variable with a zero cost, non-negative unless free."""
+        variable = Variable(len(self._column_names))
+        lower_bound = -highspy.kHighsInf if free else 0.0
 
-        self._highs.addVar(0.0, highspy.kHighsInf)
-        self._highs.passColName(variable, _lp_name(name))
+        self._highs.addVar(lower_bound, highspy.kHighsInf)
         self._model_grew = True
+        self._coefficients = None
 
-        self._col_upper_bounds.append(highspy.kHighsInf)
+        self._column_names.append(name)
 
         return variable
 
-    def add_constraint(self, sense: Sense, name: str) -> Constraint:
-        """Add an empty constraint, ``0 <sense> 0``."""
-        constraint = Constraint(len(self._row_names))
+    def add_constraint(
+        self, sense: Sense, name: str, *, priced: bool = False
+    ) -> Constraint:
+        """
+        Add an empty constraint, ``0 <sense> 0``.
+
+        Only the dual of a priced constraint can be read after a solve.
+        """
+        constraint = self._selection.add_constraint(name, priced=priced)
         lower_bound, upper_bound = _row_bounds(sense, 0.0)
 
         self._highs.addRow(lower_bound, upper_bound, 0, [], [])
-        self._highs.passRowName(constraint, _lp_name(name))
         self._model_grew = True
+        self._coefficients = None
 
         self._row_senses.append(sense)
         self._row_rhs.append(0.0)
@@ -145,6 +214,7 @@ class HighsModel:
 
         coefficients[variable] = value
         self._highs.changeCoeff(constraint, variable, value)
+        self._coefficients = None
 
     def set_rhs(self, constraint: Constraint, value: float) -> None:
         """Set the right-hand side of a constraint."""
@@ -159,25 +229,23 @@ class HighsModel:
 
     def set_upper_bound(self, variable: Variable, value: float) -> None:
         """
-        Set the upper bound of a variable.
+        Set the upper bound of a non-negative variable.
 
-        The lower bound stays zero.
+        HiGHS takes both bounds at once, and the lower one is set to zero.
         """
-        self._col_upper_bounds[variable] = value
         self._pending_upper_bound[variable] = value
 
     def remove_variable(self, variable: Variable) -> None:
         """
         Remove a variable from the linear program.
 
-        The column stays in place, fixed to zero at zero cost. HiGHS names it after
+        The column stays in place, fixed to zero at zero cost. It is named after
         its index, so a variable added later may take its name.
         """
         self._highs.changeColBounds(variable, 0.0, 0.0)
         self._highs.changeColCost(variable, 0.0)
-        self._highs.passColName(variable, f"removed_{variable}")
+        self._column_names[variable] = f"removed_{variable}"
 
-        self._col_upper_bounds[variable] = 0.0
         self._pending_cost.pop(variable, None)
         self._pending_upper_bound.pop(variable, None)
 
@@ -185,98 +253,66 @@ class HighsModel:
         """
         Remove a constraint from the linear program.
 
-        The row stays in place with infinite bounds, so it always holds. HiGHS names
-        it after its index, so a constraint added later may take its name.
+        The row stays in place with infinite bounds, so it always holds. It is named
+        after its index, so a constraint added later may take its name.
         """
         self._highs.changeRowBounds(constraint, -highspy.kHighsInf, highspy.kHighsInf)
-        self._highs.passRowName(constraint, f"removed_{constraint}")
+        self._row_names[constraint] = f"removed_{constraint}"
         self._pending_row_bounds.pop(constraint, None)
+
+    def set_selection_rules(
+        self, pools: Sequence[Pool], minimizing_rules: Sequence[MinimizingRule]
+    ) -> None:
+        """Set the rules a solve selects its values by."""
+        self._selection.set_rules(pools, minimizing_rules)
 
     def solve(self) -> None:
         """
-        Solve the linear program and store its solution.
+        Solve the linear program and select one of its optimal solutions.
 
-        When rows or columns were added since the last solve, interior point with
-        crossover runs, warm-started from the saved basis extended to the new size.
-        When only data changed, simplex warm-starts from the saved basis, which needs
-        few pivots, and falls back to interior point if it ends non-optimal.
+        When rows or columns were added since the last solve, the first run is
+        interior point with crossover. When only data changed, it is dual simplex
+        from the basis of the last solve, which needs few pivots, and interior point
+        after it where it ends non-optimal. Where the first run ends optimal, the
+        selection makes its runs.
         """
         self._flush_pending()
+        basis = self._selection.basis
 
-        if self._model_grew or self._basis is None:
-            self._set_warm_start_basis()
+        if self._model_grew or basis is None:
             self._set_strategy(_INTERIOR_POINT)
             self._highs.run()
             self._model_grew = False
         else:
-            self._set_strategy(_SIMPLEX)
-            self._highs.setBasis(self._basis)
+            self._set_strategy(_DUAL_SIMPLEX)
+            self.set_basis(basis)
             self._highs.run()
 
             if self._highs.getModelStatus() != HighsModelStatus.kOptimal:
                 self._set_strategy(_INTERIOR_POINT)
                 self._highs.run()
 
-        try:
-            self._basis = self._highs.getBasis()
-        except Exception:
-            self._basis = None
+        self._status = self._highs.getModelStatus()
 
-        solution = self._highs.getSolution()
-        self._col_values = np.array(solution.col_value)
-        self._col_duals = np.array(solution.col_dual)
-        self._row_duals = np.array(solution.row_dual)
+        if self._status == HighsModelStatus.kOptimal:
+            self._selection.select(self)
 
     @property
     def status(self) -> SolveStatusID:
         """Status of the last solve."""
-        status = self._highs.getModelStatus()
-
-        if status == HighsModelStatus.kOptimal:
-            return SolveStatusID.OPTIMAL
-
-        if status == HighsModelStatus.kInfeasible:
-            return SolveStatusID.INFEASIBLE
-
-        if status == HighsModelStatus.kUnbounded:
-            return SolveStatusID.UNBOUNDED
-
-        if status == HighsModelStatus.kUnboundedOrInfeasible:
-            return SolveStatusID.INFEASIBLE_OR_UNBOUNDED
-
-        # every other status, such as a reached limit or a solver error
-        return SolveStatusID.OTHER
+        return _solve_status(self._status)
 
     def value(self, variable: Variable) -> float:
         """Return the value of a variable at the last solution."""
-        value: float = self._col_values[variable]
-        return value
+        return self._selection.value(variable)
 
     def dual(self, constraint: Constraint) -> float:
-        """Return the dual value of a constraint at the last solution."""
-        dual: float = self._row_duals[constraint]
-        return dual
-
-    def reduced_cost(self, variable: Variable) -> float:
-        """Return the reduced cost of a variable at the last solution."""
-        reduced_cost: float = self._col_duals[variable]
-        return reduced_cost
+        """Return the dual value of a priced constraint at the last solution."""
+        return self._selection.dual(constraint)
 
     def rhs(self, constraint: Constraint) -> float:
         """Return the right-hand side of a constraint."""
         return self._row_rhs[constraint]
-
-    def upper_bound(self, variable: Variable) -> float:
-        """Return the upper bound of a variable."""
-        return self._col_upper_bounds[variable]
-
-    def terms(self, constraint: Constraint) -> Terms:
-        """
-        Return the variables of a constraint with their coefficients.
-
-        A removed variable keeps its coefficient, fixed to zero by its bounds.
-        """
-        return list(self._row_coefficients[constraint].items())
 
     def compute_iis(self) -> list[str]:
         """
@@ -288,9 +324,12 @@ class HighsModel:
         """
         self._iis_model = None
 
+        # the IIS takes its names where HiGHS returns it, not where it is written
+        self._pass_names()
+
         # after an interior point run HiGHS only narrows the IIS down to candidate
         # rows, a simplex run lets it prove the irreducible set
-        self._set_strategy(_SIMPLEX)
+        self._set_strategy(_DUAL_SIMPLEX)
         self._highs.setOptionValue("time_limit", _IIS_SECONDS)
         self._highs.run()
         self._highs.setOptionValue("time_limit", highspy.kHighsInf)
@@ -319,6 +358,7 @@ class HighsModel:
 
         A file HiGHS cannot write is logged as a warning.
         """
+        self._pass_names()
         status = self._highs.writeModel(str(path))
         _warn_if_unwritten(status, path)
 
@@ -351,11 +391,127 @@ class HighsModel:
 
         _warn_if_unwritten(status, path)
 
+    def program(self) -> Program:
+        """
+        Return the costs, bounds and coefficients of the linear program.
+
+        The coefficients are read from HiGHS only when one changed since they were
+        last read, as they are most of what there is to read. The costs and bounds
+        are kept, for ``set_program`` to compare with.
+        """
+        highs = self._highs
+        column_count = highs.getNumCol()
+        row_count = highs.getNumRow()
+
+        columns = np.arange(column_count, dtype=np.int32)
+        rows = np.arange(row_count, dtype=np.int32)
+
+        _, _, costs, x_lower, x_upper, _ = highs.getCols(column_count, columns)
+        _, _, b_lower, b_upper, _ = highs.getRows(row_count, rows)
+
+        if self._coefficients is None:
+            _, starts, indices, values = highs.getRowsEntries(row_count, rows)
+            pointers = np.append(starts, values.size)
+            shape = (row_count, column_count)
+            self._coefficients = sparse.csr_array(
+                (values, indices, pointers), shape=shape
+            )
+
+        self._program = Program(
+            c=costs,
+            A=self._coefficients,
+            x_lower=x_lower,
+            x_upper=x_upper,
+            b_lower=b_lower,
+            b_upper=b_upper,
+        )
+
+        return self._program
+
+    def set_program(self, program: Program) -> None:
+        """
+        Set the costs and bounds of a program; its coefficients are not set.
+
+        Only the costs and bounds that differ from those HiGHS holds are passed to
+        it: a change of them all takes HiGHS about as long as a run without pivots.
+        HiGHS holds those ``program`` read at the start of the selection, or those
+        of the program set since: nothing else changes them while a selection runs.
+        """
+        held = self._program
+        highs = self._highs
+
+        c = program.c
+        columns = np.flatnonzero(c != held.c)
+        highs.changeColsCost(columns.size, columns, c[columns])
+
+        lower, upper = program.x_lower, program.x_upper
+        columns = np.flatnonzero((lower != held.x_lower) | (upper != held.x_upper))
+        highs.changeColsBounds(columns.size, columns, lower[columns], upper[columns])
+
+        lower, upper = program.b_lower, program.b_upper
+        rows = np.flatnonzero((lower != held.b_lower) | (upper != held.b_upper))
+        highs.changeRowsBounds(rows.size, rows, lower[rows], upper[rows])
+
+        self._program = program
+
+    def set_basis(self, basis: highspy.HighsBasis) -> None:
+        """Set the basis the next run starts from, in place of that of the last run."""
+        self._highs.setBasis(basis)
+
+    def run(self, simplex: Simplex) -> SolveStatusID:
+        """
+        Run HiGHS on the linear program, by a simplex method.
+
+        Where HiGHS ends the run in an error, the run is repeated from no basis.
+        HiGHS keeps the scaling of a model from one run to the next, and its dual
+        simplex can fail from a basis under the scaling of an earlier state of the
+        model.
+        """
+        self._set_strategy(_STRATEGIES[simplex])
+        status = self._highs.run()
+
+        if status == HighsStatus.kError:
+            logger.debug("A HiGHS run of the bunkering LP ended in an error; repeated.")
+            self._highs.clearSolver()
+            self._highs.run()
+
+        return _solve_status(self._highs.getModelStatus())
+
+    def values(self) -> FloatArray:
+        """Return the value of every variable at the solution of the last run."""
+        solution = self._highs.getSolution()
+        return np.array(solution.col_value)
+
+    def duals(self) -> FloatArray:
+        """Return the dual of every constraint at the solution of the last run."""
+        solution = self._highs.getSolution()
+        return np.array(solution.row_dual)
+
+    def basis(self) -> highspy.HighsBasis:
+        """Return the basis of the last run."""
+        return self._highs.getBasis()
+
+    def _pass_names(self) -> None:
+        """Pass HiGHS the column and row names, which an IIS and a file take from it."""
+        highs = self._highs
+
+        for column, name in enumerate(self._column_names):
+            highs.passColName(column, _lp_name(name))
+
+        for row, name in enumerate(self._row_names):
+            highs.passRowName(row, _lp_name(name))
+
     def _flush_pending(self) -> None:
         """Apply the deferred row-bound, cost and upper-bound changes."""
-        for row, (lower_bound, upper_bound) in self._pending_row_bounds.items():
-            self._highs.changeRowBounds(row, lower_bound, upper_bound)
-        self._pending_row_bounds.clear()
+        if self._pending_row_bounds:
+            pending = self._pending_row_bounds
+            count = len(pending)
+            indices = np.array(list(pending), dtype=np.int32)
+            bounds = np.array(list(pending.values()), dtype=np.float64)
+            lower_bounds = bounds[:, 0]
+            upper_bounds = bounds[:, 1]
+            self._highs.changeRowsBounds(count, indices, lower_bounds, upper_bounds)
+            pending.clear()
 
         if self._pending_cost:
             pending = self._pending_cost
@@ -374,33 +530,41 @@ class HighsModel:
             self._highs.changeColsBounds(count, indices, lower_bounds, upper_bounds)
             pending.clear()
 
-    def _set_warm_start_basis(self) -> None:
-        """Set the saved basis, extended to the model's size, to start the next run."""
-        if self._basis is None:
-            return
+    def _set_strategy(self, strategy: _Strategy) -> None:
+        """Set every option of a strategy, so that the next run inherits none."""
+        highs = self._highs
+        perturbation = strategy.cost_perturbation
 
-        basis = self._basis
-        new_cols = len(self._col_upper_bounds) - len(basis.col_status)
-        new_rows = len(self._row_names) - len(basis.row_status)
+        # the smallest tolerance HiGHS accepts, on feasibility and optimality, is 1e-10
+        tolerance = self._tolerance
+        feasibility = 1e-10 if strategy.smallest_feasibility_tolerance else tolerance
+        optimality = 1e-10 if strategy.smallest_optimality_tolerance else tolerance
 
-        if new_cols > 0 or new_rows > 0:
-            extended = highspy.HighsBasis()
-            extended.col_status = (
-                list(basis.col_status) + [HighsBasisStatus.kLower] * new_cols
-            )
-            extended.row_status = (
-                list(basis.row_status) + [HighsBasisStatus.kBasic] * new_rows
-            )
-            extended.valid = True
-            self._highs.setBasis(extended)
-        else:
-            basis.valid = True
-            self._highs.setBasis(basis)
+        highs.setOptionValue("solver", strategy.solver)
+        highs.setOptionValue("presolve", strategy.presolve)
+        highs.setOptionValue("run_crossover", strategy.run_crossover)
+        highs.setOptionValue("simplex_strategy", strategy.simplex_strategy)
+        highs.setOptionValue("primal_feasibility_tolerance", feasibility)
+        highs.setOptionValue("dual_feasibility_tolerance", optimality)
+        highs.setOptionValue("dual_simplex_cost_perturbation_multiplier", perturbation)
 
-    def _set_strategy(self, options: dict[str, str]) -> None:
-        """Set the options of a solve strategy for the next run."""
-        for key, value in options.items():
-            self._highs.setOptionValue(key, value)
+
+def _solve_status(status: HighsModelStatus) -> SolveStatusID:
+    """Return the solve status a HiGHS model status stands for."""
+    if status == HighsModelStatus.kOptimal:
+        return SolveStatusID.OPTIMAL
+
+    if status == HighsModelStatus.kInfeasible:
+        return SolveStatusID.INFEASIBLE
+
+    if status == HighsModelStatus.kUnbounded:
+        return SolveStatusID.UNBOUNDED
+
+    if status == HighsModelStatus.kUnboundedOrInfeasible:
+        return SolveStatusID.INFEASIBLE_OR_UNBOUNDED
+
+    # every other status, such as a reached limit or a solver error
+    return SolveStatusID.OTHER
 
 
 def _lp_name(name: str) -> str:
