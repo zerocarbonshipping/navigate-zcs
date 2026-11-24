@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from navigate.util.types_ import BoolArray, FloatArray, IntArray
 
 ROUND_OFF = 5  # decimals
-TOLERANCE = 10 ** (-ROUND_OFF)
 
 # a value within this fraction of its scale is zero in substance: cancellation leaves
 # about 1e-16 to 1e-15 of the operands, while real values lie above 1e-11 of theirs

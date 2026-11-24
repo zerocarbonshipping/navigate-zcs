@@ -258,14 +258,22 @@ its section layout; the rules below cover the content.
   A quantity counted per time step rather than per year says so: `# t/step`.
   The class docstring says whose values the fields hold, one vessel, one plant
   or a total; a field that differs says so in its comment.
-- Test a computed float for zero or for equality within a named tolerance
-  constant (`TOLERANCE` in `navigate/util/numeric.py`), through `abs`,
-  `math.isclose` or `np.isclose`, so that a rounding residual takes the same
-  branch as an exact zero: `abs(count) < TOLERANCE`,
-  `abs(power_to - power_from) > TOLERANCE`. Exact `==`/`!=` is allowed
-  against an assigned value (a default, a sentinel, a deck input), on a value
-  rounded to `ROUND_OFF`, and for a guard that only protects an operation
-  undefined at zero, such as a division.
+- A test that decides what to skip, include, count or normalise treats a
+  computed float that is zero in substance as exactly zero, whatever its
+  operator: a sign test (`> 0.0`) lets a rounding residual through as surely
+  as `== 0.0`. A value is zero in substance within `RELATIVE_TOLERANCE`
+  (`navigate/util/numeric.py`) of its scale, the magnitude of what it was
+  computed from: the trade for a trade gap, the fleet's total for a vessel
+  type's count, the larger operand of a difference. Never test a computed
+  value against an absolute amount, which is a residual in one deck and a
+  real value in another. Drop a residual where it arises, at a difference of
+  near-equal operands (`drop_negligible(trade - capacity, trade)`), so the
+  tests downstream read an exact zero; elsewhere test with `is_negligible`,
+  an equality as the difference of its sides. A sign or exact test stays on
+  a value whose residual was dropped, where its branches agree at zero
+  (`max(gap, 0.0)`), in a guard that only protects an operation undefined at
+  zero, such as a division, against an assigned value (a default, a
+  sentinel, a deck input), and on a value rounded to `ROUND_OFF`.
 
 ## Validation and dynamic access
 

@@ -27,7 +27,6 @@ from navigate.core.results import (
     result_units,
 )
 from navigate.util import (
-    TOLERANCE,
     dates_to_years,
     key_name,
     navigate_version,
@@ -174,8 +173,8 @@ def _series(results: SimulationResults, step_years: np.ndarray) -> Iterator[Seri
                 # an infinite value, e.g. a limit without bound, is not a result
                 floats = np.where(np.isinf(floats), np.nan, floats)
 
-                # a series negligible or missing throughout carries no result
-                if not np.any(np.abs(floats) >= TOLERANCE):
+                # a series zero or missing throughout carries no result
+                if not np.any(np.abs(floats) > 0.0):
                     continue
 
                 key1, key2 = key if isinstance(key, tuple) else (key, None)

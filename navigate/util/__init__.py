@@ -46,7 +46,6 @@ from navigate.util.naming import (
 from navigate.util.numeric import (
     RELATIVE_TOLERANCE,
     ROUND_OFF,
-    TOLERANCE,
     calculate_compound_growth,
     calculate_smoothing_alpha,
     calculate_step_inertia,
