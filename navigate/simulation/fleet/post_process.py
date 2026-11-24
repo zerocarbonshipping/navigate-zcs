@@ -24,8 +24,15 @@ from navigate.simulation.economics import (
     calculate_net_present_value,
     get_cost_stop,
 )
+from navigate.simulation.fleet._composition import is_in_service
 from navigate.simulation.fleet.power import get_total_power_capacity
-from navigate.util import TOLERANCE, divide_nonzero, sum_values
+from navigate.util import (
+    divide_nonzero,
+    drop_negligible,
+    is_negligible,
+    sum_nonempty_values,
+    sum_values,
+)
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import EnergyDemandID, FuelTypeID
@@ -120,7 +127,7 @@ def _fold_vessels(fleet: Fleet) -> None:
 
 def _transfer_in_fleet_flags(fleet: Fleet) -> None:
     """
-    Transfer whether each vessel type was present in the fleet to its results.
+    Transfer whether each vessel type was in service in the fleet to its results.
 
     Parameters
     ----------
@@ -128,9 +135,11 @@ def _transfer_in_fleet_flags(fleet: Fleet) -> None:
         Fleet whose vessel types' presence is transferred.
     """
     existing_vessels = fleet.results.existing_vessels
+    counts = np.array([existing_vessels[vessel.name] for vessel in fleet.vessels])
+    in_service = is_in_service(counts)
 
-    for vessel in fleet.vessels:
-        vessel.results.in_fleet[:] = existing_vessels[vessel.name] > 0.0
+    for v, vessel in enumerate(fleet.vessels):
+        vessel.results.in_fleet[:] = in_service[v]
 
 
 def _transfer_fuel_consumer_results(fleet: Fleet) -> None:
@@ -196,10 +205,11 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
     """
     results = fleet.results
     vessel_map = {vessel.name: vessel for vessel in fleet.vessels}
+    total_count = sum_nonempty_values(results.existing_vessels)
 
     for (name_from, name_to), counts in results.fuel_conversions.items():
-        # conversions below tolerance are numerical residue, not decisions
-        converted = np.where(counts < TOLERANCE, 0.0, counts)
+        # conversions negligible against the fleet are numerical residue, not decisions
+        converted = drop_negligible(counts, total_count)
 
         if not np.any(converted):
             continue
@@ -210,7 +220,7 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
         power_from = get_total_power_capacity(vessel_from)
         power_to = get_total_power_capacity(vessel_to)
 
-        if abs(power_to - power_from) > TOLERANCE:
+        if not is_negligible(power_to - power_from, max(power_to, power_from)):
             logger.warning(
                 "%s: Fuel conversion occurred with different installed power %s (%s) "
                 "to %s (%s).",

@@ -17,7 +17,13 @@ from navigate.core.wrap import to_array
 from navigate.simulation.economics import calculate_two_axis_uptake
 from navigate.simulation.fleet._composition import extract_cargo_miles
 from navigate.simulation.fleet._package import calculate_package_charter_rates
-from navigate.util import TOLERANCE, YEAR, divide_nonzero
+from navigate.util import (
+    TOLERANCE,
+    YEAR,
+    divide_nonzero,
+    drop_negligible,
+    is_negligible,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -135,11 +141,12 @@ def calculate_modelled_newbuilds(
     inertia, cap_count_left = _calculate_inertia_newbuilds(
         fleet, current_uptake, cargo_miles, trade_gap, cap_count[allowed]
     )
-    trade_gap -= np.dot(inertia, cargo_miles)
+    gap_left = trade_gap - np.dot(inertia, cargo_miles)
+    trade_gap = float(drop_negligible(gap_left, trade_gap))
 
     # the DCM bounds shares of the trade gap, so the remaining count budget becomes
     # each vessel type's share of the gap, clamped to [0, 1]
-    if trade_gap > TOLERANCE:
+    if trade_gap > 0.0:
         cap_share = np.minimum(cap_count_left * cargo_miles / trade_gap, 1.0)
     else:
         cap_share = np.ones_like(cap_count_left)
@@ -417,7 +424,7 @@ def _log_deferral(
     attempted
         Newbuilds due this time-step, delivered or deferred.
     """
-    if attempted - delivered <= TOLERANCE:
+    if is_negligible(attempted - delivered, attempted):
         return
 
     percent = 100.0 * delivered / attempted if attempted > 0.0 else 0.0

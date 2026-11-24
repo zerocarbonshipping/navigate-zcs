@@ -9,11 +9,13 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from navigate.util import is_negligible
+
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import BoolArray, FloatArray
 
 
 def get_trade_capacity(fleet: Fleet, idx: int) -> float:
@@ -89,6 +91,24 @@ def get_count(fleet: Fleet, vessel_idx: int) -> float:
         Number of vessels of the type.
     """
     return sum(increment.count for increment in fleet.increments[vessel_idx])
+
+
+def is_in_service(counts: FloatArray) -> BoolArray:
+    """
+    Mark the vessel types whose count is not negligible against the fleet's total.
+
+    Parameters
+    ----------
+    counts
+        Number of vessels of each type: at one time-step, or one row per type over
+        several.
+
+    Returns
+    -------
+    BoolArray
+        Whether each vessel type is in service, in the shape of ``counts``.
+    """
+    return ~is_negligible(counts, np.sum(counts, axis=0))
 
 
 def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> FloatArray:

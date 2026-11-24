@@ -11,14 +11,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID
-from navigate.simulation.fleet._composition import extract_cargo_miles
+from navigate.simulation.fleet._composition import extract_cargo_miles, is_in_service
 from navigate.simulation.fleet._newbuild import is_newbuild_allowed
 from navigate.simulation.fleet.scrapping import (
     calculate_survivors,
     group_by_age,
     split_oldest_first,
 )
-from navigate.util import TOLERANCE, YEAR, divide_nonzero
+from navigate.util import YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -211,19 +211,20 @@ def calculate_fleet_evolution_expectation(
         forecast = _forecast_at_fixed_rate(fleet, rate, timeline, idx, first_pending)
 
     existing, newbuild = forecast
+    existing = np.where(is_in_service(existing), existing, 0.0)
+
+    # the expected newbuilds need no scrapping of their own: the vessels replacing
+    # them are expected to follow the same distribution
+    expected = existing + newbuild
 
     # the expected bunkering needs a count above zero for every allowed vessel
     # type in every nested time-step to return a result per vessel; a small jump
     # start guarantees it while barely moving the fair shares of fuel
     # TODO: make assignable?
-    jump_start = 1e-3 * np.sum(existing + newbuild, axis=0)
-    for v in np.flatnonzero(is_newbuild_allowed(fleet)):
-        absent = np.abs(existing[v] + newbuild[v]) < TOLERANCE
-        newbuild[v, absent] = jump_start[absent]
-
-    # the expected newbuilds need no scrapping of their own: the vessels replacing
-    # them are expected to follow the same distribution
-    expected = existing + newbuild
+    allowed = is_newbuild_allowed(fleet)[:, np.newaxis]
+    jump_start = 1e-3 * np.sum(expected, axis=0)
+    absent = np.where(allowed, jump_start, 0.0)
+    expected = np.where(is_in_service(expected), expected, absent)
 
     expectation = fleet.expectation
     for v, vessel in enumerate(fleet.vessels):
