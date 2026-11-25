@@ -37,7 +37,7 @@ def calculate_mean_speed_bounds(
     speeds: FloatArray,
 ) -> tuple[float, float]:
     """
-    Calculate a vessel's minimum and maximum mean speed from its technical bounds.
+    Calculate a vessel's minimum and maximum mean speed from its speed limits.
 
     Only the conditions that take sea time are passed: a condition with a zero time
     share bounds no speed.
@@ -62,19 +62,21 @@ def calculate_mean_speed_bounds(
     if np.isfinite(low) and np.isfinite(high) and low < high:
         return low, high
 
-    # technical bounds that are infinite or inverted fall back on the envelope of the
-    # given speeds
+    # limits that are infinite or inverted fall back on the envelope of the given speeds
     return np.min(speeds), np.max(speeds)
 
 
-def calculate_technical_speed_limits(
+def calculate_speed_limits(
     vessel: Vessel, trip: ReferenceTrip
 ) -> tuple[FloatArray, FloatArray]:
     """
-    Calculate a vessel's minimum and maximum achievable speed from its propulsion load.
+    Calculate a vessel's minimum and maximum speed in each sailing condition.
 
-    Only the propulsion load sets the limits: a minimum load on the electrical or heat
-    converter is ignored, although in extreme cases it could bind the speed.
+    The propulsion load sets the limits. Where it sets no minimum speed above 0 knots,
+    the lowest reference speed of the conditions the route sails is the minimum
+    instead, up to the maximum: a leg sailed at 0 knots or below takes no sea time and
+    costs nothing, so a search for the cheapest speed would leave it out rather than
+    sail it.
 
     Parameters
     ----------
@@ -88,39 +90,10 @@ def calculate_technical_speed_limits(
     tuple[FloatArray, FloatArray]
         Minimum and maximum speed per condition, in knots.
     """
-    load = vessel.propulsion_load
+    speeds_min, speeds_max = _calculate_technical_speed_limits(vessel, trip)
+    speeds_lowest = np.minimum(np.min(trip.speeds[trip.sailed]), speeds_max)
 
-    # a scalar or variable load has no speed to look up, and an expression can only
-    # be evaluated, not read as a table; the other speed bounds govern instead
-    if isinstance(load, Expression | Scalar) or is_variable(load):
-        return _unbounded_speed_limits(trip)
-
-    # the load is a Curve or a Surface
-    converter = vessel.propulsion_converter
-    minimum_load = converter.minimum_load
-    power_max = converter.power_capacity.get()
-
-    # the power capacity may cap the speed below the load's largest speed
-    speed_max = _calculate_speed_at_power(load, power_max, trip)
-    speed_min = None
-
-    if minimum_load is not None:
-        power_min = minimum_load.get() * power_max
-        speed_min = _calculate_speed_at_power(load, power_min, trip)
-
-    # without a minimum load, or when the reverse lookup returns None for a load that
-    # is not strictly increasing, the load's own speed range applies
-    if speed_min is None:
-        speed_min = load.x[0]
-
-    if speed_max is None:
-        speed_max = load.x[-1]
-
-    # the limits are per condition, as the capacity utilization moves the power limit
-    return (
-        _expand_speed_to_conditions(trip, speed_min),
-        _expand_speed_to_conditions(trip, speed_max),
-    )
+    return np.where(speeds_min > 0.0, speeds_min, speeds_lowest), speeds_max
 
 
 def loads_are_convex(vessel: Vessel) -> bool:
@@ -262,7 +235,7 @@ def _verify_vessel_speed_limits(vessel: Vessel) -> None:
         If the maximum speed is 0 in a condition the vessel sails.
     """
     trip = derive_reference_trip(vessel.route)
-    _, speeds_max = calculate_technical_speed_limits(vessel, trip)
+    _, speeds_max = _calculate_technical_speed_limits(vessel, trip)
 
     stalled = trip.sailed & (speeds_max <= 0.0)
 
@@ -295,6 +268,62 @@ def get_total_power_capacity(vessel: Vessel) -> float:
         Total installed power across the converters, in MW.
     """
     return sum(converter.power_capacity.get() for converter in vessel.get_converters())
+
+
+def _calculate_technical_speed_limits(
+    vessel: Vessel, trip: ReferenceTrip
+) -> tuple[FloatArray, FloatArray]:
+    """
+    Calculate a vessel's minimum and maximum achievable speed from its propulsion load.
+
+    Only the propulsion load sets the limits: a minimum load on the electrical or heat
+    converter is ignored, although in extreme cases it could bind the speed.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose speed limits are calculated.
+    trip
+        Reference trip holding the sailing conditions.
+
+    Returns
+    -------
+    tuple[FloatArray, FloatArray]
+        Minimum and maximum speed per condition, in knots.
+    """
+    load = vessel.propulsion_load
+
+    # a scalar or variable load has no speed to look up, and an expression can only
+    # be evaluated, not read as a table
+    if isinstance(load, Expression | Scalar) or is_variable(load):
+        return _unbounded_speed_limits(trip)
+
+    # the load is a Curve or a Surface
+    converter = vessel.propulsion_converter
+    minimum_load = converter.minimum_load
+    power_max = converter.power_capacity.get()
+
+    # the power capacity may cap the speed below the load's largest speed
+    speed_max = _calculate_speed_at_power(load, power_max, trip)
+    speed_min = None
+
+    if minimum_load is not None:
+        power_min = minimum_load.get() * power_max
+        speed_min = _calculate_speed_at_power(load, power_min, trip)
+
+    # without a minimum load, or when the reverse lookup returns None for a load that
+    # is not strictly increasing, the load's own speed range applies
+    if speed_min is None:
+        speed_min = load.x[0]
+
+    if speed_max is None:
+        speed_max = load.x[-1]
+
+    # the limits are per condition, as the capacity utilization moves the power limit
+    return (
+        _expand_speed_to_conditions(trip, speed_min),
+        _expand_speed_to_conditions(trip, speed_max),
+    )
 
 
 def _unbounded_speed_limits(trip: ReferenceTrip) -> tuple[FloatArray, FloatArray]:

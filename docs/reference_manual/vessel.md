@@ -46,6 +46,8 @@ This attribute sets the propulsion load level in MW. This is the power required 
 
 A Curve or Surface sets the vessel's technical speed limit in each sailing condition: the speed at which the load reaches the `PowerCapacity` of the vessel's `PropulsionConverter`. Where the table starts at 0 knots and the load there already reaches the power capacity, the limit is 0 knots, and the run stops with an error naming the vessel and each sailing condition its route sails at that limit.
 
+The load also sets the lowest speed to which [speed management](fleet.md#allowspeedmanagement) slows the vessel: the speed at which the load falls to the `MinimumLoad` of the `PropulsionConverter`, or otherwise the table's lowest speed. A float, Variable or expression sets no such speed. Where the load sets none above 0 knots, speed management slows no sailing condition below the lowest speed the vessel's route sets, or below the technical speed limit where that is lower.
+
 An expression assigned to this attribute is evaluated for the load, but it sets no technical speed limit and counts as non-convex, so the vessel's speed optimization logs a warning.
 
 * **Data type**: `Float`, `Curve`, `Surface`, `Variable`

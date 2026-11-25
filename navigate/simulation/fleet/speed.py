@@ -29,7 +29,7 @@ from navigate.simulation.fleet.operation import (
 )
 from navigate.simulation.fleet.power import (
     calculate_mean_speed_bounds,
-    calculate_technical_speed_limits,
+    calculate_speed_limits,
     loads_are_convex,
 )
 from navigate.util import YEAR
@@ -139,7 +139,7 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
 
     # the deltas come from the route's reference speeds, which reflect the user's
     # assumptions, and not from the current speeds, which speed management has
-    # truncated to the propulsion engine's technical limits
+    # truncated to the speed limits
     distribution = calculate_operations(vessel, trip, trip.speeds).distribution
     mu_route = float(np.average(trip.speeds, weights=distribution))
     deltas_ref = trip.speeds - mu_route
@@ -151,10 +151,10 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
         speeds_current = np.array(expectation.speeds_condition.at[idx], dtype=float)
         mu_ref = float(np.average(speeds_current, weights=distribution))
 
-    # the technical limits truncate each condition's speed, and those of the
+    # the speed limits truncate each condition's speed, and those of the
     # conditions that take sea time bound the mean speed
     sailed = trip.sailed
-    speeds_min, speeds_max = calculate_technical_speed_limits(vessel, trip)
+    speeds_min, speeds_max = calculate_speed_limits(vessel, trip)
     mu_low, mu_high = calculate_mean_speed_bounds(
         speeds_min[sailed], speeds_max[sailed], trip.speeds[sailed]
     )
