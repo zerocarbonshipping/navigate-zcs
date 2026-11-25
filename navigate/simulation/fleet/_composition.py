@@ -165,7 +165,7 @@ def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -
 
 def consolidate_increments(fleet: Fleet) -> None:
     """
-    Merge increments of equal age and age span, and drop those below 1e-3 vessels.
+    Merge increments equal to a residual in age and span, drop those below 1e-3 vessels.
 
     The simulation's CPU time grows with the number of increments per vessel type.
 
@@ -175,11 +175,20 @@ def consolidate_increments(fleet: Fleet) -> None:
         Fleet whose increments are consolidated.
     """
     for v, increments in enumerate(fleet.increments):
-        cohorts: dict[tuple[float, float], list[VesselIncrement]] = {}
+        ages = np.array([increment.age for increment in increments])
+        spans = np.array([increment.age_span for increment in increments])
+        is_same = (subtract(ages[:, None], ages) == 0.0) & (
+            subtract(spans[:, None], spans) == 0.0
+        )
 
-        for increment in increments:
-            key = (increment.age, increment.age_span)
-            cohorts.setdefault(key, []).append(increment)
+        # cohorts keyed by their first increment's index, in fleet order; an increment
+        # joins the first cohort whose first increment it matches, the one _merge
+        # keeps, so that a cohort cannot drift
+        cohorts: dict[int, list[VesselIncrement]] = {}
+
+        for i, increment in enumerate(increments):
+            first = next((j for j in cohorts if is_same[i, j]), i)
+            cohorts.setdefault(first, []).append(increment)
 
         consolidated: list[VesselIncrement] = []
 
@@ -197,7 +206,8 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     Parameters
     ----------
     cohort
-        Increments of one vessel type with equal age and age span, in fleet order.
+        Increments of one vessel type equal to a residual in age and age span, in
+        fleet order.
 
     Returns
     -------
