@@ -179,8 +179,11 @@ def _clear_flexibility_market(
     total_flexibility = float(uncovered)
 
     # the shares of the non-compliance remediated and covered by flexibility units;
-    # they add up to one but for the noise dropped from the flexibility units
-    remedial_fraction = float(divide_nonzero(total_remedial, total_non_compliance))
+    # they add up to one but for the noise dropped from the flexibility units, and
+    # the remedial share is capped at one against the numerical instability of
+    # vessels with a low count (the jump-start fraction)
+    ratio = float(divide_nonzero(total_remedial, total_non_compliance))
+    remedial_fraction = min(ratio, 1.0)
     share = float(divide_nonzero(total_flexibility, total_non_compliance))
     flexibility_fraction = max(share, 0.0)
 
