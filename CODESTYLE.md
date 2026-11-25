@@ -260,23 +260,26 @@ its section layout; the rules below cover the content.
   or a total; a field that differs says so in its comment.
 - A test that decides what to skip, include, count or normalise treats a
   computed float that is zero in substance as exactly zero, whatever its
-  operator: a sign test (`> 0.0`) lets a rounding residual through as surely
-  as `== 0.0`. A value is zero in substance within `RELATIVE_TOLERANCE`
-  (`navigate/util/numeric.py`) of its scale, the magnitude of what it was
-  computed from: the trade for a trade gap, the fleet's total for a vessel
-  type's count. Never test whether a computed value is zero against an
-  absolute amount, which is a residual in one deck and a real value in
-  another. Drop a residual where it arises, so the tests downstream read an
-  exact zero: a difference through `subtract`, against the larger operand,
-  or through `drop_negligible` against another scale
+  operator: a sign test (`> 0.0`) lets a residual through as surely as
+  `== 0.0`. A remainder of floating-point arithmetic is zero within
+  `RELATIVE_TOLERANCE` (`navigate/util/numeric.py`) of its scale, the
+  magnitude of what it was computed from: the trade for a trade gap, the
+  fleet's total for a vessel type's count. A value an LP returns, and a
+  difference of quantities an LP makes equal, is zero within the solver's
+  tolerance (`BunkerOptions.solution_tolerance`) in the quantity's units: per
+  vessel for a vessel's emissions, times the vessel counts for a fleet's fuel
+  demand. Never test against a fixed absolute amount, which is a residual in
+  one deck and a real value in another. Drop a residual where it arises, so
+  the tests downstream read an exact zero: a difference through `subtract`,
+  against the larger operand and, where an LP made the operands equal, its
+  noise as `tolerance`, or through `drop_negligible` against another scale
   (`drop_negligible(trade - capacity, trade)`). Test a one-sided bound by its
   dropped excess, `drop_negligible(energy - limit, limit) > 0.0`, not by
-  widening the bound. Elsewhere, test with `is_negligible`; a solver's output
-  is tested against the solver's own tolerance. A sign or exact test stays on
-  a value whose residual was dropped, where its branches agree at zero
-  (`max(gap, 0.0)`), in a guard that only protects an operation undefined at
-  zero, such as a division, against an assigned value (a default, a
-  sentinel, a deck input), and on a value rounded to `ROUND_OFF`.
+  widening the bound. Elsewhere, test with `is_negligible`. A sign or exact
+  test stays on a value whose residual was dropped, where its branches agree
+  at zero (`max(gap, 0.0)`), in a guard that only protects an operation
+  undefined at zero, such as a division, against an assigned value (a
+  default, a sentinel, a deck input), and on a value rounded to `ROUND_OFF`.
 
 ## Validation and dynamic access
 

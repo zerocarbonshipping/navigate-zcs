@@ -502,11 +502,15 @@ def _newbuild_split(fleet: Fleet, idx: int) -> FloatArray:
     return divide_nonzero(current, np.sum(current), default=default)
 
 
-def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
+def calculate_fleet_fuel_demand(
+    fleet: Fleet, fuels: dict[str, Fuel], tolerance: float, idx: int
+) -> None:
     """
     Calculate the fleet's fuel demand over the horizon from the expected bunkering.
 
-    Each vessel's expected bunkered mass is weighted by its expected count.
+    Each vessel's expected bunkered mass is weighted by its expected count. The
+    demand's noise is the most the expected bunkering LP's tolerance can move the
+    demand of a fuel.
 
     Parameters
     ----------
@@ -514,16 +518,20 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
         Fleet whose fuel demand is calculated.
     fuels
         All fuels in the simulation.
+    tolerance
+        Solution tolerance the expected bunkering LP was solved to.
     idx
         Current time-step index.
     """
     forward = np.s_[idx:]
     scope = BunkerScopeID.EXPECTED
     demand: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
+    stops: FloatLike = 0.0
 
     for vessel in fleet.vessels:
         expectation = vessel.expectation
         counts = fleet.expectation.count[vessel.name, scope][forward]
+        stops += counts * len(vessel.route.ports)
 
         # the bunkered mass is per port, so a port the route calls more than once
         # counts once
@@ -534,3 +542,8 @@ def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) 
 
     for key, value in demand.items():
         fleet.expectation.fuel_demand[key][idx:] = value
+
+    # a vessel's bunker mass at a stop meets the fair-share row it enters to the
+    # tolerance and is dropped below the tolerance at the transfer, so it is noise
+    # within twice the tolerance per vessel and stop
+    fleet.expectation.fuel_demand_noise[idx:] = 2.0 * tolerance * stops

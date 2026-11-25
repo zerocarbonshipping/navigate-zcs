@@ -43,6 +43,7 @@ def calculate_flexibility_markets(
     regulations: dict[str, Regulation],
     vessels: dict[str, Vessel],
     counts: dict[str, float],
+    tolerance: float,
     scope: BunkerScopeID,
     idx: int,
 ) -> None:
@@ -63,6 +64,8 @@ def calculate_flexibility_markets(
     counts
         Count of each vessel type in the bunkering LP, in the LP's order, which the
         sums over the vessels follow.
+    tolerance
+        Solution tolerance the bunkering LP was solved to.
     scope
         Scope of the bunkering LP: the existing market goes to the results, the
         expected one to the expectations.
@@ -74,7 +77,7 @@ def calculate_flexibility_markets(
         if not (regulation.active and is_flexible):
             continue
 
-        market = _clear_flexibility_market(regulation, counts, idx)
+        market = _clear_flexibility_market(regulation, counts, tolerance, idx)
 
         if scope == BunkerScopeID.EXISTING:
             _record_market(regulation, vessels, market, idx)
@@ -132,7 +135,7 @@ def update_regulation_flexibility_beliefs(
 
 
 def _clear_flexibility_market(
-    regulation: Regulation, counts: dict[str, float], idx: int
+    regulation: Regulation, counts: dict[str, float], tolerance: float, idx: int
 ) -> _Market:
     """Clear the flexibility market of one regulation; see the public function."""
     expectation = regulation.expectation
@@ -140,13 +143,20 @@ def _clear_flexibility_market(
     remedial_cost = expectation.remedial_cost[idx]
     shadow_price = expectation.pooled_shadow_price[idx]
 
+    policed = select_policed(regulation, counts)
+
+    # the LP's noise in a vessel's excess, in tCO2e/year per vessel: the excess differs
+    # from the vessel's term in the pooled row by the row defining the term, and the
+    # LP resolves the term itself, each to the tolerance
+    noise = 2.0 * tolerance
+
     # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance
     balances = {}
     total_non_compliance = 0.0
     total_surplus = 0.0
-    for vessel_name, count in select_policed(regulation, counts).items():
+    for vessel_name, count in policed.items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
-        excess = float(subtract(account.emissions, account.allowance))
+        excess = float(subtract(account.emissions, account.allowance, tolerance=noise))
         non_compliance = max(excess, 0.0)
         surplus = max(-excess, 0.0)
 
@@ -154,8 +164,14 @@ def _clear_flexibility_market(
         total_non_compliance += count * non_compliance
         total_surplus += count * surplus
 
+    # the LP's noise over the pool, in tCO2e/year: each vessel's times its count, and
+    # the pooled row and the remedial units, dropped below the tolerance, to the
+    # tolerance each
+    pool_noise = noise * (sum(policed.values()) + 1.0)
+
     # the non-compliance not remediated is covered by flexibility units
-    total_flexibility = float(subtract(total_non_compliance, total_remedial))
+    uncovered = subtract(total_non_compliance, total_remedial, tolerance=pool_noise)
+    total_flexibility = float(uncovered)
 
     # the share of the non-compliance covered by flexibility units rather than
     # remediated, none where the remedial units cover it all

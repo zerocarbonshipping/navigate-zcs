@@ -24,8 +24,9 @@ if TYPE_CHECKING:
 
 ROUND_OFF = 5  # decimals
 
-# a value within this fraction of its scale is zero in substance: cancellation leaves
-# about 1e-16 to 1e-15 of the operands, while real values lie above 1e-11 of theirs
+# a remainder of floating-point arithmetic lies within this fraction of its scale:
+# cancellation leaves about 1e-16 to 1e-15 of the operands, while real values lie
+# above 1e-11 of theirs
 RELATIVE_TOLERANCE = 1e-12
 
 
@@ -70,13 +71,15 @@ def drop_negligible(value: npt.ArrayLike, scale: npt.ArrayLike) -> FloatArray:
     return np.where(is_negligible(value, scale), 0.0, value)
 
 
-def subtract(minuend: npt.ArrayLike, subtrahend: npt.ArrayLike) -> FloatArray:
+def subtract(
+    minuend: npt.ArrayLike, subtrahend: npt.ArrayLike, *, tolerance: npt.ArrayLike = 0.0
+) -> FloatArray:
     """
-    Subtract two values, exactly zero where they are equal to rounding.
+    Subtract two values, exactly zero where they are equal to rounding or tolerance.
 
     The difference is dropped where it is negligible against the larger magnitude of
-    the operands. The operands are finite: against an infinite one, every finite
-    difference is negligible.
+    the operands, or within the tolerance. The operands are finite: against an
+    infinite one, every finite difference is negligible.
 
     Parameters
     ----------
@@ -84,6 +87,9 @@ def subtract(minuend: npt.ArrayLike, subtrahend: npt.ArrayLike) -> FloatArray:
         Value subtracted from, scalar or array.
     subtrahend
         Value subtracted, scalar or array, in the minuend's unit.
+    tolerance
+        Amount within which the operands are equal, scalar or array, in the
+        minuend's unit, such as the noise of the LP that made them equal.
 
     Returns
     -------
@@ -91,8 +97,11 @@ def subtract(minuend: npt.ArrayLike, subtrahend: npt.ArrayLike) -> FloatArray:
         The difference, with the broadcast shape of the inputs (0-d for scalar
         inputs).
     """
+    difference = np.subtract(minuend, subtrahend)
     scale = np.maximum(np.abs(minuend), np.abs(subtrahend))
-    return drop_negligible(np.subtract(minuend, subtrahend), scale)
+
+    is_equal = is_negligible(difference, scale) | (np.abs(difference) <= tolerance)
+    return np.where(is_equal, 0.0, difference)
 
 
 def divide_nonzero(
