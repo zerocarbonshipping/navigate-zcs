@@ -109,7 +109,9 @@ jobs:
   # here rather than from the branch, where a stalled deploy has no timeout and
   # the next one queues behind it. Pages tends to stall on the first deployment
   # of changed content and to deploy the same content in seconds when asked
-  # again, so the job asks up to three times.
+  # again, so the job asks up to three times. It waits before asking again,
+  # longer the second time: the artifact listing that deploy-pages reads can lag
+  # the upload, and an attempt that does not find the artifact fails at once.
   pages:
     needs: deploy   # skipped whenever deploy is, so never on PRs
     runs-on: ubuntu-latest
@@ -148,7 +150,11 @@ jobs:
           artifact_name: ${{ env.PAGES_ARTIFACT }}
           timeout: 90000
 
-      - name: Deploy again after a stall
+      - name: Wait before deploying again
+        if: steps.first.outcome == 'failure'
+        run: sleep 15
+
+      - name: Deploy again
         id: second
         if: steps.first.outcome == 'failure'
         continue-on-error: true
@@ -156,6 +162,10 @@ jobs:
         with:
           artifact_name: ${{ env.PAGES_ARTIFACT }}
           timeout: 90000
+
+      - name: Wait longer before deploying a last time
+        if: steps.second.outcome == 'failure'
+        run: sleep 60
 
       - name: Deploy a last time
         id: third
