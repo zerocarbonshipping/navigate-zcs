@@ -36,7 +36,8 @@ Region "*" {
 
     # blue hydrogen (autothermal reforming)
     set_process_capex("autothermal_reforming", Timetable("autothermal_reforming_capex"))
-	set_process_opex("autothermal_reforming", <Timetable("autothermal_reforming_opex") + Forecast("carbon_transport_storage_cost") * Forecast("autothermal_reforming_capture_rate") * Variable("carbon_dioxide_per_hydrogen_blue")>)
+	# CO2 storage is paid per ton produced, the OPEX per ton of capacity, hence the uptime
+	set_process_opex("autothermal_reforming", <Timetable("autothermal_reforming_opex") + Forecast("carbon_transport_storage_cost") * Forecast("autothermal_reforming_capture_rate") * Variable("carbon_dioxide_per_hydrogen_blue") * Forecast("uptime_plant_blue")>)
 	set_process_energy("autothermal_reforming", Forecast("autothermal_reforming_energy"))
     set_process_wtt("autothermal_reforming", "carbon_dioxide", <(1. - Forecast("autothermal_reforming_capture_rate")) * Variable("carbon_dioxide_per_hydrogen_blue")>)
 

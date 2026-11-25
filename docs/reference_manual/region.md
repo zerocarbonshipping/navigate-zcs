@@ -39,27 +39,27 @@ Region "africa" {
 
 ### set\_process\_capex
 
-This command sets the CAPEX associated with a production process in currency/ton.
+This command sets the CAPEX associated with a production process in currency per ton/year of capacity. It is paid on the capacity of the process, the plant's capacity scaled by the mass of the process output per mass of fuel, whatever the plant's [Uptime](plant.md#uptime). A `Timetable` takes that capacity in tons/day as its y-value.
 
 * **Primary key type**: String (Process name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Timetable`, `Variable`
 * **Example values**:
   + `"process_name", 500`
   + `"process_name", Forecast("name")`
-* **Unit**: currency/ton
+* **Unit**: currency/(ton/year)
 * **Minimum value**: 0
 * **Default**: 0
 
 ### set\_process\_opex
 
-This command sets the OPEX associated with a production process in currency/ton/year. Negative values are allowed, so that revenue from byproducts can be subtracted from the costs.
+This command sets the fixed OPEX associated with a production process in currency per ton/year of capacity, per year. Like the CAPEX, it is paid on the capacity of the process whatever the plant's [Uptime](plant.md#uptime), so a cost or revenue per ton produced enters it multiplied by the uptime. Negative values are allowed, so that revenue from byproducts can be subtracted from the costs.
 
 * **Primary key type**: String (Process name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Timetable`, `Variable`
 * **Example values**:
   + `"process_name", 50`
   + `"process_name", Forecast("name")`
-* **Unit**: currency/ton/year
+* **Unit**: currency/(ton/year)/year
 * **Default**: 0
 
 ### set\_process\_energy
