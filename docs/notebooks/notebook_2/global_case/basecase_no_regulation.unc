@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# BASECASE_NO_REGULATION - basecase_no_regulation.nav with Session 2's levers
+# as %NAME% placeholders: run it with navigate --set NAME=VALUE, or through
+# Horizon with levers.hor. Every multiplier at 1 and every switch at 0 gives
+# the scenario.
+
+DEFINE {
+    Load DefaultModelDefinition
+
+    # fleets
+    Load DefaultFleet
+
+    # voyages
+    Load DefaultPort
+
+    # fuels
+    Load DefaultEmission
+    Load DefaultFeedstock
+    Load DefaultFuel
+    Load DefaultProducer
+    Load DefaultPlant
+    Load DefaultRegion
+    Load DefaultSource
+    Load DefaultTransport
+
+    # calibration
+    Load DefaultCalibration
+
+    # levers
+    Include "includes/levers.inc"
+
+    # the switch, 0 or 1, picks a file
+    Include "includes/freeze_efficiency_%FREEZE_EFFICIENCY%.inc"
+}
+
+EVENTS {
+    Load DefaultConverterAvailable
+    Include "includes/time_steps_%GRID%.inc"
+}

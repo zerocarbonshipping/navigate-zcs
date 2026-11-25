@@ -61,6 +61,8 @@ change.
   whose values all lay below 1e-5 in magnitude was left out (#911).
 - An attribute that takes an integer rejects any other number, such as
   `3.000001`, which it rounded when within 1e-5 of an integer (#911).
+- Building Navigate from source, as `pip install` of a checkout does, needs
+  setuptools 77 or later; pip fetches it unless run with `--no-build-isolation`.
 - The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of
   vessels, fleets and the global results are keyed by emission alone, summed
   over the fuels: the split between fuels followed the solver where two fuels
@@ -399,6 +401,9 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A plant's process CAPEX and fixed OPEX are paid on its capacity, not its
+  production, so a lower `Uptime` spreads them over fewer tons. Plants with
+  an uptime below 1 and positive process costs cost more per ton (#969).
 - A Curve, Forecast, Surface or Timetable with `Extrapolate = FALSE` read
   outside its table stops the run with an `Error:` line naming the node and the
   table's range as the deck wrote it, instead of a Python traceback.

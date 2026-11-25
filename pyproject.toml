@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [build-system]
-requires = ["setuptools>=68.2", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -18,7 +18,9 @@ maintainers = [
 description = "A sectoral integrated assessment model for simulating transitions of the maritime industry"
 readme = "README.md"
 requires-python = ">=3.13"
-license = { file = "LICENSE" }
+# the code is Apache-2.0 and navigate/app/preamble.txt CC-BY-4.0 (REUSE.toml)
+license = "Apache-2.0 AND CC-BY-4.0"
+license-files = ["LICENSES/*.txt"]
 
 dependencies = [
     "highspy",

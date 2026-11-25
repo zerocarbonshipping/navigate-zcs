@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# FUELEU = 1 - FuelEU covers every ship, as in fuel_eu.inc.
+# NO_GLOBAL_STANDARD = 0 - the global fuel standard covers every ship, as in the scenario.
 
-Regulation "fuel_eu" {
+Regulation "gfs" {
     set_include_vessel("*", TRUE)
 }
