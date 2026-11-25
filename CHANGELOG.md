@@ -421,6 +421,10 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A plant logs a warning where its region sets none of `set_process_capex`,
+  `set_process_opex` and `set_process_energy` for a process in its chain, which
+  then costs nothing and uses no energy. An explicit 0 states an intended zero,
+  as the default region now does for `nitrogen_air_separation` (#976).
 - Speed management no longer slows a sailing condition to 0 knots or below, where
   its leg took no sea time and cost nothing. Where the propulsion load sets no
   minimum speed above 0, no condition sails below the route's lowest speed. Decks

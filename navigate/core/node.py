@@ -84,13 +84,14 @@ class Node:
 
     def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
         """
-        Raise where time-varying attributes contradict each other over the future.
+        Check the node over the remaining timeline, past the step's events.
 
         `check_consistency` sees only a node's cached values, so two attributes
         that agree now but cross later go unchecked; this hook sees the
-        remaining timeline instead. Runs once per time step, before the
-        expectations are calculated, called by the simulation rather than the
-        parser: it is not part of the lifecycle sweeps.
+        remaining timeline instead, and raises where they contradict each other.
+        Runs once per time step, before the expectations are calculated, called
+        by the simulation rather than the parser: it is not part of the
+        lifecycle sweeps.
 
         Parameters
         ----------

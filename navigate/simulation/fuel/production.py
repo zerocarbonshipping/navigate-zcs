@@ -244,8 +244,8 @@ def _add_process_flows(
         Mass of the process output per mass of fuel.
     """
     region = plant.region
-    capex_rate = region.process_capex[process.name]
-    opex_rate = region.process_opex[process.name]
+    capex_rate = region.process_capex_rates[process.name]
+    opex_rate = region.process_opex_rates[process.name]
 
     scale = size * conversion
     capacity = scale * YEAR
@@ -291,7 +291,7 @@ def _add_energy_flows(
     """
     region = plant.region
     source = plant.source
-    energy_rate = region.process_energy[process.name]
+    energy_rate = region.process_energy_rates[process.name]
     output = production * conversion
 
     def energy(time: float) -> float:

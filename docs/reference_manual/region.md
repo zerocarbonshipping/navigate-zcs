@@ -37,6 +37,8 @@ Region "africa" {
 
 ## Commands
 
+A process the region prices with none of [set\_process\_capex](#set_process_capex), [set\_process\_opex](#set_process_opex) and [set\_process\_energy](#set_process_energy) costs a plant nothing and uses no energy. A plant with such a process in its chain logs a warning naming the region and the processes; an explicit 0 in any of the three states an intended zero.
+
 ### set\_process\_capex
 
 This command sets the CAPEX associated with a production process in currency per ton/year of capacity. It is paid on the capacity of the process, the plant's capacity scaled by the mass of the process output per mass of fuel, whatever the plant's [Uptime](plant.md#uptime). A `Timetable` takes that capacity in tons/day as its y-value.

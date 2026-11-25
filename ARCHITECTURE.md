@@ -94,8 +94,8 @@ scopes of every step until then.
     than computing. Logic or a table they need lives in a flat module of
     `core/`.
   - `expectations/` and `results/`.
-  - Flat modules for the DSL values, the registries, the sweeps and the node
-    maps.
+  - Flat modules for the DSL values, the registries, the sweeps, the node
+    maps and the logic node methods delegate to.
 - `parser/`, `output/`, `driver/`, `app/` (its `RunLog` alone configures
   logging), `util/` and `exceptions.py`, as their docstrings say.
 

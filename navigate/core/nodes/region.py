@@ -19,6 +19,8 @@ from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.process import Process
@@ -42,9 +44,9 @@ class Region(Node):
 
         # external variables -----------------------------------------------------------
         # process
-        self.process_capex: dict[str, TimetableInput] = {}
-        self.process_opex: dict[str, TimetableInput] = {}
-        self.process_energy: dict[str, ForecastInput] = {}
+        self.process_capex: dict[str, TimetableInput | None] = {}
+        self.process_opex: dict[str, TimetableInput | None] = {}
+        self.process_energy: dict[str, ForecastInput | None] = {}
         self.process_lifetimes: dict[str, ForecastInput | None] = {}
         self.process_replacement: dict[str, ForecastInput] = {}
         self.process_wtt: dict[tuple[str, str], ForecastInput] = {}
@@ -61,6 +63,12 @@ class Region(Node):
         # transport
         self.transport_costs: dict[str, ForecastInput] = {}
         self.transport_wtt: dict[tuple[str, str], ForecastInput] = {}
+
+        # internal variables -----------------------------------------------------------
+        # the process rates, zero where the deck assigns none
+        self.process_capex_rates: dict[str, TimetableInput]
+        self.process_opex_rates: dict[str, TimetableInput]
+        self.process_energy_rates: dict[str, ForecastInput]
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
@@ -226,6 +234,11 @@ class Region(Node):
         )
 
     # internal methods -----------------------------------------------------------------
+    def apply_command_defaults(self) -> None:
+        self.process_capex_rates = self._zero_where_unassigned(self.process_capex)
+        self.process_opex_rates = self._zero_where_unassigned(self.process_opex)
+        self.process_energy_rates = self._zero_where_unassigned(self.process_energy)
+
     def initialize_dependencies(
         self,
         emissions: dict[str, Emission],
@@ -252,9 +265,9 @@ class Region(Node):
         """
         # a None lifetime lasts the plant's life, so no replacement cycle is attached
         for process_name in processes:
-            self.process_capex.setdefault(process_name, Scalar(0.0))
-            self.process_opex.setdefault(process_name, Scalar(0.0))
-            self.process_energy.setdefault(process_name, Scalar(0.0))
+            self.process_capex.setdefault(process_name, None)
+            self.process_opex.setdefault(process_name, None)
+            self.process_energy.setdefault(process_name, None)
             self.process_lifetimes.setdefault(process_name, None)
             self.process_replacement.setdefault(process_name, Scalar(0.0))
 
@@ -283,3 +296,12 @@ class Region(Node):
             for emission_name in emissions:
                 key = (transport_name, emission_name)
                 self.transport_wtt.setdefault(key, Scalar(0.0))
+
+    @staticmethod
+    def _zero_where_unassigned[V: (TimetableInput, ForecastInput)](
+        rates: Mapping[str, V | None],
+    ) -> dict[str, V]:
+        """Map each process to its rate, zero where none is assigned."""
+        return {
+            name: Scalar(0.0) if rate is None else rate for name, rate in rates.items()
+        }

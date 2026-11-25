@@ -38,4 +38,7 @@ Region "europe" {
 	set_process_capex("ammonia_synthesis_electro_*", Timetable("ammonia_synthesis_capex"))
 	set_process_opex("ammonia_synthesis_electro_*", Timetable("ammonia_synthesis_opex"))
 	set_process_energy("ammonia_synthesis_electro_*", Forecast("ammonia_synthesis_energy"))
+
+	# nitrogen (air separation)
+	set_process_capex("nitrogen_air_separation", 0)
 }

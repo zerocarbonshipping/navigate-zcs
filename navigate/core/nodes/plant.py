@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from navigate.core import (
@@ -20,6 +21,7 @@ from navigate.core import (
 from navigate.core.enum_ import NodeTypeID
 from navigate.core.expectations import PlantExpectation
 from navigate.core.node import Node
+from navigate.core.process_pricing import find_unpriced_processes
 from navigate.core.results import PlantResults
 
 if TYPE_CHECKING:
@@ -33,6 +35,9 @@ if TYPE_CHECKING:
     from navigate.core.nodes.transport import Transport
     from navigate.core.results import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
+    from navigate.util.types_ import DateArray, FloatArray
+
+logger = logging.getLogger(__name__)
 
 
 class Plant(Node):
@@ -69,6 +74,11 @@ class Plant(Node):
         self.feed_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
         self.fuel_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
         self.producer_assignment: str | None = None
+
+        # the process tree and region are DEFINE-only and an event can only assign a
+        # rate, so the first step, past the events of its date, is the only one to
+        # find an unpriced process
+        self._unpriced_processes_unreported: bool = True
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -240,6 +250,23 @@ class Plant(Node):
 
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)
+
+    def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
+        if not self._unpriced_processes_unreported:
+            return
+
+        unpriced = find_unpriced_processes(self.region, self.process)
+        if unpriced:
+            logger.warning(
+                "%s: %s assigns none of 'set_process_capex', 'set_process_opex' and"
+                " 'set_process_energy' to %s, so each costs nothing and uses no"
+                " energy. Assign an explicit 0 to state an intended zero.",
+                self,
+                self.region,
+                ", ".join(map(str, unpriced)),
+            )
+
+        self._unpriced_processes_unreported = False
 
     def set_producer_assignment(self, producer_name: str) -> None:
         """Record the producer building this plant, raising if another already does."""

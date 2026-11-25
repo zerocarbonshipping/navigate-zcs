@@ -56,6 +56,7 @@ Region "*" {
     set_process_capex("ammonia_synthesis_electro_*", Timetable("ammonia_synthesis_capex"))
     set_process_opex("ammonia_synthesis_electro_*", Timetable("ammonia_synthesis_opex"))
     set_process_energy("ammonia_synthesis_electro_*", Forecast("ammonia_synthesis_energy"))
+    set_process_capex("nitrogen_air_separation", 0)
 
     # ---- bio-methanol: gasified biomass ----
     set_process_capex("methanol_synthesis_bio_gasification", Forecast("methanol_synthesis_bio_gasification_capex"))
