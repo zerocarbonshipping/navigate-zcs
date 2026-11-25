@@ -55,6 +55,13 @@ are largest along w. The direction run is then repeated along the w in which no
 equality at zero moves, and the duals of those equalities are whichever optimal
 ones the solver ends at.
 
+The duals of the constraints that are not priced are not selected: w is zero on
+them, and they are whichever optimal ones the solver ends at. Where such a
+constraint holds at zero with all its variables at their bounds, as the balance of
+a fuel a vessel does not use, its optimal duals span an interval, and which of its
+variables carry a reduced cost, and stay at their bounds by it, differs between
+runs. The optimal solutions they state do not: any optimal duals state the same.
+
 The direction run works at the x of the first run. Every optimal y is complementary
 to every optimal x, so the duals it selects among are the same whichever optimal x
 that is.
