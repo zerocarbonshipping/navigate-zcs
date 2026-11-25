@@ -178,12 +178,8 @@ def _clear_flexibility_market(
     uncovered = subtract(total_non_compliance, total_remedial, tolerance=pool_noise)
     total_flexibility = float(uncovered)
 
-    # the shares of the non-compliance remediated and covered by flexibility units;
-    # they add up to one but for the noise dropped from the flexibility units, and
-    # the remedial share is capped at one against the numerical instability of
-    # vessels with a low count (the jump-start fraction)
-    ratio = float(divide_nonzero(total_remedial, total_non_compliance))
-    remedial_fraction = min(ratio, 1.0)
+    # the share of the non-compliance covered by flexibility units rather than
+    # remediated, none where the remedial units cover it all
     share = float(divide_nonzero(total_flexibility, total_non_compliance))
     flexibility_fraction = max(share, 0.0)
 
@@ -200,11 +196,12 @@ def _clear_flexibility_market(
         flexibility_cost = shadow_price
 
     # every vessel's non-compliance splits into remedial and flexibility units by the
-    # pool's shares, so the vessels' units add up to the pool's
+    # same fraction, so a vessel whose pool remediates it all holds exactly its
+    # non-compliance in remedial units, whatever the LP's noise in the pool's
     vessel_units = {}
     for vessel_name, (non_compliance, surplus) in balances.items():
-        remedial = non_compliance * remedial_fraction
         flexibility = non_compliance * flexibility_fraction
+        remedial = non_compliance - flexibility
         vessel_units[vessel_name] = _Units(remedial, flexibility, surplus)
 
     total = _Units(total_remedial, total_flexibility, total_surplus)
