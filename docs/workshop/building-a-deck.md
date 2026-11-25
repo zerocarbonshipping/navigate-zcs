@@ -222,7 +222,9 @@ a comment where it appears, and listed in the `.nav` header.
   used cooking oil cost and the FAME process); the other process costs and
   most feedstocks are in the `Region "*"` block of
   `assumptions/modules/installation/default_region.inc`, so restate the lines your
-  plants use. The region's power-price lines name both `Source "grid"` and
+  plants use: every process in each plant's chain, the hydrogen and electrolyser
+  stages included, not only the step the plant is named after. A process left out
+  costs nothing and uses no power, and nothing warns. The region's power-price lines name both `Source "grid"` and
   `Source "renewable"`: import both, even if no plant uses one. BunkerLogistics takes its
   distances and transport cost as plain numbers, not as Variables. A fuel listed in
   its LiquidMarketFuels is bought at the port at the price the port sets with
