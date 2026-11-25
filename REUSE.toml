@@ -51,3 +51,11 @@ path = "docs/notebooks/notebook_*/*.ipynb"
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "CC-BY-4.0"
+
+# The leadership demo (branch leadership-demo only): its notebook, the PNGs its
+# SVGs rasterise to, and the results it bundles carry no comment header.
+[[annotations]]
+path = ["demo/leadership/leadership_demo.ipynb", "demo/leadership/images/*.png", "demo/leadership/results/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "CC-BY-4.0"

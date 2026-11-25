@@ -1,0 +1,489 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The leadership demo's plots: Lantern's own catalogue, as Lantern 28ffcb2 ships
+# it, so its viewer offers every plot, with the demo's runs named and a headline
+# section of the plots the notebook draws (notebook 2's session plots). Lantern
+# reads it when started in the case folder; a plots.yaml there replaces Lantern's
+# catalogue whole.
+
+# display names and colours of the runs the demo writes
+customize_runs:
+  basecase_no_regulation:     {name: No regulation, color: yellow_5}
+  basecase_mid_regulation:    {name: Mid regulation, color: blue_5}
+  basecase_strong_regulation: {name: Strong regulation, color: green_5}
+  demo:                       {name: 100 futures, color: blue_8}
+
+# entries of labels.yaml to override or add, by label
+labels: {}
+#  OIL:      {name: Crude oil, color: black_8}
+#  my_fleet: My fleet
+
+# entries of theme.yaml to override: swatches by colour name, the palette and the font whole
+theme: {}
+#  swatches: {accent: "#447a7a"}
+#  palette: [accent, blue_7, yellow_5]
+#  font: {family: Arial, size: 14, weight: 300}
+
+main:
+  emission_absolute:
+    title: WTW emissions
+    total: true
+    series: global.total_equivalent_wtw
+
+  emission_intensity:
+    title: WTW emission intensity
+    total: true
+    series: global.intensity_total_equivalent_wtw
+
+  # summed over the gases
+  emission_by_fuel:
+    title: WTW emissions by fuel
+    variants: [lines, stack]
+    draw: stack
+    series: global.equivalent_wtw
+
+  fuel_consumed:
+    title: Fuel consumed
+    variants: [lines, stack]
+    draw: stack
+    label: shore_power
+    series:
+      - global.consumed_energy
+      - global.shore_power_energy
+
+  fuel_type_consumed:
+    title: Fuel consumed by type
+    variants: [lines, stack]
+    draw: stack
+    label: shore_power
+    series:
+      - global.fuel_type_energy
+      - global.shore_power_energy
+
+  # in port, vessels demand electrical energy and heat only
+  energy_demand:
+    title: Energy demand
+    variants: [lines, stack]
+    draw: stack
+    series:
+      - global.energy_sea
+      - global.energy_port
+
+  energy_saving:
+    title: Energy saving
+    unit: "%"
+    layers:
+      - series: global.saving
+        scale: 100
+      - series:
+          - global.technology_energy_intensity_saving
+          - global.operational_energy_intensity_saving
+          - global.energy_intensity_saving
+        split_by: attribute
+        scale: 100
+        line: dash
+
+  installed_power:
+    title: Installed power
+    variants: [lines, stack]
+    draw: stack
+    series: global.installed_power
+
+  power_converted_from:
+    title: Cumulative power converted from
+    unit: MW
+    variants: [lines, stack]
+    draw: stack
+    cumulative: true
+    series: global.fuel_converted_power
+
+  power_converted_to:
+    title: Cumulative power converted to
+    unit: MW
+    variants: [lines, stack]
+    draw: stack
+    split_by: key2
+    cumulative: true
+    series: global.fuel_converted_power
+
+  # the feeds include the processes of the supply chain, not only the feedstocks: some forty, so one at a time
+  feedstock_consumption:
+    title: Feed consumption
+    select_view: key1
+    layers:
+      - series: global.feed_mass
+        total: true
+      - series: global.feed_constraint
+        total: true
+        line: dash
+
+  fuel_related_expenses:
+    title: Fuel expenses
+    variants: [lines, stack]
+    draw: stack
+    split_by: attribute
+    series:
+      - global.total_fuel_expenses
+      - global.levy_expenses
+      - global.regulation_expenses
+
+  fuel_related_expenses_cumulative:
+    title: Cumulative fuel expenses
+    unit: USD
+    variants: [lines, stack]
+    draw: stack
+    split_by: attribute
+    cumulative: true
+    series:
+      - global.total_fuel_expenses
+      - global.levy_expenses
+      - global.regulation_expenses
+
+  expenses:
+    title: Expenses
+    variants: [lines, stack]
+    draw: stack
+    split_by: attribute
+    series:
+      - global.vessel_expenses
+      - global.fuel_conversion_expenses
+      - global.technology_expenses
+      - global.total_fuel_expenses
+      - global.levy_expenses
+      - global.regulation_expenses
+
+  expenses_cumulative:
+    title: Cumulative expenses
+    unit: USD
+    variants: [lines, stack]
+    draw: stack
+    split_by: attribute
+    cumulative: true
+    series:
+      - global.vessel_expenses
+      - global.fuel_conversion_expenses
+      - global.technology_expenses
+      - global.total_fuel_expenses
+      - global.levy_expenses
+      - global.regulation_expenses
+
+  tied_capital:
+    title: Tied capital
+    split_by: attribute
+    series:
+      - global.vessel_tied_capital
+      - global.plant_tied_capital
+
+fuel:
+  type_supply_demand:
+    title: Supply and fleet capacity
+    panels: key1
+    layers:
+      - series: global.fuel_type_capacity
+        total: true
+        line: dash
+      - series: global.production_type_energy
+        total: true
+        line: dash
+
+  supply_demand:
+    title: Consumed and produced
+    panels: key1
+    layers:
+      - series: global.consumed_energy
+        draw: area
+        total: true
+      - series: global.production_energy
+        total: true
+
+engine:
+  fuel_consumed:
+    title: Fuel consumed
+    panels: key1
+    variants: [lines, stack]
+    draw: stack
+    split_by: key2
+    series: global.converter_energy
+
+  age:
+    title: Vessel age
+    panels: key1
+    series: global.weighted_average_age
+
+  pilot_fuel_share:
+    title: Pilot fuel share
+    unit: "%"
+    panels: key1
+    scale: 100
+    series: global.pilot_fuel_share
+
+# a fleet, vessel or plant at a time where a panel holds several lines; the emissions and trade keep a panel per fleet,
+# a line each, so runs share them
+fleet:
+  emission_absolute:
+    title: WTW emissions
+    panels: node
+    total: true
+    series: fleet.total_equivalent_wtw
+
+  emission_intensity:
+    title: WTW emission intensity
+    panels: node
+    total: true
+    series: fleet.intensity_total_equivalent_wtw
+
+  trade:
+    title: Trade
+    panels: node
+    total: true
+    series: fleet.trade
+
+  fuel_consumed:
+    title: Fuel consumed
+    select_view: node
+    variants: [lines, stack]
+    draw: stack
+    label: shore_power
+    series:
+      - fleet.consumed_energy
+      - fleet.shore_power_energy
+
+  evolution:
+    title: Vessels
+    select_view: node
+    variants: [lines, stack]
+    draw: stack
+    series: fleet.existing_vessels
+
+  changes:
+    title: Newbuilds and scrapping
+    unit: vessels/year
+    select_view: node
+    y_axis: fit
+    variants: [lines, stack]
+    layers:
+      - series: fleet.scrap
+        draw: stack
+        scale: -1
+      - series: fleet.newbuilds
+        draw: stack
+
+  conversions_cumulative:
+    title: Cumulative conversions
+    unit: vessels
+    select_view: node
+    y_axis: fit
+    variants: [lines, stack]
+    layers:
+      - series: fleet.fuel_conversions
+        draw: stack
+        scale: -1
+        cumulative: true
+      - series: fleet.fuel_conversions
+        draw: stack
+        split_by: key2
+        cumulative: true
+
+  energy_saving:
+    title: Energy saving
+    unit: "%"
+    select_view: node
+    y_axis: fit
+    split_by: attribute
+    scale: 100
+    series:
+      - fleet.operational_energy_intensity_saving
+      - fleet.technology_energy_intensity_saving
+      - fleet.energy_intensity_saving
+
+  # a fleet without speed management has only its reference speed
+  speed:
+    title: Fleet speed
+    select_view: node
+    layers:
+      - series:
+          - fleet.minimum_speed
+          - fleet.maximum_speed
+        split_by: attribute
+        line: dot
+      - series:
+          - fleet.lowest_speed
+          - fleet.highest_speed
+        split_by: attribute
+        line: dashdot
+      - series: fleet.reference_speed
+        split_by: attribute
+        line: dash
+      - series:
+          - fleet.optimal_speed
+          - fleet.actual_speed
+        split_by: attribute
+
+  speed_per_vessel:
+    title: Vessel speed
+    select_view: node
+    layers:
+      - series:
+          - vessel.minimum_speed
+          - vessel.maximum_speed
+        split_by: attribute
+        line: dot
+      - series: vessel.actual_speed
+        split_by: attribute
+
+  investment_metric:
+    title: Freight rates
+    unit: USD/1000 cargo-miles
+    select_view: node
+    layers:
+      - series: vessel.investment_freight_rate
+        total: true
+        scale: 1000
+        line: dash
+      - series: vessel.instantaneous_freight_rate
+        total: true
+        scale: 1000
+
+producer:
+  development:
+    title: Plant development
+    panels: node
+    layers:
+      - series: producer.development
+        total: true
+      - series: producer.maximum_development
+        total: true
+        line: dash
+
+  development_cumulative:
+    title: Cumulative plant development
+    unit: plants
+    panels: node
+    layers:
+      - series: producer.development
+        total: true
+        cumulative: true
+      - series: producer.maximum_development
+        total: true
+        line: dash
+        cumulative: true
+
+  feed_consumption:
+    title: Feed consumption
+    panels: key1
+    select_view: node
+    layers:
+      - series: producer.feed_mass
+        total: true
+      - series: producer.feed_constraint
+        total: true
+        line: dash
+
+plant:
+  production_cost:
+    title: Production cost
+    unit: USD/GJ
+    select_view: node
+    y_axis: fit
+    layers:
+      - series: plant.investment_cost
+        total: true
+        line: dash
+        per_gj: true
+      - series: plant.instantaneous_cost
+        total: true
+        per_gj: true
+
+port:
+  bunker_price:
+    title: Bunker price
+    unit: USD/GJ
+    select_view: node
+    per_gj: true
+    series: port.bunker_price
+
+  # a liquid-market fuel has no supply or infrastructure limit, only its bunkered mass
+  bunker_supply:
+    title: Bunkered fuel and supply
+    panels: key1
+    select_view: node
+    layers:
+      - series: port.bunker_mass
+        draw: area
+        total: true
+      - series: port.bunker_supply_mass
+        total: true
+      - series: port.bunkering_limit_mass
+        total: true
+        line: dash
+
+regulation:
+  unit_trading:
+    title: Compliance units
+    select_view: node
+    split_by: attribute
+    series:
+      - regulation.non_compliance_units
+      - regulation.surplus_units
+
+  flexibility_cost:
+    title: Compliance costs
+    select_view: node
+    split_by: attribute
+    series:
+      - regulation.remedial_cost
+      - regulation.flexibility_cost
+
+# the plots the notebook draws
+headline:
+  emissions:
+    title: Well-to-wake emissions
+    total: true
+    series: global.total_equivalent_wtw
+
+  # a panel per regulation: its limit, dashed, and the intensity the ships it
+  # polices reached
+  intensity_limit:
+    title: Intensity limit
+    unit: gCO2eq/MJ
+    panels: node
+    layers:
+      - series: regulation.shared_threshold
+        label: limit
+        line: dash
+      - series: regulation.shared_compliance
+        label: ships
+
+  fuel_consumed:
+    title: Fuel consumed
+    draw: stack
+    label: shore_power
+    series:
+      - global.consumed_energy
+      - global.shore_power_energy
+
+  # per transport work: the fleets' cargo-miles are tonne-nautical-miles, and the
+  # scale turns USD per tonne-nautical-mile into USD per 1,000 tonne-km (1,000 / 1.852)
+  expenses:
+    title: What the ships paid per tonne-km
+    unit: USD per 1,000 t-km
+    draw: stack
+    split_by: attribute
+    per: fleet.cargo_miles
+    scale: 539.96
+    series:
+      - fleet.vessel_expenses
+      - fleet.fuel_conversion_expenses
+      - fleet.technology_expenses
+      - fleet.total_fuel_expenses
+      - fleet.levy_expenses
+      - fleet.regulation_expenses
+
+  expenses_total:
+    title: What the ships paid in total, per tonne-km
+    unit: USD per 1,000 t-km
+    total: true
+    per: fleet.cargo_miles
+    scale: 539.96
+    series: fleet.expenses
