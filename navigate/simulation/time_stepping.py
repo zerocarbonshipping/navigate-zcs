@@ -64,7 +64,6 @@ from navigate.simulation.fleet import (
 )
 from navigate.simulation.fuel import (
     calculate_development_potential,
-    calculate_expected_demand_noise,
     calculate_expected_fuel_demand,
     calculate_expected_fuel_gap,
     calculate_expected_fuel_supply,
@@ -726,10 +725,8 @@ class Simulation:
         )
 
     def _calculate_fleet_fuel_demand(self) -> None:
-        tolerance = self._bunker_expected.options.solution_tolerance
-
         for fleet in self.nodes.fleets.values():
-            calculate_fleet_fuel_demand(fleet, self.nodes.fuels, tolerance, self._idx)
+            calculate_fleet_fuel_demand(fleet, self.nodes.fuels, self._idx)
 
     def _update_scarcity_signals(self) -> None:
         update_vessel_scarcity_beliefs(self.nodes.fleets, self.timeline, self._idx)
@@ -801,9 +798,8 @@ class Simulation:
             calculate_development_potential(producer, self._time_step, self._idx)
 
         demand = calculate_expected_fuel_demand(self.nodes.fleets, self._idx)
-        noise = calculate_expected_demand_noise(self.nodes.fleets, self._idx)
         supply = calculate_expected_fuel_supply(self.nodes.producers, self._idx)
-        gap = calculate_expected_fuel_gap(self._produced_fuels, supply, demand, noise)
+        gap = calculate_expected_fuel_gap(self._produced_fuels, supply, demand)
         calculate_fair_share_demand(self.nodes.producers, gap, self._idx)
 
         for producer in self.nodes.producers.values():

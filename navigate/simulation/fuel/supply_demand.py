@@ -124,34 +124,6 @@ def calculate_expected_fuel_demand(
     return add_dicts(*demands)
 
 
-def calculate_expected_demand_noise(
-    fleets: dict[str, Fleet], idx: int
-) -> dict[str, FloatLike]:
-    """
-    Calculate the noise the expected bunkering leaves in the expected demand of a fuel.
-
-    Parameters
-    ----------
-    fleets
-        All fleets in the simulation.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    dict[str, FloatLike]
-        Most the expected bunkering LP's tolerance moves the expected future demand
-        of each fuel, in tons/year.
-    """
-    forward = np.s_[idx:]
-    noises = []
-
-    for fleet in fleets.values():
-        noises.append(fleet.expectation.fuel_demand_noise.at[forward])
-
-    return add_dicts(*noises)
-
-
 def calculate_expected_fuel_supply(
     producers: dict[str, Producer], idx: int
 ) -> dict[str, FloatLike]:
@@ -207,13 +179,9 @@ def calculate_expected_fuel_gap(
     fuels: dict[str, Fuel],
     supply: dict[str, FloatLike],
     demand: dict[str, FloatLike],
-    noise: dict[str, FloatLike],
 ) -> dict[str, FloatLike]:
     """
     Calculate the expected future gap between demand and supply of each fuel.
-
-    Where the supply binds the expected bunkering, the LP bunkers up to it, so the
-    demand meets the supply only to the LP's noise.
 
     Parameters
     ----------
@@ -223,23 +191,17 @@ def calculate_expected_fuel_gap(
         Expected future supply of each fuel, in tons/year.
     demand
         Expected future demand of each fuel, in tons/year.
-    noise
-        Most the expected bunkering LP's tolerance moves the demand of each fuel, in
-        tons/year.
 
     Returns
     -------
     dict[str, FloatLike]
         Expected future demand less supply of each fuel, in tons/year; exactly zero
-        where the two agree to rounding or within the noise.
+        where the two agree to rounding.
     """
     gaps: dict[str, FloatLike] = {}
 
     for name in fuels:
-        fuel_demand = demand.get(name, 0.0)
-        fuel_supply = supply.get(name, 0.0)
-        fuel_noise = noise.get(name, 0.0)
-        gaps[name] = subtract(fuel_demand, fuel_supply, tolerance=fuel_noise)
+        gaps[name] = subtract(demand.get(name, 0.0), supply.get(name, 0.0))
 
     return gaps
 

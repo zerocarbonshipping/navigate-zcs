@@ -145,19 +145,16 @@ def _clear_flexibility_market(
 
     policed = select_policed(regulation, counts)
 
-    # the LP's noise in a vessel's excess, in tCO2e/year per vessel: the excess differs
-    # from the vessel's term in the pooled row by the row defining the term, and the
-    # LP resolves the term itself, each to the tolerance
-    noise = 2.0 * tolerance
-
-    # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance
+    # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance;
+    # no LP makes a vessel's emissions equal its allowance, so an excess below the LP's
+    # tolerance is real and adds up over the vessels to what the pool remediates
     balances = {}
     total_non_compliance = 0.0
     total_surplus = 0.0
     non_compliant_count = 0.0
     for vessel_name, count in policed.items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
-        excess = float(subtract(account.emissions, account.allowance, tolerance=noise))
+        excess = float(subtract(account.emissions, account.allowance))
         non_compliance = max(excess, 0.0)
         surplus = max(-excess, 0.0)
 
@@ -168,11 +165,12 @@ def _clear_flexibility_market(
         if non_compliance > 0.0:
             non_compliant_count += count
 
-    # the LP's noise in the non-compliance less the remedial units, in tCO2e/year:
-    # each non-compliant vessel's times its count, as the others add an exact zero,
-    # and the pooled row and the remedial units, dropped below the tolerance, to the
-    # tolerance each
-    pool_noise = noise * (non_compliant_count + 1.0)
+    # the pooled row makes the non-compliance equal the remedial units to the LP's
+    # noise, in tCO2e/year: twice the tolerance per non-compliant vessel, as its
+    # excess differs from its term in the row by the row defining the term and the
+    # LP resolves the term itself, and the tolerance each for the pooled row and the
+    # remedial units, dropped below it
+    pool_noise = 2.0 * tolerance * (non_compliant_count + 1.0)
 
     # the non-compliance not remediated is covered by flexibility units
     uncovered = subtract(total_non_compliance, total_remedial, tolerance=pool_noise)

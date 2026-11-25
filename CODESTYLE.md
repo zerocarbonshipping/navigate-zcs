@@ -266,13 +266,14 @@ its section layout; the rules below cover the content.
   magnitude of what it was computed from: the trade for a trade gap, the
   fleet's total for a vessel type's count. A value an LP returns, and a
   difference of quantities an LP makes equal, is zero within the solver's
-  tolerance (`BunkerOptions.solution_tolerance`) in the quantity's units: per
-  vessel for a vessel's emissions, times the vessel counts for a fleet's fuel
-  demand. Never test against a fixed absolute amount, which is a residual in
-  one deck and a real value in another. Drop a residual where it arises, so
-  the tests downstream read an exact zero: a difference through `subtract`,
-  against the larger operand and, where an LP made the operands equal, its
-  noise as `tolerance`, or through `drop_negligible` against another scale
+  tolerance (`BunkerOptions.solution_tolerance`) in the quantity's units; for
+  a pool's non-compliance against its remedial units, that is the tolerance
+  times the non-compliant vessels' counts. Never test against a fixed absolute
+  amount, which is a residual in one deck and a real value in another. Drop a
+  residual where it arises, so the tests downstream read an exact zero: a
+  difference through `subtract`, against the larger operand and, where an LP
+  made the operands equal, its noise as `tolerance`, or through
+  `drop_negligible` against another scale
   (`drop_negligible(trade - capacity, trade)`). Test a one-sided bound by its
   dropped excess, `drop_negligible(energy - limit, limit) > 0.0`, not by
   widening the bound. Elsewhere, test with `is_negligible`. A sign or exact

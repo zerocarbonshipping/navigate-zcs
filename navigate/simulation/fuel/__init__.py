@@ -36,7 +36,6 @@ from navigate.simulation.fuel.results import (
 )
 from navigate.simulation.fuel.supply_demand import (
     calculate_development_potential,
-    calculate_expected_demand_noise,
     calculate_expected_fuel_demand,
     calculate_expected_fuel_gap,
     calculate_expected_fuel_supply,
