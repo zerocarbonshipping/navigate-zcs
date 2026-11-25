@@ -401,6 +401,9 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- Speed management finds each vessel type's optimal speed to convergence, not
+  to about 0.1 knots, so a rounding-level difference in its inputs no longer
+  moves it by hundredths of a knot. Decks with speed management move (#962).
 - A plant's process CAPEX and fixed OPEX are paid on its capacity, not its
   production, so a lower `Uptime` spreads them over fewer tons. Plants with
   an uptime below 1 and positive process costs cost more per ton (#969).
