@@ -30,7 +30,6 @@ from navigate.core.table_data import TableData
 from navigate.core.types_ import Calculator, CurveTableInput
 from navigate.core.wrap import as_list
 from navigate.util import (
-    ROUND_OFF,
     is_nondecreasing,
     is_unique,
     key_name,
@@ -547,10 +546,10 @@ def assign_fraction_list(assignment: list[float]) -> tuple[list[float], bool]:
     Only applicable to attributes requiring a list of values summing to 1.
     Entries are floated first, so a list written as integers is rescaled the
     same way as its float spelling; an entry, or a total, that does
-    not float to a finite value is rejected. The entries must sum to
-    more than 0 once rounded to ``ROUND_OFF`` decimals, so an all-zero list
-    and an empty list are rejected: a zero total cannot be rescaled to 1. Any
-    other total than 1 is rescaled proportionally.
+    not float to a finite value is rejected. The entries must sum to more
+    than 0, so an all-zero list and an empty list are rejected: a zero total
+    cannot be rescaled to 1. Any other total than 1 is rescaled
+    proportionally.
 
     Parameters
     ----------
@@ -569,7 +568,7 @@ def assign_fraction_list(assignment: list[float]) -> tuple[list[float], bool]:
         If the entries do not sum to more than 0.
     """
     floated = _floated_fractions(assignment)
-    total = round(sum(floated), ROUND_OFF)
+    total = sum(floated)
 
     if total <= 0.0:
         raise ValueError("requires entries summing to more than 0")

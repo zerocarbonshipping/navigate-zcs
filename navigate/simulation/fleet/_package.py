@@ -24,7 +24,6 @@ from navigate.simulation.economics import (
     get_flow_size,
     trim_flow_to_window,
 )
-from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
     from navigate.core.nodes.technology import Technology
@@ -170,12 +169,11 @@ def get_package_cost_flows(
     list[FloatArray]
         Cost flow of each package, in currency/year; zero for the empty package.
     """
-    key = round(horizon, ROUND_OFF)
-    flows = package_cost_flows.by_horizon.get(key)
+    flows = package_cost_flows.by_horizon.get(horizon)
 
     if flows is None:
-        flows = _build_package_cost_flows(packages, key, package_cost_flows.time)
-        package_cost_flows.by_horizon[key] = flows
+        flows = _build_package_cost_flows(packages, horizon, package_cost_flows.time)
+        package_cost_flows.by_horizon[horizon] = flows
 
     return flows
 

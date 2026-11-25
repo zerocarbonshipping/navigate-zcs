@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import ROUND_OFF, YEAR
+from navigate.util import YEAR, snap_to_whole
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -530,8 +530,8 @@ def _horizon(lead_time: float, lifetime: float) -> float:
     """
     Sum an asset's lead time and lifetime into the years it spans.
 
-    The sum is rounded, so a whole number of years summed from fractional parts, as
-    0.1 + 2.9, ends exactly on a bin edge.
+    A sum a residual away from a whole number of years is snapped to it, so a whole
+    number summed from fractional parts, as 0.1 + 2.9, ends exactly on a bin edge.
 
     Parameters
     ----------
@@ -545,7 +545,8 @@ def _horizon(lead_time: float, lifetime: float) -> float:
     float
         Years from the investment decision to the end of operation.
     """
-    return round(lead_time + lifetime, ROUND_OFF)
+    horizon = lead_time + lifetime
+    return snap_to_whole(horizon, horizon)
 
 
 def _operating_window(

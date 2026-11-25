@@ -290,11 +290,14 @@ its section layout; the rules below cover the content.
 
   Test a one-sided bound by its dropped excess,
   `drop_negligible(energy - limit, limit) > 0.0`, not by widening the bound.
-  Elsewhere, test with `is_negligible`. A sign or exact test stays on a value
+  Elsewhere, test with `is_negligible`, also where computed floats are
+  grouped, used as a key or snapped to a whole number (`snap_to_whole`): never
+  round them to a fixed number of decimals, which splits two values a residual
+  apart where they straddle a rounding boundary. A sign or exact test stays on a value
   whose residual was dropped, where its branches agree at zero
-  (`max(gap, 0.0)`), in a guard that only protects an operation undefined at
-  zero, such as a division, against an assigned value (a default, a sentinel,
-  a deck input), and on a value rounded to `ROUND_OFF`.
+  (`max(gap, 0.0)`), and in a guard that only protects an operation undefined
+  at zero, such as a division, against an assigned value (a default, a
+  sentinel, a deck input).
 
 ## Validation and dynamic access
 

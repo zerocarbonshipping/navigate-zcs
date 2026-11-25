@@ -64,11 +64,11 @@ for (vessel, increment) in fleet.iterate_increments(reverse=True):
     if not is_retrofit_cycle(age, frequency, dt):
         continue
 
-    age_mid = round(age + span / 2.0, ROUND_OFF)
-    if age_mid < minimum_age:
+    age_mid = age + span / 2.0
+    if subtract(age_mid, minimum_age) < 0.0:
         continue
 
-    lifetime = round(vessel.lifetime.get() - age_mid, ROUND_OFF)
+    lifetime = subtract(vessel.lifetime.get(), age_mid)
     if lifetime <= 0.0:
         continue
 
@@ -102,13 +102,11 @@ for v, vessel_from in enumerate(fleet.vessels):
         ):
             continue
 
-        avg_age = round(increment.age + increment.age_span / 2.0, ROUND_OFF)
-        if avg_age < minimum_age:
+        avg_age = increment.age + increment.age_span / 2.0
+        if subtract(avg_age, minimum_age) < 0.0:
             continue
 
-        remaining_lifetime_from = round(
-            vessel_from.lifetime.get() - avg_age, ROUND_OFF
-        )
+        remaining_lifetime_from = subtract(vessel_from.lifetime.get(), avg_age)
         if remaining_lifetime_from <= 0.0:
             continue
 
