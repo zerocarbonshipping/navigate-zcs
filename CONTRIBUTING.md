@@ -114,7 +114,7 @@ for their repository.
   written.
 - Of `CODESTYLE.md`, the sections Nodes and the DSL, Dynamic state and
   results, and Validation and dynamic access are Navigate's alone, as is any
-  rule naming a Navigate module (`RunLog`, `TOLERANCE`).
+  rule naming a Navigate module (`RunLog`, `RELATIVE_TOLERANCE`).
 - Their `pyproject.toml` configures ruff with Navigate's rule set at a line
   length of 128, and mypy as Navigate's `mypy.ini` does.
 - They have no pull request template, no `AGENTS.md` and no results

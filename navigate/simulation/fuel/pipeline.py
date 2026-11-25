@@ -12,11 +12,7 @@ import numpy as np
 
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import PlantIncrement
-from navigate.simulation.cohort import (
-    calculate_share_below,
-    extends_past,
-    find_insertion_index,
-)
+from navigate.simulation.cohort import calculate_share_below, find_insertion_index
 from navigate.simulation.economics import (
     build_operating_flows,
     calculate_levelized_cost,
@@ -26,7 +22,13 @@ from navigate.simulation.fuel.feed import (
     calculate_constrained_uptakes,
     calculate_feed_spends,
 )
-from navigate.util import YEAR, calculate_step_inertia, divide_nonzero
+from navigate.util import (
+    YEAR,
+    calculate_step_inertia,
+    divide_nonzero,
+    drop_negligible,
+    subtract,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -39,28 +41,35 @@ def perform_pipeline_delivery(producer: Producer) -> None:
     Deliver plants from the pipeline that have passed their lead time.
 
     Pipeline increments use negative ages (time since delivery, negative = not yet
-    delivered). After aging with += dt, delivered increments have age >= 0 and
-    transfer directly to active production without sign-flipping.
+    delivered). After aging with += dt, an increment whose age reaches zero, to
+    rounding, transfers whole to active production without sign-flipping, and one
+    whose age span reaches past zero is split.
 
     Parameters
     ----------
     producer
         The producer.
     """
-    for operating, pipeline in zip(producer.increments, producer.pipeline, strict=True):
-        fully_delivered = 0
+    for p, pipeline in enumerate(producer.pipeline):
+        operating = producer.increments[p]
+        waiting = []
 
         for increment in pipeline:
-            if increment.age >= 0.0:
-                # the age already counts the time since delivery
-                operating.append(increment)
-                fully_delivered += 1
+            share = calculate_share_below(increment, 0.0)
 
-            elif extends_past(increment, 0.0):
+            if share == 0.0:
+                # the age already counts the time since delivery; one short of zero
+                # only to rounding is delivered at zero
+                increment.age = max(increment.age, 0.0)
+                operating.append(increment)
+
+            elif share == 1.0:
+                waiting.append(increment)
+
+            else:
                 # plants enter uniformly over the age span, so the part past zero is
                 # delivered and the rest keeps its span up to zero; the delivered part
                 # keeps 'decided', so its origin index stays that of the increment
-                share = calculate_share_below(increment, 0.0)
                 remaining = increment.count * share
                 delivered = PlantIncrement(
                     count=increment.count - remaining,
@@ -72,9 +81,9 @@ def perform_pipeline_delivery(producer: Producer) -> None:
                 operating.append(delivered)
                 increment.count = remaining
                 increment.age_span = -increment.age
+                waiting.append(increment)
 
-        # the pipeline is sorted oldest first, so the fully delivered come first
-        del pipeline[:fully_delivered]
+        producer.pipeline[p] = waiting
 
 
 def perform_pipeline_planning(
@@ -116,9 +125,16 @@ def perform_pipeline_planning(
     # the utilization is the previous time step's, and the inertia already counts
     # against the development limit
     utilization = min(producer.current_utilization + ramp_up, 1.0)
-    development = limit * utilization - np.sum(inertia)
+    development = float(subtract(limit * utilization, np.sum(inertia)))
     modelled = _calculate_modelled_newbuilds(producer, inertia, development, idx)
+
+    # a count negligible against the producer's plants, operating or in the pipeline,
+    # is no plant, whether a rounding residue or the tail of a logit, so no cohort is
+    # built from it
+    groups = [*producer.increments, *producer.pipeline]
+    stock = sum(increment.count for group in groups for increment in group)
     newbuilds = inertia + modelled
+    newbuilds = drop_negligible(newbuilds, stock + np.sum(newbuilds))
 
     # the new plants enter the pipeline one lead time ahead of delivery
     additions = zip(producer.plants, producer.pipeline, newbuilds, strict=True)
@@ -198,17 +214,21 @@ def _calculate_uncovered_demand(
     Returns
     -------
     dict[str, FloatArray]
-        Demand per fuel pathway not covered by the inertia, in tons/year.
+        Demand per fuel pathway not covered by the inertia, in tons/year; exactly zero
+        where the inertia covers it to rounding.
     """
-    # the getter returns the stored arrays, so the subtraction stays out of place
-    demand = dict(producer.expectation.fair_share_demand)
+    demand = producer.expectation.fair_share_demand
+    production = dict.fromkeys(demand, 0.0)
 
     for plant, count in zip(producer.plants, newbuilds, strict=True):
-        production = plant.expectation.production[idx] * count
-        fuel_name = plant.fuel.name
-        demand[fuel_name] = demand[fuel_name] - production
+        production[plant.fuel.name] += plant.expectation.production[idx] * count
 
-    return demand
+    uncovered: dict[str, FloatArray] = {}
+
+    for fuel_name, fuel_demand in demand.items():
+        uncovered[fuel_name] = subtract(fuel_demand, production[fuel_name])
+
+    return uncovered
 
 
 def _calculate_modelled_newbuilds(
@@ -347,7 +367,12 @@ def _calculate_inter_fuel_metric(
     # the fair-share demand is re-sampled onto the calendar-year grid of the plant's
     # cash flows, the one its levelized production cost is built on
     year_starts, operating = build_operating_flows(lead_time, lifetime, timeline[idx])
-    yearly_demand = np.interp(year_starts, timeline, demand[fuel.name], left=0.0)
+    # interpolating across a change of sign can leave a residue where the demand
+    # crosses zero, negligible against the demands interpolated between
+    fuel_demand = demand[fuel.name]
+    yearly_demand = np.interp(year_starts, timeline, fuel_demand, left=0.0)
+    scale = np.interp(year_starts, timeline, np.abs(fuel_demand), left=0.0)
+    yearly_demand = drop_negligible(yearly_demand, scale)
 
     # the lowest plant count the demand supports within the sufficient offtake
     # duration is the most plants it makes sense to sanction, among the years from

@@ -20,6 +20,7 @@ from navigate.simulation.bunker._constraints.fuel_inertia import (
     update_fuel_inertia_constraints,
 )
 from navigate.simulation.bunker._optimize import optimize
+from navigate.util import subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -137,7 +138,9 @@ def _update_fair_share_allocation(
 
     where B is the set of bounded vessels, s the fair share, m the vessel count and
     b the fuel mass bunkered at the port in the previous solve; A_v is zero where
-    the sum over B is within the solution tolerance. An unbounded vessel is
+    the sum over B is within the solution tolerance. The remaining supply is zero
+    where it is within the solution tolerance times the count of the vessels not
+    in B, the noise of their bunkered masses. An unbounded vessel is
     released, A_v = b_v, where a bounded vessel can take up the supply it frees,
     and stays unbounded from then on.
 
@@ -159,9 +162,10 @@ def _update_fair_share_allocation(
     unbounded: dict[tuple[str, str, str], float] = {}
 
     # per (port name, fuel): the bounded fair shares and the unbounded bunkered fuel,
-    # each times its vessel count and summed over the vessels
+    # each times its vessel count and summed over the vessels, and the unbounded count
     shares: dict[tuple[str, str], float] = {}
     consumed: dict[tuple[str, str], float] = {}
+    consumer_counts: dict[tuple[str, str], float] = {}
 
     for key in alg.allocation_fuel:
         v, port_name, f = key
@@ -180,6 +184,7 @@ def _update_fair_share_allocation(
             bunkered = previous[key]
             unbounded[key] = bunkered
             consumed[port_fuel] = consumed.get(port_fuel, 0.0) + bunkered * count
+            consumer_counts[port_fuel] = consumer_counts.get(port_fuel, 0.0) + count
 
     for key, fair_share in bounded.items():
         _, port_name, f = key
@@ -187,8 +192,13 @@ def _update_fair_share_allocation(
         port_fuel = (port_name, f)
 
         supply = port.expectation.bunker_supply[f][alg.idx]
-        remaining = supply - consumed.get(port_fuel, 0.0)
+        used = consumed.get(port_fuel, 0.0)
         total = shares[port_fuel]
+
+        # each unbounded vessel's mass at the port meets its fair-share row to the
+        # tolerance, so the supply they leave is noise within it times their count
+        noise = tol * consumer_counts.get(port_fuel, 0.0)
+        remaining = float(subtract(supply, used, tolerance=noise))
 
         if total > tol:
             alg.allocation_fuel[key] = (fair_share / total) * remaining

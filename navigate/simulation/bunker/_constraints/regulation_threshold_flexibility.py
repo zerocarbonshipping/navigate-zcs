@@ -45,6 +45,10 @@ def update_regulation_threshold_flexibility_constraints(alg: BunkerAlgorithm) ->
     fraction is 0. The term of a vessel that left the pool is removed with its
     definition (_cleanup.py).
 
+    The flexibility market reads the pooled non-compliance against w within a noise
+    bound derived from the form of these rows (flexibility_market.py); a change to
+    their form changes that bound.
+
     Parameters
     ----------
     alg

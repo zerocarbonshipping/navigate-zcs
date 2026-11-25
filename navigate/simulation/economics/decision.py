@@ -13,7 +13,7 @@ import numpy as np
 from scipy.optimize import brentq
 
 from navigate.core.enum_ import UtilityID
-from navigate.util import index_map
+from navigate.util import drop_negligible, index_map, subtract
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
@@ -21,9 +21,6 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
-
-# slack on comparisons of shares with their limits, absorbing rounding error
-_SHARE_TOLERANCE = 1e-12
 
 # Brent's method on the group shares and their log scale: absolute tolerance 1e-12, and
 # room for its worst case, about the square of bisection's 100 steps
@@ -201,7 +198,7 @@ def _uniform_at_min(values: FloatArray) -> FloatArray:
     """
     shares = np.zeros_like(values)
 
-    at_min = values == np.min(values)
+    at_min = subtract(values, np.min(values)) == 0.0
     shares[at_min] = 1.0 / np.count_nonzero(at_min)
 
     return shares
@@ -296,11 +293,12 @@ def _calculate_limited_shares(
             f"({shares.size})"
         )
 
+    # shares and limits are fractions of a whole, the scale of their rounding
     limits = np.clip(limits, 0.0, 1.0)
 
     # infeasible: even saturating every option cannot reach a unit total
     total_limit = np.sum(limits)
-    if total_limit < 1.0 - _SHARE_TOLERANCE:
+    if drop_negligible(total_limit - 1.0, 1.0) < 0.0:
         message = (
             f"sum of limits ({total_limit:.4f}) is below 1; allocation is infeasible "
             "and every option has been saturated to its limit"
@@ -308,7 +306,7 @@ def _calculate_limited_shares(
         return limits, message
 
     # no effective constraint
-    if not np.any(shares > limits + _SHARE_TOLERANCE):
+    if not np.any(drop_negligible(shares - limits, 1.0) > 0.0):
         return shares, ""
 
     return _calculate_redistributed_shares(shares, limits), ""
@@ -341,7 +339,7 @@ def _calculate_redistributed_shares(
     saturated = np.zeros_like(shares, dtype=bool)
 
     for _ in range(shares.size):
-        over = (shares > limits + _SHARE_TOLERANCE) & ~saturated
+        over = (drop_negligible(shares - limits, 1.0) > 0.0) & ~saturated
         if not np.any(over):
             break
 
