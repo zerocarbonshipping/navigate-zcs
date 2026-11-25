@@ -9,7 +9,6 @@ import itertools
 from typing import TYPE_CHECKING
 
 from navigate.simulation.cohort import calculate_share_below
-from navigate.util import YEAR
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
@@ -27,14 +26,12 @@ def update_plant_ages(producer: Producer, time_step: float) -> None:
     producer
         Producer whose plants are aged.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     """
-    dt = time_step / YEAR
-
     for increments in itertools.chain(producer.increments, producer.pipeline):
         for increment in increments:
-            increment.age += dt
-            increment.decided += dt
+            increment.age += time_step
+            increment.decided += time_step
 
 
 def perform_decommissioning(producer: Producer) -> None:

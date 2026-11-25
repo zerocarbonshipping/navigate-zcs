@@ -14,17 +14,16 @@ import math
 import timeit
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from navigate.core.enum_ import SolverBackendID
 from navigate.output import SimulationResults, write_results
 from navigate.parser import Parser
 from navigate.simulation.time_stepping import Simulation
-from navigate.util import YEAR, timedelta_to_days
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
-
-    import numpy as np
 
 # the solver names run_deck takes, each with the backend it selects
 SOLVER_BACKENDS: dict[str, SolverBackendID] = {
@@ -98,7 +97,7 @@ def run_deck(
     simulation.initialize()
 
     for idx, date in enumerate(dates):
-        _log_time_step(idx, date, dates[0], start_time)
+        _log_time_step(idx, date, dates[0], simulation.timeline[idx], start_time)
         print(f"Date: {date}")
 
         inputs_changed = parser.read_events(date)
@@ -124,10 +123,14 @@ def run_deck(
 
 
 def _log_time_step(
-    idx: int, date: np.datetime64, start_date: np.datetime64, start_time: float
+    idx: int,
+    date: np.datetime64,
+    start_date: np.datetime64,
+    time: float,
+    start_time: float,
 ) -> None:
-    days_elapsed = timedelta_to_days(date - start_date)
-    years_elapsed = round(days_elapsed / YEAR)
+    days_elapsed = (date - start_date) / np.timedelta64(1, "D")
+    years_elapsed = round(time)
     wall_time = timeit.default_timer() - start_time
 
     logger.info(

@@ -74,7 +74,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to initialize.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     """
     idx = 0
 
@@ -345,7 +345,7 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to define the trade for.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     """
     idx = 0
     counts = get_counts(fleet)

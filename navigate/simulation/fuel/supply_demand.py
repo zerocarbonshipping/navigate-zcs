@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import YEAR, add_dicts, subtract
+from navigate.util import add_dicts, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -30,14 +30,13 @@ def calculate_development_potential(
     producer
         The producer.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
-    dt = time_step / YEAR
-    ramp_up = producer.maximum_ramp_up.get() * dt
+    ramp_up = producer.maximum_ramp_up.get() * time_step
     utilization = min(producer.current_utilization + ramp_up, 1.0)
-    development = producer.maximum_development.get() * dt * utilization
+    development = producer.maximum_development.get() * time_step * utilization
 
     potential = dict.fromkeys(producer.fuels, 0.0)
 

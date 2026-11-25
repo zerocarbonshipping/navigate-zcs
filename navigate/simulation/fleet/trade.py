@@ -29,7 +29,7 @@ from navigate.simulation.fleet.scrapping import perform_secondary_scrapping
 from navigate.simulation.fleet.technology_adoption import (
     reconcile_newbuild_technology_caps,
 )
-from navigate.util import YEAR, calculate_step_inertia, drop_negligible, subtract
+from navigate.util import calculate_step_inertia, drop_negligible, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -53,7 +53,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     fleet
         Fleet whose trade gap is closed.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
@@ -61,10 +61,9 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     trade_gap = float(subtract(trade, get_trade_capacity(fleet, idx)))
 
     # each vessel type's newbuild budget; the fleet count stands in for yard capacity
-    dt = time_step / YEAR
     total_count = get_total_count(fleet)
     limit_share = np.array([fleet.newbuild_limits[v.name].get() for v in fleet.vessels])
-    cap_count = limit_share * total_count * dt
+    cap_count = limit_share * total_count * time_step
 
     newbuilds, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
         fleet, trade_gap, cap_count, idx

@@ -38,7 +38,7 @@ def calculate_jurisdiction_fractions(
     routes
         All routes in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -85,7 +85,7 @@ def calculate_regulation_measures(
     vessels
         All vessels in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -113,7 +113,7 @@ def _calculate_vessel_measure(
     vessel
         Vessel whose measure is calculated.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
 
@@ -161,7 +161,7 @@ def _calculate_transport_measure(
         Cargo miles per leg over the remaining timeline, in the order of
         `Route.get_legs`.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
 

@@ -53,7 +53,7 @@ def calculate_policy_emission_coefficients(
     vessels
         All vessels in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -89,7 +89,7 @@ def _calculate_regulation(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -124,7 +124,7 @@ def _calculate_regulation_wtt(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -163,7 +163,7 @@ def _calculate_regulation_ttw(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -297,7 +297,7 @@ def _calculate_regulation_vessel_thresholds(
     regulation
         Regulation whose vessel thresholds are calculated.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -330,7 +330,7 @@ def _calculate_levy(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -358,7 +358,7 @@ def _calculate_levy_wtt(levy: Levy, times: FloatArray, idx: int) -> None:
     levy
         Levy whose WTT emission factors are calculated.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -397,7 +397,7 @@ def _calculate_levy_ttw(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -441,7 +441,7 @@ def _calculate_levy_costs(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -718,7 +718,7 @@ def _evaluate_supplied(
     supplied
         Policy's `fuel_wtt` or `fuel_ttw`, keyed by fuel and emission name.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
 
     Returns
     -------

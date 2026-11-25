@@ -42,7 +42,7 @@ def update_vessel_scarcity_beliefs(
     fleets
         All fleets in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """

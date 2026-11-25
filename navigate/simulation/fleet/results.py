@@ -14,7 +14,7 @@ from navigate.simulation.cohort import find_origin_index
 from navigate.simulation.fleet._composition import get_count
 from navigate.simulation.fleet._package import get_technologies_by_capex
 from navigate.simulation.fleet.power import get_total_power_capacity
-from navigate.util import YEAR, divide_nonzero, interpolate_yearly_flow
+from navigate.util import divide_nonzero, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -35,7 +35,7 @@ def record_fleet_results(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
     fleet
         Fleet whose results are recorded.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -59,13 +59,11 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     fleet
         Fleet whose increment expenses are transferred.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
     results = fleet.results
-    years = timeline / YEAR
-    current_year = years[idx]
 
     for vessel, increments in zip(fleet.vessels, fleet.increments, strict=True):
         expectation = vessel.expectation
@@ -76,7 +74,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
 
             # the increment bears the costs of a vessel that entered the fleet
             # 'age' years ago
-            origin = find_origin_index(years, current_year, age)
+            origin = find_origin_index(timeline, timeline[idx], age)
             tied_capital_flow = expectation.tied_capital[origin]
 
             asset_charter_rate = expectation.asset_charter_rate[origin]

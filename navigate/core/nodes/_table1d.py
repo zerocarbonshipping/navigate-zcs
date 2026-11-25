@@ -46,7 +46,7 @@ class _Table1D(_Calculator):
         self._table: interp1d
         self._fill_values: tuple[NumberInput, NumberInput] | None
         self._signs: FloatArray | None
-        # the first and last date of a dated table, whose 'x' counts days
+        # the first and last date of a dated table, its 'x' in years since the start
         self._x_dates: tuple[np.datetime64, np.datetime64] | None = None
 
     # external methods (DSL attributes) ------------------------------------------------

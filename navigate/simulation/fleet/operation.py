@@ -32,8 +32,8 @@ from navigate.core.wrap import to_floats
 from navigate.simulation.fleet._trip import derive_reference_trip, sum_per_leg
 from navigate.simulation.fleet.power import calculate_speed_limits
 from navigate.util import (
+    DAYS_PER_YEAR,
     HOUR_TO_DAY,
-    YEAR,
     divide_nonzero,
     power_to_energy,
     sum_per_key,
@@ -249,7 +249,7 @@ def _calculate_trip(operations: Operations, trip: ReferenceTrip) -> None:
 
     days_sea = np.sum(days_leg)
     days_port = np.sum(trip.port_days)
-    voyages = YEAR / (days_sea + days_port)
+    voyages = DAYS_PER_YEAR / (days_sea + days_port)
 
     operations.distribution = divide_nonzero(days_condition, days_sea)
     operations.distances = trip.leg_miles[legs] * mile_shares * voyages

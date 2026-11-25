@@ -18,7 +18,7 @@ from navigate.simulation.fleet.scrapping import (
     group_by_age,
     split_oldest_first,
 )
-from navigate.util import YEAR, divide_nonzero, subtract
+from navigate.util import divide_nonzero, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -195,7 +195,7 @@ def calculate_fleet_evolution_expectation(
     fleet
         Fleet whose expected evolution is calculated.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index, where the expectation starts.
     scrapping_pending
@@ -244,7 +244,7 @@ def _forecast_by_age(
     fleet
         Fleet whose evolution is forecast.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index, where the forecast starts.
     first_pending
@@ -276,7 +276,7 @@ def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> Flo
     fleet
         Fleet whose existing vessels are scrapped.
     times
-        Times of the horizon, from the current time-step on, in days.
+        Times of the horizon, from the current time-step on, in years.
     first_pending
         Step of the horizon from which the scrapping is still to run.
 
@@ -286,7 +286,7 @@ def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> Flo
         Number of vessels of each type (rows) over the horizon (columns).
     """
     existing = np.zeros((len(fleet.vessels), times.size))
-    years_ahead = (times - times[0]) / YEAR
+    years_ahead = times - times[0]
 
     for v, vessel in enumerate(fleet.vessels):
         lifetimes = vessel.lifetime.get(times)
@@ -330,7 +330,7 @@ def _forecast_at_fixed_rate(
     scrap_rate
         Share of the fleet's trade scrapped per year, fraction.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index, where the forecast starts.
     first_pending
@@ -360,7 +360,7 @@ def _forecast_at_fixed_rate(
 
         if is_pending:
             time_step = timeline[idx + k] - timeline[idx + k - 1]
-            target = rates[k] * time_step / YEAR * np.dot(counted, cargo_miles[k])
+            target = rates[k] * time_step * np.dot(counted, cargo_miles[k])
             grouped = _scrap_oldest_groups(grouped, cargo_miles[k], target)
 
         existing[k] = np.sum(grouped, axis=0)

@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.simulation.cohort import find_origin_indexes
 from navigate.simulation.fuel._profiles import iterate_increments
-from navigate.util import YEAR, interpolate_yearly_flow
+from navigate.util import interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -53,7 +53,7 @@ def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) 
     producer
         The producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -92,13 +92,11 @@ def _transfer_production_and_feed_mass(
     producer
         The producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
     results = producer.results
-    years = timeline / YEAR
-    current_year = years[idx]
 
     for plant, increments in zip(producer.plants, producer.increments, strict=True):
         if not increments:
@@ -106,7 +104,7 @@ def _transfer_production_and_feed_mass(
 
         decided = np.array([increment.decided for increment in increments])
         counts = np.array([increment.count for increment in increments])
-        origins = find_origin_indexes(years, current_year, decided)
+        origins = find_origin_indexes(timeline, timeline[idx], decided)
 
         production_per_plant = plant.expectation.production[origins]
         production = np.sum(production_per_plant * counts)
@@ -164,7 +162,7 @@ def _transfer_plant_tied_capital(
     producer
         The producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """

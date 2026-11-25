@@ -22,8 +22,8 @@ from navigate.simulation.fuel.feed import (
 )
 from navigate.util import (
     MWH_TO_GJ,
-    YEAR,
     divide_nonzero,
+    drop_negligible,
     slice_dict,
 )
 
@@ -51,7 +51,7 @@ def calculate_port_expectations(
     ports
         All ports in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -77,7 +77,7 @@ def calculate_export_expectations(
     ports
         All ports in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -147,7 +147,7 @@ def _calculate_export_expectation(
     allowed_ports
         Names of the ports allowing each fuel the producers make.
     times
-        Future times from the simulation timeline (timeline[idx:]), in days.
+        Future times from the simulation timeline (timeline[idx:]), in years.
     idx
         Current time-step index.
     """
@@ -253,7 +253,7 @@ def calculate_producer_evolution_expectation(
     producer
         The producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     planning_pending
@@ -349,7 +349,7 @@ def _calculate_cohort_production(
     mix
         Production mix the increments are added to.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -364,8 +364,12 @@ def _calculate_cohort_production(
 
     for p, plant, increment, origin in increments:
         production = plant.expectation.production[origin]
-        decision = times[0] - increment.decided * YEAR
         lifetime = plant.lifetime.get()
+
+        # a decision a rounding remainder off its time-step lies on it, so that an
+        # attribute that changes at that date reads its new value
+        offset = times[0] - increment.decided - timeline[origin]
+        decision = timeline[origin] + float(drop_negligible(offset, times[0]))
         lifetime_then = plant.lifetime.get(decision)
 
         profile = calculate_cohort_running(increment, production, lifetime, times)
@@ -402,7 +406,7 @@ def _calculate_newbuild_production(
         Production of each plant from its existing and pipeline increments at each of
         the times from idx on, in tons/year.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     first_pending
@@ -453,15 +457,14 @@ def _calculate_newbuild_production(
         time = times[t]
         origin = idx + t
         time_step = timeline[origin] - timeline[origin - 1]
-        dt = time_step / YEAR
 
         # the utilization is only accounted for if the model is ramp-up
         # constrained; otherwise the model cannot increase the utilization over
         # time when the demand equals the supply
-        ramp_up = producer.maximum_ramp_up.get(time) * dt
+        ramp_up = producer.maximum_ramp_up.get(time) * time_step
         utilization = min(utilization + ramp_up, 1.0)
 
-        development = utilization * producer.maximum_development.get(time) * dt
+        development = utilization * producer.maximum_development.get(time) * time_step
 
         # the production of a plant is locked when it is decided, not when it is
         # delivered, so it is read at time 't'
@@ -469,7 +472,7 @@ def _calculate_newbuild_production(
         fuel_gaps = np.zeros(len(plants))
 
         for p, plant in enumerate(plants):
-            delivery = time + plant.lead_time.get(time) * YEAR
+            delivery = time + plant.lead_time.get(time)
             fuel_gaps[p] = max(np.interp(delivery, times, gaps[fuel_idx[p]]), 0.0)
 
         # as in planning, a fuel's gap is filled at its plant types' split, so it is

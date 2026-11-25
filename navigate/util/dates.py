@@ -1,18 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Calendar constants and converters from numpy dates to float day and year axes."""
+"""The converter from numpy dates to calendar years, and the average days per year."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeIs, overload
+from typing import TYPE_CHECKING, TypeIs
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from navigate.util.types_ import DateArray, FloatArray, FloatLike, TimedeltaArray
+    from navigate.util.types_ import DateArray, FloatArray
 
-YEAR = 365.25  # calendar year in days
+# average days in a year, for a physical rate given per day; never calendar arithmetic
+DAYS_PER_YEAR = 365.25
 
 
 def is_date_array(values: FloatArray | DateArray) -> TypeIs[DateArray]:
@@ -32,61 +33,41 @@ def is_date_array(values: FloatArray | DateArray) -> TypeIs[DateArray]:
     return np.issubdtype(values.dtype, np.datetime64)
 
 
-@overload
-def timedelta_to_days(delta: np.timedelta64) -> float: ...
-
-
-@overload
-def timedelta_to_days(delta: TimedeltaArray) -> FloatArray: ...
-
-
-def timedelta_to_days(delta: np.timedelta64 | TimedeltaArray) -> FloatLike:
+def dates_to_years(dates: DateArray, origin: np.datetime64) -> FloatArray:
     """
-    Convert a timedelta to days.
+    Convert dates to calendar years since an origin.
 
-    Parameters
-    ----------
-    delta
-        Difference between two dates, scalar or array.
-
-    Returns
-    -------
-    FloatLike
-        Timedelta in days, mirroring the input's scalar- or arrayness.
-    """
-    return delta / np.timedelta64(1, "D")
-
-
-def dates_to_days(dates: DateArray) -> FloatArray:
-    """
-    Convert a numpy date array to an array of days.
+    A date counts as its year plus the fraction of that year passed before it, so
+    1 January is a whole year and every calendar year, leap or not, is one year long.
 
     Parameters
     ----------
     dates
-        Array of dates in numpy ``datetime64[D]`` format.
+        Dates in numpy ``datetime64`` format.
+    origin
+        Date counted as zero.
 
     Returns
     -------
     FloatArray
-        Days since the first date.
+        Calendar years since the origin.
     """
-    deltas: TimedeltaArray = dates - dates[0]
-    return timedelta_to_days(deltas)
+    years, fractions = _split_years(dates)
+    origin_years, origin_fractions = _split_years(np.array([origin]))
+
+    # whole and fractional years are subtracted apart, so whole years stay exact
+    return (years - origin_years) + (fractions - origin_fractions)
 
 
-def dates_to_years(dates: DateArray) -> FloatArray:
+def _split_years(dates: DateArray) -> tuple[FloatArray, FloatArray]:
     """
-    Convert a numpy date array to an array of years.
+    Split dates into their calendar year and the fraction of that year before them.
 
-    Parameters
-    ----------
-    dates
-        Array of dates in numpy ``datetime64[D]`` format.
-
-    Returns
-    -------
-    FloatArray
-        Years since the first date.
+    The years count from 1970, numpy's epoch, which cancels in the differences that
+    ``dates_to_years`` takes.
     """
-    return dates_to_days(dates) / YEAR
+    years = dates.astype("datetime64[Y]")
+    starts = years.astype("datetime64[D]")
+    ends = (years + np.timedelta64(1, "Y")).astype("datetime64[D]")
+
+    return years.astype(float), (dates - starts) / (ends - starts)

@@ -25,13 +25,7 @@ from navigate.util.collections import (
     sum_values,
     unique_list,
 )
-from navigate.util.dates import (
-    YEAR,
-    dates_to_days,
-    dates_to_years,
-    is_date_array,
-    timedelta_to_days,
-)
+from navigate.util.dates import DAYS_PER_YEAR, dates_to_years, is_date_array
 from navigate.util.naming import (
     attribute_to_instance_name,
     attribute_to_setter,

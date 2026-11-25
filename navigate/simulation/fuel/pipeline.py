@@ -23,7 +23,6 @@ from navigate.simulation.fuel.feed import (
     calculate_feed_spends,
 )
 from navigate.util import (
-    YEAR,
     calculate_step_inertia,
     divide_nonzero,
     drop_negligible,
@@ -41,7 +40,7 @@ def perform_pipeline_delivery(producer: Producer) -> None:
     Deliver plants from the pipeline that have passed their lead time.
 
     Pipeline increments use negative ages (time since delivery, negative = not yet
-    delivered). After aging with += dt, an increment whose age reaches zero, to
+    delivered). After aging by the time step, an increment whose age reaches zero, to
     rounding, transfers whole to active production without sign-flipping, and one
     whose age span reaches past zero is split.
 
@@ -102,15 +101,14 @@ def perform_pipeline_planning(
     producer
         The producer to plan for.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
-    dt = time_step / YEAR
-    limit = producer.maximum_development.get() * dt
-    ramp_up = producer.maximum_ramp_up.get() * dt
+    limit = producer.maximum_development.get() * time_step
+    ramp_up = producer.maximum_ramp_up.get() * time_step
     offtake_duration = producer.minimum_offtake_duration.get()
 
     inertia = _calculate_inertia_newbuilds(producer, limit, time_step, idx)
@@ -145,7 +143,9 @@ def perform_pipeline_planning(
 
         age = -plant.lead_time.get()
         index = find_insertion_index(pipeline, age)
-        increment = PlantIncrement(count=count, age=age, age_span=dt, decided=0.0)
+        increment = PlantIncrement(
+            count=count, age=age, age_span=time_step, decided=0.0
+        )
         pipeline.insert(index, increment)
 
     total = np.sum(newbuilds)
@@ -173,7 +173,7 @@ def _calculate_inertia_newbuilds(
     limit
         Number of plants the producer may build over the time step.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
 
@@ -352,7 +352,7 @@ def _calculate_inter_fuel_metric(
     offtake_duration
         The minimum duration of offtake to justify building a plant, in years.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """

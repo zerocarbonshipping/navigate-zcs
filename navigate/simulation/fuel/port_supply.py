@@ -50,7 +50,7 @@ def calculate_fuel_import_to_ports(
     fuels
         All fuels in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -92,7 +92,7 @@ def _calculate_import_from_liquid_market(
     fuels
         All fuels in the simulation which belong to a liquid market.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -144,7 +144,7 @@ def _calculate_import_from_producers(
     fuels
         All fuels in the simulation which do not belong to a liquid market.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -214,7 +214,7 @@ def _calculate_import_totals(
     fuels
         All fuels in the simulation which do not belong to a liquid market.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 

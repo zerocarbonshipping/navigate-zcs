@@ -47,7 +47,7 @@ from navigate.simulation.fleet._package import (
     update_packages,
 )
 from navigate.simulation.fleet._trip import bind_conditions_to_legs
-from navigate.util import YEAR, divide_nonzero, drop_negligible, snap_to_whole
+from navigate.util import divide_nonzero, drop_negligible, snap_to_whole
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -232,9 +232,9 @@ def perform_technology_installation(
     fleet
         Fleet whose vessels install technologies.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
@@ -288,7 +288,7 @@ def _extract_adoption_basis(
     sensitivity
         Odds ratio of the adoption choice.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -332,7 +332,7 @@ def _calculate_packages_saving(
     packages
         All technology packages.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -408,7 +408,7 @@ def _propose_retrofits(
     basis
         Per-vessel invariants of the adoption pass.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
 
     Returns
     -------
@@ -456,7 +456,7 @@ def _retrofit_cohorts(
     basis
         Per-vessel invariants of the adoption pass.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
 
     Yields
     ------
@@ -466,10 +466,9 @@ def _retrofit_cohorts(
     """
     packages = fleet.technology_packages
     frequency = fleet.retrofit_frequency.get()
-    dt = time_step / YEAR
 
     for increment in fleet.increments[basis.vessel_idx]:
-        if not is_retrofit_cycle(increment.age, frequency, dt):
+        if not is_retrofit_cycle(increment.age, frequency, time_step):
             continue
 
         remaining = _get_remaining_lifetime(basis.vessel, increment)
@@ -499,7 +498,7 @@ def _reconcile_retrofit_technology_caps(
     Scale the proposals' retrofit `choices` to the per-technology caps.
 
     For every technology, the retrofits adopting it this time-step must not exceed
-    `limit * total_count * time_step / YEAR`. The cap aggregate weights each
+    `limit * total_count * time_step`. The cap aggregate weights each
     proposal's tail sum by its `eligible_count`, the count `_apply_retrofits` will
     produce, and the displaced share moves to the stay option (see
     `_scale_tails_to_cap`).
@@ -517,7 +516,7 @@ def _reconcile_retrofit_technology_caps(
         Output of `_propose_retrofits`; each proposal's `choices` is rescaled in place
         when a technology it covers has a binding cap.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     total_count
         Number of vessels in the fleet before newbuilds.
     """
@@ -541,7 +540,7 @@ def reconcile_newbuild_technology_caps(
     Scale `fleet.newbuild_package_uptake` to the per-technology caps.
 
     For every technology, the newbuild installs of it this time-step must not exceed
-    `limit * total_count * time_step / YEAR`. The technologies run from outermost to
+    `limit * total_count * time_step`. The technologies run from outermost to
     innermost in the CAPEX-sorted package order, as in the retrofit reconciliation,
     and the displaced share moves to the no-technology package (see
     `_scale_tails_to_cap`), so each vessel's uptake still sums to 1.
@@ -554,7 +553,7 @@ def reconcile_newbuild_technology_caps(
         Newbuilds of each vessel type this time-step, in vessels; they weight each
         vessel's contribution to the cap aggregate.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     total_count
         Number of vessels in the fleet before newbuilds.
     """
@@ -592,7 +591,7 @@ def _technology_caps(
     limits
         Yearly cap of each technology as a share of the fleet, fraction.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     total_count
         Number of vessels in the fleet before newbuilds.
 
@@ -605,9 +604,8 @@ def _technology_caps(
     if total_count <= 0.0:
         return
 
-    dt = time_step / YEAR
     technologies = get_technologies_by_capex(fleet.technology_packages)
-    budget = total_count * dt
+    budget = total_count * time_step
 
     for i in reversed(range(len(technologies))):
         yield i, limits[technologies[i].name].get() * budget
@@ -686,8 +684,7 @@ def _transfer_retrofit_uptake(
 
     The stored value, laid out as the fleet results' technology uptake, is the share
     of the vessel type's existing fleet that retrofitted to the technology this
-    time-step, directly comparable to `set_retrofit_technology_limit * time_step /
-    YEAR`.
+    time-step, directly comparable to `set_retrofit_technology_limit * time_step`.
 
     Parameters
     ----------

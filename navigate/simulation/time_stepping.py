@@ -101,7 +101,7 @@ from navigate.simulation.policy import (
     record_regulation_results,
     update_regulation_flexibility_beliefs,
 )
-from navigate.util import YEAR, Timings, dates_to_days, timed
+from navigate.util import Timings, dates_to_years, step_lengths, timed
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -160,11 +160,13 @@ class Simulation:
         self.general_nodes: GeneralNodes = general_nodes
         self._infeasible_lp_file: Path = infeasible_lp_file
 
-        # the simulation's dates, and the elapsed time in days since the start date
+        # the simulation's dates, the elapsed time in years since the start date, and
+        # the size in years of the time step ending at each date
         self.dateline: DateArray = dateline
-        self.timeline: FloatArray = dates_to_days(self.dateline)
+        self.timeline: FloatArray = dates_to_years(self.dateline, self.dateline[0])
+        self._step_lengths: FloatArray = step_lengths(self.timeline)
 
-        # the index of the current time step, and its size in days
+        # the index of the current time step, and its size in years
         self._idx: int = 0
         self._time_step: float
 
@@ -202,7 +204,7 @@ class Simulation:
             Whether the date's events changed the deck's inputs.
         """
         with self.timings.step(self._idx, TimingID.OTHER):
-            self._time_step = self._time_step_at(self._idx)
+            self._time_step = self._step_lengths[self._idx]
             self._perform_time_step(inputs_changed)
 
         self._idx += 1
@@ -288,7 +290,7 @@ class Simulation:
         nodes = self.nodes
 
         context = ResultsContext.from_nodes(
-            self.timeline / YEAR,
+            self.timeline,
             nodes.fuels,
             nodes.emissions,
             self.general_nodes.model_definition.emissions_lifetime,
@@ -346,15 +348,6 @@ class Simulation:
             infeasible_lp_file=self._infeasible_lp_file,
             timings=self.timings,
         )
-
-    def _time_step_at(self, idx: int) -> float:
-        """Return the size of the time step ending at a date, in days."""
-        # the first time step has no preceding date, so its size is taken as one year
-        if idx == 0:
-            return YEAR
-
-        time_step: float = self.timeline[idx] - self.timeline[idx - 1]
-        return time_step
 
     def _perform_time_step(self, inputs_changed: bool) -> None:
         is_first_step = self._idx == 0
@@ -683,7 +676,7 @@ class Simulation:
         inputs after the first solve.
         """
         time = self.timeline[idx]
-        time_step = self._time_step_at(idx)
+        time_step = self._step_lengths[idx]
 
         bunker.build(self._idx, idx, time, time_step)
         bunker.solve()

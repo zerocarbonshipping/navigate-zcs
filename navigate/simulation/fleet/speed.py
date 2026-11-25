@@ -32,7 +32,6 @@ from navigate.simulation.fleet.power import (
     calculate_speed_limits,
     loads_are_convex,
 )
-from navigate.util import YEAR
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -92,7 +91,7 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     fleet
         Fleet for which speed management is performed.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
@@ -107,7 +106,7 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
             result.mu_optimal = _anchor_speed(result)
 
     mu_targets = _align_speeds(fleet, [result.mu_optimal for result in results])
-    maximum_change = fleet.maximum_speed_change.get() * time_step / YEAR
+    maximum_change = fleet.maximum_speed_change.get() * time_step
 
     for result, mu_target in zip(results, mu_targets, strict=True):
         _finalize_vessel_speed(result, mu_target, maximum_change, idx)

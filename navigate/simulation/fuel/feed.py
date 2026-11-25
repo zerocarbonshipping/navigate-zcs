@@ -15,7 +15,7 @@ from navigate.simulation.fuel._profiles import (
     calculate_cohort_reserved,
     iterate_increments,
 )
-from navigate.util import YEAR, divide_nonzero, drop_negligible
+from navigate.util import divide_nonzero, drop_negligible
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
@@ -39,7 +39,7 @@ def calculate_feed_availability(
     producer
         The producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -65,12 +65,12 @@ def calculate_feed_delivery(
     feed_name
         Name of the feed.
     times
-        Times the plants are decided at, in days.
+        Times the plants are decided at, in years.
 
     Returns
     -------
     FloatArray | None
-        Delivery of a plant decided at each of the times, in days; None where no
+        Delivery of a plant decided at each of the times, in years; None where no
         plant uses the feed.
     """
     expectation = producer.expectation
@@ -83,7 +83,7 @@ def calculate_feed_delivery(
     if not lead_times:
         return None
 
-    delivery: FloatArray = times + np.min(lead_times, axis=0) * YEAR
+    delivery: FloatArray = times + np.min(lead_times, axis=0)
     return delivery
 
 
@@ -238,7 +238,7 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
     producer
         The producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -293,9 +293,9 @@ def _calculate_cohort_feed(
     feed_name
         Name of the feed.
     times
-        Times the profile is evaluated at, in days.
+        Times the profile is evaluated at, in years.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 

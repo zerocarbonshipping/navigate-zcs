@@ -45,8 +45,9 @@ attributes of each kind are listed under [Results](#results).
 Values are per year where the unit says so. The results that count what
 happened in a time step, `newbuilds`, `scrap`, `fuel_conversions`,
 `newbuild_power`, `scrapped_power`, `fuel_converted_power`, `development` and
-`computational_time`, are divided by the length of the step in years of 365.25
-days, the first step counting as one year.
+`computational_time`, are divided by the length of the step: the difference of
+its dates in calendar years, so a step from 1 January to 1 January is one year,
+leap year or not. The first step counts as one year.
 
 Money is in the deck's [Currency](model_definition.md#currency). The tables
 below write it `currency`; the file's `units` name the currency itself, such as
