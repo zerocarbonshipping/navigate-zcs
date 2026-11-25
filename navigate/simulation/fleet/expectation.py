@@ -18,7 +18,7 @@ from navigate.simulation.fleet.scrapping import (
     group_by_age,
     split_oldest_first,
 )
-from navigate.util import YEAR, divide_nonzero, drop_negligible
+from navigate.util import YEAR, divide_nonzero, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -455,7 +455,7 @@ def _gap_newbuilds(
     """
     # the vessel counts become cargo-miles to take the speed expectations into account
     capacity = np.sum(existing * cargo_miles, axis=0)
-    gap = drop_negligible(trade - capacity, trade)
+    gap = subtract(trade, capacity)
 
     # a gap turned negative by falling trade is truncated to zero, which leaves more
     # vessels than trade; where secondary scrapping is allowed this overestimates the

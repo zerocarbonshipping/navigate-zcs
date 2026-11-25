@@ -261,26 +261,40 @@ its section layout; the rules below cover the content.
 - A test that decides what to skip, include, count or normalise treats a
   computed float that is zero in substance as exactly zero, whatever its
   operator: a sign test (`> 0.0`) lets a residual through as surely as
-  `== 0.0`. A remainder of floating-point arithmetic is zero within
-  `RELATIVE_TOLERANCE` (`navigate/util/numeric.py`) of its scale, the
-  magnitude of what it was computed from: the trade for a trade gap, the
-  fleet's total for a vessel type's count. A value an LP returns, and a
-  difference of quantities an LP makes equal, is zero within the solver's
-  tolerance (`BunkerOptions.solution_tolerance`) in the quantity's units; for
-  a pool's non-compliance against its remedial units, that is the tolerance
-  times the non-compliant vessels' counts. Never test against a fixed absolute
-  amount, which is a residual in one deck and a real value in another. Drop a
-  residual where it arises, so the tests downstream read an exact zero: a
-  difference through `subtract`, against the larger operand and, where an LP
-  made the operands equal, its noise as `tolerance`, or through
-  `drop_negligible` against another scale
-  (`drop_negligible(trade - capacity, trade)`). Test a one-sided bound by its
-  dropped excess, `drop_negligible(energy - limit, limit) > 0.0`, not by
-  widening the bound. Elsewhere, test with `is_negligible`. A sign or exact
-  test stays on a value whose residual was dropped, where its branches agree
-  at zero (`max(gap, 0.0)`), in a guard that only protects an operation
-  undefined at zero, such as a division, against an assigned value (a
-  default, a sentinel, a deck input), and on a value rounded to `ROUND_OFF`.
+  `== 0.0`. Drop the residual where it arises, so the tests downstream read an
+  exact zero, and where a test elsewhere relies on that, say so where the value
+  is produced. Zero in substance is one of three things, each with its own
+  scale, and never a fixed absolute amount, which is a residual in one deck and
+  a real value in another:
+  - A remainder of floating-point arithmetic, within `RELATIVE_TOLERANCE`
+    (`navigate/util/numeric.py`) of the operands: take the difference through
+    `subtract`, which scales by the larger. Where the operands no longer carry
+    the magnitude the value came from, `drop_negligible` takes that magnitude
+    instead: a difference of an earlier difference keeps that one's scale (the
+    trade, for the gap the orderbook leaves), an age boundary the ends of its
+    interval, an interpolation the interpolated magnitude, a share 1, and an
+    operand that may be infinite gives way to the finite one.
+  - The noise of an LP: a value an LP returns is zero below the solver's
+    tolerance (`BunkerOptions.solution_tolerance`), and a difference of
+    quantities that LP rows make equal is zero within that tolerance carried
+    into the quantity's units through the rows' coefficients, passed to
+    `subtract` as `tolerance`: a pool's non-compliance against its remedial
+    units, or a port's supply against what the vessels bunker under their
+    fair-share rows. Quantities no row makes equal, such as a vessel's
+    emissions and its allowance, get the relative test alone.
+  - A count too small to be a vessel or a plant: within `RELATIVE_TOLERANCE`
+    of its population, the fleet's or the producer's count with the newbuilds,
+    whether a rounding residue or the tail of a logit. This is the model's
+    resolution of a population, not rounding; `is_in_service` decides it for
+    the vessel types of a fleet.
+
+  Test a one-sided bound by its dropped excess,
+  `drop_negligible(energy - limit, limit) > 0.0`, not by widening the bound.
+  Elsewhere, test with `is_negligible`. A sign or exact test stays on a value
+  whose residual was dropped, where its branches agree at zero
+  (`max(gap, 0.0)`), in a guard that only protects an operation undefined at
+  zero, such as a division, against an assigned value (a default, a sentinel,
+  a deck input), and on a value rounded to `ROUND_OFF`.
 
 ## Validation and dynamic access
 

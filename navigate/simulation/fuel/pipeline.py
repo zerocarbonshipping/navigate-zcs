@@ -128,10 +128,13 @@ def perform_pipeline_planning(
     development = float(subtract(limit * utilization, np.sum(inertia)))
     modelled = _calculate_modelled_newbuilds(producer, inertia, development, idx)
 
-    # a count negligible against the step's total is no plant, whether a rounding
-    # residue or the tail of a logit, so no cohort is built from it
+    # a count negligible against the producer's plants, operating or in the pipeline,
+    # is no plant, whether a rounding residue or the tail of a logit, so no cohort is
+    # built from it
+    groups = [*producer.increments, *producer.pipeline]
+    stock = sum(increment.count for group in groups for increment in group)
     newbuilds = inertia + modelled
-    newbuilds = drop_negligible(newbuilds, np.sum(newbuilds))
+    newbuilds = drop_negligible(newbuilds, stock + np.sum(newbuilds))
 
     # the new plants enter the pipeline one lead time ahead of delivery
     additions = zip(producer.plants, producer.pipeline, newbuilds, strict=True)
