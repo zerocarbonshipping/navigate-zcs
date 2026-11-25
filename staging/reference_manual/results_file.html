@@ -500,7 +500,7 @@ the fuel and emission constants the results were converted with, which the
 <section id="table">
 <h2>Table<a class="headerlink" href="#table" title="Link to this heading">#</a></h2>
 <p>The table is long: one row per series and date. A series whose values are all
-below 1e-5 in magnitude or missing is left out.</p>
+zero or missing is left out.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Column</p></th>
@@ -648,8 +648,8 @@ kinds describes the attribute in each of them.</p>
 kind holds one per node of that type in the run. That means every Fleet,
 Vessel, Port, Plant, Producer, Regulation and Levy the deck uses, including
 those it loads from the assumptions library.</p>
-<p>A series is written only when some date of it holds a value of at least 1e-5
-in magnitude. The <em>Present when</em> column says what a run needs for that. If the
+<p>A series is written only when some date of it holds a value other than zero.
+The <em>Present when</em> column says what a run needs for that. If the
 run doesn’t meet it, the series is left out of the file, so filtering for it
 returns no rows. A series that is in the file can still be missing at some
 dates, as that column says.</p>
