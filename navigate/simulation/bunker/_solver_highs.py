@@ -270,32 +270,11 @@ class HighsModel:
         """
         Solve the linear program and select one of its optimal solutions.
 
-        When rows or columns were added since the last solve, the first run is
-        interior point with crossover. When only data changed, it is dual simplex
-        from the basis of the last solve, which needs few pivots, and interior point
-        after it where it ends non-optimal. Where the first run ends optimal, the
-        selection makes its runs.
+        The selection makes the first run (``_run_first``) and, where it ends
+        optimal, its own runs.
         """
         self._flush_pending()
-        basis = self._selection.basis
-
-        if self._model_grew or basis is None:
-            self._set_strategy(_INTERIOR_POINT)
-            self._highs.run()
-            self._model_grew = False
-        else:
-            self._set_strategy(_DUAL_SIMPLEX)
-            self.set_basis(basis)
-            self._highs.run()
-
-            if self._highs.getModelStatus() != HighsModelStatus.kOptimal:
-                self._set_strategy(_INTERIOR_POINT)
-                self._highs.run()
-
-        self._status = self._highs.getModelStatus()
-
-        if self._status == HighsModelStatus.kOptimal:
-            self._selection.select(self)
+        self._selection.solve(self, self._run_first)
 
     @property
     def status(self) -> SolveStatusID:
@@ -309,6 +288,10 @@ class HighsModel:
     def dual(self, constraint: Constraint) -> float:
         """Return the dual value of a priced constraint at the last solution."""
         return self._selection.dual(constraint)
+
+    def binds(self, constraint: Constraint) -> bool:
+        """Return whether a priced constraint binds at the last solution."""
+        return self._selection.binds(constraint)
 
     def rhs(self, constraint: Constraint) -> float:
         """Return the right-hand side of a constraint."""
@@ -434,8 +417,8 @@ class HighsModel:
 
         Only the costs and bounds that differ from those HiGHS holds are passed to
         it: a change of them all takes HiGHS about as long as a run without pivots.
-        HiGHS holds those ``program`` read at the start of the selection, or those
-        of the program set since: nothing else changes them while a selection runs.
+        HiGHS holds those ``program`` read at the start of the solve, or those of
+        the program set since: nothing else changes them while a solve runs.
         """
         held = self._program
         highs = self._highs
@@ -490,6 +473,34 @@ class HighsModel:
     def basis(self) -> highspy.HighsBasis:
         """Return the basis of the last run."""
         return self._highs.getBasis()
+
+    def _run_first(self) -> bool:
+        """
+        Make the first run of a solve and return whether it ended optimal.
+
+        When rows or columns were added since the last solve, the run is interior
+        point with crossover. When only data changed, it is dual simplex from the
+        basis of the last solve, which needs few pivots, and interior point after
+        it where it ends non-optimal.
+        """
+        basis = self._selection.basis
+
+        if self._model_grew or basis is None:
+            self._set_strategy(_INTERIOR_POINT)
+            self._highs.run()
+            self._model_grew = False
+        else:
+            self._set_strategy(_DUAL_SIMPLEX)
+            self.set_basis(basis)
+            self._highs.run()
+
+            if self._highs.getModelStatus() != HighsModelStatus.kOptimal:
+                self._set_strategy(_INTERIOR_POINT)
+                self._highs.run()
+
+        self._status = self._highs.getModelStatus()
+
+        return self._status == HighsModelStatus.kOptimal
 
     def _pass_names(self) -> None:
         """Pass HiGHS the column and row names, which an IIS and a file take from it."""

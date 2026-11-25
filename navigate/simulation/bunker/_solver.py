@@ -169,6 +169,10 @@ class Model(Protocol):
         method's or that of the order the model was built in. Where they do not,
         or a run of the selection does not end optimal, the solver chooses among
         the optimal ones (``_selection``).
+
+        The runs see the costs scaled by a power of two (``_selection``,
+        Precision); after them the model holds the costs as set, and ``dual``
+        returns duals of those.
         """
 
     @property
@@ -187,6 +191,14 @@ class Model(Protocol):
         ones that are largest along one direction, in which all their right-hand
         sides move together. Where several are, or the run along that direction
         does not end optimal, the solver chooses among them (``_selection``).
+        """
+
+    def binds(self, constraint: Constraint) -> bool:
+        """
+        Return whether a priced constraint binds at the last solution.
+
+        It binds where its dual is non-zero at the tolerance of the model, which
+        applies to the scaled costs, not to ``dual`` (``_selection``, Precision).
         """
 
     def rhs(self, constraint: Constraint) -> float:

@@ -76,6 +76,11 @@ change.
   and some cohorts are now offered technology retrofits and fuel conversions
   one step later than before; in `example_1` the cumulative well-to-wake
   emissions fall by 0.2% (#974).
+- `SolutionTolerance` applies to costs relative to the largest cost of the
+  bunkering problem rather than in currency, so in decks with large fleets or
+  high prices the solver's rounding no longer decides which solutions count as
+  equally cheap. The results of the example decks and of the reference
+  scenario `basecase_strong_regulation` are unchanged (#953).
 - Building Navigate from source, as `pip install` of a checkout does, needs
   setuptools 77 or later; pip fetches it unless run with `--no-build-isolation`.
 - The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of
