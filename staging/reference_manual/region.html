@@ -513,7 +513,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="set-process-capex">
 <span id="set_process_capex"></span><h3>set_process_capex<a class="headerlink" href="#set-process-capex" title="Link to this heading">#</a></h3>
-<p>This command sets the CAPEX associated with a production process in currency/ton.</p>
+<p>This command sets the CAPEX associated with a production process in currency per ton/year of capacity. It is paid on the capacity of the process, the plant’s capacity scaled by the mass of the process output per mass of fuel, whatever the plant’s <a class="reference internal" href="plant.html#uptime"><span class="std std-ref">Uptime</span></a>. A <code class="docutils literal notranslate"><span class="pre">Timetable</span></code> takes that capacity in tons/day as its y-value.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Timetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -523,14 +523,14 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;process_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: currency/ton</p></li>
+<li><p><strong>Unit</strong>: currency/(ton/year)</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="set-process-opex">
 <span id="set_process_opex"></span><h3>set_process_opex<a class="headerlink" href="#set-process-opex" title="Link to this heading">#</a></h3>
-<p>This command sets the OPEX associated with a production process in currency/ton/year. Negative values are allowed, so that revenue from byproducts can be subtracted from the costs.</p>
+<p>This command sets the fixed OPEX associated with a production process in currency per ton/year of capacity, per year. Like the CAPEX, it is paid on the capacity of the process whatever the plant’s <a class="reference internal" href="plant.html#uptime"><span class="std std-ref">Uptime</span></a>, so a cost or revenue per ton produced enters it multiplied by the uptime. Negative values are allowed, so that revenue from byproducts can be subtracted from the costs.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Timetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -540,7 +540,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;process_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: currency/ton/year</p></li>
+<li><p><strong>Unit</strong>: currency/(ton/year)/year</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>

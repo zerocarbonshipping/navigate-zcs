@@ -557,6 +557,7 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <section id="uptime">
 <h3>Uptime<a class="headerlink" href="#uptime" title="Link to this heading">#</a></h3>
 <p>This attribute sets the production uptime of the plant in time/time.</p>
+<p>The uptime scales the plant’s production, and with it the costs and WTT emissions that follow the amount produced: energy, feedstock, transport and the process WTT. The process CAPEX and fixed OPEX are paid on the capacity, so a lower uptime spreads them over fewer tons, which raises the levelized cost of production where they are positive.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
