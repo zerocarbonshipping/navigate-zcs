@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# BASECASE_NO_REGULATION - simulations/scenarios/basecase_no_regulation, on the coarse grid
-# (--set GRID=coarse) or year by year (--set GRID=yearly), with Session 2's
-# levers as %NAME% placeholders: every multiplier and switch at 1 gives the
-# scenario itself.
+# BASECASE_NO_REGULATION - basecase_no_regulation.nav with Session 2's levers
+# as %NAME% placeholders: run it with navigate --set NAME=VALUE, or through
+# Horizon with levers.hor. Every multiplier at 1 and every switch at 0 gives
+# the scenario.
 
 DEFINE {
     Load DefaultModelDefinition
@@ -30,6 +30,9 @@ DEFINE {
 
     # levers
     Include "includes/levers.inc"
+
+    # the switch, 0 or 1, picks a file
+    Include "includes/freeze_efficiency_%FREEZE_EFFICIENCY%.inc"
 }
 
 EVENTS {

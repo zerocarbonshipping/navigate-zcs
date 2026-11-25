@@ -4,20 +4,34 @@
 # The plots Session 2 draws with Lantern, which reads this catalogue when it is
 # started in this folder. The entries follow Lantern's own plots.yaml.
 
-# the runs the notebook writes: STEP 3's reference scenarios, on either time grid,
-# take the colours of Lantern's own catalogue; STEP 4's runs show under their own names
+# the runs the notebook writes: STEP 3's reference scenarios take the colours of
+# Lantern's own catalogue; STEP 4's scenarios show under their own names
 customize_runs:
   basecase_no_regulation:     {name: no regulation, color: yellow_5}
   basecase_mid_regulation:    {name: mid regulation, color: blue_5}
   basecase_strong_regulation: {name: strong regulation, color: green_5}
   business_as_usual:          {name: business as usual, color: black_5}
   your_scenario:              {name: your scenario, color: blue_8}
+  levers:                     {name: study, color: blue_8}
 
 session:
   emissions:
     title: Well-to-wake emissions
     total: true
     series: global.total_equivalent_wtw
+
+  # a panel per regulation: its limit, dashed, and the intensity the ships it
+  # polices reached; STEP 3 draws the global fuel standard's, gfs in the deck
+  intensity_limit:
+    title: Intensity limit
+    unit: gCO2eq/MJ
+    panels: node
+    layers:
+      - series: regulation.shared_threshold
+        label: limit
+        line: dash
+      - series: regulation.shared_compliance
+        label: ships
 
   fuel_consumed:
     title: Fuel consumed
