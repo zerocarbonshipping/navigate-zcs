@@ -4,8 +4,8 @@
 """
 Numeric helpers.
 
-Negligible values, safe division, step lengths, monotonicity tests, interpolation,
-index lookup, growth and smoothing.
+Negligible values, whole-number snapping, safe division, step lengths, monotonicity
+tests, interpolation, index lookup, growth and smoothing.
 """
 
 from __future__ import annotations
@@ -21,8 +21,6 @@ if TYPE_CHECKING:
     import numpy.typing as npt
 
     from navigate.util.types_ import BoolArray, FloatArray, IntArray
-
-ROUND_OFF = 5  # decimals
 
 # a remainder of floating-point arithmetic lies within this fraction of its scale:
 # cancellation leaves about 1e-16 to 1e-15 of the operands, while real values lie
@@ -102,6 +100,27 @@ def subtract(
 
     is_equal = is_negligible(difference, scale) | (np.abs(difference) <= tolerance)
     return np.where(is_equal, 0.0, difference)
+
+
+def snap_to_whole(value: float, scale: float) -> float:
+    """
+    Snap a value to the nearest whole number where it lies a negligible distance off.
+
+    Parameters
+    ----------
+    value
+        Value to snap, finite.
+    scale
+        Magnitude of what the value was computed from, as for ``is_negligible``.
+
+    Returns
+    -------
+    float
+        The nearest whole number where the value's distance from it is negligible
+        against the scale, the value elsewhere.
+    """
+    whole = round(value)
+    return whole + float(drop_negligible(value - whole, scale))
 
 
 def divide_nonzero(

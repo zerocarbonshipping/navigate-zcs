@@ -195,7 +195,7 @@ This attribute sets the initial distribution of vessel types in the fleet.
 
 The list must have the same length as the list of vessels.
 
-Entries must be finite, non-negative numbers. The list should sum to 1; its total, rounded to five decimals, is rescaled proportionally when it is other than 1, and a deviation of more than 1% is logged at `WARNING`. A list whose rounded total is 0 (an all-zero or empty list included), an `INF` entry, or a total too large to represent is an error; omit `InitialSplit` for a uniform split over the vessels.
+Entries must be finite, non-negative numbers. The list should sum to 1; any other positive total is rescaled proportionally, and a deviation of more than 1% is logged at `WARNING`. A list whose total is 0 (an all-zero or empty list), an `INF` entry, or a total too large to represent is an error; omit `InitialSplit` for a uniform split over the vessels.
 
 * **Data type**: List of `Float`
 * **Example value**: `[0.3, 0.7]`

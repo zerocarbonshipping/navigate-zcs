@@ -44,7 +44,6 @@ from navigate.util.naming import (
     setter_to_attribute,
 )
 from navigate.util.numeric import (
-    ROUND_OFF,
     calculate_compound_growth,
     calculate_smoothing_alpha,
     calculate_step_inertia,
@@ -57,6 +56,7 @@ from navigate.util.numeric import (
     is_nondecreasing,
     is_strictly_increasing,
     smooth_belief_path,
+    snap_to_whole,
     step_lengths,
     subtract,
 )

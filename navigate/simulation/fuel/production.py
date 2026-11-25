@@ -146,7 +146,6 @@ def _build_component(
     Component
         Component with zeroed flows.
     """
-    # Python floats, as the flow sizing rounds them and numpy's round() can differ
     lead_time = float(plant.expectation.lead_time[idx])
     lifetime = float(plant.expectation.lifetime[idx])
 

@@ -30,8 +30,8 @@ from navigate.core.nodes.curve import Curve
 from navigate.core.wrap import to_array
 from navigate.exceptions import DeckInsufficientError, UnassignedAttributeError
 from navigate.util import (
-    ROUND_OFF,
     divide_nonzero,
+    is_negligible,
     key_tuple_name,
     matching_keys,
     name_matches,
@@ -404,8 +404,8 @@ class Route(Node):
             )
 
         # one Curve may serve many legs, so its shares are never rescaled
-        total = round(float(np.sum(speed.get(speed.x))), ROUND_OFF)
-        if total != 1.0:
+        total = float(np.sum(speed.get(speed.x)))
+        if not is_negligible(total - 1.0, 1.0):
             raise ValueError(
                 f"{self}: The shares of {speed} on the leg {key_tuple_name(key)}"
                 f" must sum to 1, but sum to {total}."
@@ -550,7 +550,7 @@ class Route(Node):
         """
         Return the voyage shares of a TRAMP route, normalized to sum to unity.
 
-        The shares are rounded in total, and split equally where they total zero.
+        The shares are split equally where they total zero.
 
         Returns
         -------
@@ -558,9 +558,7 @@ class Route(Node):
             Voyage share of each leg, in the order of `get_legs`.
         """
         shares = to_array(self.leg_voyage_shares)
-        total = np.round(np.sum(shares), ROUND_OFF)
-
-        return divide_nonzero(shares, total, default=1.0 / len(shares))
+        return divide_nonzero(shares, np.sum(shares), default=1.0 / len(shares))
 
     def get_stops(self) -> range:
         """

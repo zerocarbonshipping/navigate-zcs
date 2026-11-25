@@ -154,7 +154,7 @@ This attribute sets the fraction of the year spent at sea; the rest of the year 
 
 This command sets the speed sailed on a leg, in knots. It applies to both route types and must be given for every leg.
 
-A number, `Variable` or expression gives the leg one speed. A `Curve` gives a distribution of speeds: its x-values are the speeds in knots, and its y-values the share of the leg's time at sea sailed at each speed. Each speed is a sailing condition of the leg (see [Sailing conditions](#sailing-conditions)). The shares are read through the Curve, so its `Addition`, `Multiplier` and bounds apply, and they must sum to 1, rounded to five decimals; they are not rescaled. An expression gives one speed and may not reference a `Curve`.
+A number, `Variable` or expression gives the leg one speed. A `Curve` gives a distribution of speeds: its x-values are the speeds in knots, and its y-values the share of the leg's time at sea sailed at each speed. Each speed is a sailing condition of the leg (see [Sailing conditions](#sailing-conditions)). The shares are read through the Curve, so its `Addition`, `Multiplier` and bounds apply, and they must sum to 1; they are not rescaled. An expression gives one speed and may not reference a `Curve`.
 
 The speed is the reference speed of the leg; [speed management](fleet.md#allowspeedmanagement) on the Fleet may change it over the simulation.
 

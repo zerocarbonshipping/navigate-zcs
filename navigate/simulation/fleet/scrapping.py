@@ -15,7 +15,13 @@ from navigate.simulation.fleet._composition import (
     extract_cargo_miles,
     get_trade_capacity,
 )
-from navigate.util import ROUND_OFF, YEAR, divide_nonzero, drop_negligible
+from navigate.util import (
+    YEAR,
+    divide_nonzero,
+    drop_negligible,
+    is_negligible,
+    subtract,
+)
 
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
@@ -103,8 +109,9 @@ def group_by_age(fleet: Fleet) -> list[list[tuple[int, int]]]:
     """
     Group the fleet's increments by age across vessel types, oldest first.
 
-    Scrapping takes the increments of one age together across vessel types. The ages
-    are compared rounded, so that round-off does not split an age group.
+    Scrapping takes the increments of one age together across vessel types. An age
+    group holds the ages within a residual of its oldest, so that round-off does not
+    split it.
 
     Parameters
     ----------
@@ -116,14 +123,23 @@ def group_by_age(fleet: Fleet) -> list[list[tuple[int, int]]]:
     list[list[tuple[int, int]]]
         (vessel, increment) indices of each age group, oldest group first.
     """
-    groups: dict[float, list[tuple[int, int]]] = {}
-
+    members: list[tuple[float, tuple[int, int]]] = []
     for v, increments in enumerate(fleet.increments):
-        ages = np.round([increment.age for increment in increments], ROUND_OFF)
-        for i, age in enumerate(ages):
-            groups.setdefault(age, []).append((v, i))
+        for i, increment in enumerate(increments):
+            members.append((increment.age, (v, i)))
 
-    return [groups[age] for age in sorted(groups, reverse=True)]
+    # an age is compared to its group's oldest, not the age before it, so that a
+    # group cannot drift
+    groups: list[list[tuple[int, int]]] = []
+    oldest = 0.0
+    for age, member in sorted(members, key=lambda entry: entry[0], reverse=True):
+        if not groups or not is_negligible(oldest - age, oldest):
+            groups.append([])
+            oldest = age
+
+        groups[-1].append(member)
+
+    return [sorted(group) for group in groups]
 
 
 def split_oldest_first(
@@ -294,11 +310,10 @@ def _scrap_at_fixed_rate(
         if not increments:
             continue
 
-        # rounding keeps round-off error from tripping the lifetime check
-        oldest_age = np.round(increments[0].age, ROUND_OFF)
-        lifetime = np.round(vessel.lifetime.get(), ROUND_OFF)
+        oldest_age = increments[0].age
+        lifetime = vessel.lifetime.get()
 
-        if oldest_age > lifetime:
+        if subtract(oldest_age, lifetime) > 0.0:
             raise ValueError(
                 f"{fleet}: The oldest increment from {vessel} is older ({oldest_age}"
                 f" years) than the allowed lifetime ({lifetime} years)."

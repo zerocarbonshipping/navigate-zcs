@@ -38,7 +38,7 @@ from navigate.simulation.fleet._composition import (
     is_retrofit_cycle,
 )
 from navigate.simulation.fleet.charter import build_fuel_component
-from navigate.util import ROUND_OFF, YEAR
+from navigate.util import YEAR, subtract
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -427,11 +427,11 @@ def _eligible_cohorts(
             if not is_retrofit_cycle(increment.age, retrofit_frequency, dt):
                 continue
 
-            mean_age = round(increment.age + increment.age_span / 2.0, ROUND_OFF)
-            if mean_age < minimum_age:
+            mean_age = increment.age + increment.age_span / 2.0
+            if subtract(mean_age, minimum_age) < 0.0:
                 continue
 
-            remaining_lifetime = round(source.lifetime - mean_age, ROUND_OFF)
+            remaining_lifetime = float(subtract(source.lifetime, mean_age))
             if remaining_lifetime <= 0.0:
                 continue
 
@@ -620,7 +620,7 @@ def _evaluate_candidate(
     """
     source = cohort.source
     remaining_from = cohort.remaining_lifetime
-    remaining_to = round(target.lifetime - cohort.mean_age, ROUND_OFF)
+    remaining_to = float(subtract(target.lifetime, cohort.mean_age))
     if remaining_to <= 0.0:
         return None
 

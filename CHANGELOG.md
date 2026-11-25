@@ -61,6 +61,14 @@ change.
   whose values all lay below 1e-5 in magnitude was left out (#911).
 - An attribute that takes an integer rejects any other number, such as
   `3.000001`, which it rounded when within 1e-5 of an integer (#911).
+- Values are no longer rounded to five decimals before they are compared:
+  - the speed shares of a `Route` leg must sum to 1 up to floating-point
+    rounding, not to five decimals;
+  - `InitialSplit` (Fleet) rescales any positive total;
+  - a vessel's load curve with a small concavity that rounding used to hide
+    now logs the warning that its load functions are not convex;
+  - a fuel conversion weighs a cohort's mean age and remaining lifetimes
+    unrounded, which moves results by up to a few parts per million (#967).
 - Building Navigate from source, as `pip install` of a checkout does, needs
   setuptools 77 or later; pip fetches it unless run with `--no-build-isolation`.
 - The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of

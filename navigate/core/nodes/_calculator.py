@@ -13,7 +13,7 @@ import numpy as np
 from navigate.core import Expression, assign_bound, assign_value, deck_attribute
 from navigate.core._bounds import Bounds
 from navigate.exceptions import DeckError
-from navigate.util import ROUND_OFF
+from navigate.util import drop_negligible
 
 if TYPE_CHECKING:
     from typing import Literal
@@ -279,6 +279,9 @@ class _Calculator:
         """
         Test whether the piecewise linear function made up by (x, y) is convex.
 
+        The function is convex unless a point lies above the chord between its
+        neighbours by more than a residual, whatever the units of x and y.
+
         Parameters
         ----------
         x
@@ -298,9 +301,16 @@ class _Calculator:
         if x.size < 3:
             return True
 
-        dy_dx = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
-        d2y_dx2 = (dy_dx[1:] - dy_dx[:-1]) / (x[2:] - x[1:-1])
-        return not np.any(np.round(d2y_dx2, ROUND_OFF) < 0.0)
+        x0, x1, x2 = x[:-2], x[1:-1], x[2:]
+        y0, y1, y2 = y[:-2], y[1:-1], y[2:]
+
+        # excess of each interior point over the chord between its neighbours
+        w = (x1 - x0) / (x2 - x0)
+        excess = y1 - ((1.0 - w) * y0 + w * y2)
+
+        # the chord's residual comes from its ends, as the middle may be near zero
+        scale = np.max(np.abs([y0, y1, y2]), axis=0)
+        return not np.any(drop_negligible(excess, scale) > 0.0)
 
     def _split_infinite(
         self, values: FloatArray, extrapolate_linearly: bool

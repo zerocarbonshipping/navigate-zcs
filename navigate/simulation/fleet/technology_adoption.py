@@ -47,7 +47,7 @@ from navigate.simulation.fleet._package import (
     update_packages,
 )
 from navigate.simulation.fleet._trip import bind_conditions_to_legs
-from navigate.util import ROUND_OFF, YEAR, divide_nonzero, drop_negligible
+from navigate.util import YEAR, divide_nonzero, drop_negligible, snap_to_whole
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -484,7 +484,9 @@ def _retrofit_cohorts(
 def _get_remaining_lifetime(vessel: Vessel, increment: VesselIncrement) -> int:
     """Return the whole years of vessel lifetime left past the cohort's mean age."""
     age = increment.age + increment.age_span / 2.0
-    return int(round(vessel.lifetime.get() - age, ROUND_OFF))
+    lifetime = vessel.lifetime.get()
+
+    return int(snap_to_whole(lifetime - age, lifetime))
 
 
 def _reconcile_retrofit_technology_caps(
