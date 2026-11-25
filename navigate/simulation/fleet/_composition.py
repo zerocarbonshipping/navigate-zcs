@@ -5,11 +5,12 @@
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import is_negligible
+from navigate.util import is_negligible, snap_to_whole, subtract
 
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
@@ -135,9 +136,9 @@ def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -
     """
     Return whether an increment is at a retrofit cycle.
 
-    It is when its age lies within one time-step past a multiple of the retrofit
-    frequency, and it is older than one time-step. The age and time-step are compared
-    at two decimals.
+    It is when the time-step that brought it to its age reached or passed a multiple
+    of the retrofit frequency, and it is older than one time-step. An age a
+    floating-point residual short of a multiple counts as on it.
 
     Parameters
     ----------
@@ -153,9 +154,13 @@ def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -
     bool
         Whether the increment is at a retrofit cycle.
     """
-    age = round(age, 2)
-    time_step = round(time_step, 2)
-    return age > time_step and age % retrofit_frequency < time_step
+    if float(subtract(age, time_step)) <= 0.0:
+        return False
+
+    scale = age / retrofit_frequency
+    cycles_at_start = snap_to_whole((age - time_step) / retrofit_frequency, scale)
+    cycles_at_end = snap_to_whole(age / retrofit_frequency, scale)
+    return math.floor(cycles_at_end) > math.floor(cycles_at_start)
 
 
 def consolidate_increments(fleet: Fleet) -> None:
