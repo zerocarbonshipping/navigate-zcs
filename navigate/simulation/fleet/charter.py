@@ -40,7 +40,7 @@ def calculate_asset_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     vessel
         Vessel whose asset charter metrics are calculated.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -89,7 +89,7 @@ def calculate_cargo_charter(vessel: Vessel, timeline: FloatArray, idx: int) -> N
     vessel
         Vessel whose cargo charter metrics are calculated.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -173,7 +173,7 @@ def build_fuel_component(
     lead_time
         Years from this time-step until the vessel enters service.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -212,7 +212,7 @@ def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
     vessel
         Vessel whose asset cost flow is built.
     time_initial
-        Time at which the vessel is ordered, in days.
+        Time at which the vessel is ordered, in years.
 
     Returns
     -------
@@ -244,7 +244,7 @@ def _initialize_vessel_component(vessel: Vessel, time_initial: float) -> Compone
     vessel
         Vessel whose lead time and lifetime set the flow horizon.
     time_initial
-        Time at which the vessel is ordered, in days.
+        Time at which the vessel is ordered, in years.
 
     Returns
     -------

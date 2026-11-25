@@ -12,7 +12,7 @@ from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
 from navigate.core.nodes._table2d import _Table2D
 from navigate.core.table_data import TableData, build_table_2d_dated
-from navigate.util import is_date_array, timedelta_to_days
+from navigate.util import dates_to_years, is_date_array
 
 if TYPE_CHECKING:
     import numpy as np
@@ -24,7 +24,7 @@ class Timetable(Node, _Table2D):
     """
     A table of z against time and y, evaluated at the current time by default.
 
-    The simulation writes the current time, in days since the start date, to
+    The simulation writes the current time, in years since the start date, to
     ``current_time`` each time-step.
 
     Parameters
@@ -60,7 +60,7 @@ class Timetable(Node, _Table2D):
         self._check_bounds_consistency()
 
     def build_table(self, start_date: np.datetime64) -> None:
-        """Build the pending table, its dates counted in days from the start date."""
+        """Build the pending table, its dates counted in years from the start date."""
         if self._pending_table is None:
             return
 
@@ -69,7 +69,7 @@ class Timetable(Node, _Table2D):
         self._x_dates = None
         if is_date_array(x):
             self._x_dates = (x[0], x[-1])
-            x = timedelta_to_days(x - start_date)
+            x = dates_to_years(x, start_date)
 
         self._check_table(x, y, z)
 
@@ -94,7 +94,7 @@ class Timetable(Node, _Table2D):
         Parameters
         ----------
         x
-            Time passed since start date, in days; None reads the current time.
+            Time passed since start date, in years; None reads the current time.
         y
             Second input variable. None, which an expression passes on when it
             is evaluated without input, is rejected.

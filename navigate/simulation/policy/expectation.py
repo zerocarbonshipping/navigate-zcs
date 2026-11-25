@@ -51,7 +51,7 @@ def calculate_policy_expectations(
     emissions_lifetime
         Model-wide emissions lifetime, in years; a policy's own lifetime replaces it.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """

@@ -11,16 +11,14 @@ tests, interpolation, index lookup, growth and smoothing.
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
-
-from navigate.util.dates import YEAR
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from navigate.util.types_ import BoolArray, FloatArray, IntArray
+    from navigate.util.types_ import BoolArray, FloatArray, FloatLike, IntArray
 
 # a remainder of floating-point arithmetic lies within this fraction of its scale:
 # cancellation leaves about 1e-16 to 1e-15 of the operands, while real values lie
@@ -102,25 +100,34 @@ def subtract(
     return np.where(is_equal, 0.0, difference)
 
 
-def snap_to_whole(value: float, scale: float) -> float:
+@overload
+def snap_to_whole(value: float, scale: float) -> float: ...
+
+
+@overload
+def snap_to_whole(value: FloatArray, scale: npt.ArrayLike) -> FloatArray: ...
+
+
+def snap_to_whole(value: FloatLike, scale: npt.ArrayLike) -> FloatLike:
     """
     Snap a value to the nearest whole number where it lies a negligible distance off.
 
     Parameters
     ----------
     value
-        Value to snap, finite.
+        Value to snap, scalar or array, finite.
     scale
         Magnitude of what the value was computed from, as for ``is_negligible``.
 
     Returns
     -------
-    float
+    FloatLike
         The nearest whole number where the value's distance from it is negligible
-        against the scale, the value elsewhere.
+        against the scale, the value elsewhere, mirroring the input's scalar- or
+        arrayness.
     """
-    whole = round(value)
-    return whole + float(drop_negligible(value - whole, scale))
+    whole = np.round(value)
+    return whole + drop_negligible(value - whole, scale)
 
 
 def divide_nonzero(
@@ -289,7 +296,7 @@ def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) ->
     horizon
         Characteristic decision horizon, in years.
     timeline
-        Dates of the simulation, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -302,8 +309,8 @@ def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) ->
     if idx == 0:
         return 1.0
 
-    dt: float = (timeline[idx] - timeline[idx - 1]) / YEAR
-    return 1.0 / (1.0 + horizon / dt)
+    time_step: float = timeline[idx] - timeline[idx - 1]
+    return 1.0 / (1.0 + horizon / time_step)
 
 
 def smooth_belief_path(
@@ -358,14 +365,14 @@ def calculate_step_inertia(inertia: float, time_step: float) -> float:
     inertia
         Fraction of a value continued over a year, in fraction/year.
     time_step
-        Length of the time step, in days.
+        Length of the time step, in years.
 
     Returns
     -------
     float
         Fraction of the value continued over the time step.
     """
-    return math.pow(inertia, time_step / YEAR)
+    return math.pow(inertia, time_step)
 
 
 def calculate_compound_growth(
@@ -383,7 +390,7 @@ def calculate_compound_growth(
     growth
         Growth rate at each date of the timeline, in fraction/year.
     timeline
-        Dates of the simulation, in days.
+        Simulation timeline, in years.
 
     Returns
     -------
@@ -391,8 +398,7 @@ def calculate_compound_growth(
         Value at each date of the timeline.
     """
     rates = np.log(1.0 + growth)
-    dt = np.diff(timeline) / YEAR
-    exponents = np.cumsum(rates[:-1] * dt)
+    exponents = np.cumsum(rates[:-1] * np.diff(timeline))
 
     values = np.full_like(timeline, initial)
     values[1:] *= np.exp(exponents)

@@ -16,7 +16,7 @@ from navigate.simulation.fuel.expectation import (
     calculate_producer_evolution_expectation,
 )
 from navigate.simulation.fuel.feed import calculate_feed_availability
-from navigate.util import YEAR, divide_nonzero, step_lengths
+from navigate.util import divide_nonzero, step_lengths
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -38,7 +38,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     producer
         Producer to initialize.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     """
     idx = 0
 
@@ -166,7 +166,7 @@ def _build_existing_pipeline(
     producer
         Producer whose existing pipelines are split.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
 
     Returns
     -------
@@ -190,7 +190,7 @@ def _build_plant_pipeline(
     plant_idx
         Index of the plant type in the producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
 
     Returns
     -------
@@ -213,7 +213,7 @@ def _build_plant_pipeline(
     added = np.diff(capacities, prepend=0.0)
     is_delivery = added > 0.0
 
-    deliveries = timeline[is_delivery] / YEAR
+    deliveries = timeline[is_delivery]
     counts = added[is_delivery] / capacity
 
     # the first increment is assumed to have entered over a year

@@ -71,16 +71,18 @@ change.
     unrounded, which moves results by up to a few parts per million (#967).
 - A cohort is at a retrofit cycle in the time step in which its age reaches a
   multiple of `RetrofitFrequency` (Fleet), no longer whenever its age, rounded
-  to two decimals, does. Ages advance by the step's days over 365.25, so on
-  yearly calendar steps a cohort reaches a multiple up to a day early or late,
-  and some cohorts are now offered technology retrofits and fuel conversions
-  one step later than before; in `example_1` the cumulative well-to-wake
-  emissions fall by 0.2% (#974).
+  to two decimals, does (#974).
 - `SolutionTolerance` applies to costs relative to the largest cost of the
   bunkering problem rather than in currency, so in decks with large fleets or
   high prices the solver's rounding no longer decides which solutions count as
   equally cheap. The results of the example decks and of the reference
   scenario `basecase_strong_regulation` are unchanged (#953).
+- Time is counted in calendar years (#978):
+  - A calendar year counts as exactly one year in ages and step lengths, so on
+    1 January steps retrofit cycles and fuel conversions no longer come a step
+    late in the years before a leap year; in `example_1` cumulative WTW CO2 +0.22%.
+  - Numeric x-values in `Forecast` and `Timetable` tables are years since the
+    start, no longer days.
 - Building Navigate from source, as `pip install` of a checkout does, needs
   setuptools 77 or later; pip fetches it unless run with `--no-build-isolation`.
 - The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of

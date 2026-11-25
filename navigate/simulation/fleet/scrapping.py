@@ -16,7 +16,6 @@ from navigate.simulation.fleet._composition import (
     get_trade_capacity,
 )
 from navigate.util import (
-    YEAR,
     divide_nonzero,
     drop_negligible,
     is_negligible,
@@ -41,13 +40,11 @@ def update_vessel_ages(fleet: Fleet, time_step: float) -> None:
     fleet
         Fleet whose vessels are aged.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     """
-    dt = time_step / YEAR
-
     for increments in fleet.increments:
         for increment in increments:
-            increment.age += dt
+            increment.age += time_step
 
 
 def perform_primary_scrapping(fleet: Fleet, time_step: float, idx: int) -> None:
@@ -59,7 +56,7 @@ def perform_primary_scrapping(fleet: Fleet, time_step: float, idx: int) -> None:
     fleet
         Fleet whose vessels are scrapped.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
@@ -298,11 +295,11 @@ def _scrap_at_fixed_rate(
     fixed_scrap_rate
         Share of the fleet's trade scrapped per year, fraction.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
-    scrap_rate = fixed_scrap_rate.get() * time_step / YEAR
+    scrap_rate = fixed_scrap_rate.get() * time_step
     target_scrap = scrap_rate * get_trade_capacity(fleet, idx)
     _scrap_oldest(fleet, target_scrap, idx)
 

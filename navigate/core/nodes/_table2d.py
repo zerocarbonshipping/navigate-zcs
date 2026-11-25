@@ -45,7 +45,7 @@ class _Table2D(_Calculator):
         self._table: RegularGridInterpolator
         self._fill_value: NumberInput | None
         self._signs: RegularGridInterpolator | None
-        # the first and last date of a dated table, whose 'x' counts days
+        # the first and last date of a dated table, its 'x' in years since the start
         self._x_dates: tuple[np.datetime64, np.datetime64] | None = None
 
     # external methods (DSL attributes) ------------------------------------------------

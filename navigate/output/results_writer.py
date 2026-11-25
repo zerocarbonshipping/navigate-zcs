@@ -124,7 +124,7 @@ def _results_table(
 ) -> pa.Table:
     """Build the results table of a run, one row per series and date, with metadata."""
     days = results.dateline.astype("datetime64[D]")
-    step_years = step_lengths(dates_to_years(results.dateline))
+    step_years = step_lengths(dates_to_years(results.dateline, results.dateline[0]))
     series = list(_series(results, step_years))
 
     columns: dict[str, Any] = {}

@@ -38,7 +38,7 @@ from navigate.simulation.fleet._composition import (
     is_retrofit_cycle,
 )
 from navigate.simulation.fleet.charter import build_fuel_component
-from navigate.util import YEAR, subtract
+from navigate.util import snap_to_whole, subtract
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -217,9 +217,9 @@ def perform_fuel_conversions(
     fleet
         Fleet whose vessels may convert.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
@@ -257,9 +257,9 @@ def _propose_fuel_conversions(
     fleet
         Fleet whose vessels may convert.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index of the expectation lookups, where the fuel cost flows
         start.
@@ -312,7 +312,7 @@ def _reconcile_fuel_conversion_caps(
 
     ``set_fuel_conversion_limit("from", "to", l)`` caps the fraction of the total fleet
     allowed to convert on a (from, to) lane per year:
-    ``pair_cap[from, to] = l * time_step / YEAR * existing_total``, where
+    ``pair_cap[from, to] = l * time_step * existing_total``, where
     ``existing_total`` is the number of vessels in the fleet before newbuilds. The cap
     acts on the pair's summed conversion count; a pair above its cap has every
     cohort scaled to fit.
@@ -324,11 +324,10 @@ def _reconcile_fuel_conversion_caps(
     proposals
         Output of ``_propose_fuel_conversions``; its counts are rescaled in place.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     """
     # counted before the newbuilds, which are inserted later in the same time-step
     existing_total = get_total_count(fleet)
-    dt = time_step / YEAR
 
     pair_proposed: dict[tuple[str, str], float] = {}
     for proposal, name_to, candidate in _proposed_conversions(proposals):
@@ -338,7 +337,7 @@ def _reconcile_fuel_conversion_caps(
     pair_scale = {}
     for pair, proposed in pair_proposed.items():
         limit = fleet.fuel_conversion_limits[pair].get()
-        pair_cap = limit * dt * existing_total
+        pair_cap = limit * time_step * existing_total
         if proposed > pair_cap:
             pair_scale[pair] = pair_cap / proposed
 
@@ -365,7 +364,7 @@ def _apply_fuel_conversions(
         Output of ``_propose_fuel_conversions`` after
         ``_reconcile_fuel_conversion_caps``; read only.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index, where the results are written and the expenses start.
     """
@@ -391,9 +390,9 @@ def _eligible_cohorts(
     fleet
         Fleet whose vessels may convert.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index of the expectation lookups, where the fuel cost flows
         start.
@@ -405,7 +404,6 @@ def _eligible_cohorts(
     """
     retrofit_frequency = fleet.retrofit_frequency.get()
     minimum_age = fleet.fuel_conversion_minimum_age.get()
-    dt = time_step / YEAR
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
 
@@ -424,7 +422,7 @@ def _eligible_cohorts(
         # target-fuel supply binds, younger cohorts with longer remaining lifetimes
         # claim the working supply excess first
         for increment in reversed(increments):
-            if not is_retrofit_cycle(increment.age, retrofit_frequency, dt):
+            if not is_retrofit_cycle(increment.age, retrofit_frequency, time_step):
                 continue
 
             mean_age = increment.age + increment.age_span / 2.0
@@ -553,7 +551,7 @@ def _build_fuel_cost_flow(vessel: Vessel, timeline: FloatArray, idx: int) -> Flo
     vessel
         Vessel type providing the lifetime and the expected fuel and policy expenses.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index, where the flow starts.
 
@@ -755,12 +753,14 @@ def _apply_from_side(
     proposals
         Reconciled proposals.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
-    years_ahead = timeline[idx:] / YEAR
-    years_elapsed = np.floor(years_ahead - years_ahead[0])
+    # a time-step a rounding remainder short of a whole year ahead lies on it
+    elapsed = timeline[idx:] - timeline[idx]
+    years_elapsed = np.floor(snap_to_whole(elapsed, timeline[idx:]))
+
     expenses_ahead = fleet.fuel_conversion_expenses[idx:]
 
     for proposal, name_to, candidate in _proposed_conversions(proposals):

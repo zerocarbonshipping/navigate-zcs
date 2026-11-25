@@ -69,7 +69,7 @@ class PackageCostFlows:
     Parameters
     ----------
     time
-        Investment decision time the flows start at, days.
+        Investment decision time the flows start at, in years.
     by_horizon
         Cost flow of each package, from empty to full, per horizon in years, in
         currency/year.

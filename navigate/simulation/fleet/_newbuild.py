@@ -18,7 +18,6 @@ from navigate.simulation.economics import calculate_two_axis_uptake
 from navigate.simulation.fleet._composition import extract_cargo_miles
 from navigate.simulation.fleet._package import calculate_package_charter_rates
 from navigate.util import (
-    YEAR,
     divide_nonzero,
     drop_negligible,
     is_negligible,
@@ -173,13 +172,12 @@ def add_newbuilds(
     newbuilds
         Newbuilds per vessel type.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
     packages = fleet.technology_packages
     cost_flows = fleet.package_cost_flows
-    dt = time_step / YEAR
 
     for v, count in enumerate(newbuilds):
         vessel = fleet.vessels[v]
@@ -199,7 +197,7 @@ def add_newbuilds(
         increment = VesselIncrement(
             count=count,
             age=0.0,
-            age_span=dt,
+            age_span=time_step,
             package_uptake=package_uptake.copy(),
             technology_charter_rate=charter_rate,
         )

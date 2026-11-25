@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.cohort import calculate_retired_share, find_origin_indexes
-from navigate.util import YEAR, drop_negligible
+from navigate.util import drop_negligible
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -32,15 +32,13 @@ def iterate_increments(
     idx: int,
 ) -> Iterator[tuple[int, Plant, PlantIncrement, np.signedinteger]]:
     """Yield each plant's increments with the time-step index each was decided at."""
-    years = timeline / YEAR
-
     for p, plant in enumerate(plants):
         increments = cohorts[p]
         if not increments:
             continue
 
         decided = np.array([increment.decided for increment in increments])
-        origins = find_origin_indexes(years, years[idx], decided)
+        origins = find_origin_indexes(timeline, timeline[idx], decided)
 
         for increment, origin in zip(increments, origins, strict=True):
             yield p, plant, increment, origin
@@ -55,9 +53,9 @@ def calculate_cohort_running(
     Its age counts back from the first of the times, the current time.
     """
     added = rate * increment.count
-    window = increment.age_span * YEAR
-    delivery = times[0] - increment.age * YEAR
-    retirement = delivery + lifetime * YEAR
+    window = increment.age_span
+    delivery = times[0] - increment.age
+    retirement = delivery + lifetime
 
     entered = _spread_delivery(added, delivery, window, times)
     return _calculate_running_profile(added, entered, retirement, window, times)
@@ -72,8 +70,8 @@ def calculate_newbuild_running(
 
     # the delivery of the last expected increment, as increments enter uniformly
     # over the time step
-    delivery = time + lead_time * YEAR
-    retirement = delivery + lifetime * YEAR
+    delivery = time + lead_time
+    retirement = delivery + lifetime
 
     entered = _spread_delivery(rate, delivery, window, times)
     return _calculate_running_profile(rate, entered, retirement, window, times)
@@ -93,9 +91,9 @@ def calculate_cohort_reserved(
     its age counts back from `now`, the current time.
     """
     added = rate * increment.count
-    window = increment.age_span * YEAR
-    delivery = now - increment.age * YEAR
-    retirement = delivery + lifetime * YEAR
+    window = increment.age_span
+    delivery = now - increment.age
+    retirement = delivery + lifetime
 
     return _calculate_reserved_profile(added, 0, retirement, window, times)
 
@@ -111,8 +109,8 @@ def calculate_newbuild_reserved(
     lifetime = plant.lifetime.get(time)
     lead_time = plant.lead_time.get(time)
 
-    delivery = time + lead_time * YEAR
-    retirement = delivery + lifetime * YEAR
+    delivery = time + lead_time
+    retirement = delivery + lifetime
 
     return _calculate_reserved_profile(rate, t, retirement, window, times)
 
@@ -136,11 +134,11 @@ def _calculate_running_profile(
     entered
         Part of the rate entering at each of the times, in tons/year.
     retirement
-        Time the last of the rate retires at, in days.
+        Time the last of the rate retires at, in years.
     window
-        Window over which the rate retires, in days.
+        Window over which the rate retires, in years.
     times
-        Times the profile is evaluated at, in days.
+        Times the profile is evaluated at, in years.
 
     Returns
     -------
@@ -172,11 +170,11 @@ def _calculate_reserved_profile(
     entry
         Index of the first of the times the rate is reserved at.
     retirement
-        Time the last of the rate retires at, in days.
+        Time the last of the rate retires at, in years.
     window
-        Window over which the rate retires, in days.
+        Window over which the rate retires, in years.
     times
-        Times the profile is evaluated at, in days.
+        Times the profile is evaluated at, in years.
 
     Returns
     -------

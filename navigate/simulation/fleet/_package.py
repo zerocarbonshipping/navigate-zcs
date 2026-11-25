@@ -132,7 +132,7 @@ def update_packages(
     package_cost_flows
         Package cost flows; the flows of the previous decision time are dropped.
     time
-        Investment decision time, in days.
+        Investment decision time, in years.
     """
     package_cost_flows.time = time
     package_cost_flows.by_horizon.clear()
