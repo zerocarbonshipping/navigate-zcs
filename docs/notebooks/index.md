@@ -13,6 +13,7 @@ a run, so it can be read without running it.
 :titlesonly:
 
 notebook_1/notebook_1
+notebook_2/notebook_2
 ```
 
 ## Running a notebook on your own machine
