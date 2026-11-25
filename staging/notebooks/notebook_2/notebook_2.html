@@ -477,8 +477,8 @@ the ETS and FuelEU reach.</em></p>
 <p>Run the two cells below on Colab or <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/staging/notebooks/index.html#running-a-notebook-on-your-own-machine">locally</a>. The first sets up the Navigate model and copies the reference scenarios this session runs. The second defines two helpers for the notebook: one shows Lantern’s plots in it, the other opens Lantern’s viewer.</p>
 <div class="cell tag_remove-output docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ROOT = "/content"</span>
-<span class="n">ROOT</span> <span class="o">=</span> <span class="s2">"/tmp/notebook"</span>  <span class="c1"># running locally: any folder of your own, without spaces in its path</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ROOT</span> <span class="o">=</span> <span class="s2">"/content"</span>
+<span class="c1"># ROOT = "/tmp/notebook"  # running locally: any folder of your own, without spaces in its path</span>
 <span class="o">%</span><span class="k">cd</span> {ROOT}
 
 <span class="o">!</span>git<span class="w"> </span>clone<span class="w"> </span>-q<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>-b<span class="w"> </span>dev<span class="w"> </span>https://github.com/zerocarbonshipping/navigate-zcs<span class="w"> </span><span class="o">{</span>ROOT<span class="o">}</span>/navigate-zcs

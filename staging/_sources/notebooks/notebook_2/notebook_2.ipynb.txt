@@ -101,8 +101,8 @@
     }
    ],
    "source": [
-    "# ROOT = \"/content\"\n",
-    "ROOT = \"/tmp/notebook\"  # running locally: any folder of your own, without spaces in its path\n",
+    "ROOT = \"/content\"\n",
+    "# ROOT = \"/tmp/notebook\"  # running locally: any folder of your own, without spaces in its path\n",
     "%cd {ROOT}\n",
     "\n",
     "!git clone -q --depth 1 -b dev https://github.com/zerocarbonshipping/navigate-zcs {ROOT}/navigate-zcs\n",
