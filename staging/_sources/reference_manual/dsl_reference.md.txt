@@ -167,7 +167,7 @@ Forecast "node_name" {
 }
 ```
 
-The x-axis of a forecast may also be defined by floats, which should be interpreted as "days since start of simulation." For example, if the simulation start date is `01-01-2024`, then the date `01-01-2025` would be `366` (leap years are accounted for). In this case, it follows the syntax of a curve but with the node type being forecast.
+The x-axis of a forecast may also be defined by floats, which are years since the start of the simulation, counted in calendar years: every calendar year, leap year or not, is one year long, and a date within a year counts the fraction of that year's days before it. For example, if the simulation start date is `01-01-2024`, then the date `01-01-2025` is `1.0` and `01-07-2025` is about `1.496` (181 of the year's 365 days). In this case, it follows the syntax of a curve but with the node type being forecast.
 
 ### Surface
 
