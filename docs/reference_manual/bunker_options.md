@@ -38,7 +38,7 @@ The rules settle the choice by the bunkering problem alone: not by the solver ba
 - The shares of the first rule cannot all be met, because another limit stands in the way, such as the threshold of a second `FLEXIBLE` regulation that does not bind: the first rule is not applied there either.
 - Two limits bind only together and, relaxed in proportion to their sizes, would allow the same amount: which of the two carries the price.
 
-The choice has further limits. Whether two solutions are equally cheap is judged within the [SolutionTolerance](#solutiontolerance), and where their costs differ by about that tolerance, which of them a run returns can depend on the solver. Where the solver cannot carry a rule through, it returns whichever of the equally cheap solutions it ends at. The results of a deck can therefore still differ between solver backends, versions and methods.
+The choice has further limits. Whether two solutions are equally cheap is judged within the [SolutionTolerance](#solutiontolerance), relative to the largest cost in the bunkering problem, and where their costs differ by about that much, which of them a run returns can depend on the solver. Where the solver cannot carry a rule through, it returns whichever of the equally cheap solutions it ends at. The results of a deck can therefore still differ between solver backends, versions and methods.
 
 ## Attributes
 
@@ -60,7 +60,7 @@ This attribute selects the LP solution method. It is passed to Gurobi as its `Me
 
 ### SolutionTolerance
 
-This attribute sets the tolerance of the solution for the bunker algorithm. The SolutionTolerance defines the lower tolerance for what to consider in results, i.e., if a fuel is bunkered in an amount smaller than the SolutionTolerance, it is rounded to 0 and thus not brought into reports and plots. Remedial units smaller than the SolutionTolerance likewise count as none, and the `Regulation` as complied with. The same value is passed to the LP solver as its feasibility and optimality tolerance, so it also affects how the solver converges.
+This attribute sets the tolerance of the solution for the bunker algorithm. The SolutionTolerance defines the lower tolerance for what to consider in results, i.e., if a fuel is bunkered in an amount smaller than the SolutionTolerance, it is rounded to 0 and thus not brought into reports and plots. Remedial units smaller than the SolutionTolerance likewise count as none, and the `Regulation` as complied with. On costs it is relative: a difference in cost per unit counts as none where it is below the SolutionTolerance times a 16,000th to a 33,000th of the largest cost per unit in the bunkering problem, so that it means the same in a small deck as in a large one. The same value is passed to the LP solver as its feasibility and optimality tolerance, so it also affects how the solver converges.
 
 * **Data type**: `Float`
 * **Example value**: `1e-6`

@@ -274,9 +274,12 @@ its section layout; the rules below cover the content.
     trade, for the gap the orderbook leaves), an age boundary the ends of its
     interval, an interpolation the interpolated magnitude, a share 1, and an
     operand that may be infinite gives way to the finite one.
-  - The noise of an LP: a value an LP returns is zero below the solver's
-    tolerance (`BunkerOptions.solution_tolerance`), and a difference of
-    quantities that LP rows make equal is zero within that tolerance carried
+  - The noise of an LP: a value an LP returns (`Model.value`) is zero below
+    the solver's tolerance (`BunkerOptions.solution_tolerance`). Whether a
+    dual is zero is asked of `Model.binds`, never decided by comparing
+    `Model.dual` with that tolerance: the dual is in currency, and the
+    tolerance applies to the costs as the selection scales them. A difference
+    of quantities that LP rows make equal is zero within that tolerance carried
     into the quantity's units through the rows' coefficients, passed to
     `subtract` as `tolerance`: a pool's non-compliance against its remedial
     units, or a port's supply against what the vessels bunker under their

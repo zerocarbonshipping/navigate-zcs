@@ -198,11 +198,8 @@ class GurobiModel:
         """
         Solve the linear program and select one of its optimal solutions.
 
-        The first run starts from the basis of the last solve. When presolve finds
-        the model infeasible or unbounded without telling which, the run is made
-        once more with dual reductions off, which tells the two apart, and dual
-        reductions are switched back on. Where the first run ends optimal, the
-        selection makes its runs.
+        The selection makes the first run (``_run_first``) and, where it ends
+        optimal, its own runs.
         """
         model = self._model
         model.update()
@@ -212,25 +209,7 @@ class GurobiModel:
         self._column_handles = np.flatnonzero(self._column_is_live)
         self._row_handles = np.flatnonzero(self._row_is_live)
 
-        basis = self._selection.basis
-        if basis is not None:
-            self.set_basis(basis)
-
-        model.optimize()
-
-        if model.Status == grb.GRB.INF_OR_UNBD:
-            params = model.Params
-            params.DualReductions = 0
-
-            try:
-                model.optimize()
-            finally:
-                params.DualReductions = 1
-
-        self._status = model.Status
-
-        if self._status == grb.GRB.OPTIMAL:
-            self._selection.select(self)
+        self._selection.solve(self, self._run_first)
 
     @property
     def status(self) -> SolveStatusID:
@@ -244,6 +223,10 @@ class GurobiModel:
     def dual(self, constraint: Constraint) -> float:
         """Return the dual value of a priced constraint at the last solution."""
         return self._selection.dual(constraint)
+
+    def binds(self, constraint: Constraint) -> bool:
+        """Return whether a priced constraint binds at the last solution."""
+        return self._selection.binds(constraint)
 
     def rhs(self, constraint: Constraint) -> float:
         """Return the right-hand side of a constraint."""
@@ -393,6 +376,37 @@ class GurobiModel:
         rows[self._row_handles] = model.getAttr("CBasis", self._live_rows)
 
         return columns, rows
+
+    def _run_first(self) -> bool:
+        """
+        Make the first run of a solve and return whether it ended optimal.
+
+        The run starts from the basis of the last solve. When presolve finds the
+        model infeasible or unbounded without telling which, the run is made once
+        more with dual reductions off, which tells the two apart, and dual
+        reductions are switched back on.
+        """
+        model = self._model
+        basis = self._selection.basis
+
+        if basis is not None:
+            self.set_basis(basis)
+
+        model.optimize()
+
+        if model.Status == grb.GRB.INF_OR_UNBD:
+            params = model.Params
+            params.DualReductions = 0
+
+            try:
+                model.optimize()
+            finally:
+                params.DualReductions = 1
+
+        self._status = model.Status
+
+        is_optimal: bool = self._status == grb.GRB.OPTIMAL
+        return is_optimal
 
     def _by_column(self, values: list[float], *, removed: float) -> FloatArray:
         """
