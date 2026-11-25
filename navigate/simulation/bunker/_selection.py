@@ -61,6 +61,8 @@ constraint holds at zero with all its variables at their bounds, as the balance 
 a fuel a vessel does not use, its optimal duals span an interval, and which of its
 variables carry a reduced cost, and stay at their bounds by it, differs between
 runs. The optimal solutions they state do not: any optimal duals state the same.
+Nor do the results of the simulation, which reads no dual of a constraint that is
+not priced.
 
 The direction run works at the x of the first run. Every optimal y is complementary
 to every optimal x, so the duals it selects among are the same whichever optimal x
