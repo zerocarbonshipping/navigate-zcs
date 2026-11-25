@@ -57,6 +57,8 @@ change.
   requested; they used to produce no column.
 
 ### Changed
+- Building Navigate from source, as `pip install` of a checkout does, needs
+  setuptools 77 or later; pip fetches it unless run with `--no-build-isolation`.
 - The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of
   vessels, fleets and the global results are keyed by emission alone, summed
   over the fuels: the split between fuels followed the solver where two fuels
