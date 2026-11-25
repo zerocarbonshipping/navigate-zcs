@@ -225,7 +225,9 @@ def _add_process_flows(
     Add the CAPEX, fixed OPEX and fixed WTT of building and running a process.
 
     The CAPEX and OPEX rates are read at the process scale, the plant size times the
-    conversion, so an intermediate process is sized to the fuel output it serves.
+    conversion, so an intermediate process is sized to the fuel output it serves. They
+    are paid on the capacity of the process, as a plant is built and maintained at its
+    size whatever its uptime, while the fixed WTT accrues on what it produces.
 
     Parameters
     ----------
@@ -247,13 +249,14 @@ def _add_process_flows(
     opex_rate = region.process_opex[process.name]
 
     scale = size * conversion
+    capacity = scale * YEAR
     output = production * conversion
 
     def capex(time: float) -> float:
-        return capex_rate.get(time, scale) * output
+        return capex_rate.get(time, scale) * capacity
 
     def opex(time: float) -> float:
-        return opex_rate.get(time, scale) * output
+        return opex_rate.get(time, scale) * capacity
 
     def wtt(emission_name: str, time: float) -> float:
         wtt_rate = region.process_wtt[(process.name, emission_name)]

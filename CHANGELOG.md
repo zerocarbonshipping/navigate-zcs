@@ -397,6 +397,9 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A plant's process CAPEX and fixed OPEX are paid on its capacity, not its
+  production, so a lower `Uptime` spreads them over fewer tons. Plants with
+  an uptime below 1 and positive process costs cost more per ton (#969).
 - A Curve, Forecast, Surface or Timetable with `Extrapolate = FALSE` read
   outside its table stops the run with an `Error:` line naming the node and the
   table's range as the deck wrote it, instead of a Python traceback.

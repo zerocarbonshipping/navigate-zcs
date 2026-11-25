@@ -78,6 +78,8 @@ This attribute sets the production capacity of the plant in tons/day. `INF` is r
 
 This attribute sets the production uptime of the plant in time/time.
 
+The uptime scales the plant's production, and with it the costs and WTT emissions that follow the amount produced: energy, feedstock, transport and the process WTT. The process CAPEX and fixed OPEX are paid on the capacity, so a lower uptime spreads them over fewer tons, which raises the levelized cost of production where they are positive.
+
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `0.95`
