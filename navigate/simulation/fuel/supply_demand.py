@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import YEAR, add_dicts
+from navigate.util import YEAR, add_dicts, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -195,9 +195,15 @@ def calculate_expected_fuel_gap(
     Returns
     -------
     dict[str, FloatLike]
-        Expected future demand less supply of each fuel, in tons/year.
+        Expected future demand less supply of each fuel, in tons/year; exactly zero
+        where the two agree to rounding.
     """
-    return {name: demand.get(name, 0.0) - supply.get(name, 0.0) for name in fuels}
+    gaps: dict[str, FloatLike] = {}
+
+    for name in fuels:
+        gaps[name] = subtract(demand.get(name, 0.0), supply.get(name, 0.0))
+
+    return gaps
 
 
 def calculate_fair_share_demand(

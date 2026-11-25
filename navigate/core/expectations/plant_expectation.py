@@ -52,7 +52,7 @@ class PlantExpectation(_Expectation):
         self.expected_production_wtt = self._paths(emission_names)  # t/t
 
         # uptake decision
-        self.demand_newbuilds = 0.0  # plants
+        self.demand_newbuilds = 0.0  # plants, exact zero without demand
         self.inter_fuel_metric = 0.0  # GJ/year of unmet demand for the fuel
         self.intra_fuel_metric = 0.0  # currency/t
 

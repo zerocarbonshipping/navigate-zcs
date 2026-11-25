@@ -29,7 +29,7 @@ from navigate.simulation.fleet.scrapping import perform_secondary_scrapping
 from navigate.simulation.fleet.technology_adoption import (
     reconcile_newbuild_technology_caps,
 )
-from navigate.util import TOLERANCE, YEAR, calculate_step_inertia
+from navigate.util import YEAR, calculate_step_inertia, drop_negligible, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -58,7 +58,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
         Current time-step index.
     """
     trade = fleet.trade[idx]
-    trade_gap = trade - get_trade_capacity(fleet, idx)
+    trade_gap = float(subtract(trade, get_trade_capacity(fleet, idx)))
 
     # each vessel type's newbuild budget; the fleet count stands in for yard capacity
     dt = time_step / YEAR
@@ -69,20 +69,24 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     newbuilds, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
         fleet, trade_gap, cap_count, idx
     )
-    trade_gap -= delivered_capacity
+    trade_gap = float(drop_negligible(trade_gap - delivered_capacity, trade))
 
     # inertia decays the current uptake shares before the modelled newbuilds read them
     fleet.current_uptake *= calculate_step_inertia(fleet.inertia.get(), time_step)
 
-    if trade_gap > TOLERANCE:
+    if trade_gap > 0.0:
         modelled, delivered_capacity = calculate_modelled_newbuilds(
             fleet, trade_gap, cap_count, idx
         )
         newbuilds += modelled
         trade_gap -= delivered_capacity
 
-    elif trade_gap < -TOLERANCE and fleet.allow_secondary_scrapping:
+    elif trade_gap < 0.0 and fleet.allow_secondary_scrapping:
         trade_gap += perform_secondary_scrapping(fleet, trade_gap, idx)
+
+    # a count negligible against the fleet is no vessel, whether a rounding residue or
+    # the tail of a logit: it would never be in service, so no cohort is built from it
+    newbuilds = drop_negligible(newbuilds, total_count + np.sum(newbuilds))
 
     consolidate_increments(fleet)
     reconcile_newbuild_technology_caps(fleet, newbuilds, time_step, total_count)

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 # The EU ETS price, and FuelEU's limit and penalty; the EU rules' switches are
-# the files the deck picks with %EU_ETS%, %FUELEU% and %EU_WORLDWIDE%.
+# the files the deck picks with %NO_EU_ETS%, %NO_FUELEU% and %EU_RULES_WORLDWIDE%.
 
 Import Forecast "eu_ets_carbon_credit_price"
 Forecast "eu_ets_carbon_credit_price" {

@@ -98,11 +98,13 @@ def _is_admitted(count: FloatLike) -> bool:
     """
     Check whether the count of a vessel type admits it into a bunkering LP.
 
-    A vessel type enters the LP of its step only with a positive count. Expected
-    bunkering needs a solution for every vessel type allowed as a newbuild, as its
-    results feed the uptake metrics of the vessel; such a type with no vessels in the
-    fleet therefore carries a low count, so it enters the expected LPs, while existing
-    bunkering drops a vessel type whose count is zero.
+    A vessel type enters the LP of its step only with a positive count. The test is
+    exact, as the fleet writes an exact zero for a vessel type not in service, one
+    whose count is negligible against its fleet's total. Expected bunkering needs a
+    solution for every vessel type allowed as a newbuild, as its results feed the
+    uptake metrics of the vessel; such a type not in service therefore carries a low
+    count in the expected scope, so it enters the expected LPs, while existing
+    bunkering drops it.
 
     Parameters
     ----------

@@ -37,9 +37,14 @@ only through `core` expectations and the bunkering LP. `Simulation` in
   the values of one vessel or plant. A total is such a value times a count: a
   port's bunker mass adds each vessel's bunkered mass times its count, and a
   fleet's results add its vessels' results weighted by their counts.
-  `FleetExpectation.count` holds each vessel type's count per bunkering scope;
-  in the expected scope a type allowed as a newbuild but with no vessels at a
-  step carries a small count, so that it enters the LP.
+  A vessel type is in service at a step where its count is not negligible
+  against its fleet's total (`is_in_service` in
+  `simulation/fleet/_composition.py`). Only a type in service enters the
+  existing LP, counts toward the fleet's fuel-type totals and shows `in_fleet`
+  in its results. `FleetExpectation.count` holds each vessel type's count per
+  bunkering scope, exact zero for a type not in service, as the LP admits on a
+  positive count; in the expected scope a type allowed as a newbuild but not in
+  service carries a small count instead, so that it enters the LP.
 - Time is measured in days or in years:
   - In days: `Simulation.timeline`, counted from the start date, and a step's
     size, from the date before (`Simulation._time_step_at`). The first step's

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 
-from navigate.util import TOLERANCE, divide_nonzero
+from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -184,7 +184,7 @@ def _calculate_import_from_producers(
         # the fuel at zero cost
         for port_name, port in ports.items():
             bunker_price = port.expectation.bunker_price[fuel_name][forward]
-            bunker_supply = np.where(bunker_price > TOLERANCE, aligned[port_name], 0.0)
+            bunker_supply = np.where(bunker_price > 0.0, aligned[port_name], 0.0)
 
             port.expectation.bunker_supply[fuel_name][idx:] = bunker_supply
             port.results.bunker_supply_mass[fuel_name][idx] = bunker_supply[0]

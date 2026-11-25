@@ -719,6 +719,7 @@ class Simulation:
             self.nodes.regulations,
             self.nodes.vessels,
             bunker.counts,
+            bunker.options.solution_tolerance,
             bunker.scope,
             bunker.idx,
         )

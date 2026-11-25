@@ -8,7 +8,7 @@ from __future__ import annotations
 import itertools
 from typing import TYPE_CHECKING
 
-from navigate.simulation.cohort import calculate_share_below, extends_past
+from navigate.simulation.cohort import calculate_share_below
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
@@ -51,13 +51,18 @@ def perform_decommissioning(producer: Producer) -> None:
     """
     for p, plant in enumerate(producer.plants):
         lifetime = plant.lifetime.get()
-        increments = producer.increments[p]
-        running = [increment for increment in increments if increment.age < lifetime]
+        running = []
 
-        for increment in running:
-            if extends_past(increment, lifetime):
-                share = calculate_share_below(increment, lifetime)
+        for increment in producer.increments[p]:
+            share = calculate_share_below(increment, lifetime)
+
+            if share == 0.0:
+                continue
+
+            if share < 1.0:
                 increment.count *= share
                 increment.age_span = lifetime - increment.age
+
+            running.append(increment)
 
         producer.increments[p] = running

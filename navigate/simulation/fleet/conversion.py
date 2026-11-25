@@ -34,10 +34,11 @@ from navigate.simulation.economics import (
 from navigate.simulation.fleet._composition import (
     get_counts,
     get_total_count,
+    is_in_service,
     is_retrofit_cycle,
 )
 from navigate.simulation.fleet.charter import build_fuel_component
-from navigate.util import ROUND_OFF, TOLERANCE, YEAR
+from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -961,7 +962,7 @@ def _get_supply_mass(vessel: Vessel, port: Port, fuel_name: str, idx: int) -> fl
 
 def _vessels_in_service(fleet: Fleet) -> Iterator[tuple[Vessel, float]]:
     """
-    Yield each vessel type of the fleet that has vessels, with its vessel count.
+    Yield each vessel type of the fleet in service, with its vessel count.
 
     Parameters
     ----------
@@ -973,11 +974,10 @@ def _vessels_in_service(fleet: Fleet) -> Iterator[tuple[Vessel, float]]:
     tuple[Vessel, float]
         The vessel type and its number of vessels.
     """
-    for vessel, count in zip(fleet.vessels, get_counts(fleet), strict=True):
-        if abs(count) < TOLERANCE:
-            continue
+    counts = np.array(get_counts(fleet))
 
-        yield vessel, count
+    for v in np.flatnonzero(is_in_service(counts)):
+        yield fleet.vessels[v], float(counts[v])
 
 
 def _port_fuels(vessel: Vessel, fuels: dict[str, Fuel]) -> Iterator[tuple[Port, Fuel]]:

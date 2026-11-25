@@ -4,8 +4,8 @@
 """
 Numeric helpers.
 
-Safe division, step lengths, monotonicity tests, interpolation, index lookup, growth and
-smoothing.
+Negligible values, safe division, step lengths, monotonicity tests, interpolation,
+index lookup, growth and smoothing.
 """
 
 from __future__ import annotations
@@ -20,10 +20,88 @@ from navigate.util.dates import YEAR
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from navigate.util.types_ import FloatArray, IntArray
+    from navigate.util.types_ import BoolArray, FloatArray, IntArray
 
 ROUND_OFF = 5  # decimals
-TOLERANCE = 10 ** (-ROUND_OFF)
+
+# a remainder of floating-point arithmetic lies within this fraction of its scale:
+# cancellation leaves about 1e-16 to 1e-15 of the operands, while real values lie
+# above 1e-11 of theirs
+RELATIVE_TOLERANCE = 1e-12
+
+
+def is_negligible(value: npt.ArrayLike, scale: npt.ArrayLike) -> BoolArray:
+    """
+    Test whether a value is zero in substance against the scale it was computed on.
+
+    Parameters
+    ----------
+    value
+        Value to test, scalar or array.
+    scale
+        Magnitude of what the value was computed from, in the value's unit, such as
+        the larger operand of a difference or the total a count belongs to; finite.
+
+    Returns
+    -------
+    BoolArray
+        Whether the value lies within ``RELATIVE_TOLERANCE`` of its scale, with the
+        broadcast shape of the inputs (0-d for scalar inputs).
+    """
+    return np.abs(value) <= RELATIVE_TOLERANCE * np.abs(scale)
+
+
+def drop_negligible(value: npt.ArrayLike, scale: npt.ArrayLike) -> FloatArray:
+    """
+    Set the values negligible against their scale to exact zero.
+
+    Parameters
+    ----------
+    value
+        Value to clean, scalar or array.
+    scale
+        Magnitude of what the value was computed from, as for ``is_negligible``.
+
+    Returns
+    -------
+    FloatArray
+        The value, zero where negligible, with the broadcast shape of the inputs (0-d
+        for scalar inputs).
+    """
+    return np.where(is_negligible(value, scale), 0.0, value)
+
+
+def subtract(
+    minuend: npt.ArrayLike, subtrahend: npt.ArrayLike, *, tolerance: npt.ArrayLike = 0.0
+) -> FloatArray:
+    """
+    Subtract two values, exactly zero where they are equal to rounding or tolerance.
+
+    The difference is dropped where it is negligible against the larger magnitude of
+    the operands, or within the tolerance. The operands are finite: against an
+    infinite one, every finite difference is negligible.
+
+    Parameters
+    ----------
+    minuend
+        Value subtracted from, scalar or array.
+    subtrahend
+        Value subtracted, scalar or array, in the minuend's unit.
+    tolerance
+        Amount within which the operands are equal, scalar or array, in the
+        minuend's unit, such as the noise of the LP that made them equal.
+
+    Returns
+    -------
+    FloatArray
+        The difference, with the broadcast shape of the inputs (0-d for scalar
+        inputs).
+    """
+    difference = np.subtract(minuend, subtrahend)
+    scale = np.maximum(np.abs(minuend), np.abs(subtrahend))
+
+    is_equal = is_negligible(difference, scale) | (np.abs(difference) <= tolerance)
+    return np.where(is_equal, 0.0, difference)
 
 
 def divide_nonzero(

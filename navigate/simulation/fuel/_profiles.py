@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.cohort import calculate_retired_share, find_origin_indexes
-from navigate.util import YEAR
+from navigate.util import YEAR, drop_negligible
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -147,8 +147,9 @@ def _calculate_running_profile(
     FloatArray
         The rate carried at each of the times, in tons/year.
     """
+    # once all of the rate has retired, the sum is zero to rounding
     retired = _spread_uniformly(rate, retirement, window, times)
-    return np.cumsum(entered - retired)
+    return drop_negligible(np.cumsum(entered - retired), rate)
 
 
 def _calculate_reserved_profile(
@@ -209,15 +210,15 @@ def _spread_uniformly(
     Each time takes the part of the window since the previous time; the part
     beyond the last time is left out.
     """
-    # a remainder of the window below the tolerance is round-off
-    tolerance = 1e-5
-
     spread = np.zeros_like(times)
     start = end - window
     remaining = window
     t = np.argmax(start < times)
 
-    while remaining > tolerance:
+    # the remainder of the window carries the rounding of the dates it is taken from
+    scale = max(abs(end), window)
+
+    while remaining > 0.0:
         if start >= times[-1]:
             break
 
@@ -226,6 +227,6 @@ def _spread_uniformly(
 
         t += 1
         start += partial
-        remaining -= partial
+        remaining = float(drop_negligible(remaining - partial, scale))
 
     return spread

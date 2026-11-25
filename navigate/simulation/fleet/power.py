@@ -15,7 +15,7 @@ from navigate.core.node_type import is_surface, is_variable
 from navigate.exceptions import PowerCapacityError
 from navigate.simulation.fleet._trip import derive_reference_trip
 from navigate.util import (
-    TOLERANCE,
+    drop_negligible,
     energy_to_power,
     power_to_energy,
 )
@@ -424,7 +424,7 @@ def _find_overloads(
     for label, energy, time in zip(labels, energies, times, strict=True):
         deliverable = power_to_energy(power_capacity, time)
 
-        if energy - deliverable <= TOLERANCE * max(1.0, deliverable):
+        if drop_negligible(energy - deliverable, deliverable) <= 0.0:
             continue
 
         implied_power = energy_to_power(energy, time) if time > 0.0 else np.inf

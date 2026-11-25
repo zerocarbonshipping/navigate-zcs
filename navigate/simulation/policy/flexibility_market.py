@@ -9,7 +9,12 @@ from typing import TYPE_CHECKING, NamedTuple
 
 from navigate.core.enum_ import BunkerScopeID, ExpenseID, RegulationSchemeID
 from navigate.simulation.policy._policed import calculate_vessel_account, select_policed
-from navigate.util import calculate_smoothing_alpha, divide_nonzero, smooth_belief_path
+from navigate.util import (
+    calculate_smoothing_alpha,
+    divide_nonzero,
+    smooth_belief_path,
+    subtract,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.regulation import Regulation
@@ -38,6 +43,7 @@ def calculate_flexibility_markets(
     regulations: dict[str, Regulation],
     vessels: dict[str, Vessel],
     counts: dict[str, float],
+    tolerance: float,
     scope: BunkerScopeID,
     idx: int,
 ) -> None:
@@ -58,6 +64,8 @@ def calculate_flexibility_markets(
     counts
         Count of each vessel type in the bunkering LP, in the LP's order, which the
         sums over the vessels follow.
+    tolerance
+        Solution tolerance the bunkering LP was solved to.
     scope
         Scope of the bunkering LP: the existing market goes to the results, the
         expected one to the expectations.
@@ -69,7 +77,7 @@ def calculate_flexibility_markets(
         if not (regulation.active and is_flexible):
             continue
 
-        market = _clear_flexibility_market(regulation, counts, idx)
+        market = _clear_flexibility_market(regulation, counts, tolerance, idx)
 
         if scope == BunkerScopeID.EXISTING:
             _record_market(regulation, vessels, market, idx)
@@ -127,7 +135,7 @@ def update_regulation_flexibility_beliefs(
 
 
 def _clear_flexibility_market(
-    regulation: Regulation, counts: dict[str, float], idx: int
+    regulation: Regulation, counts: dict[str, float], tolerance: float, idx: int
 ) -> _Market:
     """Clear the flexibility market of one regulation; see the public function."""
     expectation = regulation.expectation
@@ -135,32 +143,48 @@ def _clear_flexibility_market(
     remedial_cost = expectation.remedial_cost[idx]
     shadow_price = expectation.pooled_shadow_price[idx]
 
-    # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance
+    policed = select_policed(regulation, counts)
+
+    # per vessel, the units short of (non-compliance) or beyond (surplus) its allowance;
+    # no LP makes a vessel's emissions equal its allowance, so an excess below the LP's
+    # tolerance is real and adds up over the vessels to what the pool remediates
     balances = {}
     total_non_compliance = 0.0
     total_surplus = 0.0
-    for vessel_name, count in select_policed(regulation, counts).items():
+    non_compliant_count = 0.0
+    for vessel_name, count in policed.items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
-        non_compliance = max(account.emissions - account.allowance, 0.0)
-        surplus = max(account.allowance - account.emissions, 0.0)
+        excess = float(subtract(account.emissions, account.allowance))
+        non_compliance = max(excess, 0.0)
+        surplus = max(-excess, 0.0)
 
         balances[vessel_name] = (non_compliance, surplus)
         total_non_compliance += count * non_compliance
         total_surplus += count * surplus
 
-    # the non-compliance not remediated is covered by flexibility units
-    total_flexibility = total_non_compliance - total_remedial
+        if non_compliance > 0.0:
+            non_compliant_count += count
 
-    # the share of the non-compliance remediated rather than covered by flexibility
-    # units, capped at one against the numerical instability of vessels with a low
-    # count (the jump-start fraction)
-    ratio = float(divide_nonzero(total_remedial, total_non_compliance, default=1.0))
-    remedial_fraction = min(1.0, ratio)
+    # the pooled row makes the non-compliance equal the remedial units to the LP's
+    # noise, in tCO2e/year: twice the tolerance per non-compliant vessel, as its
+    # excess differs from its term in the row by the row defining the term and the
+    # LP resolves the term itself, and the tolerance each for the pooled row and the
+    # remedial units, dropped below it
+    pool_noise = 2.0 * tolerance * (non_compliant_count + 1.0)
+
+    # the non-compliance not remediated is covered by flexibility units
+    uncovered = subtract(total_non_compliance, total_remedial, tolerance=pool_noise)
+    total_flexibility = float(uncovered)
+
+    # the share of the non-compliance covered by flexibility units rather than
+    # remediated, none where the remedial units cover it all
+    share = float(divide_nonzero(total_flexibility, total_non_compliance))
+    flexibility_fraction = max(share, 0.0)
 
     # the surplus may exceed the flexibility units when the surplus-generating fuels
     # pay off without the remuneration (e.g., through subsidies), an over-compliance
-    # with the global target; numerical instability can make the flexibility units
-    # negative, which the scaling excludes
+    # with the global target; remedial units beyond the non-compliance make the
+    # flexibility units negative, which the scaling excludes
     if total_surplus > total_flexibility > 0.0:
         # the cost falls linearly from the threshold to the zero line, ignoring
         # negative emissions
@@ -170,11 +194,12 @@ def _clear_flexibility_market(
         flexibility_cost = shadow_price
 
     # every vessel's non-compliance splits into remedial and flexibility units by the
-    # same fraction
+    # same fraction, so a vessel whose pool remediates it all holds exactly its
+    # non-compliance in remedial units, whatever the LP's noise in the pool's
     vessel_units = {}
     for vessel_name, (non_compliance, surplus) in balances.items():
-        remedial = non_compliance * remedial_fraction
-        flexibility = non_compliance * (1.0 - remedial_fraction)
+        flexibility = non_compliance * flexibility_fraction
+        remedial = non_compliance - flexibility
         vessel_units[vessel_name] = _Units(remedial, flexibility, surplus)
 
     total = _Units(total_remedial, total_flexibility, total_surplus)

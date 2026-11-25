@@ -199,8 +199,12 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
 
         return (fuel_ref - saving + charter_rate) / operations.cargo_miles
 
+    # the absolute tolerance lies below scipy's relative one, about 1.5e-8 * mu, so the
+    # search narrows the optimum about as far as rounding of the objective allows:
+    # where it stops within a wider bracket depends on the path of its trial points,
+    # which a last-bit difference in an input can change
     solution = minimize_scalar(
-        objective, bounds=(mu_low, mu_high), method="bounded", options={"xatol": 0.1}
+        objective, bounds=(mu_low, mu_high), method="bounded", options={"xatol": 1e-9}
     )
 
     # minimize_scalar works best on a unimodal objective, which convex load

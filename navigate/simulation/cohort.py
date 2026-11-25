@@ -11,12 +11,12 @@ domain.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.core.nodes.curve import Curve
-from navigate.util import find_nearest_index, find_nearest_indices
+from navigate.util import drop_negligible, find_nearest_index, find_nearest_indices
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -68,30 +68,13 @@ def split_by_age(
     return list(zip(ages, spans, counts, strict=True))
 
 
-def extends_past(increment: Increment, boundary: float) -> bool:
-    """
-    Return whether an increment's age span reaches past an age boundary.
-
-    Parameters
-    ----------
-    increment
-        Increment tested.
-    boundary
-        Age the increment is split at, in years.
-
-    Returns
-    -------
-    bool
-        Whether the oldest end of the span lies past the boundary.
-    """
-    return increment.age + increment.age_span > boundary
-
-
 def calculate_share_below(increment: Increment, boundary: float) -> float:
     """
-    Return the share of an increment younger than an age boundary it extends past.
+    Return the share of an increment younger than an age boundary.
 
-    The assets of an increment are spread uniformly over its age span.
+    The assets of an increment are spread uniformly over its age span. The ages carry
+    the rounding of the steps they were aged by, so a boundary within rounding of
+    either end of the span, against the larger of the ends, splits nothing off.
 
     Parameters
     ----------
@@ -103,37 +86,35 @@ def calculate_share_below(increment: Increment, boundary: float) -> float:
     Returns
     -------
     float
-        Share of the increment's assets younger than the boundary.
+        Share of the increment's assets younger than the boundary: 0.0 for an
+        increment at or past it, 1.0 for one wholly younger.
     """
-    return (boundary - increment.age) / increment.age_span
+    youngest = increment.age
+    oldest = increment.age + increment.age_span
+    scale = max(abs(youngest), abs(oldest))
 
+    below = float(drop_negligible(boundary - youngest, scale))
+    if below <= 0.0:
+        return 0.0
 
-@overload
-def calculate_retired_share(
-    retirement: float, window: float, times: float
-) -> float: ...
+    above = float(drop_negligible(oldest - boundary, scale))
+    if above <= 0.0:
+        return 1.0
 
-
-@overload
-def calculate_retired_share(
-    retirement: FloatLike, window: float, times: FloatArray
-) -> FloatArray: ...
-
-
-@overload
-def calculate_retired_share(
-    retirement: FloatArray, window: float, times: float
-) -> FloatArray: ...
+    # the boundary lies inside the span, which is then positive
+    return below / increment.age_span
 
 
 def calculate_retired_share(
     retirement: FloatLike, window: float, times: FloatLike
-) -> FloatLike:
+) -> FloatArray:
     """
     Calculate the share of a cohort retired by the given times.
 
     The cohort retires uniformly over the window up to its retirement; a window of
-    zero retires it at once at the retirement.
+    zero retires it at once at the retirement. The times carry the rounding of the
+    steps they were advanced by, so a time within rounding of either end of the
+    window, against the larger of the ends, retires none or all of the cohort.
 
     Parameters
     ----------
@@ -146,14 +127,20 @@ def calculate_retired_share(
 
     Returns
     -------
-    FloatLike
+    FloatArray
         Share of the cohort retired by each of the times.
     """
-    if window == 0.0:
-        return np.heaviside(times - retirement, 1.0)
+    start = retirement - window
+    scale = np.maximum(np.abs(start), np.abs(retirement))
 
-    elapsed = times - (retirement - window)
-    return np.clip(elapsed / window, 0.0, 1.0)
+    elapsed = drop_negligible(times - start, scale)
+    remaining = drop_negligible(retirement - times, scale)
+
+    if window == 0.0:
+        return np.heaviside(elapsed, 1.0)
+
+    retired = np.where(remaining > 0.0, elapsed / window, 1.0)
+    return np.clip(retired, 0.0, 1.0)
 
 
 def find_insertion_index(increments: Sequence[Increment], age: float) -> int:

@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.simulation.cohort import find_origin_indexes
 from navigate.simulation.fuel._profiles import iterate_increments
-from navigate.util import TOLERANCE, YEAR, interpolate_yearly_flow
+from navigate.util import YEAR, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -197,7 +197,7 @@ def _transfer_instantaneous_production(producer: Producer, idx: int) -> None:
         expectation = plant.expectation
         results = plant.results
 
-        if production > TOLERANCE:
+        if production > 0.0:
             results.instantaneous_cost[idx] = expectation.expected_production_cost[idx]
 
             for emission_name, wtt in expectation.expected_production_wtt.items():

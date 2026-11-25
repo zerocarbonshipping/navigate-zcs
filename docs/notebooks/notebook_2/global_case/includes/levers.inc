@@ -4,7 +4,8 @@
 # LEVERS - Session 2's levers every scenario holds, as placeholders that navigate
 # fills in from --set NAME=VALUE. Each multiplies a library forecast, whose own
 # Multiplier is 1; the deck holds a forecast only once it is imported. The
-# regulation levers are in eu_levers.inc and global_standard_levers.inc.
+# regulation levers are in eu_levers.inc and global_standard_levers.inc, and the
+# switches are the files the deck picks.
 
 # ---- fuel prices ----
 Import Forecast "fossil_fuel_oil_price_global"
@@ -152,33 +153,4 @@ Forecast "trade_growth_tanker" {
 Import Forecast "trade_growth_tug"
 Forecast "trade_growth_tug" {
     Multiplier = %TRADE_GROWTH%
-}
-
-# the share of the fleet that may fit each efficiency technology in a year, on
-# newbuilds and on retrofits; 1 is Navigate's default, 0 freezes efficiency.
-# Only these segments' fleets have efficiency technologies.
-
-Fleet "bulk_carrier_*" {
-    set_newbuild_technology_limit("*", %TECHNOLOGY_LIMIT%)
-    set_retrofit_technology_limit("*", %TECHNOLOGY_LIMIT%)
-}
-
-Fleet "container_*" {
-    set_newbuild_technology_limit("*", %TECHNOLOGY_LIMIT%)
-    set_retrofit_technology_limit("*", %TECHNOLOGY_LIMIT%)
-}
-
-Fleet "gas_carrier_*" {
-    set_newbuild_technology_limit("*", %TECHNOLOGY_LIMIT%)
-    set_retrofit_technology_limit("*", %TECHNOLOGY_LIMIT%)
-}
-
-Fleet "roro_*" {
-    set_newbuild_technology_limit("*", %TECHNOLOGY_LIMIT%)
-    set_retrofit_technology_limit("*", %TECHNOLOGY_LIMIT%)
-}
-
-Fleet "tanker_*" {
-    set_newbuild_technology_limit("*", %TECHNOLOGY_LIMIT%)
-    set_retrofit_technology_limit("*", %TECHNOLOGY_LIMIT%)
 }

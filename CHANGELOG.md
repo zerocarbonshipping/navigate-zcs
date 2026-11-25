@@ -57,6 +57,12 @@ change.
   requested; they used to produce no column.
 
 ### Changed
+- The results file keeps every series with a value other than zero; a series
+  whose values all lay below 1e-5 in magnitude was left out (#911).
+- An attribute that takes an integer rejects any other number, such as
+  `3.000001`, which it rounded when within 1e-5 of an integer (#911).
+- Building Navigate from source, as `pip install` of a checkout does, needs
+  setuptools 77 or later; pip fetches it unless run with `--no-build-isolation`.
 - The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of
   vessels, fleets and the global results are keyed by emission alone, summed
   over the fuels: the split between fuels followed the solver where two fuels
@@ -395,6 +401,12 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- Speed management finds each vessel type's optimal speed to convergence, not
+  to about 0.1 knots, so a rounding-level difference in its inputs no longer
+  moves it by hundredths of a knot. Decks with speed management move (#962).
+- A plant's process CAPEX and fixed OPEX are paid on its capacity, not its
+  production, so a lower `Uptime` spreads them over fewer tons. Plants with
+  an uptime below 1 and positive process costs cost more per ton (#969).
 - A Curve, Forecast, Surface or Timetable with `Extrapolate = FALSE` read
   outside its table stops the run with an `Error:` line naming the node and the
   table's range as the deck wrote it, instead of a Python traceback.
@@ -432,6 +444,11 @@ change.
   instead of exactly zero is treated as absent from its fleet; the remainder
   could shift the results of every later year. Decks in which one arose move,
   `business_as_usual` among them (#473).
+- A rounding remainder in a count, gap or split cohort no longer adds, scraps
+  or admits vessels or plants, or shifts later years; decks where one arose
+  move, `business_as_usual` and `basecase_mid_regulation` among them (#911).
+- A vessel type counts as in its fleet when its count is more than 1e-12 of
+  the fleet's, rather than above 1e-5 vessels (#911).
 - A vessel whose propulsion `PowerCapacity` allows no speed above 0 in a sailing
   condition its route sails is a `PowerCapacityError` naming the vessel and the
   condition; it ran with infinite or undefined rates, or crashed (#907).

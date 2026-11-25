@@ -44,8 +44,10 @@ path = ".github/PULL_REQUEST_TEMPLATE.md"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "Apache-2.0"
 
-# Workshop notebooks; strict JSON cannot carry a comment header.
+# Workshop notebooks; strict JSON cannot carry a comment header, and the SPDX
+# lines in their outputs belong to the files a cell prints, so this one wins.
 [[annotations]]
 path = "docs/notebooks/notebook_*/*.ipynb"
+precedence = "override"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "CC-BY-4.0"

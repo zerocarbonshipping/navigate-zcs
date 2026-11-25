@@ -31,7 +31,6 @@ from navigate.core.types_ import Calculator, CurveTableInput
 from navigate.core.wrap import as_list
 from navigate.util import (
     ROUND_OFF,
-    TOLERANCE,
     is_nondecreasing,
     is_unique,
     key_name,
@@ -129,7 +128,7 @@ def assign_integer(
 
     value = round(assignment)
 
-    if abs(value - assignment) >= TOLERANCE:
+    if value != assignment:
         raise ValueError(f"only allows assignment of integers, but got {assignment}")
 
     return value

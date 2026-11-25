@@ -26,7 +26,7 @@ the fuel and emission constants the results were converted with, which the
 ## Table
 
 The table is long: one row per series and date. A series whose values are all
-below 1e-5 in magnitude or missing is left out.
+zero or missing is left out.
 
 | Column | Type | Content |
 |---|---|---|
@@ -122,8 +122,8 @@ kind holds one per node of that type in the run. That means every Fleet,
 Vessel, Port, Plant, Producer, Regulation and Levy the deck uses, including
 those it loads from the assumptions library.
 
-A series is written only when some date of it holds a value of at least 1e-5
-in magnitude. The *Present when* column says what a run needs for that. If the
+A series is written only when some date of it holds a value other than zero.
+The *Present when* column says what a run needs for that. If the
 run doesn't meet it, the series is left out of the file, so filtering for it
 returns no rows. A series that is in the file can still be missing at some
 dates, as that column says.

@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# BASECASE_MID_REGULATION - simulations/scenarios/basecase_mid_regulation, on the coarse grid
-# (--set GRID=coarse) or year by year (--set GRID=yearly), with Session 2's
-# levers as %NAME% placeholders: every multiplier and switch at 1 gives the
-# scenario itself.
+# BASECASE_MID_REGULATION - basecase_mid_regulation.nav with Session 2's
+# levers as %NAME% placeholders: run it with navigate --set NAME=VALUE, or
+# through Horizon with levers.hor. Every multiplier at 1 and every switch at 0
+# gives the scenario.
 
 DEFINE {
     Load DefaultModelDefinition
@@ -37,11 +37,13 @@ DEFINE {
     Include "includes/eu_levers.inc"
     Include "includes/global_standard_levers.inc"
 
-    # switches: 0 or 1 picks a file
-    Include "includes/eu_ets_%EU_ETS%.inc"
-    Include "includes/fuel_eu_%FUELEU%.inc"
-    Include "includes/eu_worldwide_%EU_WORLDWIDE%.inc"
-    Include "includes/global_standard_%GLOBAL_STANDARD%.inc"
+    # the switches, 0 or 1, each pick a file: Jurisdiction and
+    # set_include_vessel take only ports and TRUE/FALSE
+    Include "includes/no_eu_ets_%NO_EU_ETS%.inc"
+    Include "includes/no_fueleu_%NO_FUELEU%.inc"
+    Include "includes/no_global_standard_%NO_GLOBAL_STANDARD%.inc"
+    Include "includes/eu_rules_worldwide_%EU_RULES_WORLDWIDE%.inc"
+    Include "includes/freeze_efficiency_%FREEZE_EFFICIENCY%.inc"
 }
 
 EVENTS {

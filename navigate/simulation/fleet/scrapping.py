@@ -15,7 +15,7 @@ from navigate.simulation.fleet._composition import (
     extract_cargo_miles,
     get_trade_capacity,
 )
-from navigate.util import ROUND_OFF, YEAR, divide_nonzero
+from navigate.util import ROUND_OFF, YEAR, divide_nonzero, drop_negligible
 
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
@@ -134,7 +134,8 @@ def split_oldest_first(
 
     The oldest groups are scrapped whole until what is left of the capacity fits in
     the next group, which then has the same fraction of each of its increments
-    scrapped.
+    scrapped. What is left is exact zero once it is negligible against the capacity,
+    so a group it fills to rounding is scrapped whole, with nothing split off.
 
     Parameters
     ----------
@@ -152,10 +153,17 @@ def split_oldest_first(
     remaining = capacity
 
     for g, group_capacity in enumerate(capacities):
-        if group_capacity >= remaining:
+        left = float(drop_negligible(remaining - group_capacity, capacity))
+
+        # the group takes the rest of the capacity, in part where it holds more
+        if remaining == 0.0 or left < 0.0:
             return g, float(divide_nonzero(remaining, group_capacity))
 
-        remaining -= group_capacity
+        # and whole where it holds the rest to rounding
+        if left == 0.0:
+            return g, 1.0
+
+        remaining = left
 
     return len(capacities), None
 
@@ -210,9 +218,9 @@ def _scrap_by_age(fleet: Fleet, idx: int) -> None:
     """
     Scrap the part of each increment beyond the vessel lifetime.
 
-    An increment at or past the lifetime is scrapped whole and removed. A converted
-    increment keeps its source type's age and span, so any increment, not only the
-    oldest, can reach past the lifetime.
+    An increment at or past the lifetime, or within rounding of it, is scrapped whole
+    and removed. A converted increment keeps its source type's age and span, so any
+    increment, not only the oldest, can reach past the lifetime.
 
     Parameters
     ----------
@@ -231,7 +239,7 @@ def _scrap_by_age(fleet: Fleet, idx: int) -> None:
         for increment in increments:
             scrapped_vessels += _scrap_past_lifetime(increment, lifetime)
 
-        surviving = [increment for increment in increments if increment.age < lifetime]
+        surviving = [increment for increment in increments if increment.count > 0.0]
         fleet.increments[v] = surviving
         scrap[vessel.name][idx] += scrapped_vessels
 
