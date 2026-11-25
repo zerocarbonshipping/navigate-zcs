@@ -416,6 +416,10 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- Speed management no longer slows a sailing condition to 0 knots or below, where
+  its leg took no sea time and cost nothing. Where the propulsion load sets no
+  minimum speed above 0, no condition sails below the route's lowest speed. Decks
+  with speed management and such a load move (#972).
 - Speed management finds each vessel type's optimal speed to convergence, not
   to about 0.1 knots, so a rounding-level difference in its inputs no longer
   moves it by hundredths of a knot. Decks with speed management move (#962).

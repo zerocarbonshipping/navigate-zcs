@@ -30,7 +30,7 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandID
 from navigate.core.wrap import to_floats
 from navigate.simulation.fleet._trip import derive_reference_trip, sum_per_leg
-from navigate.simulation.fleet.power import calculate_technical_speed_limits
+from navigate.simulation.fleet.power import calculate_speed_limits
 from navigate.util import (
     HOUR_TO_DAY,
     YEAR,
@@ -117,7 +117,7 @@ def update_operations(vessel: Vessel, allow_speed_management: bool, idx: int) ->
         speeds = np.array(vessel.expectation.speeds_condition.at[idx - 1], dtype=float)
 
     else:
-        speeds_min, speeds_max = calculate_technical_speed_limits(vessel, trip)
+        speeds_min, speeds_max = calculate_speed_limits(vessel, trip)
 
         # the route's reference speed may exceed the propulsion converter's power
         # capacity or fall below its minimum load
