@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# BASECASE_MID_REGULATION - basecase_mid_regulation.nav with Session 2's
+# levers as %NAME% placeholders: run it with navigate --set NAME=VALUE, or
+# through Horizon with levers.hor. Every multiplier at 1 and every switch at 0
+# gives the scenario.
+
+DEFINE {
+    Load DefaultModelDefinition
+
+    # fleets
+    Load DefaultFleet
+
+    # voyages
+    Load DefaultPort
+
+    # fuels
+    Load DefaultEmission
+    Load DefaultFeedstock
+    Load DefaultFuel
+    Load DefaultProducer
+    Load DefaultPlant
+    Load DefaultRegion
+    Load DefaultSource
+    Load DefaultTransport
+
+    # regulations
+    Load DefaultRegulation
+    Include "includes/mid_regulation.inc"
+
+    # calibration
+    Load DefaultCalibration
+
+    # levers
+    Include "includes/levers.inc"
+    Include "includes/eu_levers.inc"
+    Include "includes/global_standard_levers.inc"
+
+    # the switches, 0 or 1, each pick a file: Jurisdiction and
+    # set_include_vessel take only ports and TRUE/FALSE
+    Include "includes/no_eu_ets_%NO_EU_ETS%.inc"
+    Include "includes/no_fueleu_%NO_FUELEU%.inc"
+    Include "includes/no_global_standard_%NO_GLOBAL_STANDARD%.inc"
+    Include "includes/eu_rules_worldwide_%EU_RULES_WORLDWIDE%.inc"
+    Include "includes/freeze_efficiency_%FREEZE_EFFICIENCY%.inc"
+}
+
+EVENTS {
+    Load DefaultConverterAvailable
+    Include "includes/time_steps_%GRID%.inc"
+}

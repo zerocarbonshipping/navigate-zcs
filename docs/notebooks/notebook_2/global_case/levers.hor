@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# LEVERS - the Horizon study STEP 5 of notebook 2 runs, of one reference scenario
+# over Session 2's levers. Each parameter fills the %NAME% of the same name in
+# the scenario's .unc deck and its includes, as --set does in STEP 4.
+#
+# A lever with active = TRUE is drawn from its range: lowest, most likely and
+# highest, as multipliers on what the deck says. With active = FALSE it stays at
+# its most likely value, 1.0, the reference. The ranges are the suggested spans
+# of STEP 4.
+#
+# Sample 1 takes every lever at its most likely value, sample 2 at the end that
+# lowers emissions (the highest where emissions_low = MAXIMUM, else the lowest)
+# and sample 3 at the other end; the rest are a Latin hypercube.
+
+ContinuousParameter "OIL_PRICE"                  = TRIANGULAR(0.6, 1.0, 2.0) { active = TRUE,  emissions_low = MAXIMUM }
+ContinuousParameter "LNG_PRICE"                  = TRIANGULAR(0.6, 1.0, 2.0) { active = FALSE, emissions_low = MAXIMUM }
+ContinuousParameter "EU_ETS_PRICE"               = TRIANGULAR(0.5, 1.0, 3.0) { active = FALSE, emissions_low = MAXIMUM }
+ContinuousParameter "FUELEU_TARGET"              = TRIANGULAR(0.3, 1.0, 1.2) { active = FALSE }
+ContinuousParameter "FUELEU_PENALTY"             = TRIANGULAR(1.0, 1.0, 5.0) { active = FALSE, emissions_low = MAXIMUM }
+ContinuousParameter "GLOBAL_STANDARD_PENALTY"    = TRIANGULAR(0.0, 1.0, 5.0) { active = FALSE, emissions_low = MAXIMUM }
+ContinuousParameter "GLOBAL_STANDARD_TARGET"     = TRIANGULAR(0.5, 1.0, 1.2) { active = FALSE }
+ContinuousParameter "EFUEL_ELECTRICITY_PRICE"    = TRIANGULAR(0.6, 1.0, 1.4) { active = FALSE }
+ContinuousParameter "BIOMASS_SHARE_FOR_SHIPPING" = TRIANGULAR(0.5, 1.0, 3.0) { active = FALSE, emissions_low = MAXIMUM }
+ContinuousParameter "BIOGENIC_CO2_AVAILABILITY"  = TRIANGULAR(0.5, 1.0, 2.0) { active = FALSE, emissions_low = MAXIMUM }
+ContinuousParameter "PLANT_BUILD_LIMIT"          = TRIANGULAR(0.5, 1.0, 3.0) { active = FALSE, emissions_low = MAXIMUM }
+ContinuousParameter "TRADE_GROWTH"               = TRIANGULAR(0.0, 1.0, 2.0) { active = FALSE }
+
+# The five switches of STEP 4: every run of the study uses the default;
+# active = TRUE runs the whole study once for each value.
+ScenarioParameter "NO_EU_ETS"          { values = ["0", "1"], default = "0", active = FALSE }  # 1: EU ETS taken out
+ScenarioParameter "NO_FUELEU"          { values = ["0", "1"], default = "0", active = FALSE }  # 1: FuelEU taken out
+ScenarioParameter "NO_GLOBAL_STANDARD" { values = ["0", "1"], default = "0", active = FALSE }  # 1: the global fuel standard taken out
+ScenarioParameter "EU_RULES_WORLDWIDE" { values = ["0", "1"], default = "0", active = FALSE }  # 1: EU ETS and FuelEU on every voyage
+ScenarioParameter "FREEZE_EFFICIENCY"  { values = ["0", "1"], default = "0", active = FALSE }  # 1: nothing further gets fitted
+
+# The time grid of STEP 3: "coarse" or "yearly".
+ScenarioParameter "GRID" { values = ["coarse", "yearly"], default = "coarse", active = FALSE }
+
+Horizon {
+    UncFilePath = "basecase_mid_regulation.unc"  # the deck: the .unc of a reference scenario of STEP 3
+    OutputPath = "study"                         # the folder of the study's runs and results
+    NumberOfSamples = 15                         # number of simulations
+    SamplingMethod = LHS
+    RandomSeed = 42
+}
