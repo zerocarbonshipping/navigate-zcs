@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatLike
 
 
 def calculate_development_potential(
@@ -124,7 +124,9 @@ def calculate_expected_fuel_demand(
     return add_dicts(*demands)
 
 
-def calculate_expected_demand_noise(fleets: dict[str, Fleet], idx: int) -> FloatArray:
+def calculate_expected_demand_noise(
+    fleets: dict[str, Fleet], idx: int
+) -> dict[str, FloatLike]:
     """
     Calculate the noise the expected bunkering leaves in the expected demand of a fuel.
 
@@ -137,13 +139,17 @@ def calculate_expected_demand_noise(fleets: dict[str, Fleet], idx: int) -> Float
 
     Returns
     -------
-    FloatArray
+    dict[str, FloatLike]
         Most the expected bunkering LP's tolerance moves the expected future demand
-        of any fuel, in tons/year.
+        of each fuel, in tons/year.
     """
     forward = np.s_[idx:]
-    noises = [fleet.expectation.fuel_demand_noise[forward] for fleet in fleets.values()]
-    return np.sum(noises, axis=0)
+    noises = []
+
+    for fleet in fleets.values():
+        noises.append(fleet.expectation.fuel_demand_noise.at[forward])
+
+    return add_dicts(*noises)
 
 
 def calculate_expected_fuel_supply(
@@ -201,7 +207,7 @@ def calculate_expected_fuel_gap(
     fuels: dict[str, Fuel],
     supply: dict[str, FloatLike],
     demand: dict[str, FloatLike],
-    noise: FloatArray,
+    noise: dict[str, FloatLike],
 ) -> dict[str, FloatLike]:
     """
     Calculate the expected future gap between demand and supply of each fuel.
@@ -218,7 +224,8 @@ def calculate_expected_fuel_gap(
     demand
         Expected future demand of each fuel, in tons/year.
     noise
-        Most the expected bunkering LP's tolerance moves the demand, in tons/year.
+        Most the expected bunkering LP's tolerance moves the demand of each fuel, in
+        tons/year.
 
     Returns
     -------
@@ -231,7 +238,8 @@ def calculate_expected_fuel_gap(
     for name in fuels:
         fuel_demand = demand.get(name, 0.0)
         fuel_supply = supply.get(name, 0.0)
-        gaps[name] = subtract(fuel_demand, fuel_supply, tolerance=noise)
+        fuel_noise = noise.get(name, 0.0)
+        gaps[name] = subtract(fuel_demand, fuel_supply, tolerance=fuel_noise)
 
     return gaps
 

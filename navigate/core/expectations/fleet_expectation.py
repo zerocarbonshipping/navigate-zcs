@@ -27,7 +27,7 @@ class FleetExpectation(_Expectation):
 
         self.count = self._paths(product(vessel_names, BunkerScopeID))  # vessels
         self.fuel_demand = self._paths(fuel_names)  # t/year
-        self.fuel_demand_noise = self._path()  # t/year, of any fuel
+        self.fuel_demand_noise = self._paths(fuel_names)  # t/year
 
         # one row per vessel, one column per time step
         self.uptakes = np.zeros((len(vessel_names), length))  # -

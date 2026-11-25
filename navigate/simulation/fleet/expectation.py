@@ -510,7 +510,7 @@ def calculate_fleet_fuel_demand(
 
     Each vessel's expected bunkered mass is weighted by its expected count. The
     demand's noise is the most the expected bunkering LP's tolerance can move the
-    demand of a fuel.
+    demand of each fuel.
 
     Parameters
     ----------
@@ -526,12 +526,16 @@ def calculate_fleet_fuel_demand(
     forward = np.s_[idx:]
     scope = BunkerScopeID.EXPECTED
     demand: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
-    stops: FloatLike = 0.0
+    stops: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
 
     for vessel in fleet.vessels:
         expectation = vessel.expectation
         counts = fleet.expectation.count[vessel.name, scope][forward]
-        stops += counts * len(vessel.route.ports)
+
+        # the stops where the vessel can bunker each fuel, weighted by its count
+        for fuel_names in vessel.bunkerable_fuels:
+            for fuel_name in fuel_names:
+                stops[fuel_name] += counts
 
         # the bunkered mass is per port, so a port the route calls more than once
         # counts once
@@ -543,7 +547,8 @@ def calculate_fleet_fuel_demand(
     for key, value in demand.items():
         fleet.expectation.fuel_demand[key][idx:] = value
 
-    # a vessel's bunker mass at a stop meets the fair-share row it enters to the
-    # tolerance and is dropped below the tolerance at the transfer, so it is noise
-    # within twice the tolerance per vessel and stop
-    fleet.expectation.fuel_demand_noise[idx:] = 2.0 * tolerance * stops
+    # a vessel's bunker mass of a fuel at a stop meets the fair-share row it enters to
+    # the tolerance and is dropped below the tolerance at the transfer, so it is noise
+    # within twice the tolerance per vessel and stop that can bunker the fuel
+    for key, value in stops.items():
+        fleet.expectation.fuel_demand_noise[key][idx:] = 2.0 * tolerance * value

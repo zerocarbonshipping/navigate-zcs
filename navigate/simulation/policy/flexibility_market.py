@@ -154,6 +154,7 @@ def _clear_flexibility_market(
     balances = {}
     total_non_compliance = 0.0
     total_surplus = 0.0
+    non_compliant_count = 0.0
     for vessel_name, count in policed.items():
         account = calculate_vessel_account(regulation, vessel_name, idx)
         excess = float(subtract(account.emissions, account.allowance, tolerance=noise))
@@ -164,17 +165,22 @@ def _clear_flexibility_market(
         total_non_compliance += count * non_compliance
         total_surplus += count * surplus
 
-    # the LP's noise over the pool, in tCO2e/year: each vessel's times its count, and
-    # the pooled row and the remedial units, dropped below the tolerance, to the
+        if non_compliance > 0.0:
+            non_compliant_count += count
+
+    # the LP's noise in the non-compliance less the remedial units, in tCO2e/year:
+    # each non-compliant vessel's times its count, as the others add an exact zero,
+    # and the pooled row and the remedial units, dropped below the tolerance, to the
     # tolerance each
-    pool_noise = noise * (sum(policed.values()) + 1.0)
+    pool_noise = noise * (non_compliant_count + 1.0)
 
     # the non-compliance not remediated is covered by flexibility units
     uncovered = subtract(total_non_compliance, total_remedial, tolerance=pool_noise)
     total_flexibility = float(uncovered)
 
-    # the share of the non-compliance covered by flexibility units rather than
-    # remediated, none where the remedial units cover it all
+    # the shares of the non-compliance remediated and covered by flexibility units;
+    # they add up to one but for the noise dropped from the flexibility units
+    remedial_fraction = float(divide_nonzero(total_remedial, total_non_compliance))
     share = float(divide_nonzero(total_flexibility, total_non_compliance))
     flexibility_fraction = max(share, 0.0)
 
@@ -191,11 +197,11 @@ def _clear_flexibility_market(
         flexibility_cost = shadow_price
 
     # every vessel's non-compliance splits into remedial and flexibility units by the
-    # same fraction
+    # pool's shares, so the vessels' units add up to the pool's
     vessel_units = {}
     for vessel_name, (non_compliance, surplus) in balances.items():
+        remedial = non_compliance * remedial_fraction
         flexibility = non_compliance * flexibility_fraction
-        remedial = non_compliance - flexibility
         vessel_units[vessel_name] = _Units(remedial, flexibility, surplus)
 
     total = _Units(total_remedial, total_flexibility, total_surplus)
