@@ -543,7 +543,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </section>
 <section id="memory">
 <h3>Memory<a class="headerlink" href="#memory" title="Link to this heading">#</a></h3>
-<p>This attribute sets the exponential decay of the memory of the fleet used in the expected uptake decision of newbuild vessels. A high memory means that the expected uptake of newbuild vessels is more stable.</p>
+<p>This attribute sets the exponential decay of the memory of the fleet used in the expected uptake decision of newbuild vessels: the expected uptake averages the past uptake over the years, each year’s weight multiplied by the memory for every year since. A high memory means that the expected uptake of newbuild vessels is more stable.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -552,6 +552,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
+<li><p><strong>Unit</strong>: Fraction/year</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
 <li><p><strong>Default</strong>: 0.5</p></li>
@@ -560,6 +561,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="fixedscraprate">
 <h3>FixedScrapRate<a class="headerlink" href="#fixedscraprate" title="Link to this heading">#</a></h3>
 <p>This attribute sets the fixed scrap rate of the fleet in fraction/year. If the fixed scrap rate is set it overwrites the age-based scrapping functionality resulting in vessels potentially being scrapped prior to their technical lifetime.</p>
+<p>The rate compounds over a time step of any length: each year scraps its fraction of what the years before left, so a rate of 0.1 scraps 41% of the fleet over a 5-year step.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -649,6 +651,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="technologyhorizon">
 <h3>TechnologyHorizon<a class="headerlink" href="#technologyhorizon" title="Link to this heading">#</a></h3>
 <p>Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise.</p>
+<p>With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.75 at the default of 3.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -665,6 +668,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="speedhorizon">
 <h3>SpeedHorizon<a class="headerlink" href="#speedhorizon" title="Link to this heading">#</a></h3>
 <p>Smoothing horizon (in years) for the energy-scarcity belief that scales speed marginal-saving evaluations. Speed is an operational decision and typically uses a shorter horizon than <code class="docutils literal notranslate"><span class="pre">TechnologyHorizon</span></code> so it can respond faster to real tightness.</p>
+<p>With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.5 at the default of 1.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -681,6 +685,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="tradegrowth">
 <h3>TradeGrowth<a class="headerlink" href="#tradegrowth" title="Link to this heading">#</a></h3>
 <p>This attribute sets the trade-growth rate of the fleet, expressed in fraction/year.</p>
+<p>The rate read at each whole year from the start date holds for the year after it, so the trade at a date does not depend on the other dates of the deck.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>

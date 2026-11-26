@@ -545,8 +545,9 @@ written by name (<code class="docutils literal notranslate"><span class="pre">OI
 attributes of each kind are listed under <a class="reference internal" href="#results">Results</a>.</p>
 <p>Values are per year where the unit says so. The results that count what
 happened in a time step, <code class="docutils literal notranslate"><span class="pre">newbuilds</span></code>, <code class="docutils literal notranslate"><span class="pre">scrap</span></code>, <code class="docutils literal notranslate"><span class="pre">fuel_conversions</span></code>,
-<code class="docutils literal notranslate"><span class="pre">newbuild_power</span></code>, <code class="docutils literal notranslate"><span class="pre">scrapped_power</span></code>, <code class="docutils literal notranslate"><span class="pre">fuel_converted_power</span></code>, <code class="docutils literal notranslate"><span class="pre">development</span></code> and
-<code class="docutils literal notranslate"><span class="pre">computational_time</span></code>, are divided by the length of the step: the difference of
+<code class="docutils literal notranslate"><span class="pre">retrofit_technology_uptake</span></code>, <code class="docutils literal notranslate"><span class="pre">newbuild_power</span></code>, <code class="docutils literal notranslate"><span class="pre">scrapped_power</span></code>,
+<code class="docutils literal notranslate"><span class="pre">fuel_converted_power</span></code>, <code class="docutils literal notranslate"><span class="pre">development</span></code> and <code class="docutils literal notranslate"><span class="pre">computational_time</span></code>, are divided by
+the length of the step: the difference of
 its dates in calendar years, so a step from 1 January to 1 January is one year,
 leap year or not. The first step counts as one year.</p>
 <p>Money is in the deck’s <a class="reference internal" href="model_definition.html#currency"><span class="std std-ref">Currency</span></a>. The tables
@@ -665,7 +666,8 @@ each kind computes its own from its totals.</p></li>
 and production and runs the bunkering. Newbuilds, scrapping, fuel
 conversions, technology installation, speed management and plant
 development start at the second date. Their counts are 0 at the first date,
-and the results they write are missing there.</p></li>
+<code class="docutils literal notranslate"><span class="pre">development</span></code> aside, which counts the plants in the initial pipeline, and the
+results they write are missing there.</p></li>
 <li><p><strong>The keys hold names.</strong> The <em>Keys</em> column names what <code class="docutils literal notranslate"><span class="pre">key1</span></code> holds and,
 after the comma, <code class="docutils literal notranslate"><span class="pre">key2</span></code>:</p>
 <ul>
@@ -1159,9 +1161,9 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p>As <code class="docutils literal notranslate"><span class="pre">technology_uptake</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.retrofit_technology_uptake</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1/year</span></code></p></td>
 <td><p>vessel, technology</p></td>
-<td><p>Share of the vessels of a type retrofitted with the technology.</p></td>
+<td><p>Share of the vessels of a type retrofitted with the technology per year.</p></td>
 <td><p>Retrofits, at the dates RetrofitInterval allows</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.fleet_technology_uptake</span></code></p></td>
