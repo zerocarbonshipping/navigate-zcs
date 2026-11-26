@@ -26,7 +26,7 @@ DEFINE {
     Include "includes/eu_ets.inc"
     Include "includes/fuel_eu.inc"
 
-    # ---- decision processes ----
+    # ---- behavioural traits ----
     Load DefaultCalibration
 }
 
