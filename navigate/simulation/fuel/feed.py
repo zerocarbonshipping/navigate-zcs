@@ -143,63 +143,6 @@ def calculate_constrained_uptakes(
         current_uptakes = new_uptakes
 
 
-def calculate_feed_spend(
-    producer: Producer, feed_name: str, newbuilds: FloatArray
-) -> float:
-    """
-    Calculate the feed a number of new plants of each type use.
-
-    Parameters
-    ----------
-    producer
-        The producer.
-    feed_name
-        Name of the feed.
-    newbuilds
-        Number of new plants of each type.
-
-    Returns
-    -------
-    float
-        Feed used, in tons/year.
-    """
-    expectation = producer.expectation
-    spend = 0.0
-
-    for plant, count in zip(producer.plants, newbuilds, strict=True):
-        consumption = expectation.plant_feed_consumption[plant.name, feed_name]
-        spend += consumption * count
-
-    return spend
-
-
-def calculate_feed_spends(
-    producer: Producer, newbuilds: FloatArray
-) -> dict[str, float]:
-    """
-    Calculate the feed a number of new plants of each type use, per constrained feed.
-
-    Parameters
-    ----------
-    producer
-        The producer.
-    newbuilds
-        Number of new plants of each type.
-
-    Returns
-    -------
-    dict[str, float]
-        Feed used per constrained feed, in tons/year.
-    """
-    spends: dict[str, float] = {}
-
-    for feed_name, limit in producer.feed_limits.items():
-        if limit is not None:
-            spends[feed_name] = calculate_feed_spend(producer, feed_name, newbuilds)
-
-    return spends
-
-
 def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
     """
     Set the feed a plant built at the time step uses, per constrained feed.
@@ -357,7 +300,7 @@ def _calculate_feed_limits(
 
         gap = expectation.feed_gap[feed_name][idx]
         additional = additional_consumption.get(feed_name, 0.0)
-        spend = calculate_feed_spend(producer, feed_name, newbuilds)
+        spend = _calculate_feed_spend(producer, feed_name, newbuilds)
         scaling = max((gap - additional) / spend, 0.0) if spend > 0.0 else 1.0
 
         # an unbounded feed limits no plant
@@ -371,6 +314,36 @@ def _calculate_feed_limits(
                 limits[p] = min(limits[p], uptakes[p] * scaling)
 
     return limits
+
+
+def _calculate_feed_spend(
+    producer: Producer, feed_name: str, newbuilds: FloatArray
+) -> float:
+    """
+    Calculate the feed a number of new plants of each type use.
+
+    Parameters
+    ----------
+    producer
+        The producer.
+    feed_name
+        Name of the feed.
+    newbuilds
+        Number of new plants of each type.
+
+    Returns
+    -------
+    float
+        Feed used, in tons/year.
+    """
+    expectation = producer.expectation
+    spend = 0.0
+
+    for plant, count in zip(producer.plants, newbuilds, strict=True):
+        consumption = expectation.plant_feed_consumption[plant.name, feed_name]
+        spend += consumption * count
+
+    return spend
 
 
 def _calculate_capped_uptakes(uptakes: FloatArray, limits: FloatArray) -> FloatArray:

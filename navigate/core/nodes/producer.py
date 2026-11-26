@@ -66,7 +66,6 @@ class Producer(Node):
         self.minimum_offtake_duration: ForecastInput = Scalar(1.0)
         self.fuel_sensitivity: ForecastInput
         self.variant_sensitivity: ForecastInput
-        self.inertia: ForecastInput = Scalar(0.0)
 
         # initial conditions
         self.initial_capacity: list[ScalarInput] = []
@@ -99,7 +98,6 @@ class Producer(Node):
 
         # dynamic variables
         self.current_uptake: FloatArray
-        self.current_development: float
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -137,16 +135,6 @@ class Producer(Node):
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
             inclusive_lower=False,
-        )
-
-    @deck_attribute()
-    def set_inertia(self, value: ForecastArgument) -> None:
-        """Set the inertia used in the uptake decision of newbuild plants."""
-        self.inertia = assign_value(
-            as_scalar(value),
-            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )
 
     @deck_attribute(SECTION_DEFINE)

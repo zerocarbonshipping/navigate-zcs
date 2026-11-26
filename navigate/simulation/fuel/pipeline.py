@@ -18,16 +18,8 @@ from navigate.simulation.economics import (
     calculate_levelized_cost,
     calculate_two_axis_uptake,
 )
-from navigate.simulation.fuel.feed import (
-    calculate_constrained_uptakes,
-    calculate_feed_spends,
-)
-from navigate.util import (
-    calculate_kept_fraction,
-    divide_nonzero,
-    drop_negligible,
-    subtract,
-)
+from navigate.simulation.fuel.feed import calculate_constrained_uptakes
+from navigate.util import divide_nonzero, drop_negligible
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -94,10 +86,9 @@ def perform_pipeline_planning(
     """
     Plan new plant additions to the pipeline based on supply/demand gap.
 
-    The plants built through inertia come first and cover part of the gap; the
-    plants modelled from the uptake metrics share what is left of the development
-    limit and of the feed. The plant types of a fuel share its supply gap, so
-    together they build no more than the gap.
+    The plant types share the development limit and the feed by their uptake metrics.
+    The plant types of a fuel share its supply gap, so together they build no more
+    than the gap.
 
     Parameters
     ----------
@@ -110,11 +101,9 @@ def perform_pipeline_planning(
     idx
         Current time-step index.
     """
-    limit = producer.maximum_development.get() * time_step
+    development = producer.maximum_development.get() * time_step
     offtake_duration = producer.minimum_offtake_duration.get()
-
-    inertia = _calculate_inertia_newbuilds(producer, limit, time_step, idx)
-    demand = _calculate_uncovered_demand(producer, inertia, idx)
+    demand = producer.expectation.fair_share_demand
 
     for plant in producer.plants:
         shares = producer.expectation.export_share[plant.fuel.name].at[idx]
@@ -122,16 +111,13 @@ def perform_pipeline_planning(
         _calculate_inter_fuel_metric(plant, demand, offtake_duration, timeline, idx)
         _calculate_intra_fuel_metric(plant, shares, idx)
 
-    # the inertia already counts against the development limit
-    development = float(subtract(limit, np.sum(inertia)))
-    modelled = _calculate_modelled_newbuilds(producer, inertia, development, idx)
+    newbuilds = _calculate_newbuilds(producer, development, idx)
 
     # a count negligible against the producer's plants, operating or in the pipeline,
     # is no plant, whether a rounding residue or the tail of a logit, so no cohort is
     # built from it
     groups = [*producer.increments, *producer.pipeline]
     stock = sum(increment.count for group in groups for increment in group)
-    newbuilds = inertia + modelled
     newbuilds = drop_negligible(newbuilds, stock + np.sum(newbuilds))
 
     # the new plants enter the pipeline one lead time ahead of delivery
@@ -156,119 +142,38 @@ def perform_pipeline_planning(
     total = np.sum(newbuilds)
     even_share = 1.0 / newbuilds.size
 
-    producer.current_development = float(total / time_step)
     producer.current_uptake = divide_nonzero(newbuilds, total, default=even_share)
     producer.results.development[idx] = total
 
 
-def _calculate_inertia_newbuilds(
-    producer: Producer, limit: float, time_step: float, idx: int
-) -> FloatArray:
-    """
-    Calculate the plants built due to inertia from the previous uptake.
-
-    The previous development rate carries over the time step, within the development
-    limit, and the previous uptake shares decay by the inertia and build their share
-    of it.
-
-    Parameters
-    ----------
-    producer
-        The producer.
-    limit
-        Number of plants the producer may build over the time step.
-    time_step
-        Current time-step size, in years.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    FloatArray
-        Number of plants of each type built through inertia.
-    """
-    development = min(producer.current_development * time_step, limit)
-
-    if development <= 0.0:
-        return np.zeros(len(producer.plants))
-
-    decay = calculate_kept_fraction(producer.inertia.get(), time_step)
-    allowed = [producer.allow_plants[plant.name] for plant in producer.plants]
-    uptakes = np.where(allowed, producer.current_uptake * decay, 0.0)
-
-    limits = _calculate_demand_limits(producer, uptakes, development)
-    uptakes = calculate_constrained_uptakes(producer, uptakes, development, limits, idx)
-    return development * uptakes
-
-
-def _calculate_uncovered_demand(
-    producer: Producer, newbuilds: FloatArray, idx: int
-) -> dict[str, FloatArray]:
-    """
-    Calculate the fair-share demand left once the inertia's production covers some.
-
-    Parameters
-    ----------
-    producer
-        The producer.
-    newbuilds
-        Number of plants of each type built through inertia.
-    idx
-        Current time-step index.
-
-    Returns
-    -------
-    dict[str, FloatArray]
-        Demand per fuel pathway not covered by the inertia, in tons/year; exactly zero
-        where the inertia covers it to rounding.
-    """
-    demand = producer.expectation.fair_share_demand
-    production = dict.fromkeys(demand, 0.0)
-
-    for plant, count in zip(producer.plants, newbuilds, strict=True):
-        production[plant.fuel.name] += plant.expectation.production[idx] * count
-
-    uncovered: dict[str, FloatArray] = {}
-
-    for fuel_name, fuel_demand in demand.items():
-        uncovered[fuel_name] = subtract(fuel_demand, production[fuel_name])
-
-    return uncovered
-
-
-def _calculate_modelled_newbuilds(
-    producer: Producer, inertia: FloatArray, development: float, idx: int
+def _calculate_newbuilds(
+    producer: Producer, development: float, idx: int
 ) -> FloatArray:
     """
     Calculate the plants built from the uptake metrics.
 
-    They share the feed the plants built through inertia leave.
+    They share the development within their fuels' gaps and the feed.
 
     Parameters
     ----------
     producer
         The producer.
-    inertia
-        Number of plants of each type built through inertia.
     development
-        Number of plants left to build over the time step.
+        Number of plants the producer may build over the time step.
     idx
         Current time-step index.
 
     Returns
     -------
     FloatArray
-        Number of plants of each type built from the uptake metrics.
+        Number of plants of each type built.
     """
     if development <= 0.0:
         return np.zeros(len(producer.plants))
 
-    feed_spends = calculate_feed_spends(producer, inertia)
-    uptakes = _calculate_modelled_uptakes(producer)
+    uptakes = _calculate_uptakes(producer)
     limits = _calculate_demand_limits(producer, uptakes, development)
-    uptakes = calculate_constrained_uptakes(
-        producer, uptakes, development, limits, idx, feed_spends
-    )
+    uptakes = calculate_constrained_uptakes(producer, uptakes, development, limits, idx)
     return development * uptakes
 
 
@@ -426,7 +331,7 @@ def _calculate_intra_fuel_metric(
     expectation.intra_fuel_metric = metric
 
 
-def _calculate_modelled_uptakes(producer: Producer) -> FloatArray:
+def _calculate_uptakes(producer: Producer) -> FloatArray:
     """
     Calculate each plant type's relative uptake share.
 
