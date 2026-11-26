@@ -39,7 +39,7 @@ Fleet "mainlines" {
 	# TradeGrowth = 0.05
 	
 	# Fuel conversion cost: defined for future retrofit from oil to methanol
-	set_fuel_conversion_cost("mainline_oil", "mainline_methanol", 24.3e6)
+	set_conversion_cost("mainline_oil", "mainline_methanol", 24.3e6)
 
 	# Speed management: enabled to allow adjustments in operational behavior
 	AllowSpeedManagement = TRUE # or TRUE

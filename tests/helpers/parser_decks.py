@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 FLEET_TEMPLATE = """
 Fleet "fleet" {{
     Vessels = [Vessel("vessel")]
-    InterFuelSensitivity = 0.5
-    IntraFuelSensitivity = 0.5
+    FuelSensitivity = 0.5
+    VariantSensitivity = 0.5
     InitialVessels = 100
 }}
 Vessel "vessel" {{
@@ -48,13 +48,13 @@ Converter "electrical" {{
 Copy Converter "electrical" "heat"
 Tank "tank" {{
     FuelTypes = OIL
-    Size = 9000
+    Volume = 9000
 }}
 Route "route" {{
     RouteType = TRAMP
     Ports = [Port("port")]
     TimeAtSea = 0.75
-    set_voyage_distribution("*", "*", 1)
+    set_distance_share("*", "*", 1)
     set_speed("*", "*", 10)
 }}
 Port "port" {{ }}
@@ -84,8 +84,8 @@ def variable(name: str = "v", **attributes: object) -> str:
 
 
 def emission_holding(reference: str, name: str = "e") -> str:
-    """Return a root Emission whose GlobalWarmingPotential holds the reference."""
-    return f'Emission "{name}" {{\n    GlobalWarmingPotential = {reference}\n}}\n'
+    """Return a root Emission whose Gwp holds the reference."""
+    return f'Emission "{name}" {{\n    Gwp = {reference}\n}}\n'
 
 
 def write_library(

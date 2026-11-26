@@ -29,10 +29,9 @@ from navigate.simulation.fleet.operation import (
 )
 from navigate.simulation.fleet.power import (
     calculate_mean_speed_bounds,
-    calculate_technical_speed_limits,
+    calculate_speed_limits,
     loads_are_convex,
 )
-from navigate.util import YEAR
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -92,7 +91,7 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     fleet
         Fleet for which speed management is performed.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
@@ -102,12 +101,12 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     transfer_operational_savings(fleet)
     results = [_optimize_vessel_speed(vessel, idx) for vessel in fleet.vessels]
 
-    if fleet.assume_reference_speed_optimal:
+    if fleet.route_speed_optimal:
         for result in results:
             result.mu_optimal = _anchor_speed(result)
 
     mu_targets = _align_speeds(fleet, [result.mu_optimal for result in results])
-    maximum_change = fleet.maximum_speed_change.get() * time_step / YEAR
+    maximum_change = fleet.maximum_speed_change.get() * time_step
 
     for result, mu_target in zip(results, mu_targets, strict=True):
         _finalize_vessel_speed(result, mu_target, maximum_change, idx)
@@ -139,7 +138,7 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
 
     # the deltas come from the route's reference speeds, which reflect the user's
     # assumptions, and not from the current speeds, which speed management has
-    # truncated to the propulsion engine's technical limits
+    # truncated to the speed limits
     distribution = calculate_operations(vessel, trip, trip.speeds).distribution
     mu_route = float(np.average(trip.speeds, weights=distribution))
     deltas_ref = trip.speeds - mu_route
@@ -151,10 +150,10 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
         speeds_current = np.array(expectation.speeds_condition.at[idx], dtype=float)
         mu_ref = float(np.average(speeds_current, weights=distribution))
 
-    # the technical limits truncate each condition's speed, and those of the
+    # the speed limits truncate each condition's speed, and those of the
     # conditions that take sea time bound the mean speed
     sailed = trip.sailed
-    speeds_min, speeds_max = calculate_technical_speed_limits(vessel, trip)
+    speeds_min, speeds_max = calculate_speed_limits(vessel, trip)
     mu_low, mu_high = calculate_mean_speed_bounds(
         speeds_min[sailed], speeds_max[sailed], trip.speeds[sailed]
     )

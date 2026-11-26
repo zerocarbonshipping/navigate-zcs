@@ -35,9 +35,9 @@ Regulation "fuel_eu" {
 	set_include_vessel("*", TRUE)
 	
 	# Global warming potentials
-	set_global_warming_potential("carbon_dioxide", 1)
-	set_global_warming_potential("methane", 25)
-	set_global_warming_potential("nitrous_oxide", 298)
+	set_gwp("carbon_dioxide", 1)
+	set_gwp("methane", 25)
+	set_gwp("nitrous_oxide", 298)
 	
 	# LSFO
 	set_fuel_wtt("fossil_fuel_oil", "*", 0) # this overwrites the Navigate calculation of WTT

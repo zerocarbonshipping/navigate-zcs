@@ -9,7 +9,7 @@ Route "operational_profile_bulk_carrier_52k_dwt" {
 	set_port_calls("port_europe", 5)
 
 	TimeAtSea = 0.48
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", Curve("speed_distribution_bulk_carrier_52k_dwt"))
 	set_utilization("*", "*", Curve("utilization_bulk_carrier_52k_dwt"))

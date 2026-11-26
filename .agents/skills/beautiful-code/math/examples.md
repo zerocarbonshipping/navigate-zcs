@@ -61,14 +61,14 @@ for (vessel, increment) in fleet.iterate_increments(reverse=True):
     span = increment.span
     count = increment.count
 
-    if not is_retrofit_cycle(age, frequency, dt):
+    if not is_retrofit_cycle(age, interval, dt):
         continue
 
-    age_mid = round(age + span / 2.0, ROUND_OFF)
-    if age_mid < minimum_age:
+    age_mid = age + span / 2.0
+    if subtract(age_mid, minimum_age) < 0.0:
         continue
 
-    lifetime = round(vessel.lifetime.get() - age_mid, ROUND_OFF)
+    lifetime = subtract(vessel.lifetime.get(), age_mid)
     if lifetime <= 0.0:
         continue
 
@@ -83,7 +83,7 @@ What makes it good:
   length: `age`, `span`, `count`. This shortens the code below, and a reader easily sees
   that, for example, `age` is `increment.age`
 - Names are short but still descriptive: `dt` (known mathematical notation) instead of
-  `time_step`, and `frequency` instead of `retrofit_frequency`
+  `time_step`, and `interval` instead of `retrofit_interval`
 
 #### Ugly but correct
 
@@ -98,17 +98,15 @@ for v, vessel_from in enumerate(fleet.vessels):
         increment = increments[increment_idx]
 
         if not is_retrofit_cycle(
-            increment.age, retrofit_frequency, time_step_years
+            increment.age, retrofit_interval, time_step_years
         ):
             continue
 
-        avg_age = round(increment.age + increment.age_span / 2.0, ROUND_OFF)
-        if avg_age < minimum_age:
+        avg_age = increment.age + increment.age_span / 2.0
+        if subtract(avg_age, minimum_age) < 0.0:
             continue
 
-        remaining_lifetime_from = round(
-            vessel_from.lifetime.get() - avg_age, ROUND_OFF
-        )
+        remaining_lifetime_from = subtract(vessel_from.lifetime.get(), avg_age)
         if remaining_lifetime_from <= 0.0:
             continue
 

@@ -102,7 +102,7 @@ aside.
   `check_consistency`, `initialize_dependencies`, `initialize_expectation`,
   `initialize_results`, `check_dynamic_consistency`, and getters last.
 - A DSL setter carries a docstring written for developers: one line naming
-  what the setter stores, e.g. `"""Set the volumetric size of the tank."""`.
+  what the setter stores, e.g. `"""Set the volume of the tank."""`.
   It has no sections and states no units, limits, defaults, legal values or
   behaviour: those are written once, in its entry on the node's
   reference-manual page. A second paragraph holds only an implementation note
@@ -113,10 +113,12 @@ aside.
   `key1, key2, value`. A local holding a converted key or value is named for
   what it holds (`energy_type`, `saving`).
 - An attribute setter `set_x` stores `self.x`, `set_table` aside (above). A
-  command sets one entry of a dictionary named for the collection, while the
-  setter stays singular: in the plural where the noun is countable
-  (`set_feed_constraint` writes `self.feed_constraints`), unchanged where it
-  is a mass noun (`set_process_capex` writes `self.process_capex`).
+  command `set_<words>`, a flag included, writes one entry of
+  `self.<words>`, with the noun naming an entry in the plural where it is
+  countable (`set_allow_vessel` writes `self.allow_vessels`,
+  `set_operational_saving_sea` `self.operational_savings_sea`) and unchanged
+  where it is a mass noun or an abbreviation (`set_process_capex` writes
+  `self.process_capex`, `set_gwp` `self.gwp`).
 - Deck-facing attribute names keep their DSL casing, Title case with acronyms
   as words (`Capex`, `LowerHeatingValue`), which `attribute_to_setter`
   (`navigate/util/naming.py`) splits at each capital into a setter name.
@@ -274,9 +276,12 @@ its section layout; the rules below cover the content.
     trade, for the gap the orderbook leaves), an age boundary the ends of its
     interval, an interpolation the interpolated magnitude, a share 1, and an
     operand that may be infinite gives way to the finite one.
-  - The noise of an LP: a value an LP returns is zero below the solver's
-    tolerance (`BunkerOptions.solution_tolerance`), and a difference of
-    quantities that LP rows make equal is zero within that tolerance carried
+  - The noise of an LP: a value an LP returns (`Model.value`) is zero below
+    the solver's tolerance (`BunkerOptions.solution_tolerance`). Whether a
+    dual is zero is asked of `Model.binds`, never decided by comparing
+    `Model.dual` with that tolerance: the dual is in currency, and the
+    tolerance applies to the costs as the selection scales them. A difference
+    of quantities that LP rows make equal is zero within that tolerance carried
     into the quantity's units through the rows' coefficients, passed to
     `subtract` as `tolerance`: a pool's non-compliance against its remedial
     units, or a port's supply against what the vessels bunker under their
@@ -290,11 +295,17 @@ its section layout; the rules below cover the content.
 
   Test a one-sided bound by its dropped excess,
   `drop_negligible(energy - limit, limit) > 0.0`, not by widening the bound.
-  Elsewhere, test with `is_negligible`. A sign or exact test stays on a value
+  Elsewhere, test with `is_negligible`, also where computed floats are
+  grouped, used as a key or snapped to a whole number (`snap_to_whole`): never
+  round them to a fixed number of decimals, which splits two values a residual
+  apart where they straddle a rounding boundary. A sign or exact test stays on a value
   whose residual was dropped, where its branches agree at zero
-  (`max(gap, 0.0)`), in a guard that only protects an operation undefined at
-  zero, such as a division, against an assigned value (a default, a sentinel,
-  a deck input), and on a value rounded to `ROUND_OFF`.
+  (`max(gap, 0.0)`), between values set once and copied rather than
+  accumulated, such as the entry times that group cohorts by vintage
+  (`group_by_age` in `navigate/simulation/fleet/scrapping.py`,
+  `consolidate_increments` in `navigate/simulation/fleet/_composition.py`),
+  and in a guard that only protects an operation undefined at zero, such as a
+  division, against an assigned value (a default, a sentinel, a deck input).
 
 ## Validation and dynamic access
 

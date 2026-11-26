@@ -6,12 +6,12 @@ Import Port "port_europe"
 
 Port "*" {
 	# fossil fuel oil
-	set_bunker_price_overwrite("fossil_fuel_oil", Forecast("fossil_fuel_oil_price_global"))
-	set_bunker_wtt_overwrite("fossil_fuel_oil", "carbon_dioxide", Forecast("fossil_fuel_oil_wtt_carbon_dioxide"))
+	set_fuel_price("fossil_fuel_oil", Forecast("fossil_fuel_oil_price_global"))
+	set_fuel_wtt("fossil_fuel_oil", "carbon_dioxide", Forecast("fossil_fuel_oil_wtt_carbon_dioxide"))
 
 	# liquefied natural gas
 	# as LNG is unconstrained in the model the cheapest LNG is picked by default (based on Middle East)
-	set_bunker_price_overwrite("liquefied_natural_gas", Forecast("liquefied_natural_gas_price_global"))
-	set_bunker_wtt_overwrite("liquefied_natural_gas", "carbon_dioxide", Forecast("liquefied_natural_gas_wtt_carbon_dioxide"))
-	set_bunker_wtt_overwrite("liquefied_natural_gas", "methane", Forecast("liquefied_natural_gas_wtt_methane"))
+	set_fuel_price("liquefied_natural_gas", Forecast("liquefied_natural_gas_price_global"))
+	set_fuel_wtt("liquefied_natural_gas", "carbon_dioxide", Forecast("liquefied_natural_gas_wtt_carbon_dioxide"))
+	set_fuel_wtt("liquefied_natural_gas", "methane", Forecast("liquefied_natural_gas_wtt_methane"))
 }

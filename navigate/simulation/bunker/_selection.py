@@ -55,6 +55,15 @@ are largest along w. The direction run is then repeated along the w in which no
 equality at zero moves, and the duals of those equalities are whichever optimal
 ones the solver ends at.
 
+The duals of the constraints that are not priced are not selected: w is zero on
+them, and they are whichever optimal ones the solver ends at. Where such a
+constraint holds at zero with all its variables at their bounds, as the balance of
+a fuel a vessel does not use, its optimal duals span an interval, and which of its
+variables carry a reduced cost, and stay at their bounds by it, differs between
+runs. The optimal solutions they state do not: any optimal duals state the same.
+Nor do the results of the simulation, which reads no dual of a constraint that is
+not priced.
+
 The direction run works at the x of the first run. Every optimal y is complementary
 to every optimal x, so the duals it selects among are the same whichever optimal x
 that is.
@@ -124,13 +133,34 @@ optimal.
 
 Precision
 ---------
-The selection has the precision of the solver. A reduced cost is non-zero beyond the
+The selection has the precision of the solver: a reduced cost is non-zero beyond the
 tolerance of the model, whatever tolerance the run that gave it took
-(``VectorModel.run``); a dual where its part of one is beyond the tolerance or, for
-the optimal solutions, beyond the variable's share of it
-(``_calculate_optimal_face``). One within about a factor ten of that tolerance can
-count as zero in one solve and not in another of the same LP, and the solutions the
-runs after it choose among then differ.
+(``VectorModel.run``), and a dual where its part of one is beyond the tolerance or,
+for the optimal solutions, beyond the variable's share of it
+(``_calculate_optimal_face``).
+
+Both apply the tolerance to the costs scaled by one power of two per solve, the one
+that brings the largest abs(c) into [2^14, 2^15) (``Selection.solve``), and the
+selected duals are divided by it, back to the costs as set. A uniform scale leaves
+the optimal solutions as they are, a power of two leaves every cost exact, and a
+basis stays optimal under it, so the next solve still starts from it.
+
+The band is where the tolerance tells rounding from real values. The rounding in a
+reduced cost, or in a dual's part of one, follows the largest cost of the LP, not
+the costs of the variable's own constraints, so one scale serves every variable.
+Measured in the bunkering LP of the reference scenario basecase_strong_regulation,
+the rounding reaches about 4e-13 of the largest cost, and the smallest real reduced
+cost is about 9e-10 of it, of a small fleet choosing between two fuels a tenth of a
+percent apart in price. In the band, the default tolerance of 1e-6 lies about 100
+times above that rounding and at least 14 times below that real value, 123 and 25
+times at the scales of the scenario's solves; moving the band by a power of two
+doubles one of the two margins and halves the other. At the default tolerance, a
+real reduced cost below 3e-11 to 6e-11 of the largest cost, by where in the band
+the scale puts it, counts as zero.
+
+The share of a variable keeps a margin of ten over the rounding for a variable in
+up to about 8 constraints at the top of the band and 15 at its bottom; a column of
+the bunkering LP of that scenario stands in at most 6.
 
 A run of a minimizing rule that does not end optimal ends the rules: the values
 are those of the last run that ended optimal. Where neither direction run ends
@@ -144,6 +174,7 @@ and leave it as they found it.
 from __future__ import annotations
 
 import logging
+import math
 from dataclasses import replace
 from typing import TYPE_CHECKING, NamedTuple
 
@@ -153,7 +184,7 @@ from navigate.core.enum_ import SolveStatusID
 from navigate.simulation.bunker._solver import Constraint, Program
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
     from navigate.simulation.bunker._solver import (
         MinimizingRule,
@@ -182,7 +213,8 @@ class Selection[Basis]:
     Parameters
     ----------
     tolerance
-        Magnitude up to which a value, dual or reduced cost counts as zero.
+        Magnitude up to which a value, and on the scaled costs a reduced cost or a
+        dual's part of one, counts as zero (module docstring, Precision).
     """
 
     def __init__(self, tolerance: float) -> None:
@@ -199,9 +231,11 @@ class Selection[Basis]:
         # expression and their coefficients
         self._expressions: dict[str, tuple[IntArray, FloatArray]] = {}
 
-        # the selected values and duals of the last solve
+        # the selected values and duals of the last solve, and whether each
+        # constraint binds
         self._x: FloatArray
         self._y: FloatArray
+        self._is_binding: BoolArray
 
         # the basis the selected values are a vertex of, from which the next solve
         # of the model starts in few pivots; None before the first selection
@@ -228,27 +262,30 @@ class Selection[Basis]:
             coefficients = np.array([coefficient for _, coefficient in terms])
             self._expressions[name] = (variables, coefficients)
 
-    def select(self, model: VectorModel[Basis]) -> None:
+    def solve(self, model: VectorModel[Basis], run_first: Callable[[], bool]) -> None:
         """
-        Select the values and duals of a model whose first run ended optimal.
+        Solve a model: its first run and, where that ends optimal, the selection.
 
-        The duals are selected first: the share of room reads them, and the
-        optimal solutions the rules select among are those complementary to them.
-        Every run of the selection sets a program of its own, and the program of
-        the model is set back after them, also where one raises.
+        The runs see the costs scaled (``_calculate_cost_scale``); the selected
+        duals are those of the costs as set, which the model holds again after the
+        runs, also where one raises.
 
         Parameters
         ----------
         model
-            The model, at the solution of its first run.
+            The model.
+        run_first
+            Makes the first run of the model and returns whether it ended optimal.
         """
         lp = model.program()
-        first = _Solution(lp, model.values(), model.duals(), model.basis())
+        scale = _calculate_cost_scale(lp.c)
+        scaled = replace(lp, c=scale * lp.c)
+
+        model.set_program(scaled)
 
         try:
-            self._y = self._select_duals(model, first)
-            selected = first._replace(y=self._y)
-            self._x, self.basis = self._select_values(model, selected)
+            if run_first():
+                self._select(model, scaled, scale)
         finally:
             model.set_program(lp)
 
@@ -258,8 +295,28 @@ class Selection[Basis]:
         return value
 
     def dual(self, constraint: Constraint) -> float:
+        """Return the selected dual of a priced constraint."""
+        self._check_priced(constraint)
+
+        dual: float = self._y[constraint]
+        return dual
+
+    def binds(self, constraint: Constraint) -> bool:
         """
-        Return the selected dual of a priced constraint.
+        Return whether the selected dual of a priced constraint is non-zero.
+
+        A dual is non-zero where its part of the reduced cost of one of the
+        constraint's variables, on the scaled costs, exceeds the whole tolerance,
+        as in the direction run, not that variable's share of it, as in the
+        optimal face (``_has_dual``).
+        """
+        self._check_priced(constraint)
+
+        return bool(self._is_binding[constraint])
+
+    def _check_priced(self, constraint: Constraint) -> None:
+        """
+        Check that a solve selects the dual of a constraint.
 
         Raises
         ------
@@ -270,8 +327,30 @@ class Selection[Basis]:
             name = self._constraint_names[constraint]
             raise ValueError(f"The dual of {name} is not selected: it is not priced.")
 
-        dual: float = self._y[constraint]
-        return dual
+    def _select(self, model: VectorModel[Basis], lp: Program, scale: float) -> None:
+        """
+        Select the values and duals of a model whose first run ended optimal.
+
+        The duals are selected first: the share of room reads them, and the
+        optimal solutions the rules select among are those complementary to them.
+        Every run of the selection sets a program of its own.
+
+        Parameters
+        ----------
+        model
+            The model, at the solution of its first run.
+        lp
+            The linear program of the model, its costs scaled.
+        scale
+            The factor its costs are scaled by.
+        """
+        first = _Solution(lp, model.values(), model.duals(), model.basis())
+
+        y = self._select_duals(model, first)
+        self._x, self.basis = self._select_values(model, first._replace(y=y))
+
+        self._y = y / scale
+        self._is_binding = _has_dual(lp, y, np.full(lp.c.size, self._tolerance))
 
     def _select_duals(
         self, model: VectorModel[Basis], first: _Solution[Basis]
@@ -552,6 +631,30 @@ class Selection[Basis]:
             last = _Solution(program, model.values(), model.duals(), model.basis())
 
         return last, True
+
+
+def _calculate_cost_scale(c: FloatArray) -> float:
+    """
+    Calculate the power of two that brings the largest cost into [2^14, 2^15).
+
+    The module docstring (Precision) says why the band is that one.
+
+    Parameters
+    ----------
+    c
+        Costs of a linear program.
+
+    Returns
+    -------
+    float
+        The factor to scale the costs by.
+    """
+    largest = float(np.max(np.abs(c), initial=0.0))
+
+    # largest = m 2^e with m in [0.5, 1), so largest 2^(15 - e) lies in the band
+    _, e = math.frexp(largest)
+
+    return math.ldexp(1.0, 15 - e)
 
 
 def _calculate_optimal_face(

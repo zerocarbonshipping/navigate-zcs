@@ -60,9 +60,9 @@ Fleet "bulk_carrier_200k_dwt" {
 	set_initial_technology_share("*", "variable_frequency_drive_bulk_carrier_capesize", Curve("uptake_variable_frequency_drive_bulk_carrier_capesize"))
 
 	# fuel conversions
-	set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 25.4e6)
-	set_fuel_conversion_cost("*ice_oil*", "*ice_ammonia*", 33.1e6)
-	set_fuel_conversion_cost("*ice_methane*", "*ice_ammonia*", 17e6)
+	set_conversion_cost("*ice_oil*", "*ice_methanol*", 25.4e6)
+	set_conversion_cost("*ice_oil*", "*ice_ammonia*", 33.1e6)
+	set_conversion_cost("*ice_methane*", "*ice_ammonia*", 17e6)
 
 	# speed management
 	AllowSpeedManagement = TRUE

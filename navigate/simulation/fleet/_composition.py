@@ -5,17 +5,38 @@
 
 from __future__ import annotations
 
+import math
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import is_negligible
+from navigate.util import drop_negligible, is_negligible
 
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import BoolArray, FloatArray
+
+
+@dataclass(frozen=True, slots=True)
+class CycleSlice:
+    """
+    The vessels of an increment at a retrofit cycle.
+
+    They lie within the lifetime and at or above a minimum age.
+
+    Parameters
+    ----------
+    share
+        Share of the increment's vessels in the slice.
+    mean_age
+        Mean age of those vessels, in years.
+    """
+
+    share: float
+    mean_age: float
 
 
 def get_trade_capacity(fleet: Fleet, idx: int) -> float:
@@ -131,38 +152,128 @@ def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> FloatArray:
     return np.array([vessel.expectation.cargo_miles[idx] for vessel in vessels])
 
 
-def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -> bool:
+def calculate_cycle_slice(
+    increment: VesselIncrement,
+    time: float,
+    time_step: float,
+    interval: float,
+    lifetime: float,
+    minimum_age: float,
+) -> CycleSlice | None:
     """
-    Return whether an increment is at a retrofit cycle.
+    Calculate the slice of an increment's vessels at a retrofit cycle.
 
-    It is when its age lies within one time-step past a multiple of the retrofit
-    frequency, and it is older than one time-step. The age and time-step are compared
-    at two decimals.
+    A vessel is at a cycle in the time-step in which its age reached a positive
+    multiple k * f of the retrofit interval f: at the end of the step its age lies in
+    ``[k * f, k * f + min(time_step, f))``, the windows no longer than f so that they
+    do not overlap and a vessel counts once per step. The slice is the part of the
+    increment's age span in a window, below the lifetime and at or above the minimum
+    age. An overlap within rounding of an end of a window, against the larger of the
+    span's ends, holds no vessels.
+
+    The increment's size before scrapping past the lifetime is spread uniformly over
+    its age span (``calculate_survivors`` in ``fleet/scrapping.py``), so the slice
+    holds its length's share of that size, whether or not this time-step's scrapping
+    has run.
 
     Parameters
     ----------
-    age
-        Age of the increment, in years.
-    retrofit_frequency
-        Interval between retrofit opportunities, in years.
+    increment
+        Increment of a vessel type.
+    time
+        Time at the end of the time-step, in years.
     time_step
         Time-step size, in years.
+    interval
+        Interval between retrofit opportunities, in years.
+    lifetime
+        Lifetime of the vessel type, in years.
+    minimum_age
+        Age below which a vessel is not eligible, in years.
 
     Returns
     -------
-    bool
-        Whether the increment is at a retrofit cycle.
+    CycleSlice | None
+        Share and mean age of the slice, or None where it holds no vessels.
     """
-    age = round(age, 2)
-    time_step = round(time_step, 2)
-    return age > time_step and age % retrofit_frequency < time_step
+    if increment.count <= 0.0:
+        return None
+
+    span = increment.age_span
+    youngest = increment.youngest_age(time)
+    oldest = youngest + span
+    scale = max(abs(youngest), abs(oldest))
+
+    lower = max(youngest, minimum_age)
+    upper = min(oldest, lifetime)
+    if drop_negligible(upper - lower, scale) <= 0.0:
+        return None
+
+    window_starts, window_ends = _cycle_windows(lower, upper, time_step, interval)
+    starts = np.maximum(window_starts, lower)
+    ends = np.minimum(window_ends, upper)
+    lengths = np.maximum(drop_negligible(ends - starts, scale), 0.0)
+
+    length = float(np.sum(lengths))
+    if length <= 0.0:
+        return None
+
+    # a slice within rounding of the whole span holds all of its vessels
+    missing = float(drop_negligible(span - length, scale))
+    size = increment.count + increment.scrapped_past_lifetime
+    eligible = size * (1.0 - missing / span)
+    mean_age = float(np.sum(lengths * (starts + ends))) / (2.0 * length)
+
+    # converted vessels, and round-off, can leave the increment scrapped beyond this
+    # lifetime's share, as in calculate_survivors, so the slice is capped at its count
+    share = min(eligible / increment.count, 1.0)
+
+    return CycleSlice(share, mean_age)
+
+
+def _cycle_windows(
+    lower: float, upper: float, time_step: float, interval: float
+) -> tuple[FloatArray, FloatArray]:
+    """
+    Return the retrofit-cycle windows that may overlap an age interval.
+
+    Parameters
+    ----------
+    lower
+        Youngest age of the interval, in years.
+    upper
+        Oldest age of the interval, in years; not below ``lower``.
+    time_step
+        Time-step size, in years.
+    interval
+        Interval between retrofit opportunities, in years.
+
+    Returns
+    -------
+    tuple[FloatArray, FloatArray]
+        Start and end age of each window, in years.
+    """
+    # windows as long as the retrofit interval join into one from the first cycle on
+    if time_step >= interval:
+        return np.array([interval]), np.array([np.inf])
+
+    # windows shorter than the retrofit interval, one per cycle: the age interval meets
+    # at most two more than its length over the retrofit interval
+    first_cycle = max(1, math.floor(lower / interval))
+    last_cycle = math.ceil(upper / interval)
+    starts = interval * np.arange(first_cycle, last_cycle + 1, dtype=np.float64)
+
+    return starts, starts + time_step
 
 
 def consolidate_increments(fleet: Fleet) -> None:
     """
-    Merge increments of equal age and age span, and drop those below 1e-3 vessels.
+    Merge increments of one vintage, drop those below 1e-3 vessels.
 
     The simulation's CPU time grows with the number of increments per vessel type.
+    Increments are of one vintage where they entered service at the same time over
+    the same span: both are set once and copied, never accumulated, and the initial
+    vintages are aligned across vessel types, so they are equal floats.
 
     Parameters
     ----------
@@ -170,11 +281,12 @@ def consolidate_increments(fleet: Fleet) -> None:
         Fleet whose increments are consolidated.
     """
     for v, increments in enumerate(fleet.increments):
+        # cohorts in fleet order, each folded into its first increment
         cohorts: dict[tuple[float, float], list[VesselIncrement]] = {}
 
         for increment in increments:
-            key = (increment.age, increment.age_span)
-            cohorts.setdefault(key, []).append(increment)
+            vintage = (increment.entered, increment.age_span)
+            cohorts.setdefault(vintage, []).append(increment)
 
         consolidated: list[VesselIncrement] = []
 
@@ -192,7 +304,7 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     Parameters
     ----------
     cohort
-        Increments of one vessel type with equal age and age span, in fleet order.
+        Increments of one vessel type and vintage, in fleet order.
 
     Returns
     -------

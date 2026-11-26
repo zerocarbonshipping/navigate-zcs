@@ -50,7 +50,7 @@ def calculate_fuel_import_to_ports(
     fuels
         All fuels in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -92,7 +92,7 @@ def _calculate_import_from_liquid_market(
     fuels
         All fuels in the simulation which belong to a liquid market.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -104,7 +104,7 @@ def _calculate_import_from_liquid_market(
         expectation = port.expectation
 
         for fuel_name in fuels:
-            allowed = port.bunkering_allowed[fuel_name]
+            allowed = port.allow_bunkering[fuel_name]
             limit = expectation.bunkering_limit[fuel_name][forward]
 
             bunker_price = _calculate_bunker_price(port, fuel_name, zeros, forward)
@@ -144,7 +144,7 @@ def _calculate_import_from_producers(
     fuels
         All fuels in the simulation which do not belong to a liquid market.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -214,7 +214,7 @@ def _calculate_import_totals(
     fuels
         All fuels in the simulation which do not belong to a liquid market.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -392,7 +392,7 @@ def _calculate_bunker_price(
     port: Port, fuel_name: str, fallback: FloatArray, forward: slice
 ) -> FloatArray:
     """
-    Calculate the bunker price, the port's overwrite where set, plus handling cost.
+    Calculate the bunker price, the port's fuel price where set, plus handling cost.
 
     Parameters
     ----------
@@ -401,7 +401,7 @@ def _calculate_bunker_price(
     fuel_name
         Name of the fuel.
     fallback
-        Price where the port sets no overwrite, in currency/t.
+        Price where the port sets no fuel price, in currency/t.
     forward
         Slice of the timeline from the current time step onwards.
 
@@ -410,11 +410,11 @@ def _calculate_bunker_price(
     FloatArray
         Bunker price, in currency/t.
     """
-    overwrite = port.expectation.bunker_price_overwrite[fuel_name][forward]
-    overwritten = port.bunker_price_overwrites[fuel_name] is not None
-    price = overwrite if overwritten else fallback
+    port_price = port.expectation.fuel_price[fuel_name][forward]
+    is_set = port.fuel_prices[fuel_name] is not None
+    price = port_price if is_set else fallback
 
-    # the overwrite getter returns a view into stored state, so the handling cost is
+    # the port's price path is a view into stored state, so the handling cost is
     # added out of place rather than onto it
     return price + port.expectation.handling_cost[fuel_name][forward]
 
@@ -423,7 +423,7 @@ def _calculate_bunker_wtts(
     port: Port, fuel_name: str, fallbacks: dict[str, FloatArray], forward: slice
 ) -> dict[str, FloatArray]:
     """
-    Calculate the bunker WTT per emission, the port's overwrite where set.
+    Calculate the bunker WTT per emission, the port's fuel WTT where set.
 
     Parameters
     ----------
@@ -432,7 +432,7 @@ def _calculate_bunker_wtts(
     fuel_name
         Name of the fuel.
     fallbacks
-        WTT per emission where the port sets no overwrite, in t/t.
+        WTT per emission where the port sets no fuel WTT, in t/t.
     forward
         Slice of the timeline from the current time step onwards.
 
@@ -445,9 +445,9 @@ def _calculate_bunker_wtts(
 
     for emission_name, fallback in fallbacks.items():
         key = (fuel_name, emission_name)
-        overwrite = port.expectation.bunker_wtt_overwrite[key][forward]
-        overwritten = port.bunker_wtt_overwrites[key] is not None
-        wtts[emission_name] = overwrite if overwritten else fallback
+        port_wtt = port.expectation.fuel_wtt[key][forward]
+        is_set = port.fuel_wtt[key] is not None
+        wtts[emission_name] = port_wtt if is_set else fallback
 
     return wtts
 

@@ -31,9 +31,9 @@ import numpy as np
 from navigate.core.enum_ import UtilityID
 from navigate.simulation.economics import build_operating_flows, calculate_asset_shares
 from navigate.simulation.fleet._composition import (
+    calculate_cycle_slice,
     get_counts,
     get_total_count,
-    is_retrofit_cycle,
 )
 from navigate.simulation.fleet._marginal_saving import (
     calculate_marginal_technology_saving,
@@ -47,7 +47,7 @@ from navigate.simulation.fleet._package import (
     update_packages,
 )
 from navigate.simulation.fleet._trip import bind_conditions_to_legs
-from navigate.util import ROUND_OFF, YEAR, divide_nonzero, drop_negligible
+from navigate.util import divide_nonzero, drop_negligible, subtract
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -57,6 +57,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.technology_package import TechnologyPackage
     from navigate.core.types_ import ForecastInput
+    from navigate.simulation.fleet._composition import CycleSlice
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
@@ -135,7 +136,8 @@ class _RetrofitProposal:
         ``choices[k]`` jumps to ``package_idx + k``; the cap reconciliation rescales
         it in place.
     eligible_share
-        Share of the increment at ``package_idx`` at propose time, fraction.
+        Share of the increment at ``package_idx`` and at a retrofit cycle at propose
+        time, fraction.
     annual_costs
         Levelized charge of each retrofit step, in currency/year per vessel.
     """
@@ -232,9 +234,9 @@ def perform_technology_installation(
     fleet
         Fleet whose vessels install technologies.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
@@ -244,7 +246,8 @@ def perform_technology_installation(
     if not fleet.technologies or technology_sensitivity is None:
         return
 
-    update_packages(fleet.technology_packages, fleet.package_cost_flows, timeline[idx])
+    time = timeline[idx]
+    update_packages(fleet.technology_packages, fleet.package_cost_flows, time)
 
     # the fleet count before newbuilds is the denominator of both the retrofit and the
     # newbuild technology caps
@@ -255,7 +258,7 @@ def perform_technology_installation(
     for v, vessel in enumerate(fleet.vessels):
         basis = _extract_adoption_basis(fleet, vessel, v, sensitivity, timeline, idx)
         fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(fleet, basis)
-        proposals += _propose_retrofits(fleet, basis, time_step)
+        proposals += _propose_retrofits(fleet, basis, time, time_step)
 
     _reconcile_retrofit_technology_caps(fleet, proposals, time_step, total_count)
     _apply_retrofits(proposals)
@@ -288,7 +291,7 @@ def _extract_adoption_basis(
     sensitivity
         Odds ratio of the adoption choice.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -332,7 +335,7 @@ def _calculate_packages_saving(
     packages
         All technology packages.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -394,7 +397,7 @@ def _propose_newbuild_uptake(fleet: Fleet, basis: _AdoptionBasis) -> FloatArray:
 
 
 def _propose_retrofits(
-    fleet: Fleet, basis: _AdoptionBasis, time_step: float
+    fleet: Fleet, basis: _AdoptionBasis, time: float, time_step: float
 ) -> list[_RetrofitProposal]:
     """
     Propose unconstrained MNL retrofit jumps for every (increment, package) pair.
@@ -407,47 +410,58 @@ def _propose_retrofits(
         Fleet owning the vessel.
     basis
         Per-vessel invariants of the adoption pass.
+    time
+        Current time, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
 
     Returns
     -------
     list[_RetrofitProposal]
-        One proposal per (increment, package) pair with vessels eligible to move, in
-        decreasing package order, which `_apply_retrofits` relies on.
+        One proposal per (increment, package) pair with vessels eligible to move.
     """
-    cohorts = list(_retrofit_cohorts(fleet, basis, time_step))
-
     v = basis.vessel_idx
     lifetime = basis.vessel.lifetime.get()
+    packages = fleet.technology_packages
     savings = basis.packages_saving
     discount_rate = basis.discount_rate
     vessel_rate = basis.vessel_discount_rate
 
     proposals = []
 
-    for p in reversed(range(len(fleet.technology_packages))):
-        for increment, remaining, flows in cohorts:
-            share = float(increment.package_uptake[p])
-            if share <= 0.0:
+    for increment, cycle_slice in _retrofit_cohorts(fleet, basis, time, time_step):
+        # a retrofit is amortized over the years the vessels at the cycle still serve,
+        # none for a slice within rounding of the lifetime
+        remaining = float(subtract(lifetime, cycle_slice.mean_age))
+        if remaining <= 0.0:
+            continue
+
+        flows = get_package_cost_flows(packages, fleet.package_cost_flows, remaining)
+
+        for p, uptake in enumerate(increment.package_uptake):
+            if uptake <= 0.0:
                 continue
 
+            eligible_share = float(uptake) * cycle_slice.share
             npv = calculate_retrofit_npv(
                 p, savings, flows, lifetime, remaining, discount_rate
             )
             choices, _ = basis.calculate_shares(npv)
             costs = calculate_retrofit_charter_rates(p, flows, remaining, vessel_rate)
 
-            proposals.append(_RetrofitProposal(v, increment, p, choices, share, costs))
+            proposal = _RetrofitProposal(
+                v, increment, p, choices, eligible_share, costs
+            )
+            proposals.append(proposal)
 
     return proposals
 
 
 def _retrofit_cohorts(
-    fleet: Fleet, basis: _AdoptionBasis, time_step: float
-) -> Iterator[tuple[VesselIncrement, int, list[FloatArray]]]:
+    fleet: Fleet, basis: _AdoptionBasis, time: float, time_step: float
+) -> Iterator[tuple[VesselIncrement, CycleSlice]]:
     """
-    Yield the vessel's cohorts at a retrofit cycle that have lifetime left.
+    Yield the vessel's cohorts with vessels at a retrofit cycle.
 
     Parameters
     ----------
@@ -455,36 +469,25 @@ def _retrofit_cohorts(
         Fleet owning the vessel.
     basis
         Per-vessel invariants of the adoption pass.
+    time
+        Current time, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
 
     Yields
     ------
-    tuple[VesselIncrement, int, list[FloatArray]]
-        Each cohort, its remaining lifetime, in years, and the cost flow of each
-        package over that lifetime, in currency/year.
+    tuple[VesselIncrement, CycleSlice]
+        Each cohort and its vessels at the cycle.
     """
-    packages = fleet.technology_packages
-    frequency = fleet.retrofit_frequency.get()
-    dt = time_step / YEAR
+    interval = fleet.retrofit_interval.get()
+    lifetime = basis.vessel.lifetime.get()
 
     for increment in fleet.increments[basis.vessel_idx]:
-        if not is_retrofit_cycle(increment.age, frequency, dt):
-            continue
-
-        remaining = _get_remaining_lifetime(basis.vessel, increment)
-        if remaining <= 0:
-            continue
-
-        # a retrofit is amortized over the years the cohort still serves
-        flows = get_package_cost_flows(packages, fleet.package_cost_flows, remaining)
-        yield increment, remaining, flows
-
-
-def _get_remaining_lifetime(vessel: Vessel, increment: VesselIncrement) -> int:
-    """Return the whole years of vessel lifetime left past the cohort's mean age."""
-    age = increment.age + increment.age_span / 2.0
-    return int(round(vessel.lifetime.get() - age, ROUND_OFF))
+        cycle_slice = calculate_cycle_slice(
+            increment, time, time_step, interval, lifetime, minimum_age=0.0
+        )
+        if cycle_slice is not None:
+            yield increment, cycle_slice
 
 
 def _reconcile_retrofit_technology_caps(
@@ -497,7 +500,7 @@ def _reconcile_retrofit_technology_caps(
     Scale the proposals' retrofit `choices` to the per-technology caps.
 
     For every technology, the retrofits adopting it this time-step must not exceed
-    `limit * total_count * time_step / YEAR`. The cap aggregate weights each
+    `limit * total_count * time_step`. The cap aggregate weights each
     proposal's tail sum by its `eligible_count`, the count `_apply_retrofits` will
     produce, and the displaced share moves to the stay option (see
     `_scale_tails_to_cap`).
@@ -515,7 +518,7 @@ def _reconcile_retrofit_technology_caps(
         Output of `_propose_retrofits`; each proposal's `choices` is rescaled in place
         when a technology it covers has a binding cap.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     total_count
         Number of vessels in the fleet before newbuilds.
     """
@@ -539,7 +542,7 @@ def reconcile_newbuild_technology_caps(
     Scale `fleet.newbuild_package_uptake` to the per-technology caps.
 
     For every technology, the newbuild installs of it this time-step must not exceed
-    `limit * total_count * time_step / YEAR`. The technologies run from outermost to
+    `limit * total_count * time_step`. The technologies run from outermost to
     innermost in the CAPEX-sorted package order, as in the retrofit reconciliation,
     and the displaced share moves to the no-technology package (see
     `_scale_tails_to_cap`), so each vessel's uptake still sums to 1.
@@ -552,7 +555,7 @@ def reconcile_newbuild_technology_caps(
         Newbuilds of each vessel type this time-step, in vessels; they weight each
         vessel's contribution to the cap aggregate.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     total_count
         Number of vessels in the fleet before newbuilds.
     """
@@ -590,7 +593,7 @@ def _technology_caps(
     limits
         Yearly cap of each technology as a share of the fleet, fraction.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     total_count
         Number of vessels in the fleet before newbuilds.
 
@@ -603,9 +606,8 @@ def _technology_caps(
     if total_count <= 0.0:
         return
 
-    dt = time_step / YEAR
     technologies = get_technologies_by_capex(fleet.technology_packages)
-    budget = total_count * dt
+    budget = total_count * time_step
 
     for i in reversed(range(len(technologies))):
         yield i, limits[technologies[i].name].get() * budget
@@ -652,28 +654,23 @@ def _apply_retrofits(proposals: list[_RetrofitProposal]) -> None:
     `technology_charter_rate`, so the retrofit cost is recovered as a constant yearly
     charge over the remaining vessel lifetime it was levelized against.
 
-    Proposals must arrive in decreasing package order (the order `_propose_retrofits`
-    emits): each apply only adds to higher packages, so the live `uptake[package_idx]`
-    read below still equals the `eligible_share` snapshot taken at propose time.
-
     Parameters
     ----------
     proposals
-        Reconciled retrofit proposals, in propose order.
+        Reconciled retrofit proposals.
     """
     for proposal in proposals:
         increment = proposal.increment
         uptake = increment.package_uptake
-        choices = proposal.choices
         package_idx = proposal.package_idx
 
-        current = uptake[package_idx]
-        uptake[package_idx] = current * (1.0 - np.sum(choices[1:]))
+        # the share of the increment jumping to each larger package, and its charge
+        moved = proposal.eligible_share * proposal.choices[1:]
+        charges = moved * proposal.annual_costs[1:]
 
-        for step in range(1, len(choices)):
-            moved = current * choices[step]
-            uptake[package_idx + step] += moved
-            increment.technology_charter_rate += moved * proposal.annual_costs[step]
+        uptake[package_idx] = subtract(uptake[package_idx], np.sum(moved))
+        uptake[package_idx + 1 :] += moved
+        increment.technology_charter_rate += float(np.sum(charges))
 
 
 def _transfer_retrofit_uptake(
@@ -684,8 +681,7 @@ def _transfer_retrofit_uptake(
 
     The stored value, laid out as the fleet results' technology uptake, is the share
     of the vessel type's existing fleet that retrofitted to the technology this
-    time-step, directly comparable to `set_retrofit_technology_limit * time_step /
-    YEAR`.
+    time-step, directly comparable to `set_retrofit_technology_limit * time_step`.
 
     Parameters
     ----------

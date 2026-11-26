@@ -53,8 +53,8 @@ ATTRIBUTES = NODE_ATTRIBUTE_SECTIONS | GENERAL_NODE_ATTRIBUTE_SECTIONS
 # the commands whose leading arguments take an ID, with the members each
 # accepts; the value argument that follows them is not listed
 ENUM_COMMAND_ARGUMENTS: dict[str, tuple[type[Enum] | tuple[Enum, ...], ...]] = {
-    "set_slip_fraction": (FuelTypeID,),
-    "set_consumption_ttw": (FuelTypeID,),
+    "set_slip": (FuelTypeID,),
+    "set_ttw": (FuelTypeID,),
     "set_operational_saving_sea": (EnergyDemandID,),
     "set_operational_saving_port": (PORT_ENERGY_DEMANDS,),
     "set_energy_saving": (EnergyDemandID,),

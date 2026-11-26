@@ -18,9 +18,9 @@ Import Emission "carbon_dioxide"
 Import Emission "methane"
 
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }
 
 Emission "methane" {
-	GlobalWarmingPotential = 30         # ton CO2-eq/ton
+	Gwp = 30         # ton CO2-eq/ton
 }

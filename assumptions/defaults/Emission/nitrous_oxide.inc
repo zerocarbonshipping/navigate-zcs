@@ -2,5 +2,5 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = Curve("global_warming_potential_nitrous_oxide")
+	Gwp = Curve("global_warming_potential_nitrous_oxide")
 }

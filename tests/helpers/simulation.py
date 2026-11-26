@@ -18,7 +18,7 @@ import numpy as np
 
 from navigate.app.cli import ASSUMPTIONS_ENV_VAR
 from navigate.driver import run_deck
-from navigate.util import YEAR, dates_to_days
+from navigate.util import dates_to_years
 
 if TYPE_CHECKING:
     from navigate.output import SimulationResults
@@ -73,7 +73,7 @@ def check_invariants(results: SimulationResults) -> None:
     results
         Results of a completed run.
     """
-    timeline = dates_to_days(results.dateline)
+    timeline = dates_to_years(results.dateline, results.dateline[0])
     assert len(timeline) >= 2
     assert np.all(np.diff(timeline) > 0), "Timeline is not strictly increasing"
     assert not np.any(np.isnan(timeline))
@@ -95,7 +95,7 @@ def check_invariants(results: SimulationResults) -> None:
     # nominal per-year rate, so the cap must be scaled by each step's actual
     # length (no development is recorded at the first step)
     step_years = np.ones(len(timeline))
-    step_years[1:] = np.diff(timeline) / YEAR
+    step_years[1:] = np.diff(timeline)
 
     for producer_name, producer in results.nodes.producers.items():
         development = producer.results.development

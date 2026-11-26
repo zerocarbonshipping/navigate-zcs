@@ -110,7 +110,7 @@ def update_regulation_flexibility_beliefs(
     vessels
         All vessels in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """

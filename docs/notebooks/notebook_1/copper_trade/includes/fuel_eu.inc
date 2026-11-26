@@ -31,9 +31,9 @@ Regulation "fuel_eu" {
 	set_vessel_threshold("*", Forecast("fuel_eu_target_reduction"))
 	set_include_vessel("*", TRUE)
 
-	set_global_warming_potential("carbon_dioxide", 1)
-	set_global_warming_potential("methane", 25)
-	set_global_warming_potential("nitrous_oxide", 298)
+	set_gwp("carbon_dioxide", 1)
+	set_gwp("methane", 25)
+	set_gwp("nitrous_oxide", 298)
 
 	# ---- fossil fuel oil: regulation default WTT ----
 	set_fuel_wtt("fossil_fuel_oil", "*", 0)

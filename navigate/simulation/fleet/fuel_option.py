@@ -110,18 +110,18 @@ def _largest_tank_fuel_type(vessel: Vessel, fuel_types: list[FuelTypeID]) -> Fue
     """
     Pick the fuel type stored in the largest tank, among those a tank stores.
 
-    A tie in tank size keeps the first fuel type.
+    A tie in tank volume keeps the first fuel type.
     """
-    tank_sizes: dict[FuelTypeID, float] = {}
+    tank_volumes: dict[FuelTypeID, float] = {}
 
     for tank in vessel.tanks:
-        size = tank.size.get()
+        volume = tank.volume.get()
 
         for fuel_type in tank.fuel_types:
-            tank_sizes[fuel_type] = size
+            tank_volumes[fuel_type] = volume
 
-    stored = [fuel_type for fuel_type in fuel_types if fuel_type in tank_sizes]
-    return max(stored, key=lambda fuel_type: tank_sizes[fuel_type])
+    stored = [fuel_type for fuel_type in fuel_types if fuel_type in tank_volumes]
+    return max(stored, key=lambda fuel_type: tank_volumes[fuel_type])
 
 
 def _fuel_type_names(fuel_types: list[FuelTypeID]) -> str:

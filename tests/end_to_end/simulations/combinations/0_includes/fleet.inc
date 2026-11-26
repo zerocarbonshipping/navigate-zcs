@@ -23,11 +23,11 @@ Import Converter "propulsion_ice_methane_container_15000_teu"
 Import Converter "electrical_ice_methane_container_15000_teu"
 
 Converter "propulsion_ice_methane_container_15000_teu" {
-	set_slip_fraction(METHANE, 0.01)
+	set_slip(METHANE, 0.01)
 }
 
 Converter "electrical_ice_methane_container_15000_teu" {
-	set_slip_fraction(METHANE, 0.01)
+	set_slip(METHANE, 0.01)
 }
 
 Fleet "container_15000_teu" {
@@ -49,8 +49,8 @@ Fleet "container_15000_teu" {
 	]
 
 	Inertia = 0.0
-	InterFuelSensitivity = 0.75
-	IntraFuelSensitivity = 0.75
+	FuelSensitivity = 0.75
+	VariantSensitivity = 0.75
 	TechnologySensitivity = 2
 
 	AllowSpeedManagement = TRUE

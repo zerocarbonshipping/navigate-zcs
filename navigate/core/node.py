@@ -95,7 +95,7 @@ class Node:
         Parameters
         ----------
         times
-            Remaining simulation times, in days since the start, as `.get()`
+            Remaining simulation times, in years since the start, as `.get()`
             takes them.
         dates
             Dates matching `times`, one per element.

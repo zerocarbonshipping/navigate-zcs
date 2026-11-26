@@ -30,8 +30,8 @@ from navigate.core.nodes.curve import Curve
 from navigate.core.wrap import to_array
 from navigate.exceptions import DeckInsufficientError, UnassignedAttributeError
 from navigate.util import (
-    ROUND_OFF,
     divide_nonzero,
+    is_negligible,
     key_tuple_name,
     matching_keys,
     name_matches,
@@ -74,7 +74,7 @@ class Route(Node):
         self.utilizations: dict[tuple[str, str], CurveForecastInput] = {}
         self.distances: dict[tuple[str, str], Scalar | Expression | None] = {}
         self.port_durations: dict[tuple[str, str], ForecastInput | None] = {}
-        self.voyage_shares: dict[tuple[str, str], ScalarInput | None] = {}
+        self.distance_shares: dict[tuple[str, str], ScalarInput | None] = {}
 
         # per port, keyed by its name
         self.port_calls: dict[str, ForecastInput] = {}
@@ -89,7 +89,7 @@ class Route(Node):
         self.leg_utilizations: tuple[CurveForecastInput, ...]
         self.leg_distances: tuple[Scalar | Expression, ...]
         self.leg_port_durations: tuple[ForecastInput, ...]
-        self.leg_voyage_shares: tuple[ScalarInput, ...]
+        self.leg_distance_shares: tuple[ScalarInput, ...]
 
         self.conditions_per_leg: tuple[int, ...]
 
@@ -185,9 +185,7 @@ class Route(Node):
         )
 
     @deck_command()
-    def set_voyage_distribution(
-        self, key1: str, key2: str, value: ScalarArgument
-    ) -> None:
+    def set_distance_share(self, key1: str, key2: str, value: ScalarArgument) -> None:
         """Set the share of the sea miles sailed on a leg."""
         self._check_route_type(RouteTypeID.TRAMP)
 
@@ -196,7 +194,7 @@ class Route(Node):
             assign_value(
                 as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
             ),
-            self.voyage_shares,
+            self.distance_shares,
         )
 
     @deck_command()
@@ -228,7 +226,7 @@ class Route(Node):
         self._check_legs_assigned("set_speed", self.speeds)
         self._check_legs_assigned("set_distance", self.distances)
         self._check_legs_assigned("set_port_duration", self.port_durations)
-        self._check_legs_assigned("set_voyage_distribution", self.voyage_shares)
+        self._check_legs_assigned("set_distance_share", self.distance_shares)
 
     def apply_defaults(self) -> None:
         # the ports are DEFINE-only, so their distinct order is fixed from here on
@@ -244,7 +242,7 @@ class Route(Node):
         self.leg_utilizations = in_seeded_order(self.utilizations)
         self.leg_distances = in_seeded_order(self.distances)
         self.leg_port_durations = in_seeded_order(self.port_durations)
-        self.leg_voyage_shares = in_seeded_order(self.voyage_shares)
+        self.leg_distance_shares = in_seeded_order(self.distance_shares)
 
     def check_consistency(self) -> None:
         if self.route_type == RouteTypeID.LINER:
@@ -278,7 +276,7 @@ class Route(Node):
 
         elif self.route_type == RouteTypeID.TRAMP:
             for key in keys:
-                self.voyage_shares.setdefault(key, None)
+                self.distance_shares.setdefault(key, None)
 
             for port in self.ports:
                 self.port_calls.setdefault(port.name, Scalar(1.0))
@@ -404,8 +402,8 @@ class Route(Node):
             )
 
         # one Curve may serve many legs, so its shares are never rescaled
-        total = round(float(np.sum(speed.get(speed.x))), ROUND_OFF)
-        if total != 1.0:
+        total = float(np.sum(speed.get(speed.x)))
+        if not is_negligible(total - 1.0, 1.0):
             raise ValueError(
                 f"{self}: The shares of {speed} on the leg {key_tuple_name(key)}"
                 f" must sum to 1, but sum to {total}."
@@ -477,7 +475,7 @@ class Route(Node):
         if self.route_type == RouteTypeID.LINER:
             return np.ones(len(self.leg_speeds), dtype=bool)
 
-        return self.get_voyage_shares() > 0.0
+        return self.get_distance_shares() > 0.0
 
     def _carries_cargo_on_leg(
         self, speed: CurveInput, utilization: CurveForecastInput, times: FloatArray
@@ -546,21 +544,19 @@ class Route(Node):
             for entry in range(n_conditions)
         )
 
-    def get_voyage_shares(self) -> FloatArray:
+    def get_distance_shares(self) -> FloatArray:
         """
-        Return the voyage shares of a TRAMP route, normalized to sum to unity.
+        Return the distance shares of a TRAMP route, normalized to sum to unity.
 
-        The shares are rounded in total, and split equally where they total zero.
+        The shares are split equally where they total zero.
 
         Returns
         -------
         FloatArray
-            Voyage share of each leg, in the order of `get_legs`.
+            Distance share of each leg, in the order of `get_legs`.
         """
-        shares = to_array(self.leg_voyage_shares)
-        total = np.round(np.sum(shares), ROUND_OFF)
-
-        return divide_nonzero(shares, total, default=1.0 / len(shares))
+        shares = to_array(self.leg_distance_shares)
+        return divide_nonzero(shares, np.sum(shares), default=1.0 / len(shares))
 
     def get_stops(self) -> range:
         """

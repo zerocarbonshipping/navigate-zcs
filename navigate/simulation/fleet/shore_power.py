@@ -19,8 +19,9 @@ def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
     """
     Calculate the most shore-power energy every vessel can take in each of its ports.
 
-    Shore power covers the connected share of the time in port, so a vessel's limit in
-    a port is the port's connection share of the vessel's shore-power potential there.
+    Shore power covers the share of the time in port it is available, so a vessel's
+    limit in a port is the port's availability times the vessel's shore-power potential
+    there.
     The limits are in GJ/year.
 
     Parameters
@@ -40,7 +41,7 @@ def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatArray]:
     """
     Calculate the most shore-power energy a vessel can take in each of its ports.
 
-    Each limit is the port's connection share of the vessel's shore-power potential.
+    Each limit is the port's availability times the vessel's shore-power potential.
 
     Parameters
     ----------
@@ -60,7 +61,7 @@ def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatArray]:
     limits = []
 
     for port, potential in zip(vessel.route.ports, potentials, strict=True):
-        share = port.expectation.shore_power_connection_share[forward]
-        limits.append(share * potential)
+        availability = port.expectation.shore_power_availability[forward]
+        limits.append(availability * potential)
 
     return limits

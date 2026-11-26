@@ -45,7 +45,7 @@ def calculate_plant_logistics_expectations(
     emissions
         All emissions in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -88,7 +88,7 @@ def _find_deliveries(
     deliveries = {}
 
     for port_name, port in ports.items():
-        if not port.bunkering_allowed[plant.fuel.name]:
+        if not port.allow_bunkering[plant.fuel.name]:
             continue
 
         delivery = plant.fuel_deliveries[port_name]
@@ -123,7 +123,7 @@ def _calculate_delivery_cost(
     cost_rates
         Transport cost rates already resolved, filled in as new combinations occur.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -175,7 +175,7 @@ def _calculate_delivery_wtt(
     wtt_rates
         Transport WTT rates already resolved, filled in as new combinations occur.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """

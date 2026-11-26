@@ -21,14 +21,14 @@ from helpers.parser_decks import FLEET, FUEL, emission_holding, fleet, line_of, 
 from navigate.exceptions import DeckError, NavigateError
 from navigate.simulation.time_stepping import check_runnable
 
-CO2 = 'Emission "co2" { GlobalWarmingPotential = 1.0 }\n'
+CO2 = 'Emission "co2" { Gwp = 1.0 }\n'
 LEVY = """
 Levy "levy" {{
     Scheme = BOTH
     Emissions = [Emission("co2")]
     Fuels = [Fuel("oil")]
     Jurisdiction = [Port("port")]
-    Level = 30
+    Rate = 30
     {command}
 }}
 """
@@ -42,10 +42,10 @@ def _prefix(tmp_path, file_name, needle, deck_line=1):
     )
 
 
-# input:    | Emission "e" { GlobalWarmingPotential = -1 }   (define.inc, line 5)
+# input:    | Emission "e" { Gwp = -1 }   (define.inc, line 5)
 # expected: -> DeckError "Error in deck file, line 1, include file
 #              '.../define.inc', line 5: Emission("e") attribute
-#              'GlobalWarmingPotential' must be >= 0.0, but got -1.0."
+#              'Gwp' must be >= 0.0, but got -1.0."
 @pytest.mark.parametrize(
     ("define", "needle", "message"),
     [
@@ -55,10 +55,9 @@ def _prefix(tmp_path, file_name, needle, deck_line=1):
             "Nodes of type 'Emission' has no attribute 'Foo'.",
         ),
         (
-            'Emission "e" { GlobalWarmingPotential = -1 }\n',
-            "GlobalWarmingPotential",
-            "Emission(\"e\") attribute 'GlobalWarmingPotential' must be ≥ 0.0, but "
-            "got -1.0.",
+            'Emission "e" { Gwp = -1 }\n',
+            "Gwp",
+            "Emission(\"e\") attribute 'Gwp' must be ≥ 0.0, but got -1.0.",
         ),
         (
             'Emission "e" { foo(1) }\n',
@@ -86,9 +85,8 @@ def _prefix(tmp_path, file_name, needle, deck_line=1):
             "No node of type 'Variable' matches the wildcard expression 'z*'.",
         ),
         (
-            'Emission "e" { GlobalWarmingPotential = Variable("v*") }\n'
-            'Variable "w1" { Value = 1 }\n',
-            "GlobalWarmingPotential",
+            'Emission "e" { Gwp = Variable("v*") }\nVariable "w1" { Value = 1 }\n',
+            "Gwp",
             "No node of type 'Variable' matches the wildcard expression 'v*'.",
         ),
     ],
@@ -172,7 +170,7 @@ class TestTableBuild:
     """A table is built once its node's whole definition is read."""
 
     TABLE = "    Table = [\n        0, 0;\n        2, 20;\n    ]\n"
-    HOST = 'Emission "e" { GlobalWarmingPotential = Curve("c") }\n'
+    HOST = 'Emission "e" { Gwp = Curve("c") }\n'
 
     # input:    | Curve "c" { Extrapolate = FLAT  Below = 5  Table = [0, 0; 2, 20] }
     #           | (settings before the table, after it, or in a later block)
@@ -236,7 +234,7 @@ class TestCalculatorBounds:
     HOLDER = emission_holding('Variable("v")')
 
     # input:    | Variable "v" { LowerBound = 7  UpperBound = 3 }
-    #           |     held by Emission GlobalWarmingPotential (>= 0)
+    #           |     held by Emission Gwp (>= 0)
     #           | Variable "v" { LowerBound = 7 }  held by Converter Efficiency (<= 1)
     #           | Variable "v" { UpperBound = 0 }  held by Fuel LowerHeatingValue (> 0)
     # expected: -> DeckError naming Variable("v"), as {v: 7 <= v <= 3},
@@ -255,7 +253,7 @@ class TestCalculatorBounds:
             read_deck(define)
 
     # input:    | Variable "v" { Value = 5  LowerBound = 3  UpperBound = 3 }
-    #           |     held by Emission GlobalWarmingPotential (>= 0)
+    #           |     held by Emission Gwp (>= 0)
     # expected: -> the deck loads and v reads 3.0, as {v: 3 <= v <= 3} = {3}
     def test_bounds_meeting_at_one_value_are_accepted(self, read_deck):
         parser = read_deck(self.HOLDER + variable(Value=5, LowerBound=3, UpperBound=3))

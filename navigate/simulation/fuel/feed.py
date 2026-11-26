@@ -15,7 +15,7 @@ from navigate.simulation.fuel._profiles import (
     calculate_cohort_reserved,
     iterate_increments,
 )
-from navigate.util import YEAR, divide_nonzero, drop_negligible
+from navigate.util import divide_nonzero, drop_negligible
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
@@ -39,7 +39,7 @@ def calculate_feed_availability(
     producer
         The producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -65,12 +65,12 @@ def calculate_feed_delivery(
     feed_name
         Name of the feed.
     times
-        Times the plants are decided at, in days.
+        Times the plants are decided at, in years.
 
     Returns
     -------
     FloatArray | None
-        Delivery of a plant decided at each of the times, in days; None where no
+        Delivery of a plant decided at each of the times, in years; None where no
         plant uses the feed.
     """
     expectation = producer.expectation
@@ -83,7 +83,7 @@ def calculate_feed_delivery(
     if not lead_times:
         return None
 
-    delivery: FloatArray = times + np.min(lead_times, axis=0) * YEAR
+    delivery: FloatArray = times + np.min(lead_times, axis=0)
     return delivery
 
 
@@ -193,8 +193,8 @@ def calculate_feed_spends(
     """
     spends: dict[str, float] = {}
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is not None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is not None:
             spends[feed_name] = calculate_feed_spend(producer, feed_name, newbuilds)
 
     return spends
@@ -215,8 +215,8 @@ def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
     """
     expectation = producer.expectation
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is None:
             continue
 
         for plant in producer.plants:
@@ -238,28 +238,28 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
     producer
         The producer.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
     expectation = producer.expectation
     times = timeline[idx:]
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is None:
             continue
 
         delivery = calculate_feed_delivery(producer, feed_name, times)
         if delivery is None:
             continue
 
-        supply = constraint.get(delivery)
-        reserved = _calculate_cohort_feed(producer, feed_name, delivery, timeline, idx)
+        supply = limit.get(delivery)
+        reserved = _calculate_cohort_feed(producer, feed_name, delivery)
 
         # the supply may be unbounded, so the finite reservation scales the gap
         gap = drop_negligible(supply - reserved, reserved)
 
-        # an initial capacity of plants using more feed than the constraint allows
+        # an initial capacity of plants using more feed than the limit allows
         # over-demands the feed, an issue in the input data that the warning flags;
         # the gap is floored at zero
         # TODO: Remove if scrapping for negatives gets implemented
@@ -275,11 +275,7 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
 
 
 def _calculate_cohort_feed(
-    producer: Producer,
-    feed_name: str,
-    times: FloatArray,
-    timeline: FloatArray,
-    idx: int,
+    producer: Producer, feed_name: str, times: FloatArray
 ) -> FloatArray:
     """
     Calculate the feed the existing and pipeline plants reserve at each of the times.
@@ -293,11 +289,7 @@ def _calculate_cohort_feed(
     feed_name
         Name of the feed.
     times
-        Times the profile is evaluated at, in days.
-    timeline
-        Simulation timeline, in days.
-    idx
-        Current time-step index.
+        Times the profile is evaluated at, in years.
 
     Returns
     -------
@@ -305,21 +297,20 @@ def _calculate_cohort_feed(
         Feed reserved at each of the times, in tons/year.
     """
     plants = producer.plants
-    now = timeline[idx]
     reserved = np.zeros_like(times)
 
     increments = itertools.chain(
-        iterate_increments(plants, producer.increments, timeline, idx),
-        iterate_increments(plants, producer.pipeline, timeline, idx),
+        iterate_increments(plants, producer.increments),
+        iterate_increments(plants, producer.pipeline),
     )
 
-    for _, plant, increment, origin in increments:
-        production = plant.expectation.production[origin]
-        conversion = plant.expectation.feed_conversion[feed_name][origin]
+    for _, plant, increment in increments:
+        production = plant.expectation.production[increment.origin]
+        conversion = plant.expectation.feed_conversion[feed_name][increment.origin]
         lifetime = plant.lifetime.get()
 
         feed = production * conversion
-        reserved += calculate_cohort_reserved(increment, feed, lifetime, now, times)
+        reserved += calculate_cohort_reserved(increment, feed, lifetime, times)
 
     return reserved
 
@@ -360,8 +351,8 @@ def _calculate_feed_limits(
     newbuilds = uptakes * development
     limits = np.ones_like(uptakes)
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is None:
             continue
 
         gap = expectation.feed_gap[feed_name][idx]

@@ -31,5 +31,5 @@ Producer "epc_bio" {
     MaximumDevelopment = Forecast("epc_bio_maximum_development")
 
     # feedstock availability
-    set_feed_constraint("feedstock_biogas", <Forecast("feedstock_biogas_availability") * Forecast("feedstock_biogas_share_shipping")>)
+    set_feed_limit("feedstock_biogas", <Forecast("feedstock_biogas_availability") * Forecast("feedstock_biogas_share_shipping")>)
 }

@@ -2,6 +2,6 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Emission "methane" {
-	GlobalWarmingPotential = Curve("global_warming_potential_methane")
-	FuelType = METHANE
+	Gwp = Curve("global_warming_potential_methane")
+	SlipFuelType = METHANE
 }

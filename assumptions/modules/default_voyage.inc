@@ -37,17 +37,17 @@ Import Route "operational_profile_tug"
 
 Route "*" {
 
-    set_voyage_distribution("*", "*", 0)
+    set_distance_share("*", "*", 0)
 
 	# intra
-	set_voyage_distribution("port_europe", "port_europe", Variable("voyage_international_europe_intra"))
+	set_distance_share("port_europe", "port_europe", Variable("voyage_international_europe_intra"))
 
 	# Europe (incoming)
-	set_voyage_distribution("port_global", "port_europe", Variable("voyage_international_europe_incoming"))
+	set_distance_share("port_global", "port_europe", Variable("voyage_international_europe_incoming"))
 
 	# Europe (outgoing)
-	set_voyage_distribution("port_europe", "port_global", Variable("voyage_international_europe_outgoing"))
+	set_distance_share("port_europe", "port_global", Variable("voyage_international_europe_outgoing"))
 
 	# remaining (intra + rest)
-	set_voyage_distribution("port_global", "port_global", Variable("voyage_international_global"))
+	set_distance_share("port_global", "port_global", Variable("voyage_international_global"))
 }

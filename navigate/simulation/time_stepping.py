@@ -57,7 +57,6 @@ from navigate.simulation.fleet import (
     transfer_technology_charter_rate,
     update_operations,
     update_residual_energy_demand,
-    update_vessel_ages,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
     verify_speed_limits,
@@ -86,7 +85,6 @@ from navigate.simulation.fuel import (
     record_plant_results,
     record_port_results,
     record_producer_results,
-    update_plant_ages,
 )
 from navigate.simulation.policy import (
     calculate_adjusted_regulation_thresholds,
@@ -101,7 +99,7 @@ from navigate.simulation.policy import (
     record_regulation_results,
     update_regulation_flexibility_beliefs,
 )
-from navigate.util import YEAR, Timings, dates_to_days, timed
+from navigate.util import Timings, dates_to_years, step_lengths, timed
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -160,11 +158,13 @@ class Simulation:
         self.general_nodes: GeneralNodes = general_nodes
         self._infeasible_lp_file: Path = infeasible_lp_file
 
-        # the simulation's dates, and the elapsed time in days since the start date
+        # the simulation's dates, the elapsed time in years since the start date, and
+        # the size in years of the time step ending at each date
         self.dateline: DateArray = dateline
-        self.timeline: FloatArray = dates_to_days(self.dateline)
+        self.timeline: FloatArray = dates_to_years(self.dateline, self.dateline[0])
+        self._step_lengths: FloatArray = step_lengths(self.timeline)
 
-        # the index of the current time step, and its size in days
+        # the index of the current time step, and its size in years
         self._idx: int = 0
         self._time_step: float
 
@@ -202,7 +202,7 @@ class Simulation:
             Whether the date's events changed the deck's inputs.
         """
         with self.timings.step(self._idx, TimingID.OTHER):
-            self._time_step = self._time_step_at(self._idx)
+            self._time_step = self._step_lengths[self._idx]
             self._perform_time_step(inputs_changed)
 
         self._idx += 1
@@ -288,7 +288,7 @@ class Simulation:
         nodes = self.nodes
 
         context = ResultsContext.from_nodes(
-            self.timeline / YEAR,
+            self.timeline,
             nodes.fuels,
             nodes.emissions,
             self.general_nodes.model_definition.emissions_lifetime,
@@ -346,15 +346,6 @@ class Simulation:
             infeasible_lp_file=self._infeasible_lp_file,
             timings=self.timings,
         )
-
-    def _time_step_at(self, idx: int) -> float:
-        """Return the size of the time step ending at a date, in days."""
-        # the first time step has no preceding date, so its size is taken as one year
-        if idx == 0:
-            return YEAR
-
-        time_step: float = self.timeline[idx] - self.timeline[idx - 1]
-        return time_step
 
     def _perform_time_step(self, inputs_changed: bool) -> None:
         is_first_step = self._idx == 0
@@ -451,9 +442,9 @@ class Simulation:
         self._calculate_plant_production_expectations()
         self._calculate_plant_logistics_expectations()
 
-        # the coefficients read the policies' levels and GWPs, the vessels' effective
-        # LHVs and TTW factors, the ports' WTT overwrites and shore-power emission
-        # factors, and the plants' production and delivery WTT, all written above
+        # the coefficients read the levies' rates and the policies' GWPs, the vessels'
+        # effective LHVs and TTW factors, the ports' fuel and shore-power WTT, and the
+        # plants' production and delivery WTT, all written above
         self._calculate_policy_emission_coefficients()
 
     def _calculate_policy_expectations(self) -> None:
@@ -547,10 +538,6 @@ class Simulation:
         the fleets' technology, speeds and composition and the producers' pipelines
         then evolve on the fuel demand and scarcity it foresees.
         """
-        # ages advance before any calculation that depends on the existing
-        # fleet or production capacity
-        self._update_ages()
-
         # the evolution expectations are calculated before the expected bunkering,
         # so that vessels allowed in the current time step have a non-zero count
         # and the producers' supply follows the step's events
@@ -576,13 +563,6 @@ class Simulation:
         self._calculate_cargo_charter()
         self._perform_fleet_evolution()
         self._perform_producer_evolution()
-
-    def _update_ages(self) -> None:
-        for fleet in self.nodes.fleets.values():
-            update_vessel_ages(fleet, self._time_step)
-
-        for producer in self.nodes.producers.values():
-            update_plant_ages(producer, self._time_step)
 
     def _calculate_fleet_evolution_expectations(self) -> None:
         for fleet in self.nodes.fleets.values():
@@ -683,7 +663,7 @@ class Simulation:
         inputs after the first solve.
         """
         time = self.timeline[idx]
-        time_step = self._time_step_at(idx)
+        time_step = self._step_lengths[idx]
 
         bunker.build(self._idx, idx, time, time_step)
         bunker.solve()
@@ -761,10 +741,12 @@ class Simulation:
         closes the gap between its trade and the capacity left. The residual energy
         demand and technology uptake of the resulting fleet are then updated.
         """
+        time = self.timeline[self._idx]
+
         for fleet in self.nodes.fleets.values():
-            perform_primary_scrapping(fleet, self._time_step, self._idx)
+            perform_primary_scrapping(fleet, time, self._time_step, self._idx)
             perform_fuel_conversions(fleet, self.timeline, self._time_step, self._idx)
-            close_trade_gap(fleet, self._time_step, self._idx)
+            close_trade_gap(fleet, time, self._time_step, self._idx)
 
             # the residual energy demand reads the updated fleet composition
             update_residual_energy_demand(fleet, self._idx)
@@ -791,9 +773,11 @@ class Simulation:
         into its pipeline, updates its feed gap again and recalculates its evolution
         expectation with the planning done.
         """
+        time = self.timeline[self._idx]
+
         for producer in self.nodes.producers.values():
-            perform_decommissioning(producer)
-            perform_pipeline_delivery(producer)
+            perform_decommissioning(producer, time)
+            perform_pipeline_delivery(producer, time)
             calculate_feed_availability(producer, self.timeline, self._idx)
             calculate_development_potential(producer, self._time_step, self._idx)
 

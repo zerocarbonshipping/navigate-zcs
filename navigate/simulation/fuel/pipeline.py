@@ -23,7 +23,6 @@ from navigate.simulation.fuel.feed import (
     calculate_feed_spends,
 )
 from navigate.util import (
-    YEAR,
     calculate_step_inertia,
     divide_nonzero,
     drop_negligible,
@@ -36,51 +35,54 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-def perform_pipeline_delivery(producer: Producer) -> None:
+def perform_pipeline_delivery(producer: Producer, time: float) -> None:
     """
     Deliver plants from the pipeline that have passed their lead time.
 
-    Pipeline increments use negative ages (time since delivery, negative = not yet
-    delivered). After aging with += dt, an increment whose age reaches zero, to
-    rounding, transfers whole to active production without sign-flipping, and one
-    whose age span reaches past zero is split.
+    A pipeline increment enters service at its delivery, so its age is negative
+    until then. An increment whose delivery the time reaches, to rounding, transfers
+    whole to active production, and one whose age span reaches past the time is
+    split.
 
     Parameters
     ----------
     producer
         The producer.
+    time
+        Current time, in years.
     """
     for p, pipeline in enumerate(producer.pipeline):
         operating = producer.increments[p]
         waiting = []
 
         for increment in pipeline:
-            share = calculate_share_below(increment, 0.0)
+            share = calculate_share_below(increment, 0.0, time)
 
             if share == 0.0:
-                # the age already counts the time since delivery; one short of zero
-                # only to rounding is delivered at zero
-                increment.age = max(increment.age, 0.0)
+                # a delivery carries the rounding of the lead time it was planned
+                # ahead by, so one past the time only to rounding is delivered now
+                increment.entered = min(increment.entered, time)
                 operating.append(increment)
 
             elif share == 1.0:
                 waiting.append(increment)
 
             else:
-                # plants enter uniformly over the age span, so the part past zero is
-                # delivered and the rest keeps its span up to zero; the delivered part
-                # keeps 'decided', so its origin index stays that of the increment
+                # plants enter uniformly over the age span, so the part past the time
+                # is delivered now and the rest keeps its span up to its delivery;
+                # both keep the decision and origin of the increment
                 remaining = increment.count * share
                 delivered = PlantIncrement(
                     count=increment.count - remaining,
-                    age=0.0,
-                    age_span=increment.age + increment.age_span,
+                    entered=time,
+                    age_span=increment.youngest_age(time) + increment.age_span,
+                    origin=increment.origin,
                     decided=increment.decided,
                 )
 
                 operating.append(delivered)
                 increment.count = remaining
-                increment.age_span = -increment.age
+                increment.age_span = -increment.youngest_age(time)
                 waiting.append(increment)
 
         producer.pipeline[p] = waiting
@@ -102,15 +104,14 @@ def perform_pipeline_planning(
     producer
         The producer to plan for.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
-    dt = time_step / YEAR
-    limit = producer.maximum_development.get() * dt
-    ramp_up = producer.maximum_ramp_up.get() * dt
+    limit = producer.maximum_development.get() * time_step
+    ramp_up = producer.maximum_ramp_up.get() * time_step
     offtake_duration = producer.minimum_offtake_duration.get()
 
     inertia = _calculate_inertia_newbuilds(producer, limit, time_step, idx)
@@ -137,15 +138,22 @@ def perform_pipeline_planning(
     newbuilds = drop_negligible(newbuilds, stock + np.sum(newbuilds))
 
     # the new plants enter the pipeline one lead time ahead of delivery
+    time = timeline[idx]
     additions = zip(producer.plants, producer.pipeline, newbuilds, strict=True)
 
     for plant, pipeline, count in additions:
         if count == 0.0:
             continue
 
-        age = -plant.lead_time.get()
-        index = find_insertion_index(pipeline, age)
-        increment = PlantIncrement(count=count, age=age, age_span=dt, decided=0.0)
+        delivery = time + plant.lead_time.get()
+        index = find_insertion_index(pipeline, delivery)
+        increment = PlantIncrement(
+            count=count,
+            entered=delivery,
+            age_span=time_step,
+            origin=idx,
+            decided=time,
+        )
         pipeline.insert(index, increment)
 
     total = np.sum(newbuilds)
@@ -173,7 +181,7 @@ def _calculate_inertia_newbuilds(
     limit
         Number of plants the producer may build over the time step.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
 
@@ -188,7 +196,7 @@ def _calculate_inertia_newbuilds(
         return np.zeros(len(producer.plants))
 
     decay = calculate_step_inertia(producer.inertia.get(), time_step)
-    allowed = [producer.allow_plant[plant.name] for plant in producer.plants]
+    allowed = [producer.allow_plants[plant.name] for plant in producer.plants]
     uptakes = np.where(allowed, producer.current_uptake * decay, 0.0)
 
     limits = _calculate_demand_limits(producer, uptakes, development)
@@ -299,7 +307,7 @@ def _calculate_demand_limits(
     counts = dict.fromkeys(producer.fuels, 0)
 
     for p, plant in enumerate(producer.plants):
-        if producer.allow_plant[plant.name]:
+        if producer.allow_plants[plant.name]:
             newbuilds[p] = plant.expectation.demand_newbuilds
 
         if newbuilds[p] > 0.0:
@@ -352,7 +360,7 @@ def _calculate_inter_fuel_metric(
     offtake_duration
         The minimum duration of offtake to justify building a plant, in years.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -443,7 +451,7 @@ def _calculate_modelled_uptakes(producer: Producer) -> FloatArray:
     for p, plant in enumerate(producer.plants):
         is_in_demand = plant.expectation.inter_fuel_metric > 0.0
 
-        if producer.allow_plant[plant.name] and is_in_demand:
+        if producer.allow_plants[plant.name] and is_in_demand:
             index.append(p)
             plants.append(plant)
 
@@ -460,8 +468,8 @@ def _calculate_modelled_uptakes(producer: Producer) -> FloatArray:
         inter_metrics=inter_metrics,
         intra_utility=UtilityID.LOWER_LOG_RATIO,
         inter_utility=UtilityID.HIGHER_LOG_RATIO,
-        intra_odds=producer.fuel_cost_sensitivity.get(),
-        inter_odds=producer.fuel_demand_sensitivity.get(),
+        intra_odds=producer.variant_sensitivity.get(),
+        inter_odds=producer.fuel_sensitivity.get(),
         context=str(producer),
     )
 

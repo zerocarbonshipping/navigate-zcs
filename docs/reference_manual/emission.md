@@ -12,13 +12,13 @@ Example:
 
 ```python
 Emission "methane" {
-    GlobalWarmingPotential = Curve("GWP_methane")
+    Gwp = Curve("GWP_methane")
 }
 ```
 
 ## Attributes
 
-### GlobalWarmingPotential
+### Gwp
 
 This attribute specifies the Global Warming Potential (GWP) of the emission. The global warming potential indicates the level of radiative forcing (i.e., warming) that is expected of a certain emission over time. It thereby allows for comparison across different types of emissions, e.g., carbon dioxide and methane.
 
@@ -30,9 +30,9 @@ This attribute specifies the Global Warming Potential (GWP) of the emission. The
 * **Minimum value**: 0
 * **Default**: 0
 
-### FuelType
+### SlipFuelType
 
-This attribute sets the fuel type associated with the emission for slip gating. When it is set, the emission only receives slip contributions from fuels whose fuel type matches this value.
+This attribute sets the fuel type whose slip is this emission. When it is set, the unburned fuel that slips from a converter burning a fuel of this fuel type is counted as this emission.
 
 * **Data type**: `ID`
 * **Legal values**: [FuelTypeID](appendix_ids.md#fueltypeid)

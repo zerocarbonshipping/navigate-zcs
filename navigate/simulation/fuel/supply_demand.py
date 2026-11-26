@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import YEAR, add_dicts, subtract
+from navigate.util import add_dicts, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -30,19 +30,18 @@ def calculate_development_potential(
     producer
         The producer.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
-    dt = time_step / YEAR
-    ramp_up = producer.maximum_ramp_up.get() * dt
+    ramp_up = producer.maximum_ramp_up.get() * time_step
     utilization = min(producer.current_utilization + ramp_up, 1.0)
-    development = producer.maximum_development.get() * dt * utilization
+    development = producer.maximum_development.get() * time_step * utilization
 
     potential = dict.fromkeys(producer.fuels, 0.0)
 
     for plant in producer.plants:
-        if not producer.allow_plant[plant.name]:
+        if not producer.allow_plants[plant.name]:
             continue
 
         newbuilds = _calculate_feasible_newbuilds(producer, plant, development, idx)
@@ -81,8 +80,8 @@ def _calculate_feasible_newbuilds(
     expectation = producer.expectation
     newbuilds = development
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is None:
             continue
 
         consumption = expectation.plant_feed_consumption[plant.name, feed_name]

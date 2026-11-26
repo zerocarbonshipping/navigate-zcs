@@ -10,5 +10,5 @@ Import Producer "epc_fame_europe"
 # in multiple ports. For simplicity all fuel is routed to "global".
 # This way port_europe is only relevant for regulation purposes.
 Producer "*" {
-    set_export_distribution("port_global", 1.)
+    set_export_weight("port_global", 1.)
 }

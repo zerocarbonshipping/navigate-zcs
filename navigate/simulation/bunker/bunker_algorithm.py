@@ -260,9 +260,9 @@ class BunkerAlgorithm:
         idx
             Time-step index being evaluated forward in time.
         time
-            Time since the start of the simulation, in days.
+            Time since the start of the simulation, in years.
         time_step
-            Size of the current time-step, in days.
+            Size of the current time-step, in years.
         """
         self.current_idx = current_idx
         self.idx = idx

@@ -19,7 +19,7 @@ from navigate.simulation.economics import (
     build_production_flow,
     calculate_levelized_cost,
 )
-from navigate.util import YEAR
+from navigate.util import DAYS_PER_YEAR
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -52,7 +52,7 @@ def calculate_plant_production_expectations(
     emissions
         All emissions in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -93,7 +93,7 @@ def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) ->
     plant
         Plant whose production is calculated.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -103,7 +103,7 @@ def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) ->
     lead_time = plant.lead_time.get(times)
 
     size = plant.capacity.get(times)
-    capacity = size * YEAR
+    capacity = size * DAYS_PER_YEAR
 
     uptime = plant.uptime.get(times)
     production = capacity * uptime
@@ -137,7 +137,7 @@ def _build_component(
     emission_names
         Names of the emissions to allocate a WTT flow for.
     time_initial
-        Time of the investment decision, in days since the start of the simulation.
+        Time of the investment decision, in years since the start of the simulation.
     idx
         Current time-step index.
 
@@ -146,7 +146,6 @@ def _build_component(
     Component
         Component with zeroed flows.
     """
-    # Python floats, as the flow sizing rounds them and numpy's round() can differ
     lead_time = float(plant.expectation.lead_time[idx])
     lifetime = float(plant.expectation.lifetime[idx])
 
@@ -249,7 +248,7 @@ def _add_process_flows(
     opex_rate = region.process_opex[process.name]
 
     scale = size * conversion
-    capacity = scale * YEAR
+    capacity = scale * DAYS_PER_YEAR
     output = production * conversion
 
     def capex(time: float) -> float:

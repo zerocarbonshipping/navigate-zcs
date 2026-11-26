@@ -107,7 +107,7 @@ This attribute defines whether emissions slip is included in the calculation of 
 This attribute sets the emission measure of the regulation.
 
 If 'ABSOLUTE' the absolute emissions in tons/year are targeted.
-If 'INTENSITY' the emission intensity in kg/GJ is targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (`set_slip_fraction` on the `Converter`).
+If 'INTENSITY' the emission intensity in kg/GJ is targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (`set_slip` on the `Converter`).
 If 'TRANSPORT\_NOMINAL' the carbon intensity index in g CO<sub>2</sub>-eq/nominal cargo-miles is targeted.
 If 'TRANSPORT' the carbon intensity index in g CO<sub>2</sub>-eq/actual cargo-miles is targeted.
 
@@ -195,7 +195,7 @@ This attribute sets whether the regulation threshold is automatically adjusted w
 
 ## Commands
 
-### set\_global\_warming\_potential
+### set\_gwp
 
 This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the regulation then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A `Curve` is read at the emissions lifetime, like the GWP of the emission: the `EmissionsLifetime` of the regulation if assigned, otherwise that of the model.
 
@@ -229,7 +229,7 @@ This command allows the user to set the WTT (Well-to-Tank) emission factor for a
   + `"fuel_name", "emission_name", 3.2`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: Not set. The WTT emission factor is averaged over the ports of the vessel's route, using each port's `set_bunker_wtt_overwrite` if assigned, otherwise an estimate from the plants producing the fuel.
+* **Default**: Not set. The WTT emission factor is averaged over the ports of the vessel's route, using each port's [set\_fuel\_wtt](port.md#set_fuel_wtt) if assigned, otherwise an estimate from the plants producing the fuel.
 
 ### set\_fuel\_ttw
 

@@ -57,10 +57,69 @@ change.
   requested; they used to produce no column.
 
 ### Changed
+- DSL attributes and commands are renamed to say what they set; an old name is
+  a deck error. The results file keeps its series names. Write instead:
+  - `Fleet` sensitivities: `InterFuelSensitivity` → `FuelSensitivity`,
+    `IntraFuelSensitivity` → `VariantSensitivity`, `FuelConversionSensitivity`
+    → `ConversionSensitivity`;
+  - `Fleet` attributes: `FuelConversionMinimumAge` → `MinimumConversionAge`,
+    `RetrofitFrequency` → `RetrofitInterval`, `AssumeReferenceSpeedOptimal` →
+    `RouteSpeedOptimal`;
+  - `Fleet` flags: `set_newbuild_available` → `set_allow_newbuild`,
+    `set_conversion_available` → `set_allow_conversion`;
+  - `Fleet` conversions: `set_fuel_conversion_cost` → `set_conversion_cost`,
+    `set_fuel_conversion_limit` → `set_conversion_limit`;
+  - `Producer` attributes: `FuelDemandSensitivity` → `FuelSensitivity`,
+    `FuelCostSensitivity` → `VariantSensitivity`, `JumpStartFraction` →
+    `JumpStart`;
+  - `Producer` commands: `set_feed_constraint` → `set_feed_limit`,
+    `set_export_distribution` → `set_export_weight`;
+  - `Port` shore power: `ShorePowerConnectionShare` → `ShorePowerAvailability`,
+    `ShorePowerCost` → `ShorePowerPrice`, `set_shore_power_emission_factor` →
+    `set_shore_power_wtt`;
+  - `Port` fuels: `set_bunker_price_overwrite` → `set_fuel_price`,
+    `set_bunker_wtt_overwrite` → `set_fuel_wtt`, `set_bunkering_allowed` →
+    `set_allow_bunkering`;
+  - `Converter`: `set_consumption_ttw` → `set_ttw`, `set_slip_fraction` →
+    `set_slip`;
+  - `Emission`: `FuelType` → `SlipFuelType`, `GlobalWarmingPotential` → `Gwp`;
+  - `Levy` and `Regulation`: `set_global_warming_potential` → `set_gwp`, and
+    on a `Levy`, `Level` → `Rate`;
+  - `Route`: `set_voyage_distribution` → `set_distance_share`;
+  - `Tank`: `Size` → `Volume`.
 - The results file keeps every series with a value other than zero; a series
   whose values all lay below 1e-5 in magnitude was left out (#911).
 - An attribute that takes an integer rejects any other number, such as
   `3.000001`, which it rounded when within 1e-5 of an integer (#911).
+- Values are no longer rounded to five decimals before they are compared:
+  - the speed shares of a `Route` leg must sum to 1 up to floating-point
+    rounding, not to five decimals;
+  - `InitialSplit` (Fleet) rescales any positive total;
+  - a vessel's load curve with a small concavity that rounding used to hide
+    now logs the warning that its load functions are not convex;
+  - a fuel conversion weighs a cohort's mean age and remaining lifetimes
+    unrounded, which moves results by up to a few parts per million (#967).
+- A vessel is at a retrofit cycle in the time step in which its own age reaches
+  a multiple of `RetrofitFrequency` (Fleet), no longer a whole cohort by its
+  youngest age (#974, #988):
+  - a cohort retrofits the share of its vessels at a cycle, and converts the
+    share at a cycle and at least `FuelConversionMinimumAge` old, which it
+    tested by its mean age;
+  - a 2e-5 change of `RetrofitFrequency` moved `example_1`'s fuel conversions
+    by a fifth, and now moves them by 0.1%.
+- A retrofit is amortized over the lifetime left at its vessels' mean age, no
+  longer truncated to whole years (#988).
+- `SolutionTolerance` applies to costs relative to the largest cost of the
+  bunkering problem rather than in currency, so in decks with large fleets or
+  high prices the solver's rounding no longer decides which solutions count as
+  equally cheap. The results of the example decks and of the reference
+  scenario `basecase_strong_regulation` are unchanged (#953).
+- Time is counted in calendar years (#978):
+  - A calendar year counts as exactly one year in ages and step lengths, so on
+    1 January steps retrofit cycles and fuel conversions no longer come a step
+    late in the years before a leap year; in `example_1` cumulative WTW CO2 +0.22%.
+  - Numeric x-values in `Forecast` and `Timetable` tables are years since the
+    start, no longer days.
 - Building Navigate from source, as `pip install` of a checkout does, needs
   setuptools 77 or later; pip fetches it unless run with `--no-build-isolation`.
 - The results `equivalent_wtt`, `equivalent_ttw` and `equivalent_wtw` of
@@ -86,6 +145,9 @@ change.
   `<data_dir>/modules/`. Move an assumptions folder of the old layout up one
   level. A user file overlaying a default is replaced by an `Import` and the
   reassignments in the deck, or by an own assumptions folder passed with `-d`.
+- `Load DefaultCalibration` sets every inertia to 0: ports' bunkering inertia
+  was 0.7 and fleets' and producers' `Inertia` 0.6. This moves the results of
+  every deck that loads it (#9).
 - A deck that needs the assumptions when no folder is given names the
   folder of the clone Navigate was installed from, with the command that sets
   `ASSUMPTIONS_DATA_DIR` on this system, or links the download of the
@@ -401,6 +463,17 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- `weighted_average_age`, `vessel_tied_capital` and `plant_tied_capital` read a
+  cohort over the ages its vessels or plants hold, not all at the youngest; the
+  average age rises by half each cohort's age span, half a step for newbuilds (#992).
+- A table read at a time built from durations, such as a cost bin or a
+  replacement a whole number of years after a date that is not 1 January, reads
+  the table date it lands on, instead of raising an `Extrapolate = FALSE` error
+  or taking the neighbouring `PREVIOUS` or `NEXT` value (#986).
+- Speed management no longer slows a sailing condition to 0 knots or below, where
+  its leg took no sea time and cost nothing. Where the propulsion load sets no
+  minimum speed above 0, no condition sails below the route's lowest speed. Decks
+  with speed management and such a load move (#972).
 - Speed management finds each vessel type's optimal speed to convergence, not
   to about 0.1 knots, so a rounding-level difference in its inputs no longer
   moves it by hundredths of a knot. Decks with speed management move (#962).

@@ -14,7 +14,7 @@ Producer "producer_fame" {
 
 	MaximumDevelopment = 1
 
-	set_feed_constraint("used_cooking_oil", Forecast("used_cooking_oil_constraint"))
+	set_feed_limit("used_cooking_oil", Forecast("used_cooking_oil_constraint"))
 }
 
 # This forecast is simply for a single European producer instead of on a global scale. 

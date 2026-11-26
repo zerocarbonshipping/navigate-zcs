@@ -14,7 +14,7 @@ from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
 from navigate.core.nodes._table1d import _Table1D
 from navigate.core.table_data import TableData, build_table_1d_dated
-from navigate.util import is_date_array, timedelta_to_days
+from navigate.util import SnapGrid, dates_to_years, is_date_array
 
 if TYPE_CHECKING:
     from navigate.util.types_ import DateArray, FloatArray, FloatLike
@@ -43,6 +43,9 @@ class Forecast(Node, _Table1D):
         # the table read from the deck, pending until it is built
         self._pending_table: tuple[FloatArray | DateArray, FloatArray] | None = None
 
+        # the table's times, which a time a caller supplies snaps to
+        self._time_grid: SnapGrid
+
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
     def set_table(self, value: TableData) -> None:
@@ -55,7 +58,7 @@ class Forecast(Node, _Table1D):
         self._check_bounds_consistency()
 
     def build_table(self, start_date: np.datetime64) -> None:
-        """Build the pending table, its dates counted in days from the start date."""
+        """Build the pending table, its dates counted in years from the start date."""
         if self._pending_table is None:
             return
 
@@ -64,11 +67,12 @@ class Forecast(Node, _Table1D):
         self._x_dates = None
         if is_date_array(x):
             self._x_dates = (x[0], x[-1])
-            x = timedelta_to_days(x - start_date)
+            x = dates_to_years(x, start_date)
 
         self._check_table(x, y)
 
         self._set_table(x, y)
+        self._time_grid = SnapGrid(x)
         self._pending_table = None
 
     def precalculate(self, time: float) -> None:
@@ -78,7 +82,7 @@ class Forecast(Node, _Table1D):
         Parameters
         ----------
         time
-            Time passed since start date, in days.
+            Time passed since start date, in years.
         """
         self._current_value = self.calculate(time)
 
@@ -95,7 +99,7 @@ class Forecast(Node, _Table1D):
         Parameters
         ----------
         x
-            Time passed since start date to recalculate at, in days; the cached
+            Time passed since start date to recalculate at, in years; the cached
             value is returned when None.
         y
             Ignored; it exists because expressions call every getter with two inputs.
@@ -108,4 +112,7 @@ class Forecast(Node, _Table1D):
         if x is None:
             return self._current_value
 
-        return self.calculate(x)
+        # a time built from durations, such as a date plus a lead time, may lie a
+        # rounding step off a table date, and reads that date rather than the
+        # neighbouring segment or nothing
+        return self.calculate(self._time_grid.snap(x))

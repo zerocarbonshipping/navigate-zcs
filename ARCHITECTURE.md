@@ -30,7 +30,13 @@ only through `core` expectations and the bunkering LP. `Simulation` in
 - Cohort: the assets of one age bin, held with their count in an `Increment`
   (`core/increment.py`), in service in `Fleet.increments` and
   `Producer.increments`, awaiting delivery in `Producer.pipeline`;
-  `simulation/cohort.py` accounts for them.
+  `simulation/cohort.py` accounts for them. An increment is built with the
+  time it enters service, on the timeline, and its origin, the time step whose
+  attributes it carries; its age at a time is read off that entry time, never
+  accumulated step by step. Its assets are spread uniformly over its age span,
+  so a decision on an asset's age, such as scrapping at the lifetime or a
+  vessel's retrofit cycle, acts on the share of the span it holds for, never
+  on the whole cohort by one of its ages.
 - Count: the number of vessels or plants a value stands for, fractional as
   cohorts split and scrap in shares. A `Vessel` node is a vessel type and a
   `Plant` node a plant type; their expectations, and a vessel's results, hold
@@ -45,13 +51,20 @@ only through `core` expectations and the bunkering LP. `Simulation` in
   bunkering scope, exact zero for a type not in service, as the LP admits on a
   positive count; in the expected scope a type allowed as a newbuild but not in
   service carries a small count instead, so that it enters the LP.
-- Time is measured in days or in years:
-  - In days: `Simulation.timeline`, counted from the start date, and a step's
-    size, from the date before (`Simulation._time_step_at`). The first step's
-    size is taken as one year (`YEAR`).
-  - In years: ages (`Increment`) and the `ResultsContext` timeline. The results
-    file divides a `per_step` result by its step length in years
-    (`step_lengths`), to a per-year rate.
+- Time is measured on one axis, in calendar years: a date is its year plus
+  the fraction of that year's days before it (`dates_to_years` in
+  `util/dates.py`), so every calendar year is exactly one year long.
+  `Simulation.timeline` counts from the start date, and a step's size is its
+  difference from the date before, one year for the first step
+  (`step_lengths` in `util/numeric.py`, which `Simulation` and the results file
+  share). Ages, lead times, lifetimes and the numeric x-values of `Forecast`
+  and `Timetable` tables are on the same axis. Whole years from a 1 January
+  date end on a 1 January date, to rounding; from another date they can end up
+  to half a day off its anniversary, as the calendar years between differ in
+  length. A time rebuilt from durations carries a rounding remainder, which a
+  test on it drops (`CODESTYLE.md`, Numerics). Days remain only in physical
+  averages, such as a vessel's operating days per year or a plant's tons per
+  day, converted through `DAYS_PER_YEAR`.
 - Bunkering LP (`simulation/bunker/`), run as two `BunkerAlgorithm`s: the
   existing scope solves the current step for the fleet as it stands, the
   expected scope every step to the horizon for the decisions.

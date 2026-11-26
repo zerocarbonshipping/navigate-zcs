@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import ROUND_OFF, YEAR
+from navigate.util import snap_to_whole, subtract
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -44,7 +44,7 @@ class Component:
     lifetime
         Lifetime of the asset, in years.
     time_initial
-        Time of the investment decision, in days.
+        Time of the investment decision, in years.
     emissions
         Names of the emissions to allocate a WTT flow for.
     """
@@ -86,7 +86,7 @@ class Component:
 
         # an event may reassign the replacement share, so it is read at call time
         def replacement(time: float) -> float:
-            return region.process_replacement[process_name].get(time)
+            return region.process_replacements[process_name].get(time)
 
         self.replacement_cycle = _ReplacementCycle(lifetime.get, replacement, self)
 
@@ -162,10 +162,10 @@ class _ReplacementCycle:
     Parameters
     ----------
     lifetime
-        Callable returning the component lifetime, in years, locked at a time, in days.
+        Callable returning the component lifetime locked at a time, both in years.
     replacement
         Callable returning the replaceable share of the CAPEX locked at a time,
-        in days.
+        in years.
     component
         Component whose time context the schedules are walked over.
     """
@@ -194,7 +194,7 @@ def add_capex(component: Component, capex: Callable[[float], float]) -> None:
     component
         Component for which CAPEX costs are added.
     capex
-        Callable returning the CAPEX locked at a time, in days: the initial CAPEX at
+        Callable returning the CAPEX locked at a time, in years: the initial CAPEX at
         the investment decision and the recurring CAPEX at each replacement.
     """
     _add_initial_capex_flow(component, capex)
@@ -210,7 +210,7 @@ def add_fixed_opex(component: Component, opex: Callable[[float], float]) -> None
     component
         Component for which OPEX costs are added.
     opex
-        Callable returning the yearly OPEX locked at an anchor time, in days.
+        Callable returning the yearly OPEX locked at an anchor time, in years.
     """
     component.opex_flow += _build_staircase_flow(component, opex)
 
@@ -229,10 +229,10 @@ def add_variable_opex(
         Component for which OPEX costs are added.
     metric
         Callable returning the metric (e.g. in tons/year) locked at an anchor time,
-        in days.
+        in years.
     price
-        Callable returning the price per unit of metric at absolute times, in days.
-        Vectorized over arrays of days.
+        Callable returning the price per unit of metric at absolute times, in years.
+        Vectorized over arrays of times.
     """
     metric_flow = _build_staircase_flow(component, metric)
     component.opex_flow += metric_flow * price(component.year_starts)
@@ -248,7 +248,7 @@ def add_fixed_wtt(component: Component, wtt: Callable[[str, float], float]) -> N
         Component for which WTT emissions are added.
     wtt
         Callable returning the yearly WTT of an emission locked at an anchor time, in
-        days.
+        years.
     """
     for emission in component.wtt_flows:
         emission_wtt = partial(wtt, emission)
@@ -270,10 +270,10 @@ def add_variable_wtt(
     component
         Component for which WTT emissions are added.
     metric
-        Callable returning the metric locked at an anchor time, in days.
+        Callable returning the metric locked at an anchor time, in years.
     factor
         Callable returning the WTT factor of an emission per unit of metric at
-        absolute times, in days. Vectorized over arrays of days.
+        absolute times, in years. Vectorized over arrays of times.
     """
     if not component.wtt_flows:
         return
@@ -324,7 +324,7 @@ def build_cargo_flow(
     cargo
         Variable cargo-mile rate, in cargo-miles/year.
     timeline
-        Timeline at which `cargo` is defined, in days.
+        Timeline at which `cargo` is defined, in years.
 
     Returns
     -------
@@ -354,16 +354,16 @@ def build_operating_flows(
     lifetime
         Lifetime of the asset, in years.
     time_initial
-        Time of the investment decision, in days.
+        Time of the investment decision, in years.
 
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Start time of each year, in days, and the fraction of each year the asset
+        Start time of each year, in years, and the fraction of each year the asset
         operates.
     """
     size = get_flow_size(lead_time, lifetime)
-    year_starts = time_initial + np.arange(size, dtype=float) * YEAR
+    year_starts = time_initial + np.arange(size, dtype=float)
 
     time_commence, time_end = _operating_window(lead_time, lifetime, time_initial)
     operating_flow = _overlap_years(year_starts, time_commence, time_end)
@@ -406,7 +406,7 @@ def get_cost_stop(
     Parameters
     ----------
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Time-step of the investment decision.
     lead_time
@@ -424,13 +424,10 @@ def get_cost_stop(
     last_year = get_flow_size(lead_time, lifetime) - 1
 
     _, time_end = _operating_window(lead_time, lifetime, time_initial)
-    last_year_start = _future_time(time_initial, last_year)
+    last_year_start = time_initial + last_year
 
-    # whole years of 365.25 days end up to 0.75 day off a calendar date within
-    # 1901-2099 and 1.5 days across 2100, so a time-step starting within two days
-    # before a time counts as on it
-    horizon_stop = int(np.searchsorted(timeline, time_end - 2.0))
-    support_index = int(np.searchsorted(timeline, last_year_start - 2.0))
+    horizon_stop = _count_steps_before(timeline, time_end)
+    support_index = _count_steps_before(timeline, last_year_start)
     stop = max(horizon_stop, support_index + 1)
 
     return min(stop, timeline.size)
@@ -492,9 +489,9 @@ def _bin_index(time: float, time_initial: float, size: int) -> int:
     Parameters
     ----------
     time
-        Absolute time, in days.
+        Absolute time, in years.
     time_initial
-        Time of the investment decision, in days.
+        Time of the investment decision, in years.
     size
         Number of calendar-year bins.
 
@@ -503,35 +500,26 @@ def _bin_index(time: float, time_initial: float, size: int) -> int:
     int
         Zero-based bin index clamped to [0, size - 1].
     """
-    bin_idx = int((time - time_initial) // YEAR)
+    # a time a rounding remainder short of a bin's start lies in that bin
+    scale = max(abs(time), abs(time_initial))
+    bin_idx = math.floor(snap_to_whole(time - time_initial, scale))
     return min(max(bin_idx, 0), size - 1)
 
 
-def _future_time(time: float, years: float) -> float:
-    """
-    Add a duration in years to an absolute time in days.
-
-    Parameters
-    ----------
-    time
-        Absolute time, in days.
-    years
-        Duration, in years.
-
-    Returns
-    -------
-    float
-        New absolute time, in days.
-    """
-    return time + years * YEAR
+def _count_steps_before(timeline: FloatArray, time: float) -> int:
+    """Count the time-steps starting before a time, one within a day of it on it."""
+    # whole years from a date other than 1 January end up to half a day off its
+    # anniversary, as the calendar years between them differ in length
+    is_before = subtract(timeline, time, tolerance=1.0 / 365.0) < 0.0
+    return int(np.count_nonzero(is_before))
 
 
 def _horizon(lead_time: float, lifetime: float) -> float:
     """
     Sum an asset's lead time and lifetime into the years it spans.
 
-    The sum is rounded, so a whole number of years summed from fractional parts, as
-    0.1 + 2.9, ends exactly on a bin edge.
+    A sum a residual away from a whole number of years is snapped to it, so a whole
+    number summed from fractional parts, as 0.1 + 2.9, ends exactly on a bin edge.
 
     Parameters
     ----------
@@ -545,7 +533,8 @@ def _horizon(lead_time: float, lifetime: float) -> float:
     float
         Years from the investment decision to the end of operation.
     """
-    return round(lead_time + lifetime, ROUND_OFF)
+    horizon = lead_time + lifetime
+    return snap_to_whole(horizon, horizon)
 
 
 def _operating_window(
@@ -561,15 +550,15 @@ def _operating_window(
     lifetime
         Lifetime of the asset, in years.
     time_initial
-        Time of the investment decision, in days.
+        Time of the investment decision, in years.
 
     Returns
     -------
     tuple[float, float]
-        Times of commencement and of the end of operation, in days.
+        Times of commencement and of the end of operation, in years.
     """
-    time_commence = _future_time(time_initial, lead_time)
-    time_end = _future_time(time_initial, _horizon(lead_time, lifetime))
+    time_commence = time_initial + lead_time
+    time_end = time_initial + _horizon(lead_time, lifetime)
 
     return time_commence, time_end
 
@@ -581,11 +570,11 @@ def _overlap_years(year_starts: FloatArray, start: float, end: float) -> FloatAr
     Parameters
     ----------
     year_starts
-        Start time of each year, in days.
+        Start time of each year, in years.
     start
-        Start of the interval, in days.
+        Start of the interval, in years.
     end
-        End of the interval, exclusive, in days.
+        End of the interval, exclusive, in years.
 
     Returns
     -------
@@ -593,9 +582,9 @@ def _overlap_years(year_starts: FloatArray, start: float, end: float) -> FloatAr
         Fraction of each year within the interval.
     """
     left = np.maximum(year_starts, start)
-    right = np.minimum(year_starts + YEAR, end)
-    overlap: FloatArray = np.clip(right - left, 0.0, YEAR)
-    return overlap / YEAR
+    right = np.minimum(year_starts + 1.0, end)
+    overlap: FloatArray = np.clip(right - left, 0.0, 1.0)
+    return overlap
 
 
 def _calculate_replacement_times(
@@ -613,20 +602,21 @@ def _calculate_replacement_times(
     component
         Component whose time context to walk.
     lifetime
-        Callable returning the component lifetime, in years, locked at a time, in days.
+        Callable returning the component lifetime locked at a time, both in years.
 
     Returns
     -------
     list[float]
-        Replacement times, in days.
+        Replacement times, in years.
     """
     time_end = component.time_end
     times = []
 
-    time = _future_time(component.time_commence, lifetime(component.time_initial))
-    while time < time_end:
+    # a replacement a rounding remainder before the end of operation falls on it
+    time = component.time_commence + lifetime(component.time_initial)
+    while subtract(time, time_end) < 0.0:
         times.append(time)
-        time = _future_time(time, lifetime(time))
+        time += lifetime(time)
 
     return times
 
@@ -647,7 +637,7 @@ def _calculate_staircase_segments(
     component
         Component whose time context to walk.
     replacement_times
-        Replacement times, in days.
+        Replacement times, in years.
 
     Returns
     -------
@@ -688,7 +678,7 @@ def _add_initial_capex_flow(
     component
         Component for which CAPEX costs are added.
     capex
-        Callable returning the CAPEX locked at the time of investment, in days.
+        Callable returning the CAPEX locked at the time of investment, in years.
     """
     time_initial = component.time_initial
     time_commence = component.time_commence
@@ -740,7 +730,7 @@ def _add_initial_tied_capital_flow(component: Component, deposits: FloatArray) -
         lifetime_component = cycle.lifetime(component.time_initial)
 
     basis = deposits.sum()
-    lifetime_asset = (component.time_end - component.year_starts[commence_idx]) / YEAR
+    lifetime_asset = component.time_end - component.year_starts[commence_idx]
 
     tranches = [
         (basis * (1.0 - replaceable), lifetime_asset),
@@ -775,7 +765,7 @@ def _add_straight_line_depreciation(
         return
 
     year_starts = component.year_starts[start_idx:]
-    age = (year_starts - year_starts[0]) / YEAR
+    age = year_starts - year_starts[0]
     remaining = basis * (1.0 - age / lifetime)
     component.tied_capital_flow[start_idx:] += np.maximum(remaining, 0.0)
 
@@ -797,7 +787,7 @@ def _add_recurring_capex_flow(
     component
         Component for which recurring CAPEX costs are added.
     capex
-        Callable returning the recurring CAPEX at a replacement time, in days.
+        Callable returning the recurring CAPEX at a replacement time, in years.
     """
     cycle = component.replacement_cycle
     if cycle is None:
@@ -805,7 +795,7 @@ def _add_recurring_capex_flow(
 
     for time_replace in cycle.replacement_times:
         lifetime = cycle.lifetime(time_replace)
-        remaining = (component.time_end - time_replace) / YEAR
+        remaining = component.time_end - time_replace
         service = min(lifetime, remaining)
         share = service / lifetime
         capex_t = capex(time_replace) * cycle.replacement(time_replace) * share
@@ -830,7 +820,7 @@ def _build_staircase_flow(
     component
         Component for which the flow is built.
     value
-        Callable returning the locked value at an anchor time, in days.
+        Callable returning the locked value at an anchor time, in years.
 
     Returns
     -------

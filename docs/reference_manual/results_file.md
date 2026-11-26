@@ -45,8 +45,9 @@ attributes of each kind are listed under [Results](#results).
 Values are per year where the unit says so. The results that count what
 happened in a time step, `newbuilds`, `scrap`, `fuel_conversions`,
 `newbuild_power`, `scrapped_power`, `fuel_converted_power`, `development` and
-`computational_time`, are divided by the length of the step in years of 365.25
-days, the first step counting as one year.
+`computational_time`, are divided by the length of the step: the difference of
+its dates in calendar years, so a step from 1 January to 1 January is one year,
+leap year or not. The first step counts as one year.
 
 Money is in the deck's [Currency](model_definition.md#currency). The tables
 below write it `currency`; the file's `units` name the currency itself, such as
@@ -197,7 +198,7 @@ Some rules hold throughout:
 | `global.total_fuel_expenses`<br>`fleet.total_fuel_expenses`<br>`vessel.total_fuel_expenses` | `currency/year` | | All fuel expenses plus shore power expenses. | Always |
 | `global.total_fuel_related_expenses`<br>`fleet.total_fuel_related_expenses`<br>`vessel.total_fuel_related_expenses` | `currency/year` | | `total_fuel_expenses` plus all levy expenses. | Always |
 | `global.remedial_units`<br>`fleet.remedial_units`<br>`vessel.remedial_units` | `tCO2e/year` | regulation | Remedial units required, under the regulation's global warming potentials. | As `remedial_expenses` |
-| `global.levy_units`<br>`fleet.levy_units`<br>`vessel.levy_units` | `tCO2e/year` | levy | Emissions a levy charged: its charge over its Level. | A Levy with a positive Level charges |
+| `global.levy_units`<br>`fleet.levy_units`<br>`vessel.levy_units` | `tCO2e/year` | levy | Emissions a levy charged: its charge over its Rate. | A Levy with a positive Rate charges |
 
 ### Emissions
 
@@ -218,8 +219,8 @@ The CO2-equivalents use the model's global warming potentials, which the
 
 | Series | Unit | Keys | Content | Present when |
 |---|---|---|---|---|
-| `global.shore_power_energy`<br>`fleet.shore_power_energy`<br>`vessel.shore_power_energy` | `GJ/year` | | Shore power drawn in port. | Vessels call at a Port with a ShorePowerConnectionShare above 0 |
-| `global.shore_power_expenses`<br>`fleet.shore_power_expenses`<br>`vessel.shore_power_expenses` | `currency/year` | | Cost of the shore power, at the port's ShorePowerCost. | As `shore_power_energy`, with a cost |
+| `global.shore_power_energy`<br>`fleet.shore_power_energy`<br>`vessel.shore_power_energy` | `GJ/year` | | Shore power drawn in port. | Vessels call at a Port with a ShorePowerAvailability above 0 |
+| `global.shore_power_expenses`<br>`fleet.shore_power_expenses`<br>`vessel.shore_power_expenses` | `currency/year` | | Cost of the shore power, at the port's ShorePowerPrice. | As `shore_power_energy`, with a cost |
 | `global.shore_power_levy_expenses`<br>`fleet.shore_power_levy_expenses`<br>`vessel.shore_power_levy_expenses` | `currency/year` | | Levies charged on the shore power drawn; negative for a subsidy. Counted in `total_fuel_related_expenses`. | A Levy charges shore power drawn in its Jurisdiction |
 | `global.shore_power_emission`<br>`fleet.shore_power_emission`<br>`vessel.shore_power_emission` | `t/year` | emission | Emissions of the shore power, well-to-wake, one gas unweighted. Counted in `total_equivalent_wtw`, not in `equivalent_wtw`. | As `shore_power_energy`, with an emission factor |
 
@@ -251,7 +252,7 @@ The CO2-equivalents use the model's global warming potentials, which the
 | `fleet.fuel_conversions` | `vessels/year` | vessel, vessel | Vessels fuel converted from one type to the other. | Fuel conversions |
 | `fleet.technology_uptake` | `-` | vessel, technology | Share of the vessels of a type carrying the technology. | The fleet has Technologies |
 | `fleet.newbuild_technology_uptake` | `-` | vessel, technology | Share of the newbuilds of a type carrying the technology. | As `technology_uptake` |
-| `fleet.retrofit_technology_uptake` | `-` | vessel, technology | Share of the vessels of a type retrofitted with the technology. | Retrofits, at the dates RetrofitFrequency allows |
+| `fleet.retrofit_technology_uptake` | `-` | vessel, technology | Share of the vessels of a type retrofitted with the technology. | Retrofits, at the dates RetrofitInterval allows |
 | `fleet.fleet_technology_uptake` | `-` | technology | `technology_uptake` averaged over the vessel types, weighted by `existing_vessels`. | As `technology_uptake` |
 
 ### Transport work, speeds and freight rate
@@ -317,7 +318,7 @@ The energies are the masses times the fuel's `lower_heating_value`.
 | `global.production_energy`<br>`producer.production_energy` | `GJ/year` | fuel | Fuel produced. | Each fuel the plants produce |
 | `global.production_type_energy`<br>`producer.production_type_energy` | `GJ/year` | fuel type | `production_energy` summed by the fuels' type. | As `production_energy` |
 | `global.feed_mass`<br>`producer.feed_mass` | `t/year` | feed | Feed used. | Plants in production use the feed |
-| `producer.feed_constraint` | `t/year` | feed | Availability of the feed. | The Producer has `set_feed_constraint` for the feed |
+| `producer.feed_constraint` | `t/year` | feed | Availability of the feed. | The Producer has `set_feed_limit` for the feed |
 | `global.plant_tied_capital`<br>`producer.plant_tied_capital` | `currency` | | Capital tied up in the plants, depreciated linearly. | Plants in production |
 
 ### Producer

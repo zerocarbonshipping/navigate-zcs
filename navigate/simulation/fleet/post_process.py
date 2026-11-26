@@ -84,7 +84,7 @@ def complete_fleet_results(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet, its vessels' results written for the whole run.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     """
     _fold_vessels(fleet)
     _derive_fleet(fleet.results)
@@ -596,7 +596,7 @@ def _calculate_fleet_rates(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet whose charter and freight rates are calculated.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     """
     for vessel in fleet.vessels:
         _calculate_achieved_rates(vessel, timeline)
@@ -613,7 +613,7 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
     vessel
         Vessel whose rates are calculated.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     """
     results = vessel.results
     cargo_miles = vessel.expectation.cargo_miles
@@ -630,9 +630,9 @@ def _calculate_achieved_rates(vessel: Vessel, timeline: FloatArray) -> None:
         stop = get_cost_stop(timeline, idx, lead_time, lifetime)
         if not np.all(results.in_fleet[idx:stop]):
             logger.debug(
-                "%s: Unable to post-process fuel related costs at time %s days.",
+                "%s: Unable to post-process fuel related costs at time %.2f years.",
                 vessel,
-                round(time, 0),
+                time,
             )
 
             continue

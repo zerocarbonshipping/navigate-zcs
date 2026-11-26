@@ -40,23 +40,23 @@ class Port(Node):
 
         # external variables -----------------------------------------------------------
         # shore power
-        self.shore_power_cost: ForecastInput = Scalar(0.0)
-        self.shore_power_connection_share: ForecastInput = Scalar(0.0)
+        self.shore_power_price: ForecastInput = Scalar(0.0)
+        self.shore_power_availability: ForecastInput = Scalar(0.0)
 
         # bunkering
-        self.bunkering_allowed: dict[str, bool] = {}
+        self.allow_bunkering: dict[str, bool] = {}
         self.bunkering_limits: dict[str, ForecastInput | None] = {}
         self.bunkering_inertia: dict[str, ForecastInput] = {}
 
         # fuel handling
         self.handling_costs: dict[str, ForecastInput] = {}
 
-        # bunker overwrites
-        self.bunker_price_overwrites: dict[str, ForecastInput | None] = {}
-        self.bunker_wtt_overwrites: dict[tuple[str, str], ForecastInput | None] = {}
+        # fuel prices and WTT
+        self.fuel_prices: dict[str, ForecastInput | None] = {}
+        self.fuel_wtt: dict[tuple[str, str], ForecastInput | None] = {}
 
         # shore power emissions
-        self.shore_power_emission_factors: dict[str, ForecastInput] = {}
+        self.shore_power_wtt: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: PortExpectation
@@ -67,18 +67,18 @@ class Port(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute()
-    def set_shore_power_cost(self, value: ForecastArgument) -> None:
-        """Set the shore power electricity tariff of the port."""
-        self.shore_power_cost = assign_value(
+    def set_shore_power_price(self, value: ForecastArgument) -> None:
+        """Set the shore power electricity price of the port."""
+        self.shore_power_price = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
         )
 
     @deck_attribute()
-    def set_shore_power_connection_share(self, value: ForecastArgument) -> None:
+    def set_shore_power_availability(self, value: ForecastArgument) -> None:
         """Set the fraction of port time with a shore power connection."""
-        self.shore_power_connection_share = assign_value(
+        self.shore_power_availability = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
@@ -87,9 +87,9 @@ class Port(Node):
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_bunkering_allowed(self, key: str, value: str) -> None:
+    def set_allow_bunkering(self, key: str, value: str) -> None:
         """Set whether a fuel may be bunkered in the port."""
-        write_matching_keys(key, assign_boolean(value), self.bunkering_allowed)
+        write_matching_keys(key, assign_boolean(value), self.allow_bunkering)
 
     @deck_command()
     def set_bunkering_limit(self, key: str, value: ForecastArgument) -> None:
@@ -133,8 +133,8 @@ class Port(Node):
         )
 
     @deck_command()
-    def set_bunker_price_overwrite(self, key: str, value: ForecastArgument) -> None:
-        """Set the overwrite price of a fuel in the port."""
+    def set_fuel_price(self, key: str, value: ForecastArgument) -> None:
+        """Set the price of a fuel in the port."""
         write_matching_keys(
             key,
             assign_value(
@@ -142,27 +142,23 @@ class Port(Node):
                 type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
                 lower=0.0,
             ),
-            self.bunker_price_overwrites,
+            self.fuel_prices,
         )
 
     @deck_command()
-    def set_bunker_wtt_overwrite(
-        self, key1: str, key2: str, value: ForecastArgument
-    ) -> None:
-        """Set the overwrite WTT emissions of a fuel in the port for an emission."""
+    def set_fuel_wtt(self, key1: str, key2: str, value: ForecastArgument) -> None:
+        """Set the WTT emissions of a fuel in the port for an emission."""
         write_matching_key_pairs(
             (key1, key2),
             assign_value(
                 as_scalar(value), type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE)
             ),
-            self.bunker_wtt_overwrites,
+            self.fuel_wtt,
         )
 
     @deck_command()
-    def set_shore_power_emission_factor(
-        self, key: str, value: ForecastArgument
-    ) -> None:
-        """Set the shore power emission factor for an emission."""
+    def set_shore_power_wtt(self, key: str, value: ForecastArgument) -> None:
+        """Set the WTT emissions of shore power for an emission."""
         write_matching_keys(
             key,
             assign_value(
@@ -170,7 +166,7 @@ class Port(Node):
                 type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
                 lower=0.0,
             ),
-            self.shore_power_emission_factors,
+            self.shore_power_wtt,
         )
 
     # internal methods -----------------------------------------------------------------
@@ -178,13 +174,13 @@ class Port(Node):
         # a liquid-market fuel has no bottom-up production chain to price it, so its
         # entry is filled; any other fuel keeps None, which is what selects the
         # bottom-up calculation
-        for fuel_name, price in self.bunker_price_overwrites.items():
+        for fuel_name, price in self.fuel_prices.items():
             if (price is None) and self.liquid_market_fuel[fuel_name]:
-                self.bunker_price_overwrites[fuel_name] = Scalar(0.0)
+                self.fuel_prices[fuel_name] = Scalar(0.0)
 
-        for (fuel_name, emission_name), wtt in self.bunker_wtt_overwrites.items():
+        for (fuel_name, emission_name), wtt in self.fuel_wtt.items():
             if (wtt is None) and self.liquid_market_fuel[fuel_name]:
-                self.bunker_wtt_overwrites[(fuel_name, emission_name)] = Scalar(0.0)
+                self.fuel_wtt[(fuel_name, emission_name)] = Scalar(0.0)
 
     def initialize_dependencies(
         self, emissions: dict[str, Emission], fuels: dict[str, Fuel]
@@ -199,21 +195,22 @@ class Port(Node):
         fuels
             All fuels in the simulation.
         """
-        # a None limit is unlimited, a None overwrite selects the bottom-up calculation
+        # a None limit is unlimited, and a None price or WTT selects the bottom-up
+        # calculation
         for fuel_name in fuels:
-            self.bunkering_allowed.setdefault(fuel_name, True)
+            self.allow_bunkering.setdefault(fuel_name, True)
             self.bunkering_limits.setdefault(fuel_name, None)
             self.bunkering_inertia.setdefault(fuel_name, Scalar(0.0))
 
             self.handling_costs.setdefault(fuel_name, Scalar(0.0))
 
-            self.bunker_price_overwrites.setdefault(fuel_name, None)
+            self.fuel_prices.setdefault(fuel_name, None)
 
             for emission_name in emissions:
-                self.bunker_wtt_overwrites.setdefault((fuel_name, emission_name), None)
+                self.fuel_wtt.setdefault((fuel_name, emission_name), None)
 
         for emission_name in emissions:
-            self.shore_power_emission_factors.setdefault(emission_name, Scalar(0.0))
+            self.shore_power_wtt.setdefault(emission_name, Scalar(0.0))
 
         # derived from the current fuels, so recomputed unconditionally every pass
         self.liquid_market_fuel = {

@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import TYPE_CHECKING
 
@@ -23,7 +24,7 @@ from navigate.simulation.fleet.technology_adoption import (
     transfer_technology_charter_rate,
 )
 from navigate.simulation.fleet.technology_effect import update_residual_energy_demand
-from navigate.util import calculate_compound_growth
+from navigate.util import calculate_compound_growth, subtract
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -74,15 +75,16 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to initialize.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     """
     idx = 0
+    start = timeline[idx]
 
     # build the technology packages and anchor their cost flows at the start;
     # this must precede seeding the initial technology uptake, which levelizes
     # the cost flows into the carried technology charter rate
     fleet.technology_packages = build_technology_packages(fleet.technologies)
-    update_packages(fleet.technology_packages, fleet.package_cost_flows, timeline[idx])
+    update_packages(fleet.technology_packages, fleet.package_cost_flows, start)
 
     n_packages = fleet.get_number_of_packages()
     fleet.newbuild_package_uptake = [np.zeros(n_packages) for _ in fleet.vessels]
@@ -95,8 +97,8 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     # TODO: allow this to be user-defined
     fleet.current_uptake = np.array(fleet.initial_split)
 
-    fleet.increments = _build_initial_increments(fleet)
-    _seed_initial_uptake(fleet)
+    fleet.increments = _build_initial_increments(fleet, start)
+    _seed_initial_uptake(fleet, start)
     _define_initial_trade(fleet, timeline)
 
     update_residual_energy_demand(fleet, idx)
@@ -107,29 +109,73 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     transfer_technology_charter_rate(fleet, idx)
 
 
-def _build_initial_increments(fleet: Fleet) -> list[list[VesselIncrement]]:
+def _build_initial_increments(
+    fleet: Fleet, start: float
+) -> list[list[VesselIncrement]]:
     """
     Build the initial increments of every vessel type from its initial count.
+
+    Each type's age bins come from its own distribution, so bins of one age can lie
+    a rounding residual apart between types. They are given one entry time and one
+    span, so that scrapping and consolidation, which compare vintages exactly, take
+    them as one.
 
     Parameters
     ----------
     fleet
         Fleet whose initial vessels are split.
+    start
+        Start time of the simulation, in years.
 
     Returns
     -------
     list[list[VesselIncrement]]
         The increments of each vessel type, oldest first.
     """
-    return [_build_vessel_increments(fleet, v) for v in range(len(fleet.vessels))]
+    vessel_count = len(fleet.vessels)
+    increments = [
+        _build_vessel_increments(fleet, v, start) for v in range(vessel_count)
+    ]
+    initial = list(itertools.chain.from_iterable(increments))
+
+    entries = _align_residuals([increment.entered for increment in initial])
+    spans = _align_residuals([increment.age_span for increment in initial])
+
+    for increment, entered, span in zip(initial, entries, spans, strict=True):
+        increment.entered = entered
+        increment.age_span = span
+
+    return increments
 
 
-def _build_vessel_increments(fleet: Fleet, vessel_idx: int) -> list[VesselIncrement]:
+def _align_residuals(values: list[float]) -> list[float]:
+    """
+    Replace each value by the smallest of those within a residual of it.
+
+    A value is compared to the first of its group, not the value before it, so that a
+    group cannot drift.
+    """
+    aligned = list(values)
+    anchor = 0.0
+
+    for position, i in enumerate(np.argsort(values)):
+        if position == 0 or subtract(anchor, values[i]) != 0.0:
+            anchor = values[i]
+
+        aligned[i] = anchor
+
+    return aligned
+
+
+def _build_vessel_increments(
+    fleet: Fleet, vessel_idx: int, start: float
+) -> list[VesselIncrement]:
     """
     Build the initial increments of one vessel type, one per age bin.
 
     Where the type's initial age distribution is a number, its vessels are spread
-    evenly over its initial age range.
+    evenly over its initial age range. The vessels carry the attributes of the first
+    time step, as the model holds none from before it.
 
     Parameters
     ----------
@@ -137,6 +183,8 @@ def _build_vessel_increments(fleet: Fleet, vessel_idx: int) -> list[VesselIncrem
         Fleet the vessels belong to.
     vessel_idx
         Index of the vessel type in the fleet.
+    start
+        Start time of the simulation, in years.
 
     Returns
     -------
@@ -157,8 +205,9 @@ def _build_vessel_increments(fleet: Fleet, vessel_idx: int) -> list[VesselIncrem
     for age, span, count in split_by_age(total_count, distribution, age_range):
         increment = VesselIncrement(
             count=count,
-            age=float(age),
+            entered=start - float(age),
             age_span=float(span),
+            origin=0,
             package_uptake=np.zeros(n_packages),
         )
         increments.append(increment)
@@ -197,7 +246,7 @@ def _calculate_initial_age_range(fleet: Fleet, vessel: Vessel) -> float:
     return lifetime
 
 
-def _seed_initial_uptake(fleet: Fleet) -> None:
+def _seed_initial_uptake(fleet: Fleet, start: float) -> None:
     """
     Seed the initial package uptake of every vessel type from its technology shares.
 
@@ -207,21 +256,23 @@ def _seed_initial_uptake(fleet: Fleet) -> None:
     ----------
     fleet
         Fleet whose increments are seeded.
+    start
+        Start time of the simulation, in years.
     """
     if all(share is None for share in fleet.initial_technology_shares.values()):
         return
 
     for v in range(len(fleet.vessels)):
-        _seed_vessel_uptake(fleet, v)
+        _seed_vessel_uptake(fleet, v, start)
 
 
-def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int) -> None:
+def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int, start: float) -> None:
     """
     Seed one vessel's age-dependent initial package mix and carried technology charge.
 
     Each (vessel, technology) pair may have an uptake Curve with age on the x-axis,
-    read at each increment's age. Shares exceeding what the cumulative packages can
-    represent are truncated, with one warning per vessel.
+    read at each increment's age at the start. Shares exceeding what the cumulative
+    packages can represent are truncated, with one warning per vessel.
 
     Parameters
     ----------
@@ -229,6 +280,8 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int) -> None:
         Fleet the vessel belongs to.
     vessel_idx
         Index of the vessel type in the fleet.
+    start
+        Start time of the simulation, in years.
     """
     vessel = fleet.vessels[vessel_idx]
     technologies = fleet.technologies
@@ -243,7 +296,7 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int) -> None:
     )
 
     for increment in fleet.increments[vessel_idx]:
-        shares = _get_initial_shares(fleet, vessel, increment.age)
+        shares = _get_initial_shares(fleet, vessel, increment.youngest_age(start))
         package_mix, truncated = _calculate_package_mix(technologies, packages, shares)
         increment.package_uptake = package_mix
         increment.technology_charter_rate = float(np.dot(package_mix, package_rates))
@@ -345,7 +398,7 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to define the trade for.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     """
     idx = 0
     counts = get_counts(fleet)

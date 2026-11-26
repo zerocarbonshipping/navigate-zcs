@@ -19,7 +19,7 @@ import numpy as np
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.nodes.curve import Curve
 from navigate.core.wrap import to_array
-from navigate.util import HOUR_TO_DAY, YEAR, divide_nonzero
+from navigate.util import DAYS_PER_YEAR, HOUR_TO_DAY, divide_nonzero
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -292,13 +292,13 @@ def _calculate_tramp_leg_miles(
     """
     Split the sea miles of a tramp route's reference year over its legs.
 
-    A voyage share is the share of the sea miles sailed on its leg. The miles are
+    A distance share is the share of the sea miles sailed on its leg. The miles are
     those that fill the reference year's sea time at each leg's mean reference speed.
 
     Parameters
     ----------
     route
-        Tramp route holding the voyage shares.
+        Tramp route holding the distance shares.
     speeds_leg
         Mean reference speed on each leg, in knots.
     time_at_sea
@@ -309,12 +309,12 @@ def _calculate_tramp_leg_miles(
     FloatArray
         Distance of each leg, in nautical miles/year.
     """
-    voyage_shares = route.get_voyage_shares()
+    distance_shares = route.get_distance_shares()
 
-    sea_days = time_at_sea * YEAR
-    days_per_mile = np.sum(divide_nonzero(voyage_shares, speeds_leg)) * HOUR_TO_DAY
+    sea_days = time_at_sea * DAYS_PER_YEAR
+    days_per_mile = np.sum(divide_nonzero(distance_shares, speeds_leg)) * HOUR_TO_DAY
 
-    return voyage_shares * sea_days / days_per_mile
+    return distance_shares * sea_days / days_per_mile
 
 
 def _calculate_tramp_port_days(route: Route, time_at_sea: float) -> FloatArray:
@@ -336,6 +336,6 @@ def _calculate_tramp_port_days(route: Route, time_at_sea: float) -> FloatArray:
     port_calls = to_array([route.port_calls[port.name] for port in route.ports])
     call_shares = divide_nonzero(port_calls, np.sum(port_calls))
 
-    port_days = (1.0 - time_at_sea) * YEAR
+    port_days = (1.0 - time_at_sea) * DAYS_PER_YEAR
 
     return call_shares * port_days

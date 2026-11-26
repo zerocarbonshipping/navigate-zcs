@@ -37,7 +37,7 @@ def calculate_policy_emission_coefficients(
     Combinations span regulations, levies, vessels, fuels, and emissions. A policy's
     WTT and TTW emission factors add up to its emission factors, and these, summed over
     its emissions, to the emission coefficients that convert a ton of fuel to a ton of
-    emissions. A levy's coefficients, priced at its level, give its cost per ton of
+    emissions. A levy's coefficients, priced at its rate, give its cost per ton of
     fuel and per GJ of shore power.
 
     Reads the plants' production and delivery WTT, the ports' shore-power emission
@@ -53,7 +53,7 @@ def calculate_policy_emission_coefficients(
     vessels
         All vessels in the simulation.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -89,7 +89,7 @@ def _calculate_regulation(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -124,7 +124,7 @@ def _calculate_regulation_wtt(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -163,7 +163,7 @@ def _calculate_regulation_ttw(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -297,7 +297,7 @@ def _calculate_regulation_vessel_thresholds(
     regulation
         Regulation whose vessel thresholds are calculated.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -330,7 +330,7 @@ def _calculate_levy(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -358,7 +358,7 @@ def _calculate_levy_wtt(levy: Levy, times: FloatArray, idx: int) -> None:
     levy
         Levy whose WTT emission factors are calculated.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -370,7 +370,7 @@ def _calculate_levy_wtt(levy: Levy, times: FloatArray, idx: int) -> None:
             key = (fuel.name, emission.name)
 
             for port in levy.jurisdiction:
-                if not port.bunkering_allowed[fuel.name]:
+                if not port.allow_bunkering[fuel.name]:
                     continue
 
                 wtt = supplied[key]
@@ -397,7 +397,7 @@ def _calculate_levy_ttw(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -429,7 +429,7 @@ def _calculate_levy_costs(
     """
     Calculate the levy's cost per ton of fuel and per GJ of shore power to a vessel.
 
-    The cost is the levy's level times the threshold-adjusted emission coefficient of
+    The cost is the levy's rate times the threshold-adjusted emission coefficient of
     the fuel or the port's shore power, from the current time step onward, and zero
     for a vessel the levy does not police. Shore power is no fuel, so the levy charges
     it whichever fuels it targets.
@@ -441,7 +441,7 @@ def _calculate_levy_costs(
     vessels
         All vessels in the simulation.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
     idx
         Current time-step index.
     """
@@ -449,7 +449,7 @@ def _calculate_levy_costs(
     scheme = levy.scheme
     forward = np.s_[idx:]
 
-    level = expectation.level[forward]
+    rate = expectation.rate[forward]
     lower = levy.lower_threshold.get(times)
     upper = None if levy.upper_threshold is None else levy.upper_threshold.get(times)
 
@@ -458,7 +458,7 @@ def _calculate_levy_costs(
     for port in levy.jurisdiction:
         coefficient = _calculate_shore_power_coefficient(levy, port, idx)
         coefficient = _apply_thresholds(coefficient, scheme, 1.0, lower, upper)
-        shore_power_costs[port.name] = level * coefficient
+        shore_power_costs[port.name] = rate * coefficient
 
     for vessel_name, vessel in vessels.items():
         ports = list_intersection(vessel.route.distinct_ports, levy.jurisdiction)
@@ -477,7 +477,7 @@ def _calculate_levy_costs(
             lhv = vessel.expectation.mean_effective_lhv[fuel.name]
 
             for port in ports:
-                if not port.bunkering_allowed[fuel.name]:
+                if not port.allow_bunkering[fuel.name]:
                     continue
 
                 key = (vessel_name, port.name, fuel.name)
@@ -495,7 +495,7 @@ def _calculate_levy_costs(
                     continue
 
                 coefficient = _apply_thresholds(coefficient, scheme, lhv, lower, upper)
-                expectation.cost[key][idx:] = level * coefficient
+                expectation.cost[key][idx:] = rate * coefficient
 
 
 def _calculate_levy_coefficient(
@@ -619,13 +619,13 @@ def _average_wtt_over_route(
     """
     estimates = []
     for port in route.distinct_ports:
-        if not port.bunkering_allowed[fuel.name]:
+        if not port.allow_bunkering[fuel.name]:
             continue
 
         estimate = _estimate_port_wtt(port, fuel, emission, idx)
 
         # a port is left out whole where its estimate is NaN anywhere: a plant
-        # estimate is NaN at every step or at none, and only a deck's overwrite
+        # estimate is NaN at every step or at none, and only the port's fuel WTT
         # could mix the two
         if np.isnan(estimate).any():
             continue
@@ -718,7 +718,7 @@ def _evaluate_supplied(
     supplied
         Policy's `fuel_wtt` or `fuel_ttw`, keyed by fuel and emission name.
     times
-        Remaining timeline, in days.
+        Remaining timeline, in years.
 
     Returns
     -------
@@ -757,7 +757,7 @@ def _apply_gwp(
     FloatLike
         GWP-weighted emission factor, in the unit of `emission_factor`.
     """
-    gwp = policy.expectation.global_warming_potential[emission.name]
+    gwp = policy.expectation.gwp[emission.name]
 
     return emission_factor * gwp
 
@@ -816,8 +816,8 @@ def _estimate_port_wtt(
     """
     Estimate the WTT emissions of a fuel bunkered at a port, from `idx` onward.
 
-    The port's WTT overwrite takes precedence; a liquid-market fuel always has one, as
-    the port fills in 0 where the deck sets none. Otherwise the estimate is the
+    The port's fuel WTT takes precedence where set; a liquid-market fuel always has one,
+    as the port fills in 0 where the deck sets none. Otherwise the estimate is the
     equal-weight mean, over every plant defined for the fuel, of the plant's
     production WTT at the time of investment plus its WTT of delivery to the port.
     The estimate reads no bunker supply, so it is known before the fuel import of the
@@ -845,8 +845,8 @@ def _estimate_port_wtt(
     forward = np.s_[idx:]
     key = (fuel.name, emission.name)
 
-    if port.bunker_wtt_overwrites[key] is not None:
-        return port.expectation.bunker_wtt_overwrite[key][forward]
+    if port.fuel_wtt[key] is not None:
+        return port.expectation.fuel_wtt[key][forward]
 
     if not fuel.plants:
         return np.full(port.expectation.length - idx, np.nan)
@@ -872,12 +872,12 @@ def _calculate_shore_power_coefficient(
     if policy.scope == PolicyScopeID.TTW:
         return 0.0
 
-    emission_factor = port.expectation.shore_power_emission_factor
+    shore_power_wtt = port.expectation.shore_power_wtt
     forward = np.s_[idx:]
     coefficient = 0.0
 
     for emission in policy.emissions:
-        factor = emission_factor[emission.name][forward]
-        coefficient += _apply_gwp(factor, policy, emission)
+        wtt = shore_power_wtt[emission.name][forward]
+        coefficient += _apply_gwp(wtt, policy, emission)
 
     return coefficient

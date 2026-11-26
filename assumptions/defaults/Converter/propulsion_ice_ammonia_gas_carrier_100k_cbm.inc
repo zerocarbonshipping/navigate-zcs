@@ -13,5 +13,5 @@ Converter "propulsion_ice_ammonia_gas_carrier_100k_cbm" {
 	Capex = Forecast("propulsion_ammonia_capex")
 	Opex = Forecast("propulsion_ammonia_opex")
 	
-	set_consumption_ttw(AMMONIA, "nitrous_oxide", Variable("propulsion_ammonia_nitrous_oxide_release"))
+	set_ttw(AMMONIA, "nitrous_oxide", Variable("propulsion_ammonia_nitrous_oxide_release"))
 }

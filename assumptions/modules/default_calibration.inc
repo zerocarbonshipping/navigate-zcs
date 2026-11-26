@@ -13,18 +13,18 @@ Port "*" {
 # summed ship Capex. A value of 1 means no preference.
 Fleet "*" {
 	Inertia = 0.0
-	InterFuelSensitivity = 0.75         # a 10% higher cost gives 25% lower odds of a fuel type
-	IntraFuelSensitivity = 0.75         # a 10% higher cost gives 25% lower odds of a technology variant
-	FuelConversionSensitivity = 2       # an NPV advantage of 5% of ship Capex doubles the odds
+	FuelSensitivity = 0.75         # a 10% higher cost gives 25% lower odds of a fuel type
+	VariantSensitivity = 0.75         # a 10% higher cost gives 25% lower odds of a technology variant
+	ConversionSensitivity = 2       # an NPV advantage of 5% of ship Capex doubles the odds
 	TechnologySensitivity = 2           # an NPV advantage of 5% of ship Capex doubles the odds
 }
 
 # Producer decision-process calibration.
 #
-# FuelDemandSensitivity is higher-is-better (odds for a 10% higher expected demand); FuelCostSensitivity
+# FuelSensitivity is higher-is-better (odds for a 10% higher expected demand); VariantSensitivity
 # is lower-is-better (odds for a 10% higher levelized cost of fuel). A value of 1 means no preference.
 Producer "*" {
 	Inertia = 0.0
-	FuelDemandSensitivity = 1.25        # a 10% higher expected demand gives 1.25x the odds of a pathway
-	FuelCostSensitivity = 0.75          # a 10% higher LCoF gives 25% lower odds of a plant
+	FuelSensitivity = 1.25        # a 10% higher expected demand gives 1.25x the odds of a pathway
+	VariantSensitivity = 0.75          # a 10% higher LCoF gives 25% lower odds of a plant
 }

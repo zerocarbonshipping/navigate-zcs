@@ -5,9 +5,9 @@
 # input of the conversion decision pinned. Read by
 # tests/end_to_end/test_fuel_price_response.py.
 Fleet "container_15000_teu" {
-	RetrofitFrequency = 5                   # years
-	FuelConversionMinimumAge = 5            # years
-	FuelConversionSensitivity = 2
+	RetrofitInterval = 5                   # years
+	MinimumConversionAge = 5            # years
+	ConversionSensitivity = 2
 
-	set_fuel_conversion_cost("container_15000_teu_ice_oil", "container_15000_teu_ice_methane", 10e6)  # USD
+	set_conversion_cost("container_15000_teu_ice_oil", "container_15000_teu_ice_methane", 10e6)  # USD
 }

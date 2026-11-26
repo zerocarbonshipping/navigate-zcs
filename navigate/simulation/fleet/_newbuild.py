@@ -18,7 +18,6 @@ from navigate.simulation.economics import calculate_two_axis_uptake
 from navigate.simulation.fleet._composition import extract_cargo_miles
 from navigate.simulation.fleet._package import calculate_package_charter_rates
 from navigate.util import (
-    YEAR,
     divide_nonzero,
     drop_negligible,
     is_negligible,
@@ -161,10 +160,10 @@ def calculate_modelled_newbuilds(
 
 
 def add_newbuilds(
-    fleet: Fleet, newbuilds: FloatArray, time_step: float, idx: int
+    fleet: Fleet, newbuilds: FloatArray, time: float, time_step: float, idx: int
 ) -> None:
     """
-    Append each vessel type's newbuilds to its increments, at age zero.
+    Append each vessel type's newbuilds to its increments, entering service now.
 
     Parameters
     ----------
@@ -172,14 +171,15 @@ def add_newbuilds(
         Fleet receiving the newbuilds.
     newbuilds
         Newbuilds per vessel type.
+    time
+        Current time, in years.
     time_step
-        Current time-step size, in days.
+        Current time-step size, in years.
     idx
         Current time-step index.
     """
     packages = fleet.technology_packages
     cost_flows = fleet.package_cost_flows
-    dt = time_step / YEAR
 
     for v, count in enumerate(newbuilds):
         vessel = fleet.vessels[v]
@@ -198,8 +198,9 @@ def add_newbuilds(
 
         increment = VesselIncrement(
             count=count,
-            age=0.0,
-            age_span=dt,
+            entered=time,
+            age_span=time_step,
+            origin=idx,
             package_uptake=package_uptake.copy(),
             technology_charter_rate=charter_rate,
         )
@@ -224,7 +225,7 @@ def is_newbuild_allowed(fleet: Fleet) -> BoolArray:
 
     for v, vessel in enumerate(fleet.vessels):
         name = vessel.name
-        allowed[v] = fleet.allow_vessel[name] and fleet.newbuild_available[name]
+        allowed[v] = fleet.allow_vessels[name] and fleet.allow_newbuilds[name]
 
     return allowed
 
@@ -373,8 +374,8 @@ def _calculate_modelled_uptake(
         inter_metrics=metrics,
         intra_utility=UtilityID.LOWER_LOG_RATIO,
         inter_utility=UtilityID.LOWER_LOG_RATIO,
-        intra_odds=fleet.intra_fuel_sensitivity.get(),
-        inter_odds=fleet.inter_fuel_sensitivity.get(),
+        intra_odds=fleet.variant_sensitivity.get(),
+        inter_odds=fleet.fuel_sensitivity.get(),
         limits=cap_share,
         context=str(fleet),
     )

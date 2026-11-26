@@ -31,18 +31,18 @@ class Emission(Node):
         super().__init__(name)
 
         # external variables -----------------------------------------------------------
-        self.global_warming_potential: CurveInput = Scalar(0.0)
-        self.fuel_type: FuelTypeID | None = None
+        self.gwp: CurveInput = Scalar(0.0)
+        self.slip_fuel_type: FuelTypeID | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE)
-    def set_global_warming_potential(self, value: CurveArgument) -> None:
+    def set_gwp(self, value: CurveArgument) -> None:
         """Set the Global Warming Potential (GWP) of the emission."""
-        self.global_warming_potential = assign_value(
+        self.gwp = assign_value(
             as_scalar(value), type_=(NodeTypeID.CURVE, NodeTypeID.VARIABLE), lower=0.0
         )
 
     @deck_attribute(SECTION_DEFINE)
-    def set_fuel_type(self, value: str) -> None:
+    def set_slip_fuel_type(self, value: str) -> None:
         """Set the fuel type whose slip produces the emission."""
-        self.fuel_type = assign_id(value, FuelTypeID)
+        self.slip_fuel_type = assign_id(value, FuelTypeID)

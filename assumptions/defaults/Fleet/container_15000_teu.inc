@@ -64,9 +64,9 @@ Fleet "container_15000_teu" {
 	set_initial_technology_share("*", "waste_heat_recovery_system_container_15000_teu", Curve("uptake_waste_heat_recovery_system_container_15000_teu"))
 
 	# fuel conversions
-	set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 24.3e6)
-	set_fuel_conversion_cost("*ice_oil*", "*ice_ammonia*", 36.5e6)
-	set_fuel_conversion_cost("*ice_methane*", "*ice_ammonia*", 25.9e6)
+	set_conversion_cost("*ice_oil*", "*ice_methanol*", 24.3e6)
+	set_conversion_cost("*ice_oil*", "*ice_ammonia*", 36.5e6)
+	set_conversion_cost("*ice_methane*", "*ice_ammonia*", 25.9e6)
 
 	# speed management
 	AllowSpeedManagement = TRUE

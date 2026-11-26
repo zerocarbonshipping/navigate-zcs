@@ -4,25 +4,21 @@
 """
 Numeric helpers.
 
-Negligible values, safe division, step lengths, monotonicity tests, interpolation,
-index lookup, growth and smoothing.
+Negligible values, snapping to whole numbers and grid points, safe division, step
+lengths, monotonicity tests, interpolation, index lookup, growth and smoothing.
 """
 
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
-
-from navigate.util.dates import YEAR
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from navigate.util.types_ import BoolArray, FloatArray, IntArray
-
-ROUND_OFF = 5  # decimals
+    from navigate.util.types_ import BoolArray, FloatArray, FloatLike, IntArray
 
 # a remainder of floating-point arithmetic lies within this fraction of its scale:
 # cancellation leaves about 1e-16 to 1e-15 of the operands, while real values lie
@@ -102,6 +98,93 @@ def subtract(
 
     is_equal = is_negligible(difference, scale) | (np.abs(difference) <= tolerance)
     return np.where(is_equal, 0.0, difference)
+
+
+@overload
+def snap_to_whole(value: float, scale: float) -> float: ...
+
+
+@overload
+def snap_to_whole(value: FloatArray, scale: npt.ArrayLike) -> FloatArray: ...
+
+
+def snap_to_whole(value: FloatLike, scale: npt.ArrayLike) -> FloatLike:
+    """
+    Snap a value to the nearest whole number where it lies a negligible distance off.
+
+    Parameters
+    ----------
+    value
+        Value to snap, scalar or array, finite.
+    scale
+        Magnitude of what the value was computed from, as for ``is_negligible``.
+
+    Returns
+    -------
+    FloatLike
+        The nearest whole number where the value's distance from it is negligible
+        against the scale, the value elsewhere, mirroring the input's scalar- or
+        arrayness.
+    """
+    whole = np.round(value)
+    return whole + drop_negligible(value - whole, scale)
+
+
+class SnapGrid:
+    """
+    Snap values to the grid points they lie a negligible distance off.
+
+    A grid point at 0 is snapped to only by an exact 0.
+
+    Parameters
+    ----------
+    points
+        Points to snap to, finite and strictly increasing.
+    """
+
+    def __init__(self, points: FloatArray) -> None:
+        # the point's own magnitude, not the grid's: a distant end of the grid, such
+        # as a large number standing in for infinity, would swallow real inputs
+        tolerance = RELATIVE_TOLERANCE * np.abs(points)
+
+        # each window ends halfway to its neighbours, so windows never overlap and
+        # a value on a grid point always snaps to that point
+        midpoints = (points[:-1] + points[1:]) / 2.0
+
+        self._points = points
+        self._lower = np.maximum(points - tolerance, np.append(-np.inf, midpoints))
+        self._upper = np.minimum(points + tolerance, np.append(midpoints, np.inf))
+
+    @overload
+    def snap(self, value: float) -> float: ...
+
+    @overload
+    def snap(self, value: FloatArray) -> FloatArray: ...
+
+    def snap(self, value: FloatLike) -> FloatLike:
+        """
+        Snap a value to the grid point it lies a negligible distance off, if any.
+
+        Parameters
+        ----------
+        value
+            Value to snap, scalar or array; a NaN or an infinity stays as it is.
+
+        Returns
+        -------
+        FloatLike
+            The grid point where the value lies within its window, the value
+            elsewhere, mirroring the input's scalar- or arrayness.
+        """
+        # the only window the value can lie in, the last one beyond the grid
+        indices = np.searchsorted(self._upper, value)
+        indices = np.minimum(indices, self._points.size - 1)
+
+        is_inside = (self._lower[indices] <= value) & (value <= self._upper[indices])
+        snapped = np.where(is_inside, self._points[indices], value)
+
+        # np.where answers a scalar input with a 0-d array
+        return snapped if isinstance(value, np.ndarray) else float(snapped)
 
 
 def divide_nonzero(
@@ -188,23 +271,39 @@ def is_nondecreasing(values: FloatArray) -> bool:
     return not np.any(np.diff(values) < 0)
 
 
-def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:
+def average_yearly_flow(
+    yearly_flow: FloatArray, youngest: float, oldest: float
+) -> float:
     """
-    Interpolate a flow given per whole year of age at a fractional age.
+    Average a flow given per whole year of age over a range of ages.
+
+    The flow runs linearly between whole years and holds its end values beyond
+    them, so the trapezoid rule over the bounds and the whole years between them
+    is exact.
 
     Parameters
     ----------
     yearly_flow
         Flow at the ages 0, 1, 2, ... years.
-    age
-        Age to interpolate at, in years; clamped to the flow's ends.
+    youngest
+        Youngest age of the range, in years.
+    oldest
+        Oldest age of the range, in years; at or below ``youngest`` the range is
+        the single age ``youngest``.
 
     Returns
     -------
     float
-        Flow interpolated at ``age``.
+        Mean flow over the ages from ``youngest`` to ``oldest``.
     """
-    return np.interp(age, np.arange(yearly_flow.size), yearly_flow)
+    ages = np.arange(yearly_flow.size)
+    if oldest <= youngest:
+        return float(np.interp(youngest, ages, yearly_flow))
+
+    inner = ages[(ages > youngest) & (ages < oldest)]
+    bounds = np.concatenate(([youngest], inner, [oldest]))
+    flow = np.interp(bounds, ages, yearly_flow)
+    return float(np.trapezoid(flow, bounds)) / (oldest - youngest)
 
 
 def find_nearest_indices(grid: FloatArray, queries: FloatArray) -> IntArray:
@@ -270,7 +369,7 @@ def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) ->
     horizon
         Characteristic decision horizon, in years.
     timeline
-        Dates of the simulation, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -283,8 +382,8 @@ def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) ->
     if idx == 0:
         return 1.0
 
-    dt: float = (timeline[idx] - timeline[idx - 1]) / YEAR
-    return 1.0 / (1.0 + horizon / dt)
+    time_step: float = timeline[idx] - timeline[idx - 1]
+    return 1.0 / (1.0 + horizon / time_step)
 
 
 def smooth_belief_path(
@@ -339,14 +438,14 @@ def calculate_step_inertia(inertia: float, time_step: float) -> float:
     inertia
         Fraction of a value continued over a year, in fraction/year.
     time_step
-        Length of the time step, in days.
+        Length of the time step, in years.
 
     Returns
     -------
     float
         Fraction of the value continued over the time step.
     """
-    return math.pow(inertia, time_step / YEAR)
+    return math.pow(inertia, time_step)
 
 
 def calculate_compound_growth(
@@ -364,7 +463,7 @@ def calculate_compound_growth(
     growth
         Growth rate at each date of the timeline, in fraction/year.
     timeline
-        Dates of the simulation, in days.
+        Simulation timeline, in years.
 
     Returns
     -------
@@ -372,8 +471,7 @@ def calculate_compound_growth(
         Value at each date of the timeline.
     """
     rates = np.log(1.0 + growth)
-    dt = np.diff(timeline) / YEAR
-    exponents = np.cumsum(rates[:-1] * dt)
+    exponents = np.cumsum(rates[:-1] * np.diff(timeline))
 
     values = np.full_like(timeline, initial)
     values[1:] *= np.exp(exponents)

@@ -160,8 +160,8 @@ class Regulation(_Policy):
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
-        for vessel_name, include_vessel in self.include_vessel.items():
-            if include_vessel and self.vessel_thresholds[vessel_name] is None:
+        for vessel_name, is_included in self.include_vessels.items():
+            if is_included and self.vessel_thresholds[vessel_name] is None:
                 raise ValueError(
                     f'{self}: Vessel("{vessel_name}") is included in the regulation but'
                     " no vessel_threshold is defined."

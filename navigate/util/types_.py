@@ -16,7 +16,6 @@ import numpy.typing as npt
 type BoolArray = npt.NDArray[np.bool_]
 type DateArray = npt.NDArray[np.datetime64]
 type FloatArray = npt.NDArray[np.float64]
-type TimedeltaArray = npt.NDArray[np.timedelta64]
 
 type FloatLike = float | FloatArray
 

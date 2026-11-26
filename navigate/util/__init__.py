@@ -25,13 +25,7 @@ from navigate.util.collections import (
     sum_values,
     unique_list,
 )
-from navigate.util.dates import (
-    YEAR,
-    dates_to_days,
-    dates_to_years,
-    is_date_array,
-    timedelta_to_days,
-)
+from navigate.util.dates import DAYS_PER_YEAR, dates_to_years, is_date_array
 from navigate.util.naming import (
     attribute_to_instance_name,
     attribute_to_setter,
@@ -44,19 +38,19 @@ from navigate.util.naming import (
     setter_to_attribute,
 )
 from navigate.util.numeric import (
-    ROUND_OFF,
+    SnapGrid,
+    average_yearly_flow,
     calculate_compound_growth,
     calculate_smoothing_alpha,
     calculate_step_inertia,
     divide_nonzero,
     drop_negligible,
     find_nearest_index,
-    find_nearest_indices,
-    interpolate_yearly_flow,
     is_negligible,
     is_nondecreasing,
     is_strictly_increasing,
     smooth_belief_path,
+    snap_to_whole,
     step_lengths,
     subtract,
 )

@@ -43,7 +43,7 @@ def test_a_placeholder_in_a_comment_needs_no_value(write_deck, parse):
     assert parser.nodes.variables["v"].get() == 1.0
 
 
-# input:    | Emission "e" { GlobalWarmingPotential = Variable("v#%n%") }
+# input:    | Emission "e" { Gwp = Variable("v#%n%") }
 #           | Variable "v#%n%" { Value = 2.0 }   with --set n=1
 # expected: -> the Variable is named "v#1": the '#' in the string opened no comment
 def test_a_hash_inside_a_string_hides_no_placeholder(write_deck, parse):

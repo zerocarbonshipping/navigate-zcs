@@ -68,7 +68,7 @@ Where `x` depends on the specific attribute. Attributes are written in upper cam
   ```python
   Attribute = 3.2
   ```
-  `INF` and `-INF` are accepted only where infinity has a meaning: by `set_bunkering_limit`, `set_feed_constraint` and `MaximumSpeedChange`, where `INF` means no limit, by `UpperBound` (`INF`) and `LowerBound` (`-INF`), and by the values that define a calculator (`Value`, `Below`, `Above`, `Outside` and the values of a table), which are checked against each attribute using the calculator, as described under node references. Every other attribute rejects them when the deck is loaded. A linear interpolation between an infinite table value and its neighbours is that infinity, while the neighbours keep their own values (see `Table` on the node's page). The coordinates of a table must be finite, and no table cell may be `nan`; the values of the tables of `set_existing_pipeline` and `InitialAgeDistribution`, which are read as tables rather than evaluated, must be finite too.
+  `INF` and `-INF` are accepted only where infinity has a meaning: by `set_bunkering_limit`, `set_feed_limit` and `MaximumSpeedChange`, where `INF` means no limit, by `UpperBound` (`INF`) and `LowerBound` (`-INF`), and by the values that define a calculator (`Value`, `Below`, `Above`, `Outside` and the values of a table), which are checked against each attribute using the calculator, as described under node references. Every other attribute rejects them when the deck is loaded. A linear interpolation between an infinite table value and its neighbours is that infinity, while the neighbours keep their own values (see `Table` on the node's page). The coordinates of a table must be finite, and no table cell may be `nan`; the values of the tables of `set_existing_pipeline` and `InitialAgeDistribution`, which are read as tables rather than evaluated, must be finite too.
 
 **Node reference:**  
   ```python
@@ -167,7 +167,7 @@ Forecast "node_name" {
 }
 ```
 
-The x-axis of a forecast may also be defined by floats, which should be interpreted as "days since start of simulation." For example, if the simulation start date is `01-01-2024`, then the date `01-01-2025` would be `366` (leap years are accounted for). In this case, it follows the syntax of a curve but with the node type being forecast.
+The x-axis of a forecast may also be defined by floats, which are years since the start of the simulation, counted in calendar years: every calendar year, leap year or not, is one year long, and a date within a year counts the fraction of that year's days before it. For example, if the simulation start date is `01-01-2024`, then the date `01-01-2025` is `1.0` and `01-07-2025` is about `1.496` (181 of the year's 365 days). In this case, it follows the syntax of a curve but with the node type being forecast.
 
 ### Surface
 
@@ -247,7 +247,7 @@ A defined node only participates in the simulation when a chain of node referenc
 
 Once the deck is read, Navigate keeps the nodes with such a chain and no others, and logs one warning listing the nodes it declared but did not use. An unused node produces no results and its attribute values are not checked. A reference it makes is looked up in the default library like any other reference, but one found nowhere is not an error. `EVENTS` blocks targeting only unused nodes are dropped with a warning; a block naming a node the deck never declared is an error. A node referenced only from an `EVENTS` block is kept, provided the block's target is itself part of the simulation. A node used only as the source of a `Copy` is not reported — its copies carry its role.
 
-Only node references count. Plain name strings in commands (e.g. `set_export_distribution("port_name", ...)`) do not, and a command naming an unused node raises an error.
+Only node references count. Plain name strings in commands (e.g. `set_export_weight("port_name", ...)`) do not, and a command naming an unused node raises an error.
 
 A `Port` is part of the simulation only through a `Route`'s `Ports` attribute, since only routed ports can be bunkered in. A `Levy`/`Regulation` `Jurisdiction` does not keep a port alive: a port on no route is left out even when a jurisdiction names it, and is dropped from the `Jurisdiction` list with a warning. A wildcard such as `Jurisdiction = Port("eu_*")` matches every port the deck declares or pulls from the default library, and the matched ports on no route are dropped with the same warning; the wildcard must match at least one declared port. A port named in a `Jurisdiction` must still exist in the deck or the default library. A `Jurisdiction` emptied this way fails with the unassigned-attribute error.
 
@@ -320,7 +320,7 @@ The following constructs accept wildcards:
 
 * **List attribute assignments.** A wildcard node reference expands to every declared node of that type whose name matches the pattern. It may be written inside the list or as the whole value of the attribute: `Fuels = [Fuel("bio_*")]` and `Fuels = Fuel("bio_*")` are equivalent. For example, `Ports = [Port("*")]` on a Route assigns every Port in the simulation, and `Fuels = Fuel("bio_*")` on a Regulation assigns every Fuel whose name begins with `bio_`. A wildcard is only valid where a list of nodes is accepted: an attribute holding a single node, such as `Route` on a Vessel, rejects it, as does a command argument — the wildcards a command accepts are the string-key form below.
 
-* **Commands with string arguments.** Wildcards in a command's string key(s) expand against the existing entries of the dictionary the command writes to. For example, `set_initial_technology_share("*", "hull_painting", Curve("..."))` applies the assignment to every existing vessel key, and `set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 13.4e6)` matches every from/to vessel pair whose names contain the substrings.
+* **Commands with string arguments.** Wildcards in a command's string key(s) expand against the existing entries of the dictionary the command writes to. For example, `set_initial_technology_share("*", "hull_painting", Curve("..."))` applies the assignment to every existing vessel key, and `set_conversion_cost("*ice_oil*", "*ice_methanol*", 13.4e6)` matches every from/to vessel pair whose names contain the substrings.
 
 ## Placeholders
 

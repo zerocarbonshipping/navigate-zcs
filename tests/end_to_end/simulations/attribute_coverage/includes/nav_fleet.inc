@@ -6,7 +6,7 @@
 # Attributes covered:
 #   Converter:   PowerCapacity, MinimumLoad, MainFuelTypes, PilotFuelTypes,
 #                MinimumPilotFuel, Efficiency, Capex, Opex, Lifetime, Replacement
-#   Tank:        FuelTypes, Size, Capex, Opex, Lifetime, Replacement
+#   Tank:        FuelTypes, Volume, Capex, Opex, Lifetime, Replacement
 #   Technology:  Capex, Opex, Lifetime, Replacement, ShorePowerCapacity
 #   Vessel:      PropulsionLoad, ElectricalLoadAtSea, ElectricalLoadInPort,
 #                HeatLoadAtSea, HeatLoadInPort, FuelType, PropulsionConverter,
@@ -15,19 +15,19 @@
 #   Fleet:       Vessels, InitialVessels, TradeGrowth, InitialSplit,
 #                InitialAgeDistribution, Orderbooks, Technologies,
 #                TechnologyCostOfCapital, FixedScrapRate, AllowSecondaryScrapping,
-#                Inertia, Memory, InterFuelSensitivity, IntraFuelSensitivity,
+#                Inertia, Memory, FuelSensitivity, VariantSensitivity,
 #                AllowSpeedManagement, MaximumSpeedChange, SpeedAlignment,
-#                AssumeReferenceSpeedOptimal, TechnologySensitivity, RetrofitFrequency,
-#                FuelConversionSensitivity, FuelConversionMinimumAge,
+#                RouteSpeedOptimal, TechnologySensitivity, RetrofitInterval,
+#                ConversionSensitivity, MinimumConversionAge,
 #                AllowTechnologyApproximation, TechnologyHorizon, SpeedHorizon
 #
 # Commands covered:
-#   Converter:  set_slip_fraction, set_consumption_ttw
+#   Converter:  set_slip, set_ttw
 #   Technology: set_energy_saving, set_external_power, set_power_transfer
-#   Fleet:      set_fuel_conversion_cost, set_allow_vessel, set_newbuild_available,
-#               set_conversion_available, set_newbuild_limit,
+#   Fleet:      set_conversion_cost, set_allow_vessel, set_allow_newbuild,
+#               set_allow_conversion, set_newbuild_limit,
 #               set_newbuild_technology_limit, set_retrofit_technology_limit,
-#               set_fuel_conversion_limit, set_operational_saving_sea,
+#               set_conversion_limit, set_operational_saving_sea,
 #               set_operational_saving_port, set_initial_technology_share
 
 # --- Converters --------------------------------------------------------------
@@ -41,7 +41,7 @@ Converter "prop_oil" {
 	Opex = 50000
 	Lifetime = 25
 	Replacement = 0.5
-	set_consumption_ttw(OIL, "nitrous_oxide", 0.00018)
+	set_ttw(OIL, "nitrous_oxide", 0.00018)
 }
 
 Converter "elec_oil" {
@@ -62,7 +62,7 @@ Converter "prop_methane" {
 	PilotFuelTypes = OIL
 	MinimumPilotFuel = 0.05
 	Efficiency = 0.51
-	set_slip_fraction(METHANE, 0.01)
+	set_slip(METHANE, 0.01)
 }
 
 Converter "elec_methane" {
@@ -71,7 +71,7 @@ Converter "elec_methane" {
 	PilotFuelTypes = OIL
 	MinimumPilotFuel = 0.05
 	Efficiency = 0.5
-	set_slip_fraction(METHANE, 0.01)
+	set_slip(METHANE, 0.01)
 }
 
 Converter "prop_methanol" {
@@ -110,7 +110,7 @@ Converter "elec_ammonia" {
 
 Tank "tank_oil" {
 	FuelTypes = OIL
-	Size = 9000
+	Volume = 9000
 	Capex = 100000
 	Opex = 5000
 	Lifetime = 25
@@ -119,22 +119,22 @@ Tank "tank_oil" {
 
 Tank "tank_methane" {
 	FuelTypes = METHANE
-	Size = 9000
+	Volume = 9000
 }
 
 Tank "tank_methanol" {
 	FuelTypes = METHANOL
-	Size = 9000
+	Volume = 9000
 }
 
 Tank "tank_ammonia" {
 	FuelTypes = AMMONIA
-	Size = 9000
+	Volume = 9000
 }
 
 Tank "tank_pilot" {
 	FuelTypes = OIL
-	Size = 1000
+	Volume = 1000
 }
 
 # --- Technologies ------------------------------------------------------------
@@ -227,29 +227,29 @@ Fleet "fleet_a" {
 	AllowSecondaryScrapping = TRUE
 	Inertia = 0.0
 	Memory = 1
-	InterFuelSensitivity = 0.5
-	IntraFuelSensitivity = 0.01
+	FuelSensitivity = 0.5
+	VariantSensitivity = 0.01
 	AllowSpeedManagement = TRUE
 	MaximumSpeedChange = 0.3
 	SpeedAlignment = INDIVIDUAL
-	AssumeReferenceSpeedOptimal = FALSE
+	RouteSpeedOptimal = FALSE
 	TechnologySensitivity = 1
-	RetrofitFrequency = 5
-	FuelConversionSensitivity = 2
-	FuelConversionMinimumAge = 5
+	RetrofitInterval = 5
+	ConversionSensitivity = 2
+	MinimumConversionAge = 5
 	AllowTechnologyApproximation = TRUE
 	TechnologyHorizon = 3
 	SpeedHorizon = 1
-	set_fuel_conversion_cost("vessel_oil", "vessel_methane", 10e6)
+	set_conversion_cost("vessel_oil", "vessel_methane", 10e6)
 	set_allow_vessel("vessel_oil", TRUE)
 	set_allow_vessel("vessel_methane", TRUE)
-	set_newbuild_available("vessel_oil", TRUE)
-	set_newbuild_available("vessel_methane", TRUE)
-	set_conversion_available("vessel_methane", TRUE)
+	set_allow_newbuild("vessel_oil", TRUE)
+	set_allow_newbuild("vessel_methane", TRUE)
+	set_allow_conversion("vessel_methane", TRUE)
 	set_newbuild_limit("vessel_oil", 1.0)
 	set_newbuild_technology_limit("tech_ees", 0.06)
 	set_retrofit_technology_limit("tech_ees", 0.04)
-	set_fuel_conversion_limit("vessel_oil", "vessel_methane", 1.0)
+	set_conversion_limit("vessel_oil", "vessel_methane", 1.0)
 	set_operational_saving_sea(PROPULSION, Forecast("fc_operational_saving"))
 	set_operational_saving_port(ELECTRICAL, 0.03)
 	set_initial_technology_share("vessel_oil", "tech_ees", Curve("curve_tech_uptake"))
@@ -260,6 +260,6 @@ Fleet "fleet_b" {
 	InitialVessels = 100
 	InitialSplit = [1.0, 0.0]
 	TradeGrowth = 0.03
-	InterFuelSensitivity = 1
-	IntraFuelSensitivity = 0.5
+	FuelSensitivity = 1
+	VariantSensitivity = 0.5
 }

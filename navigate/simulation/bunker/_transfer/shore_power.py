@@ -56,18 +56,18 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         results.shore_power_levy_expenses[idx] += levy_expenses
 
         for emission_name in alg.emissions:
-            wtw = expectation.shore_power_emission_factor[emission_name][idx]
+            wtw = expectation.shore_power_wtt[emission_name][idx]
             results.shore_power_emission[emission_name][idx] += wtw * energy
 
         for levy in port.imposed_levies:
             levy_cost = levy.expectation.shore_power_cost[v, port.name][idx]
             collected = levy_cost * energy
-            level = levy.expectation.level[idx]
+            rate = levy.expectation.rate[idx]
 
             levy.results.collected[idx] += collected * count
 
-            if level > 0.0:
-                results.levy_units[levy.name][idx] += collected / level
+            if rate > 0.0:
+                results.levy_units[levy.name][idx] += collected / rate
 
 
 def _transfer_expected(alg: BunkerAlgorithm) -> None:

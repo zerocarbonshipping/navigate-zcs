@@ -87,7 +87,7 @@ class ResultsContext:
 
         # read at one lifetime, a warming potential is one number, not an array
         for name, emission in emissions.items():
-            potential = emission.global_warming_potential.get(emissions_lifetime)
+            potential = emission.gwp.get(emissions_lifetime)
             global_warming_potential[name] = float(potential)
 
         return cls(

@@ -130,9 +130,9 @@ def _update_fair_share_allocation(
     Update each vessel's allocation of the port fuel supplies from the previous solve.
 
     For each port q and fuel f whose supply S is finite, a vessel is bounded while its
-    allocation and the magnitude of its fair-share constraint's shadow price exceed
-    the solution tolerance and it has not released supply before. A bounded vessel v
-    is allocated (port and fuel indices omitted):
+    allocation exceeds the solution tolerance, its fair-share constraint binds
+    (``Model.binds``) and it has not released supply before. A bounded vessel v is
+    allocated (port and fuel indices omitted):
 
         A_v = s_v / (\sum_{u \in B} m_u s_u) * (S - \sum_{u \notin B} m_u b_u)
 
@@ -174,7 +174,7 @@ def _update_fair_share_allocation(
         count = alg.counts[v]
 
         in_use = alg.allocation_fuel[key] > tol
-        binding = abs(alg.model.dual(alg.fair_share_fuel[key])) > tol
+        binding = alg.model.binds(alg.fair_share_fuel[key])
 
         if key not in released and in_use and binding:
             fair_share = _get_fair_share(alg, vessel, port_name, f)

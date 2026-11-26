@@ -46,7 +46,7 @@ def test_curve_refuses_a_table(rows, match):
 
 
 # gives a Forecast a dated table and a start date 30 days earlier; the rows move
-# to days 30 and 395, and day 130 interpolates by day count.
+# to 30/365 and 1 + 30/365 years, and a time between them interpolates linearly.
 # catches: dates counted from the wrong reference, e.g. from the first row, so
 # every value shifts by 30 days.
 def test_dated_forecast_is_rebased_to_the_start_date():
@@ -61,10 +61,10 @@ def test_dated_forecast_is_rebased_to_the_start_date():
     )
     forecast.build_table(np.datetime64("2025-12-02"))
 
-    # 2 Dec 2025 -> 1 Jan 2026 is 30 days, so the rows sit at day 30 and 395
-    np.testing.assert_allclose(forecast.x, [30.0, 395.0])
-    # day 130 is 100 days past the first row, rising one per day: 100
-    assert forecast.get(130.0) == pytest.approx(100.0)
+    # 2 Dec 2025 is 335/365 of the way through 2025, 30/365 years before 1 Jan 2026
+    np.testing.assert_allclose(forecast.x, [30 / 365, 1 + 30 / 365])
+    # 100 days into 2026 is 100/365 years past the first row, rising 365 per year: 100
+    assert forecast.get((30 + 100) / 365) == pytest.approx(100.0)
 
 
 # reads a Forecast without an input before and after its value is calculated for

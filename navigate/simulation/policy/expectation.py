@@ -51,7 +51,7 @@ def calculate_policy_expectations(
     emissions_lifetime
         Model-wide emissions lifetime, in years; a policy's own lifetime replaces it.
     timeline
-        Simulation timeline, in days.
+        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -95,8 +95,8 @@ def _calculate_regulation_forecasts(
 
 
 def _calculate_levy_forecasts(levy: Levy, times: FloatArray, idx: int) -> None:
-    """Set the levy's level."""
-    levy.expectation.level[idx:] = levy.level.get(times)
+    """Set the levy's rate."""
+    levy.expectation.rate[idx:] = levy.rate.get(times)
 
 
 def _calculate_global_warming_potentials(
@@ -110,11 +110,11 @@ def _calculate_global_warming_potentials(
     else:
         lifetime = policy.emissions_lifetime.get()
 
-    for emission_name, own_potential in policy.global_warming_potentials.items():
+    for emission_name, own_potential in policy.gwp.items():
         if own_potential is None:
-            potential = emissions[emission_name].global_warming_potential
+            potential = emissions[emission_name].gwp
         else:
             potential = own_potential
 
         gwp = potential.get(lifetime)
-        policy.expectation.global_warming_potential[emission_name] = gwp
+        policy.expectation.gwp[emission_name] = gwp
