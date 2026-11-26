@@ -15,7 +15,12 @@ from navigate.simulation.fleet._composition import (
     extract_cargo_miles,
     get_trade_capacity,
 )
-from navigate.util import divide_nonzero, drop_negligible, subtract
+from navigate.util import (
+    calculate_removed_fraction,
+    divide_nonzero,
+    drop_negligible,
+    subtract,
+)
 
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
@@ -275,6 +280,9 @@ def _scrap_at_fixed_rate(
     """
     Scrap a fixed yearly share of the fleet's trade, oldest increments first.
 
+    The share compounds over the time step, each year scrapping its share of what the
+    years before left.
+
     Parameters
     ----------
     fleet
@@ -288,8 +296,8 @@ def _scrap_at_fixed_rate(
     idx
         Current time-step index.
     """
-    scrap_rate = fixed_scrap_rate.get() * time_step
-    target_scrap = scrap_rate * get_trade_capacity(fleet, idx)
+    scrap_share = calculate_removed_fraction(fixed_scrap_rate.get(), time_step)
+    target_scrap = scrap_share * get_trade_capacity(fleet, idx)
     _scrap_oldest(fleet, target_scrap, time, idx)
 
     for vessel, increments in zip(fleet.vessels, fleet.increments, strict=True):

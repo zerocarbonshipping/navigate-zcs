@@ -17,8 +17,10 @@ from navigate.simulation.fuel.expectation import (
 )
 from navigate.simulation.fuel.feed import calculate_feed_availability
 from navigate.util import (
+    calculate_kept_fraction,
     divide_nonzero,
     find_nearest_index,
+    find_nearest_indices,
     is_negligible,
     step_lengths,
 )
@@ -52,7 +54,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
 
     producer.increments = _build_initial_increments(producer, timeline)
     producer.pipeline = _build_existing_pipeline(producer, timeline)
-    _define_initial_development(producer, timeline[idx])
+    _define_initial_development(producer, timeline)
 
     calculate_feed_availability(producer, timeline, idx)
     calculate_producer_evolution_expectation(
@@ -280,33 +282,40 @@ def _build_initial_increment(
     )
 
 
-def _define_initial_development(producer: Producer, start: float) -> None:
+def _define_initial_development(producer: Producer, timeline: FloatArray) -> None:
     """
     Define the initial uptake, utilization and development from the pipeline.
 
     The uptake weighs each pipelined plant by the inertia raised to the years since
-    it was decided, and the development counts every pipelined plant.
+    it was decided. The utilization sets each increment's count per year of the
+    time step it is delivered in, averaged with the uptake's weights, against the
+    maximum development. The development counts every pipelined plant.
 
     Parameters
     ----------
     producer
         Producer whose pipeline is read.
-    start
-        Start time of the simulation, in years.
+    timeline
+        Simulation timeline, in years.
     """
+    start = timeline[0]
+    steps = step_lengths(timeline)
     inertia = producer.inertia.get()
     maximum_development = producer.maximum_development.get()
     weighted_counts = np.zeros(len(producer.plants))
+    weighted_rates = 0.0
     weight_total = 0.0
     count_total = 0.0
 
-    # TODO: this may need to be based on continuous compound growth?
     for p, increments in enumerate(producer.pipeline):
         decided = np.array([increment.decided for increment in increments])
+        entered = np.array([increment.entered for increment in increments])
         counts = np.array([increment.count for increment in increments])
-        weights = inertia ** np.maximum(start - decided, 0.0)
+        weights = calculate_kept_fraction(inertia, np.maximum(start - decided, 0.0))
+        delivery_steps = steps[find_nearest_indices(timeline, entered)]
 
         weighted_counts[p] = np.dot(counts, weights)
+        weighted_rates += np.dot(counts / delivery_steps, weights)
         weight_total += np.sum(weights)
         count_total += np.sum(counts)
 
@@ -317,7 +326,7 @@ def _define_initial_development(producer: Producer, start: float) -> None:
     # the latest value of the development constraint is used, since the period
     # to average it back over is hard to define: the pipeline and the lead time
     # are inconsistent, and the lead time varies between plants
-    average_development = divide_nonzero(weighted_total, weight_total)
+    average_development = divide_nonzero(weighted_rates, weight_total)
     utilization = float(divide_nonzero(average_development, maximum_development))
 
     producer.current_uptake = uptakes

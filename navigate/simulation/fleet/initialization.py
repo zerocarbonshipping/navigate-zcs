@@ -403,8 +403,8 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     idx = 0
     counts = get_counts(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx)
-    trade_growth = fleet.trade_growth.get(timeline)
+    growth_rate = fleet.trade_growth.get
 
     initial_trade = np.dot(counts, cargo_miles)
-    fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
+    fleet.trade = calculate_compound_growth(initial_trade, growth_rate, timeline)
     fleet.results.trade[idx] = fleet.trade[idx]
