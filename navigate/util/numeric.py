@@ -147,9 +147,13 @@ class SnapGrid:
         # as a large number standing in for infinity, would swallow real inputs
         tolerance = RELATIVE_TOLERANCE * np.abs(points)
 
+        # each window ends halfway to its neighbours, so windows never overlap and
+        # a value on a grid point always snaps to that point
+        midpoints = (points[:-1] + points[1:]) / 2.0
+
         self._points = points
-        self._lower = points - tolerance
-        self._upper = points + tolerance
+        self._lower = np.maximum(points - tolerance, np.append(-np.inf, midpoints))
+        self._upper = np.minimum(points + tolerance, np.append(midpoints, np.inf))
 
     @overload
     def snap(self, value: float) -> float: ...
