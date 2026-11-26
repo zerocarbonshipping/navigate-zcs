@@ -93,6 +93,10 @@ class VesselIncrement(Increment):
         held_share = float(divide_nonzero(self.count, size))
         return self.youngest_age(time) + self.age_span * held_share
 
+    def mean_age(self, time: float) -> float:
+        """Return the mean age of the cohort's vessels at a time, in years."""
+        return 0.5 * (self.youngest_age(time) + self.oldest_age(time))
+
 
 @dataclass(slots=True)
 class PlantIncrement(Increment):

@@ -497,6 +497,12 @@ change.
     period within its service window;
   - a producer's initial utilization reads the plants its pipeline delivers
     per year, over the time steps they are delivered in.
+- Retrofits and fuel conversions act on the vessels at their retrofit cycle
+  alone; they acted on their whole cohort, so steps shorter than a cohort's age
+  span retrofitted too few. Yearly decks dated 1 January move only where:
+  - initial age bins are wider than a year;
+  - the retrofit interval, a lifetime or the minimum conversion age is not a
+    whole number of years.
 - A table read at a time built from durations, such as a cost bin or a
   replacement a whole number of years after a date that is not 1 January, reads
   the table date it lands on, instead of raising an `Extrapolate = FALSE` error

@@ -349,12 +349,12 @@ def _scrap_oldest(
     whole, fraction = split_oldest_first(capacities, capacity)
 
     scrap = fleet.results.scrap
-    scrapped_increments = [0] * len(fleet.increments)
+    scrapped_whole: list[set[int]] = [set() for _ in fleet.increments]
 
     for group in groups[:whole]:
         for v, i in group:
             increment = fleet.increments[v][i]
-            scrapped_increments[v] = i + 1
+            scrapped_whole[v].add(i)
             scrap[fleet.vessels[v].name][idx] += increment.count
 
     # the increments scrapped in part are found by their index, so they are scrapped
@@ -366,8 +366,11 @@ def _scrap_oldest(
         scrapped_capacity = capacity
         youngest_age = _scrap_in_part(fleet, groups[whole], fraction, time, idx)
 
-    for v, scrapped in enumerate(scrapped_increments):
-        fleet.increments[v] = fleet.increments[v][scrapped:]
+    for v, scrapped in enumerate(scrapped_whole):
+        increments = fleet.increments[v]
+        fleet.increments[v] = [
+            increment for i, increment in enumerate(increments) if i not in scrapped
+        ]
 
     return scrapped_capacity, youngest_age
 
