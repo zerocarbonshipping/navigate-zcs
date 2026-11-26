@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.fuel._profiles import iterate_increments
-from navigate.util import interpolate_yearly_flow
+from navigate.util import average_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -146,8 +146,8 @@ def _transfer_plant_tied_capital(producer: Producer, time: float, idx: int) -> N
     """
     Transfer the remaining tied-up capital per plant increment.
 
-    An increment ties up the capital of a plant decided when it was, at its age since
-    delivery.
+    An increment ties up the capital of a plant decided when it was, averaged over
+    the ages of its plants since delivery.
 
     Parameters
     ----------
@@ -161,8 +161,11 @@ def _transfer_plant_tied_capital(producer: Producer, time: float, idx: int) -> N
     results = producer.results
 
     for _, plant, increment in iterate_increments(producer.plants, producer.increments):
+        youngest = increment.youngest_age(time)
+        oldest = youngest + increment.age_span
+
         tied_capital_flow = plant.expectation.tied_capital[increment.origin]
-        tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age(time))
+        tied_capital = average_yearly_flow(tied_capital_flow, youngest, oldest)
 
         results.plant_tied_capital[idx] += tied_capital * increment.count
 

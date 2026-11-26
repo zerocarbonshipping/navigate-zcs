@@ -271,23 +271,39 @@ def is_nondecreasing(values: FloatArray) -> bool:
     return not np.any(np.diff(values) < 0)
 
 
-def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:
+def average_yearly_flow(
+    yearly_flow: FloatArray, youngest: float, oldest: float
+) -> float:
     """
-    Interpolate a flow given per whole year of age at a fractional age.
+    Average a flow given per whole year of age over a range of ages.
+
+    The flow runs linearly between whole years and holds its end values beyond
+    them, so the trapezoid rule over the bounds and the whole years between them
+    is exact.
 
     Parameters
     ----------
     yearly_flow
         Flow at the ages 0, 1, 2, ... years.
-    age
-        Age to interpolate at, in years; clamped to the flow's ends.
+    youngest
+        Youngest age of the range, in years.
+    oldest
+        Oldest age of the range, in years; at or below ``youngest`` the range is
+        the single age ``youngest``.
 
     Returns
     -------
     float
-        Flow interpolated at ``age``.
+        Mean flow over the ages from ``youngest`` to ``oldest``.
     """
-    return np.interp(age, np.arange(yearly_flow.size), yearly_flow)
+    ages = np.arange(yearly_flow.size)
+    if oldest <= youngest:
+        return float(np.interp(youngest, ages, yearly_flow))
+
+    inner = ages[(ages > youngest) & (ages < oldest)]
+    bounds = np.concatenate(([youngest], inner, [oldest]))
+    flow = np.interp(bounds, ages, yearly_flow)
+    return float(np.trapezoid(flow, bounds)) / (oldest - youngest)
 
 
 def find_nearest_indices(grid: FloatArray, queries: FloatArray) -> IntArray:

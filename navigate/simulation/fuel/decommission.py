@@ -39,7 +39,7 @@ def perform_decommissioning(producer: Producer, time: float) -> None:
 
             if share < 1.0:
                 increment.count *= share
-                increment.age_span = lifetime - increment.age(time)
+                increment.age_span = lifetime - increment.youngest_age(time)
 
             running.append(increment)
 

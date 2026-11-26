@@ -43,7 +43,7 @@ class Increment:
     age_span: float
     origin: int
 
-    def age(self, time: float) -> float:
+    def youngest_age(self, time: float) -> float:
         """Return the age of the cohort's youngest asset at a time, in years."""
         return time - self.entered
 

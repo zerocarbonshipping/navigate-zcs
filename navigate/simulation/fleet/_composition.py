@@ -200,7 +200,7 @@ def calculate_cycle_slice(
         return None
 
     span = increment.age_span
-    youngest = increment.age(time)
+    youngest = increment.youngest_age(time)
     oldest = youngest + span
     scale = max(abs(youngest), abs(oldest))
 

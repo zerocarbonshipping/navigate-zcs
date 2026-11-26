@@ -39,13 +39,13 @@ from navigate.util.naming import (
 )
 from navigate.util.numeric import (
     SnapGrid,
+    average_yearly_flow,
     calculate_compound_growth,
     calculate_smoothing_alpha,
     calculate_step_inertia,
     divide_nonzero,
     drop_negligible,
     find_nearest_index,
-    interpolate_yearly_flow,
     is_negligible,
     is_nondecreasing,
     is_strictly_increasing,
