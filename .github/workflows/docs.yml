@@ -71,8 +71,28 @@ jobs:
           name: site
           path: site
 
+      # the root holds the latest site and nothing older: the folders other
+      # deploys own, /staging/, the /<tag>/ archives and previews such as
+      # /workshop-preview/, are the published site's top-level folders this build
+      # does not make, but for Sphinx's own _ folders; they are carried over, so
+      # keep_files off drops only what an older build left at the root
+      - name: Check out the published site
+        if: github.ref_type == 'tag' || github.ref_name == 'main'
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: published
+
+      - name: Carry over the folders other deploys own
+        if: github.ref_type == 'tag' || github.ref_name == 'main'
+        run: |
+          for folder in published/*/; do
+            name=$(basename "$folder")
+            case "$name" in _*) continue ;; esac
+            [ -e "site/$name" ] || cp -r "$folder" "site/$name"
+          done
+
       # publish to root (/) -> this becomes "Latest" and serves the switcher.json
-      # keep_files so /<tag>/ archives and /staging/ survive
       - name: Deploy docs (-> /)
         if: github.ref_type == 'tag' || github.ref_name == 'main'
         uses: peaceiris/actions-gh-pages@v4
@@ -80,7 +100,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: site
-          keep_files: true
+          keep_files: false
 
       # for tags, also keep an archived copy at /<tag>/
       - name: Deploy docs (-> /<tag>/)
