@@ -63,8 +63,9 @@ class PackageCostFlows:
     The CAPEX and OPEX cost flows of a fleet's packages, per amortization horizon.
 
     An installation is amortized over the years it serves: a vessel's lifetime for a
-    newbuild, the remaining lifetime of a cohort for a retrofit. The flows are built
-    on demand for the investment decision time and dropped when the time moves on.
+    newbuild, the remaining lifetime of the vessels at a retrofit cycle for a retrofit.
+    The flows are built on demand for the investment decision time and dropped when
+    the time moves on.
 
     Parameters
     ----------

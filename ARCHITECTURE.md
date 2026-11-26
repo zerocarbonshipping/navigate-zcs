@@ -33,7 +33,10 @@ only through `core` expectations and the bunkering LP. `Simulation` in
   `simulation/cohort.py` accounts for them. An increment is built with the
   time it enters service, on the timeline, and its origin, the time step whose
   attributes it carries; its age at a time is read off that entry time, never
-  accumulated step by step.
+  accumulated step by step. Its assets are spread uniformly over its age span,
+  so a decision on an asset's age, such as scrapping at the lifetime or a
+  vessel's retrofit cycle, acts on the share of the span it holds for, never
+  on the whole cohort by one of its ages.
 - Count: the number of vessels or plants a value stands for, fractional as
   cohorts split and scrap in shares. A `Vessel` node is a vessel type and a
   `Plant` node a plant type; their expectations, and a vessel's results, hold

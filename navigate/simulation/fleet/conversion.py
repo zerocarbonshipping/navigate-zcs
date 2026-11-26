@@ -32,10 +32,10 @@ from navigate.simulation.economics import (
     trim_flow_to_window,
 )
 from navigate.simulation.fleet._composition import (
+    calculate_cycle_slice,
     get_counts,
     get_total_count,
     is_in_service,
-    is_retrofit_cycle,
 )
 from navigate.simulation.fleet.charter import build_fuel_component
 from navigate.util import snap_to_whole, subtract
@@ -121,7 +121,7 @@ class _ConversionSource:
 @dataclass
 class _ConversionCohort:
     """
-    One cohort eligible for conversion in a propose pass.
+    The vessels of one cohort eligible for conversion in a propose pass.
 
     Parameters
     ----------
@@ -129,16 +129,16 @@ class _ConversionCohort:
         Invariants of the cohort's vessel type.
     increment
         The cohort's increment.
+    eligible_count
+        Number of the increment's vessels eligible for conversion.
     mean_age
-        Mean age of the cohort, in years.
-    remaining_lifetime
-        Remaining lifetime of the vessel type at the cohort's mean age, in years.
+        Mean age of the eligible vessels, in years.
     """
 
     source: _ConversionSource
     increment: VesselIncrement
+    eligible_count: float
     mean_age: float
-    remaining_lifetime: float
 
 
 @dataclass
@@ -368,11 +368,11 @@ def _eligible_cohorts(
     fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> Iterator[_ConversionCohort]:
     """
-    Yield the cohorts eligible for conversion, in walk order.
+    Yield the cohorts with vessels eligible for conversion, in walk order.
 
-    A cohort is eligible when it is at a retrofit cycle, has reached the minimum
-    conversion age, has lifetime left at its mean age and holds vessels, and when an
-    open conversion lane starts at its vessel type.
+    A vessel is eligible when it is at a retrofit cycle, has reached the minimum
+    conversion age and is within its lifetime, and when an open conversion lane starts
+    at its vessel type.
 
     Parameters
     ----------
@@ -392,7 +392,7 @@ def _eligible_cohorts(
         Each eligible cohort, vessel type by vessel type, youngest first.
     """
     time = timeline[idx]
-    retrofit_frequency = fleet.retrofit_frequency.get()
+    frequency = fleet.retrofit_frequency.get()
     minimum_age = fleet.fuel_conversion_minimum_age.get()
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
@@ -408,26 +408,21 @@ def _eligible_cohorts(
         if source is None:
             continue
 
+        lifetime = source.lifetime
+
         # cohorts are walked youngest to oldest (index 0 is the oldest cohort); when
         # target-fuel supply binds, younger cohorts with longer remaining lifetimes
         # claim the working supply excess first
         for increment in reversed(increments):
-            age = increment.age(time)
-            if not is_retrofit_cycle(age, retrofit_frequency, time_step):
+            cycle_slice = calculate_cycle_slice(
+                increment, time, time_step, frequency, lifetime, minimum_age
+            )
+            if cycle_slice is None:
                 continue
 
-            mean_age = age + increment.age_span / 2.0
-            if subtract(mean_age, minimum_age) < 0.0:
-                continue
-
-            remaining_lifetime = float(subtract(source.lifetime, mean_age))
-            if remaining_lifetime <= 0.0:
-                continue
-
-            if increment.count <= 0.0:
-                continue
-
-            yield _ConversionCohort(source, increment, mean_age, remaining_lifetime)
+            eligible_count = increment.count * cycle_slice.share
+            mean_age = cycle_slice.mean_age
+            yield _ConversionCohort(source, increment, eligible_count, mean_age)
 
 
 def _extract_conversion_source(
@@ -608,7 +603,7 @@ def _evaluate_candidate(
         destination type has no remaining lifetime or no fuel supply excess.
     """
     source = cohort.source
-    remaining_from = cohort.remaining_lifetime
+    remaining_from = float(subtract(source.lifetime, cohort.mean_age))
     remaining_to = float(subtract(target.lifetime, cohort.mean_age))
     if remaining_to <= 0.0:
         return None
@@ -617,7 +612,7 @@ def _evaluate_candidate(
         return None
 
     maximum_vessels = supply / target.energy_per_vessel
-    limit = min(maximum_vessels / cohort.increment.count, 1.0)
+    limit = min(maximum_vessels / cohort.eligible_count, 1.0)
 
     # fuel savings count over the years from now that both the current and the
     # converted vessel type still serve; the conversion cost is a lump sum up front
@@ -672,7 +667,7 @@ def _choose_conversions(
     # store as conversion counts so reconciliation can scale per-pair without a
     # re-multiply; strict=False drops the BAU sentinel's share
     for candidate, share in zip(candidates.values(), shares, strict=False):
-        candidate.count = share * cohort.increment.count
+        candidate.count = share * cohort.eligible_count
 
 
 def _debit_supply_excess(
@@ -818,9 +813,11 @@ def _insert_converted_increment(
     idx_to = find_insertion_index(increments_to, increment_from.entered)
     scrapped = count * proposal.scrapped_per_vessel
 
-    # the carried technology charter rate rides along unchanged; the amortization window
-    # and discount rate stay those of the source vessel type, a simplification of the
-    # same order as disregarding the maintenance cost difference (see
+    # the converted vessels take the source's whole entry and span, so they are spread
+    # over it again, the same approximation as the per-increment package uptake; the
+    # carried technology charter rate rides along unchanged, its amortization window
+    # and discount rate those of the source vessel type, a simplification of the same
+    # order as disregarding the maintenance cost difference (see
     # perform_fuel_conversions)
     increments_to.insert(
         idx_to,

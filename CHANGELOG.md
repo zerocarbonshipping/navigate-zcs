@@ -69,9 +69,16 @@ change.
     now logs the warning that its load functions are not convex;
   - a fuel conversion weighs a cohort's mean age and remaining lifetimes
     unrounded, which moves results by up to a few parts per million (#967).
-- A cohort is at a retrofit cycle in the time step in which its age reaches a
-  multiple of `RetrofitFrequency` (Fleet), no longer whenever its age, rounded
-  to two decimals, does (#974).
+- A vessel is at a retrofit cycle in the time step in which its own age reaches
+  a multiple of `RetrofitFrequency` (Fleet), no longer a whole cohort by its
+  youngest age (#974, #988):
+  - a cohort retrofits the share of its vessels at a cycle, and converts the
+    share at a cycle and at least `FuelConversionMinimumAge` old, which it
+    tested by its mean age;
+  - a 2e-5 change of `RetrofitFrequency` moved `example_1`'s fuel conversions
+    by a fifth, and now moves them by 0.1%.
+- A retrofit is amortized over the lifetime left at its vessels' mean age, no
+  longer truncated to whole years (#988).
 - `SolutionTolerance` applies to costs relative to the largest cost of the
   bunkering problem rather than in currency, so in decks with large fleets or
   high prices the solver's rounding no longer decides which solutions count as
