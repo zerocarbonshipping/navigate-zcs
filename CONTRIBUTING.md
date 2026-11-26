@@ -47,9 +47,7 @@ values, so that the provenance of the model inputs stays traceable.
   belongs in it, unrelated fixes and refactors in pull requests of their own.
 - Fill in the pull request template.
 - Title the pull request with one imperative sentence stating the outcome:
-  no prefix, no "(#N)", under about 65 characters. The squash merge makes it
-  the commit subject and appends " (#N)". For a single-commit pull request
-  GitHub proposes the commit subject instead, so make the two equal.
+  no prefix, no "(#N)", under about 65 characters.
 - Follow the code style: `ruff` and `mypy` enforce the mechanical rules
   (`make lint`), [`CODESTYLE.md`](CODESTYLE.md) carries the conventions the
   tooling cannot check.
@@ -120,8 +118,9 @@ for their repository.
   rule naming a Navigate module (`RunLog`, `RELATIVE_TOLERANCE`).
 - Their `pyproject.toml` configures ruff with Navigate's rule set at a line
   length of 128, and mypy as Navigate's `mypy.ini` does.
-- They have no pull request template, no `AGENTS.md` and no results
-  comparison.
+- They have no issue forms, no pull request template, no `AGENTS.md` and no
+  results comparison. Their labels are Navigate's: an issue or pull request
+  takes the label of the Navigate form it fits.
 
 ## Versions and releases
 
