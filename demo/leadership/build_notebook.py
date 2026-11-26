@@ -197,6 +197,13 @@ showcase.scorecards()
 showcase.fuel_mix()
 """,
     ),
+    code(
+        "collected",
+        """
+# @title What the rules collect { display-mode: "form" }
+showcase.collected()
+""",
+    ),
     markdown(
         "lanternplotsmd",
         """
@@ -228,17 +235,9 @@ one short file, `demo.hor`.
 """,
     ),
     code(
-        "levers",
-        """
-# @title The assumptions Horizon varies { display-mode: "form" }
-showcase.levers()
-""",
-    ),
-    code(
         "futures",
         """
-# check the study, then list the futures it draws without running them
-!horizon check demo.hor
+# @title The futures Horizon draws { display-mode: "form" }
 showcase.futures()
 """,
     ),
@@ -261,28 +260,13 @@ else:
     showcase.use_bundled_study()
 """,
     ),
-    markdown(
-        "fanmd",
-        """
-Lantern draws a study as a band: in each year the middle 90 % of the futures, their median dashed, and the one run
-closest to it solid, here beside the three scenarios.
-""",
-    ),
     code(
-        "fan",
+        "target",
         """
-!lantern parquets study/demo.parquet --scale 0.8 --plot "headline_emissions[{runs},demo/demo]" --plot "headline_expenses_total[{runs},demo/demo]"
-
-pages = runs.replace(",", "+") + "+demo"
-showcase.show(f"plots/headline_emissions/{pages}.html", f"plots/headline_expenses_total/{pages}.html",
-              titles=("Well-to-wake emissions", "What the ships paid, per tonne-km"))
-""",
-    ),
-    code(
-        "cloud",
-        """
-# @title Every future, emissions against cost { display-mode: "form" }
-showcase.futures_cloud()
+# @title How often the fleet gets there { display-mode: "form" }
+CUT = 50  # @param {type:"slider", min:10, max:90, step:5}
+# the cut in well-to-wake emissions from 2026 to 2050, in percent: move it and run the cell again
+showcase.target(CUT)
 """,
     ),
     code(

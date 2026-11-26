@@ -24,8 +24,10 @@ import threading
 import time
 from importlib.metadata import version
 from pathlib import Path
+from statistics import median
 
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import polars as pl
 from horizon.parser import read_hor
 from IPython.display import HTML, display
@@ -42,31 +44,21 @@ REGULATION = {
     "basecase_mid_regulation": "EU ETS, FuelEU and a moderate global fuel standard",
     "basecase_strong_regulation": "EU ETS, FuelEU and a strict global fuel standard",
 }
+# the regulations of the case, by their node names in the decks
+RULES = {"eu_ets": "EU ETS", "fuel_eu": "FuelEU", "gfs": "Global fuel standard"}
 COARSE_YEARS = (2026, 2027, 2030, 2034, 2038, 2042, 2046, 2050)
 STUDY = "demo"
 
-# the levers of the study, as notebook 2 describes what 1.0 means in mid regulation
+# the levers of the study
 LEVERS = {
-    "OIL_PRICE": ("Fuel oil price", "485 USD/t, flat to 2050"),
-    "LNG_PRICE": ("LNG price", "436 USD/t, flat to 2050"),
-    "EFUEL_ELECTRICITY_PRICE": (
-        "Electricity for e-fuels",
-        "58–88 USD/MWh in 2026, by region",
-    ),
-    "BIOMASS_SHARE_FOR_SHIPPING": (
-        "Biomass for shipping",
-        "2–50 % of each feedstock pool",
-    ),
-    "TRADE_GROWTH": ("Trade growth", "0.3–4.7 %/yr in 2026, by segment"),
-    "EU_ETS_PRICE": ("EU ETS price", "126 USD/t in 2026, 417 by 2050"),
-    "GLOBAL_STANDARD_TARGET": (
-        "Global standard target",
-        "93.3 → 28.0 gCO₂e/MJ; under 1 is stricter",
-    ),
-    "GLOBAL_STANDARD_PENALTY": (
-        "Global standard penalty",
-        "300 USD/t of excess from 2028",
-    ),
+    "OIL_PRICE": "Fuel oil price",
+    "LNG_PRICE": "LNG price",
+    "EFUEL_ELECTRICITY_PRICE": "Electricity for e-fuels",
+    "BIOMASS_SHARE_FOR_SHIPPING": "Biomass for shipping",
+    "TRADE_GROWTH": "Trade growth",
+    "EU_ETS_PRICE": "EU ETS price",
+    "GLOBAL_STANDARD_TARGET": "Global standard target",
+    "GLOBAL_STANDARD_PENALTY": "Global standard penalty",
 }
 SHORT_NAMES = {
     "OIL_PRICE": "Oil price",
@@ -78,7 +70,6 @@ SHORT_NAMES = {
     "GLOBAL_STANDARD_TARGET": "Standard target",
     "GLOBAL_STANDARD_PENALTY": "Standard penalty",
 }
-POLICY_LEVERS = ("EU_ETS_PRICE", "GLOBAL_STANDARD_TARGET", "GLOBAL_STANDARD_PENALTY")
 
 # fuels by family, in stacking order; LNG and the rest of fossil origin are not alternative fuels
 FUEL_FAMILIES = {
@@ -109,13 +100,17 @@ SCENARIO_COLORS = {
     "basecase_mid_regulation": "#68a4c2",  # blue_5
     "basecase_strong_regulation": "#457b7b",  # green_5
 }
-STUDY_COLOR = "#2c4169"  # blue_8
 FAMILY_COLORS = {
     "Fuel oil": "#585858",  # black_5
     "LNG and LPG": "#bebebe",  # black_2
     "Blue ammonia": "#97c8e4",  # blue_4
     "Biofuels": "#c28080",  # peach_5
     "E-fuels": "#457b7b",  # green_5
+}
+RULE_COLORS = {
+    "eu_ets": "#e2af7c",  # orange_3
+    "fuel_eu": "#938ea4",  # purple_5
+    "gfs": "#3d5f87",  # blue_7
 }
 RAISES, LOWERS = "#c28080", "#457b7b"  # peach_5, green_5
 HORIZON_TINT, NAVIGATE_TINT, LANTERN_TINT = "#fceec8", "#d4eefa", "#dcf0d6"  # level 2
@@ -611,52 +606,89 @@ def fuel_mix() -> None:
     show_figure(figure, animated=True)
 
 
-# ---- 2. Horizon ----
+def _collected(results: pl.DataFrame) -> pl.DataFrame:
+    """Return what each regulation collected from the fleet by year, in billions of USD a year."""
+    # remedial units are paid to the regulator; flexibility units only change hands between ships
+    return results.filter(kind="regulation", attribute="remedial_expenses").select(
+        "year", rule="node", billions=pl.col("value") / 1e9
+    )
 
 
-def levers(hor: str = f"{STUDY}.hor") -> None:
-    """Show a card per lever the study varies: its range as a multiplier, and the distribution drawn from."""
-    study = read_hor(hor)
-    active = [parameter for parameter in study.parameters if parameter.active]
+def collected() -> None:
+    """Show what the regulations collect from the fleet each year, in the two regulated scenarios."""
+    regulated = {
+        scenario: _collected(_read(scenario))
+        for scenario in SCENARIOS
+        if scenario != "basecase_no_regulation"
+    }
     cards = ""
-    for parameter in active:
-        name, reference = LEVERS[parameter.token]
-        low, mid, high = parameter.low_val, parameter.mid_val, parameter.high_val
-        kind = "Policy" if parameter.token in POLICY_LEVERS else "Market"
+    for scenario, frame in regulated.items():
+        peak = frame.filter(rule="gfs").sort("billions").row(-1, named=True)
+        total = frame.filter(year=2050)["billions"].sum()
         cards += f"""
         <div class="card">
-          <div class="eyebrow">{kind}</div>
-          <div style="font-size:18px; margin:2px 0 2px">{name}</div>
-          <div class="muted" style="min-height:34px">1 = {reference}</div>
-          {_triangle(low, mid, high)}
+          <div class="eyebrow">{SCENARIOS[scenario]} · global fuel standard</div>
+          <div class="big">{peak["billions"]:.0f} bn USD</div>
+          <div class="body">a year at its peak, in {peak["year"]}</div>
+          <div class="muted" style="margin-top:6px">All three rules: {total:.0f} bn USD in 2050</div>
         </div>"""
     show_html(
-        f'<div class="eyebrow">Horizon · {html.escape(hor)}</div><div class="title">{len(active)} '
-        f"assumptions, each drawn from a range, {study.number_of_samples} futures</div>"
-        f'<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))">{cards}</div>'
+        f'<div class="eyebrow">What the rules collect</div><div class="title">The global fuel standard '
+        f'becomes the largest charge on the fleet</div><div class="grid">{cards}</div>'
+        f'<div class="muted" style="margin-top:10px">What ships pay the regulator for the units they '
+        f"lack; the units FuelEU and the global standard let ships trade among themselves are left out. "
+        f"No regulation collects nothing.</div>"
     )
 
-
-def _triangle(low: float, mid: float, high: float) -> str:
-    """Draw the triangular distribution over [low, high] peaking at mid, with the reference 1.0 marked."""
-
-    def x(value: float) -> float:
-        return 10 + (value - low) / (high - low) * 180
-
-    reference = (
-        f'<line x1="{x(1.0):.1f}" y1="6" x2="{x(1.0):.1f}" y2="50" stroke="{INK}" stroke-width="1.2" '
-        f'stroke-dasharray="2 3"/>'
-        if low <= 1.0 <= high
-        else ""
+    figure = make_subplots(
+        rows=1,
+        cols=2,
+        shared_yaxes=True,
+        horizontal_spacing=0.05,
+        subplot_titles=[SCENARIOS[scenario] for scenario in regulated],
     )
-    return (
-        f'<svg viewBox="0 0 200 70" width="100%" height="70">'
-        f'<polygon points="{x(low):.1f},50 {x(mid):.1f},10 {x(high):.1f},50" fill="{HORIZON_TINT}" '
-        f'stroke="#bc8e53" stroke-width="1.2" stroke-linejoin="round"/>{reference}'
-        f'<line x1="6" y1="50" x2="194" y2="50" stroke="{RULE}"/>'
-        f'<g font-family="{html.escape(FONT)}" font-size="11" fill="{MUTED}" text-anchor="middle">'
-        f'<text x="{x(low):.1f}" y="66">×{low:g}</text><text x="{x(high):.1f}" y="66">×{high:g}</text></g></svg>'
+    for column, (scenario, frame) in enumerate(regulated.items(), start=1):
+        years = sorted(frame["year"].unique())
+        for rule, name in RULES.items():
+            by_year = dict(
+                frame.filter(rule=rule).select("year", "billions").iter_rows()
+            )
+            figure.add_trace(
+                go.Scatter(
+                    x=years,
+                    y=[by_year.get(year, 0.0) for year in years],
+                    name=name,
+                    legendgroup=rule,
+                    showlegend=column == 1,
+                    stackgroup=scenario,
+                    mode="lines",
+                    line={"width": 1.5, "color": "#fff"},
+                    fillcolor=RULE_COLORS[rule],
+                    hovertemplate=f"{name}: %{{y:.0f}} bn USD<extra></extra>",
+                ),
+                row=1,
+                col=column,
+            )
+    figure.update_layout(
+        height=440,
+        margin={"l": 70, "r": 20, "t": 90, "b": 50},
+        hovermode="x unified",
+        legend={
+            "orientation": "h",
+            "x": 0,
+            "y": 1.16,
+            "xanchor": "left",
+            "yanchor": "bottom",
+        },
     )
+    figure.update_annotations(font={"size": 16, "color": INK})
+    figure.update_xaxes(gridcolor=WASH, zeroline=False)
+    figure.update_yaxes(gridcolor=WASH, zeroline=False, rangemode="tozero")
+    figure.update_yaxes(title="Collected, bn USD a year", row=1, col=1)
+    show_figure(figure)
+
+
+# ---- 2. Horizon ----
 
 
 def futures(hor: str = f"{STUDY}.hor") -> None:
@@ -721,9 +753,103 @@ def _study_size() -> int:
     )
 
 
+def _study_archive() -> pl.DataFrame:
+    """Return every future's results; the column sample holds its run's id, such as demo_sample001."""
+    return pl.read_parquet(Path("study", f"{STUDY}_archive.parquet")).with_columns(
+        year=pl.col("date").dt.year()
+    )
+
+
+def target(cut: float) -> None:
+    """Show how many futures cut emissions by at least cut percent from 2026 to 2050, each future a line."""
+    archive = _study_archive()
+    years = sorted(archive["year"].unique())
+    paths = {
+        sample: _emissions(results)["megatonnes"].to_list()
+        for (sample,), results in archive.group_by("sample", maintain_order=True)
+    }
+    cuts = {sample: (1 - path[-1] / path[0]) * 100 for sample, path in paths.items()}
+    reached = sum(achieved >= cut for achieved in cuts.values())
+    scenario = _emissions(_read("basecase_mid_regulation"))
+    scenario_cut = (1 - scenario["megatonnes"][-1] / scenario["megatonnes"][0]) * 100
+    show_html(
+        f'<div class="eyebrow">Horizon · mid regulation across {len(paths)} futures</div>'
+        f'<div style="display:flex; align-items:baseline; gap:18px; flex-wrap:wrap">'
+        f'<div class="big">{reached} of {len(paths)}</div><div class="title" style="margin:0">'
+        f"futures cut emissions by {cut:g} % or more from 2026 to 2050</div></div>"
+        f'<div class="muted">Well to wake. The median future cuts them by {median(cuts.values()):.0f} %, '
+        f"the mid regulation scenario by {scenario_cut:.0f} %.</div>"
+    )
+
+    groups = {  # colour, legend entry and its place in the legend
+        True: (LOWERS, f"{reached} reach the cut", 1),
+        False: (RAISES, f"{len(paths) - reached} fall short", 2),
+    }
+    figure = go.Figure()
+    for number, (sample, path) in enumerate(paths.items(), start=1):
+        meets = cuts[sample] >= cut
+        color, label, rank = groups[meets]
+        figure.add_trace(
+            go.Scatter(
+                x=years,
+                y=path,
+                mode="lines",
+                name=label,
+                legendgroup=label,
+                legendrank=rank,
+                showlegend=label not in {trace.name for trace in figure.data},
+                line={"width": 1.2, "color": color},
+                opacity=0.45,
+                hovertemplate=f"Future {number}: {_signed(-cuts[sample])} by 2050<extra></extra>",
+            )
+        )
+    figure.add_trace(
+        go.Scatter(
+            x=scenario["year"],
+            y=scenario["megatonnes"],
+            mode="lines",
+            name="Mid regulation scenario",
+            legendrank=3,
+            line={"width": 3, "color": SCENARIO_COLORS["basecase_mid_regulation"]},
+            hovertemplate="Mid regulation: %{y:.0f} Mt<extra></extra>",
+        )
+    )
+    start = median(path[0] for path in paths.values())
+    figure.add_hline(
+        y=start * (1 - cut / 100),
+        line={"dash": "dash", "color": INK, "width": 1.2},
+        annotation_text=f"{_signed(-cut)} from 2026",
+        annotation_position="top left",
+        annotation_font={"color": INK, "size": 13},
+    )
+    figure.update_layout(
+        title={
+            "text": "Well-to-wake emissions of each future, 2026 to 2050",
+            "font": {"size": 20, "weight": 200},
+        },
+        height=460,
+        margin={"l": 70, "r": 20, "t": 110, "b": 50},
+        hovermode="closest",
+        legend={
+            "orientation": "h",
+            "x": 0,
+            "y": 1.02,
+            "xanchor": "left",
+            "yanchor": "bottom",
+        },
+        xaxis={"gridcolor": WASH, "zeroline": False},
+        yaxis={
+            "title": "Mt CO₂e a year",
+            "gridcolor": WASH,
+            "zeroline": False,
+            "rangemode": "tozero",
+        },
+    )
+    show_figure(figure)
+
+
 def _study_outcomes() -> pl.DataFrame:
     """Return per future its lever values, and its emissions and cost in 2050."""
-    # the archive's sample column holds each run's id, such as demo_sample001
     runs = json.loads(Path("study", "study.json").read_text(encoding="utf-8"))["runs"]
     values = pl.DataFrame(
         [
@@ -731,10 +857,7 @@ def _study_outcomes() -> pl.DataFrame:
             for run in runs
         ]
     )
-    archive = pl.read_parquet(Path("study", f"{STUDY}_archive.parquet")).with_columns(
-        year=pl.col("date").dt.year()
-    )
-    final = archive.filter(year=2050)
+    final = _study_archive().filter(year=2050)
     emissions = final.filter(kind="global", attribute="total_equivalent_wtw").select(
         "sample", megatonnes=pl.col("value") / 1e6
     )
@@ -751,97 +874,6 @@ def _study_outcomes() -> pl.DataFrame:
         )
     )
     return values.join(emissions, on="sample").join(cost, on="sample").sort("sample")
-
-
-def futures_cloud() -> None:
-    """Show every future as a point, emissions against cost in 2050, with the three reference scenarios."""
-    outcomes = _study_outcomes()
-    # the points take the colour of the lever that moves emissions most
-    strongest = max(
-        (token for token in LEVERS if outcomes[token].n_unique() > 1),
-        key=lambda token: abs(_spearman(outcomes, token, "megatonnes")),
-    )
-    figure = go.Figure()
-    hover = "<br>".join(
-        f"{LEVERS[t][0]}: ×%{{customdata[{i}]:.2f}}" for i, t in enumerate(LEVERS)
-    )
-    figure.add_trace(
-        go.Scatter(
-            x=outcomes["usd"],
-            y=outcomes["megatonnes"],
-            mode="markers",
-            name=f"{len(outcomes)} futures",
-            marker={
-                "size": 11,
-                "color": outcomes[strongest],
-                "colorscale": [[0, "#b9e5f5"], [1, STUDY_COLOR]],
-                "opacity": 0.8,
-                "line": {"width": 0},
-                "colorbar": {
-                    "title": {"text": f"{LEVERS[strongest][0]}, ×", "side": "right"},
-                    "thickness": 10,
-                    "outlinewidth": 0,
-                    "len": 0.6,
-                },
-            },
-            customdata=outcomes.select(list(LEVERS)).to_numpy(),
-            hovertemplate="<b>%{y:.0f} Mt</b> · %{x:.2f} USD per 1,000 t-km<br>"
-            + hover
-            + "<extra></extra>",
-        )
-    )
-    for scenario, name in SCENARIOS.items():
-        results = _read(scenario)
-        emissions, cost = (
-            _emissions(results)["megatonnes"][-1],
-            _cost(results)["usd"][-1],
-        )
-        figure.add_trace(
-            go.Scatter(
-                x=[cost],
-                y=[emissions],
-                mode="markers",
-                name=name,
-                marker={
-                    "size": 18,
-                    "symbol": "diamond",
-                    "color": SCENARIO_COLORS[scenario],
-                    "line": {"width": 1.5, "color": "#fff"},
-                },
-                hovertemplate=f"<b>{name}</b><br>%{{y:.0f}} Mt · %{{x:.2f}} USD per 1,000 t-km<extra></extra>",
-            )
-        )
-        figure.add_annotation(
-            x=cost,
-            y=emissions,
-            text=name,
-            showarrow=False,
-            yshift=24,
-            bgcolor="rgba(255,255,255,0.85)",
-            borderpad=3,
-            font={"color": INK, "size": 13},
-        )
-    figure.update_layout(
-        title={
-            "text": "2050: emissions against the cost of transport, one point per future",
-            "font": {"size": 20, "weight": 200},
-        },
-        height=480,
-        margin={"l": 70, "r": 20, "t": 70, "b": 60},
-        showlegend=False,
-        xaxis={
-            "title": "What the ships paid, USD per 1,000 tonne-km",
-            "gridcolor": WASH,
-            "zeroline": False,
-        },
-        yaxis={
-            "title": "Well-to-wake emissions, Mt CO₂e a year",
-            "gridcolor": WASH,
-            "zeroline": False,
-            "rangemode": "tozero",
-        },
-    )
-    show_figure(figure)
 
 
 def _spearman(outcomes: pl.DataFrame, token: str, outcome: str) -> float:
@@ -862,7 +894,7 @@ def drivers() -> None:
         figure.add_trace(
             go.Bar(
                 x=values,
-                y=[LEVERS[token][0] for token in order],
+                y=[LEVERS[token] for token in order],
                 orientation="h",
                 xaxis=f"x{column + 1}",
                 marker={"color": [RAISES if v > 0 else LOWERS for v in values]},

@@ -23,7 +23,9 @@ branch `leadership-demo` only and is never merged.
    side by side (two to three minutes) or `none` to skip the wait.
 4. **Load the study** takes the hundred futures from `results/`; tick
    `RUN_STUDY_LIVE` to run six here instead (about three minutes).
-5. **Open Lantern** starts Lantern's viewer in the notebook and opens it in a
+5. **How often the fleet gets there** counts the futures that reach a cut in
+   emissions; move its slider and run the cell again to try another cut.
+6. **Open Lantern** starts Lantern's viewer in the notebook and opens it in a
    new tab. If the browser blocks Colab's tab, the link beside the button shows
    the viewer in the notebook.
 
