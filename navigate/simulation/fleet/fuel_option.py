@@ -22,7 +22,8 @@ def determine_fuel_type(vessel: Vessel) -> None:
 
     The fuel type assigned through the DSL wins. Otherwise it is the main fuel type
     with the largest power capacity summed across the vessel's converters; a tie
-    between fuel types is broken by the size of the tanks that store them.
+    between fuel types goes to the one with the most tank volume, and raises where no
+    tank stores any of them.
 
     TODO: The tank size should optimally be weighted by the LHV, but it might vary
     within a given fuel type
@@ -51,7 +52,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
         vessel.primary_fuel_type = fuel_types[0]
         return
 
-    vessel.primary_fuel_type = _largest_tank_fuel_type(vessel, fuel_types)
+    vessel.primary_fuel_type = _most_stored_fuel_type(vessel, fuel_types)
 
     logger.info(
         "%s: Has multiple main fuel types (%s) of equal power. "
@@ -106,22 +107,28 @@ def check_fuel_options(vessel: Vessel) -> None:
         )
 
 
-def _largest_tank_fuel_type(vessel: Vessel, fuel_types: list[FuelTypeID]) -> FuelTypeID:
+def _most_stored_fuel_type(vessel: Vessel, fuel_types: list[FuelTypeID]) -> FuelTypeID:
     """
-    Pick the fuel type stored in the largest tank, among those a tank stores.
+    Pick the fuel type with the most tank volume, raising where no tank stores any.
 
-    A tie in tank volume keeps the first fuel type.
+    A tank that stores several of the fuel types counts toward each, and a tie in
+    volume keeps the first fuel type.
     """
-    tank_volumes: dict[FuelTypeID, float] = {}
+    volumes: defaultdict[FuelTypeID, float] = defaultdict(float)
 
     for tank in vessel.tanks:
-        volume = tank.volume.get()
-
         for fuel_type in tank.fuel_types:
-            tank_volumes[fuel_type] = volume
+            volumes[fuel_type] += tank.volume.get()
 
-    stored = [fuel_type for fuel_type in fuel_types if fuel_type in tank_volumes]
-    return max(stored, key=lambda fuel_type: tank_volumes[fuel_type])
+    stored = [fuel_type for fuel_type in fuel_types if fuel_type in volumes]
+
+    if not stored:
+        raise ValueError(
+            f"{vessel}: Its main fuel types {_fuel_type_names(fuel_types)} tie on"
+            " power and no tank stores any of them; set 'FuelType'."
+        )
+
+    return max(stored, key=lambda fuel_type: volumes[fuel_type])
 
 
 def _fuel_type_names(fuel_types: list[FuelTypeID]) -> str:

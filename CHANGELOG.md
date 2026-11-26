@@ -466,6 +466,12 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A vessel without `FuelType` whose main fuel types tie on power takes the one
+  its tanks hold the most volume of, instead of the one whose last-listed tank
+  is largest; a tie no tank stores stops the run with an `Error:` line (#359).
+- A vessel whose tanks store no fuel type a converter needs, or whose fuel
+  types match no `Fuel`, stops the run with an `Error:` line naming it instead
+  of a Python traceback (#459).
 - A plant whose `LeadTime` plus `Lifetime` does not exceed its `LeadTime`
   rounded up to whole years stops the run with an `Error:` line naming the
   plant and the date, instead of a Python traceback in planning (#890).
