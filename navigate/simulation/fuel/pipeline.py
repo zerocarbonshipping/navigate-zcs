@@ -35,51 +35,54 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-def perform_pipeline_delivery(producer: Producer) -> None:
+def perform_pipeline_delivery(producer: Producer, time: float) -> None:
     """
     Deliver plants from the pipeline that have passed their lead time.
 
-    Pipeline increments use negative ages (time since delivery, negative = not yet
-    delivered). After aging by the time step, an increment whose age reaches zero, to
-    rounding, transfers whole to active production without sign-flipping, and one
-    whose age span reaches past zero is split.
+    A pipeline increment enters service at its delivery, so its age is negative
+    until then. An increment whose delivery the time reaches, to rounding, transfers
+    whole to active production, and one whose age span reaches past the time is
+    split.
 
     Parameters
     ----------
     producer
         The producer.
+    time
+        Current time, in years.
     """
     for p, pipeline in enumerate(producer.pipeline):
         operating = producer.increments[p]
         waiting = []
 
         for increment in pipeline:
-            share = calculate_share_below(increment, 0.0)
+            share = calculate_share_below(increment, 0.0, time)
 
             if share == 0.0:
-                # the age already counts the time since delivery; one short of zero
-                # only to rounding is delivered at zero
-                increment.age = max(increment.age, 0.0)
+                # a delivery carries the rounding of the lead time it was planned
+                # ahead by, so one past the time only to rounding is delivered now
+                increment.entered = min(increment.entered, time)
                 operating.append(increment)
 
             elif share == 1.0:
                 waiting.append(increment)
 
             else:
-                # plants enter uniformly over the age span, so the part past zero is
-                # delivered and the rest keeps its span up to zero; the delivered part
-                # keeps 'decided', so its origin index stays that of the increment
+                # plants enter uniformly over the age span, so the part past the time
+                # is delivered now and the rest keeps its span up to its delivery;
+                # both keep the decision and origin of the increment
                 remaining = increment.count * share
                 delivered = PlantIncrement(
                     count=increment.count - remaining,
-                    age=0.0,
-                    age_span=increment.age + increment.age_span,
+                    entered=time,
+                    age_span=increment.age(time) + increment.age_span,
+                    origin=increment.origin,
                     decided=increment.decided,
                 )
 
                 operating.append(delivered)
                 increment.count = remaining
-                increment.age_span = -increment.age
+                increment.age_span = -increment.age(time)
                 waiting.append(increment)
 
         producer.pipeline[p] = waiting
@@ -135,16 +138,21 @@ def perform_pipeline_planning(
     newbuilds = drop_negligible(newbuilds, stock + np.sum(newbuilds))
 
     # the new plants enter the pipeline one lead time ahead of delivery
+    time = timeline[idx]
     additions = zip(producer.plants, producer.pipeline, newbuilds, strict=True)
 
     for plant, pipeline, count in additions:
         if count == 0.0:
             continue
 
-        age = -plant.lead_time.get()
-        index = find_insertion_index(pipeline, age)
+        delivery = time + plant.lead_time.get()
+        index = find_insertion_index(pipeline, delivery)
         increment = PlantIncrement(
-            count=count, age=age, age_span=time_step, decided=0.0
+            count=count,
+            entered=delivery,
+            age_span=time_step,
+            origin=idx,
+            decided=time,
         )
         pipeline.insert(index, increment)
 

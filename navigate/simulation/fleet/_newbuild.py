@@ -160,10 +160,10 @@ def calculate_modelled_newbuilds(
 
 
 def add_newbuilds(
-    fleet: Fleet, newbuilds: FloatArray, time_step: float, idx: int
+    fleet: Fleet, newbuilds: FloatArray, time: float, time_step: float, idx: int
 ) -> None:
     """
-    Append each vessel type's newbuilds to its increments, at age zero.
+    Append each vessel type's newbuilds to its increments, entering service now.
 
     Parameters
     ----------
@@ -171,6 +171,8 @@ def add_newbuilds(
         Fleet receiving the newbuilds.
     newbuilds
         Newbuilds per vessel type.
+    time
+        Current time, in years.
     time_step
         Current time-step size, in years.
     idx
@@ -196,8 +198,9 @@ def add_newbuilds(
 
         increment = VesselIncrement(
             count=count,
-            age=0.0,
+            entered=time,
             age_span=time_step,
+            origin=idx,
             package_uptake=package_uptake.copy(),
             technology_charter_rate=charter_rate,
         )

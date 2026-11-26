@@ -244,7 +244,8 @@ def perform_technology_installation(
     if not fleet.technologies or technology_sensitivity is None:
         return
 
-    update_packages(fleet.technology_packages, fleet.package_cost_flows, timeline[idx])
+    time = timeline[idx]
+    update_packages(fleet.technology_packages, fleet.package_cost_flows, time)
 
     # the fleet count before newbuilds is the denominator of both the retrofit and the
     # newbuild technology caps
@@ -255,7 +256,7 @@ def perform_technology_installation(
     for v, vessel in enumerate(fleet.vessels):
         basis = _extract_adoption_basis(fleet, vessel, v, sensitivity, timeline, idx)
         fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(fleet, basis)
-        proposals += _propose_retrofits(fleet, basis, time_step)
+        proposals += _propose_retrofits(fleet, basis, time, time_step)
 
     _reconcile_retrofit_technology_caps(fleet, proposals, time_step, total_count)
     _apply_retrofits(proposals)
@@ -394,7 +395,7 @@ def _propose_newbuild_uptake(fleet: Fleet, basis: _AdoptionBasis) -> FloatArray:
 
 
 def _propose_retrofits(
-    fleet: Fleet, basis: _AdoptionBasis, time_step: float
+    fleet: Fleet, basis: _AdoptionBasis, time: float, time_step: float
 ) -> list[_RetrofitProposal]:
     """
     Propose unconstrained MNL retrofit jumps for every (increment, package) pair.
@@ -407,6 +408,8 @@ def _propose_retrofits(
         Fleet owning the vessel.
     basis
         Per-vessel invariants of the adoption pass.
+    time
+        Current time, in years.
     time_step
         Current time-step size, in years.
 
@@ -416,7 +419,7 @@ def _propose_retrofits(
         One proposal per (increment, package) pair with vessels eligible to move, in
         decreasing package order, which `_apply_retrofits` relies on.
     """
-    cohorts = list(_retrofit_cohorts(fleet, basis, time_step))
+    cohorts = list(_retrofit_cohorts(fleet, basis, time, time_step))
 
     v = basis.vessel_idx
     lifetime = basis.vessel.lifetime.get()
@@ -444,7 +447,7 @@ def _propose_retrofits(
 
 
 def _retrofit_cohorts(
-    fleet: Fleet, basis: _AdoptionBasis, time_step: float
+    fleet: Fleet, basis: _AdoptionBasis, time: float, time_step: float
 ) -> Iterator[tuple[VesselIncrement, int, list[FloatArray]]]:
     """
     Yield the vessel's cohorts at a retrofit cycle that have lifetime left.
@@ -455,6 +458,8 @@ def _retrofit_cohorts(
         Fleet owning the vessel.
     basis
         Per-vessel invariants of the adoption pass.
+    time
+        Current time, in years.
     time_step
         Current time-step size, in years.
 
@@ -468,10 +473,10 @@ def _retrofit_cohorts(
     frequency = fleet.retrofit_frequency.get()
 
     for increment in fleet.increments[basis.vessel_idx]:
-        if not is_retrofit_cycle(increment.age, frequency, time_step):
+        if not is_retrofit_cycle(increment.age(time), frequency, time_step):
             continue
 
-        remaining = _get_remaining_lifetime(basis.vessel, increment)
+        remaining = _get_remaining_lifetime(basis.vessel, increment, time)
         if remaining <= 0:
             continue
 
@@ -480,9 +485,11 @@ def _retrofit_cohorts(
         yield increment, remaining, flows
 
 
-def _get_remaining_lifetime(vessel: Vessel, increment: VesselIncrement) -> int:
+def _get_remaining_lifetime(
+    vessel: Vessel, increment: VesselIncrement, time: float
+) -> int:
     """Return the whole years of vessel lifetime left past the cohort's mean age."""
-    age = increment.age + increment.age_span / 2.0
+    age = increment.age(time) + increment.age_span / 2.0
     lifetime = vessel.lifetime.get()
 
     return int(snap_to_whole(lifetime - age, lifetime))

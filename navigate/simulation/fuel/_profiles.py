@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import calculate_retired_share, find_origin_indexes
+from navigate.simulation.cohort import calculate_retired_share
 from navigate.util import drop_negligible
 
 if TYPE_CHECKING:
@@ -26,39 +26,25 @@ if TYPE_CHECKING:
 
 
 def iterate_increments(
-    plants: list[Plant],
-    cohorts: list[list[PlantIncrement]],
-    timeline: FloatArray,
-    idx: int,
-) -> Iterator[tuple[int, Plant, PlantIncrement, np.signedinteger]]:
-    """Yield each plant's increments with the time-step index each was decided at."""
+    plants: list[Plant], cohorts: list[list[PlantIncrement]]
+) -> Iterator[tuple[int, Plant, PlantIncrement]]:
+    """Yield each plant's increments, with the plant and its index."""
     for p, plant in enumerate(plants):
-        increments = cohorts[p]
-        if not increments:
-            continue
-
-        decided = np.array([increment.decided for increment in increments])
-        origins = find_origin_indexes(timeline, timeline[idx], decided)
-
-        for increment, origin in zip(increments, origins, strict=True):
-            yield p, plant, increment, origin
+        for increment in cohorts[p]:
+            yield p, plant, increment
 
 
 def calculate_cohort_running(
     increment: PlantIncrement, rate: float, lifetime: float, times: FloatArray
 ) -> FloatArray:
-    """
-    Calculate the rate a delivered or pipeline increment carries while running.
-
-    Its age counts back from the first of the times, the current time.
-    """
+    """Calculate the rate a delivered or pipeline increment carries while running."""
     added = rate * increment.count
     window = increment.age_span
-    delivery = times[0] - increment.age
+    delivery = increment.entered
     retirement = delivery + lifetime
 
-    entered = _spread_delivery(added, delivery, window, times)
-    return _calculate_running_profile(added, entered, retirement, window, times)
+    delivered = _spread_delivery(added, delivery, window, times)
+    return _calculate_running_profile(added, delivered, retirement, window, times)
 
 
 def calculate_newbuild_running(
@@ -73,27 +59,21 @@ def calculate_newbuild_running(
     delivery = time + lead_time
     retirement = delivery + lifetime
 
-    entered = _spread_delivery(rate, delivery, window, times)
-    return _calculate_running_profile(rate, entered, retirement, window, times)
+    delivered = _spread_delivery(rate, delivery, window, times)
+    return _calculate_running_profile(rate, delivered, retirement, window, times)
 
 
 def calculate_cohort_reserved(
-    increment: PlantIncrement,
-    rate: float,
-    lifetime: float,
-    now: float,
-    times: FloatArray,
+    increment: PlantIncrement, rate: float, lifetime: float, times: FloatArray
 ) -> FloatArray:
     """
     Calculate the rate a delivered or pipeline increment reserves.
 
-    It is decided already, so it reserves the whole rate from the first of the times;
-    its age counts back from `now`, the current time.
+    It is decided already, so it reserves the whole rate from the first of the times.
     """
     added = rate * increment.count
     window = increment.age_span
-    delivery = now - increment.age
-    retirement = delivery + lifetime
+    retirement = increment.entered + lifetime
 
     return _calculate_reserved_profile(added, 0, retirement, window, times)
 
@@ -117,7 +97,7 @@ def calculate_newbuild_reserved(
 
 def _calculate_running_profile(
     rate: float,
-    entered: FloatArray,
+    delivered: FloatArray,
     retirement: float,
     window: float,
     times: FloatArray,
@@ -125,14 +105,14 @@ def _calculate_running_profile(
     """
     Calculate the rate an increment carries at each of the times, which are sorted.
 
-    It accumulates what enters and retires up to each time.
+    It accumulates what is delivered and retires up to each time.
 
     Parameters
     ----------
     rate
         Rate the increment carries, such as production or feed, in tons/year.
-    entered
-        Part of the rate entering at each of the times, in tons/year.
+    delivered
+        Part of the rate delivered at each of the times, in tons/year.
     retirement
         Time the last of the rate retires at, in years.
     window
@@ -147,7 +127,7 @@ def _calculate_running_profile(
     """
     # once all of the rate has retired, the sum is zero to rounding
     retired = _spread_uniformly(rate, retirement, window, times)
-    return drop_negligible(np.cumsum(entered - retired), rate)
+    return drop_negligible(np.cumsum(delivered - retired), rate)
 
 
 def _calculate_reserved_profile(
@@ -194,9 +174,9 @@ def _spread_delivery(
         return _spread_uniformly(rate, delivery, window, times)
 
     # an increment delivered by the simulation start enters in full at the first time
-    entered = np.zeros_like(times)
-    entered[0] = rate
-    return entered
+    delivered = np.zeros_like(times)
+    delivered[0] = rate
+    return delivered
 
 
 def _spread_uniformly(

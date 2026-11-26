@@ -182,11 +182,7 @@ class _ConversionProposal:
         Name of the source vessel type.
     increment
         The cohort's increment, which the conversions reduce and carry the
-        technology package and charter rate from.
-    age
-        Age of the cohort, in years.
-    age_span
-        Age-bin width of the cohort, in years.
+        vintage, technology package and charter rate from.
     scrapped_per_vessel
         Vessels scrapped from the cohort's part past the lifetime per vessel left in
         it; the converted vessels carry their share.
@@ -196,8 +192,6 @@ class _ConversionProposal:
 
     name_from: str
     increment: VesselIncrement
-    age: float
-    age_span: float
     scrapped_per_vessel: float
     candidates: dict[str, _ConversionCandidate]
 
@@ -292,12 +286,7 @@ def _propose_fuel_conversions(
         increment = cohort.increment
         scrapped_per_vessel = increment.scrapped_past_lifetime / increment.count
         proposal = _ConversionProposal(
-            cohort.source.name,
-            increment,
-            increment.age,
-            increment.age_span,
-            scrapped_per_vessel,
-            candidates,
+            cohort.source.name, increment, scrapped_per_vessel, candidates
         )
         proposals.append(proposal)
 
@@ -402,6 +391,7 @@ def _eligible_cohorts(
     _ConversionCohort
         Each eligible cohort, vessel type by vessel type, youngest first.
     """
+    time = timeline[idx]
     retrofit_frequency = fleet.retrofit_frequency.get()
     minimum_age = fleet.fuel_conversion_minimum_age.get()
 
@@ -422,10 +412,11 @@ def _eligible_cohorts(
         # target-fuel supply binds, younger cohorts with longer remaining lifetimes
         # claim the working supply excess first
         for increment in reversed(increments):
-            if not is_retrofit_cycle(increment.age, retrofit_frequency, time_step):
+            age = increment.age(time)
+            if not is_retrofit_cycle(age, retrofit_frequency, time_step):
                 continue
 
-            mean_age = increment.age + increment.age_span / 2.0
+            mean_age = age + increment.age_span / 2.0
             if subtract(mean_age, minimum_age) < 0.0:
                 continue
 
@@ -816,15 +807,15 @@ def _insert_converted_increment(
     increments_to
         Destination increment list, sorted oldest first; mutated in place.
     increment_from
-        Source increment providing the technology package and charter rate carried
-        along.
+        Source increment providing the vintage, technology package and charter rate
+        carried along.
     proposal
-        Proposal the vessels convert under; the converted increment takes its age and
-        age span, and its vessels' share of those scrapped past the lifetime.
+        Proposal the vessels convert under; the converted increment takes its
+        vessels' share of those scrapped past the lifetime.
     count
         Number of vessels converted.
     """
-    idx_to = find_insertion_index(increments_to, proposal.age)
+    idx_to = find_insertion_index(increments_to, increment_from.entered)
     scrapped = count * proposal.scrapped_per_vessel
 
     # the carried technology charter rate rides along unchanged; the amortization window
@@ -834,9 +825,10 @@ def _insert_converted_increment(
     increments_to.insert(
         idx_to,
         VesselIncrement(
-            count,
-            proposal.age,
-            proposal.age_span,
+            count=count,
+            entered=increment_from.entered,
+            age_span=increment_from.age_span,
+            origin=increment_from.origin,
             package_uptake=increment_from.package_uptake.copy(),
             scrapped_past_lifetime=scrapped,
             technology_charter_rate=increment_from.technology_charter_rate,

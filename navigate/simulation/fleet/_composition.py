@@ -165,9 +165,12 @@ def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -
 
 def consolidate_increments(fleet: Fleet) -> None:
     """
-    Merge increments equal to a residual in age and span, drop those below 1e-3 vessels.
+    Merge increments of one vintage, drop those below 1e-3 vessels.
 
     The simulation's CPU time grows with the number of increments per vessel type.
+    Increments are of one vintage where they entered service at the same time over
+    the same span: both are set once and copied, never accumulated, so they are equal
+    floats.
 
     Parameters
     ----------
@@ -175,20 +178,12 @@ def consolidate_increments(fleet: Fleet) -> None:
         Fleet whose increments are consolidated.
     """
     for v, increments in enumerate(fleet.increments):
-        ages = np.array([increment.age for increment in increments])
-        spans = np.array([increment.age_span for increment in increments])
-        is_same = (subtract(ages[:, None], ages) == 0.0) & (
-            subtract(spans[:, None], spans) == 0.0
-        )
+        # cohorts in fleet order, each folded into its first increment
+        cohorts: dict[tuple[float, float], list[VesselIncrement]] = {}
 
-        # cohorts keyed by their first increment's index, in fleet order; an increment
-        # joins the first cohort whose first increment it matches, the one _merge
-        # keeps, so that a cohort cannot drift
-        cohorts: dict[int, list[VesselIncrement]] = {}
-
-        for i, increment in enumerate(increments):
-            first = next((j for j in cohorts if is_same[i, j]), i)
-            cohorts.setdefault(first, []).append(increment)
+        for increment in increments:
+            vintage = (increment.entered, increment.age_span)
+            cohorts.setdefault(vintage, []).append(increment)
 
         consolidated: list[VesselIncrement] = []
 
@@ -206,8 +201,7 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     Parameters
     ----------
     cohort
-        Increments of one vessel type equal to a residual in age and age span, in
-        fleet order.
+        Increments of one vessel type and vintage, in fleet order.
 
     Returns
     -------

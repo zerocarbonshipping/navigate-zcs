@@ -37,14 +37,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
+def close_trade_gap(fleet: Fleet, time: float, time_step: float, idx: int) -> None:
     """
     Close the gap between the fleet's trade and the capacity its vessels carry.
 
     Within each vessel type's newbuild budget, a shortfall is filled by orderbook
     deliveries, then by inertia newbuilds and modelled newbuilds; a surplus is removed
-    by secondary scrapping where the fleet allows it. The increments of equal age are
-    then merged and the negligible ones dropped, the newbuild technology caps are
+    by secondary scrapping where the fleet allows it. The increments of one vintage
+    are then merged and the negligible ones dropped, the newbuild technology caps are
     reconciled and the newbuilds added. The newbuilds set the fleet's current uptake,
     and the trade carried goes to the results.
 
@@ -52,6 +52,8 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
     ----------
     fleet
         Fleet whose trade gap is closed.
+    time
+        Current time, in years.
     time_step
         Current time-step size, in years.
     idx
@@ -81,7 +83,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
         trade_gap -= delivered_capacity
 
     elif trade_gap < 0.0 and fleet.allow_secondary_scrapping:
-        trade_gap += perform_secondary_scrapping(fleet, trade_gap, idx)
+        trade_gap += perform_secondary_scrapping(fleet, trade_gap, time, idx)
 
     # a count negligible against the fleet is no vessel, whether a rounding residue or
     # the tail of a logit: it would never be in service, so no cohort is built from it
@@ -89,7 +91,7 @@ def close_trade_gap(fleet: Fleet, time_step: float, idx: int) -> None:
 
     consolidate_increments(fleet)
     reconcile_newbuild_technology_caps(fleet, newbuilds, time_step, total_count)
-    add_newbuilds(fleet, newbuilds, time_step, idx)
+    add_newbuilds(fleet, newbuilds, time, time_step, idx)
     update_current_uptake(fleet, newbuilds, idx)
 
     carried = trade - trade_gap
