@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from navigate.core import (
     SECTION_DEFINE,
     Scalar,
@@ -21,6 +23,7 @@ from navigate.core.enum_ import NodeTypeID
 from navigate.core.expectations import PlantExpectation
 from navigate.core.node import Node
 from navigate.core.results import PlantResults
+from navigate.util import snap_to_whole
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -33,6 +36,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.transport import Transport
     from navigate.core.results import ResultsContext
     from navigate.core.types_ import ForecastArgument, ForecastInput
+    from navigate.util.types_ import DateArray, FloatArray
 
 
 class Plant(Node):
@@ -240,6 +244,25 @@ class Plant(Node):
 
     def initialize_results(self, context: ResultsContext) -> None:
         self.results.initialize(context)
+
+    def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
+        # planning weighs a plant by the demand of the whole years from its investment
+        # decision, from the first that starts once it commissions, so the plant must
+        # still operate when that year starts; its operation ends on a whole year
+        # where it lies a residual off one, as in its cash flows
+        lead_time = self.lead_time.get(times)
+        lifetime = self.lifetime.get(times)
+        operation_end = snap_to_whole(lead_time + lifetime, lead_time + lifetime)
+        short = np.flatnonzero(operation_end <= np.ceil(lead_time))
+
+        if short.size:
+            k = short[0]
+            raise ValueError(
+                f"{self}: 'LeadTime' plus 'Lifetime' must exceed 'LeadTime' rounded up"
+                f" to whole years at every time step, but at {dates[k]} they are"
+                f" {lead_time[k]:g} + {lifetime[k]:g}, which does not exceed"
+                f" {np.ceil(lead_time[k]):g}."
+            )
 
     def set_producer_assignment(self, producer_name: str) -> None:
         """Record the producer building this plant, raising if another already does."""

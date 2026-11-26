@@ -17,8 +17,10 @@ from navigate.simulation.fuel.expectation import (
 )
 from navigate.simulation.fuel.feed import calculate_feed_availability
 from navigate.util import (
+    calculate_kept_fraction,
     divide_nonzero,
     find_nearest_index,
+    find_nearest_indices,
     is_negligible,
     step_lengths,
 )
@@ -52,7 +54,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
 
     producer.increments = _build_initial_increments(producer, timeline)
     producer.pipeline = _build_existing_pipeline(producer, timeline)
-    _define_initial_development(producer, timeline[idx])
+    _define_initial_development(producer, timeline)
 
     calculate_feed_availability(producer, timeline, idx)
     calculate_producer_evolution_expectation(
@@ -280,33 +282,39 @@ def _build_initial_increment(
     )
 
 
-def _define_initial_development(producer: Producer, start: float) -> None:
+def _define_initial_development(producer: Producer, timeline: FloatArray) -> None:
     """
     Define the initial development rate, uptake and development from the pipeline.
 
-    A plant type's development rate is its pipelined plants per year of their age
-    spans, each increment weighed by the inertia raised to the years since it was
-    decided. The producer's rate is the sum over its plant types, the uptake each
-    type's share of it, and the development counts every pipelined plant.
+    A plant type's development rate is its pipelined plants per year of the time
+    steps they are delivered in, each increment weighted by the inertia over the
+    years since it was decided. The producer's rate is the sum over its plant types,
+    the uptake each type's share of it, and the development counts every pipelined
+    plant.
 
     Parameters
     ----------
     producer
         Producer whose pipeline is read.
-    start
-        Start time of the simulation, in years.
+    timeline
+        Simulation timeline, in years.
     """
+    start = timeline[0]
+    steps = step_lengths(timeline)
     inertia = producer.inertia.get()
     rates = np.zeros(len(producer.plants))
     count_total = 0.0
 
     for p, increments in enumerate(producer.pipeline):
         decided = np.array([increment.decided for increment in increments])
+        entered = np.array([increment.entered for increment in increments])
         counts = np.array([increment.count for increment in increments])
-        spans = np.array([increment.age_span for increment in increments])
-        weights = inertia ** np.maximum(start - decided, 0.0)
+        weights = calculate_kept_fraction(inertia, np.maximum(start - decided, 0.0))
+        delivery_steps = steps[find_nearest_indices(timeline, entered)]
 
-        rates[p] = divide_nonzero(np.dot(weights, counts), np.dot(weights, spans))
+        rates[p] = divide_nonzero(
+            np.dot(weights, counts), np.dot(weights, delivery_steps)
+        )
         count_total += np.sum(counts)
 
     development = float(np.sum(rates))

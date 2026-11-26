@@ -64,6 +64,7 @@ class Unit(Enum):
     YEARS = "years"  # years
     SECONDS_PER_YEAR = "s/year"  # seconds per year
     DIMENSIONLESS = "-"  # a fraction, share or flag
+    FRACTION_PER_YEAR = "1/year"  # a fraction or share per year
     MEASURE = "measure"  # the unit of the regulation's measure
 
 

@@ -23,7 +23,7 @@ from navigate.simulation.fuel.feed import (
     calculate_feed_spends,
 )
 from navigate.util import (
-    calculate_step_inertia,
+    calculate_kept_fraction,
     divide_nonzero,
     drop_negligible,
     subtract,
@@ -192,7 +192,7 @@ def _calculate_inertia_newbuilds(
     if development <= 0.0:
         return np.zeros(len(producer.plants))
 
-    decay = calculate_step_inertia(producer.inertia.get(), time_step)
+    decay = calculate_kept_fraction(producer.inertia.get(), time_step)
     allowed = [producer.allow_plants[plant.name] for plant in producer.plants]
     uptakes = np.where(allowed, producer.current_uptake * decay, 0.0)
 

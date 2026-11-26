@@ -681,7 +681,8 @@ def _transfer_retrofit_uptake(
 
     The stored value, laid out as the fleet results' technology uptake, is the share
     of the vessel type's existing fleet that retrofitted to the technology this
-    time-step, directly comparable to `set_retrofit_technology_limit * time_step`.
+    time-step, which the results file divides by the step length into a share per
+    year, as `set_retrofit_technology_limit` is given.
 
     Parameters
     ----------

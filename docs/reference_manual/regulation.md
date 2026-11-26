@@ -178,6 +178,8 @@ This attribute sets the decision horizon, in years, used to smooth the belief of
 
 A longer horizon makes the belief respond more slowly to changes in the flexibility cost between outer time-steps, preventing small changes in future fuel availability from translating into expectations of large flexibility-cost differences.
 
+With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.75 at the default of 3.
+
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `3.0`

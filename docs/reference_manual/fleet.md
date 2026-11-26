@@ -63,12 +63,13 @@ This attribute defines the inertia used in the uptake decision of newbuild vesse
 
 ### Memory
 
-This attribute sets the exponential decay of the memory of the fleet used in the expected uptake decision of newbuild vessels. A high memory means that the expected uptake of newbuild vessels is more stable.
+This attribute sets the exponential decay of the memory of the fleet used in the expected uptake decision of newbuild vessels: the expected uptake averages the past uptake over the years, each year's weight multiplied by the memory for every year since. A high memory means that the expected uptake of newbuild vessels is more stable.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `0.66`
   + `Forecast("name")`
+* **Unit**: Fraction/year
 * **Minimum value**: 0
 * **Maximum value**: 1
 * **Default**: 0.5
@@ -76,6 +77,8 @@ This attribute sets the exponential decay of the memory of the fleet used in the
 ### FixedScrapRate
 
 This attribute sets the fixed scrap rate of the fleet in fraction/year. If the fixed scrap rate is set it overwrites the age-based scrapping functionality resulting in vessels potentially being scrapped prior to their technical lifetime.
+
+The rate compounds over a time step of any length: each year scraps its fraction of what the years before left, so a rate of 0.1 scraps 41% of the fleet over a 5-year step.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -148,6 +151,8 @@ This attribute sets the cost of capital used for evaluating technology investmen
 
 Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise.
 
+With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.75 at the default of 3.
+
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `3`
@@ -160,6 +165,8 @@ Smoothing horizon (in years) for the energy-scarcity belief that scales technolo
 
 Smoothing horizon (in years) for the energy-scarcity belief that scales speed marginal-saving evaluations. Speed is an operational decision and typically uses a shorter horizon than `TechnologyHorizon` so it can respond faster to real tightness.
 
+With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.5 at the default of 1.
+
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `1`
@@ -171,6 +178,8 @@ Smoothing horizon (in years) for the energy-scarcity belief that scales speed ma
 ### TradeGrowth
 
 This attribute sets the trade-growth rate of the fleet, expressed in fraction/year.
+
+The rate read at each whole year from the start date holds for the year after it, so the trade at a date does not depend on the other dates of the deck.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
