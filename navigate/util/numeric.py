@@ -4,8 +4,8 @@
 """
 Numeric helpers.
 
-Negligible values, whole-number snapping, safe division, step lengths, monotonicity
-tests, interpolation, index lookup, growth and smoothing.
+Negligible values, snapping to whole numbers and grid points, safe division, step
+lengths, monotonicity tests, interpolation, index lookup, growth and smoothing.
 """
 
 from __future__ import annotations
@@ -128,6 +128,44 @@ def snap_to_whole(value: FloatLike, scale: npt.ArrayLike) -> FloatLike:
     """
     whole = np.round(value)
     return whole + drop_negligible(value - whole, scale)
+
+
+@overload
+def snap_to_grid(value: float, grid: FloatArray) -> float: ...
+
+
+@overload
+def snap_to_grid(value: FloatArray, grid: FloatArray) -> FloatArray: ...
+
+
+def snap_to_grid(value: FloatLike, grid: FloatArray) -> FloatLike:
+    """
+    Snap a value to the nearest grid point where it lies a negligible distance off.
+
+    Parameters
+    ----------
+    value
+        Value to snap, scalar or array; a NaN or an infinity stays as it is.
+    grid
+        Points to snap to, finite and sorted ascending.
+
+    Returns
+    -------
+    FloatLike
+        The nearest grid point where the value's distance from it is negligible
+        against the grid's largest magnitude, the value elsewhere, mirroring the
+        input's scalar- or arrayness.
+    """
+    # a residual scales with the operands it came from, which lie on the grid's
+    # scale, so a grid point at 0 catches one as well; the sorted grid's largest
+    # magnitude lies at one of its ends
+    scale = max(abs(grid[0]), abs(grid[-1]))
+
+    nearest = grid[find_nearest_indices(grid, np.asarray(value))]
+    snapped = np.where(is_negligible(value - nearest, scale), nearest, value)
+
+    # np.where answers a scalar input with a 0-d array
+    return snapped if isinstance(value, np.ndarray) else float(snapped)
 
 
 def divide_nonzero(

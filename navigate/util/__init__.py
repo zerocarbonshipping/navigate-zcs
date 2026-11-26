@@ -50,6 +50,7 @@ from navigate.util.numeric import (
     is_nondecreasing,
     is_strictly_increasing,
     smooth_belief_path,
+    snap_to_grid,
     snap_to_whole,
     step_lengths,
     subtract,
