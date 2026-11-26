@@ -71,16 +71,53 @@ jobs:
           name: site
           path: site
 
-      # publish to root (/) -> this becomes "Latest" and serves the switcher.json
-      # keep_files so /<tag>/ archives and /staging/ survive
+      # publish to root (/) -> this becomes "Latest" and serves the switcher.json.
+      # The root holds the latest site and nothing older. A top-level folder this
+      # build does not make, but for Sphinx's own _ folders, belongs to another
+      # deploy (/staging/, the /<tag>/ archives, previews such as
+      # /workshop-preview/) and stays; everything else gives way to the build, so
+      # pages a release removed are dropped. The push fast-forwards the branch as
+      # fetched, so a deploy landing in between makes this one start over on it
+      # rather than be overwritten.
+      - name: Check out the published site
+        if: github.ref_type == 'tag' || github.ref_name == 'main'
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: published
+
       - name: Deploy docs (-> /)
         if: github.ref_type == 'tag' || github.ref_name == 'main'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: site
-          keep_files: true
+        working-directory: published
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3; do
+            git fetch -q --depth 1 origin gh-pages
+            git reset -q --hard FETCH_HEAD
+            git clean -q -fdx
+
+            for entry in *; do
+              if [ -d "$entry" ] && [ ! -e "../site/$entry" ] && [ "${entry#_}" = "$entry" ]; then
+                continue
+              fi
+              git rm -r -q "$entry"
+            done
+
+            cp -r ../site/. .
+            git add -A
+            if git diff --cached --quiet; then
+              exit 0   # the root already holds this build
+            fi
+            git commit -q -m "deploy: $GITHUB_SHA"
+
+            if git push -q origin HEAD:gh-pages; then
+              exit 0
+            fi
+            echo "gh-pages moved during deploy attempt $attempt; starting over"
+          done
+          exit 1
 
       # for tags, also keep an archived copy at /<tag>/
       - name: Deploy docs (-> /<tag>/)
