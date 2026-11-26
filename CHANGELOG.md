@@ -108,6 +108,9 @@ change.
   `<data_dir>/modules/`. Move an assumptions folder of the old layout up one
   level. A user file overlaying a default is replaced by an `Import` and the
   reassignments in the deck, or by an own assumptions folder passed with `-d`.
+- `Load DefaultCalibration` sets every inertia to 0: ports' bunkering inertia
+  was 0.7 and fleets' and producers' `Inertia` 0.6. This moves the results of
+  every deck that loads it (#9).
 - A deck that needs the assumptions when no folder is given names the
   folder of the clone Navigate was installed from, with the command that sets
   `ASSUMPTIONS_DATA_DIR` on this system, or links the download of the
