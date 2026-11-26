@@ -466,16 +466,17 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 - A `Producer`'s `MaximumRampUp`: a producer may build up to
   `MaximumDevelopment` plants per year in every time step. A deck that sets it
-  is refused; delete the line (#1007, #1008).
+  is refused; delete the line (#1007).
 
 ### Fixed
-- A producer's development on time steps shorter than a year is no longer held
-  back by what it built in its last step, so it no longer depends on the step
-  length (#1007, #1008).
+- A producer's development limited by `MaximumDevelopment` no longer depends
+  on the step length: on steps shorter than a year it was held back by what the
+  producer built in its last step (#1007).
 - A producer's `Inertia` continues its development rate in plants per year,
-  summed over its plant types and read per year from the existing pipeline at
-  the start; results move in decks with `Inertia` above 0 and an existing
-  pipeline or a `MaximumDevelopment` that changes over time (#1006).
+  summed over its plant types, and its starting rate and plant-type split are
+  read per year from the existing pipeline; results move in decks with an
+  existing pipeline, or with `Inertia` above 0 and a `MaximumDevelopment` that
+  changes over time (#1006).
 - `set_initial_technology_share` seeds each initial cohort with the uptake
   averaged over its vessels' ages rather than that of its youngest vessels;
   results move in decks whose share curves vary with age (#993).
