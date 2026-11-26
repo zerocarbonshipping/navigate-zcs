@@ -9,7 +9,7 @@ Route "operational_profile_general_cargo" {
 	set_port_calls("port_europe", 4)
 
 	TimeAtSea = 0.548
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", 11.2)
 	set_utilization("*", "*", 0.5)

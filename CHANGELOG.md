@@ -57,6 +57,36 @@ change.
   requested; they used to produce no column.
 
 ### Changed
+- DSL attributes and commands are renamed to say what they set; an old name is
+  a deck error. The results file keeps its series names. Write instead:
+  - `Fleet` sensitivities: `InterFuelSensitivity` → `FuelSensitivity`,
+    `IntraFuelSensitivity` → `VariantSensitivity`, `FuelConversionSensitivity`
+    → `ConversionSensitivity`;
+  - `Fleet` attributes: `FuelConversionMinimumAge` → `MinimumConversionAge`,
+    `RetrofitFrequency` → `RetrofitInterval`, `AssumeReferenceSpeedOptimal` →
+    `RouteSpeedOptimal`;
+  - `Fleet` flags: `set_newbuild_available` → `set_allow_newbuild`,
+    `set_conversion_available` → `set_allow_conversion`;
+  - `Fleet` conversions: `set_fuel_conversion_cost` → `set_conversion_cost`,
+    `set_fuel_conversion_limit` → `set_conversion_limit`;
+  - `Producer` attributes: `FuelDemandSensitivity` → `FuelSensitivity`,
+    `FuelCostSensitivity` → `VariantSensitivity`, `JumpStartFraction` →
+    `JumpStart`;
+  - `Producer` commands: `set_feed_constraint` → `set_feed_limit`,
+    `set_export_distribution` → `set_export_weight`;
+  - `Port` shore power: `ShorePowerConnectionShare` → `ShorePowerAvailability`,
+    `ShorePowerCost` → `ShorePowerPrice`, `set_shore_power_emission_factor` →
+    `set_shore_power_wtt`;
+  - `Port` fuels: `set_bunker_price_overwrite` → `set_fuel_price`,
+    `set_bunker_wtt_overwrite` → `set_fuel_wtt`, `set_bunkering_allowed` →
+    `set_allow_bunkering`;
+  - `Converter`: `set_consumption_ttw` → `set_ttw`, `set_slip_fraction` →
+    `set_slip`;
+  - `Emission`: `FuelType` → `SlipFuelType`, `GlobalWarmingPotential` → `Gwp`;
+  - `Levy` and `Regulation`: `set_global_warming_potential` → `set_gwp`, and
+    on a `Levy`, `Level` → `Rate`;
+  - `Route`: `set_voyage_distribution` → `set_distance_share`;
+  - `Tank`: `Size` → `Volume`.
 - The results file keeps every series with a value other than zero; a series
   whose values all lay below 1e-5 in magnitude was left out (#911).
 - An attribute that takes an integer rejects any other number, such as

@@ -22,7 +22,7 @@ from navigate.exceptions import DeckError
 from navigate.parser.parser import Parser
 
 SHARED = variable("w", Value=0.5)
-CO2 = 'Emission "co2" { GlobalWarmingPotential = 1.0 }\n'
+CO2 = 'Emission "co2" { Gwp = 1.0 }\n'
 DEFAULT = variable(Value=3.0)
 
 
@@ -53,7 +53,7 @@ def _write_nav(tmp_path, define_directives, events_directives=""):
 
 
 class TestCopy:
-    # input:    | Emission "a" { GlobalWarmingPotential = 1.0 }
+    # input:    | Emission "a" { Gwp = 1.0 }
     #           | Copy Emission "a" "b"
     #           | Copy Emission "b" "c"
     # expected: -> three separate Emission nodes named "a", "b" and "c"
@@ -68,7 +68,7 @@ class TestCopy:
         assert len({id(node) for node in nodes}) == 3
         assert [node.name for node in nodes] == ["a", "b", "c"]
 
-    # input:    | Emission "src" { GlobalWarmingPotential = Variable("w") }
+    # input:    | Emission "src" { Gwp = Variable("w") }
     #           | Copy Emission "src" "dst"
     #           | (Variable "w" declared before or after the Copy)
     # expected: -> "src" and "dst" both hold the same Variable "w" object
@@ -88,8 +88,8 @@ class TestCopy:
         parser = read_deck(define)
         shared = parser.nodes.variables["w"]
 
-        assert parser.nodes.emissions["src"].global_warming_potential is shared
-        assert parser.nodes.emissions["dst"].global_warming_potential is shared
+        assert parser.nodes.emissions["src"].gwp is shared
+        assert parser.nodes.emissions["dst"].gwp is shared
 
     # input:    | Fuel "src" { ... set_ttw("co2", 2.75) }
     #           | Copy Fuel "src" "dst"

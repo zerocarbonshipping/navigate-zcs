@@ -29,12 +29,12 @@ Import Port "port_global"
 Import Port "port_europe"
 
 Port "*" {
-	set_bunkering_allowed("fossil_fuel_oil", TRUE)
-	set_bunkering_allowed("liquefied_natural_gas", TRUE)
+	set_allow_bunkering("fossil_fuel_oil", TRUE)
+	set_allow_bunkering("liquefied_natural_gas", TRUE)
 
-	set_bunker_price_overwrite("fossil_fuel_oil", 550)                   # USD/ton
-	set_bunker_price_overwrite("liquefied_natural_gas", 380)             # USD/ton
+	set_fuel_price("fossil_fuel_oil", 550)                   # USD/ton
+	set_fuel_price("liquefied_natural_gas", 380)             # USD/ton
 
-	set_bunker_wtt_overwrite("fossil_fuel_oil", "carbon_dioxide", 0.8)   # ton/ton fuel
-	set_bunker_wtt_overwrite("liquefied_natural_gas", "carbon_dioxide", 0.45)
+	set_fuel_wtt("fossil_fuel_oil", "carbon_dioxide", 0.8)   # ton/ton fuel
+	set_fuel_wtt("liquefied_natural_gas", "carbon_dioxide", 0.45)
 }

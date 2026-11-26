@@ -12,5 +12,5 @@ Converter "electrical_ice_methane_bulk_carrier_26k_dwt" {
 	Capex = Forecast("electrical_methane_capex")
 	Opex = Forecast("electrical_methane_opex")
 	
-	set_slip_fraction(METHANE, Variable("electrical_methane_methane_slip"))
+	set_slip(METHANE, Variable("electrical_methane_methane_slip"))
 }

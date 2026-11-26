@@ -62,8 +62,8 @@ Route "bulk_global" {
     set_port_calls("port_global", 17)
     set_port_calls("port_europe", 3)
 
-    set_voyage_distribution("*", "*", 1)
-    set_voyage_distribution("port_europe", "port_europe", 0)
+    set_distance_share("*", "*", 1)
+    set_distance_share("port_europe", "port_europe", 0)
 
     set_speed("*", "*", Curve("bulk_speeds"))
     set_utilization("*", "*", Curve("bulk_utilizations"))
@@ -92,7 +92,7 @@ The following conditions apply to every route:
 * Each per-leg input is set for the route's legs only; see [Legs](#legs).
 * A required per-leg input left unset on any leg is an error naming the legs.
 * A command or attribute that does not apply to the route type is an error.
-* At every date, [set\_utilization](#set_utilization) must be above 0 on at least one leg the route sails, in a [sailing condition](#sailing-conditions) with a share of sea time above 0. On a `TRAMP`, a leg with a [set\_voyage\_distribution](#set_voyage_distribution) of 0 is not sailed, unless every leg's is 0.
+* At every date, [set\_utilization](#set_utilization) must be above 0 on at least one leg the route sails, in a [sailing condition](#sailing-conditions) with a share of sea time above 0. On a `TRAMP`, a leg with a [set\_distance\_share](#set_distance_share) of 0 is not sailed, unless every leg's is 0.
 
 If RouteType is LINER:
 
@@ -100,12 +100,12 @@ If RouteType is LINER:
 * A port cannot be placed directly after itself, and the same port cannot be placed both first and last, because the list of ports wraps around.
 * A port may be called more than once, but each leg may only be sailed once: `[Port("a"), Port("b"), Port("a"), Port("c")]` is accepted, `[Port("a"), Port("b"), Port("a"), Port("b")]` is not.
 * [set\_speed](#set_speed), [set\_distance](#set_distance) and [set\_port\_duration](#set_port_duration) must be given for every leg.
-* [TimeAtSea](#timeatsea), [set\_voyage\_distribution](#set_voyage_distribution), [set\_port\_calls](#set_port_calls) and a `Curve` in [set\_utilization](#set_utilization) do not apply.
+* [TimeAtSea](#timeatsea), [set\_distance\_share](#set_distance_share), [set\_port\_calls](#set_port_calls) and a `Curve` in [set\_utilization](#set_utilization) do not apply.
 
 If RouteType is TRAMP:
 
 * All ports must be unique.
-* [TimeAtSea](#timeatsea) must be provided, and [set\_speed](#set_speed) and [set\_voyage\_distribution](#set_voyage_distribution) must be given for every leg.
+* [TimeAtSea](#timeatsea) must be provided, and [set\_speed](#set_speed) and [set\_distance\_share](#set_distance_share) must be given for every leg.
 * [set\_distance](#set_distance) and [set\_port\_duration](#set_port_duration) do not apply.
 
 ## Attributes
@@ -116,7 +116,7 @@ This attribute sets the route type, `LINER` or `TRAMP`, which decides the legs o
 
 A `LINER` describes one voyage around its ports in the listed order. Each leg is given its distance, its speed and its cargo utilization, and the time in port at the end of it. The time at sea follows from the distances and speeds.
 
-A `TRAMP` describes a year of operation between a pool of ports, with no start, end or order. [TimeAtSea](#timeatsea) sets the share of the year spent at sea, and the sea miles sailed in that time are split between the legs by [set\_voyage\_distribution](#set_voyage_distribution). The time in port is split between the ports by [set\_port\_calls](#set_port_calls).
+A `TRAMP` describes a year of operation between a pool of ports, with no start, end or order. [TimeAtSea](#timeatsea) sets the share of the year spent at sea, and the sea miles sailed in that time are split between the legs by [set\_distance\_share](#set_distance_share). The time in port is split between the ports by [set\_port\_calls](#set_port_calls).
 
 The type describes the calculation, not the market segment: choose `LINER` where the route's distances and port times are known leg by leg, and `TRAMP` where the operation is known as shares of a year.
 
@@ -222,11 +222,11 @@ This command sets the time spent in port at the end of a leg, in days: the time 
 * **Minimum value**: 0
 * **Default**: None. Must be provided by the user for every leg of a LINER.
 
-### set\_voyage\_distribution
+### set\_distance\_share
 
 This command sets the share of the sea miles sailed on a leg. It only applies to a `TRAMP` route, where it must be given for every leg, and is an error on a `LINER`. A share of 0 is allowed and means the leg is not sailed.
 
-The shares are rescaled to sum to 1 over the legs; if they are all 0, every leg gets an equal share. `set_voyage_distribution("*", "*", 1)` therefore gives every leg the same share.
+The shares are rescaled to sum to 1 over the legs; if they are all 0, every leg gets an equal share. `set_distance_share("*", "*", 1)` therefore gives every leg the same share.
 
 * **Primary key type**: String (Port name of the leg's origin; supports wildcards)
 * **Secondary key type**: String (Port name of the leg's destination; supports wildcards)

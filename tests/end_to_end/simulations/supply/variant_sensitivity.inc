@@ -5,5 +5,5 @@
 # sensitivity under test. The %name% value is filled in by
 # tests/end_to_end/test_calibration_direction.py.
 Producer "epc_ammonia" {
-	FuelCostSensitivity = %sensitivity%
+	VariantSensitivity = %sensitivity%
 }

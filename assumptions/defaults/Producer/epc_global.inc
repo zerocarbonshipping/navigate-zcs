@@ -247,9 +247,9 @@ Producer "epc_global" {
     #set_existing_pipeline("plant_ammonia_electro_alkaline_middle_east", Forecast("pipeline_ammonia_electro_alkaline_middle_east"))
 
     # feedstock availability
-    set_feed_constraint("carbon_dioxide_biogenic", <Forecast("carbon_dioxide_biogenic_availability") * Forecast("carbon_dioxide_biogenic_share_shipping")>)
-    set_feed_constraint("feedstock_biomethanol_gasification", <Forecast("feedstock_biomethanol_gasification_availability") * Forecast("feedstock_biomethanol_gasification_share_shipping")>)
-    set_feed_constraint("feedstock_bioethanol_fermentation", <Forecast("feedstock_bioethanol_fermentation_availability") * Forecast("feedstock_bioethanol_fermentation_share_shipping")>)
+    set_feed_limit("carbon_dioxide_biogenic", <Forecast("carbon_dioxide_biogenic_availability") * Forecast("carbon_dioxide_biogenic_share_shipping")>)
+    set_feed_limit("feedstock_biomethanol_gasification", <Forecast("feedstock_biomethanol_gasification_availability") * Forecast("feedstock_biomethanol_gasification_share_shipping")>)
+    set_feed_limit("feedstock_bioethanol_fermentation", <Forecast("feedstock_bioethanol_fermentation_availability") * Forecast("feedstock_bioethanol_fermentation_share_shipping")>)
 
     # development constraint
     MaximumDevelopment = <Forecast("epc_global_capacity_mid") * Forecast("epc_global_share_shipping")>

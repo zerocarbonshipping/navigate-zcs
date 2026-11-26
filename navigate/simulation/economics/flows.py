@@ -86,7 +86,7 @@ class Component:
 
         # an event may reassign the replacement share, so it is read at call time
         def replacement(time: float) -> float:
-            return region.process_replacement[process_name].get(time)
+            return region.process_replacements[process_name].get(time)
 
         self.replacement_cycle = _ReplacementCycle(lifetime.get, replacement, self)
 

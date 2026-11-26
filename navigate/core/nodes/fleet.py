@@ -86,27 +86,27 @@ class Fleet(Node):
         self.initial_split: list[float] = []
         self.initial_age_distribution: list[CurveTableInput] = []
         self.technologies: list[Technology] = []
-        self.intra_fuel_sensitivity: ForecastInput
-        self.inter_fuel_sensitivity: ForecastInput
+        self.variant_sensitivity: ForecastInput
+        self.fuel_sensitivity: ForecastInput
         self.technology_sensitivity: ForecastInput | None = None
         self.technology_cost_of_capital: ForecastInput | None = None
         self.technology_horizon: ForecastInput = Scalar(3.0)
         self.speed_horizon: ForecastInput = Scalar(1.0)
-        self.retrofit_frequency: ForecastInput = Scalar(5.0)
+        self.retrofit_interval: ForecastInput = Scalar(5.0)
         self.orderbooks: list[ForecastInput] = []
         self.allow_speed_management: bool = False
         self.maximum_speed_change: ForecastInput = Scalar(np.inf)
         self.speed_alignment: SpeedAlignmentID = SpeedAlignmentID.INDIVIDUAL
-        self.assume_reference_speed_optimal: bool = False
-        self.fuel_conversion_sensitivity: ForecastInput = Scalar(2.0)
-        self.fuel_conversion_minimum_age: ForecastInput = Scalar(0.0)
+        self.route_speed_optimal: bool = False
+        self.conversion_sensitivity: ForecastInput = Scalar(2.0)
+        self.minimum_conversion_age: ForecastInput = Scalar(0.0)
         self.allow_technology_approximation: bool = True
 
-        self.fuel_conversion_costs: dict[tuple[str, str], ForecastInput | None] = {}
-        self.fuel_conversion_limits: dict[tuple[str, str], ForecastInput] = {}
-        self.allow_vessel: dict[str, bool] = {}
-        self.newbuild_available: dict[str, bool] = {}
-        self.conversion_available: dict[str, bool] = {}
+        self.conversion_costs: dict[tuple[str, str], ForecastInput | None] = {}
+        self.conversion_limits: dict[tuple[str, str], ForecastInput] = {}
+        self.allow_vessels: dict[str, bool] = {}
+        self.allow_newbuilds: dict[str, bool] = {}
+        self.allow_conversions: dict[str, bool] = {}
         self.newbuild_limits: dict[str, ForecastInput] = {}
         self.initial_technology_shares: dict[
             tuple[str, str], Curve | Expression | None
@@ -225,9 +225,9 @@ class Fleet(Node):
         )
 
     @deck_attribute(required=True)
-    def set_intra_fuel_sensitivity(self, value: ForecastArgument) -> None:
-        """Set the within-fuel technology choice's sensitivity to LCOT."""
-        self.intra_fuel_sensitivity = assign_value(
+    def set_variant_sensitivity(self, value: ForecastArgument) -> None:
+        """Set the fuel-variant choice's sensitivity to LCOT."""
+        self.variant_sensitivity = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
@@ -235,9 +235,9 @@ class Fleet(Node):
         )
 
     @deck_attribute(required=True)
-    def set_inter_fuel_sensitivity(self, value: ForecastArgument) -> None:
+    def set_fuel_sensitivity(self, value: ForecastArgument) -> None:
         """Set the fuel-type choice's sensitivity to LCOT."""
-        self.inter_fuel_sensitivity = assign_value(
+        self.fuel_sensitivity = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
@@ -282,9 +282,9 @@ class Fleet(Node):
         )
 
     @deck_attribute()
-    def set_retrofit_frequency(self, value: ForecastArgument) -> None:
-        """Set how often a vessel can retrofit technology or convert fuel."""
-        self.retrofit_frequency = assign_value(
+    def set_retrofit_interval(self, value: ForecastArgument) -> None:
+        """Set the interval between a vessel's retrofit and conversion windows."""
+        self.retrofit_interval = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
@@ -322,14 +322,14 @@ class Fleet(Node):
         self.speed_alignment = assign_id(value, SpeedAlignmentID)
 
     @deck_attribute()
-    def set_assume_reference_speed_optimal(self, value: str) -> None:
-        """Set whether the reference speed is taken as the market optimum."""
-        self.assume_reference_speed_optimal = assign_boolean(value)
+    def set_route_speed_optimal(self, value: str) -> None:
+        """Set whether the route's speeds are taken as the market optimum."""
+        self.route_speed_optimal = assign_boolean(value)
 
     @deck_attribute()
-    def set_fuel_conversion_sensitivity(self, value: ForecastArgument) -> None:
+    def set_conversion_sensitivity(self, value: ForecastArgument) -> None:
         """Set the fuel-conversion choice's sensitivity to its NPV."""
-        self.fuel_conversion_sensitivity = assign_value(
+        self.conversion_sensitivity = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
@@ -337,9 +337,9 @@ class Fleet(Node):
         )
 
     @deck_attribute()
-    def set_fuel_conversion_minimum_age(self, value: ForecastArgument) -> None:
+    def set_minimum_conversion_age(self, value: ForecastArgument) -> None:
         """Set the minimum age at which a vessel can convert fuel."""
-        self.fuel_conversion_minimum_age = assign_value(
+        self.minimum_conversion_age = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
@@ -352,7 +352,7 @@ class Fleet(Node):
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_fuel_conversion_cost(
+    def set_conversion_cost(
         self, key1: str, key2: str, value: ForecastArgument
     ) -> None:
         """Set the cost of converting a vessel type to another."""
@@ -363,11 +363,11 @@ class Fleet(Node):
                 type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
                 lower=0.0,
             ),
-            self.fuel_conversion_costs,
+            self.conversion_costs,
         )
 
     @deck_command()
-    def set_fuel_conversion_limit(
+    def set_conversion_limit(
         self, key1: str, key2: str, value: ForecastArgument
     ) -> None:
         """Set the yearly cap on fuel conversions between two vessel types."""
@@ -379,28 +379,28 @@ class Fleet(Node):
                 lower=0.0,
                 upper=1.0,
             ),
-            self.fuel_conversion_limits,
+            self.conversion_limits,
         )
 
     @deck_command()
     def set_allow_vessel(self, key: str, value: str) -> None:
         """Set whether a vessel type may enter the fleet."""
         write_matching_keys(
-            key, assign_boolean(value), self.allow_vessel, allow_empty=True
+            key, assign_boolean(value), self.allow_vessels, allow_empty=True
         )
 
     @deck_command()
-    def set_newbuild_available(self, key: str, value: str) -> None:
+    def set_allow_newbuild(self, key: str, value: str) -> None:
         """Set whether a vessel type is available as a newbuild."""
         write_matching_keys(
-            key, assign_boolean(value), self.newbuild_available, allow_empty=True
+            key, assign_boolean(value), self.allow_newbuilds, allow_empty=True
         )
 
     @deck_command()
-    def set_conversion_available(self, key: str, value: str) -> None:
+    def set_allow_conversion(self, key: str, value: str) -> None:
         """Set whether a vessel type is available as a conversion target."""
         write_matching_keys(
-            key, assign_boolean(value), self.conversion_available, allow_empty=True
+            key, assign_boolean(value), self.allow_conversions, allow_empty=True
         )
 
     @deck_command()
@@ -498,11 +498,11 @@ class Fleet(Node):
             self.initial_age_distribution = [Scalar(0.0) for _ in self.vessels]
 
     def apply_command_defaults(self) -> None:
-        # cross-pair keys exist only after commands fill fuel_conversion_costs, so
+        # cross-pair keys exist only after commands fill conversion_costs, so
         # their limits are seeded here rather than in initialize_dependencies
-        for key, cost in self.fuel_conversion_costs.items():
+        for key, cost in self.conversion_costs.items():
             if cost is not None:
-                self.fuel_conversion_limits.setdefault(key, Scalar(1.0))
+                self.conversion_limits.setdefault(key, Scalar(1.0))
 
     def check_consistency(self) -> None:
         vessels = self.vessels
@@ -532,11 +532,11 @@ class Fleet(Node):
         # write_matching_key_pairs can validate cross-pair keys
         for vessel in self.vessels:
             name = vessel.name
-            self.fuel_conversion_costs.setdefault((name, name), None)
-            self.fuel_conversion_limits.setdefault((name, name), Scalar(1.0))
-            self.allow_vessel.setdefault(name, True)
-            self.newbuild_available.setdefault(name, True)
-            self.conversion_available.setdefault(name, True)
+            self.conversion_costs.setdefault((name, name), None)
+            self.conversion_limits.setdefault((name, name), Scalar(1.0))
+            self.allow_vessels.setdefault(name, True)
+            self.allow_newbuilds.setdefault(name, True)
+            self.allow_conversions.setdefault(name, True)
             self.newbuild_limits.setdefault(name, Scalar(1.0))
 
             for technology in self.technologies:
@@ -567,7 +567,7 @@ class Fleet(Node):
         return bool(self.technologies)
 
     def can_fuel_convert(self) -> bool:
-        return any(value is not None for value in self.fuel_conversion_costs.values())
+        return any(value is not None for value in self.conversion_costs.values())
 
     def get_number_of_packages(self) -> int:
         # the packages are cumulative and start from the empty one, so their count

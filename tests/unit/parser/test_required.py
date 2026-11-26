@@ -60,7 +60,7 @@ BASE = [
             'set_port_duration("*", "*", 1)',
         ],
     ),
-    ("Tank", "t", ["FuelTypes = OIL", "Size = 100"]),
+    ("Tank", "t", ["FuelTypes = OIL", "Volume = 100"]),
     (
         "Surface",
         "s",
@@ -85,19 +85,19 @@ BASE = [
         [
             'Vessels = [Vessel("v")]',
             "InitialVessels = 10",
-            "InterFuelSensitivity = 1",
-            "IntraFuelSensitivity = 1",
+            "FuelSensitivity = 1",
+            "VariantSensitivity = 1",
         ],
     ),
     ("Curve", "cu", [TABLE_1D]),
-    ("Emission", "e", ['GlobalWarmingPotential = Curve("cu")']),
+    ("Emission", "e", ['Gwp = Curve("cu")']),
     ("Forecast", "fc", [TABLE_1D]),
     (
         "Levy",
         "l",
         [
             "Scheme = PENALTY",
-            'Level = Forecast("fc")',
+            'Rate = Forecast("fc")',
             'Emissions = [Emission("e")]',
             'Fuels = [Fuel("f")]',
         ],
@@ -139,8 +139,8 @@ BASE = [
         "pr",
         [
             'Plants = [Plant("pl")]',
-            "FuelDemandSensitivity = 1",
-            "FuelCostSensitivity = 1",
+            "FuelSensitivity = 1",
+            "VariantSensitivity = 1",
             "MaximumDevelopment = 1",
         ],
     ),

@@ -101,7 +101,7 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     transfer_operational_savings(fleet)
     results = [_optimize_vessel_speed(vessel, idx) for vessel in fleet.vessels]
 
-    if fleet.assume_reference_speed_optimal:
+    if fleet.route_speed_optimal:
         for result in results:
             result.mu_optimal = _anchor_speed(result)
 

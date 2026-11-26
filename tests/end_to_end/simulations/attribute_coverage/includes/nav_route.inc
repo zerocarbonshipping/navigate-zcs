@@ -5,47 +5,47 @@
 #
 # Attributes covered:
 #   Route: RouteType, Ports, TimeAtSea
-#   Port:  ShorePowerCost, ShorePowerConnectionShare
+#   Port:  ShorePowerPrice, ShorePowerAvailability
 #
 # Commands covered:
 #   Route: set_speed, set_utilization, set_distance, set_port_duration,
-#          set_voyage_distribution, set_port_calls
-#   Port:  set_bunkering_allowed, set_bunkering_limit, set_bunkering_inertia,
-#          set_handling_cost, set_bunker_price_overwrite, set_bunker_wtt_overwrite,
-#          set_shore_power_emission_factor
+#          set_distance_share, set_port_calls
+#   Port:  set_allow_bunkering, set_bunkering_limit, set_bunkering_inertia,
+#          set_handling_cost, set_fuel_price, set_fuel_wtt,
+#          set_shore_power_wtt
 
 # Two ports for the legs of both route types
 Port "port_a" {
-	ShorePowerCost = 50
-	ShorePowerConnectionShare = 0.1
+	ShorePowerPrice = 50
+	ShorePowerAvailability = 0.1
 	set_bunkering_limit("lng", INF)
 	set_handling_cost("hfo", 20)
-	set_bunker_price_overwrite("hfo", 600)
-	set_bunker_price_overwrite("lng", 800)
-	set_bunker_price_overwrite("bio_methanol", 1200)
-	set_bunker_price_overwrite("blue_ammonia", 1000)
-	set_bunker_price_overwrite("ethanol", 900)
-	set_bunker_price_overwrite("hydrogen", 3000)
-	set_bunker_price_overwrite("lpg", 700)
-	set_bunker_price_overwrite("electricity", 250)
-	set_bunker_wtt_overwrite("hfo", "carbon_dioxide", 0.62)
-	set_shore_power_emission_factor("carbon_dioxide", 0.180)
+	set_fuel_price("hfo", 600)
+	set_fuel_price("lng", 800)
+	set_fuel_price("bio_methanol", 1200)
+	set_fuel_price("blue_ammonia", 1000)
+	set_fuel_price("ethanol", 900)
+	set_fuel_price("hydrogen", 3000)
+	set_fuel_price("lpg", 700)
+	set_fuel_price("electricity", 250)
+	set_fuel_wtt("hfo", "carbon_dioxide", 0.62)
+	set_shore_power_wtt("carbon_dioxide", 0.180)
 }
 
 Port "port_b" {
-	ShorePowerCost = 60
-	ShorePowerConnectionShare = 0.2
-	set_bunker_price_overwrite("hfo", 550)
-	set_bunker_price_overwrite("lng", 850)
-	set_bunker_price_overwrite("bio_methanol", 1250)
-	set_bunker_price_overwrite("blue_ammonia", 1050)
-	set_bunker_price_overwrite("ethanol", 950)
-	set_bunker_price_overwrite("hydrogen", 3100)
-	set_bunker_price_overwrite("lpg", 720)
-	set_bunker_price_overwrite("electricity", 260)
+	ShorePowerPrice = 60
+	ShorePowerAvailability = 0.2
+	set_fuel_price("hfo", 550)
+	set_fuel_price("lng", 850)
+	set_fuel_price("bio_methanol", 1250)
+	set_fuel_price("blue_ammonia", 1050)
+	set_fuel_price("ethanol", 950)
+	set_fuel_price("hydrogen", 3100)
+	set_fuel_price("lpg", 720)
+	set_fuel_price("electricity", 260)
 }
 
-# TRAMP covers: TimeAtSea, set_voyage_distribution, set_port_calls, and a
+# TRAMP covers: TimeAtSea, set_distance_share, set_port_calls, and a
 # speed Curve with a utilization Curve over the same speeds
 Route "route_tramp" {
 	RouteType = TRAMP
@@ -53,8 +53,8 @@ Route "route_tramp" {
 	TimeAtSea = 0.75
 	set_port_calls("port_a", 100)
 	set_port_calls("port_b", 20)
-	set_voyage_distribution("*", "*", 0.2)
-	set_voyage_distribution("port_a", "port_a", 0.4)
+	set_distance_share("*", "*", 0.2)
+	set_distance_share("port_a", "port_a", 0.4)
 	set_speed("*", "*", Curve("curve_tramp_speed"))
 	set_utilization("*", "*", Curve("curve_tramp_utilization"))
 	set_utilization("port_b", "port_b", 0.7)

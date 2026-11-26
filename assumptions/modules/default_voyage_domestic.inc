@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Route "*domestic*" {
-    set_voyage_distribution("*", "*", 0)
-	set_voyage_distribution("port_global", "port_global", Variable("voyage_domestic_global"))
-	set_voyage_distribution("port_europe", "port_europe", Variable("voyage_domestic_europe"))
+    set_distance_share("*", "*", 0)
+	set_distance_share("port_global", "port_global", Variable("voyage_domestic_global"))
+	set_distance_share("port_europe", "port_europe", Variable("voyage_domestic_europe"))
 }

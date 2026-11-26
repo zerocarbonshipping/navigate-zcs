@@ -9,13 +9,13 @@
 #               IntraFraction, InterFraction, ExtraFraction, RemedialCost,
 #               AllowThresholdAdjustment, FlexibilityHorizon
 #   Levy:       Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
-#               EmissionsLifetime, IncludeSlip, Level,
+#               EmissionsLifetime, IncludeSlip, Rate,
 #               LowerThreshold, UpperThreshold
 #
 # Commands covered:
-#   Regulation: set_include_vessel, set_global_warming_potential, set_fuel_wtt,
+#   Regulation: set_include_vessel, set_gwp, set_fuel_wtt,
 #               set_fuel_ttw, set_vessel_threshold, set_vessel_capacity
-#   Levy:       set_include_vessel, set_global_warming_potential, set_fuel_wtt,
+#   Levy:       set_include_vessel, set_gwp, set_fuel_wtt,
 #               set_fuel_ttw
 #
 # IDs covered:
@@ -39,8 +39,8 @@ Regulation "reg_absolute" {
 	RemedialCost = Variable("var_remedial")
 	AllowThresholdAdjustment = TRUE
 	set_include_vessel("*", TRUE)
-	set_global_warming_potential("carbon_dioxide", 1)
-	set_global_warming_potential("methane", 25)
+	set_gwp("carbon_dioxide", 1)
+	set_gwp("methane", 25)
 	set_fuel_wtt("hfo", "carbon_dioxide", 0.62)
 	set_fuel_ttw("hfo", "carbon_dioxide", 3.114)
 	# a threshold far below every vessel's emissions keeps the regulation
@@ -138,11 +138,11 @@ Levy "levy_penalty" {
 	EmissionsLifetime = 20
 	Active = TRUE
 	IncludeSlip = TRUE
-	Level = 50
+	Rate = 50
 	LowerThreshold = 0
 	UpperThreshold = 100
 	set_include_vessel("*", TRUE)
-	set_global_warming_potential("methane", 25)
+	set_gwp("methane", 25)
 	set_fuel_wtt("lng", "carbon_dioxide", 0.5)
 	set_fuel_ttw("lng", "carbon_dioxide", 2.75)
 }
@@ -156,9 +156,9 @@ Levy "levy_both" {
 	Fuels = Fuel("*")
 	Jurisdiction = [Port("port_b")]
 	Active = TRUE
-	Level = 30
+	Rate = 30
 	set_include_vessel("*", TRUE)
-	set_global_warming_potential("methane", Curve("curve_gwp_methane"))
+	set_gwp("methane", Curve("curve_gwp_methane"))
 }
 
 # SUBSIDY levy on well-to-tank emissions — pays for emissions below the threshold
@@ -168,7 +168,7 @@ Levy "levy_subsidy" {
 	Emissions = Emission("*")
 	Fuels = Fuel("*")
 	Jurisdiction = [Port("port_b")]
-	Level = 20
+	Rate = 20
 	LowerThreshold = 50
 	set_include_vessel("*", TRUE)
 }

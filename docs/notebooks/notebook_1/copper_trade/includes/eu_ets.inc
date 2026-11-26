@@ -33,9 +33,9 @@ Regulation "eu_ets" {
 	set_vessel_threshold("*", 0.)
 	set_include_vessel("*", TRUE)
 
-	set_global_warming_potential("carbon_dioxide", 1)
-	set_global_warming_potential("methane", 28)
-	set_global_warming_potential("nitrous_oxide", 265)
+	set_gwp("carbon_dioxide", 1)
+	set_gwp("methane", 28)
+	set_gwp("nitrous_oxide", 265)
 
 	# Emission factors follow MRV Maritime Regulation Annex I. Bio and electro
 	# fuels are assumed to meet the >65% criterion, so are zero-rated for CO2 but

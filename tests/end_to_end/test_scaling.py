@@ -21,7 +21,7 @@ FLEET = "container_15000_teu"
 LEVY = "combination_levy"
 
 BASE_VESSELS = 500  # InitialVessels in 0_includes/fleet.inc
-BASE_LEVEL = 100  # Level in levy.inc, USD/ton CO2-eq
+BASE_RATE = 100  # Rate in levy.inc, USD/ton CO2-eq
 FACTOR = 2
 
 # Both runs solve the same problems scaled by an exact power of two, so only
@@ -57,17 +57,17 @@ def test_twice_the_fleet_doubles_its_extensive_results(run_combination, result):
         )
 
 
-def test_twice_the_levy_level_doubles_the_first_collection(run_combination):
-    def collected(level):
+def test_twice_the_levy_rate_doubles_the_first_collection(run_combination):
+    def collected(rate):
         results = run_combination(
             ("levy.inc", {"scheme": "PENALTY", "scope": "WTW", "lower_threshold": 85}),
-            ("levy_level.inc", {"level": level}),
+            ("levy_rate.inc", {"rate": rate}),
         )
         return results.nodes.levies[LEVY].results.collected[0]
 
-    base = collected(BASE_LEVEL)
+    base = collected(BASE_RATE)
 
     assert base > 0.0, "the levy must collect"
-    assert collected(FACTOR * BASE_LEVEL) == pytest.approx(
+    assert collected(FACTOR * BASE_RATE) == pytest.approx(
         FACTOR * base, rel=SCALING_RTOL
     )

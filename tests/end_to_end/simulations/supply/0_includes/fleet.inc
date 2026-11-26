@@ -9,7 +9,7 @@
 Import Emission "nitrous_oxide"
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = 273        # ton CO2-eq/ton
+	Gwp = 273        # ton CO2-eq/ton
 }
 
 Import Vessel "container_15000_teu_ice_oil"
@@ -34,6 +34,6 @@ Fleet "container_15000_teu" {
 	]
 
 	Inertia = 0.0
-	InterFuelSensitivity = 0.75
-	IntraFuelSensitivity = 0.75
+	FuelSensitivity = 0.75
+	VariantSensitivity = 0.75
 }

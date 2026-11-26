@@ -7,8 +7,8 @@
 
 # ---- fuel prices ----
 Port "*" {
-    set_bunker_price_overwrite("fossil_fuel_oil", <Forecast("fossil_fuel_oil_price_global") * %OIL_PRICE%>)
-    set_bunker_price_overwrite("liquefied_natural_gas", <Forecast("liquefied_natural_gas_price_global") * %LNG_PRICE%>)
+    set_fuel_price("fossil_fuel_oil", <Forecast("fossil_fuel_oil_price_global") * %OIL_PRICE%>)
+    set_fuel_price("liquefied_natural_gas", <Forecast("liquefied_natural_gas_price_global") * %LNG_PRICE%>)
 }
 
 # ---- regulation ----
@@ -34,11 +34,11 @@ Region "europe" {
 }
 
 Producer "producer_biofuel" {
-    set_feed_constraint("feedstock_biomethanol_gasification", <Forecast("feedstock_biomethanol_gasification_availability") * Forecast("feedstock_biomethanol_gasification_share_shipping") * Variable("trade_share_gasifiable_biomass") * %BIOMASS_AVAILABILITY%>)
+    set_feed_limit("feedstock_biomethanol_gasification", <Forecast("feedstock_biomethanol_gasification_availability") * Forecast("feedstock_biomethanol_gasification_share_shipping") * Variable("trade_share_gasifiable_biomass") * %BIOMASS_AVAILABILITY%>)
 }
 
 Producer "producer_efuel" {
-    set_feed_constraint("carbon_dioxide_biogenic", <Forecast("carbon_dioxide_biogenic_availability_flat") * Forecast("carbon_dioxide_biogenic_share_shipping") * Variable("trade_share_biogenic_carbon_dioxide") * %BIOGENIC_CO2_AVAILABILITY%>)
+    set_feed_limit("carbon_dioxide_biogenic", <Forecast("carbon_dioxide_biogenic_availability_flat") * Forecast("carbon_dioxide_biogenic_share_shipping") * Variable("trade_share_biogenic_carbon_dioxide") * %BIOGENIC_CO2_AVAILABILITY%>)
 }
 
 # ---- the owners ----

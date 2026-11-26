@@ -3,7 +3,7 @@
 
 # The coarse grid: 2026, 2027, 2030, then every four years to 2050.
 #
-# Four years, not five: RetrofitFrequency defaults to 5, and a cohort is at a
+# Four years, not five: RetrofitInterval defaults to 5, and a cohort is at a
 # retrofit cycle in the step in which its age reaches a multiple of it, so a
 # 5-year step would make nearly every step a retrofit cycle.
 #

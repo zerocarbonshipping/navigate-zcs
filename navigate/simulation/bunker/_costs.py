@@ -63,13 +63,13 @@ def calculate_shore_power_costs(
     Returns
     -------
     dict[ExpenseID, float]
-        The port's shore-power cost and the summed cost of its imposed levies, in
+        The port's shore-power price and the summed cost of its imposed levies, in
         currency/GJ.
     """
     key = (vessel_name, port.name)
     levies = port.imposed_levies
 
-    cost = port.expectation.shore_power_cost[idx]
+    price = port.expectation.shore_power_price[idx]
     levy_cost = sum(levy.expectation.shore_power_cost[key][idx] for levy in levies)
 
-    return {ExpenseID.SHORE_POWER: cost, ExpenseID.SHORE_POWER_LEVY: levy_cost}
+    return {ExpenseID.SHORE_POWER: price, ExpenseID.SHORE_POWER_LEVY: levy_cost}

@@ -442,9 +442,9 @@ class Simulation:
         self._calculate_plant_production_expectations()
         self._calculate_plant_logistics_expectations()
 
-        # the coefficients read the policies' levels and GWPs, the vessels' effective
-        # LHVs and TTW factors, the ports' WTT overwrites and shore-power emission
-        # factors, and the plants' production and delivery WTT, all written above
+        # the coefficients read the levies' rates and the policies' GWPs, the vessels'
+        # effective LHVs and TTW factors, the ports' fuel and shore-power WTT, and the
+        # plants' production and delivery WTT, all written above
         self._calculate_policy_emission_coefficients()
 
     def _calculate_policy_expectations(self) -> None:

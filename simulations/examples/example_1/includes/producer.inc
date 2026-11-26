@@ -14,7 +14,7 @@ Producer "producer_methanol_bio" {
 
     MaximumDevelopment = 1
 
-    set_feed_constraint("feedstock_biomethanol_gasification", Forecast("feedstock_biomethanol_gasification_constraint"))
+    set_feed_limit("feedstock_biomethanol_gasification", Forecast("feedstock_biomethanol_gasification_constraint"))
 }
 
 # This forecast is simply for a single European producer instead of on a global scale.

@@ -11,13 +11,13 @@
 
 Fleet "*" {
 	# Decision sensitivities for newbuilds (odds ratios)
-	InterFuelSensitivity = 0.5 # Between fuel types: a 10% higher LCOT halves the odds
-	IntraFuelSensitivity = 0.5 # Within a single fuel type
+	FuelSensitivity = 0.5 # Between fuel types: a 10% higher LCOT halves the odds
+	VariantSensitivity = 0.5 # Within a single fuel type
 	TechnologySensitivity = 2  # Energy efficiency: a 5%-of-Capex NPV advantage doubles the odds
 }
 
 Producer "epc_europe" {
 	# Decision sensitivities for split between plants
-    FuelDemandSensitivity = 1.25 # Between fuel pathways: a 10% higher expected demand gives 1.25x the odds
-    FuelCostSensitivity = 0.5    # Within a pathway: a 10% higher LCoF halves the odds
+    FuelSensitivity = 1.25 # Between fuel pathways: a 10% higher expected demand gives 1.25x the odds
+    VariantSensitivity = 0.5    # Within a pathway: a 10% higher LCoF halves the odds
 }

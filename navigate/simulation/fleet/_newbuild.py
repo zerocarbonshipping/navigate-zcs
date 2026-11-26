@@ -225,7 +225,7 @@ def is_newbuild_allowed(fleet: Fleet) -> BoolArray:
 
     for v, vessel in enumerate(fleet.vessels):
         name = vessel.name
-        allowed[v] = fleet.allow_vessel[name] and fleet.newbuild_available[name]
+        allowed[v] = fleet.allow_vessels[name] and fleet.allow_newbuilds[name]
 
     return allowed
 
@@ -374,8 +374,8 @@ def _calculate_modelled_uptake(
         inter_metrics=metrics,
         intra_utility=UtilityID.LOWER_LOG_RATIO,
         inter_utility=UtilityID.LOWER_LOG_RATIO,
-        intra_odds=fleet.intra_fuel_sensitivity.get(),
-        inter_odds=fleet.inter_fuel_sensitivity.get(),
+        intra_odds=fleet.variant_sensitivity.get(),
+        inter_odds=fleet.fuel_sensitivity.get(),
         limits=cap_share,
         context=str(fleet),
     )

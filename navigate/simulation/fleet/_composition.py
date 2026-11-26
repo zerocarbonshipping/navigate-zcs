@@ -132,19 +132,19 @@ def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> FloatArray:
     return np.array([vessel.expectation.cargo_miles[idx] for vessel in vessels])
 
 
-def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -> bool:
+def is_retrofit_cycle(age: float, retrofit_interval: float, time_step: float) -> bool:
     """
     Return whether an increment is at a retrofit cycle.
 
     It is when the time-step that brought it to its age reached or passed a multiple
-    of the retrofit frequency, and it is older than one time-step. An age a
+    of the retrofit interval, and it is older than one time-step. An age a
     floating-point residual short of a multiple counts as on it.
 
     Parameters
     ----------
     age
         Age of the increment, in years.
-    retrofit_frequency
+    retrofit_interval
         Interval between retrofit opportunities, in years.
     time_step
         Time-step size, in years.
@@ -157,9 +157,9 @@ def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float) -
     if float(subtract(age, time_step)) <= 0.0:
         return False
 
-    scale = age / retrofit_frequency
-    cycles_at_start = snap_to_whole((age - time_step) / retrofit_frequency, scale)
-    cycles_at_end = snap_to_whole(age / retrofit_frequency, scale)
+    scale = age / retrofit_interval
+    cycles_at_start = snap_to_whole((age - time_step) / retrofit_interval, scale)
+    cycles_at_end = snap_to_whole(age / retrofit_interval, scale)
     return math.floor(cycles_at_end) > math.floor(cycles_at_start)
 
 

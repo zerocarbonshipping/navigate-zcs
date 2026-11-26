@@ -12,5 +12,5 @@ Converter "electrical_ice_ammonia_offshore" {
 	Capex = Forecast("electrical_ammonia_capex")
 	Opex = Forecast("electrical_ammonia_opex")
 	
-	set_consumption_ttw(AMMONIA, "nitrous_oxide", Variable("electrical_ammonia_nitrous_oxide_release"))
+	set_ttw(AMMONIA, "nitrous_oxide", Variable("electrical_ammonia_nitrous_oxide_release"))
 }

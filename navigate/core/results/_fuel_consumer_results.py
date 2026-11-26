@@ -74,7 +74,7 @@ class _FuelConsumerResults(BaseResults):
     total_fuel_related_expenses: FloatArray = result(Unit.CURRENCY_PER_YEAR)
 
     # CO2-equivalents under the policy's own global warming potential; a levy unit is
-    # the levy collected over its level
+    # the levy collected over its rate
     remedial_units: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
     levy_units: dict[str, FloatArray] = result(Unit.TCO2E_PER_YEAR)
 

@@ -46,8 +46,8 @@ Add the `Vessel("container_ice_methane")` to the list assigned to the attribute 
 ```python
 Fleet "container_fleet" {	
    Vessels = [Vessel("container_ice_oil"), Vessel("container_ice_methane")] 
-   InterFuelSensitivity = 0.5
-   IntraFuelSensitivity = 0.5
+   FuelSensitivity = 0.5
+   VariantSensitivity = 0.5
    InitialVessels = 100 
    TradeGrowth = 0.05
 }
@@ -66,14 +66,14 @@ You will adopt the definition of the one fleet that we created in tutorial 1 and
 ```python
 Fleet "bulk_fleet" {	
    Vessels = [Vessel("bulk_ice_methanol"), Vessel("bulk_ice_ammonia")] 
-   InterFuelSensitivity = 0.5
-   IntraFuelSensitivity = 0.5
+   FuelSensitivity = 0.5
+   VariantSensitivity = 0.5
    InitialVessels = 100
    TradeGrowth = 0.05
 }
 ```
 
-4. As in tutorial 1, the decision sensitivities are set directly on each fleet through the `InterFuelSensitivity` and `IntraFuelSensitivity` attributes above (a value of `0.5` means a 10% higher LCOT halves the odds) — there is no separate node to define.
+4. As in tutorial 1, the decision sensitivities are set directly on each fleet through the `FuelSensitivity` and `VariantSensitivity` attributes above (a value of `0.5` means a 10% higher LCOT halves the odds) — there is no separate node to define.
 
 ### Definition of all four Vessels
 
@@ -137,7 +137,7 @@ Converter "propulsion_ice_methane" {
    PilotFuelTypes = OIL
    MinimumPilotFuel = 0.05
    Efficiency = 0.51
-   set_slip_fraction(METHANE, 0.01)
+   set_slip(METHANE, 0.01)
 }
 ```
 
@@ -154,7 +154,7 @@ Converter "electrical_ice_methane" {
    PilotFuelTypes = OIL
    MinimumPilotFuel = 0.05
    Efficiency = 0.5
-   set_slip_fraction(METHANE, 0.01)
+   set_slip(METHANE, 0.01)
 }
 ```
 
@@ -280,12 +280,12 @@ You will set:
 #### Pilot Tank
 
 2. For the first pasted node `"main_oil"` in section Ci), change the name of the node from `"main_oil"` to `"pilot_oil"`.
-3. Change the Size to 2000.
+3. Change the Volume to 2000.
 
 ```python
 Tank "pilot_oil" {
    FuelTypes = OIL
-   Size = 2000
+   Volume = 2000
 }
 ```
 
@@ -298,7 +298,7 @@ The methane vessel will have a pilot fuel tank for fuel oil, and a main tank for
 ```python
 Tank "main_methane" {
    FuelTypes = METHANE
-   Size = 9000
+   Volume = 9000
 }
 ```
 
@@ -312,7 +312,7 @@ Note that it has a different fuel type.
 ```python
 Tank "main_methanol" {
    FuelTypes = METHANOL
-   Size = 9000
+   Volume = 9000
 }
 ```
 
@@ -326,7 +326,7 @@ Note that it has a different fuel type.
 ```python
 Tank "main_ammonia" {
 	FuelTypes = AMMONIA
-	Size = 9000
+	Volume = 9000
 }
 ```
 
@@ -345,8 +345,8 @@ The `Port` `"port"` node is carried over from tutorial 1. Update the heavy fuel 
 
 ```python
 Port "port" {
-   set_bunker_price_overwrite("heavy_fuel_oil", 120)
-   set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)			
+   set_fuel_price("heavy_fuel_oil", 120)
+   set_fuel_wtt("heavy_fuel_oil", "carbon_dioxide", 0.62)			
 }
 ```
 
@@ -665,13 +665,13 @@ Producer "engineering_procurement_construction_global" {
              Plant("plant_methanol_bio_gasification"),
              Plant("plant_ammonia_blue")]
    MaximumDevelopment = 10
-   FuelDemandSensitivity = 1.5
-   FuelCostSensitivity = 0.5
+   FuelSensitivity = 1.5
+   VariantSensitivity = 0.5
 }
 ```
 
-4. `FuelDemandSensitivity` controls how strongly the choice *between fuel pathways* responds to expected demand: a value of `1.5` means a pathway whose expected demand is 10% higher receives 1.5x the odds (higher demand is better, so use a value above `1`). This lets the EPC scale up the fuel with the largest gap between demand and production capacity.
-5. `FuelCostSensitivity` controls the choice *between plants producing the same fuel* by their levelized cost of fuel (LCoF): a value of `0.5` means a plant whose LCoF is 10% higher receives half the odds (lower cost is better, so use a value below `1`).
+4. `FuelSensitivity` controls how strongly the choice *between fuel pathways* responds to expected demand: a value of `1.5` means a pathway whose expected demand is 10% higher receives 1.5x the odds (higher demand is better, so use a value above `1`). This lets the EPC scale up the fuel with the largest gap between demand and production capacity.
+5. `VariantSensitivity` controls the choice *between plants producing the same fuel* by their levelized cost of fuel (LCoF): a value of `0.5` means a plant whose LCoF is 10% higher receives half the odds (lower cost is better, so use a value below `1`).
 
 ## The `EVENTS` input file
 
@@ -759,8 +759,8 @@ ModelDefinition {
 # Below is the definition of the fleet from tutorial 1. 
 Fleet "container_fleet" {
 	Vessels = [Vessel("container_ice_oil"), Vessel("container_ice_methane")]
-	InterFuelSensitivity = 0.5
-	IntraFuelSensitivity = 0.5
+	FuelSensitivity = 0.5
+	VariantSensitivity = 0.5
 	InitialVessels = 100
 	TradeGrowth = 0.05
 }
@@ -770,8 +770,8 @@ Fleet "container_fleet" {
 # described in the tutorial:
 Fleet "bulk_fleet" {
 	Vessels = [Vessel("bulk_ice_methanol"), Vessel("bulk_ice_ammonia")]
-	InterFuelSensitivity = 0.5
-	IntraFuelSensitivity = 0.5
+	FuelSensitivity = 0.5
+	VariantSensitivity = 0.5
 	InitialVessels = 100
 	TradeGrowth = 0.05
 }
@@ -835,7 +835,7 @@ Converter "propulsion_ice_methane" {
 	PilotFuelTypes = OIL
 	MinimumPilotFuel = 0.05
 	Efficiency = 0.51
-	set_slip_fraction(METHANE, 0.01)
+	set_slip(METHANE, 0.01)
 }
 
 Converter "electrical_ice_methane" {
@@ -844,7 +844,7 @@ Converter "electrical_ice_methane" {
 	PilotFuelTypes = OIL
 	MinimumPilotFuel = 0.05
 	Efficiency = 0.5
-	set_slip_fraction(METHANE, 0.01)
+	set_slip(METHANE, 0.01)
 }
 
 # Biii) DEFINITION OF METHANOL VESSEL
@@ -918,14 +918,14 @@ Route "route" {
 	RouteType = TRAMP
 	Ports = [Port("port")]
 	TimeAtSea = 0.75
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 	set_speed("*", "*", 10)
 }
 
 # Define the vessel tank below.
 Tank "main_oil" {
 	FuelTypes = OIL
-	Size = 9000
+	Volume = 9000
 }
 
 # Ci) DEFINITION OF PILOT TANK
@@ -933,7 +933,7 @@ Tank "main_oil" {
 # Paste the node Tank "main_oil" from section C) below.
 Tank "pilot_oil" {
 	FuelTypes = OIL
-	Size = 2000
+	Volume = 2000
 }
 
 # Cii) DEFINITION OF METHANE TANK
@@ -941,7 +941,7 @@ Tank "pilot_oil" {
 # Paste the node Tank "main_oil" from section C) below.
 Tank "main_methane" {
 	FuelTypes = METHANE
-	Size = 9000
+	Volume = 9000
 }
 
 
@@ -950,7 +950,7 @@ Tank "main_methane" {
 # Paste the node Tank "main_oil" from section C) below.
 Tank "main_methanol" {
 	FuelTypes = METHANOL
-	Size = 9000
+	Volume = 9000
 }
 
 
@@ -959,7 +959,7 @@ Tank "main_methanol" {
 # Paste the node Tank "main_oil" from section C) below.
 Tank "main_ammonia" {
 	FuelTypes = AMMONIA
-	Size = 9000
+	Volume = 9000
 }
 
 
@@ -967,8 +967,8 @@ Tank "main_ammonia" {
 # Definition of the node "port" from tutorial 1 below:
 
 Port "port" {
-	set_bunker_price_overwrite("heavy_fuel_oil", 120)
-	set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)
+	set_fuel_price("heavy_fuel_oil", 120)
+	set_fuel_wtt("heavy_fuel_oil", "carbon_dioxide", 0.62)
 }
 
 Region "region" {
@@ -1021,15 +1021,15 @@ Fuel "heavy_fuel_oil" {
 }
 
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }
 
 Emission "methane" {
-	GlobalWarmingPotential = 25
+	Gwp = 25
 }
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = 273
+	Gwp = 273
 }
 
 
@@ -1156,8 +1156,8 @@ Producer "engineering_procurement_construction_global" {
 		Plant("plant_ammonia_blue")
 	]
 	
-	FuelDemandSensitivity = 1.5
-	FuelCostSensitivity = 0.5
+	FuelSensitivity = 1.5
+	VariantSensitivity = 0.5
 
 	MaximumDevelopment = 10
 }

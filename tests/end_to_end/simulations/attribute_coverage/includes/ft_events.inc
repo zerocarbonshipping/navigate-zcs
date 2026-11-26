@@ -32,8 +32,8 @@ Converter "prop_oil" {
 	Opex = 55000
 	Lifetime = 25
 	Replacement = 0.6
-	set_slip_fraction(OIL, 0.0)
-	set_consumption_ttw(OIL, "nitrous_oxide", 0.00020)
+	set_slip(OIL, 0.0)
+	set_ttw(OIL, "nitrous_oxide", 0.00020)
 }
 
 Tank "tank_oil" {
@@ -61,27 +61,27 @@ Fleet "fleet_a" {
 	AllowSecondaryScrapping = FALSE
 	Inertia = 0.1
 	Memory = 0.5
-	InterFuelSensitivity = 0.6
-	IntraFuelSensitivity = 0.02
+	FuelSensitivity = 0.6
+	VariantSensitivity = 0.02
 	TechnologySensitivity = 1
-	RetrofitFrequency = 4
-	FuelConversionSensitivity = 3
-	FuelConversionMinimumAge = 4
+	RetrofitInterval = 4
+	ConversionSensitivity = 3
+	MinimumConversionAge = 4
 	AllowTechnologyApproximation = FALSE
 	TechnologyHorizon = 4
-	set_fuel_conversion_cost("vessel_oil", "vessel_methane", 12e6)
-	set_newbuild_available("vessel_methane", TRUE)
-	set_conversion_available("vessel_methane", TRUE)
+	set_conversion_cost("vessel_oil", "vessel_methane", 12e6)
+	set_allow_newbuild("vessel_methane", TRUE)
+	set_allow_conversion("vessel_methane", TRUE)
 	set_newbuild_limit("vessel_oil", 0.8)
 	set_newbuild_technology_limit("tech_ees", 0.08)
 	set_retrofit_technology_limit("tech_ees", 0.05)
-	set_fuel_conversion_limit("vessel_oil", "vessel_methane", 0.5)
+	set_conversion_limit("vessel_oil", "vessel_methane", 0.5)
 }
 
 Fleet "fleet_b" {
 	set_allow_vessel("vessel_ammonia", TRUE)
-	set_newbuild_available("vessel_ammonia", TRUE)
-	set_conversion_available("vessel_ammonia", FALSE)
+	set_allow_newbuild("vessel_ammonia", TRUE)
+	set_allow_conversion("vessel_ammonia", FALSE)
 }
 
 # --- 2029: Technology & Energy -----------------------------------------------
@@ -113,7 +113,7 @@ Fleet "fleet_a" {
 	MaximumSpeedChange = INF
 	SpeedHorizon = 2
 	SpeedAlignment = AVERAGE
-	AssumeReferenceSpeedOptimal = TRUE
+	RouteSpeedOptimal = TRUE
 	set_operational_saving_sea(PROPULSION, 0.06)
 	set_operational_saving_port(ELECTRICAL, 0.04)
 	set_operational_saving_port(HEAT, 0.02)
@@ -124,20 +124,20 @@ Fleet "fleet_a" {
 Date "01-01-2031"
 
 Port "port_a" {
-	ShorePowerCost = 45
-	ShorePowerConnectionShare = 0.15
-	set_bunkering_allowed("blue_ammonia", TRUE)
+	ShorePowerPrice = 45
+	ShorePowerAvailability = 0.15
+	set_allow_bunkering("blue_ammonia", TRUE)
 	set_bunkering_limit("lng", 600000)
 	set_bunkering_inertia("lng", 0.6)
 	set_handling_cost("hfo", 22)
-	set_bunker_price_overwrite("hfo", 620)
-	set_bunker_wtt_overwrite("hfo", "carbon_dioxide", 0.60)
-	set_shore_power_emission_factor("carbon_dioxide", 0.150)
+	set_fuel_price("hfo", 620)
+	set_fuel_wtt("hfo", "carbon_dioxide", 0.60)
+	set_shore_power_wtt("carbon_dioxide", 0.150)
 }
 
 Port "port_b" {
-	ShorePowerCost = 55
-	ShorePowerConnectionShare = 0.25
+	ShorePowerPrice = 55
+	ShorePowerAvailability = 0.25
 }
 
 # --- 2032: Policy changes ----------------------------------------------------
@@ -156,7 +156,7 @@ Regulation "reg_absolute" {
 	# non-compliant, so the threshold adjustment runs
 	set_vessel_threshold("vessel_oil", 1)
 	set_vessel_threshold("vessel_methane", 1)
-	set_global_warming_potential("methane", 28)
+	set_gwp("methane", 28)
 	set_fuel_wtt("hfo", "carbon_dioxide", 0.65)
 	set_fuel_ttw("hfo", "carbon_dioxide", 3.2)
 	set_include_vessel("vessel_oil", TRUE)
@@ -175,18 +175,18 @@ Regulation "reg_transport" {
 
 Levy "levy_penalty" {
 	Active = TRUE
-	Level = 60
+	Rate = 60
 	LowerThreshold = 5
 	UpperThreshold = 90
 	IncludeSlip = FALSE
-	set_global_warming_potential("methane", 28)
+	set_gwp("methane", 28)
 	set_fuel_wtt("lng", "carbon_dioxide", 0.55)
 	set_fuel_ttw("lng", "carbon_dioxide", 2.80)
 	set_include_vessel("vessel_methane", TRUE)
 }
 
 Levy "levy_both" {
-	Level = 35
+	Rate = 35
 }
 
 Fleet "fleet_a" {
@@ -216,14 +216,14 @@ Process "methanol_synthesis" {
 Producer "producer_global" {
 	Inertia = 0.15
 	MinimumOfftakeDuration = 2
-	FuelDemandSensitivity = 1.3
-	FuelCostSensitivity = 0.6
+	FuelSensitivity = 1.3
+	VariantSensitivity = 0.6
 	MaximumDevelopment = 6
 	MaximumRampUp = 0.6
-	JumpStartFraction = 0.15
+	JumpStart = 0.15
 	set_allow_plant("plant_methanol", TRUE)
-	set_feed_constraint("water", INF)
-	set_export_distribution("port_a", 1.0)
+	set_feed_limit("water", INF)
+	set_export_weight("port_a", 1.0)
 }
 
 Region "region_a" {
@@ -249,8 +249,8 @@ Date "01-01-2034"
 Route "route_tramp" {
 	TimeAtSea = 0.70
 	set_port_calls("port_a", 105)
-	set_voyage_distribution("port_a", "port_b", 0.3)
-	set_voyage_distribution("port_b", "port_a", 0.1)
+	set_distance_share("port_a", "port_b", 0.3)
+	set_distance_share("port_b", "port_a", 0.1)
 	set_utilization("port_b", "port_b", 0.75)
 }
 
@@ -315,8 +315,8 @@ Timetable "timetable_cost" {
 }
 
 Fleet "fleet_a" {
-	InterFuelSensitivity = 0.4
-	FuelConversionSensitivity = 2.5
+	FuelSensitivity = 0.4
+	ConversionSensitivity = 2.5
 	SpeedAlignment = MAXIMUM
 }
 

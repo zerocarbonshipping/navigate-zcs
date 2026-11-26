@@ -56,7 +56,7 @@ class RegulationExpectation(_Expectation):
                         key = (*fuel_key, emission_name)
                         vessel_converter_fuel_emissions.append(key)
 
-        self.global_warming_potential = self._values(emission_names)  # tCO2e/t emission
+        self.gwp = self._values(emission_names)  # tCO2e/t emission
 
         self.wtt = self._paths(vessel_fuel_emissions)  # tCO2e/t
         self.ttw_consumption = self._paths(vessel_converter_fuel_emissions)  # tCO2e/t

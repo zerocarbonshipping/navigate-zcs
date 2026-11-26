@@ -4,5 +4,5 @@
 # Re-opens the base ports with the LNG bunker price under test. The %name%
 # value is filled in by tests/end_to_end/test_fuel_price_response.py.
 Port "*" {
-	set_bunker_price_overwrite("liquefied_natural_gas", %lng_price%)    # USD/ton
+	set_fuel_price("liquefied_natural_gas", %lng_price%)    # USD/ton
 }

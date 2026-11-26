@@ -117,7 +117,7 @@ def test_every_accepted_kind_reads_the_same_load(build):
     assert vessel.propulsion_load.get(SPEED, UTILIZATION) == pytest.approx(LOAD)
 
 
-# sets a Levy level to a Forecast calculated for day 50 and reads the level
+# sets a Levy rate to a Forecast calculated for day 50 and reads the rate
 # without input; it returns that step's value, 8.
 # catches: a Forecast assigned to an attribute read at the wrong time, e.g. at
 # day 0, giving 0 instead of 8.
@@ -129,14 +129,14 @@ def test_forecast_reads_the_value_of_the_current_step():
     forecast.precalculate(50.0)
 
     levy = Levy("l")
-    levy.set_level(forecast)
+    levy.set_rate(forecast)
 
-    assert levy.level.get() == pytest.approx(LOAD)
+    assert levy.rate.get() == pytest.approx(LOAD)
 
 
 # gives a setter a node type it does not accept (a Forecast for a vessel load, a
-# Curve for a levy level, a stray word) and expects an error naming the types.
-# catches: the type check removed, so a Curve on a levy level is read without an
+# Curve for a levy rate, a stray word) and expects an error naming the types.
+# catches: the type check removed, so a Curve on a levy rate is read without an
 # x and fails later with a confusing error.
 @pytest.mark.parametrize(
     ("setter", "value", "match"),
@@ -147,7 +147,7 @@ def test_forecast_reads_the_value_of_the_current_step():
             "nodes of type Curve, Surface or Variable, but got Forecast",
         ),
         (
-            Levy.set_level,
+            Levy.set_rate,
             Curve("c"),
             "nodes of type Forecast or Variable, but got Curve",
         ),
@@ -163,15 +163,15 @@ def test_a_kind_outside_the_setter_types_is_refused(setter, value, match):
         setter(owner, value)
 
 
-# puts an expression that reads a Curve on a Levy level, which only takes
+# puts an expression that reads a Curve on a Levy rate, which only takes
 # Forecast and Variable, and expects the reference to be refused.
 # catches: expressions used as a back door around the setter's type check.
 def test_an_expression_referencing_a_refused_type_is_refused():
-    # the Levy level takes Forecast and Variable, so neither may an expression
+    # the Levy rate takes Forecast and Variable, so neither may an expression
     # assigned to it read a Curve
     levy = Levy("l")
     expression = _build_expression('Curve("c")', Curve("c"), levy)
-    levy.set_level(expression)
+    levy.set_rate(expression)
 
     with pytest.raises(ValueError, match="references unacceptable type Curve"):
         expression.check_consistency()

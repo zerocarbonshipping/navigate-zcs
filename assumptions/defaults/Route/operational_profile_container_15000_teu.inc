@@ -11,7 +11,7 @@ Route "operational_profile_container_15000_teu" {
 	set_port_calls("port_europe", 7)
 
 	TimeAtSea = 0.63
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", Curve("speed_distribution_container_15000_teu"))
 	set_utilization("*", "*", 0.7)

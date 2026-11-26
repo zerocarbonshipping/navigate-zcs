@@ -39,7 +39,7 @@ class Levy(_Policy):
 
         # external variables -----------------------------------------------------------
         self.scheme: LevySchemeID
-        self.level: ForecastInput = Scalar(0.0)
+        self.rate: ForecastInput = Scalar(0.0)
         self.lower_threshold: ForecastInput = Scalar(0.0)
         self.upper_threshold: ForecastInput | None = None
 
@@ -54,9 +54,9 @@ class Levy(_Policy):
         self.scheme = assign_id(value, LevySchemeID)
 
     @deck_attribute()
-    def set_level(self, value: ForecastArgument) -> None:
-        """Set the levy level paid or received, depending on scheme."""
-        self.level = assign_value(
+    def set_rate(self, value: ForecastArgument) -> None:
+        """Set the levy rate paid or received, depending on scheme."""
+        self.rate = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,

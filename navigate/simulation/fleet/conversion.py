@@ -299,7 +299,7 @@ def _reconcile_fuel_conversion_caps(
     """
     Scale the proposals in place to the per-pair flow caps.
 
-    ``set_fuel_conversion_limit("from", "to", l)`` caps the fraction of the total fleet
+    ``set_conversion_limit("from", "to", l)`` caps the fraction of the total fleet
     allowed to convert on a (from, to) lane per year:
     ``pair_cap[from, to] = l * time_step * existing_total``, where
     ``existing_total`` is the number of vessels in the fleet before newbuilds. The cap
@@ -325,7 +325,7 @@ def _reconcile_fuel_conversion_caps(
 
     pair_scale = {}
     for pair, proposed in pair_proposed.items():
-        limit = fleet.fuel_conversion_limits[pair].get()
+        limit = fleet.conversion_limits[pair].get()
         pair_cap = limit * time_step * existing_total
         if proposed > pair_cap:
             pair_scale[pair] = pair_cap / proposed
@@ -392,8 +392,8 @@ def _eligible_cohorts(
         Each eligible cohort, vessel type by vessel type, youngest first.
     """
     time = timeline[idx]
-    retrofit_frequency = fleet.retrofit_frequency.get()
-    minimum_age = fleet.fuel_conversion_minimum_age.get()
+    retrofit_interval = fleet.retrofit_interval.get()
+    minimum_age = fleet.minimum_conversion_age.get()
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
 
@@ -413,7 +413,7 @@ def _eligible_cohorts(
         # claim the working supply excess first
         for increment in reversed(increments):
             age = increment.age(time)
-            if not is_retrofit_cycle(age, retrofit_frequency, time_step):
+            if not is_retrofit_cycle(age, retrofit_interval, time_step):
                 continue
 
             mean_age = age + increment.age_span / 2.0
@@ -464,11 +464,11 @@ def _extract_conversion_source(
         type.
     """
     targets = {}
-    for (name_from, name_to), cost in fleet.fuel_conversion_costs.items():
+    for (name_from, name_to), cost in fleet.conversion_costs.items():
         if name_from != vessel_from.name or cost is None:
             continue
 
-        if not (fleet.allow_vessel[name_to] and fleet.conversion_available[name_to]):
+        if not (fleet.allow_vessels[name_to] and fleet.allow_conversions[name_to]):
             continue
 
         vessel_to = vessels[name_to]
@@ -659,7 +659,7 @@ def _choose_conversions(
     # dropped on return
     metrics = [candidate.metric for candidate in candidates.values()] + [0.0]
     limits = [candidate.limit for candidate in candidates.values()] + [1.0]
-    sensitivity = fleet.fuel_conversion_sensitivity.get()
+    sensitivity = fleet.conversion_sensitivity.get()
 
     shares, _ = calculate_asset_shares(
         metrics,
@@ -993,5 +993,5 @@ def _port_fuels(vessel: Vessel, fuels: dict[str, Fuel]) -> Iterator[tuple[Port, 
     """
     for port in vessel.route.distinct_ports:
         for fuel in fuels.values():
-            if port.bunkering_allowed[fuel.name]:
+            if port.allow_bunkering[fuel.name]:
                 yield port, fuel

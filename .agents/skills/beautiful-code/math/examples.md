@@ -61,7 +61,7 @@ for (vessel, increment) in fleet.iterate_increments(reverse=True):
     span = increment.span
     count = increment.count
 
-    if not is_retrofit_cycle(age, frequency, dt):
+    if not is_retrofit_cycle(age, interval, dt):
         continue
 
     age_mid = age + span / 2.0
@@ -83,7 +83,7 @@ What makes it good:
   length: `age`, `span`, `count`. This shortens the code below, and a reader easily sees
   that, for example, `age` is `increment.age`
 - Names are short but still descriptive: `dt` (known mathematical notation) instead of
-  `time_step`, and `frequency` instead of `retrofit_frequency`
+  `time_step`, and `interval` instead of `retrofit_interval`
 
 #### Ugly but correct
 
@@ -98,7 +98,7 @@ for v, vessel_from in enumerate(fleet.vessels):
         increment = increments[increment_idx]
 
         if not is_retrofit_cycle(
-            increment.age, retrofit_frequency, time_step_years
+            increment.age, retrofit_interval, time_step_years
         ):
             continue
 

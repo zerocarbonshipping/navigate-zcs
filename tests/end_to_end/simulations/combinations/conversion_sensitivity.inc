@@ -5,5 +5,5 @@
 # under test. The %name% value is filled in by
 # tests/end_to_end/test_calibration_direction.py.
 Fleet "container_15000_teu" {
-	FuelConversionSensitivity = %sensitivity%
+	ConversionSensitivity = %sensitivity%
 }

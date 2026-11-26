@@ -43,9 +43,9 @@ Regulation "eu_ets" {
 	set_include_vessel("*", TRUE)
 	
 	# Global warming potentials
-	set_global_warming_potential("carbon_dioxide", 1)
-	set_global_warming_potential("methane", 28)
-	set_global_warming_potential("nitrous_oxide", 265)
+	set_gwp("carbon_dioxide", 1)
+	set_gwp("methane", 28)
+	set_gwp("nitrous_oxide", 265)
 	
 	# DEFAULT EMISSION FACTORS
 	# EU ETS emission factors are based on MRV Maritime Regulation Annex I.

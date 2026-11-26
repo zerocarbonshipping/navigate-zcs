@@ -31,7 +31,7 @@ class Tank(_Machinery):
 
         # external variables -----------------------------------------------------------
         self.fuel_types: list[FuelTypeID]
-        self.size: ScalarInput
+        self.volume: ScalarInput
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -40,6 +40,8 @@ class Tank(_Machinery):
         self.fuel_types = assign_id_list(value, FuelTypeID, min_length=1, unique=True)
 
     @deck_attribute(SECTION_DEFINE, required=True)
-    def set_size(self, value: ScalarArgument) -> None:
-        """Set the volumetric size of the tank."""
-        self.size = assign_value(as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0)
+    def set_volume(self, value: ScalarArgument) -> None:
+        """Set the volume of the tank."""
+        self.volume = assign_value(
+            as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0
+        )

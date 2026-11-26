@@ -15,8 +15,8 @@ ModelDefinition {
 # Below is the definition of the fleet from tutorial 1. 
 Fleet "fleet" {
 	Vessels = [Vessel("vessel_ice_oil")]
-	InterFuelSensitivity = 0.5
-	IntraFuelSensitivity = 0.5
+	FuelSensitivity = 0.5
+	VariantSensitivity = 0.5
 	InitialVessels = 100
 }
 
@@ -26,7 +26,7 @@ Fleet "fleet" {
 
 
 # Aiii) Decision sensitivities are now set directly on the fleet above
-# (InterFuelSensitivity, IntraFuelSensitivity, TechnologySensitivity).
+# (FuelSensitivity, VariantSensitivity, TechnologySensitivity).
 
 
 # B) DEFINITION OF ALL FOUR VESSELS
@@ -100,7 +100,7 @@ Route "route" {
 	RouteType = TRAMP
 	Ports = [Port("port")]
 	TimeAtSea = 0.75
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 	set_speed("*", "*", 10)
 }
 
@@ -108,7 +108,7 @@ Route "route" {
 # Define the vessel tank below.
 Tank "main_oil" {
 	FuelTypes = OIL
-	Size = 9000
+	Volume = 9000
 }
 
 # Ci) DEFINITION OF PILOT TANK
@@ -137,8 +137,8 @@ Tank "main_oil" {
 # D) DEFINITION OF THE PORT AND THE REGION
 # Definition of the node "port" and BunkeringLogistics from tutorial 1 below:
 Port "port" {
-	set_bunker_price_overwrite("heavy_fuel_oil", 250)
-	set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)
+	set_fuel_price("heavy_fuel_oil", 250)
+	set_fuel_wtt("heavy_fuel_oil", "carbon_dioxide", 0.62)
 }
 
 
@@ -170,15 +170,15 @@ Fuel "heavy_fuel_oil" {
 }
 
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }
 
 Emission "methane" {
-	GlobalWarmingPotential = 25
+	Gwp = 25
 }
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = 273
+	Gwp = 273
 }
 
 
@@ -218,7 +218,7 @@ Emission "nitrous_oxide" {
 # Define the Producer "engineering_procyurement_construction_global"
 
 
-# Set the producer decision sensitivities (FuelDemandSensitivity, FuelCostSensitivity)
+# Set the producer decision sensitivities (FuelSensitivity, VariantSensitivity)
 
 
 

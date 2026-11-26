@@ -11,15 +11,15 @@
 #   Plant:     Fuel, Process, Source, Region, CostOfCapital, Capacity, Uptime,
 #              Lifetime, LeadTime
 #   Producer:  Plants, InitialCapacity, InitialAgeDistribution, Inertia,
-#              MinimumOfftakeDuration, FuelDemandSensitivity, FuelCostSensitivity,
-#              MaximumDevelopment, MaximumRampUp, JumpStartFraction
+#              MinimumOfftakeDuration, FuelSensitivity, VariantSensitivity,
+#              MaximumDevelopment, MaximumRampUp, JumpStart
 #   Region:    (none - only commands)
 #
 # Commands covered:
 #   Plant:    set_feed_transport, set_feed_distance, set_fuel_transport,
 #             set_fuel_distance
-#   Producer: set_existing_pipeline, set_allow_plant, set_feed_constraint,
-#             set_export_distribution
+#   Producer: set_existing_pipeline, set_allow_plant, set_feed_limit,
+#             set_export_weight
 #   Region:   set_process_capex, set_process_opex, set_process_energy,
 #             set_process_lifetime, set_process_replacement, set_process_wtt,
 #             set_source_capex, set_source_opex, set_source_wtt,
@@ -98,13 +98,13 @@ Producer "producer_global" {
 	InitialAgeDistribution = [Curve("curve_plant_age"), Curve("curve_plant_age")]
 	Inertia = 0.1
 	MinimumOfftakeDuration = 1
-	FuelDemandSensitivity = 1.25
-	FuelCostSensitivity = 0.5
+	FuelSensitivity = 1.25
+	VariantSensitivity = 0.5
 	MaximumDevelopment = 5
 	MaximumRampUp = 0.5
-	JumpStartFraction = <0.05 * 2>
+	JumpStart = <0.05 * 2>
 	set_existing_pipeline("plant_methanol", Forecast("fc_pipeline"))
 	set_allow_plant("plant_methanol", TRUE)
-	set_feed_constraint("water", 1e6)
-	set_export_distribution("port_a", 1.0)
+	set_feed_limit("water", 1e6)
+	set_export_weight("port_a", 1.0)
 }

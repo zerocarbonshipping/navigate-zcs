@@ -19,7 +19,7 @@ Route "combination_route" {
 	set_port_calls("port_global", 41)
 	set_port_calls("port_europe", 7)
 
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 	set_speed("*", "*", Curve("combination_route_speeds"))
 	set_utilization("*", "*", 0.7)
 }

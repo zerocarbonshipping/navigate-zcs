@@ -160,7 +160,7 @@ Open your Tutorial 2 `define.inc` file and copy the depicted nodes into their re
 #### `fleet_bulk.inc`
 
 1. Copy the relevant section from T2DEF into the empty file.
-2. Remove the attribute definitions `InterFuelSensitivity` and `IntraFuelSensitivity` from the node definition (they will be set for all fleets at once in `fleet_uptake.inc`).
+2. Remove the attribute definitions `FuelSensitivity` and `VariantSensitivity` from the node definition (they will be set for all fleets at once in `fleet_uptake.inc`).
 
 ```python
 Fleet "bulk_fleet" {	
@@ -173,7 +173,7 @@ Fleet "bulk_fleet" {
 #### `fleet_container.inc`
 
 1. Copy the relevant section from T2DEF into the empty file.
-2. Remove the attribute definitions `InterFuelSensitivity` and `IntraFuelSensitivity` from the node definition (they will be set for all fleets at once in `fleet_uptake.inc`).
+2. Remove the attribute definitions `FuelSensitivity` and `VariantSensitivity` from the node definition (they will be set for all fleets at once in `fleet_uptake.inc`).
 
 ```python
 Fleet "container_fleet" {	
@@ -185,14 +185,14 @@ Fleet "container_fleet" {
 
 #### `fleet_uptake.inc`
 
-1. Assign the attributes `InterFuelSensitivity` and `IntraFuelSensitivity` to all defined nodes of the type `Fleet`. 
+1. Assign the attributes `FuelSensitivity` and `VariantSensitivity` to all defined nodes of the type `Fleet`. 
 2. The star `*` is a ‘wildcard’. So, when we define the node `Fleet "*"` the listed attributes under it will apply to any node that has the node-type `Fleet`.
 3. A value of `0.5` is an odds ratio: a fuel or technology whose levelized cost of transport (LCOT) is 10% higher receives half the odds of an otherwise identical option (lower cost is better, so use a value below `1`).
 
 ```python
 Fleet "*" {	
-   InterFuelSensitivity = 0.5
-   IntraFuelSensitivity = 0.5
+   FuelSensitivity = 0.5
+   VariantSensitivity = 0.5
 }
 ```
 
@@ -292,15 +292,15 @@ Fuel "ammonia_blue" {
 
 ```python
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }
 
 Emission "methane" {
-	GlobalWarmingPotential = 25
+	Gwp = 25
 }
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = 273
+	Gwp = 273
 }
 ```
 
@@ -390,12 +390,12 @@ Producer "engineering_procurement_construction" {
               Plant("plant_methanol_bio_gasification"),
               Plant("plant_ammonia_blue")]
     MaximumDevelopment = 10
-    FuelDemandSensitivity = 1.5
-    FuelCostSensitivity = 0.5
+    FuelSensitivity = 1.5
+    VariantSensitivity = 0.5
 }
 ```
 
-`FuelDemandSensitivity = 1.5` favours the fuel pathways with the largest expected demand (a 10% higher demand gives 1.5x the odds), while `FuelCostSensitivity = 0.5` favours the cheaper plants within a pathway (a 10% higher levelized cost of fuel halves the odds).
+`FuelSensitivity = 1.5` favours the fuel pathways with the largest expected demand (a 10% higher demand gives 1.5x the odds), while `VariantSensitivity = 0.5` favours the cheaper plants within a pathway (a 10% higher levelized cost of fuel halves the odds).
 
 3. The decision sensitivities are now set directly on the `Producer`, so the `producer_uptake.inc` file is left empty — there are no separate uptake nodes to define.
 
@@ -521,7 +521,7 @@ The structure will be the exact same as in the input file you already created fo
 
 ```python
 Port "port" {	
-    set_bunker_price_overwrite("heavy_fuel_oil", 100) 
+    set_fuel_price("heavy_fuel_oil", 100) 
 }
 ```
 
@@ -625,7 +625,7 @@ However, from the location of `scenario_100.nav`, it is 1 level 'up' to the fold
 
 ```python
 Port "port" {
-    set_bunker_price_overwrite("heavy_fuel_oil", 170) 
+    set_fuel_price("heavy_fuel_oil", 170) 
 }
 ```
 
@@ -882,7 +882,7 @@ EVENTS {
 ```python
 # Definition of port with alternative bunkering price
 Port "port" {
-	set_bunker_price_overwrite("heavy_fuel_oil", 100)
+	set_fuel_price("heavy_fuel_oil", 100)
 }
 ```
 :::
@@ -891,7 +891,7 @@ Port "port" {
 ```python
 # Definition of port with alternative bunkering price
 Port "port" {
-	set_bunker_price_overwrite("heavy_fuel_oil", 170)
+	set_fuel_price("heavy_fuel_oil", 170)
 }
 ```
 :::
@@ -980,7 +980,7 @@ Converter "propulsion_ice_methane" {
 	PilotFuelTypes = OIL
 	MinimumPilotFuel = 0.05
 	Efficiency = 0.51
-	set_slip_fraction(METHANE, 0.01)
+	set_slip(METHANE, 0.01)
 }
 
 Converter "electrical_ice_methane" { 
@@ -989,7 +989,7 @@ Converter "electrical_ice_methane" {
 	PilotFuelTypes = OIL
 	MinimumPilotFuel = 0.05
 	Efficiency = 0.5
-	set_slip_fraction(METHANE, 0.01)
+	set_slip(METHANE, 0.01)
 }
 ```
 :::
@@ -1031,15 +1031,15 @@ Converter "heat_boiler_oil" {
 :::{dropdown} 0_includes_global/emissions.inc
 ```python
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }
 
 Emission "methane" {
-	GlobalWarmingPotential = 25
+	Gwp = 25
 }
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = 273
+	Gwp = 273
 }
 ```
 :::
@@ -1099,8 +1099,8 @@ Fleet "container_fleet" {
 # Definition of fleets' decision sensitivities (odds ratios; LCOT is lower-is-better, so below 1)
 
 Fleet "*" {
-	InterFuelSensitivity = 0.5
-	IntraFuelSensitivity = 0.5
+	FuelSensitivity = 0.5
+	VariantSensitivity = 0.5
 }
 ```
 :::
@@ -1204,8 +1204,8 @@ Plant "plant_ammonia_blue" {
 ```python
 # Definition of port
 Port "port" {
-	set_bunker_price_overwrite("heavy_fuel_oil", 250)
-	set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)
+	set_fuel_price("heavy_fuel_oil", 250)
+	set_fuel_wtt("heavy_fuel_oil", "carbon_dioxide", 0.62)
 }
 ```
 :::
@@ -1251,8 +1251,8 @@ Process "nitrogen_air_seperation" {
 
 Producer "engineering_procurement_construction" {
 	Plants = [Plant("plant_methane_electro"), Plant("plant_methanol_bio_gasification"), Plant("plant_ammonia_blue")]
-	FuelDemandSensitivity = 1.5
-	FuelCostSensitivity = 0.5
+	FuelSensitivity = 1.5
+	VariantSensitivity = 0.5
 
 	MaximumDevelopment = 10
 }
@@ -1262,7 +1262,7 @@ Producer "engineering_procurement_construction" {
 :::{dropdown} 0_includes_global/producer_uptake.inc
 ```python
 # Producer decision sensitivities are now set directly on the Producer in producer.inc
-# (FuelDemandSensitivity, FuelCostSensitivity), so no separate uptake definitions are needed here.
+# (FuelSensitivity, VariantSensitivity), so no separate uptake definitions are needed here.
 ```
 :::
 
@@ -1315,7 +1315,7 @@ Route "route" {
 	RouteType = TRAMP
 	Ports = [Port("port")]
 	TimeAtSea = 0.75
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 	set_speed("*", "*", 10)
 }
 ```
@@ -1342,29 +1342,29 @@ Source "grid" {  #blue and bio fuels sources electricity from the grid in the re
 
 Tank "pilot_oil" { 			
 	FuelTypes = OIL
-	Size = 2000 	
+	Volume = 2000 	
 }
 
 # Definition of main fuel tanks
 
 Tank "main_oil" { 			
 	FuelTypes = OIL
-	Size = 9000 	
+	Volume = 9000 	
 }
 
 Tank "main_methane" { 			
 	FuelTypes = METHANE 			
-	Size = 9000 	
+	Volume = 9000 	
 }
 
 Tank "main_methanol" { 			
 	FuelTypes = METHANOL 			
-	Size = 9000 	
+	Volume = 9000 	
 }
 
 Tank "main_ammonia" { 			
 	FuelTypes = AMMONIA 			
-	Size = 9000 	
+	Volume = 9000 	
 }
 ```
 :::

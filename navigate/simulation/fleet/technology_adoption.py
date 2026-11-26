@@ -470,10 +470,10 @@ def _retrofit_cohorts(
         package over that lifetime, in currency/year.
     """
     packages = fleet.technology_packages
-    frequency = fleet.retrofit_frequency.get()
+    interval = fleet.retrofit_interval.get()
 
     for increment in fleet.increments[basis.vessel_idx]:
-        if not is_retrofit_cycle(increment.age(time), frequency, time_step):
+        if not is_retrofit_cycle(increment.age(time), interval, time_step):
             continue
 
         remaining = _get_remaining_lifetime(basis.vessel, increment, time)

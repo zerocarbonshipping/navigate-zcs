@@ -102,7 +102,7 @@ aside.
   `check_consistency`, `initialize_dependencies`, `initialize_expectation`,
   `initialize_results`, `check_dynamic_consistency`, and getters last.
 - A DSL setter carries a docstring written for developers: one line naming
-  what the setter stores, e.g. `"""Set the volumetric size of the tank."""`.
+  what the setter stores, e.g. `"""Set the volume of the tank."""`.
   It has no sections and states no units, limits, defaults, legal values or
   behaviour: those are written once, in its entry on the node's
   reference-manual page. A second paragraph holds only an implementation note
@@ -113,10 +113,12 @@ aside.
   `key1, key2, value`. A local holding a converted key or value is named for
   what it holds (`energy_type`, `saving`).
 - An attribute setter `set_x` stores `self.x`, `set_table` aside (above). A
-  command sets one entry of a dictionary named for the collection, while the
-  setter stays singular: in the plural where the noun is countable
-  (`set_feed_constraint` writes `self.feed_constraints`), unchanged where it
-  is a mass noun (`set_process_capex` writes `self.process_capex`).
+  command `set_<words>`, a flag included, writes one entry of
+  `self.<words>`, with the noun naming an entry in the plural where it is
+  countable (`set_allow_vessel` writes `self.allow_vessels`,
+  `set_operational_saving_sea` `self.operational_savings_sea`) and unchanged
+  where it is a mass noun or an abbreviation (`set_process_capex` writes
+  `self.process_capex`, `set_gwp` `self.gwp`).
 - Deck-facing attribute names keep their DSL casing, Title case with acronyms
   as words (`Capex`, `LowerHeatingValue`), which `attribute_to_setter`
   (`navigate/util/naming.py`) splits at each capital into a setter name.
