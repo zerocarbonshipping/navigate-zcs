@@ -19,17 +19,16 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import threading
 import time
 from importlib.metadata import version
+from importlib.util import find_spec
 from pathlib import Path
 from statistics import median
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import polars as pl
-from horizon.parser import read_hor
 from IPython.display import HTML, display
 
 # ---- the case ----
@@ -59,16 +58,6 @@ LEVERS = {
     "EU_ETS_PRICE": "EU ETS price",
     "GLOBAL_STANDARD_TARGET": "Global standard target",
     "GLOBAL_STANDARD_PENALTY": "Global standard penalty",
-}
-SHORT_NAMES = {
-    "OIL_PRICE": "Oil price",
-    "LNG_PRICE": "LNG price",
-    "EFUEL_ELECTRICITY_PRICE": "E-fuel power",
-    "BIOMASS_SHARE_FOR_SHIPPING": "Biomass",
-    "TRADE_GROWTH": "Trade growth",
-    "EU_ETS_PRICE": "EU ETS price",
-    "GLOBAL_STANDARD_TARGET": "Standard target",
-    "GLOBAL_STANDARD_PENALTY": "Standard penalty",
 }
 
 # fuels by family, in stacking order; LNG and the rest of fossil origin are not alternative fuels
@@ -633,8 +622,8 @@ def collected() -> None:
           <div class="muted" style="margin-top:6px">All three rules: {total:.0f} bn USD in 2050</div>
         </div>"""
     show_html(
-        f'<div class="eyebrow">What the rules collect</div><div class="title">The global fuel standard '
-        f'becomes the largest charge on the fleet</div><div class="grid">{cards}</div>'
+        f'<div class="eyebrow" style="margin-bottom:10px">What the rules collect</div>'
+        f'<div class="grid">{cards}</div>'
         f'<div class="muted" style="margin-top:10px">What ships pay the regulator for the units they '
         f"lack; the units FuelEU and the global standard let ships trade among themselves are left out. "
         f"No regulation collects nothing.</div>"
@@ -689,51 +678,6 @@ def collected() -> None:
 
 
 # ---- 2. Horizon ----
-
-
-def futures(hor: str = f"{STUDY}.hor") -> None:
-    """Show the futures Horizon draws, as `horizon run --dry-run` lists them: one line per future."""
-    printed = subprocess.run(
-        ["horizon", "run", hor, "--dry-run"], capture_output=True, text=True, check=True
-    )
-    runs = json.loads(printed.stdout)["runs"]
-    ranges = {
-        p.token: (p.low_val, p.high_val) for p in read_hor(hor).parameters if p.active
-    }
-    dimensions = []
-    for token, (low, high) in ranges.items():
-        ticks = sorted({low, 1.0, high})
-        dimensions.append(
-            {
-                "label": SHORT_NAMES[token],
-                "range": [low, high],
-                "tickvals": ticks,
-                "ticktext": [f"×{tick:g}" for tick in ticks],
-                "values": [float(run["values"][token]) for run in runs],
-            }
-        )
-    figure = go.Figure(
-        go.Parcoords(
-            dimensions=dimensions,
-            line={"color": "#68a4c2"},  # parcoords draws a colour without its alpha
-            labelfont={"size": 14, "color": INK},
-            tickfont={"size": 12, "color": BODY},
-            rangefont={"size": 1},
-        )
-    )
-    figure.update_layout(
-        title={
-            "text": f"{len(runs)} futures, each a line through the {len(ranges)} assumptions",
-            "subtitle": {
-                "text": f"$ horizon run {hor} --dry-run",
-                "font": {"color": MUTED, "size": 13},
-            },
-            "font": {"size": 20, "weight": 200},
-        },
-        height=450,
-        margin={"l": 60, "r": 60, "t": 150, "b": 30},
-    )
-    show_figure(figure)
 
 
 def use_bundled_study() -> None:
@@ -945,6 +889,15 @@ def drivers() -> None:
 
 # ---- 3. Lantern ----
 
+
+def _on_colab() -> bool:
+    """Return whether the kernel runs on Colab, whose runtimes come with the package google.colab."""
+    try:
+        return find_spec("google.colab") is not None
+    except ModuleNotFoundError:  # no google package at all
+        return False
+
+
 # the viewer open_lantern started, a ThreadingHTTPServer, under "server"
 _viewer: dict = {}
 
@@ -969,7 +922,7 @@ def open_lantern(*paths: str) -> None:
     threading.Thread(target=server.serve_forever, daemon=True).start()
     port = server.server_address[1]
 
-    on_colab = "google.colab" in sys.modules
+    on_colab = _on_colab()
     address = "" if on_colab else f"http://127.0.0.1:{port}/"
     find = (
         f"const url = await google.colab.kernel.proxyPort({port}, {{cache: false}});"

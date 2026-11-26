@@ -234,13 +234,6 @@ eight assumptions from a range, and runs Navigate once per draw: a hundred futur
 one short file, `demo.hor`.
 """,
     ),
-    code(
-        "futures",
-        """
-# @title The futures Horizon draws { display-mode: "form" }
-showcase.futures()
-""",
-    ),
     markdown(
         "studymd",
         """

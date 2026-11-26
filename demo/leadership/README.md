@@ -26,8 +26,9 @@ branch `leadership-demo` only and is never merged.
 5. **How often the fleet gets there** counts the futures that reach a cut in
    emissions; move its slider and run the cell again to try another cut.
 6. **Open Lantern** starts Lantern's viewer in the notebook and opens it in a
-   new tab. If the browser blocks Colab's tab, the link beside the button shows
-   the viewer in the notebook.
+   new tab. The viewer runs in the Colab session, so the cell has no saved
+   output: its button appears once the cell runs. If the browser blocks Colab's
+   tab, the link beside the button shows the viewer in the notebook.
 
 ## What is here
 
@@ -56,4 +57,5 @@ python demo/leadership/build_notebook.py
 
 Then execute the notebook from a fresh kernel with `ROOT` set to a folder of
 your own and the branch cloned into `ROOT/navigate-zcs`, set `ROOT` back to
-`/content`, and commit it with its outputs.
+`/content`, clear the output of **Open Lantern** (its button links to the
+viewer of that run, on that machine), and commit it with its outputs.
