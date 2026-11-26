@@ -75,14 +75,14 @@ def perform_pipeline_delivery(producer: Producer, time: float) -> None:
                 delivered = PlantIncrement(
                     count=increment.count - remaining,
                     entered=time,
-                    age_span=increment.age(time) + increment.age_span,
+                    age_span=increment.youngest_age(time) + increment.age_span,
                     origin=increment.origin,
                     decided=increment.decided,
                 )
 
                 operating.append(delivered)
                 increment.count = remaining
-                increment.age_span = -increment.age(time)
+                increment.age_span = -increment.youngest_age(time)
                 waiting.append(increment)
 
         producer.pipeline[p] = waiting

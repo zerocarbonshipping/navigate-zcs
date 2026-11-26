@@ -328,11 +328,11 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int, start: float) -> None:
 
 def _sample_vessel_ages(increment: VesselIncrement, start: float) -> FloatArray:
     """
-    Return ages spread evenly over the age span of an increment at the start.
+    Return ages spread evenly over the ages an increment's vessels hold at the start.
 
-    The ages are the midpoints of equal parts of the span, over which the vessels are
-    spread uniformly, so the mean of a quantity at these ages is its average over the
-    vessels by the midpoint rule. No age lies on an end of the span.
+    The ages are the midpoints of equal parts of the held ages, over which the vessels
+    are spread uniformly, so the mean of a quantity at these ages is its average over
+    the vessels by the midpoint rule. No age lies on an end of the held ages.
 
     Parameters
     ----------
@@ -349,9 +349,10 @@ def _sample_vessel_ages(increment: VesselIncrement, start: float) -> FloatArray:
     # the mean over a hundred parts is exact where a quantity is linear within each
     # part, and misses a jump inside the span by at most half a percent of it
     parts = 100
-    youngest = increment.age(start)
+    youngest = increment.youngest_age(start)
+    held_span = increment.oldest_age(start) - youngest
 
-    return youngest + increment.age_span * (np.arange(parts) + 0.5) / parts
+    return youngest + held_span * (np.arange(parts) + 0.5) / parts
 
 
 def _get_initial_shares(fleet: Fleet, vessel: Vessel, ages: FloatArray) -> FloatArray:

@@ -466,6 +466,9 @@ change.
 - `set_initial_technology_share` seeds each initial cohort with the uptake
   averaged over its vessels' ages rather than that of its youngest vessels;
   results move in decks whose share curves vary with age (#993).
+- `weighted_average_age`, `vessel_tied_capital` and `plant_tied_capital` read a
+  cohort over the ages its vessels or plants hold, not all at the youngest; the
+  average age rises by half each cohort's age span, half a step for newbuilds (#992).
 - A table read at a time built from durations, such as a cost bin or a
   replacement a whole number of years after a date that is not 1 January, reads
   the table date it lands on, instead of raising an `Extrapolate = FALSE` error
