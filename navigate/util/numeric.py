@@ -153,16 +153,13 @@ def snap_to_grid(value: FloatLike, grid: FloatArray) -> FloatLike:
     -------
     FloatLike
         The nearest grid point where the value's distance from it is negligible
-        against the grid's largest magnitude, the value elsewhere, mirroring the
-        input's scalar- or arrayness.
+        against that point, the value elsewhere, mirroring the input's scalar- or
+        arrayness. A grid point at 0 is snapped to only by an exact 0.
     """
-    # a residual scales with the operands it came from, which lie on the grid's
-    # scale, so a grid point at 0 catches one as well; the sorted grid's largest
-    # magnitude lies at one of its ends
-    scale = max(abs(grid[0]), abs(grid[-1]))
-
+    # the point's own magnitude, not the grid's: a distant end of the grid, such
+    # as a large number standing in for infinity, would swallow real inputs
     nearest = grid[find_nearest_indices(grid, np.asarray(value))]
-    snapped = np.where(is_negligible(value - nearest, scale), nearest, value)
+    snapped = np.where(is_negligible(value - nearest, nearest), nearest, value)
 
     # np.where answers a scalar input with a 0-d array
     return snapped if isinstance(value, np.ndarray) else float(snapped)
