@@ -93,7 +93,7 @@ def calculate_share_below(increment: Increment, boundary: float, time: float) ->
         Share of the increment's assets younger than the boundary: 0.0 for an
         increment at or past it, 1.0 for one wholly younger.
     """
-    youngest = increment.age(time)
+    youngest = increment.youngest_age(time)
     oldest = youngest + increment.age_span
     scale = max(abs(youngest), abs(oldest))
 

@@ -296,13 +296,15 @@ def _scrap_at_fixed_rate(
         if not increments:
             continue
 
-        oldest_age = increments[0].age(time)
+        oldest = increments[0]
+        youngest_age = oldest.youngest_age(time)
         lifetime = vessel.lifetime.get()
 
-        if subtract(oldest_age, lifetime) > 0.0:
+        if subtract(youngest_age, lifetime) > 0.0:
             raise ValueError(
-                f"{fleet}: The oldest increment from {vessel} is older ({oldest_age}"
-                f" years) than the allowed lifetime ({lifetime} years)."
+                f"{fleet}: The youngest vessel of the oldest increment from {vessel} is"
+                f" older ({youngest_age} years) than the allowed lifetime ({lifetime}"
+                " years)."
             )
 
 
@@ -406,7 +408,7 @@ def _scrap_in_part(
         Youngest age scrapped, in years.
     """
     scrap = fleet.results.scrap
-    youngest_age = None
+    youngest_scrapped = None
 
     for v, i in group:
         increment = fleet.increments[v][i]
@@ -417,8 +419,9 @@ def _scrap_in_part(
         # vessels are scrapped from the oldest part of the uniform increment first,
         # which is inconsistent when several time-steps shorter than the increment's
         # age span pass
-        youngest_age = increment.age(time) + increment.age_span * (1.0 - fraction)
+        kept_span = increment.age_span * (1.0 - fraction)
+        youngest_scrapped = increment.youngest_age(time) + kept_span
 
         scrap[fleet.vessels[v].name][idx] += to_scrap
 
-    return youngest_age
+    return youngest_scrapped

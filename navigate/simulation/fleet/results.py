@@ -13,7 +13,7 @@ from navigate.core.enum_ import FuelTypeID
 from navigate.simulation.fleet._composition import get_count
 from navigate.simulation.fleet._package import get_technologies_by_capex
 from navigate.simulation.fleet.power import get_total_power_capacity
-from navigate.util import divide_nonzero, interpolate_yearly_flow
+from navigate.util import average_yearly_flow, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -52,8 +52,10 @@ def _transfer_increment_expenses(fleet: Fleet, time: float, idx: int) -> None:
     Transfer the running vessel expenses per increment.
 
     Includes the instantaneous charter rate, remaining tied-up capital, and
-    the carried technology charge. The technology charge is the levelized
-    analogue of the asset charter rate for the cohort's installed technologies.
+    the carried technology charge. The tied-up capital is averaged over the ages
+    from the cohort's youngest vessel to its oldest. The technology charge is the
+    levelized analogue of the asset charter rate for the cohort's installed
+    technologies.
 
     Parameters
     ----------
@@ -71,14 +73,15 @@ def _transfer_increment_expenses(fleet: Fleet, time: float, idx: int) -> None:
 
         for increment in increments:
             origin = increment.origin
-            age = increment.age(time)
+            youngest = increment.youngest_age(time)
+            oldest = increment.oldest_age(time)
             count = increment.count
 
             # the increment bears the costs of a vessel built at its origin
             tied_capital_flow = expectation.tied_capital[origin]
 
             asset_charter_rate = expectation.asset_charter_rate[origin]
-            tied_capital = interpolate_yearly_flow(tied_capital_flow, age)
+            tied_capital = average_yearly_flow(tied_capital_flow, youngest, oldest)
             technology_charter_rate = increment.technology_charter_rate
 
             results.vessel_expenses[idx] += asset_charter_rate * count
@@ -91,7 +94,8 @@ def _transfer_weighted_age(fleet: Fleet, time: float, idx: int) -> None:
     Transfer the power-weighted average fleet age per fuel type.
 
     Stored as separate numerator (age * count * power) and denominator
-    (count * power) sums.
+    (count * power) sums. A cohort's vessels spread uniformly from its youngest
+    vessel's age to its oldest's, so their mean age is the middle of the two.
 
     Parameters
     ----------
@@ -111,7 +115,9 @@ def _transfer_weighted_age(fleet: Fleet, time: float, idx: int) -> None:
 
         vessel_years = 0.0
         for increment in increments:
-            vessel_years += increment.age(time) * increment.count
+            youngest = increment.youngest_age(time)
+            oldest = increment.oldest_age(time)
+            vessel_years += (youngest + oldest) / 2.0 * increment.count
 
         numerator = vessel_years * power
         denominator = get_count(fleet, v) * power
