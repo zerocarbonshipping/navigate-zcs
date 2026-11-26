@@ -25,7 +25,7 @@ Navigate ships with the open-source [HiGHS](https://highs.dev/) solver and uses 
 
 ### For development
 - Clone the repository and run `make pip-setup` in it, with `python3.13` on the path: it creates a `.venv` in the checkout with Navigate installed in editable mode and the development tools. `make conda-setup` does the same in a conda environment named `nav`.
-- [CONTRIBUTING.md](CONTRIBUTING.md) describes how a change gets in; [AGENTS.md](AGENTS.md) is the entry point for the coding agents that develop Navigate.
+- [CONTRIBUTING.md](https://github.com/zerocarbonshipping/navigate-zcs/blob/main/CONTRIBUTING.md) describes how a change gets in; [AGENTS.md](https://github.com/zerocarbonshipping/navigate-zcs/blob/main/AGENTS.md) is the entry point for the coding agents that develop Navigate.
 
 
 ## Usage
@@ -38,7 +38,7 @@ navigate my_simulation.nav
 
 A run writes two files next to the deck:
 
-- `my_simulation.parquet`: every result of the run, one row per series and date, with the unit of each series in its metadata. See [Results file](docs/reference_manual/results_file.md).
+- `my_simulation.parquet`: every result of the run, one row per series and date, with the unit of each series in its metadata. See [Results file](https://zerocarbonshipping.github.io/navigate-zcs/reference_manual/results_file.html).
 - `my_simulation.log`: the run's log, with every warning and error. The terminal shows the progress and the number of warnings.
 
 `--name` and `--output-dir` change their names and folder.
@@ -48,7 +48,7 @@ The following options are available when running Navigate. See them in the comma
 | Flag                            | Description                                                                                                                                                                                                                                                       |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `-d DIR`, `--data-dir DIR`      | Folder location for assumptions that may be imported. Can also be set with the environment variable `ASSUMPTIONS_DATA_DIR`. <br/> The Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping supplies assumptions in the `assumptions` folder of this repository. |
-| `--set NAME=VALUE`              | Replace each `%NAME%` in the deck and the files it reads with `VALUE`, as text, before they are read; repeat for each name. A `%NAME%` left without a value outside a comment is an error. A run with `--set` writes its log into the `logs` and its results file into the `parquets` subfolder of the output folder. See [Placeholders](docs/reference_manual/dsl_reference.md#placeholders). |
+| `--set NAME=VALUE`              | Replace each `%NAME%` in the deck and the files it reads with `VALUE`, as text, before they are read; repeat for each name. A `%NAME%` left without a value outside a comment is an error. A run with `--set` writes its log into the `logs` and its results file into the `parquets` subfolder of the output folder. See [Placeholders](https://zerocarbonshipping.github.io/navigate-zcs/reference_manual/dsl_reference.html#placeholders). |
 | `--name NAME`                   | Name of the run, the stem of its log, results, profile and infeasible-LP files. Default: the deck's file name without extension.                                                                                                                          |
 | `--output-dir DIR`              | Folder the log, results, profile and infeasible-LP files are written to, created if missing. Default: the deck's folder.                                                                  |
 | `-l LEVEL`, `--log-level LEVEL` | Set the log level for the `.log` file. With `DEBUG`, a failed run also prints the full traceback to the console.                                                                                                                                                  |
@@ -85,7 +85,7 @@ Copyright 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
 
 Navigate is licensed under two licenses, depending on the type of content:
 
-- The software — the `navigate` package, tests, and all build, tooling, and editor-support files — is licensed under the [Apache License 2.0](LICENSES/Apache-2.0.txt) (see also the root [LICENSE](LICENSE) file).
-- The model content — assumptions, simulation and input files written in the Navigate DSL, tutorials, documentation, and figures — is licensed under [Creative Commons Attribution 4.0 International](LICENSES/CC-BY-4.0.txt) (CC-BY-4.0).
+- The software — the `navigate` package, tests, and all build, tooling, and editor-support files — is licensed under the [Apache License 2.0](https://github.com/zerocarbonshipping/navigate-zcs/blob/main/LICENSES/Apache-2.0.txt) (see also the root [LICENSE](https://github.com/zerocarbonshipping/navigate-zcs/blob/main/LICENSE) file).
+- The model content — assumptions, simulation and input files written in the Navigate DSL, tutorials, documentation, and figures — is licensed under [Creative Commons Attribution 4.0 International](https://github.com/zerocarbonshipping/navigate-zcs/blob/main/LICENSES/CC-BY-4.0.txt) (CC-BY-4.0).
 
-Every file declares its license through an `SPDX-License-Identifier` header or through the metadata in [REUSE.toml](REUSE.toml), following the [REUSE specification](https://reuse.software/). The full license texts are in the [LICENSES](LICENSES/) directory.
+Every file declares its license through an `SPDX-License-Identifier` header or through the metadata in [REUSE.toml](https://github.com/zerocarbonshipping/navigate-zcs/blob/main/REUSE.toml), following the [REUSE specification](https://reuse.software/). The full license texts are in the [LICENSES](https://github.com/zerocarbonshipping/navigate-zcs/tree/main/LICENSES) directory.
