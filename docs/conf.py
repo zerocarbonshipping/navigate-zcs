@@ -74,8 +74,9 @@ html_extra_path = ['_generated']
 # The version-switcher dropdown matches this against the "version" fields in
 # _static/switcher.json; the warning banner separately compares `release`
 # against the "preferred" entry's version (both must be valid semver for the
-# banner to be suppressed). On each release, update the preferred entry in
-# switcher.json to the new version number.
+# banner to be suppressed). On each release, add the new version to
+# switcher.json as the preferred entry at the site root, and point the one it
+# replaces at its archive, /v<version>/.
 ref_name = os.environ.get("GITHUB_REF_NAME", "main")
 if ref_name == "dev":
     # staging docs; mark the build as a pre-release so the theme shows the
