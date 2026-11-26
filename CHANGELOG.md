@@ -463,6 +463,9 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- `set_initial_technology_share` seeds each initial cohort with the uptake
+  averaged over its vessels' ages rather than that of its youngest vessels;
+  results move in decks whose share curves vary with age (#993).
 - A table read at a time built from durations, such as a cost bin or a
   replacement a whole number of years after a date that is not 1 January, reads
   the table date it lands on, instead of raising an `Extrapolate = FALSE` error
