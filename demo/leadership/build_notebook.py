@@ -197,13 +197,6 @@ showcase.scorecards()
 showcase.fuel_mix()
 """,
     ),
-    code(
-        "collected",
-        """
-# @title What the rules collect { display-mode: "form" }
-showcase.collected()
-""",
-    ),
     markdown(
         "lanternplotsmd",
         """

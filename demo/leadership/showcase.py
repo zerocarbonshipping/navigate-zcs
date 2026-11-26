@@ -27,7 +27,6 @@ from pathlib import Path
 from statistics import median
 
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import polars as pl
 from IPython.display import HTML, display
 
@@ -43,8 +42,6 @@ REGULATION = {
     "basecase_mid_regulation": "EU ETS, FuelEU and a moderate global fuel standard",
     "basecase_strong_regulation": "EU ETS, FuelEU and a strict global fuel standard",
 }
-# the regulations of the case, by their node names in the decks
-RULES = {"eu_ets": "EU ETS", "fuel_eu": "FuelEU", "gfs": "Global fuel standard"}
 COARSE_YEARS = (2026, 2027, 2030, 2034, 2038, 2042, 2046, 2050)
 STUDY = "demo"
 
@@ -95,11 +92,6 @@ FAMILY_COLORS = {
     "Blue ammonia": "#97c8e4",  # blue_4
     "Biofuels": "#c28080",  # peach_5
     "E-fuels": "#457b7b",  # green_5
-}
-RULE_COLORS = {
-    "eu_ets": "#e2af7c",  # orange_3
-    "fuel_eu": "#938ea4",  # purple_5
-    "gfs": "#3d5f87",  # blue_7
 }
 RAISES, LOWERS = "#c28080", "#457b7b"  # peach_5, green_5
 HORIZON_TINT, NAVIGATE_TINT, LANTERN_TINT = "#fceec8", "#d4eefa", "#dcf0d6"  # level 2
@@ -593,88 +585,6 @@ def fuel_mix() -> None:
         ],
     )
     show_figure(figure, animated=True)
-
-
-def _collected(results: pl.DataFrame) -> pl.DataFrame:
-    """Return what each regulation collected from the fleet by year, in billions of USD a year."""
-    # remedial units are paid to the regulator; flexibility units only change hands between ships
-    return results.filter(kind="regulation", attribute="remedial_expenses").select(
-        "year", rule="node", billions=pl.col("value") / 1e9
-    )
-
-
-def collected() -> None:
-    """Show what the regulations collect from the fleet each year, in the two regulated scenarios."""
-    regulated = {
-        scenario: _collected(_read(scenario))
-        for scenario in SCENARIOS
-        if scenario != "basecase_no_regulation"
-    }
-    cards = ""
-    for scenario, frame in regulated.items():
-        peak = frame.filter(rule="gfs").sort("billions").row(-1, named=True)
-        total = frame.filter(year=2050)["billions"].sum()
-        cards += f"""
-        <div class="card">
-          <div class="eyebrow">{SCENARIOS[scenario]} · global fuel standard</div>
-          <div class="big">{peak["billions"]:.0f} bn USD</div>
-          <div class="body">a year at its peak, in {peak["year"]}</div>
-          <div class="muted" style="margin-top:6px">All three rules: {total:.0f} bn USD in 2050</div>
-        </div>"""
-    show_html(
-        f'<div class="eyebrow" style="margin-bottom:10px">What the rules collect</div>'
-        f'<div class="grid">{cards}</div>'
-        f'<div class="muted" style="margin-top:10px">What ships pay the regulator for the units they '
-        f"lack; the units FuelEU and the global standard let ships trade among themselves are left out. "
-        f"No regulation collects nothing.</div>"
-    )
-
-    figure = make_subplots(
-        rows=1,
-        cols=2,
-        shared_yaxes=True,
-        horizontal_spacing=0.05,
-        subplot_titles=[SCENARIOS[scenario] for scenario in regulated],
-    )
-    for column, (scenario, frame) in enumerate(regulated.items(), start=1):
-        years = sorted(frame["year"].unique())
-        for rule, name in RULES.items():
-            by_year = dict(
-                frame.filter(rule=rule).select("year", "billions").iter_rows()
-            )
-            figure.add_trace(
-                go.Scatter(
-                    x=years,
-                    y=[by_year.get(year, 0.0) for year in years],
-                    name=name,
-                    legendgroup=rule,
-                    showlegend=column == 1,
-                    stackgroup=scenario,
-                    mode="lines",
-                    line={"width": 1.5, "color": "#fff"},
-                    fillcolor=RULE_COLORS[rule],
-                    hovertemplate=f"{name}: %{{y:.0f}} bn USD<extra></extra>",
-                ),
-                row=1,
-                col=column,
-            )
-    figure.update_layout(
-        height=440,
-        margin={"l": 70, "r": 20, "t": 90, "b": 50},
-        hovermode="x unified",
-        legend={
-            "orientation": "h",
-            "x": 0,
-            "y": 1.16,
-            "xanchor": "left",
-            "yanchor": "bottom",
-        },
-    )
-    figure.update_annotations(font={"size": 16, "color": INK})
-    figure.update_xaxes(gridcolor=WASH, zeroline=False)
-    figure.update_yaxes(gridcolor=WASH, zeroline=False, rangemode="tozero")
-    figure.update_yaxes(title="Collected, bn USD a year", row=1, col=1)
-    show_figure(figure)
 
 
 # ---- 2. Horizon ----
