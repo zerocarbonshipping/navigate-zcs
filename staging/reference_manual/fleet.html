@@ -582,8 +582,8 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Default</strong>: TRUE</p></li>
 </ul>
 </section>
-<section id="interfuelsensitivity">
-<h3>InterFuelSensitivity<a class="headerlink" href="#interfuelsensitivity" title="Link to this heading">#</a></h3>
+<section id="fuelsensitivity">
+<h3>FuelSensitivity<a class="headerlink" href="#fuelsensitivity" title="Link to this heading">#</a></h3>
 <p>Set how strongly newbuild fuel-type choice responds to the levelized cost of transport (LCOT).</p>
 <p>The value is an odds ratio against a 10% increase: a fuel whose LCOT is 10% higher receives this many times the odds of an otherwise identical fuel. For example <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a 10%-higher LCOT halves the odds, and <code class="docutils literal notranslate"><span class="pre">1</span></code> means no preference. LCOT is lower-is-better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
 <ul class="simple">
@@ -598,8 +598,8 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
-<section id="intrafuelsensitivity">
-<h3>IntraFuelSensitivity<a class="headerlink" href="#intrafuelsensitivity" title="Link to this heading">#</a></h3>
+<section id="variantsensitivity">
+<h3>VariantSensitivity<a class="headerlink" href="#variantsensitivity" title="Link to this heading">#</a></h3>
 <p>Set how strongly newbuild technology-variant choice within a single fuel type responds to the levelized cost of transport (LCOT).</p>
 <p>The value is an odds ratio against a 10% increase: a variant whose LCOT is 10% higher receives this many times the odds of an otherwise identical variant. For example <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a 10%-higher LCOT halves the odds, and <code class="docutils literal notranslate"><span class="pre">1</span></code> means no preference. Use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
 <ul class="simple">
@@ -730,9 +730,9 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Default</strong>: Not set. Every vessel type gets a uniform age spread over its lifetime.</p></li>
 </ul>
 </section>
-<section id="retrofitfrequency">
-<h3>RetrofitFrequency<a class="headerlink" href="#retrofitfrequency" title="Link to this heading">#</a></h3>
-<p>This attribute sets the retrofit frequency, namely the intervals at which a vessel can retrofit technology or perform a fuel conversion.</p>
+<section id="retrofitinterval">
+<h3>RetrofitInterval<a class="headerlink" href="#retrofitinterval" title="Link to this heading">#</a></h3>
+<p>This attribute sets the interval, in years of vessel age, between a vessel’s retrofit windows: a vessel can retrofit technology or perform a fuel conversion only in the time-step its age reaches a multiple of the interval. For example <code class="docutils literal notranslate"><span class="pre">5</span></code> opens a window at ages 5, 10, 15 and so on.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -793,16 +793,16 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Default</strong>: INDIVIDUAL</p></li>
 </ul>
 </section>
-<section id="assumereferencespeedoptimal">
-<h3>AssumeReferenceSpeedOptimal<a class="headerlink" href="#assumereferencespeedoptimal" title="Link to this heading">#</a></h3>
-<p>This attribute sets the flag for whether the reference speed is assumed to be the current market optimum. When enabled, the route reference speed is treated as the market optimum (accounting for effects not modelled) and speed changes only occur relative to shifts in the modelled optimal speed.</p>
+<section id="routespeedoptimal">
+<h3>RouteSpeedOptimal<a class="headerlink" href="#routespeedoptimal" title="Link to this heading">#</a></h3>
+<p>This attribute sets the flag for whether the speeds of each vessel’s route, set with <a class="reference internal" href="route.html#set-speed"><span class="std std-ref">set_speed</span></a>, are assumed to be the current market optimum. When enabled, the route’s speeds are treated as the market optimum (accounting for effects not modelled) and speed changes only occur relative to shifts in the modelled optimal speed. It is only used when <a class="reference internal" href="#allowspeedmanagement">AllowSpeedManagement</a> is TRUE.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
 <li><p><strong>Default</strong>: FALSE</p></li>
 </ul>
 </section>
-<section id="fuelconversionsensitivity">
-<h3>FuelConversionSensitivity<a class="headerlink" href="#fuelconversionsensitivity" title="Link to this heading">#</a></h3>
+<section id="conversionsensitivity">
+<h3>ConversionSensitivity<a class="headerlink" href="#conversionsensitivity" title="Link to this heading">#</a></h3>
 <p>Set how strongly the fuel-conversion choice responds to its net present value (NPV).</p>
 <p>The value is an odds ratio against an advantage equal to 5% of the summed ship CAPEX: a conversion whose NPV advantage equals 5% of the ship CAPEX receives this many times the odds of an otherwise identical conversion (the do-nothing option has an NPV of zero). For example <code class="docutils literal notranslate"><span class="pre">2</span></code> means such an advantage doubles the odds, and <code class="docutils literal notranslate"><span class="pre">1</span></code> means no preference. NPV is higher-is-better, so use a value above <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
 <ul class="simple">
@@ -817,8 +817,8 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Default</strong>: 2</p></li>
 </ul>
 </section>
-<section id="fuelconversionminimumage">
-<h3>FuelConversionMinimumAge<a class="headerlink" href="#fuelconversionminimumage" title="Link to this heading">#</a></h3>
+<section id="minimumconversionage">
+<h3>MinimumConversionAge<a class="headerlink" href="#minimumconversionage" title="Link to this heading">#</a></h3>
 <p>This attribute sets the minimum age, in years, at which a vessel can perform a fuel conversion.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -874,8 +874,8 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Default</strong>: Not set. The vessel type starts with no uptake of the technology.</p></li>
 </ul>
 </section>
-<section id="set-fuel-conversion-cost">
-<span id="set_fuel_conversion_cost"></span><h3>set_fuel_conversion_cost<a class="headerlink" href="#set-fuel-conversion-cost" title="Link to this heading">#</a></h3>
+<section id="set-conversion-cost">
+<span id="set_conversion_cost"></span><h3>set_conversion_cost<a class="headerlink" href="#set-conversion-cost" title="Link to this heading">#</a></h3>
 <p>This command sets the cost of performing a fuel conversion from one vessel type to another, in currency. A pair of vessel types without a cost cannot be converted.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Vessel name being converted from; supports wildcards)</p></li>
@@ -897,7 +897,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>This command sets a boolean flag indicating whether a specific vessel from the list is allowed in the fleet.</p>
 <p>If this command is set to FALSE, the vessel can neither enter the fleet as a newbuild nor enter the fleet through a fuel conversion.</p>
 <p>Any existing vessels in the fleet however are unaffected.</p>
-<p>This flag supersedes both <code class="docutils literal notranslate"><span class="pre">set_newbuild_available</span></code> and <code class="docutils literal notranslate"><span class="pre">set_conversion_available</span></code>.</p>
+<p>This flag supersedes both <code class="docutils literal notranslate"><span class="pre">set_allow_newbuild</span></code> and <code class="docutils literal notranslate"><span class="pre">set_allow_conversion</span></code>.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
@@ -910,8 +910,8 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Default</strong>: TRUE</p></li>
 </ul>
 </section>
-<section id="set-newbuild-available">
-<span id="set_newbuild_available"></span><h3>set_newbuild_available<a class="headerlink" href="#set-newbuild-available" title="Link to this heading">#</a></h3>
+<section id="set-allow-newbuild">
+<span id="set_allow_newbuild"></span><h3>set_allow_newbuild<a class="headerlink" href="#set-allow-newbuild" title="Link to this heading">#</a></h3>
 <p>This command sets a boolean flag indicating whether a specific vessel from the list is allowed as a newbuild in the fleet.</p>
 <p>If this command is set to FALSE the vessel cannot enter the fleet as a newbuild.
 A fleet with no vessel type available as a newbuild builds none, so trade beyond the capacity of its vessels goes uncarried.</p>
@@ -927,8 +927,8 @@ A fleet with no vessel type available as a newbuild builds none, so trade beyond
 <li><p><strong>Default</strong>: TRUE</p></li>
 </ul>
 </section>
-<section id="set-conversion-available">
-<span id="set_conversion_available"></span><h3>set_conversion_available<a class="headerlink" href="#set-conversion-available" title="Link to this heading">#</a></h3>
+<section id="set-allow-conversion">
+<span id="set_allow_conversion"></span><h3>set_allow_conversion<a class="headerlink" href="#set-allow-conversion" title="Link to this heading">#</a></h3>
 <p>This command sets a boolean flag indicating whether a specific vessel type is allowed as the target of a fuel conversion in the fleet.</p>
 <p>If this command is set to FALSE it is not possible to perform fuel conversions to vessels of that type.</p>
 <ul class="simple">
@@ -961,8 +961,8 @@ A fleet with no vessel type available as a newbuild builds none, so trade beyond
 <li><p><strong>Default</strong>: 1</p></li>
 </ul>
 </section>
-<section id="set-fuel-conversion-limit">
-<span id="set_fuel_conversion_limit"></span><h3>set_fuel_conversion_limit<a class="headerlink" href="#set-fuel-conversion-limit" title="Link to this heading">#</a></h3>
+<section id="set-conversion-limit">
+<span id="set_conversion_limit"></span><h3>set_conversion_limit<a class="headerlink" href="#set-conversion-limit" title="Link to this heading">#</a></h3>
 <p>This command sets the cap on fuel conversions from one vessel type to another, as the fraction of the total fleet allowed to convert on that pair per year. For example, in a fleet of 100 vessels, a limit of 0.05 allows at most 5 vessels per year to convert from <code class="docutils literal notranslate"><span class="pre">vessel_name_from</span></code> to <code class="docutils literal notranslate"><span class="pre">vessel_name_to</span></code>.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Vessel name being converted from; supports wildcards)</p></li>
@@ -1110,8 +1110,8 @@ A fleet with no vessel type available as a newbuild builds none, so trade beyond
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#memory">Memory</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixedscraprate">FixedScrapRate</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#allowsecondaryscrapping">AllowSecondaryScrapping</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interfuelsensitivity">InterFuelSensitivity</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#intrafuelsensitivity">IntraFuelSensitivity</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fuelsensitivity">FuelSensitivity</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#variantsensitivity">VariantSensitivity</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#technologysensitivity">TechnologySensitivity</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#technologycostofcapital">TechnologyCostOfCapital</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#technologyhorizon">TechnologyHorizon</a></li>
@@ -1120,26 +1120,26 @@ A fleet with no vessel type available as a newbuild builds none, so trade beyond
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initialvessels">InitialVessels</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initialsplit">InitialSplit</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initialagedistribution">InitialAgeDistribution</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#retrofitfrequency">RetrofitFrequency</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#retrofitinterval">RetrofitInterval</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orderbooks">Orderbooks</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#allowspeedmanagement">AllowSpeedManagement</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maximumspeedchange">MaximumSpeedChange</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#speedalignment">SpeedAlignment</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#assumereferencespeedoptimal">AssumeReferenceSpeedOptimal</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fuelconversionsensitivity">FuelConversionSensitivity</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fuelconversionminimumage">FuelConversionMinimumAge</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#routespeedoptimal">RouteSpeedOptimal</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conversionsensitivity">ConversionSensitivity</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#minimumconversionage">MinimumConversionAge</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#technologies">Technologies</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#allowtechnologyapproximation">AllowTechnologyApproximation</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-initial-technology-share">set_initial_technology_share</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-fuel-conversion-cost">set_fuel_conversion_cost</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-conversion-cost">set_conversion_cost</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-allow-vessel">set_allow_vessel</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-newbuild-available">set_newbuild_available</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-conversion-available">set_conversion_available</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-allow-newbuild">set_allow_newbuild</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-allow-conversion">set_allow_conversion</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-newbuild-limit">set_newbuild_limit</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-fuel-conversion-limit">set_fuel_conversion_limit</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-conversion-limit">set_conversion_limit</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-newbuild-technology-limit">set_newbuild_technology_limit</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-retrofit-technology-limit">set_retrofit_technology_limit</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-operational-saving-sea">set_operational_saving_sea</a></li>

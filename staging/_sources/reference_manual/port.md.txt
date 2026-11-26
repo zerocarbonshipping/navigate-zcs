@@ -14,19 +14,19 @@ Example:
 
 ```python
 Port "asia" {
-    ShorePowerCost = 80
-    ShorePowerConnectionShare = 0.8
+    ShorePowerPrice = 80
+    ShorePowerAvailability = 0.8
     
-    set_bunker_price_overwrite("low_sulfur_fuel_oil", 250)
-    set_bunker_wtt_overwrite("low_sulfur_fuel_oil", "carbon_dioxide", 0.62)
+    set_fuel_price("low_sulfur_fuel_oil", 250)
+    set_fuel_wtt("low_sulfur_fuel_oil", "carbon_dioxide", 0.62)
 }
 ```
 
 ## Attributes
 
-### ShorePowerCost
+### ShorePowerPrice
 
-This attribute sets the shore power electricity tariff in the port in currency/MWh. It is converted internally to currency/GJ for consistency with the energy model.
+This attribute sets the price of shore power electricity in the port in currency/MWh. It is converted internally to currency/GJ for consistency with the energy model.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -36,7 +36,7 @@ This attribute sets the shore power electricity tariff in the port in currency/M
 * **Minimum value**: 0
 * **Default**: 0
 
-### ShorePowerConnectionShare
+### ShorePowerAvailability
 
 This attribute sets the fraction of the time in port during which a shore power connection is available. A value of 0 means shore power is not available in the port. A vessel's shore power use in the port is capped at this share of its time in port, times the lesser of a technology package's combined `ShorePowerCapacity` and the electrical load in port with that package, averaged over the vessels by the packages they carry.
 
@@ -51,7 +51,7 @@ This attribute sets the fraction of the time in port during which a shore power 
 
 ## Commands
 
-### set\_bunkering\_allowed
+### set\_allow\_bunkering
 
 This command sets whether it is allowed to bunker a specific fuel in the port.
 
@@ -108,11 +108,11 @@ The inertia refers to the fraction of the amount bunkered in the previous time-s
 * **Maximum value**: 1
 * **Default**: 0
 
-### set\_bunker\_price\_overwrite
+### set\_fuel\_price
 
 This command sets the price of a specific fuel in the port in currency/ton.
 
-If an overwrite is set for a specific fuel, then the bottom-up calculation of production cost is ignored.
+Where it is set, it takes the place of the price calculated bottom-up from production. A liquid-market fuel has no production, so this is its only price. The bunker price is this price plus the [handling cost](#set_handling_cost).
 
 * **Primary key type**: String (Fuel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
@@ -123,13 +123,13 @@ If an overwrite is set for a specific fuel, then the bottom-up calculation of pr
 * **Minimum value**: 0
 * **Default**: Not set. The price is calculated bottom-up from production; for a liquid-market fuel it is 0.
 
-### set\_bunker\_wtt\_overwrite
+### set\_fuel\_wtt
 
-This command sets an overwrite of the WTT emissions for a specific fuel and emission in the port in ton emission/ton fuel.
+This command sets the WTT emissions of a specific fuel and emission in the port in ton emission/ton fuel.
 
-If an overwrite is set for a specific fuel and emission, then the bottom-up calculation of production emissions is ignored.
+Where it is set, it takes the place of the WTT emissions calculated bottom-up from production. A liquid-market fuel has no production, so this is its only WTT.
 
-The overwrite also sets the WTT that regulations and levies assume for the fuel bunkered at this port, unless the policy sets its own with `set_fuel_wtt`.
+It is also the WTT that regulations and levies assume for the fuel bunkered at this port, unless the policy sets its own with its `set_fuel_wtt` ([Levy](levy.md#set_fuel_wtt), [Regulation](regulation.md#set_fuel_wtt)).
 
 * **Primary key type**: String (Fuel name; supports wildcards)
 * **Secondary key type**: String (Emission name; supports wildcards)
@@ -140,9 +140,9 @@ The overwrite also sets the WTT that regulations and levies assume for the fuel 
 * **Unit**: ton emission / ton fuel
 * **Default**: Not set. The WTT emissions are calculated bottom-up from production; for a liquid-market fuel they are 0.
 
-### set\_shore\_power\_emission\_factor
+### set\_shore\_power\_wtt
 
-This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ. Regulations and levies count it as WTT emissions, as the grid emits upstream of the vessel: one with `Scope = TTW` counts none of it.
+This command sets the WTT (Well-to-Tank) emissions of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ. The grid emits upstream of the vessel, so regulations and levies count these emissions as WTT: one with `Scope = TTW` counts none of them.
 
 * **Primary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`

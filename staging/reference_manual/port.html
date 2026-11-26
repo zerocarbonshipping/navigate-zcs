@@ -488,19 +488,19 @@ which the vessel is operating. Examples of ports are Rotterdam (if used specific
 unrouted port is removed (see <a class="reference internal" href="dsl_reference.html#unreachable-nodes"><span class="std std-ref">Unreachable nodes</span></a>).</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"asia"</span> <span class="p">{</span>
-    <span class="n">ShorePowerCost</span> <span class="o">=</span> <span class="mi">80</span>
-    <span class="n">ShorePowerConnectionShare</span> <span class="o">=</span> <span class="mf">0.8</span>
+    <span class="n">ShorePowerPrice</span> <span class="o">=</span> <span class="mi">80</span>
+    <span class="n">ShorePowerAvailability</span> <span class="o">=</span> <span class="mf">0.8</span>
     
-    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"low_sulfur_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
-    <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"low_sulfur_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+    <span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"low_sulfur_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+    <span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"low_sulfur_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <section id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
-<section id="shorepowercost">
-<h3>ShorePowerCost<a class="headerlink" href="#shorepowercost" title="Link to this heading">#</a></h3>
-<p>This attribute sets the shore power electricity tariff in the port in currency/MWh. It is converted internally to currency/GJ for consistency with the energy model.</p>
+<section id="shorepowerprice">
+<h3>ShorePowerPrice<a class="headerlink" href="#shorepowerprice" title="Link to this heading">#</a></h3>
+<p>This attribute sets the price of shore power electricity in the port in currency/MWh. It is converted internally to currency/GJ for consistency with the energy model.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -514,8 +514,8 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
-<section id="shorepowerconnectionshare">
-<h3>ShorePowerConnectionShare<a class="headerlink" href="#shorepowerconnectionshare" title="Link to this heading">#</a></h3>
+<section id="shorepoweravailability">
+<h3>ShorePowerAvailability<a class="headerlink" href="#shorepoweravailability" title="Link to this heading">#</a></h3>
 <p>This attribute sets the fraction of the time in port during which a shore power connection is available. A value of 0 means shore power is not available in the port. A vessel’s shore power use in the port is capped at this share of its time in port, times the lesser of a technology package’s combined <code class="docutils literal notranslate"><span class="pre">ShorePowerCapacity</span></code> and the electrical load in port with that package, averaged over the vessels by the packages they carry.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -534,8 +534,8 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </section>
 <section id="commands">
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
-<section id="set-bunkering-allowed">
-<span id="set_bunkering_allowed"></span><h3>set_bunkering_allowed<a class="headerlink" href="#set-bunkering-allowed" title="Link to this heading">#</a></h3>
+<section id="set-allow-bunkering">
+<span id="set_allow_bunkering"></span><h3>set_allow_bunkering<a class="headerlink" href="#set-allow-bunkering" title="Link to this heading">#</a></h3>
 <p>This command sets whether it is allowed to bunker a specific fuel in the port.</p>
 <p>A Producer’s export aimed at a port that does not allow the fuel goes to the ports that allow it, by their export weights.</p>
 <ul class="simple">
@@ -604,10 +604,10 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
-<section id="set-bunker-price-overwrite">
-<span id="set_bunker_price_overwrite"></span><h3>set_bunker_price_overwrite<a class="headerlink" href="#set-bunker-price-overwrite" title="Link to this heading">#</a></h3>
+<section id="set-fuel-price">
+<span id="set_fuel_price"></span><h3>set_fuel_price<a class="headerlink" href="#set-fuel-price" title="Link to this heading">#</a></h3>
 <p>This command sets the price of a specific fuel in the port in currency/ton.</p>
-<p>If an overwrite is set for a specific fuel, then the bottom-up calculation of production cost is ignored.</p>
+<p>Where it is set, it takes the place of the price calculated bottom-up from production. A liquid-market fuel has no production, so this is its only price. The bunker price is this price plus the <a class="reference internal" href="#set-handling-cost">handling cost</a>.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -622,11 +622,11 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><strong>Default</strong>: Not set. The price is calculated bottom-up from production; for a liquid-market fuel it is 0.</p></li>
 </ul>
 </section>
-<section id="set-bunker-wtt-overwrite">
-<span id="set_bunker_wtt_overwrite"></span><h3>set_bunker_wtt_overwrite<a class="headerlink" href="#set-bunker-wtt-overwrite" title="Link to this heading">#</a></h3>
-<p>This command sets an overwrite of the WTT emissions for a specific fuel and emission in the port in ton emission/ton fuel.</p>
-<p>If an overwrite is set for a specific fuel and emission, then the bottom-up calculation of production emissions is ignored.</p>
-<p>The overwrite also sets the WTT that regulations and levies assume for the fuel bunkered at this port, unless the policy sets its own with <code class="docutils literal notranslate"><span class="pre">set_fuel_wtt</span></code>.</p>
+<section id="set-fuel-wtt">
+<span id="set_fuel_wtt"></span><h3>set_fuel_wtt<a class="headerlink" href="#set-fuel-wtt" title="Link to this heading">#</a></h3>
+<p>This command sets the WTT emissions of a specific fuel and emission in the port in ton emission/ton fuel.</p>
+<p>Where it is set, it takes the place of the WTT emissions calculated bottom-up from production. A liquid-market fuel has no production, so this is its only WTT.</p>
+<p>It is also the WTT that regulations and levies assume for the fuel bunkered at this port, unless the policy sets its own with its <code class="docutils literal notranslate"><span class="pre">set_fuel_wtt</span></code> (<a class="reference internal" href="levy.html#set-fuel-wtt"><span class="std std-ref">Levy</span></a>, <a class="reference internal" href="regulation.html#set-fuel-wtt"><span class="std std-ref">Regulation</span></a>).</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
@@ -641,9 +641,9 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><strong>Default</strong>: Not set. The WTT emissions are calculated bottom-up from production; for a liquid-market fuel they are 0.</p></li>
 </ul>
 </section>
-<section id="set-shore-power-emission-factor">
-<span id="set_shore_power_emission_factor"></span><h3>set_shore_power_emission_factor<a class="headerlink" href="#set-shore-power-emission-factor" title="Link to this heading">#</a></h3>
-<p>This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ. Regulations and levies count it as WTT emissions, as the grid emits upstream of the vessel: one with <code class="docutils literal notranslate"><span class="pre">Scope</span> <span class="pre">=</span> <span class="pre">TTW</span></code> counts none of it.</p>
+<section id="set-shore-power-wtt">
+<span id="set_shore_power_wtt"></span><h3>set_shore_power_wtt<a class="headerlink" href="#set-shore-power-wtt" title="Link to this heading">#</a></h3>
+<p>This command sets the WTT (Well-to-Tank) emissions of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ. The grid emits upstream of the vessel, so regulations and levies count these emissions as WTT: one with <code class="docutils literal notranslate"><span class="pre">Scope</span> <span class="pre">=</span> <span class="pre">TTW</span></code> counts none of them.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -709,18 +709,18 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shorepowercost">ShorePowerCost</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shorepowerconnectionshare">ShorePowerConnectionShare</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shorepowerprice">ShorePowerPrice</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shorepoweravailability">ShorePowerAvailability</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-bunkering-allowed">set_bunkering_allowed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-allow-bunkering">set_allow_bunkering</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-handling-cost">set_handling_cost</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-bunkering-limit">set_bunkering_limit</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-bunkering-inertia">set_bunkering_inertia</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-bunker-price-overwrite">set_bunker_price_overwrite</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-bunker-wtt-overwrite">set_bunker_wtt_overwrite</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-shore-power-emission-factor">set_shore_power_emission_factor</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-fuel-price">set_fuel_price</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-fuel-wtt">set_fuel_wtt</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-shore-power-wtt">set_shore_power_wtt</a></li>
 </ul>
 </li>
 </ul>

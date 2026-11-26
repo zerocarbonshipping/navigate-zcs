@@ -486,14 +486,14 @@ SPDX-License-Identifier: CC-BY-4.0
 Examples of emissions are carbon dioxide, methane, nitrous oxide, NOx, and SOx.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
-    <span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="n">Curve</span><span class="p">(</span><span class="s2">"GWP_methane"</span><span class="p">)</span>
+    <span class="n">Gwp</span> <span class="o">=</span> <span class="n">Curve</span><span class="p">(</span><span class="s2">"GWP_methane"</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <section id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
-<section id="globalwarmingpotential">
-<h3>GlobalWarmingPotential<a class="headerlink" href="#globalwarmingpotential" title="Link to this heading">#</a></h3>
+<section id="gwp">
+<h3>Gwp<a class="headerlink" href="#gwp" title="Link to this heading">#</a></h3>
 <p>This attribute specifies the Global Warming Potential (GWP) of the emission. The global warming potential indicates the level of radiative forcing (i.e., warming) that is expected of a certain emission over time. It thereby allows for comparison across different types of emissions, e.g., carbon dioxide and methane.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -508,9 +508,9 @@ Examples of emissions are carbon dioxide, methane, nitrous oxide, NOx, and SOx.<
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
-<section id="fueltype">
-<h3>FuelType<a class="headerlink" href="#fueltype" title="Link to this heading">#</a></h3>
-<p>This attribute sets the fuel type associated with the emission for slip gating. When it is set, the emission only receives slip contributions from fuels whose fuel type matches this value.</p>
+<section id="slipfueltype">
+<h3>SlipFuelType<a class="headerlink" href="#slipfueltype" title="Link to this heading">#</a></h3>
+<p>This attribute sets the fuel type whose slip is this emission. When it is set, the unburned fuel that slips from a converter burning a fuel of this fuel type is counted as this emission.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a></p></li>
@@ -568,8 +568,8 @@ Examples of emissions are carbon dioxide, methane, nitrous oxide, NOx, and SOx.<
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#globalwarmingpotential">GlobalWarmingPotential</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fueltype">FuelType</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gwp">Gwp</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#slipfueltype">SlipFuelType</a></li>
 </ul>
 </li>
 </ul>

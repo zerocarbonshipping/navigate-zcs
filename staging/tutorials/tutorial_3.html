@@ -600,7 +600,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <span id="fleet_bulkinc"></span><h4><code class="docutils literal notranslate"><span class="pre">fleet_bulk.inc</span></code><a class="headerlink" href="#fleet-bulk-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Copy the relevant section from T2DEF into the empty file.</p></li>
-<li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
+<li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"bulk_fleet"</span> <span class="p">{</span>	
    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_methanol"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_ammonia"</span><span class="p">)]</span> 	
@@ -614,7 +614,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <span id="fleet_containerinc"></span><h4><code class="docutils literal notranslate"><span class="pre">fleet_container.inc</span></code><a class="headerlink" href="#fleet-container-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
 <li><p>Copy the relevant section from T2DEF into the empty file.</p></li>
-<li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
+<li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"container_fleet"</span> <span class="p">{</span>	
    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_oil"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_methane"</span><span class="p">)]</span> 	
@@ -627,13 +627,13 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <section id="fleet-uptake-inc">
 <span id="fleet_uptakeinc"></span><h4><code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code><a class="headerlink" href="#fleet-uptake-inc" title="Link to this heading">#</a></h4>
 <ol class="arabic simple">
-<li><p>Assign the attributes <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> to all defined nodes of the type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
+<li><p>Assign the attributes <code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span></code> to all defined nodes of the type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
 <li><p>The star <code class="docutils literal notranslate"><span class="pre">*</span></code> is a ‘wildcard’. So, when we define the node <code class="docutils literal notranslate"><span class="pre">Fleet</span> <span class="pre">&quot;*&quot;</span></code> the listed attributes under it will apply to any node that has the node-type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
 <li><p>A value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> is an odds ratio: a fuel or technology whose levelized cost of transport (LCOT) is 10% higher receives half the odds of an otherwise identical option (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"*"</span> <span class="p">{</span>	
-   <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
-   <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -774,15 +774,15 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">25</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">273</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -890,12 +890,12 @@ And the decision sensitivities to all fuel production plants.</p></li>
               <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_bio_gasification"</span><span class="p">),</span>
               <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_blue"</span><span class="p">)]</span>
     <span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
-    <span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
-    <span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
+    <span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">FuelDemandSensitivity</span> <span class="pre">=</span> <span class="pre">1.5</span></code> favours the fuel pathways with the largest expected demand (a 10% higher demand gives 1.5x the odds), while <code class="docutils literal notranslate"><span class="pre">FuelCostSensitivity</span> <span class="pre">=</span> <span class="pre">0.5</span></code> favours the cheaper plants within a pathway (a 10% higher levelized cost of fuel halves the odds).</p>
+<p><code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span> <span class="pre">=</span> <span class="pre">1.5</span></code> favours the fuel pathways with the largest expected demand (a 10% higher demand gives 1.5x the odds), while <code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span> <span class="pre">=</span> <span class="pre">0.5</span></code> favours the cheaper plants within a pathway (a 10% higher levelized cost of fuel halves the odds).</p>
 <ol class="arabic simple" start="3">
 <li><p>The decision sensitivities are now set directly on the <code class="docutils literal notranslate"><span class="pre">Producer</span></code>, so the <code class="docutils literal notranslate"><span class="pre">producer_uptake.inc</span></code> file is left empty — there are no separate uptake nodes to define.</p></li>
 </ol>
@@ -1012,7 +1012,7 @@ The structure will be the exact same as in the input file you already created fo
 <li><p>Assign a price for heavy fuel oil of 100 USD/ton to the port node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>	
-    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> 
+    <span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> 
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1118,7 +1118,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <li><p>Assign a price for heavy fuel oil of 170 USD/ton to the port node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
-    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">170</span><span class="p">)</span> 
+    <span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">170</span><span class="p">)</span> 
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1377,7 +1377,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <span class="sd-summary-text">tutorial_3_scenarios/0_includes_local/scenario_100.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of port with alternative bunkering price</span>
 <span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
-	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+	<span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1387,7 +1387,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <span class="sd-summary-text">tutorial_3_scenarios/0_includes_local/scenario_170.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of port with alternative bunkering price</span>
 <span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
-	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">170</span><span class="p">)</span>
+	<span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">170</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1479,7 +1479,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
 	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
 	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
-	<span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+	<span class="n">set_slip</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"electrical_ice_methane"</span> <span class="p">{</span> 
@@ -1488,7 +1488,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
 	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
 	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
-	<span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+	<span class="n">set_slip</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1532,15 +1532,15 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">0_includes_global/emissions.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">25</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">273</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1604,8 +1604,8 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of fleets' decision sensitivities (odds ratios; LCOT is lower-is-better, so below 1)</span>
 
 <span class="n">Fleet</span> <span class="s2">"*"</span> <span class="p">{</span>
-	<span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
-	<span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1713,8 +1713,8 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <span class="sd-summary-text">0_includes_global/port.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of port</span>
 <span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
-	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
-	<span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+	<span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+	<span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1762,8 +1762,8 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 
 <span class="n">Producer</span> <span class="s2">"engineering_procurement_construction"</span> <span class="p">{</span>
 	<span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methane_electro"</span><span class="p">),</span> <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_bio_gasification"</span><span class="p">),</span> <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_blue"</span><span class="p">)]</span>
-	<span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
-	<span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
+	<span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 
 	<span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="p">}</span>
@@ -1774,7 +1774,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">0_includes_global/producer_uptake.inc</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Producer decision sensitivities are now set directly on the Producer in producer.inc</span>
-<span class="c1"># (FuelDemandSensitivity, FuelCostSensitivity), so no separate uptake definitions are needed here.</span>
+<span class="c1"># (FuelSensitivity, VariantSensitivity), so no separate uptake definitions are needed here.</span>
 </pre></div>
 </div>
 </div>
@@ -1829,7 +1829,7 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">TRAMP</span>
 	<span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
 	<span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
-	<span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">set_distance_share</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 	<span class="n">set_speed</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
@@ -1858,29 +1858,29 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 
 <span class="n">Tank</span> <span class="s2">"pilot_oil"</span> <span class="p">{</span> 			
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">2000</span> 	
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">2000</span> 	
 <span class="p">}</span>
 
 <span class="c1"># Definition of main fuel tanks</span>
 
 <span class="n">Tank</span> <span class="s2">"main_oil"</span> <span class="p">{</span> 			
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span> 	
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span> 	
 <span class="p">}</span>
 
 <span class="n">Tank</span> <span class="s2">"main_methane"</span> <span class="p">{</span> 			
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span> 			
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span> 	
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span> 	
 <span class="p">}</span>
 
 <span class="n">Tank</span> <span class="s2">"main_methanol"</span> <span class="p">{</span> 			
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span> 			
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span> 	
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span> 	
 <span class="p">}</span>
 
 <span class="n">Tank</span> <span class="s2">"main_ammonia"</span> <span class="p">{</span> 			
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span> 			
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span> 	
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span> 	
 <span class="p">}</span>
 </pre></div>
 </div>

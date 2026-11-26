@@ -533,8 +533,8 @@ SPDX-License-Identifier: CC-BY-4.0
     <span class="n">set_port_calls</span><span class="p">(</span><span class="s2">"port_global"</span><span class="p">,</span> <span class="mi">17</span><span class="p">)</span>
     <span class="n">set_port_calls</span><span class="p">(</span><span class="s2">"port_europe"</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
-    <span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"port_europe"</span><span class="p">,</span> <span class="s2">"port_europe"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">set_distance_share</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">set_distance_share</span><span class="p">(</span><span class="s2">"port_europe"</span><span class="p">,</span> <span class="s2">"port_europe"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="n">set_speed</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="n">Curve</span><span class="p">(</span><span class="s2">"bulk_speeds"</span><span class="p">))</span>
     <span class="n">set_utilization</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="n">Curve</span><span class="p">(</span><span class="s2">"bulk_utilizations"</span><span class="p">))</span>
@@ -562,7 +562,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <li><p>Each per-leg input is set for the route’s legs only; see <a class="reference internal" href="#legs">Legs</a>.</p></li>
 <li><p>A required per-leg input left unset on any leg is an error naming the legs.</p></li>
 <li><p>A command or attribute that does not apply to the route type is an error.</p></li>
-<li><p>At every date, <a class="reference internal" href="#set-utilization">set_utilization</a> must be above 0 on at least one leg the route sails, in a <a class="reference internal" href="#sailing-conditions">sailing condition</a> with a share of sea time above 0. On a <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>, a leg with a <a class="reference internal" href="#set-voyage-distribution">set_voyage_distribution</a> of 0 is not sailed, unless every leg’s is 0.</p></li>
+<li><p>At every date, <a class="reference internal" href="#set-utilization">set_utilization</a> must be above 0 on at least one leg the route sails, in a <a class="reference internal" href="#sailing-conditions">sailing condition</a> with a share of sea time above 0. On a <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>, a leg with a <a class="reference internal" href="#set-distance-share">set_distance_share</a> of 0 is not sailed, unless every leg’s is 0.</p></li>
 </ul>
 <p>If RouteType is LINER:</p>
 <ul class="simple">
@@ -570,12 +570,12 @@ SPDX-License-Identifier: CC-BY-4.0
 <li><p>A port cannot be placed directly after itself, and the same port cannot be placed both first and last, because the list of ports wraps around.</p></li>
 <li><p>A port may be called more than once, but each leg may only be sailed once: <code class="docutils literal notranslate"><span class="pre">[Port(&quot;a&quot;),</span> <span class="pre">Port(&quot;b&quot;),</span> <span class="pre">Port(&quot;a&quot;),</span> <span class="pre">Port(&quot;c&quot;)]</span></code> is accepted, <code class="docutils literal notranslate"><span class="pre">[Port(&quot;a&quot;),</span> <span class="pre">Port(&quot;b&quot;),</span> <span class="pre">Port(&quot;a&quot;),</span> <span class="pre">Port(&quot;b&quot;)]</span></code> is not.</p></li>
 <li><p><a class="reference internal" href="#set-speed">set_speed</a>, <a class="reference internal" href="#set-distance">set_distance</a> and <a class="reference internal" href="#set-port-duration">set_port_duration</a> must be given for every leg.</p></li>
-<li><p><a class="reference internal" href="#timeatsea">TimeAtSea</a>, <a class="reference internal" href="#set-voyage-distribution">set_voyage_distribution</a>, <a class="reference internal" href="#set-port-calls">set_port_calls</a> and a <code class="docutils literal notranslate"><span class="pre">Curve</span></code> in <a class="reference internal" href="#set-utilization">set_utilization</a> do not apply.</p></li>
+<li><p><a class="reference internal" href="#timeatsea">TimeAtSea</a>, <a class="reference internal" href="#set-distance-share">set_distance_share</a>, <a class="reference internal" href="#set-port-calls">set_port_calls</a> and a <code class="docutils literal notranslate"><span class="pre">Curve</span></code> in <a class="reference internal" href="#set-utilization">set_utilization</a> do not apply.</p></li>
 </ul>
 <p>If RouteType is TRAMP:</p>
 <ul class="simple">
 <li><p>All ports must be unique.</p></li>
-<li><p><a class="reference internal" href="#timeatsea">TimeAtSea</a> must be provided, and <a class="reference internal" href="#set-speed">set_speed</a> and <a class="reference internal" href="#set-voyage-distribution">set_voyage_distribution</a> must be given for every leg.</p></li>
+<li><p><a class="reference internal" href="#timeatsea">TimeAtSea</a> must be provided, and <a class="reference internal" href="#set-speed">set_speed</a> and <a class="reference internal" href="#set-distance-share">set_distance_share</a> must be given for every leg.</p></li>
 <li><p><a class="reference internal" href="#set-distance">set_distance</a> and <a class="reference internal" href="#set-port-duration">set_port_duration</a> do not apply.</p></li>
 </ul>
 </section>
@@ -585,7 +585,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <h3>RouteType<a class="headerlink" href="#routetype" title="Link to this heading">#</a></h3>
 <p>This attribute sets the route type, <code class="docutils literal notranslate"><span class="pre">LINER</span></code> or <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>, which decides the legs of the route (see <a class="reference internal" href="#legs">Legs</a>) and which inputs it reads (see <a class="reference internal" href="#conditions">Conditions</a>).</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">LINER</span></code> describes one voyage around its ports in the listed order. Each leg is given its distance, its speed and its cargo utilization, and the time in port at the end of it. The time at sea follows from the distances and speeds.</p>
-<p>A <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code> describes a year of operation between a pool of ports, with no start, end or order. <a class="reference internal" href="#timeatsea">TimeAtSea</a> sets the share of the year spent at sea, and the sea miles sailed in that time are split between the legs by <a class="reference internal" href="#set-voyage-distribution">set_voyage_distribution</a>. The time in port is split between the ports by <a class="reference internal" href="#set-port-calls">set_port_calls</a>.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code> describes a year of operation between a pool of ports, with no start, end or order. <a class="reference internal" href="#timeatsea">TimeAtSea</a> sets the share of the year spent at sea, and the sea miles sailed in that time are split between the legs by <a class="reference internal" href="#set-distance-share">set_distance_share</a>. The time in port is split between the ports by <a class="reference internal" href="#set-port-calls">set_port_calls</a>.</p>
 <p>The type describes the calculation, not the market segment: choose <code class="docutils literal notranslate"><span class="pre">LINER</span></code> where the route’s distances and port times are known leg by leg, and <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code> where the operation is known as shares of a year.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
@@ -710,10 +710,10 @@ SPDX-License-Identifier: CC-BY-4.0
 <li><p><strong>Default</strong>: None. Must be provided by the user for every leg of a LINER.</p></li>
 </ul>
 </section>
-<section id="set-voyage-distribution">
-<span id="set_voyage_distribution"></span><h3>set_voyage_distribution<a class="headerlink" href="#set-voyage-distribution" title="Link to this heading">#</a></h3>
+<section id="set-distance-share">
+<span id="set_distance_share"></span><h3>set_distance_share<a class="headerlink" href="#set-distance-share" title="Link to this heading">#</a></h3>
 <p>This command sets the share of the sea miles sailed on a leg. It only applies to a <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code> route, where it must be given for every leg, and is an error on a <code class="docutils literal notranslate"><span class="pre">LINER</span></code>. A share of 0 is allowed and means the leg is not sailed.</p>
-<p>The shares are rescaled to sum to 1 over the legs; if they are all 0, every leg gets an equal share. <code class="docutils literal notranslate"><span class="pre">set_voyage_distribution(&quot;*&quot;,</span> <span class="pre">&quot;*&quot;,</span> <span class="pre">1)</span></code> therefore gives every leg the same share.</p>
+<p>The shares are rescaled to sum to 1 over the legs; if they are all 0, every leg gets an equal share. <code class="docutils literal notranslate"><span class="pre">set_distance_share(&quot;*&quot;,</span> <span class="pre">&quot;*&quot;,</span> <span class="pre">1)</span></code> therefore gives every leg the same share.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Port name of the leg’s origin; supports wildcards)</p></li>
 <li><p><strong>Secondary key type</strong>: String (Port name of the leg’s destination; supports wildcards)</p></li>
@@ -812,7 +812,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-utilization">set_utilization</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-distance">set_distance</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-port-duration">set_port_duration</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-voyage-distribution">set_voyage_distribution</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-distance-share">set_distance_share</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-port-calls">set_port_calls</a></li>
 </ul>
 </li>

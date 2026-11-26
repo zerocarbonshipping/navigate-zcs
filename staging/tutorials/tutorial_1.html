@@ -533,7 +533,7 @@ Later, you will define intermediate annual time steps until 2050.</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Error</span><span class="p">:</span> <span class="n">Fleet</span><span class="p">(</span><span class="s2">"fleet"</span><span class="p">):</span> <span class="n">Attribute</span> <span class="s1">'InitialVessels'</span> <span class="ow">is</span> <span class="n">unassigned</span><span class="o">.</span>
 </pre></div>
 </div>
-<p>This is because any node of the type Fleet requires a set of attributes, namely the attributes <code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code>, <code class="docutils literal notranslate"><span class="pre">Vessels</span></code> and the fuel sensitivities (<code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code>). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now.</p>
+<p>This is because any node of the type Fleet requires a set of attributes, namely the attributes <code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code>, <code class="docutils literal notranslate"><span class="pre">Vessels</span></code> and the fuel sensitivities (<code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span></code>). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now.</p>
 <p>Other nodes can also have mandatory attributes. An error message will tell you if these are not defined yet.</p>
 <p>If you encounter other errors, read the error message. If it says that a name is not recognized, check for errors in spelling, extra or missing indents or signs by comparing to the code in the tables.</p>
 <p>In the next steps, we will define the attributes that are required for a Fleet node.</p>
@@ -557,16 +557,16 @@ In this example, you only have one type of vessel which is a “vessel_ice_oil�
 “vessel” is in place of the specific vessel type that you will want to simulate. The <code class="docutils literal notranslate"><span class="pre">&quot;ice&quot;</span></code> is an abbreviation for “internal combustion engine”, which is the engine type that extract the energy from fuel <code class="docutils literal notranslate"><span class="pre">&quot;oil&quot;</span></code>. The naming is therefore <code class="docutils literal notranslate"><span class="pre">&quot;vessel</span> <span class="pre">type&quot;_&quot;engine</span> <span class="pre">type&quot;_&quot;fuel</span> <span class="pre">type&quot;</span></code>.
 This is a naming convention we use but is not required; a node can be named anything.</p></li>
 </ol>
-<p>The <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> attributes calibrate the discrete choice model, i.e., the model that predicts what percentage of newbuilds will be of fuel type A or B or C, in combination with engine technology X, Y or Z.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span></code> attributes calibrate the discrete choice model, i.e., the model that predicts what percentage of newbuilds will be of fuel type A or B or C, in combination with engine technology X, Y or Z.</p>
 <ol class="arabic simple" start="3">
-<li><p>The <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> attribute controls how strongly the choice <em>between fuel types</em> responds to the levelized cost of transport (LCOT) of each vessel option. Its value is an odds ratio: a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a fuel whose LCOT is 10% higher receives half the odds of an otherwise identical fuel (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> attribute does the same for the choice <em>between engine technologies within a single fuel type</em> (different engine technologies are for example combustion engines vs. fuel cells). A value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> likewise means a 10% higher LCOT halves the odds.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span></code> attribute controls how strongly the choice <em>between fuel types</em> responds to the levelized cost of transport (LCOT) of each vessel option. Its value is an odds ratio: a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a fuel whose LCOT is 10% higher receives half the odds of an otherwise identical fuel (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span></code> attribute does the same for the choice <em>between engine technologies within a single fuel type</em> (different engine technologies are for example combustion engines vs. fuel cells). A value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> likewise means a 10% higher LCOT halves the odds.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> describes the number of vessels present at the defined start date. <code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> is a mandatory attribute for the node “fleet”, as the error message you saw earlier told you.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"fleet"</span> <span class="p">{</span>	 
     <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"vessel_ice_oil"</span><span class="p">)]</span>  
-    <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
-    <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
     <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="p">}</span>
 </pre></div>
@@ -670,11 +670,11 @@ The value assigned to the <code class="docutils literal notranslate"><span class
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;main_oil&quot;</span></code> of the node type <code class="docutils literal notranslate"><span class="pre">Tank</span></code>.
 You can further specify the characteristics of the tank. For alternative fuels, a vessel can have a main and a pilot tank.
 Set the fuel types that the tank can hold. In this example, the tank can only use OIL, but we can also specify more than one fuel type. Therefore, we specify that the fuel oil tank is the “main” tank in the vessel.
-Set the tank’s <code class="docutils literal notranslate"><span class="pre">Size</span></code>. It is given in cubic meters.</p></li>
+Set the tank’s <code class="docutils literal notranslate"><span class="pre">Volume</span></code>. It is given in cubic meters.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">"main_oil"</span> <span class="p">{</span>
     <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
-    <span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+    <span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -684,14 +684,14 @@ Set the <code class="docutils literal notranslate"><span class="pre">RouteType</
 Set one or more ports at which a vessel stops. In our example, the vessel is only stopping at one port called <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>. In your future Navigate modeling, the port often covers a whole region is specified as Africa, Americas, Asia, Europe and Middle East. Hence, a port is often used as a proxy for a region.
 Set the <code class="docutils literal notranslate"><span class="pre">TimeAtSea</span></code>, which defines the proportion of a year that a vessel spends at sea. In our example, the ship is at sea for (0.75*365 days) 273 full days a year.
 A leg is a voyage from one port to another. On a <code class="docutils literal notranslate"><span class="pre">TRAMP</span></code>, every pair of ports is a leg, a port with itself included, so our one port gives the one leg from <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> back to <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>. The inputs of a leg are set with commands, written <code class="docutils literal notranslate"><span class="pre">set_xxx(...)</span></code> (commands are explained further with the Fuel node below). They address a leg by the names of its two ports, and the wildcard <code class="docutils literal notranslate"><span class="pre">&quot;*&quot;</span></code> matches every port.
-Set the voyage distribution with <code class="docutils literal notranslate"><span class="pre">set_voyage_distribution</span></code>, which defines the share of the sea miles sailed on each leg (here: only one leg, i.e. all of the sea miles are sailed on the leg).
+Set the distance shares with <code class="docutils literal notranslate"><span class="pre">set_distance_share</span></code>, which defines the share of the sea miles sailed on each leg (here: only one leg, i.e. all of the sea miles are sailed on the leg).
 Set the speed of the vessel with <code class="docutils literal notranslate"><span class="pre">set_speed</span></code>, given in knots, on each leg of the journey (here: only one leg).</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Route</span> <span class="s2">"route"</span> <span class="p">{</span>
     <span class="n">RouteType</span> <span class="o">=</span> <span class="n">TRAMP</span>
     <span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
     <span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
-    <span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">set_distance_share</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">set_speed</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
@@ -716,11 +716,11 @@ and the include-file line of the <code class="docutils literal notranslate"><spa
 <h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Port</span></code><a class="headerlink" href="#definition-of-a-port" title="Link to this heading">#</a></h3>
 <ol class="arabic simple">
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Port</span></code>.
-Navigate builds on various underlying assumptions. Amongst these assumptions for bunker price and emissions. These are here overwritten for this tutorial.</p></li>
+Set the price and the Well-to-Tank (WTT) emissions of the fuel in the port with <code class="docutils literal notranslate"><span class="pre">set_fuel_price</span></code> and <code class="docutils literal notranslate"><span class="pre">set_fuel_wtt</span></code>. The fuel you define below belongs to a liquid market, so these are its only price and WTT emissions.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>	
-    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
-    <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+    <span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+    <span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -770,15 +770,15 @@ The unit of an emission factor is ton emissions/ton fuel.</p></li>
 <li><p>Define the <code class="docutils literal notranslate"><span class="pre">Emission</span></code> nodes <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;methane&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;nitrous_oxide&quot;</span></code></p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">25</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">273</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -898,8 +898,8 @@ Define annual time-steps with a reference Date.</p></li>
 <span class="c1"># Define the node "fleet" below.</span>
 <span class="n">Fleet</span> <span class="s2">"fleet"</span> <span class="p">{</span>
 	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"vessel_ice_oil"</span><span class="p">)]</span>
-	<span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
-	<span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="p">}</span>
 
@@ -950,7 +950,7 @@ Define annual time-steps with a reference Date.</p></li>
 
 <span class="n">Tank</span> <span class="s2">"main_oil"</span> <span class="p">{</span>
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 
 <span class="c1"># Define the node "route" below.</span>
@@ -959,7 +959,7 @@ Define annual time-steps with a reference Date.</p></li>
 	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">TRAMP</span>
 	<span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
 	<span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
-	<span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">set_distance_share</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 	<span class="n">set_speed</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -967,8 +967,8 @@ Define annual time-steps with a reference Date.</p></li>
 <span class="c1"># Define the node "port" below.</span>
 
 <span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>	
-	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
-	<span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+	<span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+	<span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
 <span class="p">}</span>
 
 
@@ -991,15 +991,15 @@ Define annual time-steps with a reference Date.</p></li>
 <span class="c1"># E) DEFINITION OF A EMISSION</span>
 
 <span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">25</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">273</span>
 <span class="p">}</span>
 
 

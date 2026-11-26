@@ -474,8 +474,8 @@ Add the <code class="docutils literal notranslate"><span class="pre">Vessel(&quo
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"container_fleet"</span> <span class="p">{</span>	
    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_oil"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_methane"</span><span class="p">)]</span> 
-   <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
-   <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
    <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span> 
    <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
 <span class="p">}</span>
@@ -495,15 +495,15 @@ Add the <code class="docutils literal notranslate"><span class="pre">Vessel(&quo
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"bulk_fleet"</span> <span class="p">{</span>	
    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_methanol"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_ammonia"</span><span class="p">)]</span> 
-   <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
-   <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
    <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
    <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li><p>As in tutorial 1, the decision sensitivities are set directly on each fleet through the <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> attributes above (a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a 10% higher LCOT halves the odds) — there is no separate node to define.</p></li>
+<li><p>As in tutorial 1, the decision sensitivities are set directly on each fleet through the <code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span></code> attributes above (a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a 10% higher LCOT halves the odds) — there is no separate node to define.</p></li>
 </ol>
 </section>
 </section>
@@ -574,7 +574,7 @@ Next to the main tank for methane, you also need to include the pilot tank for f
    <span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
    <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
    <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
-   <span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+   <span class="n">set_slip</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -594,7 +594,7 @@ Next to the main tank for methane, you also need to include the pilot tank for f
    <span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
    <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
    <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
-   <span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+   <span class="n">set_slip</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -740,11 +740,11 @@ You will define both tanks later.</p></li>
 <h4>Pilot Tank<a class="headerlink" href="#pilot-tank" title="Link to this heading">#</a></h4>
 <ol class="arabic simple" start="2">
 <li><p>For the first pasted node <code class="docutils literal notranslate"><span class="pre">&quot;main_oil&quot;</span></code> in section Ci), change the name of the node from <code class="docutils literal notranslate"><span class="pre">&quot;main_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;pilot_oil&quot;</span></code>.</p></li>
-<li><p>Change the Size to 2000.</p></li>
+<li><p>Change the Volume to 2000.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">"pilot_oil"</span> <span class="p">{</span>
    <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
-   <span class="n">Size</span> <span class="o">=</span> <span class="mi">2000</span>
+   <span class="n">Volume</span> <span class="o">=</span> <span class="mi">2000</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -757,7 +757,7 @@ You will define both tanks later.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">"main_methane"</span> <span class="p">{</span>
    <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
-   <span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+   <span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -771,7 +771,7 @@ Note that it has a different fuel type.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">"main_methanol"</span> <span class="p">{</span>
    <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
-   <span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+   <span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -785,7 +785,7 @@ Note that it has a different fuel type.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">"main_ammonia"</span> <span class="p">{</span>
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -800,8 +800,8 @@ Note that it has a different fuel type.</p></li>
 <h4>Port<a class="headerlink" href="#port" title="Link to this heading">#</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">Port</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> node is carried over from tutorial 1. Update the heavy fuel oil bunker price from 250 to 120; the WTT emission factor stays the same.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
-   <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
-   <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>			
+   <span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+   <span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>			
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1147,14 +1147,14 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
              <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_bio_gasification"</span><span class="p">),</span>
              <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_blue"</span><span class="p">)]</span>
    <span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
-   <span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
-   <span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
+   <span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li><p><code class="docutils literal notranslate"><span class="pre">FuelDemandSensitivity</span></code> controls how strongly the choice <em>between fuel pathways</em> responds to expected demand: a value of <code class="docutils literal notranslate"><span class="pre">1.5</span></code> means a pathway whose expected demand is 10% higher receives 1.5x the odds (higher demand is better, so use a value above <code class="docutils literal notranslate"><span class="pre">1</span></code>). This lets the EPC scale up the fuel with the largest gap between demand and production capacity.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">FuelCostSensitivity</span></code> controls the choice <em>between plants producing the same fuel</em> by their levelized cost of fuel (LCoF): a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a plant whose LCoF is 10% higher receives half the odds (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FuelSensitivity</span></code> controls how strongly the choice <em>between fuel pathways</em> responds to expected demand: a value of <code class="docutils literal notranslate"><span class="pre">1.5</span></code> means a pathway whose expected demand is 10% higher receives 1.5x the odds (higher demand is better, so use a value above <code class="docutils literal notranslate"><span class="pre">1</span></code>). This lets the EPC scale up the fuel with the largest gap between demand and production capacity.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VariantSensitivity</span></code> controls the choice <em>between plants producing the same fuel</em> by their levelized cost of fuel (LCoF): a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a plant whose LCoF is 10% higher receives half the odds (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
 </ol>
 </section>
 </section>
@@ -1247,8 +1247,8 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># Below is the definition of the fleet from tutorial 1. </span>
 <span class="n">Fleet</span> <span class="s2">"container_fleet"</span> <span class="p">{</span>
 	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_oil"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_methane"</span><span class="p">)]</span>
-	<span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
-	<span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
 	<span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
 <span class="p">}</span>
@@ -1258,8 +1258,8 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># described in the tutorial:</span>
 <span class="n">Fleet</span> <span class="s2">"bulk_fleet"</span> <span class="p">{</span>
 	<span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_methanol"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_ammonia"</span><span class="p">)]</span>
-	<span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
-	<span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 	<span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
 	<span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
 <span class="p">}</span>
@@ -1323,7 +1323,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
 	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
 	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
-	<span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+	<span class="n">set_slip</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Converter</span> <span class="s2">"electrical_ice_methane"</span> <span class="p">{</span>
@@ -1332,7 +1332,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 	<span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
 	<span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
 	<span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
-	<span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+	<span class="n">set_slip</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1"># Biii) DEFINITION OF METHANOL VESSEL</span>
@@ -1406,14 +1406,14 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 	<span class="n">RouteType</span> <span class="o">=</span> <span class="n">TRAMP</span>
 	<span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span>
 	<span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
-	<span class="n">set_voyage_distribution</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">set_distance_share</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 	<span class="n">set_speed</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1"># Define the vessel tank below.</span>
 <span class="n">Tank</span> <span class="s2">"main_oil"</span> <span class="p">{</span>
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 
 <span class="c1"># Ci) DEFINITION OF PILOT TANK</span>
@@ -1421,7 +1421,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># Paste the node Tank "main_oil" from section C) below.</span>
 <span class="n">Tank</span> <span class="s2">"pilot_oil"</span> <span class="p">{</span>
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">2000</span>
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">2000</span>
 <span class="p">}</span>
 
 <span class="c1"># Cii) DEFINITION OF METHANE TANK</span>
@@ -1429,7 +1429,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># Paste the node Tank "main_oil" from section C) below.</span>
 <span class="n">Tank</span> <span class="s2">"main_methane"</span> <span class="p">{</span>
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 
 
@@ -1438,7 +1438,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># Paste the node Tank "main_oil" from section C) below.</span>
 <span class="n">Tank</span> <span class="s2">"main_methanol"</span> <span class="p">{</span>
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 
 
@@ -1447,7 +1447,7 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># Paste the node Tank "main_oil" from section C) below.</span>
 <span class="n">Tank</span> <span class="s2">"main_ammonia"</span> <span class="p">{</span>
 	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
-	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+	<span class="n">Volume</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
 
 
@@ -1455,8 +1455,8 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="c1"># Definition of the node "port" from tutorial 1 below:</span>
 
 <span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
-	<span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
-	<span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+	<span class="n">set_fuel_price</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+	<span class="n">set_fuel_wtt</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="n">Region</span> <span class="s2">"region"</span> <span class="p">{</span>
@@ -1509,15 +1509,15 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">25</span>
 <span class="p">}</span>
 
 <span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
-	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+	<span class="n">Gwp</span> <span class="o">=</span> <span class="mi">273</span>
 <span class="p">}</span>
 
 
@@ -1644,8 +1644,8 @@ For the sake of simplicity, this node is empty, but in Navigate you will be able
 		<span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_blue"</span><span class="p">)</span>
 	<span class="p">]</span>
 	
-	<span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
-	<span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">FuelSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
+	<span class="n">VariantSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 
 	<span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="p">}</span>

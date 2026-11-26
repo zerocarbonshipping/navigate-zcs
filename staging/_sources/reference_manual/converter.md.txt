@@ -20,7 +20,7 @@ Converter "internal_combustion_engine" {
     MinimumPilotFuel = 0.01
     Efficiency = 0.51
     
-    set_slip_fraction(METHANE, Variable("converter_methane_slip"))
+    set_slip(METHANE, Variable("converter_methane_slip"))
     
     Capex = 300000
     Opex = 30000
@@ -152,11 +152,11 @@ This attribute sets the fraction of the potential energy that is converted to ki
 
 ## Commands
 
-### set\_consumption\_ttw
+### set\_ttw
 
-This command sets the emissions in the converter as a fraction of the amount of total fuel consumption. Hence, the command must specify a) the fuel type, b) the emission type, c) the fraction tons of emissions per ton of fuel consumed. The command is used to define emissions which do not pertain to the stoichiometric combustion process, but are converter specific, e.g., NOx or SOx.
+This command sets the tank-to-wake (TTW) emissions of the converter itself, per ton of fuel consumed. Hence, the command must specify a) the fuel type, b) the emission type, c) the fraction tons of emissions per ton of fuel consumed. The command is used to define emissions which do not pertain to the stoichiometric combustion process, but are converter specific, e.g., NOx or SOx.
 
-The value is per ton of fuel fed into the converter, so it already accounts for any slip set with `set_slip_fraction`. The fuel type must be one of the Converter's MainFuelTypes or PilotFuelTypes.
+The value is per ton of fuel fed into the converter, so it already accounts for any slip set with `set_slip`. The fuel type must be one of the Converter's MainFuelTypes or PilotFuelTypes.
 
 * **Primary key type**: [FuelTypeID](appendix_ids.md#fueltypeid)
 * **Secondary key type**: String (Emission name; supports wildcards)
@@ -168,9 +168,9 @@ The value is per ton of fuel fed into the converter, so it already accounts for 
 * **Minimum value**: 0
 * **Default**: 0
 
-### set\_slip\_fraction
+### set\_slip
 
-This command sets the fraction of fuel mass that escapes unburned (slip) when using a specific fuel type, e.g., methane slip. Hence, the command must specify a) the fuel type, b) the fraction of fuel mass escaping unburned. The fuel type must be one of the Converter's MainFuelTypes or PilotFuelTypes.
+This command sets the fraction of fuel mass that escapes unburned (slip) when using a specific fuel type, e.g., methane slip. Hence, the command must specify a) the fuel type, b) the fraction of fuel mass escaping unburned. The fuel type must be one of the Converter's MainFuelTypes or PilotFuelTypes. The fuel that slips is emitted as the `Emission` whose [SlipFuelType](emission.md#slipfueltype) is the fuel type.
 
 * **Primary key type**: [FuelTypeID](appendix_ids.md#fueltypeid)
 * **Data type**: `Float`, `Variable`

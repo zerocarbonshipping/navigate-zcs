@@ -13,7 +13,7 @@ Example:
 ```python
 Tank "fuel_oil_tank" {
     FuelTypes = [OIL]
-    Size = 5000
+    Volume = 5000
     
     Capex = 500
     Opex = 5
@@ -81,9 +81,9 @@ This attribute sets the types of fuel that can be stored in the tank. All 'FuelT
   + `[OIL, METHANOL]`
 * **Default**: None. Must be provided by the user.
 
-### Size 
+### Volume 
 
-This attribute sets the volumetric size of the tank in cubic meters.
+This attribute sets the volume of the tank in cubic meters.
 
 * **Data type**: `Float`, `Variable`
 * **Example values**:

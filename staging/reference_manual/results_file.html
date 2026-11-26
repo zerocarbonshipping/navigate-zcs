@@ -909,8 +909,8 @@ is the power of the oil-fuelled vessels.</p></li>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.levy_units</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.levy_units</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.levy_units</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tCO2e/year</span></code></p></td>
 <td><p>levy</p></td>
-<td><p>Emissions a levy charged: its charge over its Level.</p></td>
-<td><p>A Levy with a positive Level charges</p></td>
+<td><p>Emissions a levy charged: its charge over its Rate.</p></td>
+<td><p>A Levy with a positive Rate charges</p></td>
 </tr>
 </tbody>
 </table>
@@ -992,12 +992,12 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p><code class="docutils literal notranslate"><span class="pre">GJ/year</span></code></p></td>
 <td><p></p></td>
 <td><p>Shore power drawn in port.</p></td>
-<td><p>Vessels call at a Port with a ShorePowerConnectionShare above 0</p></td>
+<td><p>Vessels call at a Port with a ShorePowerAvailability above 0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_expenses</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">currency/year</span></code></p></td>
 <td><p></p></td>
-<td><p>Cost of the shore power, at the port’s ShorePowerCost.</p></td>
+<td><p>Cost of the shore power, at the port’s ShorePowerPrice.</p></td>
 <td><p>As <code class="docutils literal notranslate"><span class="pre">shore_power_energy</span></code>, with a cost</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.shore_power_levy_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">fleet.shore_power_levy_expenses</span></code><br><code class="docutils literal notranslate"><span class="pre">vessel.shore_power_levy_expenses</span></code></p></td>
@@ -1162,7 +1162,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
 <td><p>vessel, technology</p></td>
 <td><p>Share of the vessels of a type retrofitted with the technology.</p></td>
-<td><p>Retrofits, at the dates RetrofitFrequency allows</p></td>
+<td><p>Retrofits, at the dates RetrofitInterval allows</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fleet.fleet_technology_uptake</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
@@ -1466,7 +1466,7 @@ is the power of the oil-fuelled vessels.</p></li>
 <td><p><code class="docutils literal notranslate"><span class="pre">t/year</span></code></p></td>
 <td><p>feed</p></td>
 <td><p>Availability of the feed.</p></td>
-<td><p>The Producer has <code class="docutils literal notranslate"><span class="pre">set_feed_constraint</span></code> for the feed</p></td>
+<td><p>The Producer has <code class="docutils literal notranslate"><span class="pre">set_feed_limit</span></code> for the feed</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">global.plant_tied_capital</span></code><br><code class="docutils literal notranslate"><span class="pre">producer.plant_tied_capital</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">currency</span></code></p></td>

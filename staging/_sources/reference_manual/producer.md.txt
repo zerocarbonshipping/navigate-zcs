@@ -15,8 +15,8 @@ Example:
 Producer "engineering_procurement_construction" {
     Plants = [Plant("plant_methane_electro"), Plant("plant_ammonia_blue")]
 
-    FuelDemandSensitivity = 1.25
-    FuelCostSensitivity = 0.5
+    FuelSensitivity = 1.25
+    VariantSensitivity = 0.5
 }
 ```
 
@@ -61,7 +61,7 @@ This attribute sets the minimum offtake duration required for building new plant
 * **Minimum value**: >0
 * **Default**: 1
 
-### FuelDemandSensitivity
+### FuelSensitivity
 
 Set how strongly the split between plants producing different fuel pathways responds to expected demand.
 
@@ -74,7 +74,7 @@ The value is an odds ratio against a 10% increase: a pathway whose expected dema
 * **Minimum value**: >0
 * **Default**: None. Must be provided by the user.
 
-### FuelCostSensitivity
+### VariantSensitivity
 
 Set how strongly the split between plants producing the same fuel responds to the levelized cost of fuel (LCoF).
 
@@ -137,11 +137,11 @@ This attribute sets the maximum ramp-up for the utilization of the development c
 * **Maximum value**: 1
 * **Default**: 1
 
-### JumpStartFraction
+### JumpStart
 
-This attribute sets the jump-start fraction used to initiate the supply/demand interaction if there has been no production.
+This attribute sets the jump start, a fraction used to initiate the supply/demand interaction if there has been no production.
 
-The producer's expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel's plants built in the last time step, blended with an even split weighted by the jump-start fraction; a fuel without plants built in the last time step splits them evenly. While the development constraint has not been utilized, the jump-start fraction also stands in for its utilization.
+The producer's expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel's plants built in the last time step, blended with an even split weighted by the jump start; a fuel without plants built in the last time step splits them evenly. While the development constraint has not been utilized, the jump start also stands in for its utilization.
 
 * **Data type**: `Float`, `Variable`
 * **Example values**:
@@ -178,9 +178,9 @@ This command sets a boolean flag for a given plant from the list of plants wheth
   + `"plant_name", FALSE`
 * **Default**: TRUE
 
-### set\_feed\_constraint
+### set\_feed\_limit
 
-This command sets a static constraint for the amount of feed (feedstock or process output) available to the producer in tons/year. `INF` means no constraint.
+This command sets a limit on the amount of feed (feedstock or process output) available to the producer in tons/year. `INF` means no limit.
 
 * **Primary key type**: String (Feedstock or Process name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
@@ -189,9 +189,9 @@ This command sets a static constraint for the amount of feed (feedstock or proce
   + `"feedstock_name", Forecast("name")`
 * **Unit**: tons / year
 * **Minimum value**: 0
-* **Default**: Not set. The feed is unconstrained, as with `INF`.
+* **Default**: Not set. The feed is unlimited, as with `INF`.
 
-### set\_export\_distribution
+### set\_export\_weight
 
 This command sets the relative weight with which the fuel production of the producer is exported to a given port.
 

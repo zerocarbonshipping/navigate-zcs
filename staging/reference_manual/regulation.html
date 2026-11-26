@@ -597,7 +597,7 @@ transport based regulation such as the IMO CII regulation.</p>
 <h3>Measure<a class="headerlink" href="#measure" title="Link to this heading">#</a></h3>
 <p>This attribute sets the emission measure of the regulation.</p>
 <p>If ‘ABSOLUTE’ the absolute emissions in tons/year are targeted.
-If ‘INTENSITY’ the emission intensity in kg/GJ is targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (<code class="docutils literal notranslate"><span class="pre">set_slip_fraction</span></code> on the <code class="docutils literal notranslate"><span class="pre">Converter</span></code>).
+If ‘INTENSITY’ the emission intensity in kg/GJ is targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (<code class="docutils literal notranslate"><span class="pre">set_slip</span></code> on the <code class="docutils literal notranslate"><span class="pre">Converter</span></code>).
 If ‘TRANSPORT_NOMINAL’ the carbon intensity index in g CO<sub>2</sub>-eq/nominal cargo-miles is targeted.
 If ‘TRANSPORT’ the carbon intensity index in g CO<sub>2</sub>-eq/actual cargo-miles is targeted.</p>
 <ul class="simple">
@@ -710,8 +710,8 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </section>
 <section id="commands">
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
-<section id="set-global-warming-potential">
-<span id="set_global_warming_potential"></span><h3>set_global_warming_potential<a class="headerlink" href="#set-global-warming-potential" title="Link to this heading">#</a></h3>
+<section id="set-gwp">
+<span id="set_gwp"></span><h3>set_gwp<a class="headerlink" href="#set-gwp" title="Link to this heading">#</a></h3>
 <p>This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the regulation then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A <code class="docutils literal notranslate"><span class="pre">Curve</span></code> is read at the emissions lifetime, like the GWP of the emission: the <code class="docutils literal notranslate"><span class="pre">EmissionsLifetime</span></code> of the regulation if assigned, otherwise that of the model.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Emission name; supports wildcards)</p></li>
@@ -755,7 +755,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission/ton fuel</p></li>
-<li><p><strong>Default</strong>: Not set. The WTT emission factor is averaged over the ports of the vessel’s route, using each port’s <code class="docutils literal notranslate"><span class="pre">set_bunker_wtt_overwrite</span></code> if assigned, otherwise an estimate from the plants producing the fuel.</p></li>
+<li><p><strong>Default</strong>: Not set. The WTT emission factor is averaged over the ports of the vessel’s route, using each port’s <a class="reference internal" href="port.html#set-fuel-wtt"><span class="std std-ref">set_fuel_wtt</span></a> if assigned, otherwise an estimate from the plants producing the fuel.</p></li>
 </ul>
 </section>
 <section id="set-fuel-ttw">
@@ -886,7 +886,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-global-warming-potential">set_global_warming_potential</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-gwp">set_gwp</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-include-vessel">set_include_vessel</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-fuel-wtt">set_fuel_wtt</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-fuel-ttw">set_fuel_ttw</a></li>

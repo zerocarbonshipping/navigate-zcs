@@ -34,7 +34,7 @@ This attribute specifies the type of the fuel.
 
 ### LiquidMarket
 
-This attribute specifies whether the fuel belongs to a liquid market. Fuels which belong to a liquid market cannot be modelled bottom-up via `Plant` and `Producer` nodes but require manual assignment of supply, price, and WTT emissions at `Port` level (see `set_bunker_price_overwrite` and `set_bunker_wtt_overwrite` on the [Port](port.md) node).
+This attribute specifies whether the fuel belongs to a liquid market. Fuels which belong to a liquid market cannot be modelled bottom-up via `Plant` and `Producer` nodes but require manual assignment of supply, price, and WTT emissions at `Port` level (see [set\_fuel\_price](port.md#set_fuel_price) and [set\_fuel\_wtt](port.md#set_fuel_wtt) on the `Port` node).
 
 * **Data type**: `Boolean`
 * **Example value**: `TRUE`
