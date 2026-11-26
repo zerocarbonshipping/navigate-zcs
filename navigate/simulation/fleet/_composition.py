@@ -167,14 +167,13 @@ def calculate_cycle_slice(
     multiple k * f of the retrofit interval f: at the end of the step its age lies in
     ``[k * f, k * f + min(time_step, f))``, the windows no longer than f so that they
     do not overlap and a vessel counts once per step. The slice is the part of the
-    increment's age span in a window, below the lifetime and at or above the minimum
-    age. An overlap within rounding of an end of a window, against the larger of the
-    span's ends, holds no vessels.
+    ages the increment's vessels hold in a window, below the lifetime and at or above
+    the minimum age. An overlap within rounding of an end of a window, against the
+    larger of the held ages' ends, holds no vessels.
 
-    The increment's size before scrapping past the lifetime is spread uniformly over
-    its age span (``calculate_survivors`` in ``fleet/scrapping.py``), so the slice
-    holds its length's share of that size, whether or not this time-step's scrapping
-    has run.
+    The vessels are spread uniformly over the youngest part of the age span they
+    hold (``VesselIncrement.oldest_age``), so the slice holds its length's share of
+    them, whether or not this time-step's scrapping has run.
 
     Parameters
     ----------
@@ -199,9 +198,9 @@ def calculate_cycle_slice(
     if increment.count <= 0.0:
         return None
 
-    span = increment.age_span
     youngest = increment.youngest_age(time)
-    oldest = youngest + span
+    oldest = increment.oldest_age(time)
+    held_span = oldest - youngest
     scale = max(abs(youngest), abs(oldest))
 
     lower = max(youngest, minimum_age)
@@ -218,15 +217,10 @@ def calculate_cycle_slice(
     if length <= 0.0:
         return None
 
-    # a slice within rounding of the whole span holds all of its vessels
-    missing = float(drop_negligible(span - length, scale))
-    size = increment.count + increment.scrapped_past_lifetime
-    eligible = size * (1.0 - missing / span)
+    # a slice within rounding of the whole held span holds all of its vessels
+    missing = float(drop_negligible(held_span - length, scale))
+    share = 1.0 - missing / held_span
     mean_age = float(np.sum(lengths * (starts + ends))) / (2.0 * length)
-
-    # converted vessels, and round-off, can leave the increment scrapped beyond this
-    # lifetime's share, as in calculate_survivors, so the slice is capped at its count
-    share = min(eligible / increment.count, 1.0)
 
     return CycleSlice(share, mean_age)
 
@@ -310,8 +304,8 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     -------
     VesselIncrement
         The first increment, holding the cohort's total count and vessels scrapped
-        past the lifetime, and its count-weighted package uptake and technology
-        charter rate.
+        from the oldest part of the span, and its count-weighted package uptake and
+        technology charter rate.
     """
     survivor = cohort[0]
 
@@ -321,10 +315,10 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     counts = [increment.count for increment in cohort]
     uptakes = [increment.package_uptake for increment in cohort]
     charter_rates = [increment.technology_charter_rate for increment in cohort]
-    scrapped = [increment.scrapped_past_lifetime for increment in cohort]
+    scrapped = [increment.scrapped_oldest for increment in cohort]
 
     survivor.count = sum(counts)
-    survivor.scrapped_past_lifetime = sum(scrapped)
+    survivor.scrapped_oldest = sum(scrapped)
     survivor.package_uptake = np.average(uptakes, axis=0, weights=counts)
     survivor.technology_charter_rate = float(np.average(charter_rates, weights=counts))
 

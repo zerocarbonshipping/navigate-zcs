@@ -472,6 +472,9 @@ change.
   is refused; delete the line (#1007).
 
 ### Fixed
+- Secondary scrapping and `FixedScrapRate` scrap the oldest vessels of the fleet
+  by their age, across vessel types, rather than whole cohorts ranked by their
+  youngest vessel; results move in decks that use either (#1010).
 - A producer's development limited by `MaximumDevelopment` no longer depends
   on the step length: on steps shorter than a year it was held back by what the
   producer built in its last step (#1007).

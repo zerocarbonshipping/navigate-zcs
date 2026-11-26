@@ -15,8 +15,8 @@ from navigate.simulation.fleet._composition import extract_cargo_miles, is_in_se
 from navigate.simulation.fleet._newbuild import is_newbuild_allowed
 from navigate.simulation.fleet.scrapping import (
     calculate_survivors,
-    group_by_age,
     split_oldest_first,
+    tabulate_increments,
 )
 from navigate.util import (
     calculate_kept_fraction,
@@ -321,13 +321,13 @@ def _forecast_at_fixed_rate(
     Forecast the existing vessels scrapped at the fixed rate and the newbuilds.
 
     Each time-step scraps, of the capacity of the fleet expected at the time-step
-    before, the share the yearly rate compounds to over the step, oldest age group
+    before, the share the yearly rate compounds to over the step, the oldest vessels
     first across vessel types, as primary scrapping does; the first time-step
     scrapped counts the fleet as it is. As the expected fleet holds the newbuilds
     that fill each gap, the time-steps are forecast one after another. All ages
-    advance equally, so the age order holds over the horizon. Scrapping left once
-    the existing vessels are gone would only scrap expected newbuilds, which the
-    gap refills, so it is dropped.
+    advance together, so each increment's held entry interval only shrinks from its
+    start as it is scrapped. Scrapping left once the existing vessels are gone would
+    only scrap expected newbuilds, which the gap refills, so it is dropped.
 
     Parameters
     ----------
@@ -358,8 +358,9 @@ def _forecast_at_fixed_rate(
     existing = np.zeros_like(cargo_miles)
     newbuild = np.zeros_like(cargo_miles)
 
-    grouped = _grouped_counts(fleet)
-    counted = np.sum(grouped, axis=0)
+    type_count = len(fleet.vessels)
+    vessel_indices, counts, starts, ends = tabulate_increments(fleet)
+    counted = np.bincount(vessel_indices, weights=counts, minlength=type_count)
 
     for k in range(trade.size):
         is_pending = k >= first_pending
@@ -368,9 +369,15 @@ def _forecast_at_fixed_rate(
             time_step = timeline[idx + k] - timeline[idx + k - 1]
             scrap_share = calculate_removed_fraction(rates[k], time_step)
             target = scrap_share * np.dot(counted, cargo_miles[k])
-            grouped = _scrap_oldest_groups(grouped, cargo_miles[k], target)
+            capacities = counts * cargo_miles[k][vessel_indices]
+            kept, _ = split_oldest_first(starts, ends, capacities, target)
 
-        existing[k] = np.sum(grouped, axis=0)
+            # the held interval shrinks from its start with the count, as
+            # VesselIncrement.oldest_entered reads it off scrapped_oldest
+            counts = counts * kept
+            starts = ends - (ends - starts) * kept
+
+        existing[k] = np.bincount(vessel_indices, weights=counts, minlength=type_count)
         newbuild[k] = _gap_newbuilds(trade[k], existing[k], cargo_miles[k], split)
 
         # a time-step whose evolution has run leaves its gap open, so the next
@@ -378,62 +385,6 @@ def _forecast_at_fixed_rate(
         counted = existing[k] + newbuild[k] if is_pending else existing[k]
 
     return existing.T, newbuild.T
-
-
-def _grouped_counts(fleet: Fleet) -> FloatArray:
-    """
-    Return the vessel counts of the fleet's age groups.
-
-    Parameters
-    ----------
-    fleet
-        Fleet whose increments are grouped.
-
-    Returns
-    -------
-    FloatArray
-        Number of vessels in each age group (rows), oldest first, of each vessel type
-        (columns).
-    """
-    groups = group_by_age(fleet)
-    grouped = np.zeros((len(groups), len(fleet.vessels)))
-
-    for g, group in enumerate(groups):
-        for v, i in group:
-            grouped[g, v] += fleet.increments[v][i].count
-
-    return grouped
-
-
-def _scrap_oldest_groups(
-    grouped: FloatArray, cargo_miles: FloatArray, capacity: float
-) -> FloatArray:
-    """
-    Return the age groups' vessel counts left after scrapping a capacity, oldest first.
-
-    Parameters
-    ----------
-    grouped
-        Number of vessels in each age group (rows), oldest first, of each vessel type
-        (columns).
-    cargo_miles
-        Cargo-miles of one vessel of each type, in cargo-miles/year.
-    capacity
-        Capacity to scrap, in cargo-miles/year.
-
-    Returns
-    -------
-    FloatArray
-        Number of vessels left in each age group (rows), oldest first, of each vessel
-        type (columns).
-    """
-    whole, fraction = split_oldest_first(grouped @ cargo_miles, capacity)
-    left = grouped[whole:].copy()
-
-    if fraction is not None:
-        left[0] *= 1.0 - fraction
-
-    return left
 
 
 def _gap_newbuilds(

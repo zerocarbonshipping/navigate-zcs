@@ -184,7 +184,7 @@ class _ConversionProposal:
         The cohort's increment, which the conversions reduce and carry the
         vintage, technology package and charter rate from.
     scrapped_per_vessel
-        Vessels scrapped from the cohort's part past the lifetime per vessel left in
+        Vessels scrapped from the oldest part of the cohort's span per vessel left in
         it; the converted vessels carry their share.
     candidates
         Evaluated candidates, keyed by destination vessel-type name.
@@ -284,7 +284,7 @@ def _propose_fuel_conversions(
         _debit_supply_excess(supply_excess, cohort.source, candidates)
 
         increment = cohort.increment
-        scrapped_per_vessel = increment.scrapped_past_lifetime / increment.count
+        scrapped_per_vessel = increment.scrapped_oldest / increment.count
         proposal = _ConversionProposal(
             cohort.source.name, increment, scrapped_per_vessel, candidates
         )
@@ -758,7 +758,7 @@ def _apply_from_side(
         scrapped = count * proposal.scrapped_per_vessel
 
         increment_from.count -= count
-        increment_from.scrapped_past_lifetime -= scrapped
+        increment_from.scrapped_oldest -= scrapped
         fleet.results.fuel_conversions[proposal.name_from, name_to][idx] += count
 
         # the levelized charge is booked over the service window: each date books
@@ -810,7 +810,7 @@ def _insert_converted_increment(
         carried along.
     proposal
         Proposal the vessels convert under; the converted increment takes its
-        vessels' share of those scrapped past the lifetime.
+        vessels' share of those scrapped from the oldest part of the span.
     count
         Number of vessels converted.
     """
@@ -831,7 +831,7 @@ def _insert_converted_increment(
             age_span=increment_from.age_span,
             origin=increment_from.origin,
             package_uptake=increment_from.package_uptake.copy(),
-            scrapped_past_lifetime=scrapped,
+            scrapped_oldest=scrapped,
             technology_charter_rate=increment_from.technology_charter_rate,
         ),
     )
