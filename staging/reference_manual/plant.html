@@ -576,6 +576,7 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <h3>Lifetime<a class="headerlink" href="#lifetime" title="Link to this heading">#</a></h3>
 <p>This attribute sets the lifetime of the plant in years.</p>
 <p>The plant is decommissioned when it surpasses its lifetime.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LeadTime</span></code> plus <code class="docutils literal notranslate"><span class="pre">Lifetime</span></code> must exceed <code class="docutils literal notranslate"><span class="pre">LeadTime</span></code> rounded up to whole years at every time step, so that the plant still operates when the first whole year after its commissioning starts; the run stops with an error naming the first date where it does not.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">30</span></code></p></li>

@@ -95,6 +95,8 @@ This attribute sets the lifetime of the plant in years.
 
 The plant is decommissioned when it surpasses its lifetime.
 
+`LeadTime` plus `Lifetime` must exceed `LeadTime` rounded up to whole years at every time step, so that the plant still operates when the first whole year after its commissioning starts; the run stops with an error naming the first date where it does not.
+
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example value**: `30`
 * **Unit**: Years
