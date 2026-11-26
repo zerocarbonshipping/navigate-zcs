@@ -21,7 +21,7 @@ DEFINE {
     Include "includes/fuel_production.inc"
     Include "includes/regions.inc"
     Include "includes/producer.inc"
-    Include "includes/bunker_logistics.inc"
+    Include "includes/fuel_delivery.inc"
     Load DefaultEmission
 
     # ---- regulation ----

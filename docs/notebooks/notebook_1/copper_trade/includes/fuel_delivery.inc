@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# BUNKER LOGISTICS - production site to bunker port.
+# FUEL DELIVERY - production site to bunker port. Written for the copper trade:
+# the library has no default file for fuel delivery.
 # Fuel oil and LNG are LiquidMarket fuels in the library: quoted price, no plant,
 # no producer, no logistics chain (ports.inc). Every plant's fuel is shipped to
 # both ports and picks up distance x rate.
