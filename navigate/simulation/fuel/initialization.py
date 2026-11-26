@@ -282,10 +282,12 @@ def _build_initial_increment(
 
 def _define_initial_development(producer: Producer, start: float) -> None:
     """
-    Define the initial uptake, utilization and development from the pipeline.
+    Define the initial development rate, uptake and development from the pipeline.
 
-    The uptake weighs each pipelined plant by the inertia raised to the years since
-    it was decided, and the development counts every pipelined plant.
+    A plant type's development rate is its pipelined plants per year of their age
+    spans, each increment weighed by the inertia raised to the years since it was
+    decided. The producer's rate is the sum over its plant types, the uptake each
+    type's share of it, and the development counts every pipelined plant.
 
     Parameters
     ----------
@@ -295,31 +297,21 @@ def _define_initial_development(producer: Producer, start: float) -> None:
         Start time of the simulation, in years.
     """
     inertia = producer.inertia.get()
-    maximum_development = producer.maximum_development.get()
-    weighted_counts = np.zeros(len(producer.plants))
-    weight_total = 0.0
+    rates = np.zeros(len(producer.plants))
     count_total = 0.0
 
-    # TODO: this may need to be based on continuous compound growth?
     for p, increments in enumerate(producer.pipeline):
         decided = np.array([increment.decided for increment in increments])
         counts = np.array([increment.count for increment in increments])
+        spans = np.array([increment.age_span for increment in increments])
         weights = inertia ** np.maximum(start - decided, 0.0)
 
-        weighted_counts[p] = np.dot(counts, weights)
-        weight_total += np.sum(weights)
+        rates[p] = divide_nonzero(np.dot(weights, counts), np.dot(weights, spans))
         count_total += np.sum(counts)
 
-    weighted_total = np.sum(weighted_counts)
-    even_share = 1.0 / weighted_counts.size
-    uptakes = divide_nonzero(weighted_counts, weighted_total, default=even_share)
+    development = float(np.sum(rates))
+    even_share = 1.0 / rates.size
 
-    # the latest value of the development constraint is used, since the period
-    # to average it back over is hard to define: the pipeline and the lead time
-    # are inconsistent, and the lead time varies between plants
-    average_development = divide_nonzero(weighted_total, weight_total)
-    utilization = float(divide_nonzero(average_development, maximum_development))
-
-    producer.current_uptake = uptakes
-    producer.current_utilization = min(utilization, 1.0)
+    producer.current_development = development
+    producer.current_uptake = divide_nonzero(rates, development, default=even_share)
     producer.results.development[0] = count_total
