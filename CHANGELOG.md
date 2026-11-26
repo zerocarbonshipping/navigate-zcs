@@ -463,6 +463,9 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A plant whose `LeadTime` plus `Lifetime` does not exceed its `LeadTime`
+  rounded up to whole years stops the run with an `Error:` line naming the
+  plant and the date, instead of a Python traceback in planning (#890).
 - `set_initial_technology_share` seeds each initial cohort with the uptake
   averaged over its vessels' ages rather than that of its youngest vessels;
   results move in decks whose share curves vary with age (#993).
