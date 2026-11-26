@@ -602,7 +602,7 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 </section>
 <section id="maximumdevelopment">
 <h3>MaximumDevelopment<a class="headerlink" href="#maximumdevelopment" title="Link to this heading">#</a></h3>
-<p>This attribute sets the development constraint limiting the maximum number of plants which can be built per year.</p>
+<p>This attribute sets the maximum number of plants the producer can build per year. The limit applies in every time step, whatever its length: a step builds at most this number times the step’s length in years.</p>
 <p>If an unconstrained scenario is required, assign a value far above any development the demand could call for, such as <code class="docutils literal notranslate"><span class="pre">1e6</span></code>; <code class="docutils literal notranslate"><span class="pre">INF</span></code> is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -617,27 +617,10 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
-<section id="maximumrampup">
-<h3>MaximumRampUp<a class="headerlink" href="#maximumrampup" title="Link to this heading">#</a></h3>
-<p>This attribute sets the maximum ramp-up for the utilization of the development constraint per year. The utilization is the fraction of <code class="docutils literal notranslate"><span class="pre">MaximumDevelopment</span></code> that can be used, and it cannot exceed 1.</p>
-<ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">0.2</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
-</ul>
-</li>
-<li><p><strong>Unit</strong>: fraction/year</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: 1</p></li>
-</ul>
-</section>
 <section id="jumpstart">
 <h3>JumpStart<a class="headerlink" href="#jumpstart" title="Link to this heading">#</a></h3>
-<p>This attribute sets the jump start, a fraction used to initiate the supply/demand interaction if there has been no production.</p>
-<p>The producer’s expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel’s plants built in the last time step, blended with an even split weighted by the jump start; a fuel without plants built in the last time step splits them evenly. While the development constraint has not been utilized, the jump start also stands in for its utilization.</p>
+<p>This attribute sets the jump start, the weight of an even split between the plant types of a fuel in the producer’s expected production.</p>
+<p>The producer’s expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel’s plants built in the last time step, blended with an even split weighted by the jump start; a fuel without plants built in the last time step splits them evenly.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -779,7 +762,6 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initialcapacity">InitialCapacity</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initialagedistribution">InitialAgeDistribution</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maximumdevelopment">MaximumDevelopment</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maximumrampup">MaximumRampUp</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#jumpstart">JumpStart</a></li>
 </ul>
 </li>
