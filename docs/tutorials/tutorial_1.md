@@ -111,7 +111,7 @@ This should stop with the following error message:
 Error: Fleet("fleet"): Attribute 'InitialVessels' is unassigned.
 ```
 
-This is because any node of the type Fleet requires a set of attributes, namely the attributes `InitialVessels`, `Vessels` and the fuel sensitivities (`InterFuelSensitivity` and `IntraFuelSensitivity`). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now. 
+This is because any node of the type Fleet requires a set of attributes, namely the attributes `InitialVessels`, `Vessels` and the fuel sensitivities (`FuelSensitivity` and `VariantSensitivity`). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now. 
 
 Other nodes can also have mandatory attributes. An error message will tell you if these are not defined yet.
 
@@ -137,10 +137,10 @@ In this example, you only have one type of vessel which is a "vessel_ice_oil". M
 "vessel" is in place of the specific vessel type that you will want to simulate. The `"ice"` is an abbreviation for "internal combustion engine", which is the engine type that extract the energy from fuel `"oil"`. The naming is therefore `"vessel type"_"engine type"_"fuel type"`.
 This is a naming convention we use but is not required; a node can be named anything.
 
-The `InterFuelSensitivity` and `IntraFuelSensitivity` attributes calibrate the discrete choice model, i.e., the model that predicts what percentage of newbuilds will be of fuel type A or B or C, in combination with engine technology X, Y or Z.
+The `FuelSensitivity` and `VariantSensitivity` attributes calibrate the discrete choice model, i.e., the model that predicts what percentage of newbuilds will be of fuel type A or B or C, in combination with engine technology X, Y or Z.
 
-3. The `InterFuelSensitivity` attribute controls how strongly the choice *between fuel types* responds to the levelized cost of transport (LCOT) of each vessel option. Its value is an odds ratio: a value of `0.5` means a fuel whose LCOT is 10% higher receives half the odds of an otherwise identical fuel (lower cost is better, so use a value below `1`).
-4. The `IntraFuelSensitivity` attribute does the same for the choice *between engine technologies within a single fuel type* (different engine technologies are for example combustion engines vs. fuel cells). A value of `0.5` likewise means a 10% higher LCOT halves the odds.
+3. The `FuelSensitivity` attribute controls how strongly the choice *between fuel types* responds to the levelized cost of transport (LCOT) of each vessel option. Its value is an odds ratio: a value of `0.5` means a fuel whose LCOT is 10% higher receives half the odds of an otherwise identical fuel (lower cost is better, so use a value below `1`).
+4. The `VariantSensitivity` attribute does the same for the choice *between engine technologies within a single fuel type* (different engine technologies are for example combustion engines vs. fuel cells). A value of `0.5` likewise means a 10% higher LCOT halves the odds.
 5. `InitialVessels` describes the number of vessels present at the defined start date. `InitialVessels` is a mandatory attribute for the node "fleet", as the error message you saw earlier told you. 
 
 
@@ -148,8 +148,8 @@ The `InterFuelSensitivity` and `IntraFuelSensitivity` attributes calibrate the d
 ```python
 Fleet "fleet" {	 
     Vessels = [Vessel("vessel_ice_oil")]  
-    InterFuelSensitivity = 0.5
-    IntraFuelSensitivity = 0.5
+    FuelSensitivity = 0.5
+    VariantSensitivity = 0.5
     InitialVessels = 100
 }
 ```
@@ -253,12 +253,12 @@ The value assigned to the `Ports` attribute of a Route is a list, marked by squa
 1. Define the node `"main_oil"` of the node type `Tank`.
 You can further specify the characteristics of the tank. For alternative fuels, a vessel can have a main and a pilot tank. 
 Set the fuel types that the tank can hold. In this example, the tank can only use OIL, but we can also specify more than one fuel type. Therefore, we specify that the fuel oil tank is the "main" tank in the vessel. 
-Set the tank’s `Size`. It is given in cubic meters.
+Set the tank’s `Volume`. It is given in cubic meters.
 
 ```python
 Tank "main_oil" {
     FuelTypes = OIL
-    Size = 9000
+    Volume = 9000
 }
 ```
 
@@ -267,7 +267,7 @@ Set the `RouteType`. This can be one of two values: `LINER` or `TRAMP`. A `LINER
 Set one or more ports at which a vessel stops. In our example, the vessel is only stopping at one port called `"port"`. In your future Navigate modeling, the port often covers a whole region is specified as Africa, Americas, Asia, Europe and Middle East. Hence, a port is often used as a proxy for a region.
 Set the `TimeAtSea`, which defines the proportion of a year that a vessel spends at sea. In our example, the ship is at sea for (0.75*365 days) 273 full days a year.
 A leg is a voyage from one port to another. On a `TRAMP`, every pair of ports is a leg, a port with itself included, so our one port gives the one leg from `"port"` back to `"port"`. The inputs of a leg are set with commands, written `set_xxx(...)` (commands are explained further with the Fuel node below). They address a leg by the names of its two ports, and the wildcard `"*"` matches every port.
-Set the voyage distribution with `set_voyage_distribution`, which defines the share of the sea miles sailed on each leg (here: only one leg, i.e. all of the sea miles are sailed on the leg).
+Set the distance shares with `set_distance_share`, which defines the share of the sea miles sailed on each leg (here: only one leg, i.e. all of the sea miles are sailed on the leg).
 Set the speed of the vessel with `set_speed`, given in knots, on each leg of the journey (here: only one leg).
 
 ```python
@@ -275,7 +275,7 @@ Route "route" {
     RouteType = TRAMP
     Ports = [Port("port")]
     TimeAtSea = 0.75
-    set_voyage_distribution("*", "*", 1)
+    set_distance_share("*", "*", 1)
     set_speed("*", "*", 10)
 }
 ```
@@ -304,12 +304,12 @@ In order to run properly, Navigate is missing information about a port it is tra
 ### Definition of a `Port`
 
 1. Define the node `"port"` with the node type `Port`.
-Navigate builds on various underlying assumptions. Amongst these assumptions for bunker price and emissions. These are here overwritten for this tutorial. 
+Set the price and the Well-to-Tank (WTT) emissions of the fuel in the port with `set_fuel_price` and `set_fuel_wtt`. The fuel you define below belongs to a liquid market, so these are its only price and WTT emissions.
 
 ```python
 Port "port" {	
-    set_bunker_price_overwrite("heavy_fuel_oil", 250)
-    set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)
+    set_fuel_price("heavy_fuel_oil", 250)
+    set_fuel_wtt("heavy_fuel_oil", "carbon_dioxide", 0.62)
 }
 ```
 
@@ -358,15 +358,15 @@ Fuel "heavy_fuel_oil" {
 
 ```python
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }
 
 Emission "methane" {
-	GlobalWarmingPotential = 25
+	Gwp = 25
 }
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = 273
+	Gwp = 273
 }
 ```
 
@@ -491,8 +491,8 @@ ModelDefinition {
 # Define the node "fleet" below.
 Fleet "fleet" {
 	Vessels = [Vessel("vessel_ice_oil")]
-	InterFuelSensitivity = 0.5
-	IntraFuelSensitivity = 0.5
+	FuelSensitivity = 0.5
+	VariantSensitivity = 0.5
 	InitialVessels = 100
 }
 
@@ -543,7 +543,7 @@ Converter "heat_boiler_oil" {
 
 Tank "main_oil" {
 	FuelTypes = OIL
-	Size = 9000
+	Volume = 9000
 }
 
 # Define the node "route" below.
@@ -552,7 +552,7 @@ Route "route" {
 	RouteType = TRAMP
 	Ports = [Port("port")]
 	TimeAtSea = 0.75
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 	set_speed("*", "*", 10)
 }
 
@@ -560,8 +560,8 @@ Route "route" {
 # Define the node "port" below.
 
 Port "port" {	
-	set_bunker_price_overwrite("heavy_fuel_oil", 250)
-	set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)
+	set_fuel_price("heavy_fuel_oil", 250)
+	set_fuel_wtt("heavy_fuel_oil", "carbon_dioxide", 0.62)
 }
 
 
@@ -584,15 +584,15 @@ Fuel "heavy_fuel_oil" {
 # E) DEFINITION OF A EMISSION
 
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }
 
 Emission "methane" {
-	GlobalWarmingPotential = 25
+	Gwp = 25
 }
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = 273
+	Gwp = 273
 }
 
 

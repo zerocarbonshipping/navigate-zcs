@@ -292,13 +292,13 @@ def _calculate_tramp_leg_miles(
     """
     Split the sea miles of a tramp route's reference year over its legs.
 
-    A voyage share is the share of the sea miles sailed on its leg. The miles are
+    A distance share is the share of the sea miles sailed on its leg. The miles are
     those that fill the reference year's sea time at each leg's mean reference speed.
 
     Parameters
     ----------
     route
-        Tramp route holding the voyage shares.
+        Tramp route holding the distance shares.
     speeds_leg
         Mean reference speed on each leg, in knots.
     time_at_sea
@@ -309,12 +309,12 @@ def _calculate_tramp_leg_miles(
     FloatArray
         Distance of each leg, in nautical miles/year.
     """
-    voyage_shares = route.get_voyage_shares()
+    distance_shares = route.get_distance_shares()
 
     sea_days = time_at_sea * DAYS_PER_YEAR
-    days_per_mile = np.sum(divide_nonzero(voyage_shares, speeds_leg)) * HOUR_TO_DAY
+    days_per_mile = np.sum(divide_nonzero(distance_shares, speeds_leg)) * HOUR_TO_DAY
 
-    return voyage_shares * sea_days / days_per_mile
+    return distance_shares * sea_days / days_per_mile
 
 
 def _calculate_tramp_port_days(route: Route, time_at_sea: float) -> FloatArray:

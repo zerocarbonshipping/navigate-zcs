@@ -11,7 +11,7 @@ Route "operational_profile_ferry" {
 	set_port_calls("port_europe", 10)
 
 	TimeAtSea = 0.5
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", 14)
 	set_utilization("*", "*", 0.75)

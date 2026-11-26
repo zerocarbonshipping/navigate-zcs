@@ -64,8 +64,8 @@ class Producer(Node):
 
         # plant uptake
         self.minimum_offtake_duration: ForecastInput = Scalar(1.0)
-        self.fuel_demand_sensitivity: ForecastInput
-        self.fuel_cost_sensitivity: ForecastInput
+        self.fuel_sensitivity: ForecastInput
+        self.variant_sensitivity: ForecastInput
         self.inertia: ForecastInput = Scalar(0.0)
 
         # initial conditions
@@ -75,17 +75,17 @@ class Producer(Node):
         # constraints
         self.maximum_development: ForecastInput
         self.maximum_ramp_up: ForecastInput = Scalar(1.0)
-        self.jump_start_fraction: ScalarInput = Scalar(0.1)
+        self.jump_start: ScalarInput = Scalar(0.1)
 
         # per plant, keyed by its name
         self.existing_pipelines: dict[str, Forecast | None] = {}
-        self.allow_plant: dict[str, bool] = {}
+        self.allow_plants: dict[str, bool] = {}
 
         # per feed, keyed by the name of the feedstock or process
-        self.feed_constraints: dict[str, ForecastInput | None] = {}
+        self.feed_limits: dict[str, ForecastInput | None] = {}
 
         # per port, keyed by its name
-        self.export_distribution: dict[str, ForecastInput] = {}
+        self.export_weights: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: ProducerExpectation
@@ -121,9 +121,9 @@ class Producer(Node):
         )
 
     @deck_attribute(required=True)
-    def set_fuel_demand_sensitivity(self, value: ForecastArgument) -> None:
+    def set_fuel_sensitivity(self, value: ForecastArgument) -> None:
         """Set the sensitivity of the fuel-pathway choice to expected demand."""
-        self.fuel_demand_sensitivity = assign_value(
+        self.fuel_sensitivity = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
@@ -131,9 +131,9 @@ class Producer(Node):
         )
 
     @deck_attribute(required=True)
-    def set_fuel_cost_sensitivity(self, value: ForecastArgument) -> None:
+    def set_variant_sensitivity(self, value: ForecastArgument) -> None:
         """Set the sensitivity of the plant choice to levelized cost of fuel."""
-        self.fuel_cost_sensitivity = assign_value(
+        self.variant_sensitivity = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
             lower=0.0,
@@ -195,9 +195,9 @@ class Producer(Node):
         )
 
     @deck_attribute()
-    def set_jump_start_fraction(self, value: ScalarArgument) -> None:
-        """Set the jump-start fraction of the supply/demand interaction."""
-        self.jump_start_fraction = assign_value(
+    def set_jump_start(self, value: ScalarArgument) -> None:
+        """Set the jump start of the supply/demand interaction."""
+        self.jump_start = assign_value(
             as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
         )
 
@@ -221,12 +221,12 @@ class Producer(Node):
     def set_allow_plant(self, key: str, value: str) -> None:
         """Set whether a plant may be built."""
         write_matching_keys(
-            key, assign_boolean(value), self.allow_plant, allow_empty=True
+            key, assign_boolean(value), self.allow_plants, allow_empty=True
         )
 
     @deck_command()
-    def set_feed_constraint(self, key: str, value: ForecastArgument) -> None:
-        """Set the constraint on a feed (feedstock or process) available."""
+    def set_feed_limit(self, key: str, value: ForecastArgument) -> None:
+        """Set the limit on the amount of a feed (feedstock or process) available."""
         write_matching_keys(
             key,
             assign_value(
@@ -235,11 +235,11 @@ class Producer(Node):
                 lower=0.0,
                 allow_infinite=True,
             ),
-            self.feed_constraints,
+            self.feed_limits,
         )
 
     @deck_command()
-    def set_export_distribution(self, key: str, value: ForecastArgument) -> None:
+    def set_export_weight(self, key: str, value: ForecastArgument) -> None:
         """Set the weight with which the fuel production is exported to a port."""
         write_matching_keys(
             key,
@@ -249,7 +249,7 @@ class Producer(Node):
                 lower=0.0,
                 upper=1.0,
             ),
-            self.export_distribution,
+            self.export_weights,
         )
 
     # internal methods -----------------------------------------------------------------
@@ -296,17 +296,17 @@ class Producer(Node):
             All processes in the simulation.
         """
         # a None pipeline means the plant has no committed pipeline, and a None feed
-        # constraint is read as unlimited
+        # limit is read as unlimited
         for plant in self.plants:
             name = plant.name
             self.existing_pipelines.setdefault(name, None)
-            self.allow_plant.setdefault(name, True)
+            self.allow_plants.setdefault(name, True)
 
         for feed_name in [*feedstocks, *processes]:
-            self.feed_constraints.setdefault(feed_name, None)
+            self.feed_limits.setdefault(feed_name, None)
 
         for port_name in ports:
-            self.export_distribution.setdefault(port_name, Scalar(0.0))
+            self.export_weights.setdefault(port_name, Scalar(0.0))
 
     def initialize_expectation(
         self,

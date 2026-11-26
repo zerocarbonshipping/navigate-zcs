@@ -60,9 +60,9 @@ Fleet "tanker_7500_dwt" {
 	set_initial_technology_share("*", "variable_frequency_drive_tanker_35k_dwt", Curve("uptake_variable_frequency_drive_tanker_35k_dwt"))
 
 	# fuel conversions
-	set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 9.4e6)
-	set_fuel_conversion_cost("*ice_oil*", "*ice_ammonia*", 14e6)
-	set_fuel_conversion_cost("*ice_methane*", "*ice_ammonia*", 16.7e6)
+	set_conversion_cost("*ice_oil*", "*ice_methanol*", 9.4e6)
+	set_conversion_cost("*ice_oil*", "*ice_ammonia*", 14e6)
+	set_conversion_cost("*ice_methane*", "*ice_ammonia*", 16.7e6)
 
 	# speed management
 	AllowSpeedManagement = TRUE

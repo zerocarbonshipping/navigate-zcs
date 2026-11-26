@@ -3,7 +3,7 @@
 
 Tank "main_oil_cruise_100k_gt" {
 	FuelTypes = OIL
-	Size = Variable("tank_size_cruise_100k_gt")
+	Volume = Variable("tank_size_cruise_100k_gt")
 
 	Capex = Forecast("tank_oil_capex")
 	Opex = <Forecast("tank_oil_capex") * Variable("tank_opex_percentage_of_capex")>

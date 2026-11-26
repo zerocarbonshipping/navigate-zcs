@@ -75,9 +75,9 @@ def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
     idx
         Current time-step index.
     """
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is not None:
-            producer.results.feed_constraint[feed_name][idx] = constraint.get()
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is not None:
+            producer.results.feed_constraint[feed_name][idx] = limit.get()
 
 
 def _transfer_production_and_feed_mass(producer: Producer, idx: int) -> None:
@@ -205,7 +205,7 @@ def record_port_results(port: Port, idx: int) -> None:
     """
     results = port.results
 
-    for key, value in port.bunkering_allowed.items():
+    for key, value in port.allow_bunkering.items():
         results.bunkering_allowed[key][idx] = value
 
     for key, value in port.bunkering_limits.items():

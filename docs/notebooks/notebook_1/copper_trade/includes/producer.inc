@@ -13,7 +13,7 @@ Producer "producer_efuel" {
 
 	# Ceiling on biogenic CO2, the feedstock both its e-methanol plants draw on.
 
-	set_feed_constraint("carbon_dioxide_biogenic", <Forecast("carbon_dioxide_biogenic_availability_flat") * Forecast("carbon_dioxide_biogenic_share_shipping") * Variable("trade_share_biogenic_carbon_dioxide")>)
+	set_feed_limit("carbon_dioxide_biogenic", <Forecast("carbon_dioxide_biogenic_availability_flat") * Forecast("carbon_dioxide_biogenic_share_shipping") * Variable("trade_share_biogenic_carbon_dioxide")>)
 }
 
 Producer "producer_biofuel" {
@@ -22,7 +22,7 @@ Producer "producer_biofuel" {
 	MaximumDevelopment = <Forecast("epc_global_capacity_mid") * Forecast("epc_global_share_shipping")>
 
 	# Ceiling on gasifiable biomass.
-	set_feed_constraint("feedstock_biomethanol_gasification", <Forecast("feedstock_biomethanol_gasification_availability") * Forecast("feedstock_biomethanol_gasification_share_shipping") * Variable("trade_share_gasifiable_biomass")>)
+	set_feed_limit("feedstock_biomethanol_gasification", <Forecast("feedstock_biomethanol_gasification_availability") * Forecast("feedstock_biomethanol_gasification_share_shipping") * Variable("trade_share_gasifiable_biomass")>)
 }
 
 # The library's feedstock forecasts are global and its *_share_shipping factors

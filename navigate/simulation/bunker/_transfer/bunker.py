@@ -68,12 +68,12 @@ def _transfer_existing(alg: BunkerAlgorithm) -> None:
         for levy in port.imposed_levies:
             cost = levy.expectation.cost[v, port.name, f][idx]
             collected = cost * mass
-            level = levy.expectation.level[idx]
+            rate = levy.expectation.rate[idx]
 
             levy.results.collected[idx] += collected * count
 
-            if level > 0.0:
-                results.levy_units[levy.name][idx] += collected / level
+            if rate > 0.0:
+                results.levy_units[levy.name][idx] += collected / rate
 
 
 def _transfer_expected(alg: BunkerAlgorithm) -> None:

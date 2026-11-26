@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class LevyExpectation(_Expectation):
-    """A levy's level and its cost per ton of fuel or GJ of shore power to a vessel."""
+    """A levy's rate and its cost per ton of fuel or GJ of shore power to a vessel."""
 
     def __init__(
         self,
@@ -47,12 +47,12 @@ class LevyExpectation(_Expectation):
             for port in vessel.route.distinct_ports:
                 vessel_ports.append((vessel_name, port.name))
 
-        self.global_warming_potential = self._values(emission_names)  # tCO2e/t emission
+        self.gwp = self._values(emission_names)  # tCO2e/t emission
 
         self.wtt = self._paths(port_fuel_emissions)  # tCO2e/t
         self.ttw_consumption = self._paths(vessel_fuel_emissions)  # tCO2e/t
         self.ttw_slip = self._paths(vessel_fuel_emissions)  # tCO2e/t
 
-        self.level = self._path()  # currency/tCO2e
+        self.rate = self._path()  # currency/tCO2e
         self.cost = self._paths(vessel_port_fuels)  # currency/t
         self.shore_power_cost = self._paths(vessel_ports)  # currency/GJ

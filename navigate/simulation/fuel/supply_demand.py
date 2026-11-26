@@ -41,7 +41,7 @@ def calculate_development_potential(
     potential = dict.fromkeys(producer.fuels, 0.0)
 
     for plant in producer.plants:
-        if not producer.allow_plant[plant.name]:
+        if not producer.allow_plants[plant.name]:
             continue
 
         newbuilds = _calculate_feasible_newbuilds(producer, plant, development, idx)
@@ -80,8 +80,8 @@ def _calculate_feasible_newbuilds(
     expectation = producer.expectation
     newbuilds = development
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is None:
             continue
 
         consumption = expectation.plant_feed_consumption[plant.name, feed_name]

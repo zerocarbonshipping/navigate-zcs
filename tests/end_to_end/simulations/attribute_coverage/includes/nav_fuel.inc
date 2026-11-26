@@ -5,7 +5,7 @@
 #
 # Attributes covered:
 #   Fuel:     FuelType, LiquidMarket, LowerHeatingValue, MassDensity
-#   Emission: GlobalWarmingPotential, FuelType
+#   Emission: Gwp, SlipFuelType
 #
 # Commands covered:
 #   Fuel: set_ttw
@@ -85,14 +85,14 @@ Fuel "electricity" {
 }
 
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }
 
 Emission "methane" {
-	GlobalWarmingPotential = 25
-	FuelType = METHANE
+	Gwp = 25
+	SlipFuelType = METHANE
 }
 
 Emission "nitrous_oxide" {
-	GlobalWarmingPotential = 273
+	Gwp = 273
 }

@@ -9,7 +9,7 @@ Route "operational_profile_other" {
 	set_port_calls("port_europe", 1)
 
 	TimeAtSea = 0.5
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", 14.9)
 	set_utilization("*", "*", 0.5)

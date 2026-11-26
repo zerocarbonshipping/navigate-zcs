@@ -8,7 +8,7 @@ SPDX-License-Identifier: CC-BY-4.0
 A `Levy` node defines a regulatory measure that works on a per ton of emissions basis. Examples of levies are
 CO<sub>2</sub>-taxes and subsidy schemes.
 
-A levy charges the fuel bunkered and the shore power drawn in its `Jurisdiction`. The emissions of shore power are those of the grid, set with `set_shore_power_emission_factor` on the [Port](port.md), and count as WTT: a levy with `Scope = TTW` counts none of them.
+A levy charges the fuel bunkered and the shore power drawn in its `Jurisdiction`. The emissions of shore power are those of the grid, set with `set_shore_power_wtt` on the [Port](port.md), and count as WTT: a levy with `Scope = TTW` counts none of them.
 
 Example:
 
@@ -22,7 +22,7 @@ Levy "regional_carbon_tax" {
     
     Jurisdiction = [Port("europe")]
     
-    Level = 200
+    Rate = 200
 }
 ```
 ## Attributes
@@ -99,9 +99,9 @@ This attribute defines whether emissions slip is included in the calculation of 
 * **Data type**: `Boolean`
 * **Default**: TRUE
 
-### Level
+### Rate
 
-This attribute determines the level of the penalty or subsidy, paid per ton of emission by which a fuel differs from the threshold: the difference in emission intensity times the effective energy of the fuel, (1 − slip) · LHV (see `LowerThreshold`).
+This attribute sets the rate of the penalty or subsidy, paid per ton of emission by which a fuel differs from the threshold: the difference in emission intensity times the effective energy of the fuel, (1 − slip) · LHV (see `LowerThreshold`).
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -115,7 +115,7 @@ This attribute determines the level of the penalty or subsidy, paid per ton of e
 
 This attribute sets the lower emission intensity threshold of the levy. If ‘Scheme’ is SUBSIDY or BOTH, then values below the threshold are subsidized, if set to PENALTY or BOTH, then values above the threshold are penalized.
 
-The emission intensity is per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction its converter lets escape unburned (`set_slip_fraction` on the `Converter`). A levy applies per fuel at port, so the slip is averaged over the vessel's converters able to burn the fuel, weighted by power capacity over efficiency. The intensity of shore power is per GJ drawn. A `Regulation` with ‘Measure’ INTENSITY uses the same basis.
+The emission intensity is per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction its converter lets escape unburned (`set_slip` on the `Converter`). A levy applies per fuel at port, so the slip is averaged over the vessel's converters able to burn the fuel, weighted by power capacity over efficiency. The intensity of shore power is per GJ drawn. A `Regulation` with ‘Measure’ INTENSITY uses the same basis.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -152,7 +152,7 @@ This command allows the user to include or exclude certain vessels from the levy
   + `"*", TRUE`
 * **Default**: FALSE
 
-### set\_global\_warming\_potential
+### set\_gwp
 
 This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the levy then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A `Curve` is read at the emissions lifetime, like the GWP of the emission: the `EmissionsLifetime` of the levy if assigned, otherwise that of the model.
 
@@ -175,7 +175,7 @@ This command allows the user to set the WTT (Well-to-Tank) emission factor for a
   + `"fuel_name", "emission_name", 3.2`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: Not set. At each port in the jurisdiction, the port's `set_bunker_wtt_overwrite` is used if assigned, otherwise an estimate from the plants producing the fuel.
+* **Default**: Not set. At each port in the jurisdiction, the port's [set\_fuel\_wtt](port.md#set_fuel_wtt) is used if assigned, otherwise an estimate from the plants producing the fuel.
 
 ### set\_fuel\_ttw
 

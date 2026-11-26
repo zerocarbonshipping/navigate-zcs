@@ -12,5 +12,5 @@ Converter "propulsion_ice_methane_roro_7000_ceu" {
 	Capex = Forecast("propulsion_methane_capex")
 	Opex = Forecast("propulsion_methane_opex")
 	
-	set_slip_fraction(METHANE, Variable("propulsion_methane_methane_slip"))
+	set_slip(METHANE, Variable("propulsion_methane_methane_slip"))
 }

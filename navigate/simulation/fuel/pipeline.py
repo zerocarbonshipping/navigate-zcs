@@ -196,7 +196,7 @@ def _calculate_inertia_newbuilds(
         return np.zeros(len(producer.plants))
 
     decay = calculate_step_inertia(producer.inertia.get(), time_step)
-    allowed = [producer.allow_plant[plant.name] for plant in producer.plants]
+    allowed = [producer.allow_plants[plant.name] for plant in producer.plants]
     uptakes = np.where(allowed, producer.current_uptake * decay, 0.0)
 
     limits = _calculate_demand_limits(producer, uptakes, development)
@@ -307,7 +307,7 @@ def _calculate_demand_limits(
     counts = dict.fromkeys(producer.fuels, 0)
 
     for p, plant in enumerate(producer.plants):
-        if producer.allow_plant[plant.name]:
+        if producer.allow_plants[plant.name]:
             newbuilds[p] = plant.expectation.demand_newbuilds
 
         if newbuilds[p] > 0.0:
@@ -451,7 +451,7 @@ def _calculate_modelled_uptakes(producer: Producer) -> FloatArray:
     for p, plant in enumerate(producer.plants):
         is_in_demand = plant.expectation.inter_fuel_metric > 0.0
 
-        if producer.allow_plant[plant.name] and is_in_demand:
+        if producer.allow_plants[plant.name] and is_in_demand:
             index.append(p)
             plants.append(plant)
 
@@ -468,8 +468,8 @@ def _calculate_modelled_uptakes(producer: Producer) -> FloatArray:
         inter_metrics=inter_metrics,
         intra_utility=UtilityID.LOWER_LOG_RATIO,
         inter_utility=UtilityID.HIGHER_LOG_RATIO,
-        intra_odds=producer.fuel_cost_sensitivity.get(),
-        inter_odds=producer.fuel_demand_sensitivity.get(),
+        intra_odds=producer.variant_sensitivity.get(),
+        inter_odds=producer.fuel_sensitivity.get(),
         context=str(producer),
     )
 

@@ -40,8 +40,8 @@ Plant "pl" {
 }
 Producer "pr" {
     Plants = [Plant("pl")]
-    FuelDemandSensitivity = 1
-    FuelCostSensitivity = 1
+    FuelSensitivity = 1
+    VariantSensitivity = 1
     MaximumDevelopment = 1
 }
 """

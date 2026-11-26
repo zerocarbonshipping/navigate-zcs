@@ -78,7 +78,7 @@ def is_fair_share_constrained(port: Port, fuel_name: str, idx: int) -> bool:
     bool
         True if the port may bunker the fuel and its supply is finite.
     """
-    if not port.bunkering_allowed[fuel_name]:
+    if not port.allow_bunkering[fuel_name]:
         return False
 
     supply = port.expectation.bunker_supply[fuel_name][idx]

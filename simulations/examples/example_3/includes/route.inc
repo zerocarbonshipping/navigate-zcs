@@ -42,7 +42,7 @@ Route "mid_range_route" {
     set_port_calls("gdansk", 14)
 
     TimeAtSea = 0.55
-    set_voyage_distribution("*", "*", 1)
+    set_distance_share("*", "*", 1)
 
     set_speed("*", "*", Curve("speed_distribution_mid_range_route"))
 }
@@ -58,7 +58,7 @@ Route "coastal_route" {
     set_port_calls("stockholm", 10)
 
     TimeAtSea = 0.40
-    set_voyage_distribution("*", "*", 1)
+    set_distance_share("*", "*", 1)
 
     set_speed("*", "*", Curve("speed_distribution_coastal_route"))
 }

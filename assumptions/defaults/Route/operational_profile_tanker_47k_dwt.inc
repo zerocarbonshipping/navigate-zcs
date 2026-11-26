@@ -9,7 +9,7 @@ Route "operational_profile_tanker_47k_dwt" {
 	set_port_calls("port_europe", 7)
 
 	TimeAtSea = 0.46
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", Curve("speed_distribution_tanker_47k_dwt"))
 	set_utilization("*", "*", 0.5)

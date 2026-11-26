@@ -193,8 +193,8 @@ def calculate_feed_spends(
     """
     spends: dict[str, float] = {}
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is not None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is not None:
             spends[feed_name] = calculate_feed_spend(producer, feed_name, newbuilds)
 
     return spends
@@ -215,8 +215,8 @@ def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
     """
     expectation = producer.expectation
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is None:
             continue
 
         for plant in producer.plants:
@@ -245,21 +245,21 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
     expectation = producer.expectation
     times = timeline[idx:]
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is None:
             continue
 
         delivery = calculate_feed_delivery(producer, feed_name, times)
         if delivery is None:
             continue
 
-        supply = constraint.get(delivery)
+        supply = limit.get(delivery)
         reserved = _calculate_cohort_feed(producer, feed_name, delivery)
 
         # the supply may be unbounded, so the finite reservation scales the gap
         gap = drop_negligible(supply - reserved, reserved)
 
-        # an initial capacity of plants using more feed than the constraint allows
+        # an initial capacity of plants using more feed than the limit allows
         # over-demands the feed, an issue in the input data that the warning flags;
         # the gap is floored at zero
         # TODO: Remove if scrapping for negatives gets implemented
@@ -351,8 +351,8 @@ def _calculate_feed_limits(
     newbuilds = uptakes * development
     limits = np.ones_like(uptakes)
 
-    for feed_name, constraint in producer.feed_constraints.items():
-        if constraint is None:
+    for feed_name, limit in producer.feed_limits.items():
+        if limit is None:
             continue
 
         gap = expectation.feed_gap[feed_name][idx]

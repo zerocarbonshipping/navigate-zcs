@@ -9,7 +9,7 @@ Route "operational_profile_gas_carrier_100k_cbm" {
 	set_port_calls("port_europe", 6)
 
 	TimeAtSea = 0.684
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", 16.6)
 	set_utilization("*", "*", 0.5)

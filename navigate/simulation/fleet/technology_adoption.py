@@ -479,12 +479,12 @@ def _retrofit_cohorts(
     tuple[VesselIncrement, CycleSlice]
         Each cohort and its vessels at the cycle.
     """
-    frequency = fleet.retrofit_frequency.get()
+    interval = fleet.retrofit_interval.get()
     lifetime = basis.vessel.lifetime.get()
 
     for increment in fleet.increments[basis.vessel_idx]:
         cycle_slice = calculate_cycle_slice(
-            increment, time, time_step, frequency, lifetime, minimum_age=0.0
+            increment, time, time_step, interval, lifetime, minimum_age=0.0
         )
         if cycle_slice is not None:
             yield increment, cycle_slice

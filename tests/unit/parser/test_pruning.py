@@ -251,14 +251,14 @@ Vessel "ghost" {
     Tanks = [Tank("tank")]
 }
 """
-CO2 = 'Emission "co2" { GlobalWarmingPotential = 1.0 }\n'
+CO2 = 'Emission "co2" { Gwp = 1.0 }\n'
 LEVY_TEMPLATE = """
 Levy "{name}" {{
     Scheme = BOTH
     Emissions = [Emission("co2")]
     Fuels = [Fuel("oil")]
     Jurisdiction = {jurisdiction}
-    Level = 30
+    Rate = 30
     {extra}
 }}
 """
@@ -300,13 +300,13 @@ class TestUnused:
 
     # input:    | Vessel "ghost" { ... }   in no fleet
     #           | Levy "levy" { ... set_include_vessel("*", TRUE) }
-    # expected: -> the levy's include_vessel keys are only vessel, no ghost
+    # expected: -> the levy's include_vessels keys are only vessel, no ghost
     def test_dependency_dicts_hold_no_unused_node(self, read_fleet_deck):
         parser = read_fleet_deck(
             GHOST_VESSEL + _levy(extra='set_include_vessel("*", TRUE)')
         )
 
-        assert set(parser.nodes.levies["levy"].include_vessel) == {"vessel"}
+        assert set(parser.nodes.levies["levy"].include_vessels) == {"vessel"}
 
     # input:    | Start
     #           | Vessel "ghost" { PropulsionLoad = 12 }   ghost is unused

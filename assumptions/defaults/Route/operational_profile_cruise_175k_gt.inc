@@ -11,7 +11,7 @@ Route "operational_profile_cruise_175k_gt" {
 	set_port_calls("port_europe", 42)
 
 	TimeAtSea = 0.6
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", Curve("speed_distribution_cruise_175k_gt"))
 	set_utilization("*", "*", 0.8)

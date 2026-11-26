@@ -39,7 +39,7 @@ def calculate_port_expectations(
     ports: dict[str, Port], timeline: FloatArray, idx: int
 ) -> None:
     """
-    Calculate each port's bunkering, handling, overwrite and shore-power expectations.
+    Calculate each port's bunkering, handling, fuel price and shore-power expectations.
 
     Parameters
     ----------
@@ -89,7 +89,7 @@ def calculate_export_expectations(
 
 
 def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None:
-    """Set the port's limits, costs, overwrites and shore-power terms."""
+    """Set the port's limits, costs, fuel prices and WTT, and shore-power terms."""
     expectation = port.expectation
 
     for key, value in port.bunkering_limits.items():
@@ -99,27 +99,27 @@ def _calculate_port_expectation(port: Port, times: FloatArray, idx: int) -> None
     for key, value in port.handling_costs.items():
         expectation.handling_cost[key][idx:] = value.get(times)
 
-    for key, value in port.bunker_price_overwrites.items():
+    for key, value in port.fuel_prices.items():
         if value is not None:
-            expectation.bunker_price_overwrite[key][idx:] = value.get(times)
+            expectation.fuel_price[key][idx:] = value.get(times)
 
-    for key, value in port.bunker_wtt_overwrites.items():
+    for key, value in port.fuel_wtt.items():
         if value is not None:
-            expectation.bunker_wtt_overwrite[key][idx:] = value.get(times)
+            expectation.fuel_wtt[key][idx:] = value.get(times)
 
-    share = port.shore_power_connection_share.get(times)
+    availability = port.shore_power_availability.get(times)
 
     # convert from currency/MWh to currency/GJ, and ton/MWh to ton/GJ
-    cost = port.shore_power_cost.get(times) / MWH_TO_GJ
-    factors: dict[str, FloatArray] = {}
-    for key, value in port.shore_power_emission_factors.items():
-        factors[key] = value.get(times) / MWH_TO_GJ
+    price = port.shore_power_price.get(times) / MWH_TO_GJ
+    wtt: dict[str, FloatArray] = {}
+    for key, value in port.shore_power_wtt.items():
+        wtt[key] = value.get(times) / MWH_TO_GJ
 
-    expectation.shore_power_connection_share[idx:] = share
-    expectation.shore_power_cost[idx:] = cost
+    expectation.shore_power_availability[idx:] = availability
+    expectation.shore_power_price[idx:] = price
 
-    for key, value in factors.items():
-        expectation.shore_power_emission_factor[key][idx:] = value
+    for key, value in wtt.items():
+        expectation.shore_power_wtt[key][idx:] = value
 
 
 def _calculate_export_expectation(
@@ -149,7 +149,7 @@ def _calculate_export_expectation(
     expectation = producer.expectation
     weights: dict[str, FloatArray] = {}
 
-    for key, value in producer.export_distribution.items():
+    for key, value in producer.export_weights.items():
         weights[key] = value.get(times)
 
     for fuel_name in producer.fuels:
@@ -193,7 +193,7 @@ def _allowed_ports_per_fuel(
         allowed_ports[fuel_name] = []
 
         for port_name, port in ports.items():
-            if port.bunkering_allowed[fuel_name]:
+            if port.allow_bunkering[fuel_name]:
                 allowed_ports[fuel_name].append(port_name)
 
     return allowed_ports
@@ -409,7 +409,7 @@ def _calculate_newbuild_production(
     plants = producer.plants
     forward = np.s_[idx:]
     times = timeline[forward]
-    jump_start = producer.jump_start_fraction.get()
+    jump_start = producer.jump_start.get()
     profiles = np.zeros((len(plants), times.size))
     reserved_feed = _ReservedFeed(producer, times)
     fuel_names = list(producer.fuels)
@@ -426,9 +426,9 @@ def _calculate_newbuild_production(
         gaps[f] -= guaranteed[p]
 
     # the allowed plant types of a fuel split its newbuilds by their current uptake,
-    # blended with an even split weighted by the jump-start fraction; a fuel not
+    # blended with an even split weighted by the jump start; a fuel not
     # built in the last time step splits them evenly
-    limits = np.array([float(producer.allow_plant[plant.name]) for plant in plants])
+    limits = np.array([float(producer.allow_plants[plant.name]) for plant in plants])
     even = divide_nonzero(limits, np.bincount(fuel_idx, weights=limits)[fuel_idx])
     current = limits * producer.current_uptake
     fuel_current = np.bincount(fuel_idx, weights=current)[fuel_idx]
@@ -498,8 +498,8 @@ class _ReservedFeed:
         self.deliveries: dict[str, FloatArray] = {}
         self.reserved: dict[str, FloatArray] = {}
 
-        for feed_name, constraint in producer.feed_constraints.items():
-            if constraint is None:
+        for feed_name, limit in producer.feed_limits.items():
+            if limit is None:
                 continue
 
             delivery = calculate_feed_delivery(producer, feed_name, times)

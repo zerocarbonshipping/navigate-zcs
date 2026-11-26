@@ -10,12 +10,12 @@ against an NPV advantage, above 1 rewards the more valuable one. Pushing the
 value away from 1 must therefore move the choice monotonically toward the
 option that is better under the base deck's pinned inputs:
 
-- InterFuelSensitivity: LNG costs 380/50 = 7.6 USD/GJ against oil's
+- FuelSensitivity: LNG costs 380/50 = 7.6 USD/GJ against oil's
   550/40 = 13.75, so the methane share of newbuilds rises as the ratio falls.
 - TechnologySensitivity: the package of technology_uptake.inc saves 5% of the
   propulsion fuel for a CAPEX of 1 MUSD, a positive NPV, so its newbuild
   uptake rises with the ratio.
-- FuelConversionSensitivity: converting an oil vessel to LNG for 10 MUSD
+- ConversionSensitivity: converting an oil vessel to LNG for 10 MUSD
   (fuel_conversion.inc) pays back on the fuel price gap, so conversions rise
   with the ratio.
 
@@ -37,9 +37,9 @@ TECHNOLOGY = "combination_technology"
 CAPEX = 1e6
 
 # each sensitivity's values, from the weakest response to the strongest
-INTER_FUEL = (0.9, 0.75, 0.5)
+FUEL_SENSITIVITY = (0.9, 0.75, 0.5)
 TECHNOLOGY_SENSITIVITY = (1.5, 2, 4)
-FUEL_CONVERSION = (1.5, 2, 4)
+CONVERSION_SENSITIVITY = (1.5, 2, 4)
 
 
 def _fleet(results):
@@ -52,18 +52,18 @@ def _increasing(series):
         assert np.all(stronger > weaker), (weaker, stronger)
 
 
-def test_a_stronger_inter_fuel_sensitivity_favours_the_cheaper_fuel(
+def test_a_stronger_fuel_sensitivity_favours_the_cheaper_fuel(
     run_combination,
 ):
     def methane_share(sensitivity):
-        layer = ("inter_fuel_sensitivity.inc", {"sensitivity": sensitivity})
+        layer = ("fuel_sensitivity.inc", {"sensitivity": sensitivity})
         newbuilds = _fleet(run_combination(layer)).results.newbuilds
         total = newbuilds[METHANE_VESSEL] + newbuilds[OIL_VESSEL]
         built = total > 0.0
         assert np.count_nonzero(built) >= 2, "the fleet must build"
         return newbuilds[METHANE_VESSEL][built] / total[built]
 
-    _increasing([methane_share(s) for s in INTER_FUEL])
+    _increasing([methane_share(s) for s in FUEL_SENSITIVITY])
 
 
 def test_a_stronger_technology_sensitivity_raises_the_uptake(run_combination):
@@ -93,13 +93,13 @@ def test_a_stronger_conversion_sensitivity_converts_more_vessels(run_combination
         fleet = _fleet(
             run_combination(
                 ("fuel_conversion.inc", {}),
-                ("fuel_conversion_sensitivity.inc", {"sensitivity": sensitivity}),
+                ("conversion_sensitivity.inc", {"sensitivity": sensitivity}),
             )
         )
         converted = fleet.results.fuel_conversions[(OIL_VESSEL, METHANE_VESSEL)]
         return converted[1:]
 
-    series = [conversions(s) for s in FUEL_CONVERSION]
+    series = [conversions(s) for s in CONVERSION_SENSITIVITY]
     converts = series[0] > 0.0
 
     assert np.count_nonzero(converts) >= 2, "the fleet must convert oil vessels"

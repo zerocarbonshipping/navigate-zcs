@@ -50,7 +50,7 @@ def read_library_deck(tmp_path, read_deck):
 
 
 class TestBinding:
-    # input:    | Emission "e" { GlobalWarmingPotential = Variable("v") }
+    # input:    | Emission "e" { Gwp = Variable("v") }
     #           | Variable "v" { Value = 1.0 }
     #           | library v.inc: Value = 3.0 and Multiplier = 10.0
     # expected: -> e holds the deck's v, which reads 1.0 and not 30.0
@@ -69,15 +69,15 @@ class TestBinding:
         parser = read_library_deck(define, library={"v": DECOY})
         node = parser.nodes.variables["v"]
 
-        assert parser.nodes.emissions["e"].global_warming_potential is node
+        assert parser.nodes.emissions["e"].gwp is node
         assert node.get() == expected
 
-    # input:    | Emission "e" { GlobalWarmingPotential = <2 * Variable("v")> }
+    # input:    | Emission "e" { Gwp = <2 * Variable("v")> }
     #           | no v in the deck; defaults/Variable/v.inc has Value = 3.0
     # expected: -> v is pulled from the library and reads 3.0
     @pytest.mark.parametrize(
         "define",
-        [HOST, 'Emission "e" { GlobalWarmingPotential = <2 * Variable("v")> }\n'],
+        [HOST, 'Emission "e" { Gwp = <2 * Variable("v")> }\n'],
         ids=["reference", "expression"],
     )
     def test_an_undeclared_name_is_pulled_from_the_library(
@@ -95,27 +95,27 @@ class TestBinding:
 
         assert parser.nodes.variables["v"].get() == 3.0
 
-    # input:    | Emission "e" { GlobalWarmingPotential = Variable("v") }
-    #           | Emission "e" { GlobalWarmingPotential = 1.0 }   with an empty library
+    # input:    | Emission "e" { Gwp = Variable("v") }
+    #           | Emission "e" { Gwp = 1.0 }   with an empty library
     # expected: -> no error, no Variable "v" is created, and e reads 1.0
     def test_a_reference_a_later_assignment_overwrote_needs_no_node(
         self, read_library_deck
     ):
-        define = HOST + 'Emission "e" { GlobalWarmingPotential = 1.0 }\n'
+        define = HOST + 'Emission "e" { Gwp = 1.0 }\n'
 
         parser = read_library_deck(define)
 
         assert "v" not in parser.nodes.variables
-        assert parser.nodes.emissions["e"].global_warming_potential.get() == 1.0
+        assert parser.nodes.emissions["e"].gwp.get() == 1.0
 
-    # input:    | Converter "ghost" { set_slip_fraction(OIL, Variable("v")) }
+    # input:    | Converter "ghost" { set_slip(OIL, Variable("v")) }
     #           | no vessel mounts ghost; empty library
     # expected: -> ghost is left out with its command, and no error is raised for v
     def test_a_command_argument_on_an_unused_node_needs_no_node(
         self, read_library_deck, caplog
     ):
         # no Vessel mounts the converter, so nothing walks its references
-        define = 'Converter "ghost" {\n    set_slip_fraction(OIL, Variable("v"))\n}\n'
+        define = 'Converter "ghost" {\n    set_slip(OIL, Variable("v"))\n}\n'
 
         with caplog.at_level(logging.WARNING):
             parser = read_library_deck(define)
@@ -124,7 +124,7 @@ class TestBinding:
 
 
 class TestUnresolvable:
-    # input:    | Emission "e" { GlobalWarmingPotential = Variable("v") }
+    # input:    | Emission "e" { Gwp = Variable("v") }
     #           | no v in the deck or the library
     # expected: -> DeckError "...define.inc', line 6: Variable("v") is
     #              referenced but not found in either the deck or the default
@@ -142,7 +142,7 @@ class TestUnresolvable:
         ):
             read_library_deck(HOST)
 
-    # input:    | Emission "e" { GlobalWarmingPotential = Foo("x") }
+    # input:    | Emission "e" { Gwp = Foo("x") }
     # expected: -> DeckError "...line 6: 'Foo' is not a recognized node type."
     def test_an_unknown_reference_type_is_rejected(self, read_library_deck):
         with pytest.raises(
@@ -154,7 +154,7 @@ class TestUnresolvable:
         ):
             read_library_deck(emission_holding('Foo("x")'))
 
-    # input:    | Emission "e" { GlobalWarmingPotential = <2 * Variable("v*")> }
+    # input:    | Emission "e" { Gwp = <2 * Variable("v*")> }
     # expected: -> DeckError "...line 6: Expression references Variable("v*"): a
     #              node reference in an expression must not contain wildcards."
     def test_a_wildcard_inside_an_expression_is_rejected(self, read_library_deck):
@@ -167,7 +167,7 @@ class TestUnresolvable:
         ):
             read_library_deck(emission_holding('<2 * Variable("v*")>'))
 
-    # input:    | Emission "e" { GlobalWarmingPotential = Variable("v") }
+    # input:    | Emission "e" { Gwp = Variable("v") }
     #           | defaults/Variable/v.inc holds   Emission "v" { }   (wrong type)
     # expected: -> DeckError "...A file with name 'v' was found, but not
     #              containing a node with type 'Variable' and similar name."
@@ -193,7 +193,7 @@ class TestUnresolvable:
         ):
             read_library_deck(define, library=library)
 
-    # input:    | Emission "e" { GlobalWarmingPotential = Variable("v") }
+    # input:    | Emission "e" { Gwp = Variable("v") }
     #           | self:  v.inc imports v
     #           | cycle: v.inc imports w, w.inc imports v
     # expected: -> DeckError "...<file>.inc', line 1: Variable("v") is pulled
@@ -228,7 +228,7 @@ class TestUnresolvable:
         ):
             read_library_deck(HOST, library=library)
 
-    # input:    | Emission "e" { GlobalWarmingPotential = Variable("v") }
+    # input:    | Emission "e" { Gwp = Variable("v") }
     #           | read with no assumptions directory at all
     # expected: -> DeckError "Error in deck file, line 1, include file '...', line
     #              6: Default Variable("v") is requested but no assumptions

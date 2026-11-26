@@ -25,27 +25,27 @@
 # -------------------------------------------------------------------------------------
 
 Port "helsinki" {
-    set_bunkering_allowed("ammonia_electro", TRUE)
+    set_allow_bunkering("ammonia_electro", TRUE)
 }
 
 Port "stockholm" {
-    set_bunkering_allowed("ammonia_electro", TRUE)
+    set_allow_bunkering("ammonia_electro", TRUE)
 }
 
 Port "tallinn" {
-    set_bunkering_allowed("ammonia_electro", FALSE)
+    set_allow_bunkering("ammonia_electro", FALSE)
 }
 
 Port "gdansk" {
-    set_bunkering_allowed("ammonia_electro", FALSE)
+    set_allow_bunkering("ammonia_electro", FALSE)
 }
 
 Port "*" {
-    set_bunkering_allowed("fossil_fuel_oil", TRUE)
+    set_allow_bunkering("fossil_fuel_oil", TRUE)
 
-    # Here we overwrite to define the price and WTT of LSFO as we don't calculate it bottom up. 
-	set_bunker_price_overwrite("fossil_fuel_oil", Forecast("fossil_fuel_oil_price_global"))
-	set_bunker_wtt_overwrite("fossil_fuel_oil", "carbon_dioxide", Forecast("fossil_fuel_oil_wtt_carbon_dioxide"))
+    # Here we define the price and WTT of LSFO, as we don't calculate them bottom up.
+	set_fuel_price("fossil_fuel_oil", Forecast("fossil_fuel_oil_price_global"))
+	set_fuel_wtt("fossil_fuel_oil", "carbon_dioxide", Forecast("fossil_fuel_oil_wtt_carbon_dioxide"))
 
 	set_handling_cost("fossil_fuel_oil", Variable("handling_cost_oil"))
     set_handling_cost("ammonia_electro", Variable("handling_cost_ammonia"))

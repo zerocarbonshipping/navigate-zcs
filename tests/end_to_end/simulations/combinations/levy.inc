@@ -14,7 +14,7 @@ Levy "combination_levy" {
 	Fuels = Fuel("*")
 	Jurisdiction = [Port("port_global"), Port("port_europe")]
 
-	Level = 100                             # USD/ton CO2-eq
+	Rate = 100                              # USD/ton CO2-eq
 	LowerThreshold = %lower_threshold%      # kg CO2-eq/GJ
 
 	set_include_vessel("*", TRUE)

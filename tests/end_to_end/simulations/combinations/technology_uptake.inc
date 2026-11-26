@@ -17,5 +17,5 @@ Fleet "container_15000_teu" {
 	Technologies = [Technology("combination_technology")]
 
 	TechnologyCostOfCapital = 0.08
-	RetrofitFrequency = 5               # years
+	RetrofitInterval = 5               # years
 }

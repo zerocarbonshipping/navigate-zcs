@@ -46,7 +46,7 @@ class Region(Node):
         self.process_opex: dict[str, TimetableInput] = {}
         self.process_energy: dict[str, ForecastInput] = {}
         self.process_lifetimes: dict[str, ForecastInput | None] = {}
-        self.process_replacement: dict[str, ForecastInput] = {}
+        self.process_replacements: dict[str, ForecastInput] = {}
         self.process_wtt: dict[tuple[str, str], ForecastInput] = {}
 
         # source
@@ -126,7 +126,7 @@ class Region(Node):
                 lower=0.0,
                 upper=1.0,
             ),
-            self.process_replacement,
+            self.process_replacements,
         )
 
     @deck_command()
@@ -256,7 +256,7 @@ class Region(Node):
             self.process_opex.setdefault(process_name, Scalar(0.0))
             self.process_energy.setdefault(process_name, Scalar(0.0))
             self.process_lifetimes.setdefault(process_name, None)
-            self.process_replacement.setdefault(process_name, Scalar(0.0))
+            self.process_replacements.setdefault(process_name, Scalar(0.0))
 
             for emission_name in emissions:
                 key = (process_name, emission_name)

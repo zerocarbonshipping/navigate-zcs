@@ -88,7 +88,7 @@ def _find_deliveries(
     deliveries = {}
 
     for port_name, port in ports.items():
-        if not port.bunkering_allowed[plant.fuel.name]:
+        if not port.allow_bunkering[plant.fuel.name]:
             continue
 
         delivery = plant.fuel_deliveries[port_name]

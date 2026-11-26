@@ -254,7 +254,7 @@ def update_bunkerable_fuels(vessels: dict[str, Vessel]) -> None:
             allowed: dict[str, Fuel] = {}
 
             for fuel_name, fuel in vessel.usable_fuels.items():
-                if port.bunkering_allowed[fuel_name]:
+                if port.allow_bunkering[fuel_name]:
                     allowed[fuel_name] = fuel
             bunkerable_fuels.append(allowed)
 

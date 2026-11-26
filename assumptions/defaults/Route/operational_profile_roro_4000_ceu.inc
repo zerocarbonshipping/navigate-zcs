@@ -11,7 +11,7 @@ Route "operational_profile_roro_4000_ceu" {
 	set_port_calls("port_europe", 25)
 
 	TimeAtSea = 0.616
-	set_voyage_distribution("*", "*", 1)
+	set_distance_share("*", "*", 1)
 
 	set_speed("*", "*", 15.8)
 	set_utilization("*", "*", 0.75)

@@ -14,28 +14,28 @@
 # -------------------------------------------------------------------------------------
 
 Port "singapore" {
-    set_bunkering_allowed("methanol_bio", TRUE)
+    set_allow_bunkering("methanol_bio", TRUE)
 }
 
 Port "rotterdam" {
-    set_bunkering_allowed("methanol_bio", TRUE)
+    set_allow_bunkering("methanol_bio", TRUE)
 }
 
 Port "hamburg" {
-    set_bunkering_allowed("methanol_bio", TRUE)
+    set_allow_bunkering("methanol_bio", TRUE)
 }
 
 Port "aalborg" {
     # Test how bio-methanol not being possible in Aalborg affects the output.
-    set_bunkering_allowed("methanol_bio", FALSE)
+    set_allow_bunkering("methanol_bio", FALSE)
 }
 
 Port "*" {
-    set_bunkering_allowed("fossil_fuel_oil", TRUE)
+    set_allow_bunkering("fossil_fuel_oil", TRUE)
 
     # Here we set the price and upstream emissions of LSFO as we don't calculate it bottom up.
-	set_bunker_price_overwrite("fossil_fuel_oil", Forecast("fossil_fuel_oil_price_global"))
-	set_bunker_wtt_overwrite("fossil_fuel_oil", "carbon_dioxide", Forecast("fossil_fuel_oil_wtt_carbon_dioxide"))
+	set_fuel_price("fossil_fuel_oil", Forecast("fossil_fuel_oil_price_global"))
+	set_fuel_wtt("fossil_fuel_oil", "carbon_dioxide", Forecast("fossil_fuel_oil_wtt_carbon_dioxide"))
 
 	set_handling_cost("fossil_fuel_oil", Variable("handling_cost_oil"))
     set_handling_cost("methanol_bio", Variable("handling_cost_methanol"))

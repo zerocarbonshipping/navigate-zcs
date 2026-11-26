@@ -20,8 +20,8 @@ from helpers.parser_decks import fleet, variable
 from navigate.exceptions import DeckError
 
 VARIABLES = variable("p", Value=1.0) + variable("q", Value=1.0)
-CO2 = 'Emission "co2" { GlobalWarmingPotential = 1.0 }\n'
-N2O = 'Emission "n2o" { GlobalWarmingPotential = 1.0 }\n'
+CO2 = 'Emission "co2" { Gwp = 1.0 }\n'
+N2O = 'Emission "n2o" { Gwp = 1.0 }\n'
 
 
 def _fuel(commands):
@@ -154,21 +154,19 @@ def test_a_calculator_no_used_define_only_input_holds_is_free(
     read_deck(define, events=_events(target))
 
 
-# input:    | DEFINE: Emission "e" { GlobalWarmingPotential = Variable("r") }
+# input:    | DEFINE: Emission "e" { Gwp = Variable("r") }
 #           | Copy Variable "p" "r"
 #           | EVENTS: Variable "r" { Value = 0.4 }
 # expected: -> DeckError "Variable("r") does not allow setting ... as
-#              Emission("e") holds it in 'GlobalWarmingPotential' ..."
+#              Emission("e") holds it in 'Gwp' ..."
 def test_a_copy_target_referenced_before_the_copy_is_pinned(read_deck):
     # the Emission names "r" before the Copy declares it
     define = (
-        'Emission "e" { GlobalWarmingPotential = Variable("r") }\n'
-        + VARIABLES
-        + 'Copy Variable "p" "r"\n'
+        'Emission "e" { Gwp = Variable("r") }\n' + VARIABLES + 'Copy Variable "p" "r"\n'
     )
 
     with pytest.raises(
         DeckError,
-        match=_pinned(r'Variable\("r"\)', r'Emission\("e"\)', "GlobalWarmingPotential"),
+        match=_pinned(r'Variable\("r"\)', r'Emission\("e"\)', "Gwp"),
     ):
         read_deck(define, events=_events("r"))

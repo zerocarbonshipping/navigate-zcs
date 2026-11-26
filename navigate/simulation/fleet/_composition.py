@@ -156,7 +156,7 @@ def calculate_cycle_slice(
     increment: VesselIncrement,
     time: float,
     time_step: float,
-    frequency: float,
+    interval: float,
     lifetime: float,
     minimum_age: float,
 ) -> CycleSlice | None:
@@ -164,7 +164,7 @@ def calculate_cycle_slice(
     Calculate the slice of an increment's vessels at a retrofit cycle.
 
     A vessel is at a cycle in the time-step in which its age reached a positive
-    multiple k * f of the retrofit frequency f: at the end of the step its age lies in
+    multiple k * f of the retrofit interval f: at the end of the step its age lies in
     ``[k * f, k * f + min(time_step, f))``, the windows no longer than f so that they
     do not overlap and a vessel counts once per step. The slice is the part of the
     increment's age span in a window, below the lifetime and at or above the minimum
@@ -184,7 +184,7 @@ def calculate_cycle_slice(
         Time at the end of the time-step, in years.
     time_step
         Time-step size, in years.
-    frequency
+    interval
         Interval between retrofit opportunities, in years.
     lifetime
         Lifetime of the vessel type, in years.
@@ -209,7 +209,7 @@ def calculate_cycle_slice(
     if drop_negligible(upper - lower, scale) <= 0.0:
         return None
 
-    window_starts, window_ends = _cycle_windows(lower, upper, time_step, frequency)
+    window_starts, window_ends = _cycle_windows(lower, upper, time_step, interval)
     starts = np.maximum(window_starts, lower)
     ends = np.minimum(window_ends, upper)
     lengths = np.maximum(drop_negligible(ends - starts, scale), 0.0)
@@ -232,7 +232,7 @@ def calculate_cycle_slice(
 
 
 def _cycle_windows(
-    lower: float, upper: float, time_step: float, frequency: float
+    lower: float, upper: float, time_step: float, interval: float
 ) -> tuple[FloatArray, FloatArray]:
     """
     Return the retrofit-cycle windows that may overlap an age interval.
@@ -245,7 +245,7 @@ def _cycle_windows(
         Oldest age of the interval, in years; not below ``lower``.
     time_step
         Time-step size, in years.
-    frequency
+    interval
         Interval between retrofit opportunities, in years.
 
     Returns
@@ -253,15 +253,15 @@ def _cycle_windows(
     tuple[FloatArray, FloatArray]
         Start and end age of each window, in years.
     """
-    # windows as long as the frequency join into one from the first cycle on
-    if time_step >= frequency:
-        return np.array([frequency]), np.array([np.inf])
+    # windows as long as the retrofit interval join into one from the first cycle on
+    if time_step >= interval:
+        return np.array([interval]), np.array([np.inf])
 
-    # windows shorter than the frequency, one per cycle: the interval meets at most
-    # two more than its length over the frequency
-    first_cycle = max(1, math.floor(lower / frequency))
-    last_cycle = math.ceil(upper / frequency)
-    starts = frequency * np.arange(first_cycle, last_cycle + 1, dtype=np.float64)
+    # windows shorter than the retrofit interval, one per cycle: the age interval meets
+    # at most two more than its length over the retrofit interval
+    first_cycle = max(1, math.floor(lower / interval))
+    last_cycle = math.ceil(upper / interval)
+    starts = interval * np.arange(first_cycle, last_cycle + 1, dtype=np.float64)
 
     return starts, starts + time_step
 

@@ -14,12 +14,12 @@ Import Port "port_global"
 Import Port "port_europe"
 
 Port "*" {
-	set_bunkering_allowed("fossil_fuel_oil", TRUE)
-	set_bunkering_allowed("ammonia_electro", TRUE)
+	set_allow_bunkering("fossil_fuel_oil", TRUE)
+	set_allow_bunkering("ammonia_electro", TRUE)
 
-	set_bunker_price_overwrite("fossil_fuel_oil", 550)                   # USD/ton
-	set_bunker_wtt_overwrite("fossil_fuel_oil", "carbon_dioxide", 0.8)   # ton/ton fuel
-	set_bunker_wtt_overwrite("ammonia_electro", "carbon_dioxide", 0.)
+	set_fuel_price("fossil_fuel_oil", 550)                   # USD/ton
+	set_fuel_wtt("fossil_fuel_oil", "carbon_dioxide", 0.8)   # ton/ton fuel
+	set_fuel_wtt("ammonia_electro", "carbon_dioxide", 0.)
 }
 
 Copy Plant "plant_ammonia_electro_alkaline" "plant_ammonia_europe"
@@ -49,13 +49,13 @@ Producer "epc_ammonia" {
 		Plant("plant_ammonia_middle_east")
 	]
 
-	FuelDemandSensitivity = 1.25
-	FuelCostSensitivity = 0.5
+	FuelSensitivity = 1.25
+	VariantSensitivity = 0.5
 	InitialCapacity = [5000, 5000]                # ton/day
 	MaximumDevelopment = 1e6
-	JumpStartFraction = 1.0
+	JumpStart = 1.0
 
-	set_export_distribution("port_global", 1.)
+	set_export_weight("port_global", 1.)
 }
 
 Import Source "renewable"

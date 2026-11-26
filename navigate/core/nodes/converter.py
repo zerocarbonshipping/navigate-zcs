@@ -54,8 +54,8 @@ class Converter(_Machinery):
         self.efficiency: ScalarInput
 
         # emissions
-        self.slip_fractions: dict[FuelTypeID, ScalarInput] = {}
-        self.consumption_ttw: dict[tuple[FuelTypeID, str], ScalarInput] = {}
+        self.slip: dict[FuelTypeID, ScalarInput] = {}
+        self.ttw: dict[tuple[FuelTypeID, str], ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -108,22 +108,22 @@ class Converter(_Machinery):
 
     # external methods (DSL commands) --------------------------------------------------
     @deck_command()
-    def set_slip_fraction(self, key: str, value: ScalarArgument) -> None:
+    def set_slip(self, key: str, value: ScalarArgument) -> None:
         """Set the fraction of fuel mass escaping unburned for a fuel type."""
         fuel_type = assign_member(key, self.get_fuel_types())
         slip = assign_value(
             as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
         )
 
-        write_matching_keys(fuel_type, slip, self.slip_fractions)
+        write_matching_keys(fuel_type, slip, self.slip)
 
     @deck_command()
-    def set_consumption_ttw(self, key1: str, key2: str, value: ScalarArgument) -> None:
+    def set_ttw(self, key1: str, key2: str, value: ScalarArgument) -> None:
         """Set a consumption-related emission for a fuel type in the converter."""
         fuel_type = assign_member(key1, self.get_fuel_types())
         ttw = assign_value(as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0)
 
-        write_matching_key_pairs((fuel_type, key2), ttw, self.consumption_ttw)
+        write_matching_key_pairs((fuel_type, key2), ttw, self.ttw)
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:
@@ -149,9 +149,9 @@ class Converter(_Machinery):
             All emissions in the simulation.
         """
         for fuel_type in self.get_fuel_types():
-            self.slip_fractions.setdefault(fuel_type, Scalar(0.0))
+            self.slip.setdefault(fuel_type, Scalar(0.0))
             for emission_name in emissions:
-                self.consumption_ttw.setdefault((fuel_type, emission_name), Scalar(0.0))
+                self.ttw.setdefault((fuel_type, emission_name), Scalar(0.0))
 
     def get_fuel_types(self) -> tuple[FuelTypeID, ...]:
         return (*self.main_fuel_types, *self.pilot_fuel_types)

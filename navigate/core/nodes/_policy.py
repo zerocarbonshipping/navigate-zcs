@@ -56,10 +56,10 @@ class _Policy(Node):
         self.include_slip: bool = True
 
         # vessels impacted by the policy
-        self.include_vessel: dict[str, bool] = {}
+        self.include_vessels: dict[str, bool] = {}
 
         # emission factors
-        self.global_warming_potentials: dict[str, CurveInput | None] = {}
+        self.gwp: dict[str, CurveInput | None] = {}
         self.fuel_wtt: dict[tuple[str, str], ForecastInput | None] = {}
         self.fuel_ttw: dict[tuple[str, str], ForecastInput | None] = {}
 
@@ -114,18 +114,18 @@ class _Policy(Node):
     def set_include_vessel(self, key: str, value: str) -> None:
         """Set whether a vessel is impacted by the policy."""
         write_matching_keys(
-            key, assign_boolean(value), self.include_vessel, allow_empty=True
+            key, assign_boolean(value), self.include_vessels, allow_empty=True
         )
 
     @deck_command()
-    def set_global_warming_potential(self, key: str, value: CurveArgument) -> None:
+    def set_gwp(self, key: str, value: CurveArgument) -> None:
         """Set the GWP of an emission under the policy."""
         write_matching_keys(
             key,
             assign_value(
                 as_scalar(value), type_=(NodeTypeID.CURVE, NodeTypeID.VARIABLE)
             ),
-            self.global_warming_potentials,
+            self.gwp,
         )
 
     @deck_command()
@@ -165,11 +165,11 @@ class _Policy(Node):
             All vessels in the simulation.
         """
         for vessel_name in vessels:
-            self.include_vessel.setdefault(vessel_name, False)
+            self.include_vessels.setdefault(vessel_name, False)
 
         # unset factors stay None, so consumers fall back to the model's own factors
         for emission in self.emissions:
-            self.global_warming_potentials.setdefault(emission.name, None)
+            self.gwp.setdefault(emission.name, None)
         for fuel in self.fuels:
             for emission in self.emissions:
                 key = (fuel.name, emission.name)
@@ -178,6 +178,6 @@ class _Policy(Node):
 
     def vessel_is_policed(self, vessel_name: str) -> bool:
         return (
-            self.include_vessel[vessel_name]
+            self.include_vessels[vessel_name]
             and self.in_jurisdiction_vessel[vessel_name]
         )

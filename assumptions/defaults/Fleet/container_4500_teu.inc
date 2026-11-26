@@ -58,9 +58,9 @@ Fleet "container_4500_teu" {
 	set_initial_technology_share("*", "variable_frequency_drive_container_3500_teu", Curve("uptake_variable_frequency_drive_container_3500_teu"))
 
 	# fuel conversions
-	set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 13.4e6)
-	set_fuel_conversion_cost("*ice_oil*", "*ice_ammonia*", 20.2e6)
-	set_fuel_conversion_cost("*ice_methane*", "*ice_ammonia*", 19.3e6)
+	set_conversion_cost("*ice_oil*", "*ice_methanol*", 13.4e6)
+	set_conversion_cost("*ice_oil*", "*ice_ammonia*", 20.2e6)
+	set_conversion_cost("*ice_methane*", "*ice_ammonia*", 19.3e6)
 
 	# speed management
 	AllowSpeedManagement = TRUE

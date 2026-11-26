@@ -3,7 +3,7 @@
 
 Tank "main_ammonia_general_cargo" {
 	FuelTypes = AMMONIA
-	Size = Variable("tank_size_general_cargo")
+	Volume = Variable("tank_size_general_cargo")
 
 	Capex = Forecast("tank_ammonia_capex_general_cargo")
 	Opex = <Forecast("tank_ammonia_capex_general_cargo") * Variable("tank_opex_percentage_of_capex")>

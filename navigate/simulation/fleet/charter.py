@@ -229,8 +229,8 @@ def _build_asset_component(vessel: Vessel, time_initial: float) -> Component:
         _add_machinery_cost(vessel, component, converter, capacity)
 
     for tank in vessel.tanks:
-        size = tank.size.get()
-        _add_machinery_cost(vessel, component, tank, size)
+        volume = tank.volume.get()
+        _add_machinery_cost(vessel, component, tank, volume)
 
     return component
 

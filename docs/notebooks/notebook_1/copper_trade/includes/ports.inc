@@ -17,11 +17,11 @@ Port "*" {
     # given rather than built bottom-up from a production pathway. Loading
     # DefaultPort itself would also declare its two ports, which this route
     # does not call at.
-    set_bunker_price_overwrite("fossil_fuel_oil", Forecast("fossil_fuel_oil_price_global"))
-    set_bunker_wtt_overwrite("fossil_fuel_oil", "carbon_dioxide", Forecast("fossil_fuel_oil_wtt_carbon_dioxide"))
-    set_bunker_price_overwrite("liquefied_natural_gas", Forecast("liquefied_natural_gas_price_global"))
-    set_bunker_wtt_overwrite("liquefied_natural_gas", "carbon_dioxide", Forecast("liquefied_natural_gas_wtt_carbon_dioxide"))
-    set_bunker_wtt_overwrite("liquefied_natural_gas", "methane", Forecast("liquefied_natural_gas_wtt_methane"))
+    set_fuel_price("fossil_fuel_oil", Forecast("fossil_fuel_oil_price_global"))
+    set_fuel_wtt("fossil_fuel_oil", "carbon_dioxide", Forecast("fossil_fuel_oil_wtt_carbon_dioxide"))
+    set_fuel_price("liquefied_natural_gas", Forecast("liquefied_natural_gas_price_global"))
+    set_fuel_wtt("liquefied_natural_gas", "carbon_dioxide", Forecast("liquefied_natural_gas_wtt_carbon_dioxide"))
+    set_fuel_wtt("liquefied_natural_gas", "methane", Forecast("liquefied_natural_gas_wtt_methane"))
 
     # cost of physically getting the fuel aboard, USD/ton
     set_handling_cost("fossil_fuel_oil", Variable("handling_cost_oil"))

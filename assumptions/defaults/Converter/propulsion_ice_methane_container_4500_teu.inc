@@ -13,5 +13,5 @@ Converter "propulsion_ice_methane_container_4500_teu" {
 	Capex = Forecast("propulsion_methane_capex")
 	Opex = Forecast("propulsion_methane_opex")
 	
-	set_slip_fraction(METHANE, Variable("propulsion_methane_methane_slip"))
+	set_slip(METHANE, Variable("propulsion_methane_methane_slip"))
 }

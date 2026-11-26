@@ -93,7 +93,7 @@ This attribute sets whether secondary scrapping is permitted. Secondary scrappin
 * **Data type**: `Boolean`
 * **Default**: TRUE
 
-### InterFuelSensitivity
+### FuelSensitivity
 
 Set how strongly newbuild fuel-type choice responds to the levelized cost of transport (LCOT).
 
@@ -106,7 +106,7 @@ The value is an odds ratio against a 10% increase: a fuel whose LCOT is 10% high
 * **Minimum value**: >0
 * **Default**: None. Must be provided by the user.
 
-### IntraFuelSensitivity
+### VariantSensitivity
 
 Set how strongly newbuild technology-variant choice within a single fuel type responds to the levelized cost of transport (LCOT).
 
@@ -217,9 +217,9 @@ A number in place of a Curve gives a uniform age spread over the vessel type's l
 * **Minimum value**: 0
 * **Default**: Not set. Every vessel type gets a uniform age spread over its lifetime.
 
-### RetrofitFrequency
+### RetrofitInterval
 
-This attribute sets the retrofit frequency, namely the intervals at which a vessel can retrofit technology or perform a fuel conversion.
+This attribute sets the interval, in years of vessel age, between a vessel's retrofit windows: a vessel can retrofit technology or perform a fuel conversion only in the time-step its age reaches a multiple of the interval. For example `5` opens a window at ages 5, 10, 15 and so on.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -272,14 +272,14 @@ This attribute sets the method used to align speed across vessel types within th
 * **Legal values**: [SpeedAlignmentID](appendix_ids.md#speedalignmentid)
 * **Default**: INDIVIDUAL
 
-### AssumeReferenceSpeedOptimal
+### RouteSpeedOptimal
 
-This attribute sets the flag for whether the reference speed is assumed to be the current market optimum. When enabled, the route reference speed is treated as the market optimum (accounting for effects not modelled) and speed changes only occur relative to shifts in the modelled optimal speed.
+This attribute sets the flag for whether the speeds of each vessel's route, set with [set\_speed](route.md#set_speed), are assumed to be the current market optimum. When enabled, the route's speeds are treated as the market optimum (accounting for effects not modelled) and speed changes only occur relative to shifts in the modelled optimal speed. It is only used when [AllowSpeedManagement](#allowspeedmanagement) is TRUE.
 
 * **Data type**: `Boolean`
 * **Default**: FALSE
 
-### FuelConversionSensitivity
+### ConversionSensitivity
 
 Set how strongly the fuel-conversion choice responds to its net present value (NPV).
 
@@ -292,7 +292,7 @@ The value is an odds ratio against an advantage equal to 5% of the summed ship C
 * **Minimum value**: >0
 * **Default**: 2
 
-### FuelConversionMinimumAge
+### MinimumConversionAge
 
 This attribute sets the minimum age, in years, at which a vessel can perform a fuel conversion.
 
@@ -340,7 +340,7 @@ This command is only allowed in the `DEFINE` section.
 * **Maximum value**: 1
 * **Default**: Not set. The vessel type starts with no uptake of the technology.
 
-### set\_fuel\_conversion\_cost
+### set\_conversion\_cost
 
 This command sets the cost of performing a fuel conversion from one vessel type to another, in currency. A pair of vessel types without a cost cannot be converted.
 
@@ -362,7 +362,7 @@ If this command is set to FALSE, the vessel can neither enter the fleet as a new
 
 Any existing vessels in the fleet however are unaffected.
 
-This flag supersedes both `set_newbuild_available` and `set_conversion_available`.
+This flag supersedes both `set_allow_newbuild` and `set_allow_conversion`.
 
 * **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Boolean`
@@ -371,7 +371,7 @@ This flag supersedes both `set_newbuild_available` and `set_conversion_available
   + `"vessel_name", FALSE`
 * **Default**: TRUE
 
-### set\_newbuild\_available
+### set\_allow\_newbuild
 
 This command sets a boolean flag indicating whether a specific vessel from the list is allowed as a newbuild in the fleet.
 
@@ -385,7 +385,7 @@ A fleet with no vessel type available as a newbuild builds none, so trade beyond
   + `"vessel_name", FALSE`
 * **Default**: TRUE
 
-### set\_conversion\_available
+### set\_allow\_conversion
 
 This command sets a boolean flag indicating whether a specific vessel type is allowed as the target of a fuel conversion in the fleet.
 
@@ -412,7 +412,7 @@ This command caps the number of newbuilds of a given vessel type per year, as a 
 * **Maximum value**: 1
 * **Default**: 1
 
-### set\_fuel\_conversion\_limit
+### set\_conversion\_limit
 
 This command sets the cap on fuel conversions from one vessel type to another, as the fraction of the total fleet allowed to convert on that pair per year. For example, in a fleet of 100 vessels, a limit of 0.05 allows at most 5 vessels per year to convert from `vessel_name_from` to `vessel_name_to`.
 

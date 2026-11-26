@@ -58,9 +58,9 @@ Fleet "bulk_carrier_80k_dwt" {
 	set_initial_technology_share("*", "variable_frequency_drive_bulk_carrier_panamax", Curve("uptake_variable_frequency_drive_bulk_carrier_panamax"))
 
 	# fuel conversions
-	set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 17.5e6)
-	set_fuel_conversion_cost("*ice_oil*", "*ice_ammonia*", 24.1e6)
-	set_fuel_conversion_cost("*ice_methane*", "*ice_ammonia*", 14.2e6)
+	set_conversion_cost("*ice_oil*", "*ice_methanol*", 17.5e6)
+	set_conversion_cost("*ice_oil*", "*ice_ammonia*", 24.1e6)
+	set_conversion_cost("*ice_methane*", "*ice_ammonia*", 14.2e6)
 
 	# speed management
 	AllowSpeedManagement = TRUE

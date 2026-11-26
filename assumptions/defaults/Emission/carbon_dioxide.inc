@@ -2,5 +2,5 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Emission "carbon_dioxide" {
-	GlobalWarmingPotential = 1
+	Gwp = 1
 }

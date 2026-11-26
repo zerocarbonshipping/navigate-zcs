@@ -28,7 +28,7 @@ Route "pacific_trade" {
     set_port_calls("tonga", 4)
 
     TimeAtSea = 0.47
-    set_voyage_distribution("*", "*", 1)
+    set_distance_share("*", "*", 1)
 
     set_speed("*", "*", Curve("speed_distribution_pacific_trade"))
 }
