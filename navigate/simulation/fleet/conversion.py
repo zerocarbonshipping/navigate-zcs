@@ -599,13 +599,15 @@ def _evaluate_candidate(
     Returns
     -------
     _ConversionCandidate | None
-        The evaluated candidate, its ``count`` still unset, or None when the
-        destination type has no remaining lifetime or no fuel supply excess.
+        The evaluated candidate, its ``count`` still unset, or None when either
+        vessel type has no remaining lifetime or there is no fuel supply excess.
     """
     source = cohort.source
     remaining_from = float(subtract(source.lifetime, cohort.mean_age))
     remaining_to = float(subtract(target.lifetime, cohort.mean_age))
-    if remaining_to <= 0.0:
+
+    # a slice within rounding of the lifetime leaves its vessels no years to save over
+    if remaining_from <= 0.0 or remaining_to <= 0.0:
         return None
 
     if supply <= 0.0:

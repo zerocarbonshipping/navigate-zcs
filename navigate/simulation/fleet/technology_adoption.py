@@ -430,8 +430,12 @@ def _propose_retrofits(
     proposals = []
 
     for increment, cycle_slice in _retrofit_cohorts(fleet, basis, time, time_step):
-        # a retrofit is amortized over the years the vessels at the cycle still serve
-        remaining = lifetime - cycle_slice.mean_age
+        # a retrofit is amortized over the years the vessels at the cycle still serve,
+        # none for a slice within rounding of the lifetime
+        remaining = float(subtract(lifetime, cycle_slice.mean_age))
+        if remaining <= 0.0:
+            continue
+
         flows = get_package_cost_flows(packages, fleet.package_cost_flows, remaining)
 
         for p, uptake in enumerate(increment.package_uptake):
