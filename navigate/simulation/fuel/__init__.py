@@ -5,10 +5,7 @@
 
 from __future__ import annotations
 
-from navigate.simulation.fuel.decommission import (
-    perform_decommissioning,
-    update_plant_ages,
-)
+from navigate.simulation.fuel.decommission import perform_decommissioning
 from navigate.simulation.fuel.expectation import (
     calculate_export_expectations,
     calculate_port_expectations,

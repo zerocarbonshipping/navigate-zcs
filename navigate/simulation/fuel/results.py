@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import find_origin_indexes
 from navigate.simulation.fuel._profiles import iterate_increments
 from navigate.util import interpolate_yearly_flow
 
@@ -58,8 +57,8 @@ def record_producer_results(producer: Producer, timeline: FloatArray, idx: int) 
         Current time-step index.
     """
     _transfer_feed_constraints(producer, idx)
-    _transfer_production_and_feed_mass(producer, timeline, idx)
-    _transfer_plant_tied_capital(producer, timeline, idx)
+    _transfer_production_and_feed_mass(producer, idx)
+    _transfer_plant_tied_capital(producer, timeline[idx], idx)
     _transfer_instantaneous_production(producer, idx)
 
     producer.results.maximum_development[idx] = producer.maximum_development.get()
@@ -81,9 +80,7 @@ def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
             producer.results.feed_constraint[feed_name][idx] = constraint.get()
 
 
-def _transfer_production_and_feed_mass(
-    producer: Producer, timeline: FloatArray, idx: int
-) -> None:
+def _transfer_production_and_feed_mass(producer: Producer, idx: int) -> None:
     """
     Transfer the fuel produced and feed used per plant, weighted by its increments.
 
@@ -91,8 +88,6 @@ def _transfer_production_and_feed_mass(
     ----------
     producer
         The producer.
-    timeline
-        Simulation timeline, in years.
     idx
         Current time-step index.
     """
@@ -102,9 +97,8 @@ def _transfer_production_and_feed_mass(
         if not increments:
             continue
 
-        decided = np.array([increment.decided for increment in increments])
+        origins = np.array([increment.origin for increment in increments])
         counts = np.array([increment.count for increment in increments])
-        origins = find_origin_indexes(timeline, timeline[idx], decided)
 
         production_per_plant = plant.expectation.production[origins]
         production = np.sum(production_per_plant * counts)
@@ -148,9 +142,7 @@ def _calculate_feed_masses(
     return feed_masses
 
 
-def _transfer_plant_tied_capital(
-    producer: Producer, timeline: FloatArray, idx: int
-) -> None:
+def _transfer_plant_tied_capital(producer: Producer, time: float, idx: int) -> None:
     """
     Transfer the remaining tied-up capital per plant increment.
 
@@ -161,18 +153,16 @@ def _transfer_plant_tied_capital(
     ----------
     producer
         The producer.
-    timeline
-        Simulation timeline, in years.
+    time
+        Current time, in years.
     idx
         Current time-step index.
     """
     results = producer.results
-    plants = producer.plants
-    increments = iterate_increments(plants, producer.increments, timeline, idx)
 
-    for _, plant, increment, origin in increments:
-        tied_capital_flow = plant.expectation.tied_capital[origin]
-        tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age)
+    for _, plant, increment in iterate_increments(producer.plants, producer.increments):
+        tied_capital_flow = plant.expectation.tied_capital[increment.origin]
+        tied_capital = interpolate_yearly_flow(tied_capital_flow, increment.age(time))
 
         results.plant_tied_capital[idx] += tied_capital * increment.count
 

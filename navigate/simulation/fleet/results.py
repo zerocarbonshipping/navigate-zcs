@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.simulation.cohort import find_origin_index
 from navigate.simulation.fleet._composition import get_count
 from navigate.simulation.fleet._package import get_technologies_by_capex
 from navigate.simulation.fleet.power import get_total_power_capacity
@@ -39,14 +38,16 @@ def record_fleet_results(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
     idx
         Current time-step index.
     """
-    _transfer_increment_expenses(fleet, timeline, idx)
-    _transfer_weighted_age(fleet, idx)
+    time = timeline[idx]
+
+    _transfer_increment_expenses(fleet, time, idx)
+    _transfer_weighted_age(fleet, time, idx)
     _transfer_fuel_type_capacity(fleet, idx)
     _transfer_existing_vessels(fleet, idx)
     _transfer_technology_uptake(fleet, idx)
 
 
-def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
+def _transfer_increment_expenses(fleet: Fleet, time: float, idx: int) -> None:
     """
     Transfer the running vessel expenses per increment.
 
@@ -58,8 +59,8 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     ----------
     fleet
         Fleet whose increment expenses are transferred.
-    timeline
-        Simulation timeline, in years.
+    time
+        Current time, in years.
     idx
         Current time-step index.
     """
@@ -69,12 +70,11 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
         expectation = vessel.expectation
 
         for increment in increments:
-            age = increment.age
+            origin = increment.origin
+            age = increment.age(time)
             count = increment.count
 
-            # the increment bears the costs of a vessel that entered the fleet
-            # 'age' years ago
-            origin = find_origin_index(timeline, timeline[idx], age)
+            # the increment bears the costs of a vessel built at its origin
             tied_capital_flow = expectation.tied_capital[origin]
 
             asset_charter_rate = expectation.asset_charter_rate[origin]
@@ -86,7 +86,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
             results.technology_expenses[idx] += technology_charter_rate * count
 
 
-def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
+def _transfer_weighted_age(fleet: Fleet, time: float, idx: int) -> None:
     """
     Transfer the power-weighted average fleet age per fuel type.
 
@@ -97,6 +97,8 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
     ----------
     fleet
         Fleet whose weighted age is transferred.
+    time
+        Current time, in years.
     idx
         Current time-step index.
     """
@@ -107,8 +109,11 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         fuel_type = vessel.primary_fuel_type
         power = get_total_power_capacity(vessel)
 
-        vessel_ages = [increment.age * increment.count for increment in increments]
-        numerator = sum(vessel_ages) * power
+        vessel_years = 0.0
+        for increment in increments:
+            vessel_years += increment.age(time) * increment.count
+
+        numerator = vessel_years * power
         denominator = get_count(fleet, v) * power
 
         results.weighted_age_numerator[fuel_type][idx] += numerator

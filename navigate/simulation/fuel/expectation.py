@@ -20,12 +20,7 @@ from navigate.simulation.fuel.feed import (
     calculate_constrained_uptakes,
     calculate_feed_delivery,
 )
-from navigate.util import (
-    MWH_TO_GJ,
-    divide_nonzero,
-    drop_negligible,
-    slice_dict,
-)
+from navigate.util import MWH_TO_GJ, divide_nonzero, slice_dict
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -306,7 +301,7 @@ class _ProductionMix:
         p: int,
         production: FloatArray,
         expectation: PlantExpectation,
-        origin: int | np.signedinteger,
+        origin: int,
     ) -> None:
         """Add plant `p`'s production at the cost and WTT of its decision `origin`."""
         self.cost[p] += production * expectation.levelized_production_cost[origin]
@@ -360,22 +355,16 @@ def _calculate_cohort_production(
     """
     times = timeline[idx:]
     profiles = np.zeros((len(plants), times.size))
-    increments = iterate_increments(plants, cohorts, timeline, idx)
 
-    for p, plant, increment, origin in increments:
-        production = plant.expectation.production[origin]
+    for p, plant, increment in iterate_increments(plants, cohorts):
+        production = plant.expectation.production[increment.origin]
         lifetime = plant.lifetime.get()
-
-        # a decision a rounding remainder off its time-step lies on it, so that an
-        # attribute that changes at that date reads its new value
-        offset = times[0] - increment.decided - timeline[origin]
-        decision = timeline[origin] + float(drop_negligible(offset, times[0]))
-        lifetime_then = plant.lifetime.get(decision)
+        lifetime_then = plant.lifetime.get(increment.decided)
 
         profile = calculate_cohort_running(increment, production, lifetime, times)
         weight = calculate_cohort_running(increment, production, lifetime_then, times)
         profiles[p] += profile
-        mix.add(p, weight, plant.expectation, origin)
+        mix.add(p, weight, plant.expectation, increment.origin)
 
     return profiles
 

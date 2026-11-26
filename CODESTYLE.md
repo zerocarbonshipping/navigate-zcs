@@ -298,9 +298,12 @@ its section layout; the rules below cover the content.
   round them to a fixed number of decimals, which splits two values a residual
   apart where they straddle a rounding boundary. A sign or exact test stays on a value
   whose residual was dropped, where its branches agree at zero
-  (`max(gap, 0.0)`), and in a guard that only protects an operation undefined
-  at zero, such as a division, against an assigned value (a default, a
-  sentinel, a deck input).
+  (`max(gap, 0.0)`), between values set once and copied rather than
+  accumulated, such as the entry times that group cohorts by vintage
+  (`group_by_age` in `navigate/simulation/fleet/scrapping.py`,
+  `consolidate_increments` in `navigate/simulation/fleet/_composition.py`),
+  and in a guard that only protects an operation undefined at zero, such as a
+  division, against an assigned value (a default, a sentinel, a deck input).
 
 ## Validation and dynamic access
 

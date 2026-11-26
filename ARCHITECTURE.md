@@ -30,7 +30,10 @@ only through `core` expectations and the bunkering LP. `Simulation` in
 - Cohort: the assets of one age bin, held with their count in an `Increment`
   (`core/increment.py`), in service in `Fleet.increments` and
   `Producer.increments`, awaiting delivery in `Producer.pipeline`;
-  `simulation/cohort.py` accounts for them.
+  `simulation/cohort.py` accounts for them. An increment is built with the
+  time it enters service, on the timeline, and its origin, the time step whose
+  attributes it carries; its age at a time is read off that entry time, never
+  accumulated step by step.
 - Count: the number of vessels or plants a value stands for, fractional as
   cohorts split and scrap in shares. A `Vessel` node is a vessel type and a
   `Plant` node a plant type; their expectations, and a vessel's results, hold

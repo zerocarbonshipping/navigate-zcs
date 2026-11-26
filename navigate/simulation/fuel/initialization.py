@@ -16,7 +16,12 @@ from navigate.simulation.fuel.expectation import (
     calculate_producer_evolution_expectation,
 )
 from navigate.simulation.fuel.feed import calculate_feed_availability
-from navigate.util import divide_nonzero, step_lengths
+from navigate.util import (
+    divide_nonzero,
+    find_nearest_index,
+    is_negligible,
+    step_lengths,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
@@ -45,9 +50,9 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     for plant in producer.plants:
         plant.set_producer_assignment(producer.name)
 
-    producer.increments = _build_initial_increments(producer)
+    producer.increments = _build_initial_increments(producer, timeline)
     producer.pipeline = _build_existing_pipeline(producer, timeline)
-    _define_initial_development(producer)
+    _define_initial_development(producer, timeline[idx])
 
     calculate_feed_availability(producer, timeline, idx)
     calculate_producer_evolution_expectation(
@@ -55,7 +60,9 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     )
 
 
-def _build_initial_increments(producer: Producer) -> list[list[PlantIncrement]]:
+def _build_initial_increments(
+    producer: Producer, timeline: FloatArray
+) -> list[list[PlantIncrement]]:
     """
     Build the initial increments of every plant type from its initial capacity.
 
@@ -63,22 +70,26 @@ def _build_initial_increments(producer: Producer) -> list[list[PlantIncrement]]:
     ----------
     producer
         Producer whose initial capacity is split.
+    timeline
+        Simulation timeline, in years.
 
     Returns
     -------
     list[list[PlantIncrement]]
         The increments of each plant type, oldest first.
     """
-    return [_build_plant_increments(producer, p) for p in range(len(producer.plants))]
+    plant_count = len(producer.plants)
+    return [_build_plant_increments(producer, p, timeline) for p in range(plant_count)]
 
 
-def _build_plant_increments(producer: Producer, plant_idx: int) -> list[PlantIncrement]:
+def _build_plant_increments(
+    producer: Producer, plant_idx: int, timeline: FloatArray
+) -> list[PlantIncrement]:
     """
     Build the initial increments of one plant type, one per age bin.
 
     Where the type's initial age distribution is a number, its plants are spread
-    evenly over the plant lifetime. A bin without plants gets no increment, and
-    each plant was decided one lead time before its delivery.
+    evenly over the plant lifetime. A bin without plants gets no increment.
 
     Parameters
     ----------
@@ -86,6 +97,8 @@ def _build_plant_increments(producer: Producer, plant_idx: int) -> list[PlantInc
         Producer the plants belong to.
     plant_idx
         Index of the plant type in the producer.
+    timeline
+        Simulation timeline, in years.
 
     Returns
     -------
@@ -98,6 +111,7 @@ def _build_plant_increments(producer: Producer, plant_idx: int) -> list[PlantInc
     distribution = producer.initial_age_distribution[plant_idx]
     lifetime = plant.lifetime.get()
     lead_time = plant.lead_time.get()
+    start = timeline[0]
 
     # a NaN count, such as from an expression dividing by zero, builds no cohorts
     if not total_count > 0.0:
@@ -108,11 +122,9 @@ def _build_plant_increments(producer: Producer, plant_idx: int) -> list[PlantInc
     increments: list[PlantIncrement] = []
     for age, span, count in split_by_age(total_count, distribution, lifetime):
         if count > 0.0:
-            increment = PlantIncrement(
-                count=count,
-                age=float(age),
-                age_span=float(span),
-                decided=float(age) + lead_time,
+            entered = start - float(age)
+            increment = _build_initial_increment(
+                count, entered, float(span), lead_time, timeline
             )
             increments.append(increment)
 
@@ -219,23 +231,56 @@ def _build_plant_pipeline(
     # the first increment is assumed to have entered over a year
     spans = step_lengths(deliveries)
 
-    # the pipeline holds negative ages, as its plants are not yet delivered, each
-    # decided one lead time before its delivery
     increments: list[PlantIncrement] = []
     for count, delivery, span in zip(counts, deliveries, spans, strict=True):
-        age = -delivery
-        increment = PlantIncrement(
-            count=count,
-            age=age,
-            age_span=span,
-            decided=age + lead_time,
-        )
+        increment = _build_initial_increment(count, delivery, span, lead_time, timeline)
         increments.append(increment)
 
     return increments
 
 
-def _define_initial_development(producer: Producer) -> None:
+def _build_initial_increment(
+    count: float, entered: float, span: float, lead_time: float, timeline: FloatArray
+) -> PlantIncrement:
+    """
+    Build an initial increment of plants, decided one lead time before its delivery.
+
+    It carries the attributes of the time step nearest its decision. A decision
+    within rounding of that step lies on it, so that an attribute that changes at
+    that date reads its new value: a lead time taken off a delivery leaves the
+    rounding of the larger of the two.
+
+    Parameters
+    ----------
+    count
+        Number of plants in the increment.
+    entered
+        Time the increment's last plant is delivered, in years.
+    span
+        Width of the increment's age bin, in years.
+    lead_time
+        Plant lead time, in years.
+    timeline
+        Simulation timeline, in years.
+
+    Returns
+    -------
+    PlantIncrement
+        The increment.
+    """
+    decided = entered - lead_time
+    origin = find_nearest_index(timeline, decided)
+
+    offset = decided - timeline[origin]
+    if is_negligible(offset, max(abs(entered), lead_time)):
+        decided = timeline[origin]
+
+    return PlantIncrement(
+        count=count, entered=entered, age_span=span, origin=origin, decided=decided
+    )
+
+
+def _define_initial_development(producer: Producer, start: float) -> None:
     """
     Define the initial uptake, utilization and development from the pipeline.
 
@@ -246,6 +291,8 @@ def _define_initial_development(producer: Producer) -> None:
     ----------
     producer
         Producer whose pipeline is read.
+    start
+        Start time of the simulation, in years.
     """
     inertia = producer.inertia.get()
     maximum_development = producer.maximum_development.get()
@@ -257,7 +304,7 @@ def _define_initial_development(producer: Producer) -> None:
     for p, increments in enumerate(producer.pipeline):
         decided = np.array([increment.decided for increment in increments])
         counts = np.array([increment.count for increment in increments])
-        weights = inertia ** np.maximum(decided, 0.0)
+        weights = inertia ** np.maximum(start - decided, 0.0)
 
         weighted_counts[p] = np.dot(counts, weights)
         weight_total += np.sum(weights)

@@ -286,13 +286,12 @@ def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> Flo
         Number of vessels of each type (rows) over the horizon (columns).
     """
     existing = np.zeros((len(fleet.vessels), times.size))
-    years_ahead = times - times[0]
 
     for v, vessel in enumerate(fleet.vessels):
         lifetimes = vessel.lifetime.get(times)
 
         for increment in fleet.increments[v]:
-            survivors = calculate_survivors(increment, lifetimes, years_ahead)
+            survivors = calculate_survivors(increment, lifetimes, times)
 
             # with no scrapping left to run at the current time-step, the vessels at
             # or past their lifetime stay in the fleet for it

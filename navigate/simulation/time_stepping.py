@@ -57,7 +57,6 @@ from navigate.simulation.fleet import (
     transfer_technology_charter_rate,
     update_operations,
     update_residual_energy_demand,
-    update_vessel_ages,
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
     verify_speed_limits,
@@ -86,7 +85,6 @@ from navigate.simulation.fuel import (
     record_plant_results,
     record_port_results,
     record_producer_results,
-    update_plant_ages,
 )
 from navigate.simulation.policy import (
     calculate_adjusted_regulation_thresholds,
@@ -540,10 +538,6 @@ class Simulation:
         the fleets' technology, speeds and composition and the producers' pipelines
         then evolve on the fuel demand and scarcity it foresees.
         """
-        # ages advance before any calculation that depends on the existing
-        # fleet or production capacity
-        self._update_ages()
-
         # the evolution expectations are calculated before the expected bunkering,
         # so that vessels allowed in the current time step have a non-zero count
         # and the producers' supply follows the step's events
@@ -569,13 +563,6 @@ class Simulation:
         self._calculate_cargo_charter()
         self._perform_fleet_evolution()
         self._perform_producer_evolution()
-
-    def _update_ages(self) -> None:
-        for fleet in self.nodes.fleets.values():
-            update_vessel_ages(fleet, self._time_step)
-
-        for producer in self.nodes.producers.values():
-            update_plant_ages(producer, self._time_step)
 
     def _calculate_fleet_evolution_expectations(self) -> None:
         for fleet in self.nodes.fleets.values():
@@ -754,10 +741,12 @@ class Simulation:
         closes the gap between its trade and the capacity left. The residual energy
         demand and technology uptake of the resulting fleet are then updated.
         """
+        time = self.timeline[self._idx]
+
         for fleet in self.nodes.fleets.values():
-            perform_primary_scrapping(fleet, self._time_step, self._idx)
+            perform_primary_scrapping(fleet, time, self._time_step, self._idx)
             perform_fuel_conversions(fleet, self.timeline, self._time_step, self._idx)
-            close_trade_gap(fleet, self._time_step, self._idx)
+            close_trade_gap(fleet, time, self._time_step, self._idx)
 
             # the residual energy demand reads the updated fleet composition
             update_residual_energy_demand(fleet, self._idx)
@@ -784,9 +773,11 @@ class Simulation:
         into its pipeline, updates its feed gap again and recalculates its evolution
         expectation with the planning done.
         """
+        time = self.timeline[self._idx]
+
         for producer in self.nodes.producers.values():
-            perform_decommissioning(producer)
-            perform_pipeline_delivery(producer)
+            perform_decommissioning(producer, time)
+            perform_pipeline_delivery(producer, time)
             calculate_feed_availability(producer, self.timeline, self._idx)
             calculate_development_potential(producer, self._time_step, self._idx)
 

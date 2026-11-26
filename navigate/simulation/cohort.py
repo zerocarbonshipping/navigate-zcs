@@ -5,7 +5,7 @@
 Vintage-stock accounting over the asset cohorts of the fleet and fuel domains.
 
 What a domain adds to its cohorts, such as the vessels scrapped past the lifetime or
-the time since a plant was decided, and building its Increment subclass stay in that
+the time a plant was decided, and building its Increment subclass stay in that
 domain.
 """
 
@@ -16,14 +16,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.nodes.curve import Curve
-from navigate.util import drop_negligible, find_nearest_index, find_nearest_indices
+from navigate.util import drop_negligible
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from navigate.core.increment import Increment
     from navigate.core.types_ import CurveTableInput
-    from navigate.util.types_ import FloatArray, FloatLike, IntArray
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def split_by_age(
@@ -68,13 +68,15 @@ def split_by_age(
     return list(zip(ages, spans, counts, strict=True))
 
 
-def calculate_share_below(increment: Increment, boundary: float) -> float:
+def calculate_share_below(increment: Increment, boundary: float, time: float) -> float:
     """
-    Return the share of an increment younger than an age boundary.
+    Return the share of an increment younger than an age boundary at a time.
 
-    The assets of an increment are spread uniformly over its age span. The ages carry
-    the rounding of the steps they were aged by, so a boundary within rounding of
-    either end of the span, against the larger of the ends, splits nothing off.
+    The assets of an increment are spread uniformly over its age span. Its age at the
+    time carries the rounding of the subtraction it is read off, and a pipeline
+    plant's entry that of the lead time it was planned ahead by, so a boundary within
+    rounding of either end of the span, against the larger of the ends, splits
+    nothing off.
 
     Parameters
     ----------
@@ -82,6 +84,8 @@ def calculate_share_below(increment: Increment, boundary: float) -> float:
         Increment split.
     boundary
         Age the increment is split at, in years.
+    time
+        Time the increment's age is read at, in years.
 
     Returns
     -------
@@ -89,8 +93,8 @@ def calculate_share_below(increment: Increment, boundary: float) -> float:
         Share of the increment's assets younger than the boundary: 0.0 for an
         increment at or past it, 1.0 for one wholly younger.
     """
-    youngest = increment.age
-    oldest = increment.age + increment.age_span
+    youngest = increment.age(time)
+    oldest = youngest + increment.age_span
     scale = max(abs(youngest), abs(oldest))
 
     below = float(drop_negligible(boundary - youngest, scale))
@@ -143,73 +147,23 @@ def calculate_retired_share(
     return np.clip(retired, 0.0, 1.0)
 
 
-def find_insertion_index(increments: Sequence[Increment], age: float) -> int:
+def find_insertion_index(increments: Sequence[Increment], entered: float) -> int:
     """
-    Find where an increment of a given age goes in a list sorted oldest first.
+    Find where an increment goes in a list sorted oldest first, by its entry time.
 
-    It goes after any increment of equal age.
+    It goes after any increment that entered at the same time.
 
     Parameters
     ----------
     increments
         Increments sorted oldest first.
-    age
-        Age of the increment inserted, in years.
+    entered
+        Time the increment inserted entered service, in years.
 
     Returns
     -------
     int
         Index to insert the increment at.
     """
-    ages = np.array([increment.age for increment in increments])
-    return int(np.searchsorted(-ages, -age, side="right"))
-
-
-def find_origin_index(years: FloatArray, current_year: float, age: float) -> int:
-    """
-    Find the time-step index at which an increment entered the simulation.
-
-    The increment is treated as having entered 'age' years before current_year.
-    An increment of the initial cohorts gets index 0 - the best available
-    approximation, as historical data is unavailable.
-
-    Parameters
-    ----------
-    years
-        Simulation timeline, in years.
-    current_year
-        Current year of the simulation.
-    age
-        Age of the increment, in years.
-
-    Returns
-    -------
-    int
-        Time-step index.
-    """
-    return find_nearest_index(years, current_year - age)
-
-
-def find_origin_indexes(
-    years: FloatArray, current_year: float, ages: FloatArray
-) -> IntArray:
-    """
-    Find the time-step indexes at which increments entered the simulation.
-
-    Array counterpart of `find_origin_index`, one index per age.
-
-    Parameters
-    ----------
-    years
-        Simulation timeline, in years.
-    current_year
-        Current year of the simulation.
-    ages
-        Ages of the increments, in years.
-
-    Returns
-    -------
-    IntArray
-        Time-step indexes, one per age.
-    """
-    return find_nearest_indices(years, current_year - ages)
+    entries = np.array([increment.entered for increment in increments])
+    return int(np.searchsorted(entries, entered, side="right"))

@@ -45,7 +45,6 @@ from navigate.util.numeric import (
     divide_nonzero,
     drop_negligible,
     find_nearest_index,
-    find_nearest_indices,
     interpolate_yearly_flow,
     is_negligible,
     is_nondecreasing,
