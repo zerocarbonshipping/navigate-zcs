@@ -108,6 +108,9 @@ for their repository.
 - Their README names the checks a pull request passes, in place of
   `make check` and the test suites; their package docstring or README maps
   their code, in place of `ARCHITECTURE.md`.
+- Their README states what their suite tests, in place of the Scope of
+  `tests/AGENTS.md`, whose rules on proposing a test and on a failing test
+  hold for them.
 - Their `CHANGELOG.md` records what a user of the tool would notice: a
   command-line argument, a key of the files it reads, what it writes or
   prints, and its installation requirements. The rest of Changelog holds as
