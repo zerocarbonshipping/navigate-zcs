@@ -506,9 +506,12 @@ class Simulation:
         )
 
     def _initialize_existing_fleet(self) -> None:
-        for vessel in self.nodes.vessels.values():
-            determine_fuel_type(vessel)
-            check_fuel_options(vessel)
+        try:
+            for vessel in self.nodes.vessels.values():
+                determine_fuel_type(vessel)
+                check_fuel_options(vessel)
+        except ValueError as error:
+            raise DeckError(str(error)) from None
 
         assign_vessels_to_fleets(self.nodes.fleets.values())
 
