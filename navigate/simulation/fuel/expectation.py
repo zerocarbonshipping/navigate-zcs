@@ -381,9 +381,9 @@ def _calculate_newbuild_production(
     Calculate each plant's production from the newbuilds still to be planned.
 
     The producer is expected to build each fuel up to its gap at delivery and to
-    spread the development the gaps leave evenly over its fuels. The newbuilds
-    decided at each time are added to the mix; they close the gaps of the times
-    after, and the feed they reserve constrains the uptakes at those times.
+    spread what the gaps leave of its development limit evenly over its fuels. The
+    newbuilds decided at each time are added to the mix; they close the gaps of the
+    times after, and the feed they reserve constrains the uptakes at those times.
 
     Parameters
     ----------
@@ -436,24 +436,12 @@ def _calculate_newbuild_production(
     intra_shares = (1.0 - jump_start) * built + jump_start * even
     spare_uptakes = divide_nonzero(intra_shares, np.sum(intra_shares))
 
-    # without previous development the expectation needs a minimum of development
-    # potential to jump-start production
-    current_utilization = producer.current_utilization
-    utilization = current_utilization if current_utilization > 0.0 else jump_start
-
     # the newbuilds of a time-step whose planning has run are in the pipeline
     for t in range(first_pending, times.size):
         time = times[t]
         origin = idx + t
         time_step = timeline[origin] - timeline[origin - 1]
-
-        # the utilization is only accounted for if the model is ramp-up
-        # constrained; otherwise the model cannot increase the utilization over
-        # time when the demand equals the supply
-        ramp_up = producer.maximum_ramp_up.get(time) * time_step
-        utilization = min(utilization + ramp_up, 1.0)
-
-        development = utilization * producer.maximum_development.get(time) * time_step
+        development = producer.maximum_development.get(time) * time_step
 
         # the production of a plant is locked when it is decided, not when it is
         # delivered, so it is read at time 't'

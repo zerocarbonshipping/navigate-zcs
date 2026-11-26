@@ -74,7 +74,6 @@ class Producer(Node):
 
         # constraints
         self.maximum_development: ForecastInput
-        self.maximum_ramp_up: ForecastInput = Scalar(1.0)
         self.jump_start: ScalarInput = Scalar(0.1)
 
         # per plant, keyed by its name
@@ -100,7 +99,7 @@ class Producer(Node):
 
         # dynamic variables
         self.current_uptake: FloatArray
-        self.current_utilization: float
+        self.current_development: float
 
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(SECTION_DEFINE, required=True)
@@ -185,18 +184,8 @@ class Producer(Node):
         )
 
     @deck_attribute()
-    def set_maximum_ramp_up(self, value: ForecastArgument) -> None:
-        """Set the maximum ramp-up of the development constraint's utilization."""
-        self.maximum_ramp_up = assign_value(
-            as_scalar(value),
-            type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),
-            lower=0.0,
-            upper=1.0,
-        )
-
-    @deck_attribute()
     def set_jump_start(self, value: ScalarArgument) -> None:
-        """Set the jump start of the supply/demand interaction."""
+        """Set the jump start of the split between the plant types of a fuel."""
         self.jump_start = assign_value(
             as_scalar(value), type_=NodeTypeID.VARIABLE, lower=0.0, upper=1.0
         )

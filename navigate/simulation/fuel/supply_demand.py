@@ -34,9 +34,7 @@ def calculate_development_potential(
     idx
         Current time-step index.
     """
-    ramp_up = producer.maximum_ramp_up.get() * time_step
-    utilization = min(producer.current_utilization + ramp_up, 1.0)
-    development = producer.maximum_development.get() * time_step * utilization
+    development = producer.maximum_development.get() * time_step
 
     potential = dict.fromkeys(producer.fuels, 0.0)
 
@@ -68,7 +66,7 @@ def _calculate_feasible_newbuilds(
     plant
         Plant type to develop.
     development
-        Number of plants the ramp-up allows the producer to develop over the time step.
+        Number of plants the producer may develop over the time step.
     idx
         Current time-step index.
 
