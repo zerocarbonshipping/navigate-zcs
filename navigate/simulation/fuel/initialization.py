@@ -287,8 +287,8 @@ def _define_initial_development(producer: Producer, timeline: FloatArray) -> Non
     Define the initial uptake, utilization and development from the pipeline.
 
     The uptake weighs each pipelined plant by the inertia raised to the years since
-    it was decided. The utilization sets each increment's count per year of the
-    time step it is delivered in, averaged with the uptake's weights, against the
+    it was decided. The utilization sets the plants delivered per year, over the
+    time steps they are delivered in and weighted as the uptake is, against the
     maximum development. The development counts every pipelined plant.
 
     Parameters
@@ -303,8 +303,7 @@ def _define_initial_development(producer: Producer, timeline: FloatArray) -> Non
     inertia = producer.inertia.get()
     maximum_development = producer.maximum_development.get()
     weighted_counts = np.zeros(len(producer.plants))
-    weighted_rates = 0.0
-    weight_total = 0.0
+    weighted_durations = 0.0
     count_total = 0.0
 
     for p, increments in enumerate(producer.pipeline):
@@ -315,8 +314,7 @@ def _define_initial_development(producer: Producer, timeline: FloatArray) -> Non
         delivery_steps = steps[find_nearest_indices(timeline, entered)]
 
         weighted_counts[p] = np.dot(counts, weights)
-        weighted_rates += np.dot(counts / delivery_steps, weights)
-        weight_total += np.sum(weights)
+        weighted_durations += np.dot(delivery_steps, weights)
         count_total += np.sum(counts)
 
     weighted_total = np.sum(weighted_counts)
@@ -326,7 +324,7 @@ def _define_initial_development(producer: Producer, timeline: FloatArray) -> Non
     # the latest value of the development constraint is used, since the period
     # to average it back over is hard to define: the pipeline and the lead time
     # are inconsistent, and the lead time varies between plants
-    average_development = divide_nonzero(weighted_rates, weight_total)
+    average_development = divide_nonzero(weighted_total, weighted_durations)
     utilization = float(divide_nonzero(average_development, maximum_development))
 
     producer.current_uptake = uptakes

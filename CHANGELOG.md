@@ -483,8 +483,8 @@ change.
     for the year after it, so the trade no longer depends on the deck's dates;
   - a fuel conversion books its yearly charge by the share of each date's
     period within its service window;
-  - a producer's initial utilization counts each pipelined increment per year
-    of the time step it is delivered in.
+  - a producer's initial utilization reads the plants its pipeline delivers
+    per year, over the time steps they are delivered in.
 - A table read at a time built from durations, such as a cost bin or a
   replacement a whole number of years after a date that is not 1 January, reads
   the table date it lands on, instead of raising an `Extrapolate = FALSE` error
