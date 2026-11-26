@@ -57,6 +57,9 @@ change.
   requested; they used to produce no column.
 
 ### Changed
+- `retrofit_technology_uptake`, which the `RetrofitTechnologyUptake` report
+  property gave as the share retrofitted over the step, is a share per year,
+  unit `1/year`.
 - DSL attributes and commands are renamed to say what they set; an old name is
   a deck error. The results file keeps its series names. Write instead:
   - `Fleet` sensitivities: `InterFuelSensitivity` → `FuelSensitivity`,
@@ -472,6 +475,22 @@ change.
 - `weighted_average_age`, `vessel_tied_capital` and `plant_tied_capital` read a
   cohort over the ages its vessels or plants hold, not all at the youngest; the
   average age rises by half each cohort's age span, half a step for newbuilds (#992).
+- Rates and carry-overs hold per calendar year whatever the length of the time
+  step, so decks with steps other than one year move; yearly decks dated
+  1 January do not:
+  - `TechnologyHorizon`, `SpeedHorizon` (Fleet) and `FlexibilityHorizon`
+    (Regulation) keep H/(1 + H) of the belief per year; two half-year steps
+    kept less of it than one year step;
+  - `Memory` (Fleet) weighs each year of a past step by the memory raised to
+    the years since it; it decayed per step;
+  - `FixedScrapRate` (Fleet) compounds over a step: a rate of 0.25 scraps 76%
+    of the fleet over a 5-year step, not all of it;
+  - `TradeGrowth` (Fleet) holds the rate read at each whole year from the start
+    for the year after it, so the trade no longer depends on the deck's dates;
+  - a fuel conversion books its yearly charge by the share of each date's
+    period within its service window;
+  - a producer's initial utilization reads the plants its pipeline delivers
+    per year, over the time steps they are delivered in.
 - A table read at a time built from durations, such as a cost bin or a
   replacement a whole number of years after a date that is not 1 January, reads
   the table date it lands on, instead of raising an `Extrapolate = FALSE` error

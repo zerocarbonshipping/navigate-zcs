@@ -5,7 +5,8 @@
 Numeric helpers.
 
 Negligible values, snapping to whole numbers and grid points, safe division, step
-lengths, monotonicity tests, interpolation, index lookup, growth and smoothing.
+lengths, monotonicity tests, interpolation, index lookup, smoothing, yearly
+fractions over a span and growth.
 """
 
 from __future__ import annotations
@@ -16,6 +17,8 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import numpy.typing as npt
 
     from navigate.util.types_ import BoolArray, FloatArray, FloatLike, IntArray
@@ -361,8 +364,9 @@ def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) ->
     """
     Calculate the exponential smoothing weight of a time step from a decision horizon.
 
-    A shorter horizon gives a larger alpha, a more responsive belief: with 1-year steps,
-    a 5-year horizon gives alpha ~ 0.17 and a 3-year horizon alpha ~ 0.25.
+    The belief keeps ``horizon / (1 + horizon)`` of itself per year, compounded over
+    the step, so a shorter horizon gives a larger alpha, a more responsive belief: with
+    1-year steps, a 5-year horizon gives alpha ~ 0.17 and a 3-year horizon alpha ~ 0.25.
 
     Parameters
     ----------
@@ -383,7 +387,9 @@ def calculate_smoothing_alpha(horizon: float, timeline: FloatArray, idx: int) ->
         return 1.0
 
     time_step: float = timeline[idx] - timeline[idx - 1]
-    return 1.0 / (1.0 + horizon / time_step)
+    kept = calculate_kept_fraction(horizon / (1.0 + horizon), time_step)
+
+    return 1.0 - kept
 
 
 def smooth_belief_path(
@@ -429,51 +435,85 @@ def smooth_belief_path(
     return np.where(np.isnan(prior), raw, smoothed)
 
 
-def calculate_step_inertia(inertia: float, time_step: float) -> float:
+@overload
+def calculate_kept_fraction(kept_per_year: float, years: float) -> float: ...
+
+
+@overload
+def calculate_kept_fraction(kept_per_year: float, years: FloatArray) -> FloatArray: ...
+
+
+def calculate_kept_fraction(kept_per_year: float, years: FloatLike) -> FloatLike:
     """
-    Calculate the fraction of a value continued over one time step.
+    Calculate the fraction kept over a span, from the fraction kept per year.
 
     Parameters
     ----------
-    inertia
-        Fraction of a value continued over a year, in fraction/year.
-    time_step
-        Length of the time step, in years.
+    kept_per_year
+        Fraction of the value kept over a year, such as an inertia, in fraction/year.
+    years
+        Length of the span, such as a time step, in years; scalar or array.
+
+    Returns
+    -------
+    FloatLike
+        Fraction of the value kept over the span, in the shape of ``years``.
+    """
+    return np.power(kept_per_year, years)
+
+
+def calculate_removed_fraction(removed_per_year: float, years: float) -> float:
+    """
+    Calculate the fraction removed over a span, from the fraction removed per year.
+
+    The removal compounds: each year removes its fraction of what the years before
+    left, so the fraction removed never exceeds 1.
+
+    Parameters
+    ----------
+    removed_per_year
+        Fraction of the value removed over a year, such as a scrap rate, in
+        fraction/year.
+    years
+        Length of the span, such as a time step, in years.
 
     Returns
     -------
     float
-        Fraction of the value continued over the time step.
+        Fraction of the value removed over the span.
     """
-    return math.pow(inertia, time_step)
+    return 1.0 - calculate_kept_fraction(1.0 - removed_per_year, years)
 
 
 def calculate_compound_growth(
-    initial: float, growth: FloatArray, timeline: FloatArray
+    initial: float,
+    growth_rate: Callable[[FloatArray], FloatArray],
+    timeline: FloatArray,
 ) -> FloatArray:
     """
     Calculate a value compounding continuously at a yearly growth rate.
 
-    The growth at index t applies over the step from t to t+1.
+    The rate read at each whole year from the first date holds for the year after
+    it, so the value at a date does not depend on the other dates of the timeline.
 
     Parameters
     ----------
     initial
         Value at the first date.
-    growth
-        Growth rate at each date of the timeline, in fraction/year.
+    growth_rate
+        Growth rate at the times passed to it, in years from the first date, in
+        fraction/year.
     timeline
-        Simulation timeline, in years.
+        Simulation timeline, in years from the first date.
 
     Returns
     -------
     FloatArray
         Value at each date of the timeline.
     """
-    rates = np.log(1.0 + growth)
-    exponents = np.cumsum(rates[:-1] * np.diff(timeline))
+    # the whole years up to the first one at or after the last date
+    years = np.arange(math.ceil(timeline[-1]) + 1.0)
+    rates = np.log(1.0 + growth_rate(years[:-1]))
+    exponents: FloatArray = np.insert(np.cumsum(rates), 0, 0.0)
 
-    values = np.full_like(timeline, initial)
-    values[1:] *= np.exp(exponents)
-
-    return values
+    return initial * np.exp(np.interp(timeline, years, exponents))

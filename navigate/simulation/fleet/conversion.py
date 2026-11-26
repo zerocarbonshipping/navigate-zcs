@@ -38,7 +38,7 @@ from navigate.simulation.fleet._composition import (
     is_in_service,
 )
 from navigate.simulation.fleet.charter import build_fuel_component
-from navigate.util import snap_to_whole, subtract
+from navigate.util import subtract
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -745,9 +745,10 @@ def _apply_from_side(
     idx
         Current time-step index.
     """
-    # a time-step a rounding remainder short of a whole year ahead lies on it
-    elapsed = timeline[idx:] - timeline[idx]
-    years_elapsed = np.floor(snap_to_whole(elapsed, timeline[idx:]))
+    # each date's period runs to the next date, the last date's for one year
+    periods = np.append(np.diff(timeline[idx:]), 1.0)
+    starts = timeline[idx:] - timeline[idx]
+    ends = starts + periods
 
     expenses_ahead = fleet.fuel_conversion_expenses[idx:]
 
@@ -760,10 +761,11 @@ def _apply_from_side(
         increment_from.scrapped_past_lifetime -= scrapped
         fleet.results.fuel_conversions[proposal.name_from, name_to][idx] += count
 
-        # the levelized charge is booked over the service window; the coverage
-        # prorates the final partial year so the booked amounts match the
-        # levelization identity
-        coverage = np.clip(candidate.window - years_elapsed, 0.0, 1.0)
+        # the levelized charge is booked over the service window: each date books
+        # the share of its period within the window, which keeps the undiscounted
+        # total over the window
+        covered_ends = np.clip(candidate.window, starts, ends)
+        coverage = (covered_ends - starts) / periods
         expenses_ahead += count * candidate.charge * coverage
 
 
