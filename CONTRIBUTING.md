@@ -153,15 +153,18 @@ the versions supported and the tool to upgrade.
 A release is a tagged GitHub release, which publishes the package to PyPI. The
 owners make it:
 
-1. Set the version in `pyproject.toml` and `CITATION.cff`, for Navigate also in
-   `docs/_static/switcher.json`, and date the `CHANGELOG.md` section. Its first
+1. Set the version in `pyproject.toml` and `CITATION.cff`, with its
+   `date-released`, for Navigate also in `docs/_static/switcher.json` and the
+   citation in `docs/index.md`, and date the `CHANGELOG.md` section. Its first
    line names the contract versions: "Writes results schema 1." for Navigate,
    "Runs Navigate 1.1 or later; reads results schema 1; writes study schema 1."
    for Horizon, "Reads results schema 1 and study schema 1." for Lantern.
 2. Merge into `main`: `dev` for a minor or major release, or for a patch, a
    branch from `main` that holds only the fix.
-3. Tag the merge `vX.Y.Z` and publish a GitHub release from the tag, with the
-   changelog section as its notes.
+3. Tag the merge `vX.Y.Z` and push the tag, which publishes the package to
+   TestPyPI. Then publish a GitHub release from the tag, with the changelog
+   section as its notes; a member of navigate-maintainers approves its upload
+   to PyPI.
 4. Merge `main` back into `dev`.
 
 ## Questions

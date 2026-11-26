@@ -82,7 +82,7 @@ project [README](https://github.com/zerocarbonshipping/navigate-zcs).
 
 If you use Navigate in your work, please cite us:
 
-> Lehn, F. W., Thomas, J. & Hintze, M. *Navigate* v1.0.0 (Fonden Mærsk
+> Lehn, F. W., Thomas, J. & Hintze, M. *Navigate* v1.1.0 (Fonden Mærsk
 > Mc-Kinney Møller Center for Zero Carbon Shipping, 2026);
 > https://github.com/zerocarbonshipping/navigate-zcs
 
@@ -94,10 +94,10 @@ If you use Navigate in your work, please cite us:
     author = {Lehn, Frederik Winkel and Thomas, Julius and Hintze, Mathias},
     organization = {Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping},
     license = {Apache-2.0},
-    month = jul,
+    month = nov,
     title = {{Navigate}},
     url = {https://github.com/zerocarbonshipping/navigate-zcs},
-    version = {1.0.0},
+    version = {1.1.0},
     year = {2026}
 }
 ```
@@ -112,7 +112,7 @@ AU  - Hintze, Mathias
 TI  - Navigate
 PB  - Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 PY  - 2026
-ET  - 1.0.0
+ET  - 1.1.0
 UR  - https://github.com/zerocarbonshipping/navigate-zcs
 ER  -
 ```
@@ -120,13 +120,13 @@ ER  -
 
 :::{tab-item} APA
 ```text
-Lehn, F. W., Thomas, J., & Hintze, M. (2026). Navigate (Version 1.0.0) [Computer software]. Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping. https://github.com/zerocarbonshipping/navigate-zcs
+Lehn, F. W., Thomas, J., & Hintze, M. (2026). Navigate (Version 1.1.0) [Computer software]. Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping. https://github.com/zerocarbonshipping/navigate-zcs
 ```
 :::
 
 :::{tab-item} MLA
 ```text
-Lehn, Frederik Winkel, et al. Navigate. Version 1.0.0, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, 2026, github.com/zerocarbonshipping/navigate-zcs.
+Lehn, Frederik Winkel, et al. Navigate. Version 1.1.0, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, 2026, github.com/zerocarbonshipping/navigate-zcs.
 ```
 :::
 

@@ -66,8 +66,8 @@ Some simple example simulations can be found under `simulations/examples`
 
 Two companion tools work with Navigate's runs:
 
-- [Horizon](https://github.com/zerocarbonshipping/horizon-zcs/tree/dev) runs uncertainty studies. It samples the `%NAME%` placeholders of a deck over their ranges (Latin hypercube or Monte Carlo), starts one Navigate run per sample, on this machine or through a queue such as pueue or slurm, and gathers the results into one file per study. It runs the `navigate` command, so it is installed in the same environment.
-- [Lantern](https://github.com/zerocarbonshipping/lantern-zcs/tree/dev) plots Navigate's results files. It opens one run or many, a Horizon study included, as interactive plots in the browser, or writes the plots as HTML pages and the rows as CSV.
+- [Horizon](https://github.com/zerocarbonshipping/horizon-zcs) runs uncertainty studies. It samples the `%NAME%` placeholders of a deck over their ranges (Latin hypercube or Monte Carlo), starts one Navigate run per sample, on this machine or through a queue such as pueue or slurm, and gathers the results into one file per study. It runs the `navigate` command, so it is installed in the same environment.
+- [Lantern](https://github.com/zerocarbonshipping/lantern-zcs) plots Navigate's results files. It opens one run or many, a Horizon study included, as interactive plots in the browser, or writes the plots as HTML pages and the rows as CSV.
 
 
 ## Disclaimer

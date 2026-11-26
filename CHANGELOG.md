@@ -13,7 +13,9 @@ change.
 
 <!-- What gets an entry: CONTRIBUTING.md, Changelog. -->
 
-## [Unreleased]
+## [1.1.0] - 2026-11-30
+
+Writes results schema 1.
 
 ### Added
 - `navigate --version` prints the Navigate version and the results file schema
