@@ -607,7 +607,7 @@ main engine, an auxiliary engine, and a boiler.</p>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">METHANOL</span></code></p></li>
-<li><p><strong>Default</strong>: Not set. The main fuel type with the largest power capacity summed over the vessel’s converters is used. A tie between fuel types is broken by the size of the tanks that store them.</p></li>
+<li><p><strong>Default</strong>: Not set. The main fuel type with the largest power capacity summed over the vessel’s converters is used. A tie between fuel types goes to the one whose tanks hold the most volume in total; a tank that stores several of them counts toward each. Where no tank stores any of the tied fuel types, the run stops with an error asking for <code class="docutils literal notranslate"><span class="pre">FuelType</span></code>.</p></li>
 </ul>
 </section>
 <section id="propulsionconverter">
