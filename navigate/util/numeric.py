@@ -130,39 +130,57 @@ def snap_to_whole(value: FloatLike, scale: npt.ArrayLike) -> FloatLike:
     return whole + drop_negligible(value - whole, scale)
 
 
-@overload
-def snap_to_grid(value: float, grid: FloatArray) -> float: ...
-
-
-@overload
-def snap_to_grid(value: FloatArray, grid: FloatArray) -> FloatArray: ...
-
-
-def snap_to_grid(value: FloatLike, grid: FloatArray) -> FloatLike:
+class SnapGrid:
     """
-    Snap a value to the nearest grid point where it lies a negligible distance off.
+    Snap values to the grid points they lie a negligible distance off.
+
+    A grid point at 0 is snapped to only by an exact 0.
 
     Parameters
     ----------
-    value
-        Value to snap, scalar or array; a NaN or an infinity stays as it is.
-    grid
-        Points to snap to, finite and sorted ascending.
-
-    Returns
-    -------
-    FloatLike
-        The nearest grid point where the value's distance from it is negligible
-        against that point, the value elsewhere, mirroring the input's scalar- or
-        arrayness. A grid point at 0 is snapped to only by an exact 0.
+    points
+        Points to snap to, finite and strictly increasing.
     """
-    # the point's own magnitude, not the grid's: a distant end of the grid, such
-    # as a large number standing in for infinity, would swallow real inputs
-    nearest = grid[find_nearest_indices(grid, np.asarray(value))]
-    snapped = np.where(is_negligible(value - nearest, nearest), nearest, value)
 
-    # np.where answers a scalar input with a 0-d array
-    return snapped if isinstance(value, np.ndarray) else float(snapped)
+    def __init__(self, points: FloatArray) -> None:
+        # the point's own magnitude, not the grid's: a distant end of the grid, such
+        # as a large number standing in for infinity, would swallow real inputs
+        tolerance = RELATIVE_TOLERANCE * np.abs(points)
+
+        self._points = points
+        self._lower = points - tolerance
+        self._upper = points + tolerance
+
+    @overload
+    def snap(self, value: float) -> float: ...
+
+    @overload
+    def snap(self, value: FloatArray) -> FloatArray: ...
+
+    def snap(self, value: FloatLike) -> FloatLike:
+        """
+        Snap a value to the grid point it lies a negligible distance off, if any.
+
+        Parameters
+        ----------
+        value
+            Value to snap, scalar or array; a NaN or an infinity stays as it is.
+
+        Returns
+        -------
+        FloatLike
+            The grid point where the value lies within its window, the value
+            elsewhere, mirroring the input's scalar- or arrayness.
+        """
+        # the only window the value can lie in, the last one beyond the grid
+        indices = np.searchsorted(self._upper, value)
+        indices = np.minimum(indices, self._points.size - 1)
+
+        is_inside = (self._lower[indices] <= value) & (value <= self._upper[indices])
+        snapped = np.where(is_inside, self._points[indices], value)
+
+        # np.where answers a scalar input with a 0-d array
+        return snapped if isinstance(value, np.ndarray) else float(snapped)
 
 
 def divide_nonzero(

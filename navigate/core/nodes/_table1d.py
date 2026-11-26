@@ -15,7 +15,7 @@ from navigate.core import SECTION_DEFINE, assign_id, assign_value, deck_attribut
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
 from navigate.core.nodes._calculator import _Calculator
 from navigate.exceptions import DeckError
-from navigate.util import is_strictly_increasing, snap_to_grid
+from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
@@ -78,10 +78,6 @@ class _Table1D(_Calculator):
     def calculate(self, x: FloatArray) -> FloatArray: ...
 
     def calculate(self, x: FloatLike) -> FloatLike:
-        # a lookup off an x-value by rounding, such as a time built from durations,
-        # reads that x-value, rather than the neighbouring segment or nothing
-        x = snap_to_grid(x, self.x)
-
         if self.extrapolate == ExtrapolateID.FALSE:
             self._refuse_lookup_outside(x)
 
