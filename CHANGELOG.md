@@ -423,6 +423,10 @@ change.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- A table read at a time built from durations, such as a cost bin or a
+  replacement a whole number of years after a date that is not 1 January, reads
+  the table date it lands on, instead of raising an `Extrapolate = FALSE` error
+  or taking the neighbouring `PREVIOUS` or `NEXT` value (#986).
 - Speed management no longer slows a sailing condition to 0 knots or below, where
   its leg took no sea time and cost nothing. Where the propulsion load sets no
   minimum speed above 0, no condition sails below the route's lowest speed. Decks

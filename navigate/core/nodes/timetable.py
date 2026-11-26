@@ -12,7 +12,7 @@ from navigate.core.enum_ import NodeTypeID
 from navigate.core.node import Node
 from navigate.core.nodes._table2d import _Table2D
 from navigate.core.table_data import TableData, build_table_2d_dated
-from navigate.util import dates_to_years, is_date_array
+from navigate.util import SnapGrid, dates_to_years, is_date_array
 
 if TYPE_CHECKING:
     import numpy as np
@@ -48,6 +48,9 @@ class Timetable(Node, _Table2D):
             tuple[FloatArray | DateArray, FloatArray, FloatArray] | None
         ) = None
 
+        # the table's times, which a time a caller supplies snaps to
+        self._time_grid: SnapGrid
+
     # external methods (DSL attributes) ------------------------------------------------
     @deck_attribute(required=True)
     def set_table(self, value: TableData) -> None:
@@ -74,6 +77,7 @@ class Timetable(Node, _Table2D):
         self._check_table(x, y, z)
 
         self._set_table(x, y, z)
+        self._time_grid = SnapGrid(x)
         self._pending_table = None
 
     @overload
@@ -121,4 +125,7 @@ class Timetable(Node, _Table2D):
                 " first time-step."
             )
 
-        return self.calculate(x, y)
+        # a time built from durations, such as a date plus a lead time, may lie a
+        # rounding step off a table date, and reads that date rather than the
+        # neighbouring segment or nothing
+        return self.calculate(self._time_grid.snap(x), y)

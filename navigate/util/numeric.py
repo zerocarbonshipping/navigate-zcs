@@ -4,8 +4,8 @@
 """
 Numeric helpers.
 
-Negligible values, whole-number snapping, safe division, step lengths, monotonicity
-tests, interpolation, index lookup, growth and smoothing.
+Negligible values, snapping to whole numbers and grid points, safe division, step
+lengths, monotonicity tests, interpolation, index lookup, growth and smoothing.
 """
 
 from __future__ import annotations
@@ -128,6 +128,63 @@ def snap_to_whole(value: FloatLike, scale: npt.ArrayLike) -> FloatLike:
     """
     whole = np.round(value)
     return whole + drop_negligible(value - whole, scale)
+
+
+class SnapGrid:
+    """
+    Snap values to the grid points they lie a negligible distance off.
+
+    A grid point at 0 is snapped to only by an exact 0.
+
+    Parameters
+    ----------
+    points
+        Points to snap to, finite and strictly increasing.
+    """
+
+    def __init__(self, points: FloatArray) -> None:
+        # the point's own magnitude, not the grid's: a distant end of the grid, such
+        # as a large number standing in for infinity, would swallow real inputs
+        tolerance = RELATIVE_TOLERANCE * np.abs(points)
+
+        # each window ends halfway to its neighbours, so windows never overlap and
+        # a value on a grid point always snaps to that point
+        midpoints = (points[:-1] + points[1:]) / 2.0
+
+        self._points = points
+        self._lower = np.maximum(points - tolerance, np.append(-np.inf, midpoints))
+        self._upper = np.minimum(points + tolerance, np.append(midpoints, np.inf))
+
+    @overload
+    def snap(self, value: float) -> float: ...
+
+    @overload
+    def snap(self, value: FloatArray) -> FloatArray: ...
+
+    def snap(self, value: FloatLike) -> FloatLike:
+        """
+        Snap a value to the grid point it lies a negligible distance off, if any.
+
+        Parameters
+        ----------
+        value
+            Value to snap, scalar or array; a NaN or an infinity stays as it is.
+
+        Returns
+        -------
+        FloatLike
+            The grid point where the value lies within its window, the value
+            elsewhere, mirroring the input's scalar- or arrayness.
+        """
+        # the only window the value can lie in, the last one beyond the grid
+        indices = np.searchsorted(self._upper, value)
+        indices = np.minimum(indices, self._points.size - 1)
+
+        is_inside = (self._lower[indices] <= value) & (value <= self._upper[indices])
+        snapped = np.where(is_inside, self._points[indices], value)
+
+        # np.where answers a scalar input with a 0-d array
+        return snapped if isinstance(value, np.ndarray) else float(snapped)
 
 
 def divide_nonzero(
