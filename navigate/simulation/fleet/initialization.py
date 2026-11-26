@@ -346,7 +346,8 @@ def _sample_vessel_ages(increment: VesselIncrement, start: float) -> FloatArray:
     FloatArray
         Ages of the sampled vessels, in years, youngest first.
     """
-    # a hundred parts average a share curve well within the accuracy of its data
+    # the mean over a hundred parts is exact where a quantity is linear within each
+    # part, and misses a jump inside the span by at most half a percent of it
     parts = 100
     youngest = increment.age(start)
 
