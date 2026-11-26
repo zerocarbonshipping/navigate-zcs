@@ -95,8 +95,8 @@ def group_by_age(fleet: Fleet) -> list[list[tuple[int, int]]]:
 
     Scrapping takes the increments of one age together across vessel types. An age
     group holds the increments that entered service at the same time: an entry time
-    is set once and copied, never accumulated, so increments of one vintage hold
-    equal entry times.
+    is set once and copied, never accumulated, and the initial vintages are aligned
+    across vessel types, so increments of one vintage hold equal entry times.
 
     Parameters
     ----------

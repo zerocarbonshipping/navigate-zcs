@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import TYPE_CHECKING
 
@@ -23,7 +24,7 @@ from navigate.simulation.fleet.technology_adoption import (
     transfer_technology_charter_rate,
 )
 from navigate.simulation.fleet.technology_effect import update_residual_energy_demand
-from navigate.util import calculate_compound_growth
+from navigate.util import calculate_compound_growth, subtract
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -114,6 +115,11 @@ def _build_initial_increments(
     """
     Build the initial increments of every vessel type from its initial count.
 
+    Each type's age bins come from its own distribution, so bins of one age can lie
+    a rounding residual apart between types. They are given one entry time and one
+    span, so that scrapping and consolidation, which compare vintages exactly, take
+    them as one.
+
     Parameters
     ----------
     fleet
@@ -127,7 +133,38 @@ def _build_initial_increments(
         The increments of each vessel type, oldest first.
     """
     vessel_count = len(fleet.vessels)
-    return [_build_vessel_increments(fleet, v, start) for v in range(vessel_count)]
+    increments = [
+        _build_vessel_increments(fleet, v, start) for v in range(vessel_count)
+    ]
+    initial = list(itertools.chain.from_iterable(increments))
+
+    entries = _align_residuals([increment.entered for increment in initial])
+    spans = _align_residuals([increment.age_span for increment in initial])
+
+    for increment, entered, span in zip(initial, entries, spans, strict=True):
+        increment.entered = entered
+        increment.age_span = span
+
+    return increments
+
+
+def _align_residuals(values: list[float]) -> list[float]:
+    """
+    Replace each value by the smallest of those within a residual of it.
+
+    A value is compared to the first of its group, not the value before it, so that a
+    group cannot drift.
+    """
+    aligned = list(values)
+    anchor = 0.0
+
+    for position, i in enumerate(np.argsort(values)):
+        if position == 0 or subtract(anchor, values[i]) != 0.0:
+            anchor = values[i]
+
+        aligned[i] = anchor
+
+    return aligned
 
 
 def _build_vessel_increments(

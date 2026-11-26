@@ -169,8 +169,8 @@ def consolidate_increments(fleet: Fleet) -> None:
 
     The simulation's CPU time grows with the number of increments per vessel type.
     Increments are of one vintage where they entered service at the same time over
-    the same span: both are set once and copied, never accumulated, so they are equal
-    floats.
+    the same span: both are set once and copied, never accumulated, and the initial
+    vintages are aligned across vessel types, so they are equal floats.
 
     Parameters
     ----------
