@@ -13,6 +13,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from navigate.util import divide_nonzero
+
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
@@ -77,6 +79,19 @@ class VesselIncrement(Increment):
     package_uptake: FloatArray
     scrapped_past_lifetime: float = 0.0
     technology_charter_rate: float = 0.0
+
+    def oldest_age(self, time: float) -> float:
+        """
+        Return the age of the cohort's oldest vessel at a time, in years.
+
+        Scrapping past the lifetime takes the oldest part of the span and records
+        it in ``scrapped_past_lifetime``; every other change to the count scales
+        both alike. The vessels therefore hold the youngest part of the span, its
+        share the count over the size before that scrapping.
+        """
+        size = self.count + self.scrapped_past_lifetime
+        held_share = float(divide_nonzero(self.count, size))
+        return self.youngest_age(time) + self.age_span * held_share
 
 
 @dataclass(slots=True)

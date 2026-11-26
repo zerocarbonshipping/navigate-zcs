@@ -20,7 +20,6 @@ from navigate.util import divide_nonzero, drop_negligible, subtract
 if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
-    from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray, FloatLike
 
@@ -203,42 +202,6 @@ def calculate_survivors(
     # scrapped beyond this lifetime's share, so the survivors are capped at the
     # vessels the increment holds
     return np.minimum(increment.count, size_before * (1.0 - retired))
-
-
-def calculate_age_bounds(
-    fleet: Fleet, vessel: Vessel, increment: VesselIncrement, time: float
-) -> tuple[float, float]:
-    """
-    Calculate the youngest and oldest age the vessels of an increment hold.
-
-    Scrapping by age lowers an increment's count but keeps its span, so its vessels
-    spread uniformly over the part of the span below the lifetime. The fixed scrap
-    rate scraps no vessel for its age, so they keep the whole span.
-
-    Parameters
-    ----------
-    fleet
-        Fleet holding the increment.
-    vessel
-        Vessel type of the increment.
-    increment
-        Increment of the vessel type.
-    time
-        Current time, in years.
-
-    Returns
-    -------
-    tuple[float, float]
-        Youngest and oldest age of the increment's vessels, in years.
-    """
-    youngest = increment.youngest_age(time)
-    oldest = youngest + increment.age_span
-
-    if fleet.fixed_scrap_rate is None:
-        oldest = min(oldest, vessel.lifetime.get())
-
-    # an increment left at the lifetime by rounding holds its vessels at one age
-    return youngest, max(oldest, youngest)
 
 
 def _scrap_by_age(fleet: Fleet, time: float, idx: int) -> None:
