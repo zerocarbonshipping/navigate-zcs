@@ -81,9 +81,9 @@ class VesselIncrement(Increment):
     scrapped_oldest: float = 0.0
     technology_charter_rate: float = 0.0
 
-    def oldest_entered(self) -> float:
+    def held_share(self) -> float:
         """
-        Return the time the cohort's oldest vessel entered service, in years.
+        Return the share of the cohort's span its vessels hold, the youngest part.
 
         Scrapping, at the lifetime or oldest first, takes the oldest part of the
         span and records it in ``scrapped_oldest``; every other change to the count
@@ -91,8 +91,11 @@ class VesselIncrement(Increment):
         its share the count over the size before that scrapping.
         """
         size = self.count + self.scrapped_oldest
-        held_share = float(divide_nonzero(self.count, size))
-        return self.entered - self.age_span * held_share
+        return float(divide_nonzero(self.count, size))
+
+    def oldest_entered(self) -> float:
+        """Return the time the cohort's oldest vessel entered service, in years."""
+        return self.entered - self.age_span * self.held_share()
 
     def oldest_age(self, time: float) -> float:
         """Return the age of the cohort's oldest vessel at a time, in years."""

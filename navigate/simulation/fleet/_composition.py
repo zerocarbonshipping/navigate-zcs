@@ -569,7 +569,7 @@ def _cycle_windows(
 
 def consolidate_increments(fleet: Fleet, population: float) -> None:
     """
-    Merge increments of one vintage, drop those negligible against the population.
+    Merge increments holding vessels of the same ages, drop those negligible.
 
     The simulation's CPU time grows with the number of increments per vessel type.
     Increments are of one vintage where they entered service at the same time over
@@ -577,6 +577,12 @@ def consolidate_increments(fleet: Fleet, population: float) -> None:
     age, and copied, never accumulated, and the initial vintages are aligned across
     vessel types, so they are equal floats. The parts of a split at a retrofit cycle
     that a decision changed span different ages, so they never merge back.
+
+    Increments of one vintage merge only where their vessels hold the same share of
+    its span, as merging two shares spreads their vessels over one between them and
+    misplaces their ages. Vessels converted from another type carry the share their
+    source held, which may differ from the share of the destination's own vessels of
+    that vintage. The shares are computed, so they are compared within rounding.
 
     Parameters
     ----------
@@ -586,31 +592,64 @@ def consolidate_increments(fleet: Fleet, population: float) -> None:
         Number of vessels the fleet counts in the time-step, newbuilds included.
     """
     for v, increments in enumerate(fleet.increments):
-        # cohorts in fleet order, each folded into its first increment
-        cohorts: dict[tuple[float, float], list[VesselIncrement]] = {}
+        vintages: dict[tuple[float, float], list[VesselIncrement]] = {}
 
         for increment in increments:
             vintage = (increment.entered, increment.age_span)
-            cohorts.setdefault(vintage, []).append(increment)
+            vintages.setdefault(vintage, []).append(increment)
 
         consolidated: list[VesselIncrement] = []
 
-        for cohort in cohorts.values():
-            count = sum(increment.count for increment in cohort)
-            if not is_negligible(count, population):
-                consolidated.append(_merge(cohort))
+        # vintages in fleet order, each cohort folded into its first increment
+        for vintage in vintages.values():
+            for cohort in _split_by_held_share(vintage):
+                count = sum(increment.count for increment in cohort)
+                if not is_negligible(count, population):
+                    consolidated.append(_merge(cohort))
 
         fleet.increments[v] = consolidated
+
+
+def _split_by_held_share(vintage: list[VesselIncrement]) -> list[list[VesselIncrement]]:
+    """
+    Split the increments of one vintage into cohorts holding one share of its span.
+
+    Parameters
+    ----------
+    vintage
+        Increments of one vessel type and vintage, in fleet order.
+
+    Returns
+    -------
+    list[list[VesselIncrement]]
+        The cohorts, each in fleet order, in the order of their first increment.
+    """
+    cohorts: list[list[VesselIncrement]] = []
+
+    for increment in vintage:
+        share = increment.held_share()
+
+        for cohort in cohorts:
+            if is_negligible(cohort[0].held_share() - share, 1.0):
+                cohort.append(increment)
+                break
+        else:
+            # no cohort holds the increment's share
+            cohorts.append([increment])
+
+    return cohorts
 
 
 def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     """
     Fold a cohort into its first increment, weighting by count.
 
+    Its increments hold one share of their span, which the merge keeps.
+
     Parameters
     ----------
     cohort
-        Increments of one vessel type and vintage, in fleet order.
+        Increments of one vessel type, vintage and held share, in fleet order.
 
     Returns
     -------

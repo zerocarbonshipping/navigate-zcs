@@ -476,6 +476,9 @@ change.
   refused; delete the line (#1013).
 
 ### Fixed
+- Vessels converted into a type that already holds their vintage keep their
+  ages when merged with it; where the two had been scrapped to different ages,
+  scrapping at the lifetime and the age results read the wrong ages (#1019).
 - Secondary scrapping and `FixedScrapRate` scrap the oldest vessels of the fleet
   by their age, across vessel types, rather than whole cohorts ranked by their
   youngest vessel; results move in decks that use either (#1010).
