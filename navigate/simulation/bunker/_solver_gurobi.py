@@ -174,10 +174,6 @@ class GurobiModel:
         """Set the objective coefficient of a variable."""
         self._columns[variable].Obj = value
 
-    def set_upper_bound(self, variable: Variable, value: float) -> None:
-        """Set the upper bound of a non-negative variable."""
-        self._columns[variable].UB = value
-
     def remove_variable(self, variable: Variable) -> None:
         """Remove a variable from the linear program."""
         self._model.remove(self._columns[variable])

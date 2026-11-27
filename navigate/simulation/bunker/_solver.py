@@ -133,9 +133,6 @@ class Model(Protocol):
     def set_cost(self, variable: Variable, value: float) -> None:
         """Set the objective coefficient of a variable."""
 
-    def set_upper_bound(self, variable: Variable, value: float) -> None:
-        """Set the upper bound of a non-negative variable."""
-
     def remove_variable(self, variable: Variable) -> None:
         """Remove a variable from the linear program."""
 

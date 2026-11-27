@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Each vessel's shore-power limit per port: the connected share of its potential."""
+"""Shore-power potential of a technology package, and the limit a port holds it to."""
 
 from __future__ import annotations
 
@@ -9,19 +9,24 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from navigate.core.enum_ import EnergyDemandID
+from navigate.util import power_to_energy
+
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.technology_package import TechnologyPackage
     from navigate.util.types_ import FloatArray
 
 
-def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
+def calculate_vessel_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
     """
     Calculate the most shore-power energy every vessel can take in each of its ports.
 
-    Shore power covers the share of the time in port it is available, so a vessel's
-    limit in a port is the port's availability times the vessel's shore-power potential
-    there.
+    A vessel's limit in a port is the port's availability times the vessel's
+    shore-power potential there, the average over the packages its vessels carry.
     The limits are in GJ/year.
 
     Parameters
@@ -31,37 +36,85 @@ def calculate_shore_power_limits(fleets: dict[str, Fleet], idx: int) -> None:
     idx
         Current time-step index.
     """
+    forward = np.s_[idx:]
+
     for fleet in fleets.values():
         for vessel in fleet.vessels:
-            limits = _calculate_vessel_limits(vessel, idx)
-            vessel.expectation.shore_power_limit_port.at[idx:] = limits
+            expectation = vessel.expectation
+
+            potential = expectation.shore_power_potential_port.at[forward]
+            limit = calculate_shore_power_limit(vessel, potential, forward)
+
+            expectation.shore_power_limit_port.at[forward] = limit
 
 
-def _calculate_vessel_limits(vessel: Vessel, idx: int) -> list[FloatArray]:
+def calculate_shore_power_potential(
+    vessel: Vessel,
+    package: TechnologyPackage,
+    residual_port: Mapping[EnergyDemandID, FloatArray],
+    idx: int | slice,
+) -> FloatArray:
     """
-    Calculate the most shore-power energy a vessel can take in each of its ports.
+    Calculate a package's shore-power potential in each port.
 
-    Each limit is the port's availability times the vessel's shore-power potential.
+    The potential is the most electrical energy the package can take from shore were
+    it connected the whole time in port: the lesser of its shore-power capacity over
+    that time and the electrical demand in port with the package.
 
     Parameters
     ----------
     vessel
-        Vessel whose limits are calculated.
+        Vessel providing the time in port.
+    package
+        Technology package holding the shore-power capacity.
+    residual_port
+        Residual energy in port with the package per energy demand type, the port
+        axis first, in GJ/year.
     idx
-        Current time-step index.
+        Time-step index or slice of the evaluation.
+
+    Returns
+    -------
+    FloatArray
+        Shore-power potential, the port axis first, in GJ/year.
+    """
+    times_port = np.asarray(vessel.expectation.time_port.at[idx], dtype=float)
+
+    deliverable = power_to_energy(package.shore_power_capacity, times_port)
+    electrical = residual_port[EnergyDemandID.ELECTRICAL]
+
+    return np.minimum(deliverable, electrical)
+
+
+def calculate_shore_power_limit(
+    vessel: Vessel, potential: Sequence[FloatArray] | FloatArray, idx: slice
+) -> list[FloatArray]:
+    """
+    Calculate the shore-power limit a potential gives in each port of a vessel.
+
+    Shore power covers the share of the time in port it is available, so the limit
+    in a port is the port's availability times the potential there.
+
+    Parameters
+    ----------
+    vessel
+        Vessel calling at the ports.
+    potential
+        Shore-power potential at each of the time-steps, the port axis first, in
+        GJ/year.
+    idx
+        Time-steps of the evaluation.
 
     Returns
     -------
     list[FloatArray]
-        Shore-power limit per port over the remaining horizon, in GJ/year.
+        Shore-power limit at each of the time-steps, the port axis first, in
+        GJ/year.
     """
-    forward = np.s_[idx:]
-    potentials = vessel.expectation.shore_power_potential_port.at[forward]
+    limit = []
 
-    limits = []
+    for p, port in enumerate(vessel.route.ports):
+        availability = port.expectation.shore_power_availability[idx]
+        limit.append(availability * potential[p])
 
-    for port, potential in zip(vessel.route.ports, potentials, strict=True):
-        availability = port.expectation.shore_power_availability[forward]
-        limits.append(availability * potential)
-
-    return limits
+    return limit

@@ -266,7 +266,7 @@ class Fleet(Node):
 
     @deck_attribute()
     def set_technology_horizon(self, value: ForecastArgument) -> None:
-        """Set the smoothing horizon of the technology energy-scarcity belief."""
+        """Set the smoothing horizon of the technology shadow-price beliefs."""
         self.technology_horizon = assign_value(
             as_scalar(value),
             type_=(NodeTypeID.FORECAST, NodeTypeID.VARIABLE),

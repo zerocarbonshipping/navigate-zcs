@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Transfer the energy prices and demands of the energy-conservation rows."""
+"""Transfer the energy prices and demands, and the prices of the shore-power limits."""
 
 from __future__ import annotations
 
@@ -15,16 +15,21 @@ if TYPE_CHECKING:
 
 def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     """
-    Transfer the energy prices and right-hand sides of the energy-conservation rows.
+    Transfer the energy prices and demands, and the prices of the shore-power limits.
 
-    The energy price is the dual of the row, as the solve selects it among the
-    optimal ones (``_selection``): where no other priced row limits it, the saving
-    from a GJ less demand or, where there is no demand, the cost of the first GJ.
-    Where the other rows keep a row without demand from its first GJ, the price of
-    every row without demand in that solve is an optimal dual the solver chose.
-    The objective scales each vessel's terms by its number of vessels, so the dual
-    divided by that number is the price per vessel; the right-hand side is already
-    per vessel.
+    The energy price is the dual of the energy-conservation row, as the solve
+    selects it among the optimal ones (``_selection``): where no other priced row
+    limits it, the saving from a GJ less demand or, where there is no demand, the
+    cost of the first GJ. Where the other rows keep a row without demand from its
+    first GJ, the price of every row without demand in that solve is an optimal dual
+    the solver chose. The objective scales each vessel's terms by its number of
+    vessels, so the dual divided by that number is the price per vessel; the
+    right-hand side, the energy demand, is already per vessel.
+
+    The price of a shore-power limit is the dual of its row, selected and divided
+    likewise: where no other priced row limits it, the change of the cost per GJ the
+    limit rises by. It is zero or negative, and zero at a port where the vessel has
+    no such row, so that no price of an earlier solve stays there.
 
     Parameters
     ----------
@@ -59,3 +64,15 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
 
         expectation.energy_conservation_pi_port[demand_type][p][idx] = pi
         expectation.energy_conservation_rhs_port[demand_type][p][idx] = rhs
+
+    limits = alg.shore_power_limit
+
+    for v, vessel in alg.vessels.items():
+        expectation = vessel.expectation
+
+        for p in vessel.route.get_stops():
+            if (v, p) in limits:
+                pi = alg.model.dual(limits[v, p]) / alg.counts[v]
+            else:
+                pi = 0.0
+            expectation.shore_power_limit_pi_port[p][idx] = pi

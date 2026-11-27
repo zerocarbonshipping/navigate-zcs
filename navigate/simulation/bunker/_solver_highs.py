@@ -163,11 +163,9 @@ class HighsModel:
         # changes bounds and so does not count as growth
         self._model_grew: bool = True
 
-        # deferred row-bound, cost and upper-bound changes, applied when the model
-        # is next solved
+        # deferred row-bound and cost changes, applied when the model is next solved
         self._pending_row_bounds: dict[Constraint, tuple[float, float]] = {}
         self._pending_cost: dict[Variable, float] = {}
-        self._pending_upper_bound: dict[Variable, float] = {}
 
     def add_variable(self, name: str, *, free: bool = False) -> Variable:
         """Add a continuous variable with a zero cost, non-negative unless free."""
@@ -227,14 +225,6 @@ class HighsModel:
         """Set the objective coefficient of a variable."""
         self._pending_cost[variable] = value
 
-    def set_upper_bound(self, variable: Variable, value: float) -> None:
-        """
-        Set the upper bound of a non-negative variable.
-
-        HiGHS takes both bounds at once, and the lower one is set to zero.
-        """
-        self._pending_upper_bound[variable] = value
-
     def remove_variable(self, variable: Variable) -> None:
         """
         Remove a variable from the linear program.
@@ -247,7 +237,6 @@ class HighsModel:
         self._column_names[variable] = f"removed_{variable}"
 
         self._pending_cost.pop(variable, None)
-        self._pending_upper_bound.pop(variable, None)
 
     def remove_constraint(self, constraint: Constraint) -> None:
         """
@@ -513,7 +502,7 @@ class HighsModel:
             highs.passRowName(row, _lp_name(name))
 
     def _flush_pending(self) -> None:
-        """Apply the deferred row-bound, cost and upper-bound changes."""
+        """Apply the deferred row-bound and cost changes."""
         if self._pending_row_bounds:
             pending = self._pending_row_bounds
             count = len(pending)
@@ -530,15 +519,6 @@ class HighsModel:
             indices = np.array(list(pending), dtype=np.int32)
             costs = np.array(list(pending.values()), dtype=np.float64)
             self._highs.changeColsCost(count, indices, costs)
-            pending.clear()
-
-        if self._pending_upper_bound:
-            pending = self._pending_upper_bound
-            count = len(pending)
-            indices = np.array(list(pending), dtype=np.int32)
-            lower_bounds = np.zeros(count, dtype=np.float64)
-            upper_bounds = np.array(list(pending.values()), dtype=np.float64)
-            self._highs.changeColsBounds(count, indices, lower_bounds, upper_bounds)
             pending.clear()
 
     def _set_strategy(self, strategy: _Strategy) -> None:

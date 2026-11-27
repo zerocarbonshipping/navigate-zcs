@@ -34,7 +34,7 @@ def update_energy_conservation_constraints(
     value in GJ/t, x and y the fuel mass spent at sea and in port in tons/year, s
     the shore power in GJ/year, and E the energy demand in GJ/year. Converts fuel
     mass to delivered energy and pins it to the demand; shore power substitutes
-    fuel for the electrical demand in port.
+    fuel for the electrical demand in port, up to its limit (shore_power_limit).
 
     Parameters
     ----------

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Add the vessel and regulation variables of the LP, and set their bounds."""
+"""Add the vessel and regulation variables of the LP."""
 
 from __future__ import annotations
 
@@ -11,6 +11,9 @@ from navigate.simulation.bunker._build import add_variable
 from navigate.simulation.bunker._constraints.regulation_threshold_flexibility import (
     is_pooled,
 )
+from navigate.simulation.bunker._constraints.shore_power_limit import (
+    can_draw_shore_power,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
@@ -19,7 +22,7 @@ if TYPE_CHECKING:
 
 def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
-    Add the LP variables of a vessel that do not exist yet, and bound its shore power.
+    Add the LP variables of a vessel that do not exist yet.
 
     Parameters
     ----------
@@ -54,15 +57,9 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         for f in vessel.usable_fuels:
             add_variable(alg, alg.mass_tank, (v, p, f), "mass_tank", route)
 
-    shore_power_limits = vessel.expectation.shore_power_limit_port.at[alg.idx]
-
-    for p, limit in enumerate(shore_power_limits):
-        if limit > 0.0:
+    for p in stops:
+        if can_draw_shore_power(vessel, p, alg.idx):
             add_variable(alg, alg.shore_power, (v, p), "shore_power", route)
-
-        # a connection whose limit fell to zero keeps its variable, bounded at zero
-        if (v, p) in alg.shore_power:
-            alg.model.set_upper_bound(alg.shore_power[v, p], limit)
 
 
 def update_regulation_variables(alg: BunkerAlgorithm) -> None:

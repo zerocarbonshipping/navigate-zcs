@@ -21,11 +21,8 @@ from navigate.simulation.fleet._residual_energy import (
 )
 from navigate.simulation.fleet._trip import bind_conditions_to_legs, sum_energy_per_leg
 from navigate.simulation.fleet.operation import transfer_operational_savings
-from navigate.util import (
-    divide_nonzero,
-    power_to_energy,
-    sum_per_key,
-)
+from navigate.simulation.fleet.shore_power import calculate_shore_power_potential
+from navigate.util import divide_nonzero, sum_per_key
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -187,9 +184,8 @@ def _calculate_technology_effect(
     """
     Average the residual energy and shore-power potential over the vessel's packages.
 
-    The shore-power potential in a port is the most electrical energy the vessels'
-    packages can take from shore over a full connection: per package, the lesser of
-    its shore-power capacity over the time in port and its electrical demand there.
+    The vessel's shore-power potential in a port is the average of its packages'
+    potentials there (calculate_shore_power_potential).
 
     Parameters
     ----------
@@ -212,20 +208,17 @@ def _calculate_technology_effect(
     FloatArray
         Shore-power potential, one value per port call, in GJ/year.
     """
-    times_port = np.asarray(vessel.expectation.time_port.at[idx], dtype=float)
-
     residuals_sea = []
     residuals_port = []
     potentials = []
 
     for package in weights:
         residual_sea, residual_port = calculate_residual_energy(vessel, package, idx)
-        deliverable = power_to_energy(package.shore_power_capacity, times_port)
-        electrical = residual_port[EnergyDemandID.ELECTRICAL]
+        potential = calculate_shore_power_potential(vessel, package, residual_port, idx)
 
         residuals_sea.append(residual_sea)
         residuals_port.append(residual_port)
-        potentials.append(np.minimum(deliverable, electrical))
+        potentials.append(potential)
 
     package_weights = list(weights.values())
 
