@@ -4,12 +4,15 @@
 """
 Fuel conversion of existing vessels, and the fuel-type balance it weighs.
 
-The evaluation runs in three phases per fleet and time-step:
+The evaluation runs in four phases per fleet and time-step:
 
-1. ``_propose_fuel_conversions`` computes the proposed conversion counts and changes
-   no fleet state.
-2. ``_reconcile_fuel_conversion_caps`` scales the proposals to the per-pair flow caps.
-3. ``_apply_fuel_conversions`` updates the fleet: counts, results and expenses.
+1. ``_split_at_conversion_cycle`` splits the vessels eligible for conversion off their
+   increments.
+2. ``_propose_fuel_conversions`` computes the proposed conversion counts and changes no
+   fleet state.
+3. ``_reconcile_fuel_conversion_caps`` scales the proposals to the per-pair flow caps.
+4. ``_apply_fuel_conversions`` updates the fleet: counts, results and expenses, and
+   joins back the parts of an increment no conversion changed.
 
 The phases communicate through one ``_ConversionProposal`` per (from-type, increment)
 cohort, each holding a ``_ConversionCandidate`` per destination type.
@@ -32,10 +35,11 @@ from navigate.simulation.economics import (
     trim_flow_to_window,
 )
 from navigate.simulation.fleet._composition import (
-    calculate_cycle_slice,
     get_counts,
     get_total_count,
     is_in_service,
+    rejoin_unchanged,
+    split_at_cycle,
 )
 from navigate.simulation.fleet.charter import build_fuel_component
 from navigate.util import subtract
@@ -48,6 +52,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastInput
+    from navigate.simulation.fleet._composition import CycleSplit
     from navigate.util.types_ import FloatArray
 
 
@@ -128,16 +133,13 @@ class _ConversionCohort:
     source
         Invariants of the cohort's vessel type.
     increment
-        The cohort's increment.
-    eligible_count
-        Number of the increment's vessels eligible for conversion.
+        Increment of the eligible vessels, split off their cohort.
     mean_age
         Mean age of the eligible vessels, in years.
     """
 
     source: _ConversionSource
     increment: VesselIncrement
-    eligible_count: float
     mean_age: float
 
 
@@ -202,7 +204,7 @@ def perform_fuel_conversions(
     """
     Convert existing vessels to another vessel type where the business case holds.
 
-    Runs the three phases described in the module docstring. The difference in future
+    Runs the four phases described in the module docstring. The difference in future
     maintenance cost is disregarded, as it is negligible next to the conversion cost
     and the difference in fuel cost.
 
@@ -220,13 +222,17 @@ def perform_fuel_conversions(
     if not fleet.can_fuel_convert():
         return
 
-    proposals = _propose_fuel_conversions(fleet, timeline, time_step, idx)
+    cohorts, splits = _split_at_conversion_cycle(fleet, timeline, time_step, idx)
+    for v, split in splits.items():
+        fleet.increments[v] = split.increments
+
+    proposals = _propose_fuel_conversions(fleet, cohorts)
     _reconcile_fuel_conversion_caps(fleet, proposals, time_step)
-    _apply_fuel_conversions(fleet, proposals, timeline, idx)
+    _apply_fuel_conversions(fleet, proposals, splits, timeline, idx)
 
 
 def _propose_fuel_conversions(
-    fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
+    fleet: Fleet, cohorts: list[_ConversionCohort]
 ) -> list[_ConversionProposal]:
     """
     Walk the (from-type, eligible-cohort, to-type) nest to produce conversion counts.
@@ -250,13 +256,8 @@ def _propose_fuel_conversions(
     ----------
     fleet
         Fleet whose vessels may convert.
-    timeline
-        Simulation timeline, in years.
-    time_step
-        Current time-step size, in years.
-    idx
-        Current time-step index of the expectation lookups, where the fuel cost flows
-        start.
+    cohorts
+        The eligible cohorts, in walk order.
 
     Returns
     -------
@@ -275,7 +276,7 @@ def _propose_fuel_conversions(
 
     proposals = []
 
-    for cohort in _eligible_cohorts(fleet, timeline, time_step, idx):
+    for cohort in cohorts:
         candidates = _evaluate_candidates(cohort, supply_excess)
         if not candidates:
             continue
@@ -337,13 +338,18 @@ def _reconcile_fuel_conversion_caps(
 
 
 def _apply_fuel_conversions(
-    fleet: Fleet, proposals: list[_ConversionProposal], timeline: FloatArray, idx: int
+    fleet: Fleet,
+    proposals: list[_ConversionProposal],
+    splits: dict[int, CycleSplit],
+    timeline: FloatArray,
+    idx: int,
 ) -> None:
     """
     Apply the reconciled conversion counts to the fleet.
 
     Every source-side decrement runs before any destination-side insert, so no vessel
-    converts twice within one time-step.
+    converts twice within one time-step. The parts of an increment no conversion
+    changed join back in between, before an insert changes the increment lists.
 
     Parameters
     ----------
@@ -352,27 +358,32 @@ def _apply_fuel_conversions(
     proposals
         Output of ``_propose_fuel_conversions`` after
         ``_reconcile_fuel_conversion_caps``; read only.
+    splits
+        The split increments of each source vessel type, by index in the fleet.
     timeline
         Simulation timeline, in years.
     idx
         Current time-step index, where the results are written and the expenses start.
     """
+    _apply_from_side(fleet, proposals, timeline, idx)
+
+    for v, split in splits.items():
+        fleet.increments[v] = rejoin_unchanged(split)
+
     names = [vessel.name for vessel in fleet.vessels]
     increments = dict(zip(names, fleet.increments, strict=True))
-
-    _apply_from_side(fleet, proposals, timeline, idx)
     _apply_to_side(proposals, increments)
 
 
-def _eligible_cohorts(
+def _split_at_conversion_cycle(
     fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
-) -> Iterator[_ConversionCohort]:
+) -> tuple[list[_ConversionCohort], dict[int, CycleSplit]]:
     """
-    Yield the cohorts with vessels eligible for conversion, in walk order.
+    Split the vessels eligible for conversion off their increments.
 
     A vessel is eligible when it is at a retrofit cycle, has reached the minimum
     conversion age and is within its lifetime, and when an open conversion lane starts
-    at its vessel type.
+    at its vessel type. Its own increment lets a conversion act on it alone.
 
     Parameters
     ----------
@@ -386,10 +397,12 @@ def _eligible_cohorts(
         Current time-step index of the expectation lookups, where the fuel cost flows
         start.
 
-    Yields
-    ------
-    _ConversionCohort
-        Each eligible cohort, vessel type by vessel type, youngest first.
+    Returns
+    -------
+    tuple[list[_ConversionCohort], dict[int, CycleSplit]]
+        The eligible cohorts in walk order, vessel type by vessel type and youngest
+        first, and the split increments of each vessel type with an open lane, by
+        index in the fleet.
     """
     time = timeline[idx]
     interval = fleet.retrofit_interval.get()
@@ -401,28 +414,31 @@ def _eligible_cohorts(
     for vessel in fleet.vessels:
         fuel_cost_flows[vessel.name] = _build_fuel_cost_flow(vessel, timeline, idx)
 
-    for vessel_from, increments in zip(fleet.vessels, fleet.increments, strict=True):
+    cohorts = []
+    splits = {}
+
+    for v, vessel_from in enumerate(fleet.vessels):
         source = _extract_conversion_source(
             fleet, vessels, fuel_cost_flows, vessel_from, idx
         )
         if source is None:
             continue
 
+        increments = fleet.increments[v]
         lifetime = source.lifetime
+        split = split_at_cycle(
+            increments, time, time_step, interval, lifetime, minimum_age
+        )
+        splits[v] = split
 
-        # cohorts are walked youngest to oldest (index 0 is the oldest cohort); when
-        # target-fuel supply binds, younger cohorts with longer remaining lifetimes
-        # claim the working supply excess first
-        for increment in reversed(increments):
-            cycle_slice = calculate_cycle_slice(
-                increment, time, time_step, interval, lifetime, minimum_age
-            )
-            if cycle_slice is None:
-                continue
+        # cohorts are walked youngest to oldest; when target-fuel supply binds,
+        # younger cohorts with longer remaining lifetimes claim the working supply
+        # excess first
+        for increment in reversed(split.at_cycle):
+            mean_age = increment.mean_age(time)
+            cohorts.append(_ConversionCohort(source, increment, mean_age))
 
-            eligible_count = increment.count * cycle_slice.share
-            mean_age = cycle_slice.mean_age
-            yield _ConversionCohort(source, increment, eligible_count, mean_age)
+    return cohorts, splits
 
 
 def _extract_conversion_source(
@@ -614,7 +630,7 @@ def _evaluate_candidate(
         return None
 
     maximum_vessels = supply / target.energy_per_vessel
-    limit = min(maximum_vessels / cohort.eligible_count, 1.0)
+    limit = min(maximum_vessels / cohort.increment.count, 1.0)
 
     # fuel savings count over the years from now that both the current and the
     # converted vessel type still serve; the conversion cost is a lump sum up front
@@ -669,7 +685,7 @@ def _choose_conversions(
     # store as conversion counts so reconciliation can scale per-pair without a
     # re-multiply; strict=False drops the BAU sentinel's share
     for candidate, share in zip(candidates.values(), shares, strict=False):
-        candidate.count = share * cohort.eligible_count
+        candidate.count = share * cohort.increment.count
 
 
 def _debit_supply_excess(
@@ -817,11 +833,9 @@ def _insert_converted_increment(
     idx_to = find_insertion_index(increments_to, increment_from.entered)
     scrapped = count * proposal.scrapped_per_vessel
 
-    # the converted vessels take the source's whole entry and span, so they are spread
-    # over it again, the same approximation as the per-increment package uptake; the
-    # carried technology charter rate rides along unchanged, its amortization window
-    # and discount rate those of the source vessel type, a simplification of the same
-    # order as disregarding the maintenance cost difference (see
+    # the carried technology charter rate rides along unchanged, its amortization
+    # window and discount rate those of the source vessel type, a simplification of the
+    # same order as disregarding the maintenance cost difference (see
     # perform_fuel_conversions)
     increments_to.insert(
         idx_to,

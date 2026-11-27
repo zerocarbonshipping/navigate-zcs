@@ -483,6 +483,12 @@ change.
   read per year from the existing pipeline; results move in decks with an
   existing pipeline, or with `Inertia` above 0 and a `MaximumDevelopment` that
   changes over time (#1006).
+- The plants of an existing pipeline enter over the time step they are
+  delivered in, as the forecast adds them. The first delivery after the start
+  entered over a year whatever the step, and a delivery after a flat stretch of
+  the forecast over the whole stretch. Results move in decks with
+  `set_existing_pipeline` on steps other than one year or with a flat stretch
+  (#1014).
 - A vessel without `FuelType` whose main fuel types tie on power takes the one
   its tanks hold the most volume of, instead of the one whose last-listed tank
   is largest; a tie no tank stores stops the run with an `Error:` line (#359).
@@ -514,6 +520,12 @@ change.
     period within its service window;
   - a producer's starting development rate reads the plants its pipeline
     delivers per year, over the time steps they are delivered in.
+- Retrofits and fuel conversions act on the vessels at their retrofit cycle
+  alone; they acted on their whole cohort, so steps shorter than a cohort's age
+  span retrofitted too few. Yearly decks dated 1 January move only where:
+  - initial age bins are wider than a year;
+  - the retrofit interval, a lifetime or the minimum conversion age is not a
+    whole number of years.
 - A table read at a time built from durations, such as a cost bin or a
   replacement a whole number of years after a date that is not 1 January, reads
   the table date it lands on, instead of raising an `Extrapolate = FALSE` error

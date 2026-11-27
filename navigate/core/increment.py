@@ -98,6 +98,10 @@ class VesselIncrement(Increment):
         """Return the age of the cohort's oldest vessel at a time, in years."""
         return time - self.oldest_entered()
 
+    def mean_age(self, time: float) -> float:
+        """Return the mean age of the cohort's vessels at a time, in years."""
+        return 0.5 * (self.youngest_age(time) + self.oldest_age(time))
+
 
 @dataclass(slots=True)
 class PlantIncrement(Increment):
