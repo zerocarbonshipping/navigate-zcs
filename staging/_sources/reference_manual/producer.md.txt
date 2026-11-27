@@ -120,7 +120,7 @@ If an unconstrained scenario is required, assign a value far above any developme
 
 This attribute sets the jump start, the weight of an even split between the plant types of a fuel in the producer's expected production.
 
-The producer's expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel's plants built in the last time step, blended with an even split weighted by the jump start; a fuel without plants built in the last time step splits them evenly.
+The producer's expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel's plants built in the last time step or, before the producer first plans, by their share of its existing pipeline, blended with an even split weighted by the jump start; a fuel without such plants splits them evenly.
 
 * **Data type**: `Float`, `Variable`
 * **Example values**:
