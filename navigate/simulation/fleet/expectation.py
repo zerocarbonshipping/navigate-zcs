@@ -324,7 +324,7 @@ def _forecast_at_fixed_rate(
     first across vessel types, as primary scrapping does; the first time-step
     scrapped counts the fleet as it is. As the expected fleet holds the newbuilds
     that fill each gap, the time-steps are forecast one after another. All ages
-    advance together, so each increment's held entry interval only shrinks from its
+    advance together, so each increment's entry interval only shrinks from its
     start as it is scrapped. Scrapping left once the existing vessels are gone would
     only scrap expected newbuilds, which the gap refills, so it is dropped.
 
@@ -371,8 +371,8 @@ def _forecast_at_fixed_rate(
             capacities = counts * cargo_miles[k][vessel_indices]
             kept, _ = split_oldest_first(starts, ends, capacities, target)
 
-            # the held interval shrinks from its start with the count, as
-            # VesselIncrement.oldest_entered reads it off scrapped_oldest
+            # the entry interval shrinks from its start with the count, as
+            # scrapping oldest first cuts an increment's span
             counts = counts * kept
             starts = ends - (ends - starts) * kept
 

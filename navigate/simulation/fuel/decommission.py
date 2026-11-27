@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.simulation.cohort import calculate_share_below
+from navigate.simulation.cohort import retire_past_age
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
@@ -16,9 +16,6 @@ if TYPE_CHECKING:
 def perform_decommissioning(producer: Producer, time: float) -> None:
     """
     Decommission the plants past their lifetime.
-
-    An increment spanning the lifetime keeps the share of its plants below it, as its
-    plants are spread uniformly over its age span.
 
     Parameters
     ----------
@@ -29,18 +26,5 @@ def perform_decommissioning(producer: Producer, time: float) -> None:
     """
     for p, plant in enumerate(producer.plants):
         lifetime = plant.lifetime.get()
-        running = []
-
-        for increment in producer.increments[p]:
-            share = calculate_share_below(increment, lifetime, time)
-
-            if share == 0.0:
-                continue
-
-            if share < 1.0:
-                increment.count *= share
-                increment.age_span = lifetime - increment.youngest_age(time)
-
-            running.append(increment)
-
+        running, _ = retire_past_age(producer.increments[p], lifetime, time)
         producer.increments[p] = running

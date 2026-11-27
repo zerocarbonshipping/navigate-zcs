@@ -7,13 +7,13 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, replace
-from itertools import chain
+from itertools import groupby
 from operator import attrgetter
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import calculate_share_below
+from navigate.simulation.cohort import split_at_age
 from navigate.util import DAYS_PER_YEAR, is_negligible, subtract
 
 if TYPE_CHECKING:
@@ -32,19 +32,20 @@ class CycleSplit:
 
     Parameters
     ----------
+    vessel_idx
+        Index of the vessel type in the fleet.
+    originals
+        The increments as they were before the split, sorted oldest first.
     parts
-        The parts of each increment that hold vessels, youngest first.
+        The parts of each original increment, youngest first.
     at_cycle
         The parts whose vessels are at a cycle, sorted oldest first.
     """
 
+    vessel_idx: int
+    originals: list[VesselIncrement]
     parts: list[list[VesselIncrement]]
     at_cycle: list[VesselIncrement]
-
-    @property
-    def increments(self) -> list[VesselIncrement]:
-        """The parts of every increment, sorted oldest first."""
-        return sort_oldest_first(chain.from_iterable(self.parts))
 
 
 def get_trade_capacity(fleet: Fleet, idx: int) -> float:
@@ -180,12 +181,7 @@ def sort_oldest_first(increments: Iterable[VesselIncrement]) -> list[VesselIncre
 
 
 def split_at_cycle(
-    increments: list[VesselIncrement],
-    time: float,
-    time_step: float,
-    interval: float,
-    lifetime: float,
-    minimum_age: float,
+    fleet: Fleet, vessel_idx: int, time: float, time_step: float, minimum_age: float
 ) -> CycleSplit:
     """
     Split a vessel type's increments at their retrofit-cycle windows.
@@ -194,30 +190,33 @@ def split_at_cycle(
     alone. The vessels of an increment in a window therefore become an increment of
     their own, spanning the window's part of the age span, and each part outside the
     windows another. A split keeps each vessel's age, technology package and charter
-    rate, and ``rejoin_unchanged`` joins the parts again once the decision is applied.
+    rate. The fleet keeps the increments until ``rejoin_unchanged`` replaces them
+    with the parts, joined again where the decision left them unchanged.
 
     Parameters
     ----------
-    increments
-        Increments of a vessel type.
+    fleet
+        Fleet holding the vessel type.
+    vessel_idx
+        Index of the vessel type in the fleet.
     time
         Time at the end of the time-step, in years.
     time_step
         Time-step size, in years.
-    interval
-        Interval between retrofit opportunities, in years.
-    lifetime
-        Lifetime of the vessel type, in years.
     minimum_age
         Age below which a vessel is not eligible, in years.
 
     Returns
     -------
     CycleSplit
-        The parts of each increment and those at a cycle.
+        The increments, their parts and the parts at a cycle.
     """
-    parts: list[list[VesselIncrement]] = []
-    at_cycle: list[VesselIncrement] = []
+    increments = fleet.increments[vessel_idx]
+    interval = fleet.retrofit_interval.get()
+    lifetime = fleet.vessels[vessel_idx].lifetime.get()
+
+    parts = []
+    at_cycle = []
 
     for increment in increments:
         cycle_parts = _cycle_parts(
@@ -226,56 +225,74 @@ def split_at_cycle(
         bounds = [oldest for oldest, _ in cycle_parts[:-1]]
         pieces = _cut(increment, bounds, time)
 
-        # a part a cut leaves without vessels, past those the increment holds, is
-        # dropped, while an increment left whole stays as it is
-        held = []
         for piece, (_, is_at_cycle) in zip(pieces, cycle_parts, strict=True):
-            if bounds and piece.count <= 0.0:
-                continue
-
-            held.append(piece)
             if is_at_cycle:
                 at_cycle.append(piece)
 
-        parts.append(held)
+        parts.append(pieces)
 
-    return CycleSplit(parts, sort_oldest_first(at_cycle))
+    return CycleSplit(vessel_idx, increments, parts, sort_oldest_first(at_cycle))
 
 
-def rejoin_unchanged(split: CycleSplit) -> list[VesselIncrement]:
+def rejoin_unchanged(fleet: Fleet, splits: Iterable[CycleSplit]) -> None:
     """
-    Join back the neighbouring parts of each increment that no decision changed.
+    Replace each split vessel type's increments with their parts, joined if unchanged.
 
-    Two parts are unchanged where they still carry one technology package, one
-    charter rate and as many vessels per year of age: a retrofit changes the package
-    and charter rate of a part at a cycle, a conversion its vessels. The younger part
-    must hold all its vessels, as those scrapped are the oldest.
+    Neighbouring parts of an increment join where they still carry one technology
+    package, one charter rate and as many vessels per year of age: a retrofit changes
+    the package and charter rate of a part at a cycle, a conversion its vessels.
 
     Parameters
     ----------
-    split
-        Split whose parts the decisions have acted on; the structure of the vessel
-        type's increment list has not changed since.
+    fleet
+        Fleet holding the split vessel types; their increment lists are replaced.
+    splits
+        Splits whose parts the decisions have acted on; the fleet's increment lists
+        of their vessel types have not changed since the split.
+    """
+    for split in splits:
+        joined = []
+
+        for increment, parts in zip(split.originals, split.parts, strict=True):
+            joined += _join_unchanged(increment, parts)
+
+        fleet.increments[split.vessel_idx] = sort_oldest_first(joined)
+
+
+def _join_unchanged(
+    increment: VesselIncrement, parts: list[VesselIncrement]
+) -> list[VesselIncrement]:
+    """
+    Join the neighbouring parts of an increment that no decision changed.
+
+    An increment whose parts all join keeps its entry time and span as they were,
+    which the sum of its parts can miss in the last digit, and takes their count,
+    which a conversion too small to keep the parts apart may have reduced.
+
+    Parameters
+    ----------
+    increment
+        Increment as it was before the split.
+    parts
+        Its parts, youngest first.
 
     Returns
     -------
     list[VesselIncrement]
-        The vessel type's increments, sorted oldest first.
+        The joined parts, youngest first.
     """
-    joined = []
+    joined = [parts[0]]
 
-    for parts in split.parts:
-        younger = parts[0]
-        for older in parts[1:]:
-            if _is_unchanged(younger, older):
-                younger = _join(younger, older)
-            else:
-                joined.append(younger)
-                younger = older
+    for older in parts[1:]:
+        if _is_unchanged(joined[-1], older):
+            joined[-1] = _join(joined[-1], older)
+        else:
+            joined.append(older)
 
-        joined.append(younger)
+    if len(joined) == 1:
+        return [replace(increment, count=joined[0].count)]
 
-    return sort_oldest_first(joined)
+    return joined
 
 
 def _cycle_parts(
@@ -322,9 +339,9 @@ def _cycle_parts(
         youngest part first; the last part ends at the oldest age of the span.
     """
     youngest = increment.youngest_age(time)
-    oldest = youngest + increment.age_span
+    oldest = increment.oldest_age(time)
     lower = max(youngest, minimum_age)
-    upper = min(increment.oldest_age(time), lifetime)
+    upper = min(oldest, lifetime)
 
     parts = []
     bound = youngest
@@ -417,64 +434,12 @@ def _cut(
     rest = increment
 
     for age in ages:
-        younger, rest = _split_increment(rest, age, time)
+        younger, rest = split_at_age(rest, age, time)
         parts.append(younger)
 
     parts.append(rest)
 
     return parts
-
-
-def _split_increment(
-    increment: VesselIncrement, age: float, time: float
-) -> tuple[VesselIncrement, VesselIncrement]:
-    """
-    Split an increment at an age inside its span into its younger and older part.
-
-    The increment's size before scrapping its oldest vessels is spread uniformly over
-    its age span, and the vessels it holds are the youngest of that size
-    (``VesselIncrement.oldest_age``). The younger part therefore holds its share of
-    the size, up to the vessels the increment holds, and the older part the rest; both
-    carry the increment's origin, technology package and charter rate.
-
-    Parameters
-    ----------
-    increment
-        Increment split.
-    age
-        Age the increment is split at, in years.
-    time
-        Time the age is read at, in years.
-
-    Returns
-    -------
-    tuple[VesselIncrement, VesselIncrement]
-        The part younger than the age and the part older.
-    """
-    size = increment.count + increment.scrapped_oldest
-    younger_size = size * calculate_share_below(increment, age, time)
-    younger_span = age - increment.youngest_age(time)
-
-    younger_count = min(increment.count, younger_size)
-    younger_scrapped = float(subtract(younger_size, younger_count))
-
-    younger = replace(
-        increment,
-        count=younger_count,
-        age_span=younger_span,
-        package_uptake=increment.package_uptake.copy(),
-        scrapped_oldest=younger_scrapped,
-    )
-    older = replace(
-        increment,
-        count=float(subtract(increment.count, younger_count)),
-        entered=time - age,
-        age_span=increment.age_span - younger_span,
-        package_uptake=increment.package_uptake.copy(),
-        scrapped_oldest=increment.scrapped_oldest - younger_scrapped,
-    )
-
-    return younger, older
 
 
 def _is_unchanged(younger: VesselIncrement, older: VesselIncrement) -> bool:
@@ -484,7 +449,7 @@ def _is_unchanged(younger: VesselIncrement, older: VesselIncrement) -> bool:
     Parameters
     ----------
     younger
-        Younger part, holding all its vessels.
+        Younger part.
     older
         Older part.
 
@@ -493,18 +458,14 @@ def _is_unchanged(younger: VesselIncrement, older: VesselIncrement) -> bool:
     bool
         Whether the parts carry one package, charter rate and density of vessels.
     """
-    if younger.scrapped_oldest != 0.0:
-        return False
-
-    # the older part's size is a difference of the increment's, which keeps its scale
-    older_size = older.count + older.scrapped_oldest
-    expected_size = younger.count / younger.age_span * older.age_span
-    scale = younger.count + older_size
+    # the older part's count is a difference of the increment's, which keeps its scale
+    expected_count = younger.count / younger.age_span * older.age_span
+    scale = younger.count + older.count
 
     return (
         np.array_equal(younger.package_uptake, older.package_uptake)
         and younger.technology_charter_rate == older.technology_charter_rate
-        and bool(is_negligible(older_size - expected_size, scale))
+        and bool(is_negligible(older.count - expected_count, scale))
     )
 
 
@@ -515,7 +476,7 @@ def _join(younger: VesselIncrement, older: VesselIncrement) -> VesselIncrement:
     Parameters
     ----------
     younger
-        Younger part, holding all its vessels.
+        Younger part.
     older
         Older part, carrying the younger part's package and charter rate.
 
@@ -524,12 +485,10 @@ def _join(younger: VesselIncrement, older: VesselIncrement) -> VesselIncrement:
     VesselIncrement
         The joined increment, entered with the younger part.
     """
-    return replace(
-        younger,
-        count=younger.count + older.count,
-        age_span=younger.age_span + older.age_span,
-        scrapped_oldest=older.scrapped_oldest,
-    )
+    count = younger.count + older.count
+    span = younger.age_span + older.age_span
+
+    return replace(younger, count=count, age_span=span)
 
 
 def _cycle_windows(
@@ -572,17 +531,11 @@ def consolidate_increments(fleet: Fleet, population: float) -> None:
     Merge increments holding vessels of the same ages, drop those negligible.
 
     The simulation's CPU time grows with the number of increments per vessel type.
-    Increments are of one vintage where they entered service at the same time over
-    the same span: both are set once, at entry or at a split from the same time and
-    age, and copied, never accumulated, and the initial vintages are aligned across
-    vessel types, so they are equal floats. The parts of a split at a retrofit cycle
-    that a decision changed span different ages, so they never merge back.
-
-    Increments of one vintage merge only where their vessels hold the same share of
-    its span, as merging two shares spreads their vessels over one between them and
-    misplaces their ages. Vessels converted from another type carry the share their
-    source held, which may differ from the share of the destination's own vessels of
-    that vintage. The shares are computed, so they are compared within rounding.
+    Increments hold the same ages where they entered service at the same time over
+    the same span, a vintage. An entry time is set once and copied, never
+    accumulated, so the increments of a vintage share it exactly; a span is computed
+    by the cuts of the scrapping and the splits, so two histories that cut the same
+    ages can leave spans a rounding residual apart.
 
     Parameters
     ----------
@@ -592,27 +545,52 @@ def consolidate_increments(fleet: Fleet, population: float) -> None:
         Number of vessels the fleet counts in the time-step, newbuilds included.
     """
     for v, increments in enumerate(fleet.increments):
-        vintages: dict[tuple[float, float], list[VesselIncrement]] = {}
-
-        for increment in increments:
-            vintage = (increment.entered, increment.age_span)
-            vintages.setdefault(vintage, []).append(increment)
-
         consolidated: list[VesselIncrement] = []
 
-        # vintages in fleet order, each cohort folded into its first increment
-        for vintage in vintages.values():
-            for cohort in _split_by_held_share(vintage):
-                count = sum(increment.count for increment in cohort)
+        # the increments are sorted by entry, so those entered together are neighbours
+        for _, entrants in groupby(increments, key=attrgetter("entered")):
+            for vintage in _group_by_span(list(entrants)):
+                count = sum(increment.count for increment in vintage)
                 if not is_negligible(count, population):
-                    consolidated.append(_merge(cohort))
+                    consolidated.append(_merge(vintage))
 
         fleet.increments[v] = consolidated
 
 
-def _split_by_held_share(vintage: list[VesselIncrement]) -> list[list[VesselIncrement]]:
+def _group_by_span(entrants: list[VesselIncrement]) -> list[list[VesselIncrement]]:
     """
-    Split the increments of one vintage into cohorts holding one share of its span.
+    Group increments entered together into vintages, by their span to rounding.
+
+    An increment joins the first vintage whose first increment, the one ``_merge``
+    keeps, spans its ages, so that a vintage cannot drift.
+
+    Parameters
+    ----------
+    entrants
+        Increments of one vessel type that entered service at the same time, in
+        fleet order.
+
+    Returns
+    -------
+    list[list[VesselIncrement]]
+        The vintages, each in fleet order, in the order of their first increment.
+    """
+    vintages: list[list[VesselIncrement]] = []
+
+    for increment in entrants:
+        for vintage in vintages:
+            if subtract(increment.age_span, vintage[0].age_span) == 0.0:
+                vintage.append(increment)
+                break
+        else:
+            vintages.append([increment])
+
+    return vintages
+
+
+def _merge(vintage: list[VesselIncrement]) -> VesselIncrement:
+    """
+    Fold the increments of one vintage into the first, weighting by count.
 
     Parameters
     ----------
@@ -621,55 +599,20 @@ def _split_by_held_share(vintage: list[VesselIncrement]) -> list[list[VesselIncr
 
     Returns
     -------
-    list[list[VesselIncrement]]
-        The cohorts, each in fleet order, in the order of their first increment.
-    """
-    cohorts: list[list[VesselIncrement]] = []
-
-    for increment in vintage:
-        share = increment.held_share()
-
-        for cohort in cohorts:
-            if is_negligible(cohort[0].held_share() - share, 1.0):
-                cohort.append(increment)
-                break
-        else:
-            # no cohort holds the increment's share
-            cohorts.append([increment])
-
-    return cohorts
-
-
-def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
-    """
-    Fold a cohort into its first increment, weighting by count.
-
-    Its increments hold one share of their span, which the merge keeps.
-
-    Parameters
-    ----------
-    cohort
-        Increments of one vessel type, vintage and held share, in fleet order.
-
-    Returns
-    -------
     VesselIncrement
-        The first increment, holding the cohort's total count and vessels scrapped
-        from the oldest part of the span, and its count-weighted package uptake and
-        technology charter rate.
+        The first increment, holding the vintage's total count and its count-weighted
+        package uptake and technology charter rate.
     """
-    survivor = cohort[0]
+    survivor = vintage[0]
 
-    if len(cohort) == 1:
+    if len(vintage) == 1:
         return survivor
 
-    counts = [increment.count for increment in cohort]
-    uptakes = [increment.package_uptake for increment in cohort]
-    charter_rates = [increment.technology_charter_rate for increment in cohort]
-    scrapped = [increment.scrapped_oldest for increment in cohort]
+    counts = [increment.count for increment in vintage]
+    uptakes = [increment.package_uptake for increment in vintage]
+    charter_rates = [increment.technology_charter_rate for increment in vintage]
 
     survivor.count = sum(counts)
-    survivor.scrapped_oldest = sum(scrapped)
     survivor.package_uptake = np.average(uptakes, axis=0, weights=counts)
     survivor.technology_charter_rate = float(np.average(charter_rates, weights=counts))
 
