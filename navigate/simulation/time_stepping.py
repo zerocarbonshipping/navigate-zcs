@@ -34,9 +34,9 @@ from navigate.simulation.fleet import (
     assign_vessels_to_fleets,
     calculate_asset_charter,
     calculate_cargo_charter,
+    calculate_fleet_bunker_demand,
     calculate_fleet_evolution_expectation,
     calculate_fleet_expectations,
-    calculate_fleet_fuel_demand,
     calculate_fuel_type_balance,
     calculate_potential_fuel_type_demand,
     calculate_shore_power_limits,
@@ -63,9 +63,6 @@ from navigate.simulation.fleet import (
 )
 from navigate.simulation.fuel import (
     calculate_development_potential,
-    calculate_expected_fuel_demand,
-    calculate_expected_fuel_gap,
-    calculate_expected_fuel_supply,
     calculate_export_expectations,
     calculate_fair_share_demand,
     calculate_feed_availability,
@@ -260,7 +257,7 @@ class Simulation:
         length = self.timeline.size
 
         for fleet in nodes.fleets.values():
-            fleet.initialize_expectation(length, nodes.fuels)
+            fleet.initialize_expectation(length, nodes.ports, nodes.fuels)
 
         for levy in nodes.levies.values():
             levy.initialize_expectation(length, nodes.vessels)
@@ -550,9 +547,9 @@ class Simulation:
         self._prepare_bunkering(self._bunker_expected)
         self._perform_expected_bunkering()
 
-        # the fuel demand weights the expected bunkering with the expected counts
+        # the bunker demand weights the expected bunkering with the expected counts
         # the LPs ran with, which the fleet evolution below rewrites
-        self._calculate_fleet_fuel_demand()
+        self._calculate_fleet_bunker_demand()
 
         # smooth the energy-conservation LP duals into scarcity belief paths
         # consumed by the technology and speed-management heuristics below
@@ -707,9 +704,9 @@ class Simulation:
             bunker.idx,
         )
 
-    def _calculate_fleet_fuel_demand(self) -> None:
+    def _calculate_fleet_bunker_demand(self) -> None:
         for fleet in self.nodes.fleets.values():
-            calculate_fleet_fuel_demand(fleet, self.nodes.fuels, self._idx)
+            calculate_fleet_bunker_demand(fleet, self._idx)
 
     def _update_scarcity_signals(self) -> None:
         update_vessel_scarcity_beliefs(self.nodes.fleets, self.timeline, self._idx)
@@ -770,9 +767,8 @@ class Simulation:
         Progress each producer in time and plan its pipeline from its share of the gap.
 
         Each producer first decommissions its retired plants, takes delivery from its
-        pipeline, and updates its feed gap and development potential. The gap between
-        the expected fuel demand and the guaranteed production of the step's evolution
-        expectations is then shared out among the producers, and each plans new plants
+        pipeline, and updates its feed gap and development potential. The expected gap
+        of each fuel is then shared out among the producers, and each plans new plants
         into its pipeline, updates its feed gap again and recalculates its evolution
         expectation with the planning done.
         """
@@ -784,10 +780,14 @@ class Simulation:
             calculate_feed_availability(producer, self.timeline, self._idx)
             calculate_development_potential(producer, self._time_step, self._idx)
 
-        demand = calculate_expected_fuel_demand(self.nodes.fleets, self._idx)
-        supply = calculate_expected_fuel_supply(self.nodes.producers, self._idx)
-        gap = calculate_expected_fuel_gap(self._produced_fuels, supply, demand)
-        calculate_fair_share_demand(self.nodes.producers, gap, self._idx)
+        calculate_fair_share_demand(
+            self.nodes.producers,
+            self.nodes.fleets,
+            self.nodes.ports,
+            self._produced_fuels,
+            self.timeline,
+            self._idx,
+        )
 
         for producer in self.nodes.producers.values():
             perform_pipeline_planning(

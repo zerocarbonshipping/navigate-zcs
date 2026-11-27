@@ -487,6 +487,9 @@ change.
 - A producer's development limited by `MaximumDevelopment` no longer depends
   on the step length: on steps shorter than a year it was held back by what the
   producer built in its last step (#1007).
+- A producer's development for unmet demand no longer falls as the time steps
+  shorten: it plans for the shortfalls of the ports short of a fuel, and a port
+  supplied beyond its demand no longer offsets another port's shortfall (#1008).
 - Until a producer first plans, its forecast splits a fuel's newbuilds between
   plant types by their pipelined plants per year, not their pipelined count;
   results can move where several plant types of a fuel have a pipeline (#1006).

@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Bunker price, supply and WTT of each fuel at each port."""
+"""
+Bunker price, supply and WTT of each fuel at each port.
+
+The supply guaranteed production brings to each port is calculated here too.
+"""
 
 from __future__ import annotations
 
@@ -67,6 +71,63 @@ def calculate_fuel_import_to_ports(
     _calculate_import_from_producers(
         ports, producers, emissions, production_fuels, timeline, idx
     )
+
+
+def calculate_guaranteed_bunker_supply(
+    ports: dict[str, Port],
+    producers: dict[str, Producer],
+    fuels: dict[str, Fuel],
+    timeline: FloatArray,
+    idx: int,
+) -> dict[tuple[str, str], FloatArray]:
+    """
+    Calculate the supply of each producer fuel at each port from guaranteed production.
+
+    The production of the plants in service and in the pipeline reaches the ports by
+    the producers' export shares, aligned with the ports' bunkering limits.
+
+    Parameters
+    ----------
+    ports
+        All ports in the simulation.
+    producers
+        All producers in the simulation.
+    fuels
+        All fuels in the simulation which do not belong to a liquid market.
+    timeline
+        Simulation timeline, in years.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    dict[tuple[str, str], FloatArray]
+        Supply of each fuel at each port from idx on, by port and fuel, in tons/year.
+    """
+    forward = np.s_[idx:]
+    times = timeline[forward]
+    imports = {fuel_name: _allocate_per_port(ports, times) for fuel_name in fuels}
+
+    for producer in producers.values():
+        expectation = producer.expectation
+
+        for plant in producer.plants:
+            fuel_name = plant.fuel.name
+            production = expectation.guaranteed_production[plant.name][forward]
+            shares = expectation.export_share[fuel_name].at[forward]
+
+            for port_name, share in shares.items():
+                imports[fuel_name][port_name] += production * share
+
+    supply = {}
+
+    for fuel_name, fuel_imports in imports.items():
+        aligned = _align_with_bunkering_limits(fuel_imports, ports, fuel_name, forward)
+
+        for port_name, port_supply in aligned.items():
+            supply[port_name, fuel_name] = port_supply
+
+    return supply
 
 
 def _calculate_import_from_liquid_market(
