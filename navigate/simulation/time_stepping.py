@@ -370,12 +370,16 @@ class Simulation:
             self._initialize_existing_fleet()
             self._initialize_existing_production()
 
+        # the energy demand follows the operations just rewritten before the
+        # bunkering and the fleets' decisions read it
+        self._update_energy_demand()
         self._calculate_asset_charter()
 
         if not is_first_step:
             self._perform_evolution()
 
-        self._approximate_missing_technology()
+            # the evolution rewrote the speeds and fleet the energy demand follows
+            self._update_energy_demand()
 
         self._prepare_bunkering(self._bunker_existing)
         self._perform_existing_bunkering()
@@ -420,6 +424,18 @@ class Simulation:
         for fleet in self.nodes.fleets.values():
             for vessel in fleet.vessels:
                 update_operations(vessel, fleet.allow_speed_management, self._idx)
+
+    def _update_energy_demand(self) -> None:
+        """
+        Update every vessel's energy demand to its current operations and fleet.
+
+        The fleets that cannot retrofit approximate their technology from the residual
+        energy of those that can, so they follow once every fleet is updated.
+        """
+        for fleet in self.nodes.fleets.values():
+            update_residual_energy_demand(fleet, self._idx)
+
+        approximate_missing_technology(self.nodes.fleets, self._idx)
 
     def _recalculate_derived_expectations(self) -> None:
         """
@@ -740,8 +756,8 @@ class Simulation:
         Evolve each fleet by one time step and recalculate its evolution expectation.
 
         Each fleet scraps its oldest vessels, converts vessels to other fuels and
-        closes the gap between its trade and the capacity left. The residual energy
-        demand and technology uptake of the resulting fleet are then updated.
+        closes the gap between its trade and the capacity left. The carried technology
+        charge of the resulting fleet is then refreshed.
         """
         time = self.timeline[self._idx]
 
@@ -749,9 +765,6 @@ class Simulation:
             perform_primary_scrapping(fleet, time, self._time_step, self._idx)
             perform_fuel_conversions(fleet, self.timeline, self._time_step, self._idx)
             close_trade_gap(fleet, time, self._time_step, self._idx)
-
-            # the residual energy demand reads the updated fleet composition
-            update_residual_energy_demand(fleet, self._idx)
 
             # refresh the fleet-average carried technology charge after evolution, so
             # it reflects this time step's scrapping, conversions and newbuilds (the
@@ -806,14 +819,6 @@ class Simulation:
             calculate_producer_evolution_expectation(
                 producer, self.timeline, self._idx, planning_pending=False
             )
-
-    def _approximate_missing_technology(self) -> None:
-        """
-        Estimate energy-efficiency uptake for fleets that cannot retrofit.
-
-        The estimate uses the fleet-average savings of the fleets that have them.
-        """
-        approximate_missing_technology(self.nodes.fleets, self._idx)
 
     def _perform_existing_bunkering(self) -> None:
         """Run the existing bunkering of this step and settle its regulations."""
