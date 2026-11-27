@@ -11,7 +11,7 @@ a plant was decided, and building its Increment subclass stay in that domain.
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
@@ -107,7 +107,19 @@ def calculate_share_below(
     return shares
 
 
-def calculate_share_younger(increment: Increment, age: float, time: float) -> float:
+@overload
+def calculate_share_younger(increment: Increment, age: float, time: float) -> float: ...
+
+
+@overload
+def calculate_share_younger(
+    increment: Increment, age: FloatLike, time: FloatArray
+) -> FloatArray: ...
+
+
+def calculate_share_younger(
+    increment: Increment, age: FloatLike, time: FloatLike
+) -> FloatLike:
     """
     Calculate the share of an increment younger than an age at a time.
 
@@ -121,20 +133,71 @@ def calculate_share_younger(increment: Increment, age: float, time: float) -> fl
     increment
         Increment split.
     age
-        Age the increment is split at, in years.
+        Age the increment is split at, in years: one for all times, or one per time.
     time
-        Time the increment's ages are read at, in years.
+        Time the increment's ages are read at, in years; scalar or array.
 
     Returns
     -------
-    float
-        Share of the increment's assets younger than the age: 0.0 for an increment
-        at or past it, 1.0 for one wholly younger.
+    FloatLike
+        Share of the increment's assets younger than the age, in the shape of
+        ``time``: 0.0 for an increment at or past it, 1.0 for one wholly younger.
     """
-    youngest = increment.youngest_age(time)
-    oldest = increment.oldest_age(time)
+    youngest = time - increment.entered
+    oldest = youngest + increment.age_span
+    shares = calculate_share_below(youngest, oldest, age)
 
-    return float(calculate_share_below(youngest, oldest, age))
+    return shares if np.ndim(shares) else float(shares)
+
+
+def calculate_share_kept(
+    increment: Increment,
+    steps: FloatArray,
+    step_ages: FloatArray,
+    times: FloatArray,
+    ages: FloatArray,
+) -> FloatArray:
+    """
+    Calculate the share of an increment that retirement past an age leaves at times.
+
+    Retirement runs at each step, on the assets at or past the age then, and a
+    retired asset never returns. At each of the times, which stand alone, the
+    increment keeps the smaller of its share younger than the age then and the share
+    retirement left it by the last step at or before the time, so where the age
+    rises again it keeps what an earlier step left. At a step, this is the smallest
+    share younger than the age at any step up to it.
+
+    Parameters
+    ----------
+    increment
+        Increment retired.
+    steps
+        Times retirement runs at, in time order, in years.
+    step_ages
+        Age the assets retire at, at each of the steps, in years.
+    times
+        Times the share is read at, in any order, in years.
+    ages
+        Age the assets retire at, at each of the times, in years.
+
+    Returns
+    -------
+    FloatArray
+        Share of the increment's assets kept at each of the times.
+    """
+    history = np.minimum.accumulate(
+        calculate_share_younger(increment, step_ages, steps)
+    )
+    shares = calculate_share_younger(increment, ages, times)
+
+    # before the first step, retirement has left every asset
+    last = np.searchsorted(steps, times, side="right") - 1
+    is_after_step = last >= 0
+
+    left = np.ones_like(shares)
+    left[is_after_step] = history[last[is_after_step]]
+
+    return np.minimum(shares, left)
 
 
 def split_at_age[I: Increment](increment: I, age: float, time: float) -> tuple[I, I]:

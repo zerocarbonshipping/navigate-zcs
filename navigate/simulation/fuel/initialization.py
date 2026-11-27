@@ -54,7 +54,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
     producer.pipeline = _build_existing_pipeline(producer, timeline)
     _define_initial_development(producer)
 
-    calculate_feed_availability(producer, timeline, idx)
+    calculate_feed_availability(producer, timeline, idx, decommissioning_pending=False)
     calculate_producer_evolution_expectation(
         producer, timeline, idx, planning_pending=False
     )

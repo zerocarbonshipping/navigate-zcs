@@ -84,7 +84,24 @@ def get_counts(fleet: Fleet) -> list[float]:
     list[float]
         Number of vessels of each type.
     """
-    return [get_count(fleet, v) for v in range(len(fleet.increments))]
+    return count_by_type(fleet.increments)
+
+
+def count_by_type(increments: list[list[VesselIncrement]]) -> list[float]:
+    """
+    Count the vessels in the increments of each vessel type.
+
+    Parameters
+    ----------
+    increments
+        Increments of each vessel type.
+
+    Returns
+    -------
+    list[float]
+        Number of vessels of each type.
+    """
+    return [sum(increment.count for increment in group) for group in increments]
 
 
 def get_total_count(fleet: Fleet) -> float:

@@ -11,15 +11,15 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.fuel._profiles import (
-    calculate_cohort_running,
-    calculate_newbuild_reserved,
-    calculate_newbuild_running,
+    calculate_reserved_rate,
+    calculate_running_rate,
     iterate_increments,
 )
 from navigate.simulation.fuel.feed import (
     calculate_constrained_uptakes,
     calculate_feed_delivery,
 )
+from navigate.simulation.fuel.pipeline import build_pipeline_increment
 from navigate.util import MWH_TO_GJ, divide_nonzero, slice_dict
 
 if TYPE_CHECKING:
@@ -266,8 +266,12 @@ def calculate_producer_evolution_expectation(
     emission_names = plants[0].expectation.production_wtt.keys()
     mix = _ProductionMix((len(plants), times.size), emission_names)
 
-    existing = _calculate_cohort_production(plants, in_service, mix, timeline, idx)
-    pipeline = _calculate_cohort_production(plants, in_pipeline, mix, timeline, idx)
+    existing = _calculate_cohort_production(
+        plants, in_service, mix, times, first_pending
+    )
+    pipeline = _calculate_cohort_production(
+        plants, in_pipeline, mix, times, first_pending
+    )
     guaranteed = existing + pipeline
     newbuild = _calculate_newbuild_production(
         producer, mix, guaranteed, timeline, idx, first_pending
@@ -326,14 +330,14 @@ def _calculate_cohort_production(
     plants: list[Plant],
     cohorts: list[list[PlantIncrement]],
     mix: _ProductionMix,
-    timeline: FloatArray,
-    idx: int,
+    times: FloatArray,
+    first_pending: int,
 ) -> FloatArray:
     """
     Calculate each plant's production from its increments, adding it to the mix.
 
-    Each increment enters and exits uniformly over its age span, as pipeline
-    delivery and decommissioning move it.
+    Each increment runs as pipeline delivery and decommissioning at the plant
+    lifetime of each time-step move it.
 
     Parameters
     ----------
@@ -343,28 +347,26 @@ def _calculate_cohort_production(
         Increments of each plant, all delivered or all in the pipeline.
     mix
         Production mix the increments are added to.
-    timeline
-        Simulation timeline, in years.
-    idx
-        Current time-step index.
+    times
+        Times of the time-steps, from the current one on, in years.
+    first_pending
+        Step of the horizon from which the decommissioning is still to run.
 
     Returns
     -------
     FloatArray
-        Production of each plant at each of the times from idx on, in tons/year.
+        Production of each plant at each of the times, in tons/year.
     """
-    times = timeline[idx:]
     profiles = np.zeros((len(plants), times.size))
 
     for p, plant, increment in iterate_increments(plants, cohorts):
         production = plant.expectation.production[increment.origin]
-        lifetime = plant.lifetime.get()
-        lifetime_then = plant.lifetime.get(increment.decided)
+        profile = calculate_running_rate(
+            plant, increment, production, times, first_pending
+        )
 
-        profile = calculate_cohort_running(increment, production, lifetime, times)
-        weight = calculate_cohort_running(increment, production, lifetime_then, times)
         profiles[p] += profile
-        mix.add(p, weight, plant.expectation, increment.origin)
+        mix.add(p, profile, plant.expectation, increment.origin)
 
     return profiles
 
@@ -467,14 +469,16 @@ def _calculate_newbuild_production(
         )
 
         for p, plant in enumerate(plants):
-            expectation = plant.expectation
-            added = development * constrained_uptakes[p] * outputs[p]
+            count = development * constrained_uptakes[p]
+            increment = build_pipeline_increment(plant, count, time, time_step, origin)
 
-            profile = calculate_newbuild_running(plant, added, time, time_step, times)
+            profile = calculate_running_rate(
+                plant, increment, outputs[p], times, first_pending
+            )
             profiles[p] += profile
             gaps[fuel_idx[p]] -= profile
-            mix.add(p, profile, expectation, origin)
-            reserved_feed.add(plant, added, t, time, time_step, origin)
+            mix.add(p, profile, plant.expectation, origin)
+            reserved_feed.add(plant, increment, t)
 
     return profiles
 
@@ -483,6 +487,7 @@ class _ReservedFeed:
     """Accumulate the feed the newbuilds reserve, per constrained feed."""
 
     def __init__(self, producer: Producer, times: FloatArray) -> None:
+        self.times = times
         self.deliveries: dict[str, FloatArray] = {}
         self.reserved: dict[str, FloatArray] = {}
 
@@ -495,19 +500,18 @@ class _ReservedFeed:
                 self.deliveries[feed_name] = delivery
                 self.reserved[feed_name] = np.zeros_like(times)
 
-    def add(
-        self,
-        plant: Plant,
-        added: float,
-        t: int,
-        time: float,
-        window: float,
-        origin: int,
-    ) -> None:
-        """Reserve the feed of `added` production of `plant` decided at `time`."""
-        for feed_name, times in self.deliveries.items():
-            conversion = plant.expectation.feed_conversion[feed_name][origin]
-            feed = added * conversion
+    def add(self, plant: Plant, increment: PlantIncrement, t: int) -> None:
+        """Reserve the feed of an increment of `plant` from its decision, the `t`-th."""
+        times = self.times[t:]
+        expectation = plant.expectation
+        origin = increment.origin
+        production = expectation.production[origin]
 
-            reserved = calculate_newbuild_reserved(plant, feed, t, time, window, times)
-            self.reserved[feed_name] += reserved
+        for feed_name, delivery in self.deliveries.items():
+            conversion = expectation.feed_conversion[feed_name][origin]
+            feed = production * conversion
+
+            reserved = calculate_reserved_rate(
+                plant, increment, feed, times, 0, delivery[t:]
+            )
+            self.reserved[feed_name][t:] += reserved
