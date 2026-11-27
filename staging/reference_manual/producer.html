@@ -515,24 +515,6 @@ demand does not make up for another port’s shortfall.</p>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
-<section id="inertia">
-<h3>Inertia<a class="headerlink" href="#inertia" title="Link to this heading">#</a></h3>
-<p>This attribute sets the inertia used in the uptake decision of newbuild plants.</p>
-<p>The inertia is defined as the fraction of newbuilds that must follow the same plant type distribution as the previous time-step. It is defined in fraction/year.</p>
-<ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">0.66</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
-</ul>
-</li>
-<li><p><strong>Unit</strong>: fraction/year</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: 0</p></li>
-</ul>
-</section>
 <section id="minimumofftakeduration">
 <h3>MinimumOfftakeDuration<a class="headerlink" href="#minimumofftakeduration" title="Link to this heading">#</a></h3>
 <p>This attribute sets the minimum offtake duration required for building new plants. The duration is rounded up to whole years, so a duration under one year counts as one year.</p>
@@ -759,7 +741,6 @@ demand does not make up for another port’s shortfall.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#plants">Plants</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inertia">Inertia</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#minimumofftakeduration">MinimumOfftakeDuration</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fuelsensitivity">FuelSensitivity</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#variantsensitivity">VariantSensitivity</a></li>
