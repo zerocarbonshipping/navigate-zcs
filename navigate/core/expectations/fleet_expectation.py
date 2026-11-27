@@ -18,15 +18,19 @@ if TYPE_CHECKING:
 
 
 class FleetExpectation(_Expectation):
-    """Fleet-wide vessel counts, fuel demand, uptakes and realized fuel-type totals."""
+    """Fleet-wide vessel counts, port bunker demand, uptakes and fuel-type totals."""
 
     def __init__(
-        self, length: int, vessel_names: Collection[str], fuel_names: Collection[str]
+        self,
+        length: int,
+        vessel_names: Collection[str],
+        port_names: Collection[str],
+        fuel_names: Collection[str],
     ) -> None:
         super().__init__(length)
 
         self.count = self._paths(product(vessel_names, BunkerScopeID))  # vessels
-        self.fuel_demand = self._paths(fuel_names)  # t/year
+        self.bunker_demand = self._paths(product(port_names, fuel_names))  # t/year
 
         # one row per vessel, one column per time step
         self.uptakes = np.zeros((len(vessel_names), length))  # -

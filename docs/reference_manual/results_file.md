@@ -329,7 +329,7 @@ The energies are the masses times the fuel's `lower_heating_value`.
 |---|---|---|---|---|
 | `producer.maximum_development` | `plants/year` | | Plants the producer can add to its pipeline, its MaximumDevelopment. | Always |
 | `producer.development` | `plants/year` | | Plants added to the pipeline; at the first date, the plants in the initial pipeline. | Plants are developed |
-| `producer.fair_share_fuel_fraction` | `-` | fuel | Share of the expected shortfall of a fuel the producer is asked to supply: its share of the development potential of the producers that can make the fuel. | Each fuel the producer can make, while it has potential |
+| `producer.fair_share_fuel_fraction` | `-` | fuel | Share of a fuel's expected shortfall, summed over the ports short of it, that the producer is asked to supply: its share of the development potential of the producers that can make the fuel. | Each fuel the producer can make, while it has potential |
 
 ### Plant
 

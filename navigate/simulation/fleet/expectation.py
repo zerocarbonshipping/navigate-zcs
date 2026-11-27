@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import itertools
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -473,35 +472,30 @@ def _newbuild_split(fleet: Fleet, timeline: FloatArray, idx: int) -> FloatArray:
     return divide_nonzero(current, np.sum(current), default=default)
 
 
-def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
+def calculate_fleet_bunker_demand(fleet: Fleet, idx: int) -> None:
     """
-    Calculate the fleet's fuel demand over the horizon from the expected bunkering.
+    Calculate the fleet's demand for each fuel at each port over the horizon.
 
-    Each vessel's expected bunkered mass is weighted by its expected count.
+    The demand is the expected bunkering: each vessel's expected bunkered mass at a
+    port, weighted by its expected count. It is kept per port, as the fuel producers
+    weigh it against the supply each port receives.
 
     Parameters
     ----------
     fleet
-        Fleet whose fuel demand is calculated.
-    fuels
-        All fuels in the simulation.
+        Fleet whose bunker demand is calculated.
     idx
         Current time-step index.
     """
     forward = np.s_[idx:]
     scope = BunkerScopeID.EXPECTED
-    demand: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
+    bunker_demand = fleet.expectation.bunker_demand
+    demand: dict[tuple[str, str], FloatLike] = dict.fromkeys(bunker_demand, 0.0)
 
     for vessel in fleet.vessels:
-        expectation = vessel.expectation
         counts = fleet.expectation.count[vessel.name, scope][forward]
 
-        # the bunkered mass is per port, so a port the route calls more than once
-        # counts once
-        ports = vessel.route.distinct_ports
-        for port, fuel_name in itertools.product(ports, fuels):
-            mass = expectation.bunker_mass_expected[port.name, fuel_name][forward]
-            demand[fuel_name] += counts * mass
+        for key, mass in vessel.expectation.bunker_mass_expected.items():
+            demand[key] += counts * mass[forward]
 
-    for key, value in demand.items():
-        fleet.expectation.fuel_demand[key][idx:] = value
+    bunker_demand.at[idx:] = demand

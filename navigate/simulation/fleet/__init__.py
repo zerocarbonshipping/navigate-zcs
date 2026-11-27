@@ -14,9 +14,9 @@ from navigate.simulation.fleet.conversion import (
     perform_fuel_conversions,
 )
 from navigate.simulation.fleet.expectation import (
+    calculate_fleet_bunker_demand,
     calculate_fleet_evolution_expectation,
     calculate_fleet_expectations,
-    calculate_fleet_fuel_demand,
 )
 from navigate.simulation.fleet.fuel_option import (
     check_fuel_options,

@@ -483,6 +483,9 @@ change.
 - A producer's development limited by `MaximumDevelopment` no longer depends
   on the step length: on steps shorter than a year it was held back by what the
   producer built in its last step (#1007).
+- A producer's development for unmet demand no longer falls as the time steps
+  shorten: it plans for the shortfalls of the ports short of a fuel, and a port
+  supplied beyond its demand no longer offsets another port's shortfall (#1008).
 - A producer's `Inertia` continues its development rate in plants per year,
   summed over its plant types, and its starting rate and plant-type split are
   read per year from the existing pipeline; results move in decks with an

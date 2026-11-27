@@ -51,6 +51,7 @@ if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.port import Port
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.results import ResultsContext
@@ -546,9 +547,11 @@ class Fleet(Node):
             self.newbuild_technology_limits.setdefault(technology.name, Scalar(1.0))
             self.retrofit_technology_limits.setdefault(technology.name, Scalar(1.0))
 
-    def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
+    def initialize_expectation(
+        self, length: int, ports: dict[str, Port], fuels: dict[str, Fuel]
+    ) -> None:
         vessel_names = [vessel.name for vessel in self.vessels]
-        self.expectation = FleetExpectation(length, vessel_names, fuels)
+        self.expectation = FleetExpectation(length, vessel_names, ports, fuels)
 
     def initialize_results(
         self,
