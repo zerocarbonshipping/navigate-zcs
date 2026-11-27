@@ -578,7 +578,9 @@ class Simulation:
         plants follows the step's events.
         """
         for producer in self.nodes.producers.values():
-            calculate_feed_availability(producer, self.timeline, self._idx)
+            calculate_feed_availability(
+                producer, self.timeline, self._idx, decommissioning_pending=True
+            )
             calculate_producer_evolution_expectation(
                 producer, self.timeline, self._idx, planning_pending=True
             )
@@ -777,7 +779,9 @@ class Simulation:
         for producer in self.nodes.producers.values():
             perform_decommissioning(producer, time)
             perform_pipeline_delivery(producer, time)
-            calculate_feed_availability(producer, self.timeline, self._idx)
+            calculate_feed_availability(
+                producer, self.timeline, self._idx, decommissioning_pending=False
+            )
             calculate_development_potential(producer, self._time_step, self._idx)
 
         calculate_fair_shares(
@@ -796,7 +800,9 @@ class Simulation:
 
             # the feed gap is updated again before the evolution expectation, to
             # account for the plants just added to the pipeline
-            calculate_feed_availability(producer, self.timeline, self._idx)
+            calculate_feed_availability(
+                producer, self.timeline, self._idx, decommissioning_pending=False
+            )
             calculate_producer_evolution_expectation(
                 producer, self.timeline, self._idx, planning_pending=False
             )

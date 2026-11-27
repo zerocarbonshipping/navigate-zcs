@@ -125,15 +125,8 @@ def perform_pipeline_planning(
         if count == 0.0:
             continue
 
-        delivery = time + plant.lead_time.get()
-        index = find_insertion_index(pipeline, delivery)
-        increment = PlantIncrement(
-            count=count,
-            entered=delivery,
-            age_span=time_step,
-            origin=idx,
-            decided=time,
-        )
+        increment = build_pipeline_increment(plant, count, time, time_step, idx)
+        index = find_insertion_index(pipeline, increment.entered)
         pipeline.insert(index, increment)
 
     total = np.sum(newbuilds)
@@ -141,6 +134,41 @@ def perform_pipeline_planning(
 
     producer.current_uptake = divide_nonzero(newbuilds, total, default=even_share)
     producer.results.development[idx] = total
+
+
+def build_pipeline_increment(
+    plant: Plant, count: float, time: float, time_step: float, origin: int
+) -> PlantIncrement:
+    """
+    Build the increment of plants decided at a time, delivered one lead time ahead.
+
+    Its plants are delivered uniformly over the time step up to its delivery.
+
+    Parameters
+    ----------
+    plant
+        Plant type of the plants.
+    count
+        Number of plants.
+    time
+        Time the plants are decided at, in years.
+    time_step
+        Size of the time step they are decided in, in years.
+    origin
+        Index of the time step they are decided at.
+
+    Returns
+    -------
+    PlantIncrement
+        The increment, in the pipeline until its delivery.
+    """
+    return PlantIncrement(
+        count=count,
+        entered=time + plant.lead_time.get(time),
+        age_span=time_step,
+        origin=origin,
+        decided=time,
+    )
 
 
 def _calculate_newbuilds(

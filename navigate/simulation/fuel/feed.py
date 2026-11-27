@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.simulation.fuel._profiles import (
-    calculate_cohort_reserved,
+    calculate_reserved_rate,
     iterate_increments,
 )
 from navigate.util import divide_nonzero, drop_negligible
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_feed_availability(
-    producer: Producer, timeline: FloatArray, idx: int
+    producer: Producer, timeline: FloatArray, idx: int, *, decommissioning_pending: bool
 ) -> None:
     """
     Calculate the gap between the feed supply and the feed reserved, over time.
@@ -42,9 +42,14 @@ def calculate_feed_availability(
         Simulation timeline, in years.
     idx
         Current time-step index.
+    decommissioning_pending
+        Whether this time-step's decommissioning is still to run. If not, it has run
+        or, at the first time-step, does not run.
     """
+    first_pending = 0 if decommissioning_pending else 1
+
     _calculate_plant_feed_consumption(producer, idx)
-    _calculate_feed_gaps(producer, timeline, idx)
+    _calculate_feed_gaps(producer, timeline, idx, first_pending)
 
 
 def calculate_feed_delivery(
@@ -172,7 +177,9 @@ def _calculate_plant_feed_consumption(producer: Producer, idx: int) -> None:
             expectation.plant_feed_consumption[plant.name, feed_name] = consumption
 
 
-def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> None:
+def _calculate_feed_gaps(
+    producer: Producer, timeline: FloatArray, idx: int, first_pending: int
+) -> None:
     """
     Set the gap between the feed supply and the feed reserved, per constrained feed.
 
@@ -184,9 +191,12 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
         Simulation timeline, in years.
     idx
         Current time-step index.
+    first_pending
+        Step of the horizon from which the decommissioning is still to run.
     """
     expectation = producer.expectation
     times = timeline[idx:]
+    steps = times[first_pending:]
 
     for feed_name, limit in producer.feed_limits.items():
         if limit is None:
@@ -197,7 +207,7 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
             continue
 
         supply = limit.get(delivery)
-        reserved = _calculate_cohort_feed(producer, feed_name, delivery)
+        reserved = _calculate_cohort_feed(producer, feed_name, steps, delivery)
 
         # the supply may be unbounded, so the finite reservation scales the gap
         gap = drop_negligible(supply - reserved, reserved)
@@ -218,10 +228,10 @@ def _calculate_feed_gaps(producer: Producer, timeline: FloatArray, idx: int) -> 
 
 
 def _calculate_cohort_feed(
-    producer: Producer, feed_name: str, times: FloatArray
+    producer: Producer, feed_name: str, steps: FloatArray, delivery: FloatArray
 ) -> FloatArray:
     """
-    Calculate the feed the existing and pipeline plants reserve at each of the times.
+    Calculate the feed the existing and pipeline plants reserve at the deliveries.
 
     Each increment reserves the feed it was decided with.
 
@@ -231,16 +241,18 @@ def _calculate_cohort_feed(
         The producer.
     feed_name
         Name of the feed.
-    times
-        Times the profile is evaluated at, in years.
+    steps
+        Times of the time-steps decommissioning is still to run at, in years.
+    delivery
+        Delivery of a plant decided at each time-step, in years.
 
     Returns
     -------
     FloatArray
-        Feed reserved at each of the times, in tons/year.
+        Feed reserved at each of the deliveries, in tons/year.
     """
     plants = producer.plants
-    reserved = np.zeros_like(times)
+    reserved = np.zeros_like(delivery)
 
     increments = itertools.chain(
         iterate_increments(plants, producer.increments),
@@ -250,10 +262,9 @@ def _calculate_cohort_feed(
     for _, plant, increment in increments:
         production = plant.expectation.production[increment.origin]
         conversion = plant.expectation.feed_conversion[feed_name][increment.origin]
-        lifetime = plant.lifetime.get()
 
         feed = production * conversion
-        reserved += calculate_cohort_reserved(increment, feed, lifetime, times)
+        reserved += calculate_reserved_rate(plant, increment, feed, steps, delivery)
 
     return reserved
 

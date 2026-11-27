@@ -10,16 +10,19 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID
-from navigate.simulation.fleet._composition import extract_cargo_miles, is_in_service
+from navigate.simulation.cohort import calculate_share_kept
+from navigate.simulation.fleet._composition import (
+    count_by_type,
+    extract_cargo_miles,
+    is_in_service,
+)
 from navigate.simulation.fleet._newbuild import is_newbuild_allowed
 from navigate.simulation.fleet.scrapping import (
-    calculate_survivors,
-    split_oldest_first,
-    tabulate_increments,
+    calculate_fixed_rate_scrap,
+    scrap_oldest_first,
 )
 from navigate.util import (
     calculate_kept_fraction,
-    calculate_removed_fraction,
     divide_nonzero,
     step_lengths,
     subtract,
@@ -190,10 +193,10 @@ def calculate_fleet_evolution_expectation(
     """
     Calculate the existing and expected vessel counts from this time-step on.
 
-    The existing vessels decline as primary scrapping removes them: each cohort over
-    its age span as it passes the vessel lifetime, or at the fleet's fixed scrap rate
-    where it sets one. The trade gap this leaves is filled with newbuilds split by the
-    memory-weighted recent uptake.
+    The existing vessels decline as primary scrapping removes them, by the rule it
+    applies at each time-step: at the vessel lifetime then, or at the fleet's fixed
+    scrap rate, oldest first, where it sets one. The trade gap this leaves is filled
+    with newbuilds split by the memory-weighted recent uptake.
 
     Parameters
     ----------
@@ -276,6 +279,9 @@ def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> Flo
     """
     Return the existing vessel counts, scrapped by age.
 
+    Each increment keeps at each time the share that scrapping at the vessel lifetime
+    of each time-step still to scrap leaves it; before those, it keeps its count.
+
     Parameters
     ----------
     fleet
@@ -291,20 +297,20 @@ def _existing_by_age(fleet: Fleet, times: FloatArray, first_pending: int) -> Flo
         Number of vessels of each type (rows) over the horizon (columns).
     """
     existing = np.zeros((len(fleet.vessels), times.size))
+    pending = np.s_[first_pending:]
+    steps = times[pending]
 
     for v, vessel in enumerate(fleet.vessels):
-        lifetimes = vessel.lifetime.get(times)
+        lifetimes = vessel.lifetime.get(steps)
 
         for increment in fleet.increments[v]:
-            survivors = calculate_survivors(increment, lifetimes, times)
+            kept = calculate_share_kept(increment, steps, lifetimes, steps, lifetimes)
 
             # with no scrapping left to run at the current time-step, the vessels at
             # or past their lifetime stay in the fleet for it
-            survivors[:first_pending] = increment.count
-
-            # scrapping never returns vessels, so where the lifetime lengthens again
-            # an increment keeps the fewest vessels an earlier time-step left it
-            existing[v] += np.minimum.accumulate(survivors)
+            survivors = np.full(times.size, increment.count)
+            survivors[pending] *= kept
+            existing[v] += survivors
 
     return existing
 
@@ -319,14 +325,13 @@ def _forecast_at_fixed_rate(
     """
     Forecast the existing vessels scrapped at the fixed rate and the newbuilds.
 
-    Each time-step scraps, of the capacity of the fleet expected at the time-step
-    before, the share the yearly rate compounds to over the step, the oldest vessels
-    first across vessel types, as primary scrapping does; the first time-step
-    scrapped counts the fleet as it is. As the expected fleet holds the newbuilds
-    that fill each gap, the time-steps are forecast one after another. All ages
-    advance together, so each increment's entry interval only shrinks from its
-    start as it is scrapped. Scrapping left once the existing vessels are gone would
-    only scrap expected newbuilds, which the gap refills, so it is dropped.
+    Each time-step scraps what primary scrapping at the fixed rate would, from the
+    increments the time-steps before left: the capacity the rate gives on the fleet
+    expected at the time-step before, the oldest vessels first across vessel types;
+    the first time-step scrapped counts the fleet as it is. As the expected fleet
+    holds the newbuilds that fill each gap, the time-steps are forecast one after
+    another. Scrapping left once the existing vessels are gone would only scrap
+    expected newbuilds, which the gap refills, so it is dropped.
 
     Parameters
     ----------
@@ -357,27 +362,22 @@ def _forecast_at_fixed_rate(
     existing = np.zeros_like(cargo_miles)
     newbuild = np.zeros_like(cargo_miles)
 
-    type_count = len(fleet.vessels)
-    vessel_indices, counts, starts, ends = tabulate_increments(fleet)
-    counted = np.bincount(vessel_indices, weights=counts, minlength=type_count)
+    increments = fleet.increments
+    counted = np.array(count_by_type(increments))
 
     for k in range(trade.size):
         is_pending = k >= first_pending
+        miles = cargo_miles[k]
 
         if is_pending:
             time_step = timeline[idx + k] - timeline[idx + k - 1]
-            scrap_share = calculate_removed_fraction(rates[k], time_step)
-            target = scrap_share * np.dot(counted, cargo_miles[k])
-            capacities = counts * cargo_miles[k][vessel_indices]
-            kept, _ = split_oldest_first(starts, ends, capacities, target)
+            trade_capacity = float(np.dot(counted, miles))
+            capacity = calculate_fixed_rate_scrap(rates[k], time_step, trade_capacity)
+            scrapping = scrap_oldest_first(increments, miles, capacity)
+            increments = scrapping.increments
 
-            # the entry interval shrinks from its start with the count, as
-            # scrapping oldest first cuts an increment's span
-            counts = counts * kept
-            starts = ends - (ends - starts) * kept
-
-        existing[k] = np.bincount(vessel_indices, weights=counts, minlength=type_count)
-        newbuild[k] = _gap_newbuilds(trade[k], existing[k], cargo_miles[k], split)
+        existing[k] = count_by_type(increments)
+        newbuild[k] = _gap_newbuilds(trade[k], existing[k], miles, split)
 
         # a time-step whose evolution has run leaves its gap open, so the next
         # scrapping counts its expected newbuilds only where it is still to run

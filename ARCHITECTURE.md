@@ -125,7 +125,9 @@ Fleet, fuel and policy share a file layout:
   production.
 - `expectation.py` holds expectations from the deck's inputs at the start of
   each step. In fleet and fuel it also holds the forecast of the fleet's or
-  producer's own evolution.
+  producer's own evolution, which applies the rules the evolution step applies,
+  through the functions the step calls, so that a forecast one step ahead equals
+  what the step then does.
 - `results.py` records results at the end of each step.
 - `post_process.py` derives results from the time steps' results after the
   run.
