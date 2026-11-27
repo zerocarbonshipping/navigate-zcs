@@ -69,29 +69,34 @@ class VesselIncrement(Increment):
         Time-step index whose vessel attributes the cohort carries.
     package_uptake
         Share of the cohort on each technology package, one entry per package.
-    scrapped_past_lifetime
-        Vessels scrapped from the cohort's part past the vessel lifetime; with the
-        count, the cohort's size before that scrapping.
+    scrapped_oldest
+        Vessels scrapped from the oldest part of the cohort's span, at the vessel
+        lifetime or oldest first; with the count, the cohort's size before that
+        scrapping.
     technology_charter_rate
         Levelized technology cost carried by the cohort, currency/year/vessel.
     """
 
     package_uptake: FloatArray
-    scrapped_past_lifetime: float = 0.0
+    scrapped_oldest: float = 0.0
     technology_charter_rate: float = 0.0
 
-    def oldest_age(self, time: float) -> float:
+    def oldest_entered(self) -> float:
         """
-        Return the age of the cohort's oldest vessel at a time, in years.
+        Return the time the cohort's oldest vessel entered service, in years.
 
-        Scrapping past the lifetime takes the oldest part of the span and records
-        it in ``scrapped_past_lifetime``; every other change to the count scales
-        both alike. The vessels therefore hold the youngest part of the span, its
-        share the count over the size before that scrapping.
+        Scrapping, at the lifetime or oldest first, takes the oldest part of the
+        span and records it in ``scrapped_oldest``; every other change to the count
+        scales both alike. The vessels therefore hold the youngest part of the span,
+        its share the count over the size before that scrapping.
         """
-        size = self.count + self.scrapped_past_lifetime
+        size = self.count + self.scrapped_oldest
         held_share = float(divide_nonzero(self.count, size))
-        return self.youngest_age(time) + self.age_span * held_share
+        return self.entered - self.age_span * held_share
+
+    def oldest_age(self, time: float) -> float:
+        """Return the age of the cohort's oldest vessel at a time, in years."""
+        return time - self.oldest_entered()
 
     def mean_age(self, time: float) -> float:
         """Return the mean age of the cohort's vessels at a time, in years."""

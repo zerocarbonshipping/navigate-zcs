@@ -249,7 +249,7 @@ def rejoin_unchanged(split: CycleSplit) -> list[VesselIncrement]:
     Two parts are unchanged where they still carry one technology package, one
     charter rate and as many vessels per year of age: a retrofit changes the package
     and charter rate of a part at a cycle, a conversion its vessels. The younger part
-    must hold all its vessels, as those scrapped past the lifetime are the oldest.
+    must hold all its vessels, as those scrapped are the oldest.
 
     Parameters
     ----------
@@ -431,7 +431,7 @@ def _split_increment(
     """
     Split an increment at an age inside its span into its younger and older part.
 
-    The increment's size before scrapping past the lifetime is spread uniformly over
+    The increment's size before scrapping its oldest vessels is spread uniformly over
     its age span, and the vessels it holds are the youngest of that size
     (``VesselIncrement.oldest_age``). The younger part therefore holds its share of
     the size, up to the vessels the increment holds, and the older part the rest; both
@@ -451,7 +451,7 @@ def _split_increment(
     tuple[VesselIncrement, VesselIncrement]
         The part younger than the age and the part older.
     """
-    size = increment.count + increment.scrapped_past_lifetime
+    size = increment.count + increment.scrapped_oldest
     younger_size = size * calculate_share_below(increment, age, time)
     younger_span = age - increment.youngest_age(time)
 
@@ -463,7 +463,7 @@ def _split_increment(
         count=younger_count,
         age_span=younger_span,
         package_uptake=increment.package_uptake.copy(),
-        scrapped_past_lifetime=younger_scrapped,
+        scrapped_oldest=younger_scrapped,
     )
     older = replace(
         increment,
@@ -471,7 +471,7 @@ def _split_increment(
         entered=time - age,
         age_span=increment.age_span - younger_span,
         package_uptake=increment.package_uptake.copy(),
-        scrapped_past_lifetime=increment.scrapped_past_lifetime - younger_scrapped,
+        scrapped_oldest=increment.scrapped_oldest - younger_scrapped,
     )
 
     return younger, older
@@ -493,11 +493,11 @@ def _is_unchanged(younger: VesselIncrement, older: VesselIncrement) -> bool:
     bool
         Whether the parts carry one package, charter rate and density of vessels.
     """
-    if younger.scrapped_past_lifetime != 0.0:
+    if younger.scrapped_oldest != 0.0:
         return False
 
     # the older part's size is a difference of the increment's, which keeps its scale
-    older_size = older.count + older.scrapped_past_lifetime
+    older_size = older.count + older.scrapped_oldest
     expected_size = younger.count / younger.age_span * older.age_span
     scale = younger.count + older_size
 
@@ -528,7 +528,7 @@ def _join(younger: VesselIncrement, older: VesselIncrement) -> VesselIncrement:
         younger,
         count=younger.count + older.count,
         age_span=younger.age_span + older.age_span,
-        scrapped_past_lifetime=older.scrapped_past_lifetime,
+        scrapped_oldest=older.scrapped_oldest,
     )
 
 
@@ -616,8 +616,8 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     -------
     VesselIncrement
         The first increment, holding the cohort's total count and vessels scrapped
-        past the lifetime, and its count-weighted package uptake and technology
-        charter rate.
+        from the oldest part of the span, and its count-weighted package uptake and
+        technology charter rate.
     """
     survivor = cohort[0]
 
@@ -627,10 +627,10 @@ def _merge(cohort: list[VesselIncrement]) -> VesselIncrement:
     counts = [increment.count for increment in cohort]
     uptakes = [increment.package_uptake for increment in cohort]
     charter_rates = [increment.technology_charter_rate for increment in cohort]
-    scrapped = [increment.scrapped_past_lifetime for increment in cohort]
+    scrapped = [increment.scrapped_oldest for increment in cohort]
 
     survivor.count = sum(counts)
-    survivor.scrapped_past_lifetime = sum(scrapped)
+    survivor.scrapped_oldest = sum(scrapped)
     survivor.package_uptake = np.average(uptakes, axis=0, weights=counts)
     survivor.technology_charter_rate = float(np.average(charter_rates, weights=counts))
 

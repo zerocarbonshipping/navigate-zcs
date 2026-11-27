@@ -303,8 +303,7 @@ its section layout; the rules below cover the content.
   whose residual was dropped, where its branches agree at zero
   (`max(gap, 0.0)`), between values set once and copied rather than
   accumulated, such as the entry times that group cohorts by vintage
-  (`group_by_age` in `navigate/simulation/fleet/scrapping.py`,
-  `consolidate_increments` in `navigate/simulation/fleet/_composition.py`),
+  (`consolidate_increments` in `navigate/simulation/fleet/_composition.py`),
   and in a guard that only protects an operation undefined at zero, such as a
   division, against an assigned value (a default, a sentinel, a deck input).
 - A cut of a cohort's age span resolves days: a bound less than a day,

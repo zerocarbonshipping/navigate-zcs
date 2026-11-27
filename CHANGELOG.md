@@ -472,6 +472,9 @@ change.
   is refused; delete the line (#1007).
 
 ### Fixed
+- Secondary scrapping and `FixedScrapRate` scrap the oldest vessels of the fleet
+  by their age, across vessel types, rather than whole cohorts ranked by their
+  youngest vessel; results move in decks that use either (#1010).
 - A cohort of fewer than 0.001 vessels stays in the fleet unless it is
   negligible against the fleet's count; it vanished without a trace in any
   result. Results move slightly in every deck, most in small fleets and decks
