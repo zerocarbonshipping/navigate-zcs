@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.nodes.curve import Curve
-from navigate.util import drop_negligible
+from navigate.util import divide_nonzero, drop_negligible
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -68,45 +68,73 @@ def split_by_age(
     return list(zip(ages, spans, counts, strict=True))
 
 
-def calculate_share_below(increment: Increment, boundary: float, time: float) -> float:
+def calculate_share_below(
+    lower: FloatLike, upper: FloatLike, point: FloatLike
+) -> FloatArray:
     """
-    Return the share of an increment younger than an age boundary at a time.
+    Calculate the share of a uniform interval lying below a point.
 
-    The assets of an increment are spread uniformly over its age span. Its age at the
-    time carries the rounding of the subtraction it is read off, and a pipeline
-    plant's entry that of the lead time it was planned ahead by, so a boundary within
-    rounding of either end of the span, against the larger of the ends, splits
-    nothing off.
+    The ends and the point carry the rounding of the arithmetic they came from, such
+    as an age read off an entry time or a time advanced by steps, so a point within
+    rounding of either end, against the larger of the ends, splits nothing off. An
+    interval whose ends both lie within rounding of the point has none of it below.
+
+    Parameters
+    ----------
+    lower
+        Lower end of the interval, scalar or array.
+    upper
+        Upper end of the interval, scalar or array, in the units of the lower end;
+        not below it.
+    point
+        Point the interval is split at, scalar or array, in the units of the ends.
+
+    Returns
+    -------
+    FloatArray
+        Share of the interval below the point: 0.0 at or below the lower end, 1.0
+        at or above the upper end, with the broadcast shape of the inputs (0-d for
+        scalar inputs).
+    """
+    scale = np.maximum(np.abs(lower), np.abs(upper))
+    below = drop_negligible(point - lower, scale)
+    above = drop_negligible(upper - point, scale)
+
+    # the point lies inside an interval only where the interval is positive
+    inside = divide_nonzero(below, upper - lower)
+    shares: FloatArray = np.select([below <= 0.0, above <= 0.0], [0.0, 1.0], inside)
+
+    return shares
+
+
+def calculate_share_younger(increment: Increment, age: float, time: float) -> float:
+    """
+    Calculate the share of an increment younger than an age at a time.
+
+    The assets of an increment are spread uniformly over its age span. Its ages carry
+    the rounding of the subtraction they are read off, and a pipeline plant's entry
+    that of the lead time it was planned ahead by, so an age within rounding of
+    either end of the span splits nothing off.
 
     Parameters
     ----------
     increment
         Increment split.
-    boundary
+    age
         Age the increment is split at, in years.
     time
-        Time the increment's age is read at, in years.
+        Time the increment's ages are read at, in years.
 
     Returns
     -------
     float
-        Share of the increment's assets younger than the boundary: 0.0 for an
-        increment at or past it, 1.0 for one wholly younger.
+        Share of the increment's assets younger than the age: 0.0 for an increment
+        at or past it, 1.0 for one wholly younger.
     """
     youngest = increment.youngest_age(time)
     oldest = increment.oldest_age(time)
-    scale = max(abs(youngest), abs(oldest))
 
-    below = float(drop_negligible(boundary - youngest, scale))
-    if below <= 0.0:
-        return 0.0
-
-    above = float(drop_negligible(oldest - boundary, scale))
-    if above <= 0.0:
-        return 1.0
-
-    # the boundary lies inside the span, which is then positive
-    return below / increment.age_span
+    return float(calculate_share_below(youngest, oldest, age))
 
 
 def split_at_age[I: Increment](increment: I, age: float, time: float) -> tuple[I, I]:
@@ -171,7 +199,7 @@ def retire_past_age[I: Increment](
     retired = 0.0
 
     for increment in increments:
-        share = calculate_share_below(increment, age, time)
+        share = calculate_share_younger(increment, age, time)
 
         if share == 1.0:
             kept.append(increment)
@@ -185,44 +213,6 @@ def retire_past_age[I: Increment](
             retired += older.count
 
     return kept, retired
-
-
-def calculate_retired_share(
-    retirement: FloatLike, window: float, times: FloatLike
-) -> FloatArray:
-    """
-    Calculate the share of a cohort retired by the given times.
-
-    The cohort retires uniformly over the window up to its retirement; a window of
-    zero retires it at once at the retirement. The times carry the rounding of the
-    steps they were advanced by, so a time within rounding of either end of the
-    window, against the larger of the ends, retires none or all of the cohort.
-
-    Parameters
-    ----------
-    retirement
-        Time the last of the cohort retires at: one for all times, or one per time.
-    window
-        Window over which the cohort retires, in the units of the retirement.
-    times
-        Times the share is evaluated at, in the units of the retirement.
-
-    Returns
-    -------
-    FloatArray
-        Share of the cohort retired by each of the times.
-    """
-    start = retirement - window
-    scale = np.maximum(np.abs(start), np.abs(retirement))
-
-    elapsed = drop_negligible(times - start, scale)
-    remaining = drop_negligible(retirement - times, scale)
-
-    if window == 0.0:
-        return np.heaviside(elapsed, 1.0)
-
-    retired = np.where(remaining > 0.0, elapsed / window, 1.0)
-    return np.clip(retired, 0.0, 1.0)
 
 
 def find_insertion_index(increments: Sequence[Increment], entered: float) -> int:

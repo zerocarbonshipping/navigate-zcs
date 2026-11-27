@@ -13,7 +13,7 @@ import numpy as np
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import PlantIncrement
 from navigate.simulation.cohort import (
-    calculate_share_below,
+    calculate_share_younger,
     find_insertion_index,
     split_at_age,
 )
@@ -52,7 +52,7 @@ def perform_pipeline_delivery(producer: Producer, time: float) -> None:
         waiting = []
 
         for increment in pipeline:
-            share = calculate_share_below(increment, 0.0, time)
+            share = calculate_share_younger(increment, 0.0, time)
 
             if share == 0.0:
                 # a delivery carries the rounding of the lead time it was planned

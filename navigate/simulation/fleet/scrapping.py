@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import calculate_retired_share, retire_past_age
+from navigate.simulation.cohort import calculate_share_below, retire_past_age
 from navigate.simulation.fleet._composition import (
     extract_cargo_miles,
     get_count,
@@ -160,7 +160,8 @@ def split_oldest_first(
     if cutoff is None:
         return np.zeros_like(capacities), None
 
-    return _calculate_share_entered_after(starts, ends, cutoff), cutoff
+    kept = 1.0 - calculate_share_below(starts, ends, cutoff)
+    return kept, cutoff
 
 
 def _find_cutoff(
@@ -226,43 +227,6 @@ def _find_cutoff(
     return float(knots[knot_idx - 1] + shortfall / slopes[knot_idx - 1])
 
 
-def _calculate_share_entered_after(
-    starts: FloatArray, ends: FloatArray, cutoff: float
-) -> FloatArray:
-    """
-    Calculate the share of each increment's vessels entered at or after a cutoff.
-
-    The vessels entered uniformly over the entry interval. A cutoff within
-    rounding of an end of the interval, against the larger of its ends, splits
-    nothing off; an interval ending at or before the cutoff is scrapped whole, even
-    where both its ends lie within rounding of it.
-
-    Parameters
-    ----------
-    starts
-        Start of each increment's entry interval, in years.
-    ends
-        End of each increment's entry interval, in years.
-    cutoff
-        Entry time of the cutoff, in years.
-
-    Returns
-    -------
-    FloatArray
-        Share of each increment's vessels entered at or after the cutoff: 0.0
-        for an interval ending at or before it, 1.0 for one from the cutoff on.
-    """
-    scale = np.maximum(np.abs(starts), np.abs(ends))
-    before = drop_negligible(cutoff - starts, scale)
-    after = drop_negligible(ends - cutoff, scale)
-
-    # the cutoff lies inside an interval only where the interval is positive
-    inside = divide_nonzero(after, ends - starts)
-    shares: FloatArray = np.select([after <= 0.0, before <= 0.0], [0.0, 1.0], inside)
-
-    return shares
-
-
 def calculate_survivors(
     increment: VesselIncrement, lifetimes: FloatArray, times: FloatArray
 ) -> FloatArray:
@@ -287,7 +251,7 @@ def calculate_survivors(
         Vessels left at each of the times.
     """
     ages = times - increment.entered
-    retired = calculate_retired_share(lifetimes, increment.age_span, ages)
+    retired = calculate_share_below(lifetimes - increment.age_span, lifetimes, ages)
 
     return increment.count * (1.0 - retired)
 
