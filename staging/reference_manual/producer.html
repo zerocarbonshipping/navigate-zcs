@@ -488,7 +488,9 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <p>A producer develops plants for the expected demand that the plants in service and in the pipeline leave unmet,
 counted port by port: at each port, the fleets’ expected bunkering of a fuel beyond the supply that port receives
 from those plants, by the producers’ export weights within the ports’ bunkering limits. A port supplied beyond its
-demand does not make up for another port’s shortfall.</p>
+demand does not make up for another port’s shortfall. A plant’s output reaches each port by the producer’s export
+weights, so the producer plans the production that, by those weights, brings its share of the shortfall to every
+port it exports to that is short of the fuel; what the production brings to the other ports is surplus there.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Producer</span> <span class="s2">"engineering_procurement_construction"</span> <span class="p">{</span>
     <span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methane_electro"</span><span class="p">),</span> <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_blue"</span><span class="p">)]</span>
