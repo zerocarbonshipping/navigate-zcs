@@ -167,13 +167,22 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
     raw_energy_sea = expectation.raw_energy_sea_condition.at[idx]
     raw_energy_port = expectation.raw_energy_port.at[idx]
 
+    # a load without raw energy at the current speed takes the operational savings
+    # alone, those the residual energy was built with
+    fractions_sea = expectation.operational_saving_fraction_sea
+    fractions_port = expectation.operational_saving_fraction_port
+
     # the saving of the residual energy the expected bunkering ran with against the
     # raw energy carries both the operational savings and the current technology
     # uptake, so a candidate speed's raw energy takes them as the expected bunkering
     # did; the proportional savings are an approximation, since external power has a
     # larger share at lower speeds
-    savings_sea = calculate_energy_savings(energy_sea_ref, raw_energy_sea)
-    savings_port = calculate_energy_savings(energy_port_ref, raw_energy_port)
+    savings_sea = calculate_energy_savings(
+        energy_sea_ref, raw_energy_sea, fractions_sea
+    )
+    savings_port = calculate_energy_savings(
+        energy_port_ref, raw_energy_port, fractions_port
+    )
 
     def objective(mu: float) -> float:
         speeds = _mean_to_speeds(mu, deltas_ref, speeds_min, speeds_max)
