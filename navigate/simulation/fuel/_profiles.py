@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.simulation.cohort import calculate_retired_share
+from navigate.simulation.cohort import calculate_share_below
 from navigate.util import drop_negligible
 
 if TYPE_CHECKING:
@@ -162,7 +162,7 @@ def _calculate_reserved_profile(
         The rate reserved at each of the times, in tons/year.
     """
     is_entered = np.arange(times.size) >= entry
-    retired = calculate_retired_share(retirement, window, times)
+    retired = calculate_share_below(retirement - window, retirement, times)
     return rate * is_entered * (1.0 - retired)
 
 
