@@ -393,6 +393,9 @@ change.
 - A `Producer`'s `JumpStart` only blends the split between the plant types of a
   fuel in its expected production; it no longer stands in for the development
   of a producer that has built nothing.
+- Vessels that scrapping leaves less than a day past a retrofit cycle can
+  retrofit or convert at that cycle, and vessel cohorts of the same ages merge
+  whatever their history. No example deck's results move.
 
 ### Removed
 - The `Plot` and `Report` nodes, the built-in plots and the

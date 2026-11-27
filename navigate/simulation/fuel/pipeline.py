@@ -12,7 +12,11 @@ import numpy as np
 
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import PlantIncrement
-from navigate.simulation.cohort import calculate_share_below, find_insertion_index
+from navigate.simulation.cohort import (
+    calculate_share_below,
+    find_insertion_index,
+    split_at_age,
+)
 from navigate.simulation.economics import (
     build_operating_flows,
     calculate_levelized_cost,
@@ -61,21 +65,10 @@ def perform_pipeline_delivery(producer: Producer, time: float) -> None:
 
             else:
                 # plants enter uniformly over the age span, so the part past the time
-                # is delivered now and the rest keeps its span up to its delivery;
-                # both keep the decision and origin of the increment
-                remaining = increment.count * share
-                delivered = PlantIncrement(
-                    count=increment.count - remaining,
-                    entered=time,
-                    age_span=increment.youngest_age(time) + increment.age_span,
-                    origin=increment.origin,
-                    decided=increment.decided,
-                )
-
+                # is delivered now and the rest keeps its span up to its delivery
+                pending, delivered = split_at_age(increment, 0.0, time)
                 operating.append(delivered)
-                increment.count = remaining
-                increment.age_span = -increment.youngest_age(time)
-                waiting.append(increment)
+                waiting.append(pending)
 
         producer.pipeline[p] = waiting
 

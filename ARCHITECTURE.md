@@ -34,12 +34,15 @@ only through `core` expectations and the bunkering LP. `Simulation` in
   time it enters service, on the timeline, and its origin, the time step whose
   attributes it carries; its age at a time is read off that entry time, never
   accumulated step by step. Its assets are spread uniformly over its age span,
-  so a decision on an asset's age, such as scrapping at the lifetime, acts on
-  the share of the span it holds for, never on the whole cohort by one of its
-  ages. A retrofit or a fuel conversion acts on the vessels at their retrofit
-  cycle alone: `split_at_cycle` (`simulation/fleet/_composition.py`) splits
-  them off as increments of their own, and the parts the decision left
-  unchanged join back once it is applied. A fleet keeps each vessel type's
+  the ages they hold, so a decision on an asset's age, such as scrapping at the
+  lifetime, acts on the share of the span it holds for, never on the whole
+  cohort by one of its ages. Removing the oldest assets, past the lifetime
+  (`retire_past_age`) or oldest first, shortens the span to the ages left, and
+  a split at an age (`split_at_age`) divides count and span alike. A retrofit
+  or a fuel conversion acts on the vessels at their retrofit cycle alone:
+  `split_at_cycle` (`simulation/fleet/_composition.py`) splits them off as
+  increments of their own, and `rejoin_unchanged` joins back the parts the
+  decision left unchanged once it is applied. A fleet keeps each vessel type's
   increments sorted by entry time, oldest first.
 - Count: the number of vessels or plants a value stands for, fractional as
   cohorts split and scrap in shares. A `Vessel` node is a vessel type and a

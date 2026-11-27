@@ -9,7 +9,7 @@ The cumulative technology package is the unit of choice.
 
 1. ``_propose_newbuild_uptake`` and ``_propose_retrofits`` make the unconstrained MNL
    choices per vessel, the retrofits for the vessels at a retrofit cycle, which
-   ``_split_at_retrofit_cycle`` first splits off their increments.
+   ``split_at_cycle`` first splits off their increments.
 2. ``_reconcile_retrofit_technology_caps`` scales the retrofit proposals to the caps.
 3. ``_apply_retrofits`` updates the per-increment uptake and the carried charge, and
    the parts of an increment no retrofit changed join back.
@@ -130,7 +130,7 @@ class _RetrofitProposal:
         the transfer.
     increment
         Vessels at a retrofit cycle, split off their cohort, whose ``package_uptake``
-        the apply step updates. Holding it is safe: the split's parts join back after
+        the apply step replaces. Holding it is safe: the split's parts join back after
         the apply step, and the transfer reads only the parts' counts, which the join
         leaves.
     package_idx
@@ -262,8 +262,7 @@ def perform_technology_installation(
 
     for v, vessel in enumerate(fleet.vessels):
         basis = _extract_adoption_basis(fleet, vessel, v, sensitivity, timeline, idx)
-        split = _split_at_retrofit_cycle(fleet, basis, time, time_step)
-        fleet.increments[v] = split.increments
+        split = split_at_cycle(fleet, v, time, time_step, minimum_age=0.0)
 
         fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(fleet, basis)
         proposals += _propose_retrofits(fleet, basis, split, time)
@@ -271,9 +270,7 @@ def perform_technology_installation(
 
     _reconcile_retrofit_technology_caps(fleet, proposals, time_step, total_count)
     _apply_retrofits(proposals)
-
-    for v, split in enumerate(splits):
-        fleet.increments[v] = rejoin_unchanged(split)
+    rejoin_unchanged(fleet, splits)
 
     _transfer_retrofit_uptake(fleet, proposals, idx)
 
@@ -469,37 +466,6 @@ def _propose_retrofits(
     return proposals
 
 
-def _split_at_retrofit_cycle(
-    fleet: Fleet, basis: _AdoptionBasis, time: float, time_step: float
-) -> CycleSplit:
-    """
-    Split the vessel's increments at their retrofit cycles.
-
-    Parameters
-    ----------
-    fleet
-        Fleet owning the vessel.
-    basis
-        Per-vessel invariants of the adoption pass.
-    time
-        Current time, in years.
-    time_step
-        Current time-step size, in years.
-
-    Returns
-    -------
-    CycleSplit
-        The parts of the vessel's increments and those at a cycle.
-    """
-    increments = fleet.increments[basis.vessel_idx]
-    interval = fleet.retrofit_interval.get()
-    lifetime = basis.vessel.lifetime.get()
-
-    return split_at_cycle(
-        increments, time, time_step, interval, lifetime, minimum_age=0.0
-    )
-
-
 def _reconcile_retrofit_technology_caps(
     fleet: Fleet,
     proposals: list[_RetrofitProposal],
@@ -671,15 +637,18 @@ def _apply_retrofits(proposals: list[_RetrofitProposal]) -> None:
     """
     for proposal in proposals:
         increment = proposal.increment
-        uptake = increment.package_uptake
         package_idx = proposal.package_idx
 
         # the share of the increment jumping to each larger package, and its charge
         moved = proposal.package_share * proposal.choices[1:]
         charges = moved * proposal.annual_costs[1:]
 
+        # a new array, as the parts split off one cohort share its uptake
+        uptake = increment.package_uptake.copy()
         uptake[package_idx] = subtract(uptake[package_idx], np.sum(moved))
         uptake[package_idx + 1 :] += moved
+
+        increment.package_uptake = uptake
         increment.technology_charter_rate += float(np.sum(charges))
 
 

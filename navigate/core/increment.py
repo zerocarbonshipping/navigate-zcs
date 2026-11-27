@@ -13,8 +13,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from navigate.util import divide_nonzero
-
 if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
@@ -25,7 +23,9 @@ class Increment:
     One cohort of assets that entered service together.
 
     Its times are on the simulation timeline, in years since the start, so the
-    cohort's age is read off the current time rather than kept.
+    cohort's age is read off the current time rather than kept. Its assets are spread
+    uniformly over the ages they hold, from the youngest to the oldest; removing the
+    oldest of them shortens the age span.
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ class Increment:
         Time the cohort's youngest asset entered service; its assets entered
         uniformly over the age span before it.
     age_span
-        Width in years of the age bin the cohort spans.
+        Width in years of the ages the cohort's assets hold.
     origin
         Time-step index whose attributes the cohort carries.
     """
@@ -49,6 +49,14 @@ class Increment:
         """Return the age of the cohort's youngest asset at a time, in years."""
         return time - self.entered
 
+    def oldest_age(self, time: float) -> float:
+        """Return the age of the cohort's oldest asset at a time, in years."""
+        return self.youngest_age(time) + self.age_span
+
+    def mean_age(self, time: float) -> float:
+        """Return the mean age of the cohort's assets at a time, in years."""
+        return self.youngest_age(time) + 0.5 * self.age_span
+
 
 @dataclass(slots=True)
 class VesselIncrement(Increment):
@@ -56,6 +64,8 @@ class VesselIncrement(Increment):
     One cohort of vessels, with the technology it carries.
 
     Its origin is the time step it was built at, the first for the initial fleet.
+    Cohorts copied from one share its package uptake, so a change to the uptake
+    replaces the array rather than writing into it.
 
     Parameters
     ----------
@@ -64,46 +74,17 @@ class VesselIncrement(Increment):
     entered
         Time the cohort's youngest vessel entered service.
     age_span
-        Width in years of the age bin the cohort spans.
+        Width in years of the ages the cohort's vessels hold.
     origin
         Time-step index whose vessel attributes the cohort carries.
     package_uptake
         Share of the cohort on each technology package, one entry per package.
-    scrapped_oldest
-        Vessels scrapped from the oldest part of the cohort's span, at the vessel
-        lifetime or oldest first; with the count, the cohort's size before that
-        scrapping.
     technology_charter_rate
         Levelized technology cost carried by the cohort, currency/year/vessel.
     """
 
     package_uptake: FloatArray
-    scrapped_oldest: float = 0.0
     technology_charter_rate: float = 0.0
-
-    def held_share(self) -> float:
-        """
-        Return the share of the cohort's span its vessels hold, the youngest part.
-
-        Scrapping, at the lifetime or oldest first, takes the oldest part of the
-        span and records it in ``scrapped_oldest``; every other change to the count
-        scales both alike. The vessels therefore hold the youngest part of the span,
-        its share the count over the size before that scrapping.
-        """
-        size = self.count + self.scrapped_oldest
-        return float(divide_nonzero(self.count, size))
-
-    def oldest_entered(self) -> float:
-        """Return the time the cohort's oldest vessel entered service, in years."""
-        return self.entered - self.age_span * self.held_share()
-
-    def oldest_age(self, time: float) -> float:
-        """Return the age of the cohort's oldest vessel at a time, in years."""
-        return time - self.oldest_entered()
-
-    def mean_age(self, time: float) -> float:
-        """Return the mean age of the cohort's vessels at a time, in years."""
-        return 0.5 * (self.youngest_age(time) + self.oldest_age(time))
 
 
 @dataclass(slots=True)
@@ -121,7 +102,7 @@ class PlantIncrement(Increment):
         Time the cohort's last plant is delivered, in the future while it is still
         in the pipeline.
     age_span
-        Width in years of the age bin the cohort spans.
+        Width in years of the ages the cohort's plants hold.
     origin
         Time-step index whose plant attributes the cohort carries.
     decided

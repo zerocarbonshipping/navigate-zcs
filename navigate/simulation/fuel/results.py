@@ -162,7 +162,7 @@ def _transfer_plant_tied_capital(producer: Producer, time: float, idx: int) -> N
 
     for _, plant, increment in iterate_increments(producer.plants, producer.increments):
         youngest = increment.youngest_age(time)
-        oldest = youngest + increment.age_span
+        oldest = increment.oldest_age(time)
 
         tied_capital_flow = plant.expectation.tied_capital[increment.origin]
         tied_capital = average_yearly_flow(tied_capital_flow, youngest, oldest)

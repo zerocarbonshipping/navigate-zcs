@@ -349,9 +349,8 @@ def _sample_vessel_ages(increment: VesselIncrement, start: float) -> FloatArray:
     # part, and misses a jump inside the span by at most half a percent of it
     parts = 100
     youngest = increment.youngest_age(start)
-    held_span = increment.oldest_age(start) - youngest
 
-    return youngest + held_span * (np.arange(parts) + 0.5) / parts
+    return youngest + increment.age_span * (np.arange(parts) + 0.5) / parts
 
 
 def _get_initial_shares(fleet: Fleet, vessel: Vessel, ages: FloatArray) -> FloatArray:
