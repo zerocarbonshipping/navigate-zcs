@@ -19,6 +19,7 @@ from navigate.core.enum_ import BunkerScopeID, TimingID
 from navigate.simulation.bunker._cleanup import (
     remove_redundant_fuels_from_ports,
     remove_redundant_regulations,
+    remove_redundant_shore_power,
     remove_redundant_vessel,
 )
 from navigate.simulation.bunker._constraints.bunker_below_peak import (
@@ -46,6 +47,9 @@ from navigate.simulation.bunker._constraints.regulation_threshold_flexibility im
 from navigate.simulation.bunker._constraints.regulation_threshold_individual import (
     update_regulation_rhs_individual,
     update_regulation_threshold_individual_constraints,
+)
+from navigate.simulation.bunker._constraints.shore_power_limit import (
+    update_shore_power_limit_constraints,
 )
 from navigate.simulation.bunker._constraints.tank_capacity import (
     update_tank_capacity_constraints,
@@ -230,6 +234,7 @@ class BunkerAlgorithm:
         ] = {}
         self.pilot_fuel_sea: dict[tuple[str, str, int, int], Constraint] = {}
         self.pilot_fuel_port: dict[tuple[str, str, int], Constraint] = {}
+        self.shore_power_limit: dict[tuple[str, int], Constraint] = {}
         self.mass_conservation: dict[tuple[str, int, str], Constraint] = {}
         self.mass_sufficient: dict[tuple[str, int, str], Constraint] = {}
         self.tank_capacity: dict[tuple[str, int, str], Constraint] = {}
@@ -251,7 +256,8 @@ class BunkerAlgorithm:
         Build the LP model for a time-step.
 
         The first call adds every variable and constraint; later calls update them and
-        add or remove those whose vessels, fuels or regulations came or went.
+        add or remove those whose vessels, fuels, shore power or regulations came or
+        went.
 
         Parameters
         ----------
@@ -271,6 +277,7 @@ class BunkerAlgorithm:
 
         self._reset_dynamic_properties()
         remove_redundant_fuels_from_ports(self)
+        remove_redundant_shore_power(self)
 
         for vessel, count in self._vessel_counts(self.idx):
             self._update_vessel(vessel, count)
@@ -421,6 +428,7 @@ class BunkerAlgorithm:
         """
         update_energy_conservation_constraints(self, vessel)
         update_pilot_fuel_constraints(self, vessel)
+        update_shore_power_limit_constraints(self, vessel)
 
         update_mass_conservation_constraints(self, vessel)
         update_mass_sufficient_constraints(self, vessel)

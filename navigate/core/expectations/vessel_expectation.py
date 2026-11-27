@@ -108,6 +108,9 @@ class VesselExpectation(_Expectation):
         self.belief_pi_port_technology = per_port_call(default=np.nan)  # currency/GJ
         self.belief_pi_sea_speed = per_leg(default=np.nan)  # currency/GJ
         self.belief_pi_port_speed = per_port_call(default=np.nan)  # currency/GJ
+        self.belief_pi_shore_power_limit_technology = self._path_list(
+            port_calls, default=np.nan
+        )  # currency/GJ
 
         self.effective_lhv = unset(converter_fuels)  # GJ/t
         self.ttw_consumption = unset(converter_fuel_emissions)  # t/t
@@ -136,6 +139,7 @@ class VesselExpectation(_Expectation):
 
         self.shore_power_potential_port = self._path_list(port_calls)  # GJ/year
         self.shore_power_limit_port = self._path_list(port_calls)  # GJ/year
+        self.shore_power_limit_pi_port = self._path_list(port_calls)  # currency/GJ
 
         self.asset_charter_npv = self._path()  # currency
         self.capex_npv = self._path()  # currency

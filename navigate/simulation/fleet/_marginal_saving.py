@@ -11,6 +11,10 @@ import numpy as np
 
 from navigate.simulation.fleet._residual_energy import calculate_residual_energy
 from navigate.simulation.fleet._trip import sum_energy_per_leg
+from navigate.simulation.fleet.shore_power import (
+    calculate_shore_power_limit,
+    calculate_shore_power_potential,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -31,13 +35,22 @@ def calculate_marginal_technology_saving(
     """
     Calculate the marginal cost saving of installing a technology package.
 
-    The change from the baseline energy to the residual energy after the package is
-    valued at the technology-horizon shadow-price beliefs, summed at sea and in port.
-    The baseline is the operational energy before any technology, so that installing
-    nothing is an NPV=0 business case and a package saving less than the current
-    average uptake still saves. For a package with a low saving potential the
-    evaluation may then fall outside the optimal polytope, and the shadow price may
-    underestimate the impact.
+    The package is valued by each input of the bunkering LP it changes, at the
+    technology-horizon belief of that input's shadow price. The change from the
+    baseline energy to the residual energy after the package is valued at the energy
+    prices, summed at sea and in port. The package's shore-power limit in each port,
+    the port's availability times the package's shore-power potential, is valued at
+    the price of the vessel's limit there.
+
+    The baseline is the operational energy before any technology, with a shore-power
+    limit of zero, so that installing nothing is an NPV=0 business case and a package
+    saving less than the current average uptake still saves. For a package with a low
+    saving potential the evaluation may then fall outside the optimal polytope, and
+    the shadow price may underestimate the impact. Shore-power capacity is
+    undervalued the same way where the vessel's limit already covers its whole
+    electrical demand in a port, which takes an availability of 1 and enough capacity
+    on every vessel of the type: a GJ more of limit then saves nothing, and its price
+    is zero.
 
     Parameters
     ----------
@@ -46,7 +59,8 @@ def calculate_marginal_technology_saving(
     condition_legs
         Leg of each sailing condition of the vessel's route.
     package
-        Technology package holding the precomputed savings, powers and transfer curves.
+        Technology package holding the precomputed savings, powers, transfer curves
+        and shore-power capacity.
     idx
         Time-steps of the evaluation.
 
@@ -60,17 +74,22 @@ def calculate_marginal_technology_saving(
     residual_sea, residual_port = calculate_residual_energy(vessel, package, idx)
     residual_sea_leg = sum_energy_per_leg(condition_legs, residual_sea)
 
+    potential = calculate_shore_power_potential(vessel, package, residual_port, idx)
+    limit = calculate_shore_power_limit(vessel, potential, idx)
+
     baseline_sea = expectation.operational_energy_sea_leg.at[idx]
     baseline_port = expectation.operational_energy_port.at[idx]
 
     price_sea = expectation.belief_pi_sea_technology.at[idx]
     price_port = expectation.belief_pi_port_technology.at[idx]
+    price_limit = expectation.belief_pi_shore_power_limit_technology.at[idx]
 
-    saving_sea = _sum_savings(residual_sea_leg, baseline_sea, price_sea)
-    saving_port = _sum_savings(residual_port, baseline_port, price_port)
+    saving_sea = _sum_energy_savings(residual_sea_leg, baseline_sea, price_sea)
+    saving_port = _sum_energy_savings(residual_port, baseline_port, price_port)
+    saving_limit = _sum_limit_savings(limit, price_limit)
 
     # a slice of time-steps always yields an array
-    return np.asarray(saving_sea + saving_port)
+    return np.asarray(saving_sea + saving_port + saving_limit)
 
 
 def calculate_marginal_speed_saving(
@@ -116,13 +135,13 @@ def calculate_marginal_speed_saving(
     price_sea = expectation.belief_pi_sea_speed.at[idx]
     price_port = expectation.belief_pi_port_speed.at[idx]
 
-    saving_sea = _sum_savings(residual_sea_leg, baseline_sea, price_sea)
-    saving_port = _sum_savings(residual_port, baseline_port, price_port)
+    saving_sea = _sum_energy_savings(residual_sea_leg, baseline_sea, price_sea)
+    saving_port = _sum_energy_savings(residual_port, baseline_port, price_port)
 
     return float(saving_sea + saving_port)
 
 
-def _sum_savings(
+def _sum_energy_savings(
     residual_energy: Mapping[EnergyDemandID, FloatArray | Sequence[FloatLike]],
     baseline_energy: Mapping[EnergyDemandID, Sequence[FloatLike]],
     shadow_prices: Mapping[EnergyDemandID, Sequence[FloatLike]],
@@ -154,5 +173,35 @@ def _sum_savings(
         prices = shadow_prices[energy_id]
         for residual, baseline, price in zip(residuals, baselines, prices, strict=True):
             saving += price * (baseline - residual)
+
+    return saving
+
+
+def _sum_limit_savings(
+    limits: Sequence[FloatArray], prices: Sequence[FloatArray]
+) -> FloatLike:
+    """
+    Sum the cost saved by raising each port's shore-power limit from zero.
+
+    The price of a limit is the belief of its shadow price in the bunkering LP, a
+    change of the cost per GJ the limit rises by, zero or negative, so a limit saves
+    the negative of its price per GJ.
+
+    Parameters
+    ----------
+    limits
+        Shore-power limit per port, in GJ/year.
+    prices
+        Price of the shore-power limit per port, in currency/GJ.
+
+    Returns
+    -------
+    FloatLike
+        Cost saved, in currency/year.
+    """
+    saving: FloatLike = 0.0
+
+    for limit, price in zip(limits, prices, strict=True):
+        saving -= price * limit
 
     return saving

@@ -42,8 +42,8 @@ def update_regulation_threshold_flexibility_constraints(alg: BunkerAlgorithm) ->
 
     The rows are rewritten in place each build: every variable the definition of
     a term has ever held is written again, at weight 0 where its jurisdiction
-    fraction is 0. The term of a vessel that left the pool is removed with its
-    definition (_cleanup.py).
+    fraction is 0, but for a shore-power variable removed from the LP. The term of
+    a vessel that left the pool is removed with its definition (_cleanup.py).
 
     The flexibility market reads the pooled non-compliance against w within a noise
     bound derived from the form of these rows (flexibility_market.py); a change to

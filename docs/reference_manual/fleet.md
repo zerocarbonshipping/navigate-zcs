@@ -149,7 +149,7 @@ This attribute sets the cost of capital used for evaluating technology investmen
 
 ### TechnologyHorizon
 
-Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise.
+Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise. The value of a technology's [ShorePowerCapacity](technology.md#shorepowercapacity) is smoothed over the same horizon.
 
 With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.75 at the default of 3.
 

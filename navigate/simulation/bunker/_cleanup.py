@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Remove the LP variables and constraints of vessels, fuels and regulations gone."""
+"""Remove the LP elements of vessels, fuels, shore power and regulations gone."""
 
 from __future__ import annotations
 
@@ -12,6 +12,9 @@ from navigate.simulation.bunker._constraints.fair_share_fuel import (
 )
 from navigate.simulation.bunker._constraints.regulation_threshold_flexibility import (
     is_pooled,
+)
+from navigate.simulation.bunker._constraints.shore_power_limit import (
+    can_draw_shore_power,
 )
 
 if TYPE_CHECKING:
@@ -49,6 +52,7 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     _remove_vessel_elements(v, alg.energy_conservation_port, model.remove_constraint)
     _remove_vessel_elements(v, alg.pilot_fuel_sea, model.remove_constraint)
     _remove_vessel_elements(v, alg.pilot_fuel_port, model.remove_constraint)
+    _remove_vessel_elements(v, alg.shore_power_limit, model.remove_constraint)
     _remove_vessel_elements(v, alg.mass_conservation, model.remove_constraint)
     _remove_vessel_elements(v, alg.mass_sufficient, model.remove_constraint)
     _remove_vessel_elements(v, alg.tank_capacity, model.remove_constraint)
@@ -89,6 +93,21 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
 
         if not is_fair_share_constrained(port, f, alg.idx):
             alg.model.remove_constraint(alg.fair_share_fuel.pop((v, port_name, f)))
+
+
+def remove_redundant_shore_power(alg: BunkerAlgorithm) -> None:
+    """
+    Remove the shore power, with its limit, that vessels can no longer draw at a port.
+
+    Parameters
+    ----------
+    alg
+        The algorithm instance.
+    """
+    for v, p in list(alg.shore_power):
+        if not can_draw_shore_power(alg.vessels[v], p, alg.idx):
+            alg.model.remove_variable(alg.shore_power.pop((v, p)))
+            alg.model.remove_constraint(alg.shore_power_limit.pop((v, p)))
 
 
 def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:

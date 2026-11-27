@@ -54,7 +54,8 @@ def calculate_regulation_terms(
     flexibility market.
 
     A variable whose fraction is 0 stays in the list at weight 0, so between
-    builds the list only grows, as the vessel's variables do.
+    builds the list changes only as the vessel's variables do: it grows with them,
+    and loses a shore-power variable removed from the LP (_cleanup.py).
 
     Parameters
     ----------
@@ -98,7 +99,7 @@ def calculate_regulation_terms(
         for (c, f), weights in sea_weights.items():
             terms.append(_Term(alg.spend_sea[v, c, f, i, e], fraction, weights))
 
-    # shore power, at each connection in the model
+    # shore power, at each port where the vessel has the variable
     for p, (port, fraction) in enumerate(zip(ports, port_fractions, strict=True)):
         if (v, p) not in alg.shore_power:
             continue

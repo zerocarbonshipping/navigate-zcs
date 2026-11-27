@@ -28,7 +28,7 @@ def update_vessel_scarcity_beliefs(
     fleets: dict[str, Fleet], timeline: FloatArray, idx: int
 ) -> None:
     """
-    Update every vessel's per-leg shadow-price beliefs.
+    Update every vessel's shadow-price beliefs.
 
     Each (energy-demand-type, leg) array of LP duals is smoothed on its own into the
     expectation's beliefs by an exponential moving average. A slower belief serves
@@ -36,6 +36,9 @@ def update_vessel_scarcity_beliefs(
     operational speed management, over `speed_horizon`. Smoothing each leg on its own
     keeps the LP's structure across legs, where shadow prices may differ in sign and
     magnitude, while damping each leg's year-to-year volatility.
+
+    The price of each port's shore-power limit is smoothed the same way, into a
+    technology belief alone: no speed decision reads it.
 
     Parameters
     ----------
@@ -62,15 +65,20 @@ def update_vessel_scarcity_beliefs(
             )
             technology, speed = _beliefs(expectation)
 
+            raw_limit = expectation.shore_power_limit_pi_port
+            prior_limit = expectation.belief_pi_shore_power_limit_technology
+
             technology_sea, technology_port = _smooth(
                 raw, technology, alpha_technology, idx
             )
             speed_sea, speed_port = _smooth(raw, speed, alpha_speed, idx)
+            belief_limit = _smooth_paths(raw_limit, prior_limit, alpha_technology, idx)
 
             expectation.belief_pi_sea_technology.at[idx:] = technology_sea
             expectation.belief_pi_port_technology.at[idx:] = technology_port
             expectation.belief_pi_sea_speed.at[idx:] = speed_sea
             expectation.belief_pi_port_speed.at[idx:] = speed_port
+            expectation.belief_pi_shore_power_limit_technology.at[idx:] = belief_limit
 
 
 def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
@@ -124,15 +132,24 @@ def _smooth(
     """Smooth each leg's belief towards its raw path, giving the paths from `idx`."""
     sea, port = (
         {
-            energy_id: [
-                smooth_belief_path(raw_leg, belief_leg, alpha, idx)
-                for raw_leg, belief_leg in zip(raw_side[energy_id], legs, strict=True)
-            ]
+            energy_id: _smooth_paths(raw_side[energy_id], legs, alpha, idx)
             for energy_id, legs in belief_side.items()
         }
         for raw_side, belief_side in zip(raw, beliefs, strict=True)
     )
     return sea, port
+
+
+def _smooth_paths(
+    raw: Sequence[FloatArray], beliefs: Sequence[FloatArray], alpha: float, idx: int
+) -> list[FloatArray]:
+    """Smooth each belief towards its raw path, giving the paths from `idx`."""
+    smoothed = []
+
+    for raw_path, belief in zip(raw, beliefs, strict=True):
+        smoothed.append(smooth_belief_path(raw_path, belief, alpha, idx))
+
+    return smoothed
 
 
 def _zip_legs(

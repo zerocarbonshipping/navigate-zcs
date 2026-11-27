@@ -33,7 +33,8 @@ def update_regulation_threshold_individual_constraints(alg: BunkerAlgorithm) -> 
     feasible when the cap cannot be met; its objective cost prices non-compliance.
 
     The row is rewritten in place each build: every variable it has ever held is
-    written again, at weight 0 where its jurisdiction fraction is 0.
+    written again, at weight 0 where its jurisdiction fraction is 0, but for a
+    shore-power variable removed from the LP (_cleanup.py).
 
     Parameters
     ----------

@@ -57,6 +57,9 @@ change.
   requested; they used to produce no column.
 
 ### Changed
+- The uptake of a `Technology` with `ShorePowerCapacity` responds to what the
+  capacity saves in the ports a vessel calls at; it used to be valued at
+  nothing. Decks where a port offers shore power move (#668).
 - `retrofit_technology_uptake`, which the `RetrofitTechnologyUptake` report
   property gave as the share retrofitted over the step, is a share per year,
   unit `1/year`.

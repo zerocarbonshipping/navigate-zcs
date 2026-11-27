@@ -39,7 +39,7 @@ from navigate.simulation.fleet import (
     calculate_fleet_expectations,
     calculate_fuel_type_balance,
     calculate_potential_fuel_type_demand,
-    calculate_shore_power_limits,
+    calculate_vessel_shore_power_limits,
     check_fuel_options,
     close_trade_gap,
     complete_fleet_results,
@@ -551,8 +551,8 @@ class Simulation:
         # the LPs ran with, which the fleet evolution below rewrites
         self._calculate_fleet_bunker_demand()
 
-        # smooth the energy-conservation LP duals into scarcity belief paths
-        # consumed by the technology and speed-management heuristics below
+        # smooth the LP duals the fleets read into the belief paths of the
+        # technology and speed-management heuristics below
         self._update_scarcity_signals()
 
         self._perform_fleet_technology_installation()
@@ -598,7 +598,7 @@ class Simulation:
         self._calculate_fuel_import()
         self._calculate_potential_fuel_type_demand()
         self._calculate_fair_share_fuel_supply(bunker.scope)
-        self._calculate_shore_power_limits()
+        self._calculate_vessel_shore_power_limits()
         self._calculate_regulation_measures()
         self._calculate_regulation_bunkering_inputs()
 
@@ -620,8 +620,8 @@ class Simulation:
     def _calculate_fair_share_fuel_supply(self, scope: BunkerScopeID) -> None:
         calculate_fair_share_fuel_supply(self.nodes.fleets, self._idx, scope)
 
-    def _calculate_shore_power_limits(self) -> None:
-        calculate_shore_power_limits(self.nodes.fleets, self._idx)
+    def _calculate_vessel_shore_power_limits(self) -> None:
+        calculate_vessel_shore_power_limits(self.nodes.fleets, self._idx)
 
     @timed(TimingID.POLICY)
     def _calculate_regulation_measures(self) -> None:
