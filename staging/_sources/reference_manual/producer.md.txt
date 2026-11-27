@@ -9,6 +9,11 @@ A `Producer` node defines an engineering, procurement, and construction (EPC) ma
 used to control the decisions made by actors of that market.  Examples of producers are the global EPC market
 for large scale methanol, ammonia, methane, and diesel plants and regional markets for bio-methane plants.
 
+A producer develops plants for the expected demand that the plants in service and in the pipeline leave unmet,
+counted port by port: at each port, the fleets' expected bunkering of a fuel beyond the supply that port receives
+from those plants, by the producers' export weights within the ports' bunkering limits. A port supplied beyond its
+demand does not make up for another port's shortfall.
+
 Example:
 
 ```python
