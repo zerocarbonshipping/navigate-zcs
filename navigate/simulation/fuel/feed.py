@@ -196,7 +196,6 @@ def _calculate_feed_gaps(
     """
     expectation = producer.expectation
     times = timeline[idx:]
-    steps = times[first_pending:]
 
     for feed_name, limit in producer.feed_limits.items():
         if limit is None:
@@ -207,7 +206,9 @@ def _calculate_feed_gaps(
             continue
 
         supply = limit.get(delivery)
-        reserved = _calculate_cohort_feed(producer, feed_name, steps, delivery)
+        reserved = _calculate_cohort_feed(
+            producer, feed_name, times, first_pending, delivery
+        )
 
         # the supply may be unbounded, so the finite reservation scales the gap
         gap = drop_negligible(supply - reserved, reserved)
@@ -228,7 +229,11 @@ def _calculate_feed_gaps(
 
 
 def _calculate_cohort_feed(
-    producer: Producer, feed_name: str, steps: FloatArray, delivery: FloatArray
+    producer: Producer,
+    feed_name: str,
+    times: FloatArray,
+    first_pending: int,
+    delivery: FloatArray,
 ) -> FloatArray:
     """
     Calculate the feed the existing and pipeline plants reserve at the deliveries.
@@ -241,8 +246,10 @@ def _calculate_cohort_feed(
         The producer.
     feed_name
         Name of the feed.
-    steps
-        Times of the time-steps decommissioning is still to run at, in years.
+    times
+        Times of the time-steps, from the current one on, in years.
+    first_pending
+        Step of the horizon from which the decommissioning is still to run.
     delivery
         Delivery of a plant decided at each time-step, in years.
 
@@ -264,7 +271,9 @@ def _calculate_cohort_feed(
         conversion = plant.expectation.feed_conversion[feed_name][increment.origin]
 
         feed = production * conversion
-        reserved += calculate_reserved_rate(plant, increment, feed, steps, delivery)
+        reserved += calculate_reserved_rate(
+            plant, increment, feed, times, first_pending, delivery
+        )
 
     return reserved
 

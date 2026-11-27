@@ -502,7 +502,7 @@ class _ReservedFeed:
 
     def add(self, plant: Plant, increment: PlantIncrement, t: int) -> None:
         """Reserve the feed of an increment of `plant` from its decision, the `t`-th."""
-        steps = self.times[t:]
+        times = self.times[t:]
         expectation = plant.expectation
         origin = increment.origin
         production = expectation.production[origin]
@@ -512,6 +512,6 @@ class _ReservedFeed:
             feed = production * conversion
 
             reserved = calculate_reserved_rate(
-                plant, increment, feed, steps, delivery[t:]
+                plant, increment, feed, times, 0, delivery[t:]
             )
             self.reserved[feed_name][t:] += reserved

@@ -482,6 +482,9 @@ change.
 - Under a plant `Lifetime` that changes over time, a producer's expected and
   guaranteed production, reserved feed and expected production cost and WTT
   retired plants at the current or decision `Lifetime`, not each step's (#919).
+- A plant `Lifetime` Forecast with `Extrapolate = FALSE` that covers the
+  simulation dates no longer stops a run whose producer starts with plants
+  decided before them (#919).
 - Vessels converted into a type that already holds their vintage keep their
   ages when merged with it; where the two had been scrapped to different ages,
   scrapping at the lifetime and the age results read the wrong ages (#1019).

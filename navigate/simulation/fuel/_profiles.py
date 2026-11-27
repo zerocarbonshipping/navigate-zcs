@@ -82,15 +82,18 @@ def calculate_reserved_rate(
     plant: Plant,
     increment: PlantIncrement,
     rate: float,
-    steps: FloatArray,
+    times: FloatArray,
+    first_pending: int,
     delivery: FloatArray,
 ) -> FloatArray:
     """
     Calculate the rate an increment reserves at the deliveries of plants decided.
 
     Its plants reserve the rate from their decision until decommissioned at the
-    plant lifetime of each of the steps. A delivery reads the plants decommissioning
-    left by the last step before it that are younger than the lifetime at delivery.
+    plant lifetime of each time-step from `first_pending` on. A delivery reads the
+    plants decommissioning left by the last time-step before it that are younger than
+    the lifetime at delivery; beyond the last of the times no time-step runs, so a
+    delivery past it reads the lifetime there.
 
     Parameters
     ----------
@@ -100,8 +103,10 @@ def calculate_reserved_rate(
         Increment of the plant type, decided by the first of the deliveries.
     rate
         Rate one plant reserves, such as feed, in tons/year.
-    steps
-        Times of the time-steps decommissioning is still to run at, in years.
+    times
+        Times of the time-steps, from the current one on, in years.
+    first_pending
+        Step of the horizon from which the decommissioning is still to run.
     delivery
         Delivery of each plant decided, in years, in any order.
 
@@ -110,8 +115,9 @@ def calculate_reserved_rate(
     FloatArray
         Rate the increment reserves at each of the deliveries, in tons/year.
     """
+    steps = times[first_pending:]
     step_lifetimes = plant.lifetime.get(steps)
-    lifetimes = plant.lifetime.get(delivery)
+    lifetimes = plant.lifetime.get(np.minimum(delivery, times[-1]))
     kept = calculate_share_kept(increment, steps, step_lifetimes, delivery, lifetimes)
 
     return rate * increment.count * kept
