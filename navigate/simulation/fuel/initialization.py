@@ -52,7 +52,7 @@ def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> No
 
     producer.increments = _build_initial_increments(producer, timeline)
     producer.pipeline = _build_existing_pipeline(producer, timeline)
-    _define_initial_development(producer, timeline)
+    _define_initial_development(producer)
 
     calculate_feed_availability(producer, timeline, idx)
     calculate_producer_evolution_expectation(
@@ -278,38 +278,29 @@ def _build_initial_increment(
     )
 
 
-def _define_initial_development(producer: Producer, timeline: FloatArray) -> None:
+def _define_initial_development(producer: Producer) -> None:
     """
     Define the initial uptake and development from the pipeline.
 
-    A plant type's development rate is its pipelined plants decided from the start on,
-    per year of their age spans, the time steps they are delivered in. The uptake is
-    each type's share of the producer's rate, the sum over its plant types, and the
-    development counts every pipelined plant.
+    A plant type's development rate is all its pipelined plants, those under
+    construction at the start included, per year of their age spans, the time steps
+    they are delivered in. The uptake is each type's share of the producer's rate, the
+    sum over its plant types, and the development counts every pipelined plant.
 
     Parameters
     ----------
     producer
         Producer whose pipeline is read.
-    timeline
-        Simulation timeline, in years.
     """
-    start = timeline[0]
-    rates = np.zeros(len(producer.plants))
-    count_total = 0.0
+    counts = np.zeros(len(producer.plants))
+    spans = np.zeros(len(producer.plants))
 
     for p, increments in enumerate(producer.pipeline):
-        decided = np.array([increment.decided for increment in increments])
-        counts = np.array([increment.count for increment in increments])
-        spans = np.array([increment.age_span for increment in increments])
+        counts[p] = sum(increment.count for increment in increments)
+        spans[p] = sum(increment.age_span for increment in increments)
 
-        # a weight of one selects the increments decided from the start on
-        weights = np.where(decided >= start, 1.0, 0.0)
-        rates[p] = divide_nonzero(np.dot(weights, counts), np.dot(weights, spans))
-        count_total += np.sum(counts)
-
-    rate_total = float(np.sum(rates))
+    rates = divide_nonzero(counts, spans)
     even_share = 1.0 / rates.size
 
-    producer.current_uptake = divide_nonzero(rates, rate_total, default=even_share)
-    producer.results.development[0] = count_total
+    producer.current_uptake = divide_nonzero(rates, np.sum(rates), default=even_share)
+    producer.results.development[0] = np.sum(counts)

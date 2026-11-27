@@ -491,8 +491,8 @@ change.
   shorten: it plans for the shortfalls of the ports short of a fuel, and a port
   supplied beyond its demand no longer offsets another port's shortfall (#1008).
 - Until a producer first plans, its forecast splits a fuel's newbuilds between
-  plant types by their pipelined plants per year, not their pipelined count;
-  results can move where several plant types of a fuel have a pipeline (#1006).
+  plant types by all their pipelined plants per year, not their count; results
+  can move where a fuel with several plant types has a pipeline (#1006, #1022).
 - The plants of an existing pipeline enter over the time step they are
   delivered in, as the forecast adds them. The first delivery after the start
   entered over a year whatever the step, and a delivery after a flat stretch of
