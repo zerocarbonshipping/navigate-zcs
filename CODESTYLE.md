@@ -306,6 +306,11 @@ its section layout; the rules below cover the content.
   `consolidate_increments` in `navigate/simulation/fleet/_composition.py`),
   and in a guard that only protects an operation undefined at zero, such as a
   division, against an assigned value (a default, a sentinel, a deck input).
+- A cut of a cohort's age span resolves days: a bound less than a day,
+  `1 / DAYS_PER_YEAR` years, from another cuts no part of its own, as whole
+  years from a date can end most of a day off its anniversary
+  (`ARCHITECTURE.md`, Vocabulary; `_join_short_parts` in
+  `navigate/simulation/fleet/_composition.py`).
 
 ## Validation and dynamic access
 
