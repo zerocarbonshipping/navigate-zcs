@@ -117,8 +117,7 @@ def _build_initial_increments(
 
     Each type's age bins come from its own distribution, so bins of one age can lie
     a rounding residual apart between types. They are given one entry time and one
-    span, so that scrapping and consolidation, which compare vintages exactly, take
-    them as one.
+    span, so that consolidation, which compares vintages exactly, takes them as one.
 
     Parameters
     ----------
@@ -270,9 +269,10 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int, start: float) -> None:
     """
     Seed one vessel's age-dependent initial package mix and carried technology charge.
 
-    Each (vessel, technology) pair may have an uptake Curve with age on the x-axis,
-    read at each increment's age at the start. Shares exceeding what the cumulative
-    packages can represent are truncated, with one warning per vessel.
+    Each (vessel, technology) pair may have an uptake Curve with age on the x-axis.
+    Each vessel of an increment takes the package mix its shares give at its own age,
+    and the increment the mix averaged over its age span. Shares exceeding what the
+    cumulative packages can represent are truncated, with one warning per vessel.
 
     Parameters
     ----------
@@ -296,10 +296,18 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int, start: float) -> None:
     )
 
     for increment in fleet.increments[vessel_idx]:
-        shares = _get_initial_shares(fleet, vessel, increment.youngest_age(start))
+        # an empty increment, such as an age distribution's oldest bin at a share of
+        # zero, has no vessel to read a share at, and keeps no uptake
+        if increment.count <= 0.0:
+            continue
+
+        ages = _sample_vessel_ages(increment, start)
+        shares = _get_initial_shares(fleet, vessel, ages)
         package_mix, truncated = _calculate_package_mix(technologies, packages, shares)
-        increment.package_uptake = package_mix
-        increment.technology_charter_rate = float(np.dot(package_mix, package_rates))
+        package_uptake = package_mix.mean(axis=0)
+
+        increment.package_uptake = package_uptake
+        increment.technology_charter_rate = float(np.dot(package_uptake, package_rates))
 
         if truncated:
             truncation_count += 1
@@ -317,9 +325,37 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int, start: float) -> None:
         )
 
 
-def _get_initial_shares(fleet: Fleet, vessel: Vessel, age: float) -> FloatArray:
+def _sample_vessel_ages(increment: VesselIncrement, start: float) -> FloatArray:
     """
-    Return the initial uptake share of each technology of a vessel at an age.
+    Return ages spread evenly over the ages an increment's vessels hold at the start.
+
+    The ages are the midpoints of equal parts of the held ages, over which the vessels
+    are spread uniformly, so the mean of a quantity at these ages is its average over
+    the vessels by the midpoint rule. No age lies on an end of the held ages.
+
+    Parameters
+    ----------
+    increment
+        Increment whose vessels are sampled.
+    start
+        Start time of the simulation, in years.
+
+    Returns
+    -------
+    FloatArray
+        Ages of the sampled vessels, in years, youngest first.
+    """
+    # the mean over a hundred parts is exact where a quantity is linear within each
+    # part, and misses a jump inside the span by at most half a percent of it
+    parts = 100
+    youngest = increment.youngest_age(start)
+
+    return youngest + increment.age_span * (np.arange(parts) + 0.5) / parts
+
+
+def _get_initial_shares(fleet: Fleet, vessel: Vessel, ages: FloatArray) -> FloatArray:
+    """
+    Return the initial uptake share of each technology of a vessel at each age.
 
     Parameters
     ----------
@@ -327,20 +363,21 @@ def _get_initial_shares(fleet: Fleet, vessel: Vessel, age: float) -> FloatArray:
         Fleet the vessel belongs to.
     vessel
         Vessel type the shares apply to.
-    age
-        Age of the vessels, in years.
+    ages
+        Ages of the vessels, in years.
 
     Returns
     -------
     FloatArray
-        Uptake share of each technology, fraction; zero where no share is set.
+        Uptake share of each technology, fraction, one row per age and one column per
+        technology; zero where no share is set.
     """
-    shares = np.zeros(len(fleet.technologies))
+    shares = np.zeros((len(ages), len(fleet.technologies)))
 
     for t, technology in enumerate(fleet.technologies):
         share = fleet.initial_technology_shares[(vessel.name, technology.name)]
         if share is not None:
-            shares[t] = share.get(age)
+            shares[:, t] = share.get(ages)
 
     return shares
 
@@ -351,7 +388,7 @@ def _calculate_package_mix(
     shares: FloatArray,
 ) -> tuple[FloatArray, set[str]]:
     """
-    Convert per-technology shares into per-package shares.
+    Convert per-technology shares into per-package shares, one row per age.
 
     Allocates greedily to larger packages first, then puts the remainder
     into the empty package.
@@ -363,28 +400,29 @@ def _calculate_package_mix(
     packages
         Packages sorted by size, the empty package at index 0.
     shares
-        Uptake share of each technology, fraction.
+        Uptake share of each technology, fraction, one row per age and one column
+        per technology.
 
     Returns
     -------
     FloatArray
-        Share of each package, fraction.
+        Share of each package, fraction, one row per age and one column per package.
     set[str]
-        Names of the technologies whose shares were truncated.
+        Names of the technologies whose shares were truncated at any age.
     """
     index = {technology: i for i, technology in enumerate(technologies)}
     remaining = shares.copy()
-    package_shares = np.zeros(len(packages))
+    package_shares = np.zeros((len(shares), len(packages)))
 
     for p in reversed(range(1, len(packages))):
         indices = [index[technology] for technology in packages[p].technologies]
-        share = remaining[indices].min()
-        if share > 0:
-            package_shares[p] = share
-            remaining[indices] -= share
+        share = remaining[:, indices].min(axis=1)
+        package_shares[:, p] = share
+        remaining[:, indices] -= share[:, np.newaxis]
 
-    package_shares[0] = 1.0 - package_shares[1:].sum()
-    truncated = {technologies[i].name for i in np.flatnonzero(remaining > 0)}
+    package_shares[:, 0] = 1.0 - package_shares[:, 1:].sum(axis=1)
+    truncated_indices = np.flatnonzero((remaining > 0).any(axis=0))
+    truncated = {technologies[i].name for i in truncated_indices}
 
     return package_shares, truncated
 
@@ -403,8 +441,8 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     idx = 0
     counts = get_counts(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx)
-    trade_growth = fleet.trade_growth.get(timeline)
+    growth_rate = fleet.trade_growth.get
 
     initial_trade = np.dot(counts, cargo_miles)
-    fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
+    fleet.trade = calculate_compound_growth(initial_trade, growth_rate, timeline)
     fleet.results.trade[idx] = fleet.trade[idx]

@@ -8,10 +8,13 @@ on:
     branches: [ main, dev ]
   pull_request:
     types: [ opened, synchronize, reopened, edited ]
+  workflow_call:
 
-# A title or body edit re-runs the checks, so the latest result on a PR is never a skip.
+# A title or body edit re-runs the checks, so the latest result on a PR is never a skip. A tag's
+# push and its release each run CI to publish its build (publish-test.yml, publish.yml), so they
+# run apart.
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -52,6 +55,14 @@ jobs:
         run: |
           pip install build
           python -m build
+
+      - name: Check the tag names the built version
+        if: github.ref_type == 'tag'
+        run: |
+          if ! ls dist/*-"${GITHUB_REF_NAME#v}".tar.gz > /dev/null 2>&1; then
+            echo "::error::tag $GITHUB_REF_NAME, but the build is $(ls dist | tr '\n' ' ')"
+            exit 1
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7

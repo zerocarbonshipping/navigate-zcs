@@ -214,12 +214,10 @@ Process "methanol_synthesis" {
 }
 
 Producer "producer_global" {
-	Inertia = 0.15
 	MinimumOfftakeDuration = 2
 	FuelSensitivity = 1.3
 	VariantSensitivity = 0.6
 	MaximumDevelopment = 6
-	MaximumRampUp = 0.6
 	JumpStart = 0.15
 	set_allow_plant("plant_methanol", TRUE)
 	set_feed_limit("water", INF)

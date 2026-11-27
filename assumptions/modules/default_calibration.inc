@@ -24,7 +24,6 @@ Fleet "*" {
 # FuelSensitivity is higher-is-better (odds for a 10% higher expected demand); VariantSensitivity
 # is lower-is-better (odds for a 10% higher levelized cost of fuel). A value of 1 means no preference.
 Producer "*" {
-	Inertia = 0.0
 	FuelSensitivity = 1.25        # a 10% higher expected demand gives 1.25x the odds of a pathway
 	VariantSensitivity = 0.75          # a 10% higher LCoF gives 25% lower odds of a plant
 }

@@ -94,8 +94,7 @@ def _transfer_weighted_age(fleet: Fleet, time: float, idx: int) -> None:
     Transfer the power-weighted average fleet age per fuel type.
 
     Stored as separate numerator (age * count * power) and denominator
-    (count * power) sums. A cohort's vessels spread uniformly from its youngest
-    vessel's age to its oldest's, so their mean age is the middle of the two.
+    (count * power) sums, each cohort's vessels at their mean age.
 
     Parameters
     ----------
@@ -115,9 +114,7 @@ def _transfer_weighted_age(fleet: Fleet, time: float, idx: int) -> None:
 
         vessel_years = 0.0
         for increment in increments:
-            youngest = increment.youngest_age(time)
-            oldest = increment.oldest_age(time)
-            vessel_years += (youngest + oldest) / 2.0 * increment.count
+            vessel_years += increment.mean_age(time) * increment.count
 
         numerator = vessel_years * power
         denominator = get_count(fleet, v) * power

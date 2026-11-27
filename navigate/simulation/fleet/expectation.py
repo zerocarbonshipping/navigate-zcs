@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import itertools
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -15,10 +14,16 @@ from navigate.simulation.fleet._composition import extract_cargo_miles, is_in_se
 from navigate.simulation.fleet._newbuild import is_newbuild_allowed
 from navigate.simulation.fleet.scrapping import (
     calculate_survivors,
-    group_by_age,
     split_oldest_first,
+    tabulate_increments,
 )
-from navigate.util import divide_nonzero, subtract
+from navigate.util import (
+    calculate_kept_fraction,
+    calculate_removed_fraction,
+    divide_nonzero,
+    step_lengths,
+    subtract,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -259,7 +264,7 @@ def _forecast_by_age(
     forward = np.s_[idx:]
     trade = fleet.trade[forward]
     cargo_miles = extract_cargo_miles(fleet.vessels, forward)
-    split = _newbuild_split(fleet, idx)
+    split = _newbuild_split(fleet, timeline, idx)
 
     existing = _existing_by_age(fleet, timeline[forward], first_pending)
     newbuild = _gap_newbuilds(trade, existing, cargo_miles, split)
@@ -314,13 +319,14 @@ def _forecast_at_fixed_rate(
     """
     Forecast the existing vessels scrapped at the fixed rate and the newbuilds.
 
-    Each time-step scraps the rate's share of the capacity of the fleet expected at
-    the time-step before, oldest age group first across vessel types, as primary
-    scrapping does; the first time-step scrapped counts the fleet as it is. As the
-    expected fleet holds the newbuilds that fill each gap, the time-steps are
-    forecast one after another. All ages advance equally, so the age order holds
-    over the horizon. Scrapping left once the existing vessels are gone would only
-    scrap expected newbuilds, which the gap refills, so it is dropped.
+    Each time-step scraps, of the capacity of the fleet expected at the time-step
+    before, the share the yearly rate compounds to over the step, the oldest vessels
+    first across vessel types, as primary scrapping does; the first time-step
+    scrapped counts the fleet as it is. As the expected fleet holds the newbuilds
+    that fill each gap, the time-steps are forecast one after another. All ages
+    advance together, so each increment's entry interval only shrinks from its
+    start as it is scrapped. Scrapping left once the existing vessels are gone would
+    only scrap expected newbuilds, which the gap refills, so it is dropped.
 
     Parameters
     ----------
@@ -344,25 +350,33 @@ def _forecast_at_fixed_rate(
     forward = np.s_[idx:]
     trade = fleet.trade[forward]
     rates = scrap_rate.get(timeline[forward])
-    split = _newbuild_split(fleet, idx)
+    split = _newbuild_split(fleet, timeline, idx)
 
     # the time-steps are rows here, as the forecast runs one time-step at a time
     cargo_miles = extract_cargo_miles(fleet.vessels, forward).T
     existing = np.zeros_like(cargo_miles)
     newbuild = np.zeros_like(cargo_miles)
 
-    grouped = _grouped_counts(fleet)
-    counted = np.sum(grouped, axis=0)
+    type_count = len(fleet.vessels)
+    vessel_indices, counts, starts, ends = tabulate_increments(fleet)
+    counted = np.bincount(vessel_indices, weights=counts, minlength=type_count)
 
     for k in range(trade.size):
         is_pending = k >= first_pending
 
         if is_pending:
             time_step = timeline[idx + k] - timeline[idx + k - 1]
-            target = rates[k] * time_step * np.dot(counted, cargo_miles[k])
-            grouped = _scrap_oldest_groups(grouped, cargo_miles[k], target)
+            scrap_share = calculate_removed_fraction(rates[k], time_step)
+            target = scrap_share * np.dot(counted, cargo_miles[k])
+            capacities = counts * cargo_miles[k][vessel_indices]
+            kept, _ = split_oldest_first(starts, ends, capacities, target)
 
-        existing[k] = np.sum(grouped, axis=0)
+            # the entry interval shrinks from its start with the count, as
+            # scrapping oldest first cuts an increment's span
+            counts = counts * kept
+            starts = ends - (ends - starts) * kept
+
+        existing[k] = np.bincount(vessel_indices, weights=counts, minlength=type_count)
         newbuild[k] = _gap_newbuilds(trade[k], existing[k], cargo_miles[k], split)
 
         # a time-step whose evolution has run leaves its gap open, so the next
@@ -370,62 +384,6 @@ def _forecast_at_fixed_rate(
         counted = existing[k] + newbuild[k] if is_pending else existing[k]
 
     return existing.T, newbuild.T
-
-
-def _grouped_counts(fleet: Fleet) -> FloatArray:
-    """
-    Return the vessel counts of the fleet's age groups.
-
-    Parameters
-    ----------
-    fleet
-        Fleet whose increments are grouped.
-
-    Returns
-    -------
-    FloatArray
-        Number of vessels in each age group (rows), oldest first, of each vessel type
-        (columns).
-    """
-    groups = group_by_age(fleet)
-    grouped = np.zeros((len(groups), len(fleet.vessels)))
-
-    for g, group in enumerate(groups):
-        for v, i in group:
-            grouped[g, v] += fleet.increments[v][i].count
-
-    return grouped
-
-
-def _scrap_oldest_groups(
-    grouped: FloatArray, cargo_miles: FloatArray, capacity: float
-) -> FloatArray:
-    """
-    Return the age groups' vessel counts left after scrapping a capacity, oldest first.
-
-    Parameters
-    ----------
-    grouped
-        Number of vessels in each age group (rows), oldest first, of each vessel type
-        (columns).
-    cargo_miles
-        Cargo-miles of one vessel of each type, in cargo-miles/year.
-    capacity
-        Capacity to scrap, in cargo-miles/year.
-
-    Returns
-    -------
-    FloatArray
-        Number of vessels left in each age group (rows), oldest first, of each vessel
-        type (columns).
-    """
-    whole, fraction = split_oldest_first(grouped @ cargo_miles, capacity)
-    left = grouped[whole:].copy()
-
-    if fraction is not None:
-        left[0] *= 1.0 - fraction
-
-    return left
 
 
 def _gap_newbuilds(
@@ -465,19 +423,21 @@ def _gap_newbuilds(
     return newbuild_trade / cargo_miles
 
 
-def _newbuild_split(fleet: Fleet, idx: int) -> FloatArray:
+def _newbuild_split(fleet: Fleet, timeline: FloatArray, idx: int) -> FloatArray:
     """
     Return the share of the newbuilds each vessel type is expected to take.
 
-    The recent uptake is expected to continue, weighted by memory over the time-steps
-    that recorded any. Where no such time-step carries any weight, the current uptake
-    is renormalized, in case inertia has reduced it. The weights ignore the time-step
-    size, so they misweigh a timeline of varying step sizes.
+    The recent uptake is expected to continue, averaged over the time-steps that
+    recorded any: each year of a time-step weighs by the memory raised to the years
+    since it. Where no such time-step carries any weight, the current uptake is
+    renormalized, in case inertia has reduced it.
 
     Parameters
     ----------
     fleet
         Fleet whose newbuilds are split.
+    timeline
+        Simulation timeline, in years.
     idx
         Current time-step index.
 
@@ -486,12 +446,23 @@ def _newbuild_split(fleet: Fleet, idx: int) -> FloatArray:
     FloatArray
         Share of the newbuilds of each vessel type.
     """
-    uptakes = fleet.expectation.uptakes[:, : idx + 1]
+    past = np.s_[: idx + 1]
+    uptakes = fleet.expectation.uptakes[:, past]
     recorded = np.any(uptakes != 0.0, axis=0)
 
-    steps_back = idx - np.arange(idx + 1)
-    decay = fleet.memory.get() ** steps_back
-    weights: FloatArray = np.where(recorded, decay, 0.0)
+    memory = fleet.memory.get()
+    forgotten = 1.0 - memory
+    years_back = timeline[idx] - timeline[past]
+    spans = step_lengths(timeline)[past]
+
+    # a time-step's years, each decayed by the memory to the time-step's end; a
+    # memory of 1 forgets nothing, so every year counts in full
+    decay = calculate_kept_fraction(memory, years_back)
+    if forgotten > 0.0:
+        remembered_years = (1.0 - calculate_kept_fraction(memory, spans)) / forgotten
+    else:
+        remembered_years = spans
+    weights: FloatArray = np.where(recorded, decay * remembered_years, 0.0)
 
     if np.any(weights):
         return np.sum(uptakes * weights, axis=1) / np.sum(weights)
@@ -501,35 +472,30 @@ def _newbuild_split(fleet: Fleet, idx: int) -> FloatArray:
     return divide_nonzero(current, np.sum(current), default=default)
 
 
-def calculate_fleet_fuel_demand(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
+def calculate_fleet_bunker_demand(fleet: Fleet, idx: int) -> None:
     """
-    Calculate the fleet's fuel demand over the horizon from the expected bunkering.
+    Calculate the fleet's demand for each fuel at each port over the horizon.
 
-    Each vessel's expected bunkered mass is weighted by its expected count.
+    The demand is the expected bunkering: each vessel's expected bunkered mass at a
+    port, weighted by its expected count. It is kept per port, as the fuel producers
+    weigh it against the supply each port receives.
 
     Parameters
     ----------
     fleet
-        Fleet whose fuel demand is calculated.
-    fuels
-        All fuels in the simulation.
+        Fleet whose bunker demand is calculated.
     idx
         Current time-step index.
     """
     forward = np.s_[idx:]
     scope = BunkerScopeID.EXPECTED
-    demand: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
+    bunker_demand = fleet.expectation.bunker_demand
+    demand: dict[tuple[str, str], FloatLike] = dict.fromkeys(bunker_demand, 0.0)
 
     for vessel in fleet.vessels:
-        expectation = vessel.expectation
         counts = fleet.expectation.count[vessel.name, scope][forward]
 
-        # the bunkered mass is per port, so a port the route calls more than once
-        # counts once
-        ports = vessel.route.distinct_ports
-        for port, fuel_name in itertools.product(ports, fuels):
-            mass = expectation.bunker_mass_expected[port.name, fuel_name][forward]
-            demand[fuel_name] += counts * mass
+        for key, mass in vessel.expectation.bunker_mass_expected.items():
+            demand[key] += counts * mass[forward]
 
-    for key, value in demand.items():
-        fleet.expectation.fuel_demand[key][idx:] = value
+    bunker_demand.at[idx:] = demand

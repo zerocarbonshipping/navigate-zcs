@@ -57,6 +57,9 @@ change.
   requested; they used to produce no column.
 
 ### Changed
+- `retrofit_technology_uptake`, which the `RetrofitTechnologyUptake` report
+  property gave as the share retrofitted over the step, is a share per year,
+  unit `1/year`.
 - DSL attributes and commands are renamed to say what they set; an old name is
   a deck error. The results file keeps its series names. Write instead:
   - `Fleet` sensitivities: `InterFuelSensitivity` → `FuelSensitivity`,
@@ -145,9 +148,9 @@ change.
   `<data_dir>/modules/`. Move an assumptions folder of the old layout up one
   level. A user file overlaying a default is replaced by an `Import` and the
   reassignments in the deck, or by an own assumptions folder passed with `-d`.
-- `Load DefaultCalibration` sets every inertia to 0: ports' bunkering inertia
-  was 0.7 and fleets' and producers' `Inertia` 0.6. This moves the results of
-  every deck that loads it (#9).
+- `Load DefaultCalibration` sets ports' bunkering inertia (0.7 before) and
+  fleets' `Inertia` (0.6 before) to 0; producers' `Inertia` (0.6 before) is
+  removed (#1013). This moves the results of every deck that loads it (#9).
 - A deck that needs the assumptions when no folder is given names the
   folder of the clone Navigate was installed from, with the command that sets
   `ASSUMPTIONS_DATA_DIR` on this system, or links the download of the
@@ -387,6 +390,12 @@ change.
 - A `Curve` or `Forecast` given `Below` or `Above` while `Extrapolate` is not
   `FLAT` logs a warning that the value is ignored, as a `Surface` or
   `Timetable` does for `Outside` (#814).
+- A `Producer`'s `JumpStart` only blends the split between the plant types of a
+  fuel in its expected production; it no longer stands in for the development
+  of a producer that has built nothing.
+- Vessels that scrapping leaves less than a day past a retrofit cycle can
+  retrofit or convert at that cycle, and vessel cohorts of the same ages merge
+  whatever their history. No example deck's results move.
 
 ### Removed
 - The `Plot` and `Report` nodes, the built-in plots and the
@@ -461,11 +470,80 @@ change.
 - Emission offsetting: `EnableOffsetting`, `OffsettingCost`, `AllowOffsetting`
   and `OffsetThreshold`, the `regulation_offsetting_units`, `_expenses` and
   `_cost` plots, and the offset lines of the emission and compliance plots.
+- A `Producer`'s `MaximumRampUp`: a producer may build up to
+  `MaximumDevelopment` plants per year in every time step. A deck that sets it
+  is refused; delete the line (#1007).
+- A `Producer`'s `Inertia`: the plants it carried over were capped by the last
+  time step's fuel demand, so it built none in the first planning step; its
+  default and `Load DefaultCalibration` set it to 0. A deck that sets it is
+  refused; delete the line (#1013).
 
 ### Fixed
+- Vessels converted into a type that already holds their vintage keep their
+  ages when merged with it; where the two had been scrapped to different ages,
+  scrapping at the lifetime and the age results read the wrong ages (#1019).
+- Secondary scrapping and `FixedScrapRate` scrap the oldest vessels of the fleet
+  by their age, across vessel types, rather than whole cohorts ranked by their
+  youngest vessel; results move in decks that use either (#1010).
+- A cohort of fewer than 0.001 vessels stays in the fleet unless it is
+  negligible against the fleet's count; it vanished without a trace in any
+  result. Results move slightly in every deck, most in small fleets and decks
+  counted in fleet shares, and a vessel type holding only such cohorts stays
+  in the fleet (#1011).
+- A producer's development limited by `MaximumDevelopment` no longer depends
+  on the step length: on steps shorter than a year it was held back by what the
+  producer built in its last step (#1007).
+- A producer's development for unmet demand no longer falls as the time steps
+  shorten: it plans for the shortfalls of the ports short of a fuel, and a port
+  supplied beyond its demand no longer offsets another port's shortfall (#1008).
+- A producer plans the output that, by its export weights, brings its share of
+  each shortfall to every short port it exports to, not the shortfalls summed;
+  results move in decks where a fuel goes to more than one port (#1025).
+- Until a producer first plans, its forecast splits a fuel's newbuilds between
+  plant types by all their pipelined plants, no longer discounting those under
+  construction at the start by `Inertia`; results can move where a fuel with
+  several plant types has a pipeline (#1022, #1029).
+- The plants of an existing pipeline enter over the time step they are
+  delivered in, as the forecast adds them. The first delivery after the start
+  entered over a year whatever the step, and a delivery after a flat stretch of
+  the forecast over the whole stretch. Results move in decks with
+  `set_existing_pipeline` on steps other than one year or with a flat stretch
+  (#1014).
+- A vessel without `FuelType` whose main fuel types tie on power takes the one
+  its tanks hold the most volume of, instead of the one whose last-listed tank
+  is largest; a tie no tank stores stops the run with an `Error:` line (#359).
+- A vessel whose tanks store no fuel type a converter needs, or whose fuel
+  types match no `Fuel`, stops the run with an `Error:` line naming it instead
+  of a Python traceback (#459).
+- A plant whose `LeadTime` plus `Lifetime` does not exceed its `LeadTime`
+  rounded up to whole years stops the run with an `Error:` line naming the
+  plant and the date, instead of a Python traceback in planning (#890).
+- `set_initial_technology_share` seeds each initial cohort with the uptake
+  averaged over its vessels' ages rather than that of its youngest vessels;
+  results move in decks whose share curves vary with age (#993).
 - `weighted_average_age`, `vessel_tied_capital` and `plant_tied_capital` read a
   cohort over the ages its vessels or plants hold, not all at the youngest; the
   average age rises by half each cohort's age span, half a step for newbuilds (#992).
+- Rates and carry-overs hold per calendar year whatever the length of the time
+  step, so decks with steps other than one year move; yearly decks dated
+  1 January do not:
+  - `TechnologyHorizon`, `SpeedHorizon` (Fleet) and `FlexibilityHorizon`
+    (Regulation) keep H/(1 + H) of the belief per year; two half-year steps
+    kept less of it than one year step;
+  - `Memory` (Fleet) weighs each year of a past step by the memory raised to
+    the years since it; it decayed per step;
+  - `FixedScrapRate` (Fleet) compounds over a step: a rate of 0.25 scraps 76%
+    of the fleet over a 5-year step, not all of it;
+  - `TradeGrowth` (Fleet) holds the rate read at each whole year from the start
+    for the year after it, so the trade no longer depends on the deck's dates;
+  - a fuel conversion books its yearly charge by the share of each date's
+    period within its service window.
+- Retrofits and fuel conversions act on the vessels at their retrofit cycle
+  alone; they acted on their whole cohort, so steps shorter than a cohort's age
+  span retrofitted too few. Yearly decks dated 1 January move only where:
+  - initial age bins are wider than a year;
+  - the retrofit interval, a lifetime or the minimum conversion age is not a
+    whole number of years.
 - A table read at a time built from durations, such as a cost bin or a
   replacement a whole number of years after a date that is not 1 January, reads
   the table date it lands on, instead of raising an `Extrapolate = FALSE` error
@@ -900,9 +978,6 @@ change.
 - A Curve in a `Fleet`'s or `Producer`'s `InitialAgeDistribution` with a
   negative age or fraction is a deck error; it ran with assets entering in the
   future or negative asset counts (#214, #469).
-- A producer's plant development ramps up by `MaximumRampUp` per year, as its
-  own forecasts assume; with time steps shorter than a year it ramped up by
-  the full yearly amount every step (#564).
 - Vessels converted out of a vessel type that other conversions convert into
   in the same time-step keep the technology package and charter rate of the
   cohort they leave; they could carry those of an older cohort (#581).

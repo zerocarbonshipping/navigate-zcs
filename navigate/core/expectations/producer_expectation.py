@@ -40,10 +40,12 @@ class ProducerExpectation(_Expectation):
         self.feed_gap = self._paths(feed_names, default=np.inf)  # t/year
 
         self.development_potential = self._values(fuel_names)  # t/year, added this step
-        self.fair_share_demand = self._paths(fuel_names)  # t/year
 
-        # the producer's guaranteed production its fair-share demand was measured
-        # against
+        # the producer's share of the ports' shortfalls, as demand at the ports and as
+        # the output that brings it to each short port it exports to, and the
+        # guaranteed production both were measured against
+        self.fair_share_demand = self._paths(fuel_names)  # t/year
+        self.fair_share_production = self._paths(fuel_names)  # t/year
         self.fair_share_baseline = self._paths(fuel_names)  # t/year
 
         self.guaranteed_production = self._paths(plant_names)  # t/year

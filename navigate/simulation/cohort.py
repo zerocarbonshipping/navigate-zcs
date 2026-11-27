@@ -4,13 +4,13 @@
 """
 Vintage-stock accounting over the asset cohorts of the fleet and fuel domains.
 
-What a domain adds to its cohorts, such as the vessels scrapped past the lifetime or
-the time a plant was decided, and building its Increment subclass stay in that
-domain.
+What a domain adds to its cohorts, such as the technology a vessel carries or the time
+a plant was decided, and building its Increment subclass stay in that domain.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -94,7 +94,7 @@ def calculate_share_below(increment: Increment, boundary: float, time: float) ->
         increment at or past it, 1.0 for one wholly younger.
     """
     youngest = increment.youngest_age(time)
-    oldest = youngest + increment.age_span
+    oldest = increment.oldest_age(time)
     scale = max(abs(youngest), abs(oldest))
 
     below = float(drop_negligible(boundary - youngest, scale))
@@ -107,6 +107,84 @@ def calculate_share_below(increment: Increment, boundary: float, time: float) ->
 
     # the boundary lies inside the span, which is then positive
     return below / increment.age_span
+
+
+def split_at_age[I: Increment](increment: I, age: float, time: float) -> tuple[I, I]:
+    """
+    Split an increment at an age inside its span into its younger and older part.
+
+    The assets are spread uniformly over the span, so each part holds the share of
+    the count its ages span, and both carry the increment's other fields.
+
+    Parameters
+    ----------
+    increment
+        Increment split.
+    age
+        Age the increment is split at, in years.
+    time
+        Time the age is read at, in years.
+
+    Returns
+    -------
+    tuple[I, I]
+        The part younger than the age and the part older.
+    """
+    younger_span = age - increment.youngest_age(time)
+    share = younger_span / increment.age_span
+
+    younger = replace(increment, count=increment.count * share, age_span=younger_span)
+    older = replace(
+        increment,
+        count=increment.count - younger.count,
+        entered=time - age,
+        age_span=increment.age_span - younger_span,
+    )
+
+    return younger, older
+
+
+def retire_past_age[I: Increment](
+    increments: list[I], age: float, time: float
+) -> tuple[list[I], float]:
+    """
+    Retire the assets of increments past an age, such as their lifetime.
+
+    An increment spanning the age keeps its part younger than the age, its span then
+    ending at the age; one at or past the age, to rounding, retires whole.
+
+    Parameters
+    ----------
+    increments
+        Increments of one asset type.
+    age
+        Age the assets retire at, in years.
+    time
+        Time the ages are read at, in years.
+
+    Returns
+    -------
+    tuple[list[I], float]
+        The increments left, in their order, and the number of assets retired.
+    """
+    kept = []
+    retired = 0.0
+
+    for increment in increments:
+        share = calculate_share_below(increment, age, time)
+
+        if share == 1.0:
+            kept.append(increment)
+
+        elif share == 0.0:
+            retired += increment.count
+
+        else:
+            younger, older = split_at_age(increment, age, time)
+            kept.append(younger)
+            retired += older.count
+
+    return kept, retired
 
 
 def calculate_retired_share(

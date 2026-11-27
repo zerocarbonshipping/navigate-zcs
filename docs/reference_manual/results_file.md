@@ -44,8 +44,9 @@ attributes of each kind are listed under [Results](#results).
 
 Values are per year where the unit says so. The results that count what
 happened in a time step, `newbuilds`, `scrap`, `fuel_conversions`,
-`newbuild_power`, `scrapped_power`, `fuel_converted_power`, `development` and
-`computational_time`, are divided by the length of the step: the difference of
+`retrofit_technology_uptake`, `newbuild_power`, `scrapped_power`,
+`fuel_converted_power`, `development` and `computational_time`, are divided by
+the length of the step: the difference of
 its dates in calendar years, so a step from 1 January to 1 January is one year,
 leap year or not. The first step counts as one year.
 
@@ -140,7 +141,8 @@ Some rules hold throughout:
   and production and runs the bunkering. Newbuilds, scrapping, fuel
   conversions, technology installation, speed management and plant
   development start at the second date. Their counts are 0 at the first date,
-  and the results they write are missing there.
+  `development` aside, which counts the plants in the initial pipeline, and the
+  results they write are missing there.
 - **The keys hold names.** The *Keys* column names what `key1` holds and,
   after the comma, `key2`:
   - *fuel*, *emission*, *vessel*, *technology*, *regulation* and *levy* are
@@ -252,7 +254,7 @@ The CO2-equivalents use the model's global warming potentials, which the
 | `fleet.fuel_conversions` | `vessels/year` | vessel, vessel | Vessels fuel converted from one type to the other. | Fuel conversions |
 | `fleet.technology_uptake` | `-` | vessel, technology | Share of the vessels of a type carrying the technology. | The fleet has Technologies |
 | `fleet.newbuild_technology_uptake` | `-` | vessel, technology | Share of the newbuilds of a type carrying the technology. | As `technology_uptake` |
-| `fleet.retrofit_technology_uptake` | `-` | vessel, technology | Share of the vessels of a type retrofitted with the technology. | Retrofits, at the dates RetrofitInterval allows |
+| `fleet.retrofit_technology_uptake` | `1/year` | vessel, technology | Share of the vessels of a type retrofitted with the technology per year. | Retrofits, at the dates RetrofitInterval allows |
 | `fleet.fleet_technology_uptake` | `-` | technology | `technology_uptake` averaged over the vessel types, weighted by `existing_vessels`. | As `technology_uptake` |
 
 ### Transport work, speeds and freight rate
@@ -327,7 +329,7 @@ The energies are the masses times the fuel's `lower_heating_value`.
 |---|---|---|---|---|
 | `producer.maximum_development` | `plants/year` | | Plants the producer can add to its pipeline, its MaximumDevelopment. | Always |
 | `producer.development` | `plants/year` | | Plants added to the pipeline; at the first date, the plants in the initial pipeline. | Plants are developed |
-| `producer.fair_share_fuel_fraction` | `-` | fuel | Share of the expected shortfall of a fuel the producer is asked to supply: its share of the development potential of the producers that can make the fuel. | Each fuel the producer can make, while it has potential |
+| `producer.fair_share_fuel_fraction` | `-` | fuel | Share of a fuel's expected shortfall, summed over the ports short of it, that the producer is asked to supply: its share of the development potential of the producers that can make the fuel. | Each fuel the producer can make, while it has potential |
 
 ### Plant
 

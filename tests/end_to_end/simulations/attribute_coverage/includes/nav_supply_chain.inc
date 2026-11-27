@@ -10,9 +10,9 @@
 #   Transport: (none - empty)
 #   Plant:     Fuel, Process, Source, Region, CostOfCapital, Capacity, Uptime,
 #              Lifetime, LeadTime
-#   Producer:  Plants, InitialCapacity, InitialAgeDistribution, Inertia,
+#   Producer:  Plants, InitialCapacity, InitialAgeDistribution,
 #              MinimumOfftakeDuration, FuelSensitivity, VariantSensitivity,
-#              MaximumDevelopment, MaximumRampUp, JumpStart
+#              MaximumDevelopment, JumpStart
 #   Region:    (none - only commands)
 #
 # Commands covered:
@@ -96,12 +96,10 @@ Producer "producer_global" {
 	Plants = [Plant("plant_methanol"), Plant("plant_methanol_grid")]
 	InitialCapacity = [500, 0]
 	InitialAgeDistribution = [Curve("curve_plant_age"), Curve("curve_plant_age")]
-	Inertia = 0.1
 	MinimumOfftakeDuration = 1
 	FuelSensitivity = 1.25
 	VariantSensitivity = 0.5
 	MaximumDevelopment = 5
-	MaximumRampUp = 0.5
 	JumpStart = <0.05 * 2>
 	set_existing_pipeline("plant_methanol", Forecast("fc_pipeline"))
 	set_allow_plant("plant_methanol", TRUE)

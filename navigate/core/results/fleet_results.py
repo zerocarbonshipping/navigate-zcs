@@ -33,13 +33,14 @@ class FleetResults(_VesselAggregateResults, _TransportResults):
     )
 
     # fraction of the vessels carrying a technology, per vessel and technology,
-    # across the fleet, among the newbuilds and among the retrofits
+    # across the fleet and among the newbuilds
     technology_uptake: dict[tuple[str, str], FloatArray] = result(Unit.DIMENSIONLESS)
     newbuild_technology_uptake: dict[tuple[str, str], FloatArray] = result(
         Unit.DIMENSIONLESS
     )
+    # fraction of the vessels retrofitted with a technology in each time step
     retrofit_technology_uptake: dict[tuple[str, str], FloatArray] = result(
-        Unit.DIMENSIONLESS
+        Unit.FRACTION_PER_YEAR, per_step=True
     )
     # fraction of the fleet carrying a technology, weighted by vessel count
     fleet_technology_uptake: dict[str, FloatArray] = result(Unit.DIMENSIONLESS)

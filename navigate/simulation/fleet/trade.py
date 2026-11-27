@@ -29,7 +29,7 @@ from navigate.simulation.fleet.scrapping import perform_secondary_scrapping
 from navigate.simulation.fleet.technology_adoption import (
     reconcile_newbuild_technology_caps,
 )
-from navigate.util import calculate_step_inertia, drop_negligible, subtract
+from navigate.util import calculate_kept_fraction, drop_negligible, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -73,7 +73,7 @@ def close_trade_gap(fleet: Fleet, time: float, time_step: float, idx: int) -> No
     trade_gap = float(drop_negligible(trade_gap - delivered_capacity, trade))
 
     # inertia decays the current uptake shares before the modelled newbuilds read them
-    fleet.current_uptake *= calculate_step_inertia(fleet.inertia.get(), time_step)
+    fleet.current_uptake *= calculate_kept_fraction(fleet.inertia.get(), time_step)
 
     if trade_gap > 0.0:
         modelled, delivered_capacity = calculate_modelled_newbuilds(
@@ -87,9 +87,11 @@ def close_trade_gap(fleet: Fleet, time: float, time_step: float, idx: int) -> No
 
     # a count negligible against the fleet is no vessel, whether a rounding residue or
     # the tail of a logit: it would never be in service, so no cohort is built from it
-    newbuilds = drop_negligible(newbuilds, total_count + np.sum(newbuilds))
+    # and a cohort shrunk to it is dropped
+    population = total_count + float(np.sum(newbuilds))
+    newbuilds = drop_negligible(newbuilds, population)
 
-    consolidate_increments(fleet)
+    consolidate_increments(fleet, population)
     reconcile_newbuild_technology_caps(fleet, newbuilds, time_step, total_count)
     add_newbuilds(fleet, newbuilds, time, time_step, idx)
     update_current_uptake(fleet, newbuilds, idx)
