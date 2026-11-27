@@ -291,7 +291,8 @@ its section layout; the rules below cover the content.
     of its population, the fleet's or the producer's count with the newbuilds,
     whether a rounding residue or the tail of a logit. This is the model's
     resolution of a population, not rounding; `is_in_service` decides it for
-    the vessel types of a fleet.
+    the vessel types of a fleet, and `close_trade_gap`
+    (`navigate/simulation/fleet/trade.py`) for its newbuilds and cohorts.
 
   Test a one-sided bound by its dropped excess,
   `drop_negligible(energy - limit, limit) > 0.0`, not by widening the bound.
