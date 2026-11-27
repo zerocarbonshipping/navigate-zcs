@@ -415,11 +415,11 @@ def _calculate_newbuild_production(
     fuel_names = list(producer.fuels)
     fuel_idx = [fuel_names.index(plant.fuel.name) for plant in plants]
 
-    # the fair-share demand was measured against the producer's guaranteed
+    # the fair-share production was measured against the producer's guaranteed
     # production then, so the production its plants gained since comes off it
-    demand = producer.expectation.fair_share_demand
+    required = producer.expectation.fair_share_production
     baseline = producer.expectation.fair_share_baseline
-    targets = [demand[name][forward] + baseline[name][forward] for name in fuel_names]
+    targets = [required[name][forward] + baseline[name][forward] for name in fuel_names]
     gaps = np.array(targets)
 
     for p, f in enumerate(fuel_idx):

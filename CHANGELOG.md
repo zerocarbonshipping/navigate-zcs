@@ -493,6 +493,9 @@ change.
 - A producer's development for unmet demand no longer falls as the time steps
   shorten: it plans for the shortfalls of the ports short of a fuel, and a port
   supplied beyond its demand no longer offsets another port's shortfall (#1008).
+- A producer plans the output that, by its export weights, brings its share of
+  each shortfall to every short port it exports to, not the shortfalls summed;
+  results move in decks where a fuel goes to more than one port (#1025).
 - Until a producer first plans, its forecast splits a fuel's newbuilds between
   plant types by all their pipelined plants per year, not their count; results
   can move where a fuel with several plant types has a pipeline (#1006, #1022).

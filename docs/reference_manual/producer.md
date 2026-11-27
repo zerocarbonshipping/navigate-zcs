@@ -12,7 +12,9 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 A producer develops plants for the expected demand that the plants in service and in the pipeline leave unmet,
 counted port by port: at each port, the fleets' expected bunkering of a fuel beyond the supply that port receives
 from those plants, by the producers' export weights within the ports' bunkering limits. A port supplied beyond its
-demand does not make up for another port's shortfall.
+demand does not make up for another port's shortfall. A plant's output reaches each port by the producer's export
+weights, so the producer plans the production that, by those weights, brings its share of the shortfall to every
+port it exports to that is short of the fuel; what the production brings to the other ports is surplus there.
 
 Example:
 

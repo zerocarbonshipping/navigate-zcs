@@ -33,5 +33,5 @@ from navigate.simulation.fuel.results import (
 )
 from navigate.simulation.fuel.supply_demand import (
     calculate_development_potential,
-    calculate_fair_share_demand,
+    calculate_fair_shares,
 )

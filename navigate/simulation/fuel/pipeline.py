@@ -101,14 +101,18 @@ def perform_pipeline_planning(
     idx
         Current time-step index.
     """
+    expectation = producer.expectation
     development = producer.maximum_development.get() * time_step
     offtake_duration = producer.minimum_offtake_duration.get()
-    demand = producer.expectation.fair_share_demand
 
     for plant in producer.plants:
-        shares = producer.expectation.export_share[plant.fuel.name].at[idx]
+        fuel_name = plant.fuel.name
+        required = expectation.fair_share_production[fuel_name]
+        demand = expectation.fair_share_demand[fuel_name]
+        shares = expectation.export_share[fuel_name].at[idx]
 
-        _calculate_inter_fuel_metric(plant, demand, offtake_duration, timeline, idx)
+        _calculate_demand_newbuilds(plant, required, offtake_duration, timeline, idx)
+        _calculate_inter_fuel_metric(plant, demand, timeline, idx)
         _calculate_intra_fuel_metric(plant, shares, idx)
 
     newbuilds = _calculate_newbuilds(producer, development, idx)
@@ -237,28 +241,23 @@ def _calculate_demand_limits(
     return limits
 
 
-def _calculate_inter_fuel_metric(
+def _calculate_demand_newbuilds(
     plant: Plant,
-    demand: dict[str, FloatArray],
+    required: FloatArray,
     offtake_duration: float,
     timeline: FloatArray,
     idx: int,
 ) -> None:
     """
-    Calculate the business-case metric used to choose a fuel pathway.
-
-    The metric is the expected unmet demand for the plant's fuel, as energy, per
-    discounted operating year of the plant: levelized on the same years and weights as
-    the plant's levelized production cost. The number of plants required to satisfy the
-    gap also checks that there is sufficient future offtake to merit building plants.
+    Calculate the number of plants the producer's fair-share production supports.
 
     Parameters
     ----------
     plant
-        Plant for which inter uptake metric is being calculated.
-    demand
-        The expected demand per fuel pathway that is not satisfied by current supply,
-        in tons/year.
+        Plant for which the newbuilds are being calculated.
+    required
+        The production of the plant's fuel the producer is expected to add to its
+        guaranteed production, in tons/year.
     offtake_duration
         The minimum duration of offtake to justify building a plant, in years.
     timeline
@@ -266,31 +265,54 @@ def _calculate_inter_fuel_metric(
     idx
         Current time-step index.
     """
-    expectation = plant.expectation
-    fuel = plant.fuel
     lead_time = plant.lead_time.get()
     lifetime = plant.lifetime.get()
-    lhv = fuel.lower_heating_value.get()
+    output = plant.expectation.production[idx]
+
+    year_starts, _ = build_operating_flows(lead_time, lifetime, timeline[idx])
+    yearly_required = np.interp(year_starts, timeline, required, left=0.0)
+
+    # the lowest plant count the production supports within the sufficient offtake
+    # duration is the most plants it makes sense to sanction, among the years from
+    # commissioning
+    operating_required = yearly_required[ceil(lead_time) :]
+    horizon = min(ceil(offtake_duration), ceil(lifetime), operating_required.size)
+    counts = operating_required[:horizon] / output
+
+    plant.expectation.demand_newbuilds = max(np.amin(counts), 0.0)
+
+
+def _calculate_inter_fuel_metric(
+    plant: Plant, demand: FloatArray, timeline: FloatArray, idx: int
+) -> None:
+    """
+    Calculate the business-case metric used to choose a fuel pathway.
+
+    The metric is the expected unmet demand for the plant's fuel, as energy, per
+    discounted operating year of the plant: levelized on the same years and weights as
+    the plant's levelized production cost.
+
+    Parameters
+    ----------
+    plant
+        Plant for which inter uptake metric is being calculated.
+    demand
+        The producer's fair share of the demand for the plant's fuel that guaranteed
+        supply leaves unmet at the ports, in tons/year.
+    timeline
+        Simulation timeline, in years.
+    idx
+        Current time-step index.
+    """
+    lead_time = plant.lead_time.get()
+    lifetime = plant.lifetime.get()
+    lhv = plant.fuel.lower_heating_value.get()
     discount_rate = plant.cost_of_capital.get()
-    production = expectation.production[idx]
 
     # the fair-share demand is re-sampled onto the calendar-year grid of the plant's
     # cash flows, the one its levelized production cost is built on
     year_starts, operating = build_operating_flows(lead_time, lifetime, timeline[idx])
-    # interpolating across a change of sign can leave a residue where the demand
-    # crosses zero, negligible against the demands interpolated between
-    fuel_demand = demand[fuel.name]
-    yearly_demand = np.interp(year_starts, timeline, fuel_demand, left=0.0)
-    scale = np.interp(year_starts, timeline, np.abs(fuel_demand), left=0.0)
-    yearly_demand = drop_negligible(yearly_demand, scale)
-
-    # the lowest plant count the demand supports within the sufficient offtake
-    # duration is the most plants it makes sense to sanction, among the years from
-    # commissioning
-    operating_demand = yearly_demand[ceil(lead_time) :]
-    horizon = min(ceil(offtake_duration), ceil(lifetime), operating_demand.size)
-    counts = operating_demand[:horizon] / production
-    newbuilds = max(np.amin(counts), 0.0)
+    yearly_demand = np.interp(year_starts, timeline, demand, left=0.0)
 
     # the plant's discount rate discounts the demand: dwindling demand is worth less
     # than immediate demand, since the production can be sold to other industries
@@ -298,8 +320,7 @@ def _calculate_inter_fuel_metric(
     energy = yearly_demand * lhv * operating
     metric = calculate_levelized_cost(energy, operating, discount_rate)
 
-    expectation.demand_newbuilds = newbuilds
-    expectation.inter_fuel_metric = metric
+    plant.expectation.inter_fuel_metric = metric
 
 
 def _calculate_intra_fuel_metric(

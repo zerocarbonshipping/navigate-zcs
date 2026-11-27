@@ -64,7 +64,7 @@ from navigate.simulation.fleet import (
 from navigate.simulation.fuel import (
     calculate_development_potential,
     calculate_export_expectations,
-    calculate_fair_share_demand,
+    calculate_fair_shares,
     calculate_feed_availability,
     calculate_fuel_import_to_ports,
     calculate_plant_logistics_expectations,
@@ -780,7 +780,7 @@ class Simulation:
             calculate_feed_availability(producer, self.timeline, self._idx)
             calculate_development_potential(producer, self._time_step, self._idx)
 
-        calculate_fair_share_demand(
+        calculate_fair_shares(
             self.nodes.producers,
             self.nodes.fleets,
             self.nodes.ports,
