@@ -291,7 +291,8 @@ its section layout; the rules below cover the content.
     of its population, the fleet's or the producer's count with the newbuilds,
     whether a rounding residue or the tail of a logit. This is the model's
     resolution of a population, not rounding; `is_in_service` decides it for
-    the vessel types of a fleet.
+    the vessel types of a fleet, and `close_trade_gap`
+    (`navigate/simulation/fleet/trade.py`) for its newbuilds and cohorts.
 
   Test a one-sided bound by its dropped excess,
   `drop_negligible(energy - limit, limit) > 0.0`, not by widening the bound.
@@ -302,10 +303,14 @@ its section layout; the rules below cover the content.
   whose residual was dropped, where its branches agree at zero
   (`max(gap, 0.0)`), between values set once and copied rather than
   accumulated, such as the entry times that group cohorts by vintage
-  (`group_by_age` in `navigate/simulation/fleet/scrapping.py`,
-  `consolidate_increments` in `navigate/simulation/fleet/_composition.py`),
+  (`consolidate_increments` in `navigate/simulation/fleet/_composition.py`),
   and in a guard that only protects an operation undefined at zero, such as a
   division, against an assigned value (a default, a sentinel, a deck input).
+- A cut of a cohort's age span resolves days: a bound less than a day,
+  `1 / DAYS_PER_YEAR` years, from another cuts no part of its own, as whole
+  years from a date can end most of a day off its anniversary
+  (`ARCHITECTURE.md`, Vocabulary; `_join_short_parts` in
+  `navigate/simulation/fleet/_composition.py`).
 
 ## Validation and dynamic access
 

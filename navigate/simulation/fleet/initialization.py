@@ -117,8 +117,7 @@ def _build_initial_increments(
 
     Each type's age bins come from its own distribution, so bins of one age can lie
     a rounding residual apart between types. They are given one entry time and one
-    span, so that scrapping and consolidation, which compare vintages exactly, take
-    them as one.
+    span, so that consolidation, which compares vintages exactly, takes them as one.
 
     Parameters
     ----------

@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import TYPE_CHECKING, overload
 
@@ -26,7 +27,7 @@ if TYPE_CHECKING:
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.types_ import ForecastInput
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike, IntArray
 
 logger = logging.getLogger(__name__)
 
@@ -94,73 +95,168 @@ def perform_secondary_scrapping(
     return scrapped_capacity
 
 
-def group_by_age(fleet: Fleet) -> list[list[tuple[int, int]]]:
+def tabulate_increments(
+    fleet: Fleet,
+) -> tuple[IntArray, FloatArray, FloatArray, FloatArray]:
     """
-    Group the fleet's increments by age across vessel types, oldest first.
+    Tabulate the fleet's increments in fleet order, for scrapping oldest first.
 
-    Scrapping takes the increments of one age together across vessel types. An age
-    group holds the increments that entered service at the same time: an entry time
-    is set once and copied, never accumulated, and the initial vintages are aligned
-    across vessel types, so increments of one vintage hold equal entry times.
+    The vessels an increment holds entered uniformly over its held entry interval,
+    from the entry of its oldest vessel to that of its youngest.
 
     Parameters
     ----------
     fleet
-        Fleet whose increments are grouped.
+        Fleet whose increments are tabulated.
 
     Returns
     -------
-    list[list[tuple[int, int]]]
-        (vessel, increment) indices of each age group, oldest group first.
+    tuple[IntArray, FloatArray, FloatArray, FloatArray]
+        Each increment's vessel-type index, its count, and the start and end of its
+        held entry interval, in years.
     """
-    groups: dict[float, list[tuple[int, int]]] = {}
-    for v, increments in enumerate(fleet.increments):
-        for i, increment in enumerate(increments):
-            groups.setdefault(increment.entered, []).append((v, i))
+    sizes = [len(increments) for increments in fleet.increments]
+    increments = list(itertools.chain.from_iterable(fleet.increments))
 
-    return [groups[entered] for entered in sorted(groups)]
+    vessel_indices = np.repeat(np.arange(len(sizes)), sizes)
+    counts = np.array([increment.count for increment in increments])
+    starts = np.array([increment.oldest_entered() for increment in increments])
+    ends = np.array([increment.entered for increment in increments])
+
+    return vessel_indices, counts, starts, ends
 
 
 def split_oldest_first(
-    capacities: FloatArray, capacity: float
-) -> tuple[int, float | None]:
+    starts: FloatArray, ends: FloatArray, capacities: FloatArray, capacity: float
+) -> tuple[FloatArray, float | None]:
     """
-    Split a capacity to scrap over age groups, oldest group first.
+    Split a capacity to scrap over increments, the oldest vessels first.
 
-    The oldest groups are scrapped whole until what is left of the capacity fits in
-    the next group, which then has the same fraction of each of its increments
-    scrapped. What is left is exact zero once it is negligible against the capacity,
-    so a group it fills to rounding is scrapped whole, with nothing split off.
+    Every vessel that entered service before a cutoff is scrapped, so each increment
+    keeps the share of its held vessels that entered at or after it.
 
     Parameters
     ----------
+    starts
+        Start of each increment's held entry interval, in years.
+    ends
+        End of each increment's held entry interval, in years.
     capacities
-        Capacity of each age group, oldest first, in cargo-miles/year.
+        Capacity of each increment, in cargo-miles/year.
     capacity
         Capacity to scrap, in cargo-miles/year.
 
     Returns
     -------
-    tuple[int, float | None]
-        Number of the oldest groups scrapped whole, and the fraction of the next
-        group scrapped, or None when the capacity exceeds all groups.
+    tuple[FloatArray, float | None]
+        Share of each increment's held vessels kept, and the entry time of the
+        cutoff, in years, or None where the capacity exceeds the increments' total.
     """
-    remaining = capacity
+    cutoff = _find_cutoff(starts, ends, capacities, capacity)
+    if cutoff is None:
+        return np.zeros_like(capacities), None
 
-    for g, group_capacity in enumerate(capacities):
-        left = float(drop_negligible(remaining - group_capacity, capacity))
+    return _calculate_share_entered_after(starts, ends, cutoff), cutoff
 
-        # the group takes the rest of the capacity, in part where it holds more
-        if remaining == 0.0 or left < 0.0:
-            return g, float(divide_nonzero(remaining, group_capacity))
 
-        # and whole where it holds the rest to rounding
-        if left == 0.0:
-            return g, 1.0
+def _find_cutoff(
+    starts: FloatArray, ends: FloatArray, capacities: FloatArray, capacity: float
+) -> float | None:
+    """
+    Find the entry time before which the vessels entered hold a capacity.
 
-        remaining = left
+    Each increment's capacity entered uniformly over its held entry interval, so the
+    capacity entered by a time is piecewise linear in the time, with knots at the
+    ends of the intervals; the cutoff lies in the segment over which that capacity
+    reaches the one to scrap. A capacity within rounding of what had entered by a
+    knot puts the cutoff on the knot, so a capacity within rounding of the total
+    scraps every increment.
 
-    return len(capacities), None
+    An interval holding capacity has a positive length, as every increment's span
+    does; one the forecast has scrapped whole holds none and adds nothing.
+
+    Parameters
+    ----------
+    starts
+        Start of each increment's held entry interval, in years.
+    ends
+        End of each increment's held entry interval, in years.
+    capacities
+        Capacity of each increment, in cargo-miles/year.
+    capacity
+        Capacity to scrap, in cargo-miles/year.
+
+    Returns
+    -------
+    float | None
+        Entry time of the cutoff, in years, or None where the capacity exceeds the
+        increments' total.
+    """
+    density = divide_nonzero(capacities, ends - starts)
+    knots = np.concatenate((starts, ends))
+    changes = np.concatenate((density, -density))
+
+    # the capacity entering per year after each knot; knots of equal time are
+    # neighbours in the order, so the segments between them have zero length
+    order = np.argsort(knots)
+    knots = knots[order]
+    slopes = np.cumsum(changes[order])
+
+    cumulative = np.zeros(knots.size)
+    cumulative[1:] = np.cumsum(slopes[:-1] * np.diff(knots))
+
+    excess = drop_negligible(cumulative - capacity, capacity)
+    reached = np.flatnonzero(excess >= 0.0)
+    if not reached.size:
+        return None
+
+    knot_idx = reached[0]
+    if excess[knot_idx] == 0.0:
+        return float(knots[knot_idx])
+
+    # nothing has entered by the first knot, so the capacity is reached inside the
+    # segment before a later knot; that segment has a positive length, so the knot
+    # starting it is the last of its time in the order, and its positive slope holds
+    # every change at that time
+    shortfall = capacity - cumulative[knot_idx - 1]
+    return float(knots[knot_idx - 1] + shortfall / slopes[knot_idx - 1])
+
+
+def _calculate_share_entered_after(
+    starts: FloatArray, ends: FloatArray, cutoff: float
+) -> FloatArray:
+    """
+    Calculate the share of each increment's held vessels entered at or after a cutoff.
+
+    The vessels entered uniformly over the held entry interval. A cutoff within
+    rounding of an end of the interval, against the larger of its ends, splits
+    nothing off; an interval ending at or before the cutoff is scrapped whole, even
+    where both its ends lie within rounding of it.
+
+    Parameters
+    ----------
+    starts
+        Start of each increment's held entry interval, in years.
+    ends
+        End of each increment's held entry interval, in years.
+    cutoff
+        Entry time of the cutoff, in years.
+
+    Returns
+    -------
+    FloatArray
+        Share of each increment's held vessels entered at or after the cutoff: 0.0
+        for an interval ending at or before it, 1.0 for one from the cutoff on.
+    """
+    scale = np.maximum(np.abs(starts), np.abs(ends))
+    before = drop_negligible(cutoff - starts, scale)
+    after = drop_negligible(ends - cutoff, scale)
+
+    # the cutoff lies inside an interval only where the interval is positive
+    inside = divide_nonzero(after, ends - starts)
+    shares: FloatArray = np.select([after <= 0.0, before <= 0.0], [0.0, 1.0], inside)
+
+    return shares
 
 
 @overload
@@ -199,13 +295,13 @@ def calculate_survivors(
     FloatLike
         Vessels left at each of the times.
     """
-    size_before = increment.count + increment.scrapped_past_lifetime
+    size_before = increment.count + increment.scrapped_oldest
     ages = times - increment.entered
     retired = calculate_retired_share(lifetime, increment.age_span, ages)
 
-    # vessels converted from a shorter-lived type, and round-off, can leave the cohort
-    # scrapped beyond this lifetime's share, so the survivors are capped at the
-    # vessels the increment holds
+    # scrapping oldest first, vessels converted from a shorter-lived type, and
+    # round-off can leave the cohort scrapped beyond this lifetime's share, so the
+    # survivors are capped at the vessels the increment holds
     return np.minimum(increment.count, size_before * (1.0 - retired))
 
 
@@ -265,7 +361,7 @@ def _scrap_past_lifetime(
     scrapping = increment.count - survivors
 
     increment.count = survivors
-    increment.scrapped_past_lifetime += scrapping
+    increment.scrapped_oldest += scrapping
 
     return scrapping
 
@@ -278,7 +374,7 @@ def _scrap_at_fixed_rate(
     idx: int,
 ) -> None:
     """
-    Scrap a fixed yearly share of the fleet's trade, oldest increments first.
+    Scrap a fixed yearly share of the fleet's trade, the oldest vessels first.
 
     The share compounds over the time step, each year scrapping its share of what the
     years before left.
@@ -320,7 +416,10 @@ def _scrap_oldest(
     fleet: Fleet, capacity: float, time: float, idx: int
 ) -> tuple[float, float | None]:
     """
-    Scrap a given capacity, oldest increments first.
+    Scrap a given capacity, the oldest vessels first across vessel types.
+
+    Each increment loses the oldest part of its held vessels, booked like scrapping
+    at the lifetime.
 
     Parameters
     ----------
@@ -337,99 +436,54 @@ def _scrap_oldest(
     -------
     tuple[float, float | None]
         Scrapped capacity, in cargo-miles/year, and the youngest age scrapped, in
-        years, or None when nothing was scrapped in part.
+        years, or None where the capacity exceeds the fleet's.
     """
-    groups = group_by_age(fleet)
     cargo_miles = extract_cargo_miles(fleet.vessels, idx)
+    vessel_indices, counts, starts, ends = tabulate_increments(fleet)
+    capacities = counts * cargo_miles[vessel_indices]
 
-    capacities = np.zeros(len(groups))
-    for g, group in enumerate(groups):
-        capacities[g] = _group_capacity(fleet, group, cargo_miles)
-
-    whole, fraction = split_oldest_first(capacities, capacity)
+    kept, cutoff = split_oldest_first(starts, ends, capacities, capacity)
 
     scrap = fleet.results.scrap
-    scrapped_increments = [0] * len(fleet.increments)
+    shares = iter(kept)
 
-    for group in groups[:whole]:
-        for v, i in group:
-            increment = fleet.increments[v][i]
-            scrapped_increments[v] = i + 1
-            scrap[fleet.vessels[v].name][idx] += increment.count
+    for v, vessel in enumerate(fleet.vessels):
+        increments = fleet.increments[v]
 
-    # the increments scrapped in part are found by their index, so they are scrapped
-    # before the increments scrapped whole are removed
-    if fraction is None:
-        scrapped_capacity = float(np.sum(capacities))
-        youngest_age = None
-    else:
-        scrapped_capacity = capacity
-        youngest_age = _scrap_in_part(fleet, groups[whole], fraction, time, idx)
+        scrapped_vessels = 0.0
+        for increment in increments:
+            scrapped_vessels += _scrap_oldest_part(increment, next(shares))
 
-    for v, scrapped in enumerate(scrapped_increments):
-        fleet.increments[v] = fleet.increments[v][scrapped:]
+        surviving = [increment for increment in increments if increment.count > 0.0]
+        fleet.increments[v] = surviving
+        scrap[vessel.name][idx] += scrapped_vessels
+
+    scrapped_capacity = float(np.dot(capacities, 1.0 - kept))
+    youngest_age = None if cutoff is None else time - cutoff
 
     return scrapped_capacity, youngest_age
 
 
-def _group_capacity(
-    fleet: Fleet, group: list[tuple[int, int]], cargo_miles: FloatArray
-) -> np.float64:
-    """Return the capacity of an age group, in cargo-miles/year."""
-    capacities = []
-
-    for v, i in group:
-        increment = fleet.increments[v][i]
-        capacities.append(increment.count * cargo_miles[v])
-
-    capacity: np.float64 = np.sum(capacities)
-
-    return capacity
-
-
-def _scrap_in_part(
-    fleet: Fleet,
-    group: list[tuple[int, int]],
-    fraction: float,
-    time: float,
-    idx: int,
-) -> float | None:
+def _scrap_oldest_part(increment: VesselIncrement, kept_share: float) -> float:
     """
-    Scrap the same fraction of each increment of an age group.
+    Scrap the oldest part of an increment's held vessels.
 
     Parameters
     ----------
-    fleet
-        Fleet whose vessels are scrapped.
-    group
-        (vessel, increment) indices of the age group.
-    fraction
-        Share of each increment scrapped.
-    time
-        Current time, in years.
-    idx
-        Current time-step index.
+    increment
+        Increment of a vessel type.
+    kept_share
+        Share of the held vessels kept, the youngest.
 
     Returns
     -------
-    float | None
-        Youngest age scrapped, in years.
+    float
+        Vessels scrapped.
     """
-    scrap = fleet.results.scrap
-    youngest_scrapped = None
+    survivors = increment.count * kept_share
+    scrapping = increment.count - survivors
 
-    for v, i in group:
-        increment = fleet.increments[v][i]
-        to_scrap = increment.count * fraction
-        increment.count -= to_scrap
-        increment.scrapped_past_lifetime *= 1.0 - fraction
+    increment.count = survivors
+    increment.scrapped_oldest += scrapping
 
-        # vessels are scrapped from the oldest part of the uniform increment first,
-        # which is inconsistent when several time-steps shorter than the increment's
-        # age span pass
-        kept_span = increment.age_span * (1.0 - fraction)
-        youngest_scrapped = increment.youngest_age(time) + kept_span
-
-        scrap[fleet.vessels[v].name][idx] += to_scrap
-
-    return youngest_scrapped
+    return scrapping

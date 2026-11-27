@@ -476,12 +476,26 @@ change.
   refused; delete the line (#1013).
 
 ### Fixed
+- Secondary scrapping and `FixedScrapRate` scrap the oldest vessels of the fleet
+  by their age, across vessel types, rather than whole cohorts ranked by their
+  youngest vessel; results move in decks that use either (#1010).
+- A cohort of fewer than 0.001 vessels stays in the fleet unless it is
+  negligible against the fleet's count; it vanished without a trace in any
+  result. Results move slightly in every deck, most in small fleets and decks
+  counted in fleet shares, and a vessel type holding only such cohorts stays
+  in the fleet (#1011).
 - A producer's development limited by `MaximumDevelopment` no longer depends
   on the step length: on steps shorter than a year it was held back by what the
   producer built in its last step (#1007).
 - Until a producer first plans, its forecast splits a fuel's newbuilds between
   plant types by their pipelined plants per year, not their pipelined count;
   results can move where several plant types of a fuel have a pipeline (#1006).
+- The plants of an existing pipeline enter over the time step they are
+  delivered in, as the forecast adds them. The first delivery after the start
+  entered over a year whatever the step, and a delivery after a flat stretch of
+  the forecast over the whole stretch. Results move in decks with
+  `set_existing_pipeline` on steps other than one year or with a flat stretch
+  (#1014).
 - A vessel without `FuelType` whose main fuel types tie on power takes the one
   its tanks hold the most volume of, instead of the one whose last-listed tank
   is largest; a tie no tank stores stops the run with an `Error:` line (#359).
@@ -511,6 +525,12 @@ change.
     for the year after it, so the trade no longer depends on the deck's dates;
   - a fuel conversion books its yearly charge by the share of each date's
     period within its service window.
+- Retrofits and fuel conversions act on the vessels at their retrofit cycle
+  alone; they acted on their whole cohort, so steps shorter than a cohort's age
+  span retrofitted too few. Yearly decks dated 1 January move only where:
+  - initial age bins are wider than a year;
+  - the retrofit interval, a lifetime or the minimum conversion age is not a
+    whole number of years.
 - A table read at a time built from durations, such as a cost bin or a
   replacement a whole number of years after a date that is not 1 January, reads
   the table date it lands on, instead of raising an `Extrapolate = FALSE` error

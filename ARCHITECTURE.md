@@ -34,9 +34,13 @@ only through `core` expectations and the bunkering LP. `Simulation` in
   time it enters service, on the timeline, and its origin, the time step whose
   attributes it carries; its age at a time is read off that entry time, never
   accumulated step by step. Its assets are spread uniformly over its age span,
-  so a decision on an asset's age, such as scrapping at the lifetime or a
-  vessel's retrofit cycle, acts on the share of the span it holds for, never
-  on the whole cohort by one of its ages.
+  so a decision on an asset's age, such as scrapping at the lifetime, acts on
+  the share of the span it holds for, never on the whole cohort by one of its
+  ages. A retrofit or a fuel conversion acts on the vessels at their retrofit
+  cycle alone: `split_at_cycle` (`simulation/fleet/_composition.py`) splits
+  them off as increments of their own, and the parts the decision left
+  unchanged join back once it is applied. A fleet keeps each vessel type's
+  increments sorted by entry time, oldest first.
 - Count: the number of vessels or plants a value stands for, fractional as
   cohorts split and scrap in shares. A `Vessel` node is a vessel type and a
   `Plant` node a plant type; their expectations, and a vessel's results, hold
@@ -60,8 +64,8 @@ only through `core` expectations and the bunkering LP. `Simulation` in
   share). Ages, lead times, lifetimes and the numeric x-values of `Forecast`
   and `Timetable` tables are on the same axis. Whole years from a 1 January
   date end on a 1 January date, to rounding; from another date they can end up
-  to half a day off its anniversary, as the calendar years between differ in
-  length. A time rebuilt from durations carries a rounding remainder, which a
+  to 0.84 days off its anniversary, from 1 March, as the calendar years between
+  differ in length. A time rebuilt from durations carries a rounding remainder, which a
   test on it drops (`CODESTYLE.md`, Numerics). Days remain only in physical
   averages, such as a vessel's operating days per year or a plant's tons per
   day, converted through `DAYS_PER_YEAR`.
