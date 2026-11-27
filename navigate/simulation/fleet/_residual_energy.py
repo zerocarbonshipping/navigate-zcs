@@ -132,11 +132,12 @@ def scale_per_key(
 def calculate_energy_savings(
     net_energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
     raw_energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    fallbacks: Mapping[EnergyDemandID, float],
 ) -> dict[EnergyDemandID, list[float]]:
     """
     Calculate the saving fraction of each step's net energy against its raw energy.
 
-    A step without raw energy saves nothing.
+    A step without raw energy saves its energy demand type's fallback.
 
     Parameters
     ----------
@@ -144,6 +145,8 @@ def calculate_energy_savings(
         Net energy demand per energy demand type and step, in GJ/year.
     raw_energies
         Raw energy demand per energy demand type and step, in GJ/year.
+    fallbacks
+        Saving of a step without raw energy per energy demand type, fraction.
 
     Returns
     -------
@@ -153,8 +156,9 @@ def calculate_energy_savings(
     savings: dict[EnergyDemandID, list[float]] = {}
 
     for energy_id, net_energy in net_energies.items():
+        default = 1.0 - fallbacks[energy_id]
         steps = zip(net_energy, raw_energies[energy_id], strict=True)
-        remaining = [divide_nonzero(net, raw, default=1.0) for net, raw in steps]
+        remaining = [divide_nonzero(net, raw, default=default) for net, raw in steps]
         savings[energy_id] = [1.0 - float(ratio) for ratio in remaining]
 
     return savings

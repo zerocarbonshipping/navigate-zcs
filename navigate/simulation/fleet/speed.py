@@ -18,13 +18,11 @@ from navigate.simulation.fleet._marginal_saving import calculate_marginal_speed_
 from navigate.simulation.fleet._residual_energy import (
     calculate_energy_savings,
     calculate_net_energy,
-    scale_per_key,
 )
 from navigate.simulation.fleet._trip import ReferenceTrip, derive_reference_trip
 from navigate.simulation.fleet.charter import calculate_fuel_and_policy_expenses
 from navigate.simulation.fleet.operation import (
     calculate_operations,
-    transfer_operational_savings,
     transfer_operations,
 )
 from navigate.simulation.fleet.power import (
@@ -98,7 +96,6 @@ def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     if not fleet.allow_speed_management:
         return
 
-    transfer_operational_savings(fleet)
     results = [_optimize_vessel_speed(vessel, idx) for vessel in fleet.vessels]
 
     if fleet.route_speed_optimal:
@@ -170,29 +167,29 @@ def _optimize_vessel_speed(vessel: Vessel, idx: int) -> _SpeedResult:
     raw_energy_sea = expectation.raw_energy_sea_condition.at[idx]
     raw_energy_port = expectation.raw_energy_port.at[idx]
 
-    savings_sea = calculate_energy_savings(energy_sea_ref, raw_energy_sea)
-    savings_port = calculate_energy_savings(energy_port_ref, raw_energy_port)
-
+    # a load without raw energy at the current speed takes the operational savings
+    # alone, those the residual energy was built with
     fractions_sea = expectation.operational_saving_fraction_sea
     fractions_port = expectation.operational_saving_fraction_port
 
-    remaining_sea = {key: 1.0 - value for key, value in fractions_sea.items()}
-    remaining_port = {key: 1.0 - value for key, value in fractions_port.items()}
+    # the saving of the residual energy the expected bunkering ran with against the
+    # raw energy carries both the operational savings and the current technology
+    # uptake, so a candidate speed's raw energy takes them as the expected bunkering
+    # did; the proportional savings are an approximation, since external power has a
+    # larger share at lower speeds
+    savings_sea = calculate_energy_savings(
+        energy_sea_ref, raw_energy_sea, fractions_sea
+    )
+    savings_port = calculate_energy_savings(
+        energy_port_ref, raw_energy_port, fractions_port
+    )
 
     def objective(mu: float) -> float:
         speeds = _mean_to_speeds(mu, deltas_ref, speeds_min, speeds_max)
         operations = calculate_operations(vessel, trip, speeds)
 
-        # the operational savings (JIT, weather routing, etc.) apply to the freshly
-        # computed energy, before the technology savings
-        energy_sea = scale_per_key(operations.energy_sea, remaining_sea)
-        energy_port = scale_per_key(operations.energy_port, remaining_port)
-
-        # the current technology uptake is applied, as the saving is measured from
-        # the energy of the expected bunkering; the proportional savings are an
-        # approximation, since external power has a larger share at lower speeds
-        net_sea = calculate_net_energy(energy_sea, savings_sea)
-        net_port = calculate_net_energy(energy_port, savings_port)
+        net_sea = calculate_net_energy(operations.energy_sea, savings_sea)
+        net_port = calculate_net_energy(operations.energy_port, savings_port)
 
         saving = calculate_marginal_speed_saving(vessel, legs, net_sea, net_port, idx)
 
