@@ -9,14 +9,16 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from navigate.simulation.fuel.port_supply import calculate_guaranteed_bunker_supply
 from navigate.util import add_dicts, subtract
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.plant import Plant
+    from navigate.core.nodes.port import Port
     from navigate.core.nodes.producer import Producer
-    from navigate.util.types_ import FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def calculate_development_potential(
@@ -94,15 +96,75 @@ def _calculate_feasible_newbuilds(
     return newbuilds
 
 
-def calculate_expected_fuel_demand(
-    fleets: dict[str, Fleet], idx: int
-) -> dict[str, FloatLike]:
+def calculate_fair_share_demand(
+    producers: dict[str, Producer],
+    fleets: dict[str, Fleet],
+    ports: dict[str, Port],
+    fuels: dict[str, Fuel],
+    timeline: FloatArray,
+    idx: int,
+) -> None:
     """
-    Calculate the expected future demand of each fuel across all fleets.
+    Assign each producer a share of each fuel's expected gap by its potential.
+
+    The gap of a fuel is the sum of the ports' shortfalls: at each port, the fleets'
+    expected demand for the fuel less the supply guaranteed production brings there,
+    where the demand is the larger. A producer exports to the ports by fixed shares,
+    so the supply a port holds beyond its demand is stranded there and serves no
+    other port's shortfall.
 
     The demand is the expected bunkering calculated earlier in the time step, so it
     lags the newest fleet evolution. This keeps feedstock availability and bunker
     limits satisfied.
+
+    Each share is stored with the producer's guaranteed production of the fuel it was
+    measured against, so that the production the producer gains later can come off
+    it.
+
+    TODO: Can be improved with a regionality aspect
+
+    Parameters
+    ----------
+    producers
+        All producers in the simulation.
+    fleets
+        All fleets in the simulation.
+    ports
+        All ports in the simulation.
+    fuels
+        All fuels in the simulation not traded on a liquid market.
+    timeline
+        Simulation timeline, in years.
+    idx
+        Current time-step index.
+    """
+    demand = _calculate_bunker_demand(fleets, idx)
+    supply = calculate_guaranteed_bunker_supply(ports, producers, fuels, timeline, idx)
+    gap = _calculate_fuel_gap(fuels, demand, supply)
+
+    productions: dict[str, dict[str, FloatLike]] = {}
+
+    for producer_name, producer in producers.items():
+        productions[producer_name] = _calculate_guaranteed_production(producer, idx)
+
+    for fuel_name, fuel_gap in gap.items():
+        shares = _calculate_fair_shares(producers, fuel_name)
+
+        for producer_name, share in shares.items():
+            producer = producers[producer_name]
+            fair_share = fuel_gap * share
+            production = productions[producer_name][fuel_name]
+
+            producer.expectation.fair_share_demand[fuel_name][idx:] = fair_share
+            producer.expectation.fair_share_baseline[fuel_name][idx:] = production
+            producer.results.fair_share_fuel_fraction[fuel_name][idx] = share
+
+
+def _calculate_bunker_demand(
+    fleets: dict[str, Fleet], idx: int
+) -> dict[tuple[str, str], FloatLike]:
+    """
+    Calculate the expected future demand of each fuel at each port across all fleets.
 
     Parameters
     ----------
@@ -113,39 +175,55 @@ def calculate_expected_fuel_demand(
 
     Returns
     -------
-    dict[str, FloatLike]
-        Expected future demand of each fuel, in tons/year.
+    dict[tuple[str, str], FloatLike]
+        Expected future demand of each fuel at each port, by port and fuel, in
+        tons/year.
     """
     forward = np.s_[idx:]
-    demands = [fleet.expectation.fuel_demand.at[forward] for fleet in fleets.values()]
+    demands = [fleet.expectation.bunker_demand.at[forward] for fleet in fleets.values()]
     return add_dicts(*demands)
 
 
-def calculate_expected_fuel_supply(
-    producers: dict[str, Producer], idx: int
+def _calculate_fuel_gap(
+    fuels: dict[str, Fuel],
+    demand: dict[tuple[str, str], FloatLike],
+    supply: dict[tuple[str, str], FloatArray],
 ) -> dict[str, FloatLike]:
     """
-    Calculate the expected future supply of each fuel across all producers.
+    Calculate the expected future gap of each fuel, the sum of the ports' shortfalls.
 
     Parameters
     ----------
-    producers
-        All producers in the simulation.
-    idx
-        Current time-step index.
+    fuels
+        All fuels in the simulation not traded on a liquid market.
+    demand
+        Expected future demand of each fuel at each port, by port and fuel, in
+        tons/year.
+    supply
+        Guaranteed future supply of each of the fuels at each port, by port and fuel,
+        in tons/year.
 
     Returns
     -------
     dict[str, FloatLike]
-        Expected future supply of each fuel, in tons/year.
+        Expected future gap of each fuel, in tons/year; a port's shortfall is exactly
+        zero where its demand and supply agree to rounding.
     """
-    supplies = [_calculate_own_supply(producer, idx) for producer in producers.values()]
-    return add_dicts(*supplies)
+    gaps: dict[str, FloatLike] = dict.fromkeys(fuels, 0.0)
+
+    for key, port_supply in supply.items():
+        _, fuel_name = key
+        shortfall = subtract(demand[key], port_supply)
+        gaps[fuel_name] += np.maximum(shortfall, 0.0)
+
+    return gaps
 
 
-def _calculate_own_supply(producer: Producer, idx: int) -> dict[str, FloatLike]:
+def _calculate_guaranteed_production(
+    producer: Producer, idx: int
+) -> dict[str, FloatLike]:
     """
-    Calculate the expected future supply of each fuel from one producer.
+    Calculate the guaranteed production of each of a producer's fuels.
 
     Parameters
     ----------
@@ -157,88 +235,19 @@ def _calculate_own_supply(producer: Producer, idx: int) -> dict[str, FloatLike]:
     Returns
     -------
     dict[str, FloatLike]
-        Guaranteed production of each of the producer's fuels from idx on, in
-        tons/year.
+        Production of each of the producer's fuels from its plants in service and in
+        the pipeline, from idx on, in tons/year.
     """
     forward = np.s_[idx:]
     expectation = producer.expectation
-    supply: dict[str, FloatLike] = {}
+    production: dict[str, FloatLike] = {}
 
     for plant in producer.plants:
         fuel_name = plant.fuel.name
-        production = expectation.guaranteed_production[plant.name][forward]
-        supply[fuel_name] = supply.get(fuel_name, 0.0) + production
+        guaranteed = expectation.guaranteed_production[plant.name][forward]
+        production[fuel_name] = production.get(fuel_name, 0.0) + guaranteed
 
-    return supply
-
-
-def calculate_expected_fuel_gap(
-    fuels: dict[str, Fuel],
-    supply: dict[str, FloatLike],
-    demand: dict[str, FloatLike],
-) -> dict[str, FloatLike]:
-    """
-    Calculate the expected future gap between demand and supply of each fuel.
-
-    Parameters
-    ----------
-    fuels
-        All fuels in the simulation not traded on a liquid market.
-    supply
-        Expected future supply of each fuel, in tons/year.
-    demand
-        Expected future demand of each fuel, in tons/year.
-
-    Returns
-    -------
-    dict[str, FloatLike]
-        Expected future demand less supply of each fuel, in tons/year; exactly zero
-        where the two agree to rounding.
-    """
-    gaps: dict[str, FloatLike] = {}
-
-    for name in fuels:
-        gaps[name] = subtract(demand.get(name, 0.0), supply.get(name, 0.0))
-
-    return gaps
-
-
-def calculate_fair_share_demand(
-    producers: dict[str, Producer], gap: dict[str, FloatLike], idx: int
-) -> None:
-    """
-    Assign each producer a share of each fuel's gap in proportion to its potential.
-
-    Each share is stored with the producer's own supply of the fuel it was measured
-    against, so that the production the producer gains later can come off it.
-
-    TODO: Can be improved with a regionality aspect
-
-    Parameters
-    ----------
-    producers
-        All producers in the simulation.
-    gap
-        Expected future gap between demand and supply of each fuel, in tons/year.
-    idx
-        Current time-step index.
-    """
-    supplies: dict[str, dict[str, FloatLike]] = {}
-
-    for producer_name, producer in producers.items():
-        supplies[producer_name] = _calculate_own_supply(producer, idx)
-
-    for fuel_name, fuel_gap in gap.items():
-        shares = _calculate_fair_shares(producers, fuel_name)
-
-        for producer_name, share in shares.items():
-            producer = producers[producer_name]
-            demand = fuel_gap * share
-            supply = supplies[producer_name][fuel_name]
-
-            producer.expectation.fair_share_demand[fuel_name][idx:] = demand
-            producer.expectation.fair_share_baseline[fuel_name][idx:] = supply
-            producer.results.fair_share_fuel_fraction[fuel_name][idx] = share
+    return production
 
 
 def _calculate_fair_shares(
