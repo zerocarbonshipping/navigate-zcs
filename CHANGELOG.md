@@ -1036,6 +1036,11 @@ change.
   capacity and the load first overstated the cap where a vessel's fleet mixes
   packages, such as half its vessels with shore power and half without; shore
   power use and bunkering change there (#374).
+- The starting vessels of a fleet with `Technologies` and no
+  `set_initial_technology_share` start without technology and retrofit at their
+  cycle. Their type's energy demand and shore-power potential averaged the
+  newbuilds' technology alone, and they never retrofitted; results move in such
+  fleets and in those approximating their technology from them (#1034).
 
 ## [1.0.0] - 2026-07-16
 

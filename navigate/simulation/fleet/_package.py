@@ -71,6 +71,26 @@ def get_technologies_by_capex(packages: list[TechnologyPackage]) -> list[Technol
     return packages[-1].technologies
 
 
+def build_empty_package_uptake(n_packages: int) -> FloatArray:
+    """
+    Build the package uptake of vessels that carry no technology.
+
+    Parameters
+    ----------
+    n_packages
+        Number of technology packages, the empty package first.
+
+    Returns
+    -------
+    FloatArray
+        Share of the vessels carrying each package, fraction: all on the empty one.
+    """
+    uptake = np.zeros(n_packages)
+    uptake[0] = 1.0
+
+    return uptake
+
+
 def _calculate_combined_effects(package: TechnologyPackage) -> None:
     """
     Calculate a package's combined savings, powers, transfer curves and shore power.
