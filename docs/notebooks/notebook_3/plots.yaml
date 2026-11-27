@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The plots Session 3 draws with Lantern, which reads this catalogue when it is
+# started in this folder. Each draws input numbers that Navigate writes into the
+# results file as it read them. The entries follow Lantern's own plots.yaml.
+
+labels:
+  eu_ets: EU ETS
+  fuel_eu: FuelEU Maritime
+  gfs: Global fuel standard
+
+inputs:
+  # a Regulation's RemedialCost: the allowance price under the EU ETS, whose
+  # threshold is zero, and the penalty per ton above the limit under the others
+  remedial_cost:
+    title: What a regulation charges per ton
+    split_by: node
+    series: regulation.remedial_cost
+
+  # the limit of a pooled (FLEXIBLE) intensity scheme, such as FuelEU
+  intensity_limit:
+    title: Intensity limits
+    unit: gCO2eq/MJ
+    split_by: node
+    series: regulation.shared_threshold
+
+  # a Producer's set_feed_limit, a panel per feedstock
+  feed_constraint:
+    title: Feedstock available to shipping
+    panels: key1
+    split_by: node
+    series: producer.feed_constraint
