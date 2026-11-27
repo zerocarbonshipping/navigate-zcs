@@ -1041,6 +1041,9 @@ change.
   cycle. Their type's energy demand and shore-power potential averaged the
   newbuilds' technology alone, and they never retrofitted; results move in such
   fleets and in those approximating their technology from them (#1034).
+- Speed management counts a fleet's `set_operational_saving_sea` and
+  `set_operational_saving_port` once, not twice; managed speeds, and the fuel
+  demand that follows them, move in fleets that set them (#1042).
 
 ## [1.0.0] - 2026-07-16
 
