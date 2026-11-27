@@ -482,6 +482,11 @@ change.
   refused; delete the line (#1013).
 
 ### Fixed
+- A route's port duration, distance, speed or utilization, a vessel's load or a
+  fleet's operational saving that changes over time reaches the expected
+  bunkering and the fleet's decisions at its own step, not one step late; a
+  port duration that turns 0 during a run no longer stops it with a power
+  demand of `inf MW` in that port (#1036).
 - Under a plant `Lifetime` that changes over time, a producer's expected and
   guaranteed production, reserved feed and expected production cost and WTT
   retired plants at the current or decision `Lifetime`, not each step's (#919).

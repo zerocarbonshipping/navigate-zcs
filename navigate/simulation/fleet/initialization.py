@@ -24,7 +24,6 @@ from navigate.simulation.fleet.expectation import calculate_fleet_evolution_expe
 from navigate.simulation.fleet.technology_adoption import (
     transfer_technology_charter_rate,
 )
-from navigate.simulation.fleet.technology_effect import update_residual_energy_demand
 from navigate.util import calculate_compound_growth, subtract
 
 if TYPE_CHECKING:
@@ -103,8 +102,6 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet.increments = _build_initial_increments(fleet, start)
     _seed_initial_uptake(fleet, start)
     _define_initial_trade(fleet, timeline)
-
-    update_residual_energy_demand(fleet, idx)
 
     fleet.expectation.uptakes[:, idx] = fleet.current_uptake
     calculate_fleet_evolution_expectation(fleet, timeline, idx, scrapping_pending=False)

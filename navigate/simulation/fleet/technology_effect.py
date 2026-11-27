@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
     """
-    Update every vessel's residual energy demand after technology installation.
+    Update every vessel's residual energy demand to its operations and technology.
 
     Parameters
     ----------
