@@ -562,6 +562,7 @@ Examples are air lubrication, wind assisted propulsion or shaft generators respe
 <section id="shorepowercapacity">
 <h3>ShorePowerCapacity<a class="headerlink" href="#shorepowercapacity" title="Link to this heading">#</a></h3>
 <p>This attribute sets the vessel-side shore power connection capacity. A vessel’s shore power use in a port is capped at the port’s <code class="docutils literal notranslate"><span class="pre">ShorePowerAvailability</span></code> of its time in port, times the lesser of a technology package’s combined capacity and the electrical load in port with that package, averaged over the vessels by the packages they carry.</p>
+<p>The uptake of a technology with shore power capacity responds to what the capacity is expected to save in the ports the vessel calls at: the cost of the fuel the shore power replaces, less the port’s <code class="docutils literal notranslate"><span class="pre">ShorePowerPrice</span></code>, each with its levy and regulation costs. Capacity that is never cheaper to use than fuel is valued at nothing, and only its cost counts.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>

@@ -650,7 +650,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </section>
 <section id="technologyhorizon">
 <h3>TechnologyHorizon<a class="headerlink" href="#technologyhorizon" title="Link to this heading">#</a></h3>
-<p>Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise.</p>
+<p>Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise. The value of a technology’s <a class="reference internal" href="technology.html#shorepowercapacity"><span class="std std-ref">ShorePowerCapacity</span></a> is smoothed over the same horizon.</p>
 <p>With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.75 at the default of 3.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
