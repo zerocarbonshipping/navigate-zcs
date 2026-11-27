@@ -39,21 +39,6 @@ All 'Plants' must be unique, i.e., a plant cannot be duplicated in the input lis
   + `[Plant("*")]`
 * **Default**: None. Must be provided by the user.
 
-### Inertia
-
-This attribute sets the inertia used in the uptake decision of newbuild plants.
-
-The inertia is defined as the fraction of newbuilds that must follow the same plant type distribution as the previous time-step. It is defined in fraction/year.
-
-* **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**:
-  + `0.66`
-  + `Forecast("name")`
-* **Unit**: fraction/year
-* **Minimum value**: 0
-* **Maximum value**: 1
-* **Default**: 0
-
 ### MinimumOfftakeDuration
 
 This attribute sets the minimum offtake duration required for building new plants. The duration is rounded up to whole years, so a duration under one year counts as one year.

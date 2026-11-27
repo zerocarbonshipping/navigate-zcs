@@ -17,7 +17,6 @@ from navigate.simulation.fuel.expectation import (
 )
 from navigate.simulation.fuel.feed import calculate_feed_availability
 from navigate.util import (
-    calculate_kept_fraction,
     divide_nonzero,
     find_nearest_index,
     is_negligible,
@@ -281,13 +280,12 @@ def _build_initial_increment(
 
 def _define_initial_development(producer: Producer, timeline: FloatArray) -> None:
     """
-    Define the initial development rate, uptake and development from the pipeline.
+    Define the initial uptake and development from the pipeline.
 
-    A plant type's development rate is its pipelined plants per year of their age
-    spans, the time steps they are delivered in, each increment weighted by the
-    inertia over the years since it was decided. The producer's rate is the sum
-    over its plant types, the uptake each type's share of it, and the development
-    counts every pipelined plant.
+    A plant type's development rate is its pipelined plants decided from the start on,
+    per year of their age spans, the time steps they are delivered in. The uptake is
+    each type's share of the producer's rate, the sum over its plant types, and the
+    development counts every pipelined plant.
 
     Parameters
     ----------
@@ -297,7 +295,6 @@ def _define_initial_development(producer: Producer, timeline: FloatArray) -> Non
         Simulation timeline, in years.
     """
     start = timeline[0]
-    inertia = producer.inertia.get()
     rates = np.zeros(len(producer.plants))
     count_total = 0.0
 
@@ -305,14 +302,14 @@ def _define_initial_development(producer: Producer, timeline: FloatArray) -> Non
         decided = np.array([increment.decided for increment in increments])
         counts = np.array([increment.count for increment in increments])
         spans = np.array([increment.age_span for increment in increments])
-        weights = calculate_kept_fraction(inertia, np.maximum(start - decided, 0.0))
 
+        # a weight of one selects the increments decided from the start on
+        weights = np.where(decided >= start, 1.0, 0.0)
         rates[p] = divide_nonzero(np.dot(weights, counts), np.dot(weights, spans))
         count_total += np.sum(counts)
 
-    development = float(np.sum(rates))
+    rate_total = float(np.sum(rates))
     even_share = 1.0 / rates.size
 
-    producer.current_development = development
-    producer.current_uptake = divide_nonzero(rates, development, default=even_share)
+    producer.current_uptake = divide_nonzero(rates, rate_total, default=even_share)
     producer.results.development[0] = count_total

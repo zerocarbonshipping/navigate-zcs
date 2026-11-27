@@ -148,9 +148,9 @@ change.
   `<data_dir>/modules/`. Move an assumptions folder of the old layout up one
   level. A user file overlaying a default is replaced by an `Import` and the
   reassignments in the deck, or by an own assumptions folder passed with `-d`.
-- `Load DefaultCalibration` sets every inertia to 0: ports' bunkering inertia
-  was 0.7 and fleets' and producers' `Inertia` 0.6. This moves the results of
-  every deck that loads it (#9).
+- `Load DefaultCalibration` sets ports' bunkering inertia (0.7 before) and
+  fleets' `Inertia` (0.6 before) to 0; producers' `Inertia` (0.6 before) is
+  removed (#1013). This moves the results of every deck that loads it (#9).
 - A deck that needs the assumptions when no folder is given names the
   folder of the clone Navigate was installed from, with the command that sets
   `ASSUMPTIONS_DATA_DIR` on this system, or links the download of the
@@ -470,6 +470,10 @@ change.
 - A `Producer`'s `MaximumRampUp`: a producer may build up to
   `MaximumDevelopment` plants per year in every time step. A deck that sets it
   is refused; delete the line (#1007).
+- A `Producer`'s `Inertia`: the plants it carried over were capped by the last
+  time step's fuel demand, so it built none in the first planning step; its
+  default and `Load DefaultCalibration` set it to 0. A deck that sets it is
+  refused; delete the line (#1013).
 
 ### Fixed
 - Secondary scrapping and `FixedScrapRate` scrap the oldest vessels of the fleet
@@ -486,11 +490,9 @@ change.
 - A producer's development for unmet demand no longer falls as the time steps
   shorten: it plans for the shortfalls of the ports short of a fuel, and a port
   supplied beyond its demand no longer offsets another port's shortfall (#1008).
-- A producer's `Inertia` continues its development rate in plants per year,
-  summed over its plant types, and its starting rate and plant-type split are
-  read per year from the existing pipeline; results move in decks with an
-  existing pipeline, or with `Inertia` above 0 and a `MaximumDevelopment` that
-  changes over time (#1006).
+- Until a producer first plans, its forecast splits a fuel's newbuilds between
+  plant types by their pipelined plants per year, not their pipelined count;
+  results can move where several plant types of a fuel have a pipeline (#1006).
 - The plants of an existing pipeline enter over the time step they are
   delivered in, as the forecast adds them. The first delivery after the start
   entered over a year whatever the step, and a delivery after a flat stretch of
@@ -525,9 +527,7 @@ change.
   - `TradeGrowth` (Fleet) holds the rate read at each whole year from the start
     for the year after it, so the trade no longer depends on the deck's dates;
   - a fuel conversion books its yearly charge by the share of each date's
-    period within its service window;
-  - a producer's starting development rate reads the plants its pipeline
-    delivers per year, over the time steps they are delivered in.
+    period within its service window.
 - Retrofits and fuel conversions act on the vessels at their retrofit cycle
   alone; they acted on their whole cohort, so steps shorter than a cohort's age
   span retrofitted too few. Yearly decks dated 1 January move only where:

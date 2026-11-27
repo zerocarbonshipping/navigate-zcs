@@ -214,7 +214,6 @@ Process "methanol_synthesis" {
 }
 
 Producer "producer_global" {
-	Inertia = 0.15
 	MinimumOfftakeDuration = 2
 	FuelSensitivity = 1.3
 	VariantSensitivity = 0.6
