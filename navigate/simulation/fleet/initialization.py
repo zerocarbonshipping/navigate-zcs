@@ -15,6 +15,7 @@ from navigate.core.increment import VesselIncrement
 from navigate.simulation.cohort import split_by_age
 from navigate.simulation.fleet._composition import extract_cargo_miles, get_counts
 from navigate.simulation.fleet._package import (
+    build_empty_package_uptake,
     build_technology_packages,
     calculate_package_charter_rates,
     update_packages,
@@ -87,7 +88,9 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     update_packages(fleet.technology_packages, fleet.package_cost_flows, start)
 
     n_packages = fleet.get_number_of_packages()
-    fleet.newbuild_package_uptake = [np.zeros(n_packages) for _ in fleet.vessels]
+    fleet.newbuild_package_uptake = [
+        build_empty_package_uptake(n_packages) for _ in fleet.vessels
+    ]
     fleet.orders_delivered = np.zeros(len(fleet.vessels))
     fleet.orders_postponed = np.zeros(len(fleet.vessels))
     fleet.fuel_conversion_expenses = np.zeros_like(timeline)
@@ -207,7 +210,7 @@ def _build_vessel_increments(
             entered=start - float(age),
             age_span=float(span),
             origin=0,
-            package_uptake=np.zeros(n_packages),
+            package_uptake=build_empty_package_uptake(n_packages),
         )
         increments.append(increment)
 
@@ -249,7 +252,7 @@ def _seed_initial_uptake(fleet: Fleet, start: float) -> None:
     """
     Seed the initial package uptake of every vessel type from its technology shares.
 
-    Without any share the increments keep no uptake, not even of the empty package.
+    Without any share the increments keep the empty package they were built with.
 
     Parameters
     ----------
@@ -297,7 +300,7 @@ def _seed_vessel_uptake(fleet: Fleet, vessel_idx: int, start: float) -> None:
 
     for increment in fleet.increments[vessel_idx]:
         # an empty increment, such as an age distribution's oldest bin at a share of
-        # zero, has no vessel to read a share at, and keeps no uptake
+        # zero, has no vessel to read a share at, and keeps the empty package
         if increment.count <= 0.0:
             continue
 

@@ -78,7 +78,8 @@ class VesselIncrement(Increment):
     origin
         Time-step index whose vessel attributes the cohort carries.
     package_uptake
-        Share of the cohort on each technology package, one entry per package.
+        Share of the cohort on each technology package, one entry per package,
+        summing to one: vessels without technology are on the empty package.
     technology_charter_rate
         Levelized technology cost carried by the cohort, currency/year/vessel.
     """

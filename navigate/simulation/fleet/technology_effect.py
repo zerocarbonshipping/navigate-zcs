@@ -52,8 +52,8 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
         sea, port = _calculate_operational_energy(vessel, idx)
         _transfer_operational_energy(vessel, sea, port, idx)
 
-        # a vessel type without technology uptake keeps its operational energy and
-        # has no shore-power potential
+        # a vessel type without vessels keeps its operational energy and has no
+        # shore-power potential
         weights = _calculate_package_weights(increments, packages)
         potential = np.zeros(len(vessel.route.ports))
         if weights:
