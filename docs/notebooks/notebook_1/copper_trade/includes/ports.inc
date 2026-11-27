@@ -4,7 +4,7 @@
 # PORTS - the two bunker ports. Every fuel can be bunkered at both, Navigate's
 # default; a fuel is shipped to the port that did not produce it, the same way
 # Chilean e-ammonia reaches Rotterdam. Delivered price is production cost plus
-# transport, set in bunker_logistics.inc.
+# transport, set in fuel_delivery.inc.
 
 Port "san_antonio" {
 }

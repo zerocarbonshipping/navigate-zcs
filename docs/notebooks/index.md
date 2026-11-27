@@ -14,6 +14,7 @@ a run, so it can be read without running it.
 
 notebook_1/notebook_1
 notebook_2/notebook_2
+notebook_3/notebook_3
 ```
 
 ## Running a notebook on your own machine
