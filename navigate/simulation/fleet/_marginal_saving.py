@@ -159,7 +159,8 @@ def _sum_energy_savings(
     baseline_energy
         Baseline energy per energy demand type and step, in GJ/year.
     shadow_prices
-        Shadow price per energy demand type and step, in currency/GJ.
+        Shadow price per energy demand type and step, NaN where unpriced, in
+        currency/GJ.
 
     Returns
     -------
@@ -172,7 +173,7 @@ def _sum_energy_savings(
         baselines = baseline_energy[energy_id]
         prices = shadow_prices[energy_id]
         for residual, baseline, price in zip(residuals, baselines, prices, strict=True):
-            saving += price * (baseline - residual)
+            saving += _zero_where_unpriced(price) * (baseline - residual)
 
     return saving
 
@@ -192,7 +193,7 @@ def _sum_limit_savings(
     limits
         Shore-power limit per port, in GJ/year.
     prices
-        Price of the shore-power limit per port, in currency/GJ.
+        Price of the shore-power limit per port, NaN where unpriced, in currency/GJ.
 
     Returns
     -------
@@ -202,6 +203,13 @@ def _sum_limit_savings(
     saving: FloatLike = 0.0
 
     for limit, price in zip(limits, prices, strict=True):
-        saving -= price * limit
+        saving -= _zero_where_unpriced(price) * limit
 
     return saving
+
+
+def _zero_where_unpriced(price: FloatLike) -> FloatLike:
+    """Return a price belief, zero at a date no solve has priced the vessel type at."""
+    # no projection has expected vessels of the type at such a date, so energy saved
+    # there is worth nothing to it
+    return np.where(np.isnan(price), 0.0, price)

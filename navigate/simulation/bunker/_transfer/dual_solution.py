@@ -28,8 +28,11 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
 
     The price of a shore-power limit is the dual of its row, selected and divided
     likewise: where no other priced row limits it, the change of the cost per GJ the
-    limit rises by. It is zero or negative, and zero at a port where the vessel has
-    no such row, so that no price of an earlier solve stays there.
+    limit rises by. It is zero or negative, and zero at a stop where the vessel has
+    no such row, as it cannot draw shore power there.
+
+    A vessel type outside the LP gets nothing: its prices at the time step stay NaN
+    and its demands zero, as ``reset_expected_bunkering`` left them.
 
     Parameters
     ----------

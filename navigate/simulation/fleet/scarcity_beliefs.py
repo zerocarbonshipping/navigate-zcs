@@ -40,6 +40,9 @@ def update_vessel_scarcity_beliefs(
     The price of each port's shore-power limit is smoothed the same way, into a
     technology belief alone: no speed decision reads it.
 
+    An entry no solve priced, at a date where the vessel type was outside the LP,
+    leaves its belief as it is, NaN where no projection has priced it yet.
+
     Parameters
     ----------
     fleets

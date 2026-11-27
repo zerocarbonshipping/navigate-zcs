@@ -482,6 +482,10 @@ change.
   refused; delete the line (#1013).
 
 ### Fixed
+- The energy prices that technology uptake and speed management weigh a vessel
+  type's savings at start at the type's own price when it is first expected in
+  service, instead of ramping up from zero, and no longer drift towards an
+  earlier projection's price at dates where it is no longer expected (#1038).
 - Under a plant `Lifetime` that changes over time, a producer's expected and
   guaranteed production, reserved feed and expected production cost and WTT
   retired plants at the current or decision `Lifetime`, not each step's (#919).

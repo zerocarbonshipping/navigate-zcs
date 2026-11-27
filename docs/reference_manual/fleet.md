@@ -151,7 +151,7 @@ This attribute sets the cost of capital used for evaluating technology investmen
 
 Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise. The value of a technology's [ShorePowerCapacity](technology.md#shorepowercapacity) is smoothed over the same horizon.
 
-With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.75 at the default of 3.
+With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.75 at the default of 3. A vessel type's belief for a year starts at the first price it is given there, and holds while the type is not expected in service in that year.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -165,7 +165,7 @@ With a horizon H, the belief keeps H/(1 + H) of its previous value per year, wha
 
 Smoothing horizon (in years) for the energy-scarcity belief that scales speed marginal-saving evaluations. Speed is an operational decision and typically uses a shorter horizon than `TechnologyHorizon` so it can respond faster to real tightness.
 
-With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.5 at the default of 1.
+With a horizon H, the belief keeps H/(1 + H) of its previous value per year, whatever the length of the time step: 0.5 at the default of 1. A vessel type's belief for a year starts at the first price it is given there, and holds while the type is not expected in service in that year.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:

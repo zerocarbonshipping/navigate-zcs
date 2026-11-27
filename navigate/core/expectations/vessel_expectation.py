@@ -97,11 +97,16 @@ class VesselExpectation(_Expectation):
         self.energy_sea_leg = per_leg()  # GJ/year
         self.energy_port = per_port_call()  # GJ/year
 
-        # energy conservation, at sea per leg, in port per port call
-        self.energy_conservation_pi_sea = per_leg()  # currency/GJ
-        self.energy_conservation_pi_port = per_port_call()  # currency/GJ
+        # energy conservation, at sea per leg, in port per port call, and the price of
+        # the shore-power limit per port call; a price is NaN where no solve priced
+        # the vessel type at the date, as zero is a real price
+        self.energy_conservation_pi_sea = per_leg(default=np.nan)  # currency/GJ
+        self.energy_conservation_pi_port = per_port_call(default=np.nan)  # currency/GJ
         self.energy_conservation_rhs_sea = per_leg()  # GJ/year
         self.energy_conservation_rhs_port = per_port_call()  # GJ/year
+        self.shore_power_limit_pi_port = self._path_list(
+            port_calls, default=np.nan
+        )  # currency/GJ
 
         # NaN until the first update: zero is a real shadow price, not a missing one
         self.belief_pi_sea_technology = per_leg(default=np.nan)  # currency/GJ
@@ -139,7 +144,6 @@ class VesselExpectation(_Expectation):
 
         self.shore_power_potential_port = self._path_list(port_calls)  # GJ/year
         self.shore_power_limit_port = self._path_list(port_calls)  # GJ/year
-        self.shore_power_limit_pi_port = self._path_list(port_calls)  # currency/GJ
 
         self.asset_charter_npv = self._path()  # currency
         self.capex_npv = self._path()  # currency
@@ -151,11 +155,28 @@ class VesselExpectation(_Expectation):
         self.tied_capital = [self._path() for _ in range(length)]  # currency
 
     def reset_expected_bunkering(self) -> None:
-        """Clear the bunker masses, energy and expenses of the expected bunkering."""
+        """
+        Clear everything the expected bunkering writes, before each of its projections.
+
+        The prices return to NaN and the energy demands to zero, so that a vessel type
+        outside the LP of a date keeps nothing an earlier projection wrote there.
+        """
+        legs = len(self.cargo_miles_leg)
+        port_calls = len(self.time_port)
+
+        per_leg = partial(self._path_lists, EnergyDemandID, legs)
+        per_port_call = partial(self._path_lists, PORT_ENERGY_DEMANDS, port_calls)
+
         self.bunker_mass_expected = self._paths(self.bunker_mass_expected)
 
         self.total_energy = self._path()
         self.expenses = self._paths(ExpenseID)
+
+        self.energy_conservation_pi_sea = per_leg(default=np.nan)
+        self.energy_conservation_pi_port = per_port_call(default=np.nan)
+        self.energy_conservation_rhs_sea = per_leg()
+        self.energy_conservation_rhs_port = per_port_call()
+        self.shore_power_limit_pi_port = self._path_list(port_calls, default=np.nan)
 
     def reset_bunker_mass_existing(self) -> None:
         """Zero the bunker masses of the existing bunkering."""

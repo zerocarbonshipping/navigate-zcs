@@ -399,22 +399,21 @@ def smooth_belief_path(
     Smooth a belief path towards the latest raw path, entry by calendar date.
 
     Match is by calendar index, not look-ahead position, so a given future year's belief
-    evolves coherently as successive projections refine it. A belief that has never
-    been updated bootstraps to the raw path; every later call blends the new projection
-    with the prior, including a prior that is exactly zero, so a price that appears
-    after a stretch of zeros ramps up from ``alpha * raw`` rather than being adopted in
-    full.
+    evolves coherently as successive projections refine it.
 
-    A NaN entry of ``belief[idx:]`` adopts the raw value and any other entry is
-    smoothed, so a caller allocates ``belief`` NaN-filled and passes a ``raw_path``
-    without NaN.
+    NaN stands for no value on either side, and zero is a value. A NaN raw entry keeps
+    the belief as it is, NaN where it has none. A raw entry with a NaN belief is adopted
+    in full. Any other belief is blended with its raw entry, a belief of exactly zero
+    too, so a price that appears after a stretch of zero prices ramps up from
+    ``alpha * raw``.
 
     Parameters
     ----------
     raw_path
-        Raw forward path from the latest LP solve; entries before ``idx`` are ignored.
+        Raw forward path from the latest LP solve, NaN where it has no value; entries
+        before ``idx`` are ignored.
     belief
-        Previous belief path, NaN where never updated, the length of ``raw_path``;
+        Previous belief path, NaN where it has no value, the length of ``raw_path``;
         entries before ``idx`` are ignored.
     alpha
         Smoothing weight: 1 adopts the raw path in full, 0 keeps the belief.
@@ -430,9 +429,9 @@ def smooth_belief_path(
     raw = raw_path[forward]
     prior = belief[forward]
 
-    # exponential smoothing, where an entry with no prior (NaN) adopts the raw value
-    smoothed = alpha * raw + (1.0 - alpha) * prior
-    return np.where(np.isnan(prior), raw, smoothed)
+    blended = alpha * raw + (1.0 - alpha) * prior
+    adopted = np.where(np.isnan(prior), raw, blended)
+    return np.where(np.isnan(raw), prior, adopted)
 
 
 @overload
