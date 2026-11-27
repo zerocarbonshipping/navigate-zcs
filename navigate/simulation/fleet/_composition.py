@@ -567,9 +567,9 @@ def _cycle_windows(
     return starts, starts + time_step
 
 
-def consolidate_increments(fleet: Fleet) -> None:
+def consolidate_increments(fleet: Fleet, population: float) -> None:
     """
-    Merge increments of one vintage, drop those below 1e-3 vessels.
+    Merge increments of one vintage, drop those negligible against the population.
 
     The simulation's CPU time grows with the number of increments per vessel type.
     Increments are of one vintage where they entered service at the same time over
@@ -582,6 +582,8 @@ def consolidate_increments(fleet: Fleet) -> None:
     ----------
     fleet
         Fleet whose increments are consolidated.
+    population
+        Number of vessels the fleet counts in the time-step, newbuilds included.
     """
     for v, increments in enumerate(fleet.increments):
         # cohorts in fleet order, each folded into its first increment
@@ -594,7 +596,8 @@ def consolidate_increments(fleet: Fleet) -> None:
         consolidated: list[VesselIncrement] = []
 
         for cohort in cohorts.values():
-            if sum(increment.count for increment in cohort) >= 1e-3:
+            count = sum(increment.count for increment in cohort)
+            if not is_negligible(count, population):
                 consolidated.append(_merge(cohort))
 
         fleet.increments[v] = consolidated
