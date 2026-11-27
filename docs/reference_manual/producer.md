@@ -112,7 +112,7 @@ The list must have a length corresponding to the number of plant types. Each ent
 
 ### MaximumDevelopment
 
-This attribute sets the development constraint limiting the maximum number of plants which can be built per year.
+This attribute sets the maximum number of plants the producer can build per year. The limit applies in every time step, whatever its length: a step builds at most this number times the step's length in years.
 
 If an unconstrained scenario is required, assign a value far above any development the demand could call for, such as `1e6`; `INF` is rejected.
 
@@ -124,24 +124,11 @@ If an unconstrained scenario is required, assign a value far above any developme
 * **Minimum value**: 0
 * **Default**: None. Must be provided by the user.
 
-### MaximumRampUp
-
-This attribute sets the maximum ramp-up for the utilization of the development constraint per year. The utilization is the fraction of `MaximumDevelopment` that can be used, and it cannot exceed 1.
-
-* **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**:
-  + `0.2`
-  + `Forecast("name")`
-* **Unit**: fraction/year
-* **Minimum value**: 0
-* **Maximum value**: 1
-* **Default**: 1
-
 ### JumpStart
 
-This attribute sets the jump start, a fraction used to initiate the supply/demand interaction if there has been no production.
+This attribute sets the jump start, the weight of an even split between the plant types of a fuel in the producer's expected production.
 
-The producer's expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel's plants built in the last time step, blended with an even split weighted by the jump start; a fuel without plants built in the last time step splits them evenly. While the development constraint has not been utilized, the jump start also stands in for its utilization.
+The producer's expected production assumes that it goes on building each fuel up to its expected demand, and spreads the development this leaves unused evenly over its fuels, so that a fuel is expected to be available before the fleet demands it. The allowed plants of a fuel share its expected newbuilds by their share of the fuel's plants built in the last time step, blended with an even split weighted by the jump start; a fuel without plants built in the last time step splits them evenly.
 
 * **Data type**: `Float`, `Variable`
 * **Example values**:

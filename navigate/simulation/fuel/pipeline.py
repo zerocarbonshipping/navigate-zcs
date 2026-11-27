@@ -111,7 +111,6 @@ def perform_pipeline_planning(
         Current time-step index.
     """
     limit = producer.maximum_development.get() * time_step
-    ramp_up = producer.maximum_ramp_up.get() * time_step
     offtake_duration = producer.minimum_offtake_duration.get()
 
     inertia = _calculate_inertia_newbuilds(producer, limit, time_step, idx)
@@ -123,10 +122,8 @@ def perform_pipeline_planning(
         _calculate_inter_fuel_metric(plant, demand, offtake_duration, timeline, idx)
         _calculate_intra_fuel_metric(plant, shares, idx)
 
-    # the utilization is the previous time step's, and the inertia already counts
-    # against the development limit
-    utilization = min(producer.current_utilization + ramp_up, 1.0)
-    development = float(subtract(limit * utilization, np.sum(inertia)))
+    # the inertia already counts against the development limit
+    development = float(subtract(limit, np.sum(inertia)))
     modelled = _calculate_modelled_newbuilds(producer, inertia, development, idx)
 
     # a count negligible against the producer's plants, operating or in the pipeline,
@@ -159,8 +156,7 @@ def perform_pipeline_planning(
     total = np.sum(newbuilds)
     even_share = 1.0 / newbuilds.size
 
-    # the utilization carries into the next time step's ramp-up constraint
-    producer.current_utilization = float(divide_nonzero(total, limit))
+    producer.current_development = float(total / time_step)
     producer.current_uptake = divide_nonzero(newbuilds, total, default=even_share)
     producer.results.development[idx] = total
 
@@ -171,8 +167,9 @@ def _calculate_inertia_newbuilds(
     """
     Calculate the plants built due to inertia from the previous uptake.
 
-    The previous uptake shares decay by the inertia and build their share of the
-    development the previous utilization allows.
+    The previous development rate carries over the time step, within the development
+    limit, and the previous uptake shares decay by the inertia and build their share
+    of it.
 
     Parameters
     ----------
@@ -190,7 +187,7 @@ def _calculate_inertia_newbuilds(
     FloatArray
         Number of plants of each type built through inertia.
     """
-    development = limit * producer.current_utilization
+    development = min(producer.current_development * time_step, limit)
 
     if development <= 0.0:
         return np.zeros(len(producer.plants))

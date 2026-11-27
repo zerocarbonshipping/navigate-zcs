@@ -390,6 +390,9 @@ change.
 - A `Curve` or `Forecast` given `Below` or `Above` while `Extrapolate` is not
   `FLAT` logs a warning that the value is ignored, as a `Surface` or
   `Timetable` does for `Outside` (#814).
+- A `Producer`'s `JumpStart` only blends the split between the plant types of a
+  fuel in its expected production; it no longer stands in for the development
+  of a producer that has built nothing.
 
 ### Removed
 - The `Plot` and `Report` nodes, the built-in plots and the
@@ -464,8 +467,19 @@ change.
 - Emission offsetting: `EnableOffsetting`, `OffsettingCost`, `AllowOffsetting`
   and `OffsetThreshold`, the `regulation_offsetting_units`, `_expenses` and
   `_cost` plots, and the offset lines of the emission and compliance plots.
+- A `Producer`'s `MaximumRampUp`: a producer may build up to
+  `MaximumDevelopment` plants per year in every time step. A deck that sets it
+  is refused; delete the line (#1007).
 
 ### Fixed
+- A producer's development limited by `MaximumDevelopment` no longer depends
+  on the step length: on steps shorter than a year it was held back by what the
+  producer built in its last step (#1007).
+- A producer's `Inertia` continues its development rate in plants per year,
+  summed over its plant types, and its starting rate and plant-type split are
+  read per year from the existing pipeline; results move in decks with an
+  existing pipeline, or with `Inertia` above 0 and a `MaximumDevelopment` that
+  changes over time (#1006).
 - A vessel without `FuelType` whose main fuel types tie on power takes the one
   its tanks hold the most volume of, instead of the one whose last-listed tank
   is largest; a tie no tank stores stops the run with an `Error:` line (#359).
@@ -495,8 +509,8 @@ change.
     for the year after it, so the trade no longer depends on the deck's dates;
   - a fuel conversion books its yearly charge by the share of each date's
     period within its service window;
-  - a producer's initial utilization reads the plants its pipeline delivers
-    per year, over the time steps they are delivered in.
+  - a producer's starting development rate reads the plants its pipeline
+    delivers per year, over the time steps they are delivered in.
 - Retrofits and fuel conversions act on the vessels at their retrofit cycle
   alone; they acted on their whole cohort, so steps shorter than a cohort's age
   span retrofitted too few. Yearly decks dated 1 January move only where:
@@ -937,9 +951,6 @@ change.
 - A Curve in a `Fleet`'s or `Producer`'s `InitialAgeDistribution` with a
   negative age or fraction is a deck error; it ran with assets entering in the
   future or negative asset counts (#214, #469).
-- A producer's plant development ramps up by `MaximumRampUp` per year, as its
-  own forecasts assume; with time steps shorter than a year it ramped up by
-  the full yearly amount every step (#564).
 - Vessels converted out of a vessel type that other conversions convert into
   in the same time-step keep the technology package and charter rate of the
   cohort they leave; they could carry those of an older cohort (#581).
