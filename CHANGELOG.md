@@ -497,8 +497,9 @@ change.
   each shortfall to every short port it exports to, not the shortfalls summed;
   results move in decks where a fuel goes to more than one port (#1025).
 - Until a producer first plans, its forecast splits a fuel's newbuilds between
-  plant types by all their pipelined plants per year, not their count; results
-  can move where a fuel with several plant types has a pipeline (#1006, #1022).
+  plant types by all their pipelined plants, no longer discounting those under
+  construction at the start by `Inertia`; results can move where a fuel with
+  several plant types has a pipeline (#1022, #1029).
 - The plants of an existing pipeline enter over the time step they are
   delivered in, as the forecast adds them. The first delivery after the start
   entered over a year whatever the step, and a delivery after a flat stretch of

@@ -282,10 +282,8 @@ def _define_initial_development(producer: Producer) -> None:
     """
     Define the initial uptake and development from the pipeline.
 
-    A plant type's development rate is all its pipelined plants, those under
-    construction at the start included, per year of their age spans, the time steps
-    they are delivered in. The uptake is each type's share of the producer's rate, the
-    sum over its plant types, and the development counts every pipelined plant.
+    A plant type's uptake is its share of all the producer's pipelined plants, those
+    under construction at the start included, and the development counts them all.
 
     Parameters
     ----------
@@ -293,14 +291,12 @@ def _define_initial_development(producer: Producer) -> None:
         Producer whose pipeline is read.
     """
     counts = np.zeros(len(producer.plants))
-    spans = np.zeros(len(producer.plants))
 
     for p, increments in enumerate(producer.pipeline):
         counts[p] = sum(increment.count for increment in increments)
-        spans[p] = sum(increment.age_span for increment in increments)
 
-    rates = divide_nonzero(counts, spans)
-    even_share = 1.0 / rates.size
+    total = np.sum(counts)
+    even_share = 1.0 / counts.size
 
-    producer.current_uptake = divide_nonzero(rates, np.sum(rates), default=even_share)
-    producer.results.development[0] = np.sum(counts)
+    producer.current_uptake = divide_nonzero(counts, total, default=even_share)
+    producer.results.development[0] = total
